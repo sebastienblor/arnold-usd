@@ -42,6 +42,27 @@ def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
     return (computed, computedDepth)
 
 def updateComputeSamples(*args):
+    
+    isGpu = cmds.getAttr('defaultArnoldRenderOptions.renderDevice')
+
+    if (isGpu):
+        cmds.attrControlGrp('ss_hemi_samples', edit=True, enable=False)
+        cmds.attrControlGrp('ss_specular_samples', edit=True, enable=False)
+        cmds.attrControlGrp('ss_transmission_samples', edit=True, enable=False)
+        cmds.attrControlGrp('ss_sss_samples', edit=True, enable=False)
+        cmds.attrControlGrp('ss_volume_samples', edit=True, enable=False)
+        if cmds.control('gpu_max_texturemax_texture_resolution', exists = True):
+            cmds.attrControlGrp('gpu_max_texturemax_texture_resolution', edit = True , enable = True)
+    else :
+        cmds.attrControlGrp('ss_hemi_samples', edit=True, enable=True)
+        cmds.attrControlGrp('ss_specular_samples', edit=True, enable=True)
+        cmds.attrControlGrp('ss_transmission_samples', edit=True, enable=True)
+        cmds.attrControlGrp('ss_sss_samples', edit=True, enable=True)
+        cmds.attrControlGrp('ss_volume_samples', edit=True, enable=True)
+        if cmds.control('gpu_max_texturemax_texture_resolution', exists = True):
+            cmds.attrControlGrp('gpu_max_texturemax_texture_resolution', edit = True , enable = False)
+
+    
     updateAdaptiveSettings()
 
     AASamples = cmds.getAttr('defaultArnoldRenderOptions.AASamples')
@@ -84,45 +105,95 @@ def updateComputeSamples(*args):
                 edit=True, 
                 label='Camera (AA) Samples : %i to %i' % (AASamplesComputed, AASamplesComputedMax))
 
-        cmds.text("textGISamples",
-                edit=True, 
-                label='Diffuse Samples : %i to %i (max : %i to %i)' % (GISamplesComputed, GISamplesComputedMax, GISamplesComputedDepth, GISamplesComputedDepthMax))
-        
-        cmds.text("textSpecularSamples",
-                edit=True, 
-                label='Specular Samples : %i to %i (max : %i to %i)' % (specularSamplesComputed, specularSamplesComputedMax, specularSamplesComputedDepth, specularSamplesComputedDepthMax))
-            
-        cmds.text("textTransmissionSamples",
-                edit=True, 
-                label='Transmission Samples : %i to %i (max : %i to %i)' % (transmissionSamplesComputed, transmissionSamplesComputedMax, transmissionSamplesComputedDepth, transmissionSamplesComputedDepthMax))
-            
-        cmds.text("textTotalSamples",
-                edit=True, 
-                label='Total (no lights) : %i to %i (max : %i to %i)' % (totalSamples, totalSamplesMax, totalSamplesDepth, totalSamplesDepthMax))
-
-
+        if not isGpu :
+            cmds.text("textGISamples",
+                    edit=True, 
+                    label='Diffuse Samples : %i to %i (max : %i to %i)' % (GISamplesComputed, GISamplesComputedMax, GISamplesComputedDepth, GISamplesComputedDepthMax),
+                    en = True
+                    )
+            cmds.text("textSpecularSamples",
+                    edit=True, 
+                    label='Specular Samples : %i to %i (max : %i to %i)' % (specularSamplesComputed, specularSamplesComputedMax, specularSamplesComputedDepth, specularSamplesComputedDepthMax),
+                    en = True
+                    )
+            cmds.text("textTransmissionSamples",
+                    edit=True, 
+                    label='Transmission Samples : %i to %i (max : %i to %i)' % (transmissionSamplesComputed, transmissionSamplesComputedMax, transmissionSamplesComputedDepth, transmissionSamplesComputedDepthMax),
+                    en = True
+                    )
+            cmds.text("textTotalSamples",
+                    edit=True, 
+                    label='Total (no lights) : %i to %i (max : %i to %i)' % (totalSamples, totalSamplesMax, totalSamplesDepth, totalSamplesDepthMax),
+                    en = True
+                    )
+        else : 
+            cmds.text("textGISamples",
+                    edit=True, 
+                    label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth),
+                    en = False
+                    )
+            cmds.text("textSpecularSamples",
+                    edit=True, 
+                    label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth),
+                    en = False
+                    )
+            cmds.text("textTransmissionSamples",
+                    edit=True, 
+                    label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth),
+                    en = False
+                    )
+            cmds.text("textTotalSamples",
+                    edit=True, 
+                    label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth),
+                    en = False
+                    )
     else:
         cmds.text("textAASamples",
                 edit=True, 
                 label='Camera (AA) Samples : %i' % AASamplesComputed)
 
-        cmds.text("textGISamples",
-                edit=True, 
-                label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
-        
-        cmds.text("textSpecularSamples",
-                edit=True, 
-                label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
-            
-        cmds.text("textTransmissionSamples",
-                edit=True, 
-                label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
-            
-        cmds.text("textTotalSamples",
-                edit=True, 
-                label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
-
-
+        if not isGpu :
+            cmds.text("textGISamples",
+                    edit=True, 
+                    label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth),
+                    en = True
+                    )
+            cmds.text("textSpecularSamples",
+                    edit=True, 
+                    label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth),
+                    en = True
+                    )
+            cmds.text("textTransmissionSamples",
+                    edit=True, 
+                    label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth),
+                    en = True
+                    )
+            cmds.text("textTotalSamples",
+                    edit=True, 
+                    label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth),
+                    en = True
+                    )
+        else:
+            cmds.text("textGISamples",
+                    edit=True, 
+                    label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth),
+                    en = False
+                    )
+            cmds.text("textSpecularSamples",
+                    edit=True, 
+                    label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth),
+                    en = False
+                    )
+            cmds.text("textTransmissionSamples",
+                    edit=True, 
+                    label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth),
+                    en = False
+                    )
+            cmds.text("textTotalSamples",
+                    edit=True, 
+                    label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth),
+                    en = False
+                    )
 
 def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
@@ -498,7 +569,9 @@ def createGpuSettings():
     if isGPU:
         cmds.attrControlGrp('renderDevice', 
                     label="Render Device ", 
-                    attribute='defaultArnoldRenderOptions.renderDevice')
+                    attribute='defaultArnoldRenderOptions.renderDevice',
+                    changeCommand = updateComputeSamples
+                    )
 
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
     cmds.attrControlGrp('gpu_default_names', 
@@ -550,9 +623,10 @@ def createGpuSettings():
     changeGpu()
     cmds.setParent('..')
     if isGPU:
-        cmds.attrControlGrp('gpu_max_texture_resolution', 
+        cmds.attrControlGrp('gpu_max_texturemax_texture_resolution', 
                         label="Max Texture Resolution", 
-                        attribute='defaultArnoldRenderOptions.gpu_max_texture_resolution')
+                        attribute='defaultArnoldRenderOptions.gpu_max_texture_resolution', 
+                        en = False)
     cmds.setParent('..')
         
 def createArnoldRenderSettings():
@@ -704,26 +778,31 @@ def createArnoldSamplingSettings():
     cmds.text( "textAASamples", 
                font = "smallBoldLabelFont",
                align='left',
+               label = 'Camera (AA) Samples'
                )
     
     cmds.text( "textGISamples", 
                font = "smallBoldLabelFont",
                align='left',
+               label = 'Diffuse Samples'
                )
     
     cmds.text( "textSpecularSamples", 
                font = "smallBoldLabelFont",
                align='left',
+               label = 'Specular Samples'
                )
 
     cmds.text( "textTransmissionSamples", 
                font = "smallBoldLabelFont",
                align='left',
+               label = 'Transmission Samples'
                )
 
     cmds.text( "textTotalSamples", 
                font = "smallBoldLabelFont",
                align='left',
+               label = 'Total (no lights)'
                )
                         
     cmds.separator()
