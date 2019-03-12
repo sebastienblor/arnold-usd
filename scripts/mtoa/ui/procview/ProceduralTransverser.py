@@ -3,7 +3,7 @@ import re
 import fnmatch
 import maya.cmds as cmds
 import mtoa.melUtils as mu
-from mtoa.ui.qt import BaseTransverser
+from mtoa.ui.qt import BaseTransverser, valueIsExpression
 from alembic import Abc, AbcGeom
 from arnold import *
 
@@ -434,7 +434,7 @@ class ProceduralTransverser(BaseTransverser):
         if value is None:
             value = ''
 
-        if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
+        if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
             value = "'{}'".format(value)
 
         param_exp = "{}{}{}".format(param, operation, value)

@@ -8,6 +8,8 @@ from .Qt import QtWidgets
 from .Qt import shiboken
 from .Qt import cmds
 
+import re
+
 _DPI_SCALE = \
     1.0 \
     if not hasattr(cmds, "mayaDpiSetting") else \
@@ -82,6 +84,30 @@ def setStaticSize(widget, width=0, height=0, posx=0, posy=0):
                            dpiScale(width),
                            dpiScale(height))
 
+
+def valueIsExpression(value):
+    """Check if the given value is a expression"""
+
+    def isDigit(value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    def isBoolean(value):
+        if value.lower() in ['true', 'false', 'on', 'off', '0', '1']:
+            return True
+        return False
+
+    if isDigit(value):
+        return False
+    if isBoolean(value):
+        return False
+    if re.search(r'[@#\+\-\*/\^\%]+', value):
+        return True
+
+    return False
 
 def getMayaWindow():
     """

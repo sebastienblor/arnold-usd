@@ -4,7 +4,7 @@ from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .treeView import BaseItem
-from .utils import dpiScale, setStaticSize, clearWidget
+from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression
 
 from .button import MtoAButton, MtoACheckableButton
 
@@ -231,6 +231,9 @@ class MtoAStrControl(QtWidgets.QLineEdit):
 
 
 class MtoALabelLineEdit(MayaQWidgetBaseMixin, QtWidgets.QFrame):
+
+    valueChanged = QtCore.Signal(str)
+
     def __init__(self, label='label', parent=None):
         super(MtoALabelLineEdit, self).__init__(parent)
 
@@ -256,7 +259,6 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
 
     INHERITED_ICON = BaseItem.dpiScaledIcon(":/expandInfluenceList.png")
 
-    valueChanged = QtCore.Signal(str)
     nodeDisconnected = QtCore.Signal()
     connectionButtonClicked = QtCore.Signal()
     menuTriggered = QtCore.Signal(object)
@@ -395,7 +397,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             return self.control.getValue()
 
     def setValue(self, value):
-        if self.control:
+        if self.control and not valueIsExpression:
             self.control.setValue(value)
 
 
@@ -484,6 +486,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.delBtn.clicked.connect(self.callDeleteMe)
         self.paramWidget.paramChanged.connect(self.emitParamChanged)
         self.expBtn.toggled.connect(self.valueWidget.setCurrentIndex)
+        self.expressionEditor.textEdited.connect(self.emitExpressionValueChanged)
+        self.op_menu.currentTextChanged.connect(self.emitOperationChanged)
 
     def setInherited(self, inherited):
         self.overrideButton.setEnabled(inherited)
@@ -519,6 +523,25 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
                                    self.index,
                                    self.operator)
         self.expressionEditor.setText(str(value))
+
+    def emitExpressionValueChanged(self, value):
+        param = self.getParam()
+        self.valueChanged[str, str, type(value), int, str].emit(
+                                   param,
+                                   self.getOperation(),
+                                   value,
+                                   self.index,
+                                   self.operator)
+
+    def emitOperationChanged(self, operation):
+        param = self.getParam()
+        value = self.getValue()
+        self.valueChanged[str, str, type(value), int, str].emit(
+                                   param,
+                                   operation,
+                                   value,
+                                   self.index,
+                                   self.operator)
 
     def populateParams(self, paramDict):
 
@@ -556,7 +579,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         return self.op_menu.setCurrentText(operation)
 
     def getValue(self):
-        if self.controlWidget:
+        if self.controlWidget and self.valueWidget.currentIndex() == 0:
             return self.controlWidget.value()
         else:
             return self.expressionEditor.text()
@@ -564,6 +587,10 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def setValue(self, value):
         self.controlWidget.setValue(value)
         self.expressionEditor.setText(str(value))
+        if valueIsExpression(value):
+            # show the expression editor
+            self.expBtn.setChecked(True)
+            self.valueWidget.setCurrentIndex(1)
 
     def setControlWidget(self, param):
         # make sure the param type is updated
