@@ -197,6 +197,7 @@ def updateComputeSamples(*args):
 
 def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
+    cmds.attrControlGrp('ignore_motion_blur', edit=True, enable=flag)
     cmds.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
     cmds.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
     cmds.attrControlGrp('mb_shader_enable', edit=True, enable=flag)
@@ -1189,10 +1190,14 @@ def createArnoldMotionBlurSettings():
 
     cmds.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=1)
     cmds.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=2)
-    
+
+    cmds.checkBoxGrp('ignore_motion_blur',
+                    label='Instantaneous Shutter')
+    cmds.connectControl('ignore_motion_blur', 'defaultArnoldRenderOptions.ignore_motion_blur', index=1)
+    cmds.connectControl('ignore_motion_blur', 'defaultArnoldRenderOptions.ignore_motion_blur', index=2)
+
     cmds.checkBoxGrp('mb_object_deform_enable',
-                    label='Deformation')
-                     
+                    label='Deformation')                     
     cmds.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=1)
     cmds.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=2)
     
@@ -1389,8 +1394,8 @@ def createArnoldOverrideSettings():
     cmds.attrControlGrp('ignore_smoothing',
                         attribute='defaultArnoldRenderOptions.ignore_smoothing', label='Ignore Normal Smoothing')
                         
-    cmds.attrControlGrp('ignore_motion_blur',
-                        attribute='defaultArnoldRenderOptions.ignore_motion_blur')
+    cmds.attrControlGrp('ignore_motion',
+                        attribute='defaultArnoldRenderOptions.ignore_motion')
 
     cmds.attrControlGrp('ignore_dof',
                         attribute='defaultArnoldRenderOptions.ignore_dof', label='Ignore Depth of Field')
