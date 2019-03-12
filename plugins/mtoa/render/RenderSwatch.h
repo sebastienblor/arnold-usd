@@ -6,6 +6,7 @@
 #include <maya/MSwatchRenderBase.h> 
 #include <maya/MString.h>
 #include <maya/MPlugArray.h>
+#include <extension/AbMayaNode.h>
 
 /** Render Swatches!
  * 
@@ -28,7 +29,8 @@ typedef enum
    SWATCH_ENVIRONMENT,
    SWATCH_ATMOSPHERE,
    SWATCH_LIGHT,
-   SWATCH_LIGHTFILTER
+   SWATCH_LIGHTFILTER,
+   SWATCH_NOGPU
 } CRenderSwatchClass;
 
 
@@ -49,6 +51,7 @@ public:
                                      int imageResolution);
 
    virtual bool doIteration();
+   static CAbMayaNode s_abstract;
 
 private:
    /// Extracts the swatch class from the previwed
@@ -87,9 +90,17 @@ private:
    /// Creates a polygon sphere.
    AtNode* PolySphere();
 
+   bool DoSwatchRender();
+   
+   bool DoNoGPUImage();
+
+   bool DoStaticImage();
+
+
 private:
    int m_iteration;
    MString m_nodeClass;
    CRenderSwatchClass m_swatchClass;
+
 
 };
