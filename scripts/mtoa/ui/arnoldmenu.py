@@ -480,19 +480,10 @@ def arnoldExportOperators(selected=False):
 
     # delete all the nodes that were exported with the options (in particular the scene operator graph)
     new_nodes = cmds.arnoldScene(operatorsToExport, mode="convert_selected_only", list="all_nodes")
+    defaultOp = operatorsToExport[0]
     
-    if len(operatorsToExport) == 1:
-        ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', ai.AiNodeLookUpByName(operatorsToExport[0]))
-    else:
-        # insert a merge operator to combine the multiple operators that are meant to be attached to the options
-        merge_op = ai.AiNode(None, 'merge', 'root_op')
-        new_nodes.append(ai.AiNodeGetName(merge_op))
-        operatorsArray = ai.AiArrayAllocate(len(operatorsToExport), 1, ai.AI_TYPE_POINTER)
-        for i in range(len(operatorsToExport)):
-            ai.AiArraySetPtr(operatorsArray, i, ai.AiNodeLookUpByName(operatorsToExport[i]))
-        ai.AiNodeSetArray(merge_op, 'inputs', operatorsArray)
-        ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', merge_op)
-
+    ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', ai.AiNodeLookUpByName(defaultOp))
+    
     ai.AiNodeResetParameter(ai.AiUniverseGetOptions(), 'color_manager') # ensure we don't set the color_manager node
     print "Exporting operators : %s " % operatorsToExport
     ai.AiASSWrite(None, defaultOperatorsFolder, 4097)
