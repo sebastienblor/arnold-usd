@@ -619,7 +619,7 @@ def createGpuSettings():
             continue
 
         if attrVal in gpuDeviceIds:
-            cmds.textScrollList('os_render_devices', edit=True, selectIndexedItem=i+1)
+            cmds.textScrollList('os_render_devices', edit=True, selectIndexedItem=attrVal+1)
 
     changeGpu()
     cmds.setParent('..')
