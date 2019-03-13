@@ -49,11 +49,11 @@ OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
-00:00:00   292MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
+00:00:00   295MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
 
-00:00:00   296MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+00:00:00   299MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
 
-00:00:00   296MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+00:00:00   299MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
 
 C:\solidangle\mtoadeploy\2018\scripts\mtoa\cmds\rendererCallbacks.py:23: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
 
@@ -61,19 +61,19 @@ C:\solidangle\mtoadeploy\2018\scripts\mtoa\cmds\rendererCallbacks.py:23: Unicode
 
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  0.38 seconds.
+File read in  0.36 seconds.
 
-File read in  0.38 seconds.
+File read in  0.36 seconds.
 
 Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0051/test.ma
 
-00:00:00   387MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   382MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   388MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   382MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   388MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   383MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   390MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   385MB WARNING | rendering with watermarks because of failed authorization:
 
 Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0051\test.ma completed.
 

@@ -8,8 +8,6 @@ D:\arnold\Maya-runtimes\windows\Maya2018\bin\Render -proj "D:\arnold\mtoa\build\
  
  
 Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
-sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
-
 Initialized VP2.0 renderer {
 
   Version : 2016.11.40.12. Feature Level 5.
@@ -51,53 +49,43 @@ OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+00:00:00   295MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+00:00:00   299MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+00:00:00   299MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
 
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+C:\solidangle\mtoadeploy\2018\scripts\mtoa\cmds\rendererCallbacks.py:23: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
 
-00:00:00   321MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
-
-00:00:00   325MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
-
-00:00:00   325MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
-
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
-
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
-
-Successfully imported python module 'arnold'
-
-Successfully imported python module 'mtoa'
-
-Successfully registered renderer 'arnold'
+  cmds.loadPlugin('renderSetup', qt=True)
 
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  2.5 seconds.
+File read in  0.34 seconds.
 
-File read in  2.5 seconds.
+File read in  0.34 seconds.
 
 Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0238/test.ma
 
-00:00:00   381MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   382MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   382MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   382MB WARNING |     [mtoa.translator]  mtoa_shaders: Maya node place2dTexture2(place2dTexture) does not have attribute defaultColor to match parameter wrap_frame_color on Arnold node place2dTexture2(uv_transform).
+
+00:00:00   383MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
 00:00:00   383MB WARNING |      colorLogic2.test: enumerated value -1 is out of range
 
 00:00:00   383MB WARNING |      colorLogic2: could not set INT parameter "test"
 
-00:00:00   383MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   384MB WARNING |     [mtoa.translator]  mtoa_shaders: Maya node place2dTexture4(place2dTexture) does not have attribute defaultColor to match parameter wrap_frame_color on Arnold node place2dTexture4(uv_transform).
 
-00:00:00   385MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   384MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   408MB WARNING |   out-of-range sample alpha in pixel (8,-1), alpha=1.14027262
+00:00:00   386MB WARNING | rendering with watermarks because of failed authorization:
 
-00:00:00   408MB WARNING |   out-of-range sample alpha in pixel (12,-1), alpha=1.02839768
+00:00:00   409MB WARNING |   out-of-range sample alpha in pixel (8,-1), alpha=1.14027262
+
+00:00:00   409MB WARNING |   out-of-range sample alpha in pixel (12,-1), alpha=1.02839768
 
 00:00:00   409MB WARNING |   out-of-range sample alpha in pixel (10,0), alpha=1.02177417
 

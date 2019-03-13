@@ -893,6 +893,8 @@ void CCheckerTranslator::Export(AtNode* shader)
          {
             // we need to set the UV controls in the uv_transform node
             AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            // if the uvset was set on the uv_transform node, the actual shader should now look at the default coordinates
+            AiNodeSetStr(shader, "uvset", ""); 
             ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
             ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
             ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
