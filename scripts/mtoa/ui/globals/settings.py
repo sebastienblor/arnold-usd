@@ -537,10 +537,11 @@ def renderDevicesListEdit(*args):
     selList = cmds.textScrollList('os_render_devices', query=True, sii=True)
     idsList = []
 
-    for i in selList:
+    for i in range(len(selList)):
         if i <= len(gpuDeviceIds):
-            idsList.append(gpuDeviceIds[i-1])
+            idsList.append(selList[i])
 
+    
     prevSize = cmds.getAttr('defaultArnoldRenderOptions.render_devices', s=True)
     selCount = len(idsList)
     for i in range(selCount):
@@ -615,11 +616,10 @@ def createGpuSettings():
 
     for i in attrIds:
         attrVal = cmds.getAttr('defaultArnoldRenderOptions.render_devices[{}]'.format(i))
-        if attrVal < 0:
+        if attrVal <= 0:
             continue
 
-        if attrVal in gpuDeviceIds:
-            cmds.textScrollList('os_render_devices', edit=True, selectIndexedItem=attrVal+1)
+        cmds.textScrollList('os_render_devices', edit=True, selectIndexedItem=attrVal)
 
     changeGpu()
     cmds.setParent('..')
