@@ -591,6 +591,17 @@ namespace // <anonymous>
                                     "",
                                     CAiOslShaderTranslator::creator,
                                     CAiOslShaderTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiRampRgb",
+                                    "",
+                                    CRampRgbTranslator::creator,
+                                    CRampRgbTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiRampFloat",
+                                    "",
+                                    CRampFloatTranslator::creator,
+                                    CRampFloatTranslator::NodeInitializer);
+      
+
 
       // Lights
       builtin->RegisterTranslator("directionalLight",

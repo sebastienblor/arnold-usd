@@ -403,7 +403,6 @@ void CBaseAttrHelper::MakeInputByte(MObject& attrib, CAttrData& data)
    nAttr.setChannelBox(data.channelBox);
 }
 
-/*
 void CBaseAttrHelper::MakeInputCurveRamp(MObject& attrib, const char* paramName)
 {
    CAttrData data;
@@ -449,7 +448,6 @@ void CBaseAttrHelper::MakeInputColorRamp(MObject& attrib, CAttrData& data)
    attrib = rAttr.createColorRamp(data.name, data.shortName, &status);
    CHECK_MSTATUS(status);
 }
-*/
 
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
 {

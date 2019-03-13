@@ -171,6 +171,23 @@ public:
    AtNode* CreateArnoldNodes();
 };
 
+class CRampRgbTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CRampRgbTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
+class CRampFloatTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CRampFloatTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
+
 class CAiStandardHairTranslator : public CShaderTranslator{
 public:
    static void* creator(){return new CAiStandardHairTranslator();}

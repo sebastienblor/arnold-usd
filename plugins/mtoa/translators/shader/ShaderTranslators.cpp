@@ -4187,3 +4187,98 @@ void CSetRangeTranslator::Export(AtNode* shader)
    ProcessParameter(Y_Range, "output_max", AI_TYPE_FLOAT, "maxY");
    ProcessParameter(Z_Range, "output_max", AI_TYPE_FLOAT, "maxZ");
 }
+
+void CRampRgbTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiRampRgb");
+   CAttrData data;
+   data.name = "ramp";
+   data.shortName = "aiRamp";
+   helper.MakeInputColorRamp(data);
+}
+
+AtNode* CRampRgbTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("ramp_rgb");
+}
+void CRampRgbTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "type", AI_TYPE_INT);
+   ProcessParameter(shader, "input", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "uvset", AI_TYPE_STRING);
+   ProcessParameter(shader, "use_implicit_uvs", AI_TYPE_INT);
+     
+   MFnDependencyNode fnNode(GetMayaObject());
+   MPlug plug;
+   plug = FindMayaPlug("ramp");
+   MObject opos = fnNode.attribute("ramp_Position");
+   ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
+   MObject ocol = fnNode.attribute("ramp_Color");
+   ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);
+   MObject oint = fnNode.attribute("ramp_Interp");
+   ProcessArrayParameter(shader, "interpolation", plug, AI_TYPE_INT, &oint);
+
+   AtArray *interpArray = AiNodeGetArray(shader, "interpolation");
+   unsigned int numElems = (interpArray) ? AiArrayGetNumElements(interpArray) : 0;
+   for (unsigned int i = 0; i < numElems; ++i)
+   {
+      switch (AiArrayGetInt(interpArray, i))
+      {
+         default: // 0: None and 1: Linear are already ok
+            break;
+         case 2: // smooth
+            AiArraySetInt(interpArray, i, 6); // Smooth is 6 in ramp_rgb
+            break;
+         case 3: // spline
+            AiArraySetInt(interpArray, i, 2); // Converting "Spline" as "Catmull-Rom" (2)
+            break;
+      }
+   }
+}
+
+void CRampFloatTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiRampFloat");
+   
+   CAttrData data;
+   data.name = "ramp";
+   data.shortName = "aiRamp";
+   helper.MakeInputCurveRamp(data);
+}
+
+AtNode* CRampFloatTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("ramp_float");
+}
+void CRampFloatTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "type", AI_TYPE_INT);
+   ProcessParameter(shader, "input", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "uvset", AI_TYPE_STRING);
+   MFnDependencyNode fnNode(GetMayaObject());
+   MPlug plug;
+   plug = FindMayaPlug("ramp");
+   MObject opos = fnNode.attribute("ramp_Position");
+   ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
+   MObject ocol = fnNode.attribute("ramp_FloatValue");
+   ProcessArrayParameter(shader, "value", plug, AI_TYPE_FLOAT, &ocol);
+   MObject oint = fnNode.attribute("ramp_Interp");
+   ProcessArrayParameter(shader, "interpolation", plug, AI_TYPE_INT, &oint);
+
+   AtArray *interpArray = AiNodeGetArray(shader, "interpolation");
+   unsigned int numElems = (interpArray) ? AiArrayGetNumElements(interpArray) : 0;
+   for (unsigned int i = 0; i < numElems; ++i)
+   {
+      switch (AiArrayGetInt(interpArray, i))
+      {
+         default: // 0: None and 1: Linear are already ok
+            break;
+         case 2: // smooth
+            AiArraySetInt(interpArray, i, 6); // Smooth is 6 in ramp_rgb
+            break;
+         case 3: // spline
+            AiArraySetInt(interpArray, i, 2); // Converting "Spline" as "Catmull-Rom" (2)
+            break;
+      }
+   }  
+}

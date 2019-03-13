@@ -1813,7 +1813,6 @@
     maya.name               STRING  "aiOslShader"
     maya.id                 INT     0x00115D56  
     maya.classification     STRING  "utility/shader"
-    maya.hide               BOOL    false
 
 [node sky]
     desc                    STRING  "Sky environment texture."
@@ -2534,10 +2533,37 @@ desc STRING "Multiplies the curvature by this factor."
 
 
 [node ramp_float]
-    maya.hide               BOOL    true
+    maya.name               STRING  "aiRampFloat"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115DA7
+    [attr position]
+        maya.hide           BOOL    true
+    [attr value]
+        maya.hide           BOOL    true
+    [attr interpolation]
+        maya.hide           BOOL    true
+    [attr input]
+        min                 FLOAT   0
+        max                 FLOAT   1
+    [attr type]
+        default             INT     2
+
 
 [node ramp_rgb]
-    maya.hide               BOOL    true
+    maya.name               STRING  "aiRampRgb"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115DA6
+    [attr position]
+        maya.hide           BOOL    true
+    [attr color]
+        maya.hide           BOOL    true
+    [attr interpolation]
+        maya.hide           BOOL    true
+    [attr input]
+        min                 FLOAT   0
+        max                 FLOAT   1
+    [attr type]
+        default             INT     2
 
 [node random]
     maya.id                 INT     0x00115D74
@@ -2611,7 +2637,10 @@ desc STRING "Multiplies the curvature by this factor."
     maya.hide               BOOL    true
 
 [node rgba_to_float]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115DA8
+    maya.name               STRING  "aiRgbaToFloat"
+    maya.classification     STRING  "utility/conversion"
+    
 
 # enable shadow matte
 [node shadow_matte]
