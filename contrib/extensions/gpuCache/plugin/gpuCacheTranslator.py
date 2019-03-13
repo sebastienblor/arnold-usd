@@ -74,6 +74,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback],
                        replacePrevious=True, parent=self.inspectAlembicPath)
+        cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback],
+                       replacePrevious=True, parent=self.inspectAlembicPath)
 
     def abcInfoReplace(self, nodeAttr):
         self.tree.setCurrentNode(self.nodeName)

@@ -223,6 +223,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
 
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
+        cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
 
     def newSceneCallback(self):
         self.tree.setCurrentNode(None)
