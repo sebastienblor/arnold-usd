@@ -570,14 +570,8 @@ bool CRenderSwatchGenerator::doIteration()
       arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
    }
 
-   bool isGPU = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("renderDevice", true).asInt() > 0 ;
    bool sceneSwatch = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
    
-   if (!sceneSwatch && !isGPU)
-   {
-      DoStaticImage();
-      return true;
-   }
    bool universeExists = AiUniverseIsActive();
    // If no universe already exists, we should start a session
    if (!universeExists)
@@ -623,20 +617,16 @@ bool CRenderSwatchGenerator::doIteration()
       }
       AiNodeEntryIteratorDestroy(nodeEntryIter);
    }
-   if (nodeEntry == NULL)
-   {
-      DoStaticImage();
-      return true;
-   }
-
-   bool gpuRenderCompatibility = true;
-
-   // Do we only want to show the no-gpu icon when gpu is enabled ?
-   if (isGPU)
-      AiMetaDataGetBool(nodeEntry, NULL, "gpu_support", &gpuRenderCompatibility);
    
-   bool doSwatch = sceneSwatch && (AiNodeEntryGetType(nodeEntry) == AI_NODE_SHADER);
-   AiMetaDataGetBool(nodeEntry, NULL, "maya.swatch", &doSwatch);
+   bool gpuRenderCompatibility = true;
+   bool doSwatch = false;
+
+   if (nodeEntry)
+   {
+      AiMetaDataGetBool(nodeEntry, NULL, "gpu_support", &gpuRenderCompatibility);
+      doSwatch = sceneSwatch && (AiNodeEntryGetType(nodeEntry) == AI_NODE_SHADER);
+      AiMetaDataGetBool(nodeEntry, NULL, "maya.swatch", &doSwatch);
+   }
    
    // if a universe was created, let's clear it
    if (!universeExists)
@@ -644,14 +634,13 @@ bool CRenderSwatchGenerator::doIteration()
 
    if (!gpuRenderCompatibility)
    {
-      // if GPU is not supported for this node entry, we'll always show the no-gpu image
+      // If GPU isn't supported for this node, we always show the no-gpu icon
       DoNoGPUImage();
    } else if (doSwatch && !universeExists)
-   {      
-      // if swatch is enabled and no render is in progress, we can start a swatch rendering
+   {
+      // if swatch is enabled AND no render is in progress, we can start a swatch rendering
       DoSwatchRender();
-   }
-   else
+   } else
    {
       // fallback behaviour, show a static image
       DoStaticImage();
