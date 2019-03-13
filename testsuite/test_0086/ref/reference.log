@@ -1,6 +1,6 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0086', 'SystemDrive': 'C:', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0086', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
  
  ==== Exec cmd ==== 
  
@@ -49,61 +49,47 @@ OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
-00:00:00   428MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138176 to associated Maya type name aiUsd.
+00:00:00   292MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 156: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+00:00:00   296MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 156: setAttr: No object matches name: .dgamma
+00:00:00   296MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 157: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+C:\solidangle\mtoadeploy\2018\scripts\mtoa\cmds\rendererCallbacks.py:23: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 157: setAttr: No object matches name: .lgamma
+  cmds.loadPlugin('renderSetup', qt=True)
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 158: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 5: Unknown Maya file version: 2018ff09.
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 158: setAttr: No object matches name: .sgamma
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 259: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 159: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 261: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
 
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 159: setAttr: No object matches name: .tgamma
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 265: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
 
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 250: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 358: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
 
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 251: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
-
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 254: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
-
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 346: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
-
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 404: The aiAOVDriver 'defaultArnoldDriver' has no '.gamma' attribute.
-
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 404: setAttr: No object matches name: .gamma
-
-Viewport 2.0 floating point render target is turned off.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma line 942: 'aiStandard5.message' is already connected to 'defaultShaderList1.shaders'.
 
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
 
-File read in  0.44 seconds.
+File read in  0.17 seconds.
 
-File read in  0.44 seconds.
+File read in  0.17 seconds.
 
-Error: line 1: Error reading file.
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0086/test.ma
 
-Error: line 1: Error reading file.
+00:00:00   388MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   521MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   388MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   521MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   388MB WARNING |  node entry "standard" is deprecated, and may be removed in the future
 
-00:00:00   521MB WARNING |  node entry "standard" is deprecated, and may be removed in the future
+00:00:00   389MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   521MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   392MB WARNING | rendering with watermarks because of failed authorization:
 
-00:00:00   525MB WARNING | rendering with watermarks because of failed authorization:
-
-00:00:00   571MB WARNING |   [polymesh] pCubeShape1: discarded 2 duplicate deformation keys
-
-00:00:00   572MB WARNING |   [disp] pCubeShape1: padding is at least 3x smaller than it should be! given disp_padding: 1, recommended: 3
+00:00:00   435MB WARNING |   [polymesh] pCubeShape1: discarded 2 duplicate deformation keys
 
 Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0086\test.ma completed.
 
