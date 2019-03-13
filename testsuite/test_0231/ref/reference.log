@@ -8,31 +8,56 @@ D:\arnold\Maya-runtimes\windows\Maya2018\bin\Render -proj "D:\arnold\mtoa\build\
  
  
 Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
-sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+Initialized VP2.0 renderer {
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+  Version : 2016.11.40.12. Feature Level 5.
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+  Adapter : Quadro K620/PCIe/SSE2
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+  Vendor ID: 4318. Device ID : 5051
 
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+  Driver : nvoglv64.dll:23.21.13.9103.
 
-00:00:00   264MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
+  API : OpenGL V.4.6.
 
-00:00:00   268MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+  Max texture size : 16384 * 16384.
 
-00:00:00   268MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+  Max tex coords : 32
 
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
 
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+  Shader compiler profile : (Best card profile)
 
-Successfully imported python module 'arnold'
+  Active stereo support available : 0
 
-Successfully imported python module 'mtoa'
+  GPU Memory Limit : 2048 MB.
 
-Successfully registered renderer 'arnold'
+  CPU Memory Limit: 62185.1 MB.
+
+  MultiDraw consolidation: enabled
+
+}
+
+OpenCL evaluator is attempting to initialize OpenCL.
+
+Detected 1 OpenCL Platforms: 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+
+00:00:00   294MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
+
+00:00:00   299MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+
+00:00:00   299MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+
+C:\solidangle\mtoadeploy\2018\scripts\mtoa\cmds\rendererCallbacks.py:23: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+
+  cmds.loadPlugin('renderSetup', qt=True)
 
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0231/test.ma line 576: 'defaultColorMgtGlobals.cmEnabled' is already connected to 'aiImage1.colorManagementEnabled'.
 
@@ -52,15 +77,15 @@ Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/t
 
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  1.3 seconds.
+File read in  0.42 seconds.
 
-File read in  1.3 seconds.
+File read in  0.42 seconds.
 
 Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0231/test.ma
 
-00:00:00   330MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   394MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   330MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   394MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
 Updating TX textures :
 
@@ -75,13 +100,13 @@ Updating TX textures :
 
 -filename D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0231/test2.png
 
-00:00:00   336MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   402MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   336MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   402MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   337MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   403MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 
-00:00:00   342MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   408MB WARNING | rendering with watermarks because of failed authorization:
 
 Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0231\test.ma completed.
 
