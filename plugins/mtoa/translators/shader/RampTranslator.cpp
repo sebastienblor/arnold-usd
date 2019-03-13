@@ -498,6 +498,7 @@ AtNode* CRampTranslator::ExportUvTransform()
 
    AiNodeSetRGBA(uvTransformNode, "passthrough", 0.f, 0.f, 0.f, 1.f);
    AiNodeSetStr(uvTransformNode, "uvset", m_uvSet.asChar());
+   // if we set the uvset on the uv_transform node, it should not be set on the linked shaders
 
    AtNode *uvTransformWave = NULL;
 
@@ -589,7 +590,7 @@ AtNode* CRampTranslator::ExportUvTransform()
    if (rampFloat == NULL)
       rampFloat = AddArnoldNode("ramp_float", "ramp_float");
    // if we're in UV / Tartan, it should be ramps with U & V types
-   AiNodeSetStr(rampFloat, "uvset", m_uvSet.asChar());
+   AiNodeSetStr(rampFloat, "uvset", ""); // the uvset was already set on the uv_transform node
 
    AtNode *rampFloat2 = NULL;
 
@@ -602,7 +603,7 @@ AtNode* CRampTranslator::ExportUvTransform()
 
       ExportRampType(rampFloat, RT_U);
       ExportRampType(rampFloat2, RT_V);
-      AiNodeSetStr(rampFloat2, "uvset", m_uvSet.asChar());
+      AiNodeSetStr(rampFloat2, "uvset", ""); // the uvset was already set on the uv_transform node
       AiNodeLink(rampFloat, "passthrough.r", uvTransformWave ? uvTransformWave : uvTransformNode);
       AiNodeLink(rampFloat2, "passthrough.g", uvTransformWave ? uvTransformWave : uvTransformNode);
    } else
