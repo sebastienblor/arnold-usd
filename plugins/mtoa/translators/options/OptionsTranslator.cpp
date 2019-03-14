@@ -1540,13 +1540,21 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetBool(options, "enable_dependency_graph", true);
 
    bool gpuRender = false;
+   bool gpuFallbackBool = false;
    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
    {
       MPlug gpuPlug = FindMayaPlug("renderDevice");
+      MPlug gpuFallbackPlug = FindMayaPlug("render_device_fallback");
       if (GetSessionMode() != MTOA_SESSION_SWATCH && (!gpuPlug.isNull()))
          gpuRender = gpuPlug.asBool();
 
+      if (!gpuFallbackPlug.isNull())
+      {
+         gpuFallbackBool = gpuFallbackPlug.asBool();
+      }
+
       AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
+      AiNodeSetStr(options, "render_device_fallback", (gpuFallbackBool) ? "CPU" : "error");
 
       // For GPU render, we want to force options.enable_progressive_render to be ON, even if its value is ignored by Arnold.
       // At least we can take this parameter into account later on, for example when ARV needs to do special things depending on 

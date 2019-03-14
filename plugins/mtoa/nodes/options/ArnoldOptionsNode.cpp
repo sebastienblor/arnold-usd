@@ -125,7 +125,7 @@ MObject CArnoldOptionsNode::s_render_devices;
 MObject CArnoldOptionsNode::s_gpu_max_texture_resolution;
 MObject CArnoldOptionsNode::s_manual_devices;
 MObject CArnoldOptionsNode::s_ignore_list;
-
+MObject CArnoldOptionsNode::s_render_device_fallback;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -204,7 +204,8 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("batch_only", 2);
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
-
+   
+   
    s_denoiseBeauty = nAttr.create("denoiseBeauty", "opdenb", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_denoiseBeauty);
@@ -471,7 +472,14 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("GPU ( BETA )", 1);
    eAttr.setDefault(0);
    addAttribute(s_gpu);
-   
+
+   s_render_device_fallback = eAttr.create("render_device_fallback", "rndfb");
+   eAttr.setKeyable(false);
+   eAttr.addField("Error", 0);
+   eAttr.addField("CPU", 1);
+   eAttr.setDefault(0);
+   addAttribute(s_render_device_fallback);
+
    s_manual_devices = nAttr.create("manual_gpu_devices", "manualdevs", MFnNumericData::kBoolean, false);
    nAttr.setKeyable(false);
    addAttribute(s_manual_devices);

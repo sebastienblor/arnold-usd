@@ -145,8 +145,9 @@ public:
    static MObject s_legacy_gi_refraction_samples;
 
    static MObject s_gpu;   
-   static MObject s_render_devices;   
+   static MObject s_render_devices;
    static MObject s_manual_devices;
+   static MObject s_render_device_fallback;
    
    static MObject s_stats_enable;
    static MObject s_stats_file;
