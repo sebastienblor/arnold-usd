@@ -53,6 +53,7 @@ def updateComputeSamples(*args):
         cmds.attrControlGrp('ss_volume_samples', edit=True, enable=False)
         if cmds.control('gpu_max_texturemax_texture_resolution', exists = True):
             cmds.attrControlGrp('gpu_max_texturemax_texture_resolution', edit = True , enable = True)
+            cmds.attrControlGrp('renderDeviceFallback', edit = True , enable = True)
     else :
         cmds.attrControlGrp('ss_hemi_samples', edit=True, enable=True)
         cmds.attrControlGrp('ss_specular_samples', edit=True, enable=True)
@@ -61,6 +62,7 @@ def updateComputeSamples(*args):
         cmds.attrControlGrp('ss_volume_samples', edit=True, enable=True)
         if cmds.control('gpu_max_texturemax_texture_resolution', exists = True):
             cmds.attrControlGrp('gpu_max_texturemax_texture_resolution', edit = True , enable = False)
+            cmds.attrControlGrp('renderDeviceFallback', edit = True , enable = False)
 
     
     updateAdaptiveSettings()
@@ -575,6 +577,15 @@ def createGpuSettings():
                     changeCommand = updateComputeSamples
                     )
 
+    cmds.separator()
+
+    cmds.attrControlGrp('renderDeviceFallback', 
+                    label="Render Device Fallback", 
+                    attribute='defaultArnoldRenderOptions.render_device_fallback',
+                    changeCommand = updateComputeSamples,
+                    en = False
+                    )
+    
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
     cmds.attrControlGrp('gpu_default_names', 
                         label="GPU Names", 
