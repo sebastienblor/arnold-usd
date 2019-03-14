@@ -173,6 +173,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
         if filename == None or len(filename) == 0:
             return
 
+        filename_changed = False
+        if nodeName == self.currentNode and filename != self.currentFilename:
+            filename_changed = True
+
         self.currentNode = nodeName
         self.currentFilename = filename
         ext_str = os.path.splitext(filename)[1].lower()
@@ -194,7 +198,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setTransverser(transverser, refresh=False)
         self.properties_panel.setTransverser(transverser)
         # setting node triggers the refresh
-        self.tree.setCurrentNode(self.nodeName, expand)
+        self.tree.setCurrentNode(self.nodeName, expand, filename_changed)
         self.properties_panel.setNode(self.nodeName)
 
     def fileInfoNew(self, nodeAttr):

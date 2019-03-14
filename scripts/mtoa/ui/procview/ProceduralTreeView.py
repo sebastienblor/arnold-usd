@@ -40,10 +40,10 @@ class ProceduralTreeView(BaseTreeView):
         self.transverser = transverser
         self.model().setTransverser(transverser, refresh)
 
-    def setCurrentNode(self, node, expand=True):
+    def setCurrentNode(self, node, expand=True, force=False):
         """Clear the widget and generate the view of the new node."""
         model = self.model()
-        if model.setCurrentNode(node):
+        if model.setCurrentNode(node, force):
             # refresh the model, pass if we need to delay the update
             # of the child node to the actual expand
             model.refresh(not expand)
@@ -147,8 +147,8 @@ class ProceduralTreeModel(BaseModel):
 
         self.endResetModel()
 
-    def setCurrentNode(self, node):
-        if self.currentNode != node:
+    def setCurrentNode(self, node, force=False):
+        if self.currentNode != node or force:
             self.currentNode = node
             return True
         return False
