@@ -47,11 +47,10 @@ class StandInTransverser(ProceduralTransverser):
 
         super(StandInTransverser, self).__init__()
 
-
     def getObjectInfo(self, iObj):
         if iObj == None:
             return ['/', '/', '', 'visible', '', '/', None]
-        
+
         name = iObj
         entryName = self.cache[iObj]
         return [name, name, '', 'visible', name, entryName, name]
@@ -59,7 +58,7 @@ class StandInTransverser(ProceduralTransverser):
     def getRootObjectInfo(self, node):
         self.nodeName = node
         return ["/", "/", '', 'visible', '', '/', None]
-        
+
     def dir(self, iobject):
         if iobject != None:
             return []
@@ -67,10 +66,9 @@ class StandInTransverser(ProceduralTransverser):
         filenameAttr = self.nodeName + '.dso'
         filename = cmds.getAttr(filenameAttr)
         self.cache = {} # for now we're just storing the entry_type, but we might want to store more data 
-        if not os.path.exists(filename):
+        if not os.path.exists(str(filename)):
             return
 
-        
         ass_nodes = []
 
         universeCreated = False
@@ -82,16 +80,16 @@ class StandInTransverser(ProceduralTransverser):
         ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
 
         iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
-        
+
         while not ai.AiNodeIteratorFinished(iter):
             node = ai.AiNodeIteratorGetNext(iter)
             nodeName = ai.AiNodeGetName(node)
             if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options':
                 continue
-            
+
             nodeEntry = ai.AiNodeGetNodeEntry(node)
             entryName = ai.AiNodeEntryGetName(nodeEntry)
-            
+
             name = ai.AiNodeGetName(node)
             entryType = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
             ass_nodes.append([name, name, '', 'visible', name, entryType, name])
@@ -105,5 +103,5 @@ class StandInTransverser(ProceduralTransverser):
         return ass_nodes
         # but we should consider nested procedurals....
 
-    
+
 ################################################

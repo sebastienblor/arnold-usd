@@ -161,7 +161,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.setAttr(selAttr, attrVal, type='string')
         return True
     '''
-    
+
     def fileInfoReplace(self, nodeAttr) :
         nodeName = nodeAttr.split('.')[0]
         fileAttr = '{}.dso'.format(nodeName)
@@ -170,16 +170,16 @@ class AEaiStandInTemplate(ShaderAETemplate):
             self.properties_panel.setItem(self.nodeName, None)
             return  # nothing to do here...
 
-        if filename == None or len(filename) == 0:
-            return
-
         filename_changed = False
         if nodeName == self.currentNode and filename != self.currentFilename:
             filename_changed = True
 
         self.currentNode = nodeName
         self.currentFilename = filename
-        ext_str = os.path.splitext(filename)[1].lower()
+
+        ext_str = ".ass"
+        if filename:
+            ext_str = os.path.splitext(filename)[1].lower()
 
         expand = False
         if ext_str == '.abc':
@@ -192,7 +192,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             transverser = CustomProceduralTransverser(procName, 'filename', filename)
         else:
             transverser = StandInTransverser()
-        
+
         transverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
         # setting refresh to False forces the tranverser not to refresh the tree
         self.tree.setTransverser(transverser, refresh=False)
@@ -200,6 +200,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
         # setting node triggers the refresh
         self.tree.setCurrentNode(self.nodeName, expand, filename_changed)
         self.properties_panel.setNode(self.nodeName)
+
+        fileAttr = self.nodeName + ".dso"
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile])
+
+        fileAttr = self.nodeName + ".selected_items"
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
 
     def fileInfoNew(self, nodeAttr):
 
@@ -218,16 +224,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidget.layout().addWidget(self.properties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
-        self.fileInfoReplace(nodeAttr)
-
-        fileAttr = self.nodeName + ".dso"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile])
-
-        fileAttr = self.nodeName + ".selected_items"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
 
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
+
+        self.fileInfoReplace(nodeAttr)
 
     def newSceneCallback(self):
         self.tree.setCurrentNode(None)
