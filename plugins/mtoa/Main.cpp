@@ -50,6 +50,7 @@
 #include "commands/ArnoldBakeGeoCmd.h"
 #include "commands/ArnoldRenderToTextureCmd.h"
 #include "commands/ArnoldExportToMaterialXCmd.h"
+#include "commands/ArnoldExportOperatorsCmd.h"
 #include "commands/ArnoldPluginCmd.h"
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
@@ -162,7 +163,8 @@ namespace // <anonymous>
       {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
       {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
       {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
-      {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax}
+      {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax},
+      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.

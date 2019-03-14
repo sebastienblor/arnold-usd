@@ -108,10 +108,7 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 
       CMayaScene::Export();
    }
-   // Ok this is tricky. "convert_selected" is going to call CMayaScene::Export(&sList) which will trigger the options export.
-   // But we need another mode that only exports each of the selected nodes independantly. We're calling this new mode "convert_selected_only".
-   // Yes, it sucks.... but we don't want to break existing workflows using "convert_selected"
-   else if (mode == "convert_selected" || mode == "convert_selected_only" ) 
+   else if (mode == "convert_selected") 
    {
       if (!CMayaScene::IsActive())
          CMayaScene::Begin(MTOA_SESSION_ASS);
@@ -135,8 +132,7 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 
       MSelectionList sel(sList);
 
-      if (mode == "convert_selected")
-         CMayaScene::Export(&sList); // do NOT call this function for "convert_selected_only", because we don't want to export the options
+      CMayaScene::Export(&sList);
 
       CArnoldSession *session = CMayaScene::GetArnoldSession();
 

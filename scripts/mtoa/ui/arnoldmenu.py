@@ -9,6 +9,7 @@ import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
 import mtoa.materialx
+import mtoa.operators
 import mtoa.denoise
 import mtoa.licensing
 import arnold as ai
@@ -426,73 +427,10 @@ def arnoldDenoise():
     win.create()    
 
 
-def arnoldExportOperators(selected=False):
+def arnoldExportOperators():
+    win = mtoa.operators.MtoAExportOperatorGraph()
+    win.create()
 
-    operatorsToExport = []
-    target_op = melUtils.getAttrInputs('defaultArnoldRenderOptions', 'operator')
-    if target_op and len(target_op):
-        target_op = target_op[0]
-    else:
-        target_op = None
-
-    if selected:
-        # We're exporting the selected operator graph. If a procedural/standin is selected, 
-        # we'll export all operators plugged into it
-
-        # First let's get the current list of known operators, so that we 
-        # can ensure we're really exporting operators and not bananas
-        operatorTypes = cmds.arnoldPlugins(listOperators=True)
-        num_procs = 0
-        selList = cmds.ls(sl=1)
-        for sel in selList:
-            objType = cmds.objectType(sel)
-            if objType in operatorTypes:
-                # this node is an operator, let's add it to our list
-                operatorsToExport.append(sel)
-            elif cmds.objExists('{}.operators'.format(sel)): 
-                num_procs += 1
-                # in case we selected a procedural that has one or several operators connected to it
-                inputOperators = melUtils.getAttrInputs(sel, 'operators') or []
-                if len(inputOperators) > 0:
-                    #insert a merge_op and add this op to the ops list
-                    merge_op = ai.AiNode(None, 'merge', '{}@root_op'.format(sel))
-                    operatorsArray = ai.AiArrayAllocate(len(inputOperators), 1, ai.AI_TYPE_POINTER)
-                    for i in range(len(inputOperators)):
-                        ai.AiArraySetPtr(operatorsArray, i, inputOperators[i])
-                    ai.AiNodeSetArray(merge_op, 'inputs', operatorsArray)
-                    operatorsToExport.append(merge_op)
-
-    else:
-        operatorsToExport.append(target_op)
-
-    if len(operatorsToExport) == 0:
-        # No operators to export, say goodbye
-        cmds.error("Export Operator Graph: no operator found")
-        return
-
-    global defaultOperatorsFolder
-    if defaultOperatorsFolder == "":
-        defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
-    
-    objFilter = "ASS File (*.ass)"        
-    ret = cmds.fileDialog2(cap='Export Operator Graph',okc='Select',ff=objFilter,fm=0,dir=defaultOperatorsFolder) or []
-    if len(ret) == 0:
-        return
-
-    defaultOperatorsFolder = ret[0]
-    cmds.arnoldScene(mode="destroy") # first ensure we don't have an active scene going on
-
-    # delete all the nodes that were exported with the options (in particular the scene operator graph)
-    new_nodes = cmds.arnoldScene(operatorsToExport, mode="convert_selected_only", list="all_nodes")
-    defaultOp = operatorsToExport[0]
-    
-    ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', ai.AiNodeLookUpByName(None, defaultOp))
-    
-    ai.AiNodeResetParameter(ai.AiUniverseGetOptions(), 'color_manager') # ensure we don't set the color_manager node
-    print "Exporting operators : %s " % operatorsToExport
-    ai.AiASSWrite(None, defaultOperatorsFolder, 4097) #4113 if also shaders
-    print "Exported operators to file %s" % defaultOperatorsFolder
-    cmds.arnoldScene(mode="destroy") # let's clean the scene now
 
 def arnoldImportOperators():
     global defaultOperatorsFolder
@@ -638,10 +576,8 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldLightManager()')
         cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
-        addRuntimeMenuItem('ArnoldExportSceneOperators', label='Export Scene Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export the scene operator graph to .ass')
-        addRuntimeMenuItem('ArnoldExportSelectedOperators', label='Export Selected Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators(selected=True)', category="Utilities", annotation='Export the selected operator graph to .ass')
+        addRuntimeMenuItem('ArnoldExportOperators', label='Export Operator Graph', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to .ass')
         addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
         addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
