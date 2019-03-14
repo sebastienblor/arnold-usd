@@ -442,7 +442,7 @@ def arnoldExportOperators(selected=False):
         # First let's get the current list of known operators, so that we 
         # can ensure we're really exporting operators and not bananas
         operatorTypes = cmds.arnoldPlugins(listOperators=True)
-        
+        num_procs = 0
         selList = cmds.ls(sl=1)
         for sel in selList:
             objType = cmds.objectType(sel)
@@ -450,13 +450,17 @@ def arnoldExportOperators(selected=False):
                 # this node is an operator, let's add it to our list
                 operatorsToExport.append(sel)
             elif cmds.objExists('{}.operators'.format(sel)): 
+                num_procs += 1
                 # in case we selected a procedural that has one or several operators connected to it
-                inputOperators = melUtils.getAttrInputs(sel, 'operators')
-                for inputOp in inputOperators:
-                    # check if it's really an operator that is connected
-                    objType = cmds.objectType(inputOp)
-                    if objType in operatorTypes:
-                        operatorsToExport.append(inputOp)
+                inputOperators = melUtils.getAttrInputs(sel, 'operators') or []
+                if len(inputOperators) > 0:
+                    #insert a merge_op and add this op to the ops list
+                    merge_op = ai.AiNode(None, 'merge', '{}@root_op'.format(sel))
+                    operatorsArray = ai.AiArrayAllocate(len(inputOperators), 1, ai.AI_TYPE_POINTER)
+                    for i in range(len(inputOperators)):
+                        ai.AiArraySetPtr(operatorsArray, i, inputOperators[i])
+                    ai.AiNodeSetArray(merge_op, 'inputs', operatorsArray)
+                    operatorsToExport.append(merge_op)
 
     else:
         operatorsToExport.append(target_op)
@@ -482,11 +486,11 @@ def arnoldExportOperators(selected=False):
     new_nodes = cmds.arnoldScene(operatorsToExport, mode="convert_selected_only", list="all_nodes")
     defaultOp = operatorsToExport[0]
     
-    ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', ai.AiNodeLookUpByName(defaultOp))
+    ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', ai.AiNodeLookUpByName(None, defaultOp))
     
     ai.AiNodeResetParameter(ai.AiUniverseGetOptions(), 'color_manager') # ensure we don't set the color_manager node
     print "Exporting operators : %s " % operatorsToExport
-    ai.AiASSWrite(None, defaultOperatorsFolder, 4097)
+    ai.AiASSWrite(None, defaultOperatorsFolder, 4097) #4113 if also shaders
     print "Exported operators to file %s" % defaultOperatorsFolder
     cmds.arnoldScene(mode="destroy") # let's clean the scene now
 
