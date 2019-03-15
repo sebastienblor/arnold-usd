@@ -70,7 +70,7 @@ class MtoAExportOperatorGraph(object):
 
         winTitle = "Export Operator Graph"
 
-        self.window = cmds.window(self.window, widthHeight=(460, 220), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(460, 120), title=winTitle)
         self.createUI()
 
         cmds.setParent(menu=True)

@@ -49,12 +49,14 @@ class MtoAExportToMaterialX(object):
 
         lookName = cmds.textFieldGrp('LookName', q=True, tx=True)
         properties = cmds.textFieldGrp('Properties', q=True, tx=True)
+        relativeAssignments = cmds.checkBox('relativeAssignments', q=True, v=True)
+
         selList = cmds.ls(sl=1)
         if (len(selList) == 0):
             cmds.confirmDialog( title='Export to MaterialX', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldExportToMaterialX(filename=filename, look=lookName, properties=properties)
+        cmds.arnoldExportToMaterialX(filename=filename, look=lookName, properties=properties, relative=relativeAssignments)
         cmds.deleteUI(self.window)
         return True
     
@@ -66,7 +68,7 @@ class MtoAExportToMaterialX(object):
 
         winTitle = "Export to MaterialX"
 
-        self.window = cmds.window(self.window, widthHeight=(460, 320), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(460, 140), title=winTitle)
         self.createUI()
 
         cmds.setParent(menu=True)
@@ -96,6 +98,10 @@ class MtoAExportToMaterialX(object):
         cmds.textFieldGrp('LookName', label='Look Name', ct2=('left', 'left'), cw2=(90,320), text="", w=380)
         cmds.setParent("..")
         cmds.textFieldGrp('Properties', label='Properties', ct2=('left', 'left'), cw2=(90,320), text="", w=380)
+        cmds.setParent("..")
+        cmds.rowLayout(numberOfColumns=2, columnAlign2=('left','left'))
+        cmds.text(label='                ')
+        cmds.checkBox( 'relativeAssignments',label='Relative Assignments', value=True )
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))

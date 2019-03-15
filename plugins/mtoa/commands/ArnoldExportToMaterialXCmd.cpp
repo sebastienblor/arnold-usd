@@ -27,6 +27,7 @@ MSyntax CArnoldExportToMaterialXCmd::newSyntax()
    syntax.addFlag("f", "filename", MSyntax::kString);
    syntax.addFlag("l", "look",  MSyntax::kString);
    syntax.addFlag("p", "properties",  MSyntax::kString);
+   syntax.addFlag("r", "relative",  MSyntax::kBoolean);
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
@@ -89,6 +90,10 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    if (argDB.isFlagSet("properties"))
       argDB.getFlagArgument("properties", 0, properties);
 
+   bool relative = true;
+   if (argDB.isFlagSet("relative")) 
+      argDB.getFlagArgument("relative", 0, relative);
+
    CMayaScene::Begin(MTOA_SESSION_ASS);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
@@ -111,7 +116,7 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    AiRender(AI_RENDER_MODE_FREE);
    AiRenderAbort();
    
-   AiMaterialxWrite(NULL, filename.asChar(), lookName.asChar(), properties.asChar(), true);
+   AiMaterialxWrite(NULL, filename.asChar(), lookName.asChar(), properties.asChar(), relative);
 
    CMayaScene::End();
    return MS::kSuccess;
