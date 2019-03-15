@@ -30,7 +30,8 @@ darwin: test_0167_mac test_0167_mac_Maya2017 test_0203_mac test_0221_mac test_02
 # FIXME : motion blurred particles are not working properly (seems to be maya ?), temporarily disabling tests 60, 66, 74, 79 until solved
 # test 153 disabled since arv image are currently saved without CM
 # FIXME : I'm disabling ARV tests because I can't manage to save the proper image by script
-ignore: test_0004 test_0005 test_0006 test_0007 test_0060 test_0066 test_0074 test_0079 test_0092 test_0118 test_0153 test_157 test_160
+# Ignoring 316 (scene assembly)
+ignore: test_0004 test_0005 test_0006 test_0007 test_0060 test_0066 test_0074 test_0079 test_0092 test_0118 test_0153 test_157 test_160 test_0316
 
 ignore_windows:
 
