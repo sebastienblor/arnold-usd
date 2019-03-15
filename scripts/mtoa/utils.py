@@ -12,6 +12,8 @@ import locale
 import maya.OpenMayaRender
 from maya.api import OpenMaya
 import arnold as ai
+import ctypes
+from ctypes import *
 
 from hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
 
@@ -609,6 +611,7 @@ def getMayaVersion():
     return int(float(version[:4]))
 
 cb_id = None
+percent_done = 0
 
 def terminate_GPUCache():
     OpenMaya.MGlobal.displayWarning("GPU cache creation terminated")
@@ -629,8 +632,19 @@ def GPU_optixCacheCallBack(*args):
         cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)
         OpenMaya.MMessage.removeCallback(cb_id)
 
-def dummycb(*args):
-    pass
+def cache_populate_callback(cUserdata, status, fraction_done, msg):
+   if fraction_done==0.0:
+      print '[AiGPUCachePopulate] Running ..'
+      return
+   if status != ai.AtRenderErrorCode:
+      global percent_done
+      if ( fraction_done*100.0 > percent_done ):
+        print '[AiGPUCachePopulate] (%.1f%% done)' % (100.0*fraction_done)
+        percent_done = 100.0 * fraction_done
+   else:
+      print '[AiGPUCachePopulate] Error: %s'
+   if fraction_done==1.0:
+      print '[AiGPUCachePopulate] Finished.'
 
 def populate_GPUCache():
     gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar');
@@ -642,4 +656,4 @@ def populate_GPUCache():
                                 maxValue=100 )
     global cb_id
     cb_id =  OpenMaya.MTimerMessage.addTimerCallback(0.1, GPU_optixCacheCallBack)
-    ai.AiGPUCachePopulate(ai.AI_GPU_CACHE_POPULATE_NON_BLOCKING, 0, dummycb, 0)
+    ai.AiGPUCachePopulate(ai.AI_GPU_CACHE_POPULATE_NON_BLOCKING, 0, cache_populate_callback, 0)

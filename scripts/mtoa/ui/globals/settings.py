@@ -618,6 +618,9 @@ def createGpuSettings():
 
     for gpuDevice in gpuDeviceIds:
         deviceName = ai.AiDeviceGetName(ai.AI_DEVICE_TYPE_GPU, gpuDevice)
+        freeMemory = ai.AiDeviceGetMemoryMB(ai.AI_DEVICE_TYPE_GPU, gpuDevice, ai.AI_DEVICE_MEMORY_FREE)
+        totalMemory = ai.AiDeviceGetMemoryMB(ai.AI_DEVICE_TYPE_GPU, gpuDevice, ai.AI_DEVICE_MEMORY_TOTAL)
+        deviceName += " ( Free: %s MB , Total %s MB )" % (freeMemory, totalMemory)
         cmds.textScrollList('os_render_devices', edit=True, append=str(deviceName))
 
     attrIds = cmds.getAttr('defaultArnoldRenderOptions.render_devices', mi=True) or []
