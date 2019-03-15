@@ -15,12 +15,13 @@ public:
       {CProceduralTranslator::NodeInitializer(context);}
 
    void Export(AtNode* anode);
-   
+
 protected:
    CArnoldStandInsTranslator() :
       CProceduralTranslator()
    {}
 
    void ExportStandInFilename(AtNode *node);
+   virtual void NodeChanged(MObject& node, MPlug& plug); 
    
 };

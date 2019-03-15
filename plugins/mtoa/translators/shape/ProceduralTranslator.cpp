@@ -340,9 +340,12 @@ void CProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   if (plugName == "selectedItems" || plugName == "selected_items") return;
+   if (plugName == "selectedItems" || plugName == "selected_items" || 
+      plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
+      plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2") return;
 
-   if (!IsTransformPlug(plug))
+   MGlobal::displayWarning(plugName.substringW(0, 9));
+   if (!(IsTransformPlug(plug) || (plugName.length() > 10 && plugName.substringW(0, 9) == MString("operators["))))
       SetUpdateMode(AI_RECREATE_NODE);
    
    CShapeTranslator::NodeChanged(node, plug);
