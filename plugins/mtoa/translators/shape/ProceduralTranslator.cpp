@@ -323,7 +323,10 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
    else
    {
       // Multiple ops, let's insert a merge operator
-      AtNode *mergeOp = AddArnoldNode("merge", "input_merge_op");
+
+      AtNode *mergeOp = GetArnoldNode("input_merge_op");
+      if (mergeOp == NULL)
+         mergeOp = AddArnoldNode("merge", "input_merge_op");
       AtArray* opArray = AiArrayAllocate(inputOps.size(), 1, AI_TYPE_NODE);
       for (unsigned int i = 0; i < inputOps.size(); ++i)
          AiArraySetPtr(opArray, i, (void*)inputOps[i]);
