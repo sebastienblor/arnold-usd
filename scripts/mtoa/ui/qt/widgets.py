@@ -397,7 +397,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             return self.control.getValue()
 
     def setValue(self, value):
-        if self.control and not valueIsExpression:
+        if self.control and not valueIsExpression(value):
             self.control.setValue(value)
 
 
