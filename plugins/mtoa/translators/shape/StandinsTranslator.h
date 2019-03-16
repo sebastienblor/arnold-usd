@@ -15,6 +15,7 @@ public:
       {CProceduralTranslator::NodeInitializer(context);}
 
    void Export(AtNode* anode);
+   virtual bool ExportDagChildren() const;
 
 protected:
    CArnoldStandInsTranslator() :

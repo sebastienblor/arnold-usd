@@ -65,7 +65,8 @@ MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
-   
+MObject CArnoldStandInShape::s_hideParented;
+
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
    DM_PER_OBJECT_BOUNDING_BOX,
@@ -1135,6 +1136,12 @@ MStatus CArnoldStandInShape::initialize()
    data.type = AI_TYPE_NODE;   
    data.isArray = true;
    s_attributes.MakeInput(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "hideParented";
+   data.shortName = "hide_parented";
+   data.isArray = false;
+   s_attributes.MakeInputBoolean(data);
 
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 

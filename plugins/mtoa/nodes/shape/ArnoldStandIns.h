@@ -115,6 +115,7 @@ private:
    static MObject s_boundingBoxMax;
    static MObject s_drawOverride;
    static MObject s_selectedItems;
+   static MObject s_hideParented;
 
    MCallbackId m_attrChangeId;
    bool m_refreshAvoided;

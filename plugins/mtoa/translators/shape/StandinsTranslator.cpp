@@ -176,7 +176,6 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
       AiNodeSetFlt(node, "frame", framestep);
 }
 
-
 void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
@@ -186,6 +185,15 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
       plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
       plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2") return;
 
+   if (plugName == "hideParented")
+   {
+      MGlobal::displayWarning("[mtoa] hideParented isn't updated properly during IPR. Please restart the render or do 'Update Full Scene' in the Arnold Render View");
+   }
    // we're calling directly the shape translator function, as we don't want to make it a AI_RECREATE_NODE
    CShapeTranslator::NodeChanged(node, plug);  
+}
+
+bool CArnoldStandInsTranslator::ExportDagChildren() const
+{
+   return !FindMayaPlug("hideParented").asBool();
 }
