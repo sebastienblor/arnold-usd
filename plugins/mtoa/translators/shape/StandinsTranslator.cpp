@@ -26,6 +26,9 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    IsMasterInstance();
 
    MString dso = FindMayaPlug("dso").asString();
+   if (dso.length() == 0)
+      return NULL;
+
    MStringArray splitStr;
    dso.split('.', splitStr);
 
@@ -181,9 +184,15 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
+   // Discard all the attributes related to the Attribute Editor, or to the viewport
    if (plugName == "selectedItems" || plugName == "selected_items" || 
       plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
-      plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2") return;
+      plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2" ||
+      plugName == "standInDrawOverride" || plugName == "mode") return;
+
+   // Since the created arnold type depends on the dso, we need to recreate the geometry if it changes
+   if (plugName == "dso")
+      SetUpdateMode(AI_RECREATE_NODE);
 
    if (plugName == "hideParented")
    {
