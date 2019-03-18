@@ -126,7 +126,8 @@
     <attr n="ai:alf" s="defaultArnoldRenderOptions.abortOnLicenseFail" t="boolean" h="Abort on License Fail."/>
     <attr n="ai:slc" s="defaultArnoldRenderOptions.skipLicenseCheck" t="boolean" h="Skip License Check."/>
     <attr n="ai:device" s="defaultArnoldRenderOptions.renderDevice" t="int" h="Render Device ( 0 - CPU , 1 - GPU )"/>
-    <attr n="ai:gpu" s="defaultArnoldRenderOptions.render_devices" t="int" h="Index of the GPU used for the render"/>
+    <attr n="ai:manGpuSel" s="defaultArnoldRenderOptions.manual_gpu_devices" t="boolean" h=" Turn on/off Manual GPU Selection"/>
+    <attr n="ai:gpu" s="defaultArnoldRenderOptions.render_devices[0]" t="int" h="Index of the GPU used for the render ( Works in conjunction with manGpuSel and can set a single GPU to render)"/>
     <attrString n="ai:uopt" s="defaultArnoldRenderOptions.aiUserOptions" t="string" h="User Options."/>
     <mel n="ai:port" s="if (!`objExists arnoldBatchNode`) {createNode -ss transform -n arnoldBatchNode;} if (!`objExists arnoldBatchNode.mtoaCommandPort`) { addAttr -longName mtoaCommandPort -shortName mtoa_com -at long arnoldBatchNode;} setAttr arnoldBatchNode.mtoaCommandPort %1;
 " p="1" t="int" h="Set the Command Port for the Batch Progress Driver"/>
