@@ -1009,10 +1009,10 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       {
          // we already exported some holes here
          int numHoles = AiArrayGetNumElements(holesArray) / 2;
-          for (int i = 0; i < numHoles; i++)
-          {
-              shidxs.push_back(0);
-          }
+         for (int i = 0; i < numHoles; i++)
+         {
+            shidxs.push_back(0);
+         }
       }
 
       int numFaceShaders = (int)shidxs.size();
@@ -1031,6 +1031,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       AiNodeSetFlt(polymesh, "disp_padding", AiMax(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
       AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaPlug("aiDispZeroValue").asFloat());
       AiNodeSetBool(polymesh, "disp_autobump", FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
+      AiNodeSetByte(polymesh, "autobump_visibility", FindMayaPlug("aiAutobumpVisibility").asInt());
    }
 }
 
@@ -1679,6 +1680,7 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("disp_padding");
    helper.MakeInput("disp_zero_value");
    helper.MakeInput("disp_autobump");
+   helper.MakeInput("autobump_visibility");
 
    CAttrData data;
 

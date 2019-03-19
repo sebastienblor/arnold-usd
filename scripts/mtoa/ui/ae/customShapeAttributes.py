@@ -8,6 +8,7 @@ import mtoa.melUtils as melUtils
 import mtoa.core as core
 import re
 import mtoa.aovs as aovs
+import arnold.ai_ray as ai_ray
 
 class ParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
@@ -105,9 +106,73 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         cmds.attrControlGrp(self.aiSubdivFrustumIgnoreCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivFrustumIgnore']))
         self.updateSubdiv()
 
-    def setup(self):
-        self.commonShapeAttributes()
+    def updateAutobump(self, nodeAttr, *args):
+        enabled = cmds.getAttr(self.nodeAttr('aiDispAutobump'))
+        cmds.checkBox('aiAutobumpCamera', edit=True, enable = enabled)
+        cmds.checkBox('aiAutobumpDiffuseReflection', edit=True, enable = enabled)
+        cmds.checkBox('aiAutobumpDiffuseTransmission', edit=True, enable = enabled)
+        cmds.checkBox('aiAutobumpSpecularReflection', edit=True, enable = enabled)
+        cmds.checkBox('aiAutobumpSpecularTransmission', edit=True, enable = enabled)
+        cmds.checkBox('aiAutobumpVolumeScattering', edit=True, enable = enabled)
+
+    def autobumpVisibilityChanged(self, nodeAttr, *args):
+        vis = 0
+        if cmds.checkBox(self.aiAutobumpCamCtrl, q=True, v=True):
+            vis += ai_ray.AI_RAY_CAMERA
+        if cmds.checkBox(self.aiAutobumpDiffReflCtrl, q=True, v=True):
+            vis += ai_ray.AI_RAY_DIFFUSE_REFLECT
+        if cmds.checkBox(self.aiAutobumpDiffTransCtrl, q=True, v=True):
+            vis += ai_ray.AI_RAY_DIFFUSE_TRANSMIT
+        if cmds.checkBox(self.aiAutobumpSpecReflCtrl, q=True, v=True):
+            vis += ai_ray.AI_RAY_SPECULAR_REFLECT
+        if cmds.checkBox(self.aiAutobumpSpecTransCtrl, q=True, v=True):
+            vis += ai_ray.AI_RAY_SPECULAR_TRANSMIT
+        if cmds.checkBox(self.aiAutobumpVolCtrl, q=True, v=True):
+            vis += ai_ray.AI_RAY_VOLUME
+
+        cmds.setAttr(nodeAttr, vis)
+
+    def autobumpNew(self, nodeAttr):
+
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+        self.aiAutobumpCtrl = cmds.attrControlGrp("aiDispAutobump", label="Enable Autobump", 
+            attribute='.'.join([self.nodeName, 'aiDispAutobump']))
         
+        cmds.rowColumnLayout( numberOfColumns=2, columnAlign=[(1, 'left'),(2, 'left')], columnAttach=[(1, 'left', 0), (2, 'left', 0)], columnWidth=[(1,200),(2,200)] )
+        self.aiAutobumpCamCtrl = cmds.checkBox('aiAutobumpCamera', label="Camera (primary)")
+        self.aiAutobumpDiffReflCtrl = cmds.checkBox('aiAutobumpDiffuseReflection', label="Diffuse Reflection")
+        self.aiAutobumpDiffTransCtrl = cmds.checkBox('aiAutobumpDiffuseTransmission', label="Diffuse Transmission")
+        self.aiAutobumpSpecReflCtrl = cmds.checkBox('aiAutobumpSpecularReflection', label="Specular Reflection")
+        self.aiAutobumpSpecTransCtrl = cmds.checkBox('aiAutobumpSpecularTransmission', label="Specular Transmission")
+        self.aiAutobumpVolCtrl = cmds.checkBox('aiAutobumpVolumeScattering', label="Volume Scattering")
+        cmds.setParent('..')
+        cmds.setUITemplate(ppt=True)
+        self.autobumpReplace(nodeAttr)
+        
+    def autobumpReplace(self, nodeAttr):
+        self.updateAutobump(nodeAttr)
+        cmds.attrControlGrp(self.aiAutobumpCtrl, edit=True, attribute=nodeAttr, changeCommand=lambda *args: self.updateAutobump(nodeAttr, *args))
+        cmds.attrControlGrp(self.aiAutobumpCtrl, edit=True)
+        
+        visAttr = nodeAttr.replace('aiDispAutobump', 'aiAutobumpVisibility')
+        vis = cmds.getAttr(visAttr)
+        cmds.checkBox(self.aiAutobumpCamCtrl, edit=True, value = (vis & ai_ray.AI_RAY_CAMERA) != 0)
+        cmds.checkBox(self.aiAutobumpDiffReflCtrl, edit=True, value = (vis & ai_ray.AI_RAY_DIFFUSE_REFLECT) != 0)
+        cmds.checkBox(self.aiAutobumpDiffTransCtrl, edit=True, value = (vis & ai_ray.AI_RAY_DIFFUSE_TRANSMIT) != 0)
+        cmds.checkBox(self.aiAutobumpSpecReflCtrl, edit=True, value = (vis & ai_ray.AI_RAY_SPECULAR_REFLECT) != 0)
+        cmds.checkBox(self.aiAutobumpSpecTransCtrl, edit=True, value = (vis & ai_ray.AI_RAY_SPECULAR_TRANSMIT) != 0)
+        cmds.checkBox(self.aiAutobumpVolCtrl, edit=True, value = (vis & ai_ray.AI_RAY_VOLUME) != 0)
+        
+        cmds.checkBox(self.aiAutobumpCamCtrl, edit=True, changeCommand=lambda *args: self.autobumpVisibilityChanged(visAttr, *args))
+        cmds.checkBox(self.aiAutobumpDiffReflCtrl, edit=True, changeCommand=lambda *args: self.autobumpVisibilityChanged(visAttr, *args))
+        cmds.checkBox(self.aiAutobumpDiffTransCtrl, edit=True, changeCommand=lambda *args: self.autobumpVisibilityChanged(visAttr, *args))
+        cmds.checkBox(self.aiAutobumpSpecReflCtrl, edit=True, changeCommand=lambda *args: self.autobumpVisibilityChanged(visAttr, *args))
+        cmds.checkBox(self.aiAutobumpSpecTransCtrl, edit=True, changeCommand=lambda *args: self.autobumpVisibilityChanged(visAttr, *args))
+        cmds.checkBox(self.aiAutobumpVolCtrl, edit=True, changeCommand=lambda *args: self.autobumpVisibilityChanged(visAttr, *args))
+
+        
+    def setup(self):
+        self.commonShapeAttributes()        
         self.beginLayout("Export", collapse=False)
         self.addControl("aiExportTangents", label="Export Tangents")
         self.addControl("aiExportColors", label="Export Vertex Colors")
@@ -146,7 +211,11 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDispHeight", label="Height")
         self.addControl("aiDispPadding", label="Bounds Padding")
         self.addControl("aiDispZeroValue", label="Scalar Zero Value")
-        self.addControl("aiDispAutobump", label="Auto Bump")
+
+        self.beginLayout('Autobump', collapse=True)
+        self.addCustom('aiDispAutobump', self.autobumpNew, self.autobumpReplace)
+        self.endLayout()
+        
         self.endLayout()
         self.beginLayout('Volume Attributes', collapse=True)
         self.addControl('aiStepSize', label='Step Size')
