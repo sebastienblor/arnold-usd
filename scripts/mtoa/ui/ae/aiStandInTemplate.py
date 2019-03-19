@@ -386,7 +386,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('overrideNodes')
         self.addControl('aiNamespace', label='Namespace')
         self.addSeparator()
-        self.addControl('hideParented', label='Hide Parented')
+        self.addControl('ignoreGroupNodes', label='Ignore Group Nodes')
         
 
         self.endLayout()

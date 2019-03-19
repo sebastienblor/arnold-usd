@@ -194,9 +194,9 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
    if (plugName == "dso")
       SetUpdateMode(AI_RECREATE_NODE);
 
-   if (plugName == "hideParented")
+   if (plugName == "ignoreGroupNodes")
    {
-      MGlobal::displayWarning("[mtoa] hideParented isn't updated properly during IPR. Please restart the render or do 'Update Full Scene' in the Arnold Render View");
+      MGlobal::displayWarning("[mtoa] ignoreGroupNodes isn't updated properly during IPR. Please restart the render or do 'Update Full Scene' in the Arnold Render View");
    }
    // we're calling directly the shape translator function, as we don't want to make it a AI_RECREATE_NODE
    CShapeTranslator::NodeChanged(node, plug);  
@@ -204,5 +204,5 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
 
 bool CArnoldStandInsTranslator::ExportDagChildren() const
 {
-   return !FindMayaPlug("hideParented").asBool();
+   return !FindMayaPlug("ignoreGroupNodes").asBool();
 }

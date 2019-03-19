@@ -65,7 +65,7 @@ MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
-MObject CArnoldStandInShape::s_hideParented;
+MObject CArnoldStandInShape::s_ignoreGroupNodes;
 
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
@@ -1138,8 +1138,8 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInput(data);
 
    data.defaultValue.BOOL() = false;
-   data.name = "hideParented";
-   data.shortName = "hide_parented";
+   data.name = "ignoreGroupNodes";
+   data.shortName = "ignore_group_nodes";
    data.isArray = false;
    s_attributes.MakeInputBoolean(data);
 
