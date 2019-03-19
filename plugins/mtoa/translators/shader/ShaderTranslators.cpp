@@ -2034,13 +2034,6 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
    else
       AiNodeSetStr(shader, "wrap_frame_v", "color");
    
-   ProcessParameter(shader, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
-   if (!AiNodeIsLinked(shader, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
-   {
-      AtRGBA col = AiNodeGetRGBA(shader, "wrap_frame_color");
-      AiNodeSetRGBA(shader, "wrap_frame_color", col.r, col.g, col.b, 0.f);
-   }
-
    // if not linked, set alpha to zero
    ProcessParameter(shader, "repeat", AI_TYPE_VECTOR2, fnNode.findPlug("repeatUV", true));
    ProcessParameter(shader, "offset", AI_TYPE_VECTOR2, fnNode.findPlug("offset", true));
