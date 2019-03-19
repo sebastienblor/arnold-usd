@@ -66,29 +66,29 @@ class AEaiStandardHairTemplate(ShaderAETemplate):
         self.endLayout()
         
         self.beginLayout("AOVs", collapse=True)
-        self.addControl("aov_id1", label="ID 1 AOV")
-        self.addControl("id1", label="ID 1")
+        self.addControl("aov_id1", label="ID 1 AOV *") # Not supported in GPU
+        self.addControl("id1", label="ID 1 *") # Not supported in GPU
         self.addSeparator()
-        self.addControl("aov_id2", label="ID 2 AOV")
-        self.addControl("id2", label="ID 2")
+        self.addControl("aov_id2", label="ID 2 AOV *") # Not supported in GPU
+        self.addControl("id2", label="ID 2 *") # Not supported in GPU
         self.addSeparator()
-        self.addControl("aov_id3", label="ID 3 AOV")
-        self.addControl("id3", label="ID 3")
+        self.addControl("aov_id3", label="ID 3 AOV *") # Not supported in GPU
+        self.addControl("id3", label="ID 3 *") # Not supported in GPU
         self.addSeparator()
-        self.addControl("aov_id4", label="ID 4 AOV")
-        self.addControl("id4", label="ID 4")
+        self.addControl("aov_id4", label="ID 4 AOV *") # Not supported in GPU
+        self.addControl("id4", label="ID 4 *") # Not supported in GPU
         self.addSeparator()
-        self.addControl("aov_id5", label="ID 5 AOV")
-        self.addControl("id5", label="ID 5")
+        self.addControl("aov_id5", label="ID 5 AOV * ") # Not supported in GPU
+        self.addControl("id5", label="ID 5 *") # Not supported in GPU
         self.addSeparator()
-        self.addControl("aov_id6", label="ID 6 AOV")
-        self.addControl("id6", label="ID 6")
+        self.addControl("aov_id6", label="ID 6 AOV *") # Not supported in GPU
+        self.addControl("id6", label="ID 6 *") # Not supported in GPU
         self.addSeparator()
-        self.addControl("aov_id7", label="ID 7 AOV")
-        self.addControl("id7", label="ID 7")
+        self.addControl("aov_id7", label="ID 7 AOV *") # Not supported in GPU
+        self.addControl("id7", label="ID 7 *") # Not supported in GPU
         self.addSeparator()
-        self.addControl("aov_id8", label="ID 8 AOV")
-        self.addControl("id8", label="ID 8")
+        self.addControl("aov_id8", label="ID 8 AOV *") # Not supported in GPU
+        self.addControl("id8", label="ID 8 *") # Not supported in GPU
         self.endLayout()
 
         self.beginLayout("Advanced", collapse=True)

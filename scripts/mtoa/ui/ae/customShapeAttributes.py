@@ -16,7 +16,7 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiMinParticleRadius", label="Min Particle Radius")
         self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
         self.addControl("aiMaxParticleRadius", label="Max Particle Radius")
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
+        self.addControl("aiMinPixelWidth", label="Min Pixel Width *") # Not supported in GPU
         self.addSeparator()   
         self.addControl("aiFalloffExponent", label="Falloff Exponent")
         self.addControl("aiSmoothStepFalloff", label="Smoothstep Falloff")
@@ -40,7 +40,7 @@ class NParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiMinParticleRadius", label="Min Particle Radius")
         self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
         self.addControl("aiMaxParticleRadius", label="Max Particle Radius")
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
+        self.addControl("aiMinPixelWidth", label="Min Pixel Width *") # Not supported in GPU
         self.addSeparator()   
         self.addControl("aiFalloffExponent", label="Falloff Exponent")
         self.addControl("aiSmoothStepFalloff", label="Smoothstep Falloff")
@@ -150,7 +150,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
         self.beginLayout('Volume Attributes', collapse=True)
         self.addControl('aiStepSize', label='Step Size')
-        self.addControl('aiVolumePadding', label='Volume Padding')
+        self.addControl('aiVolumePadding', label='Volume Padding *') # Not supported in GPU
         self.endLayout()
         
         # FIXME: these are not on the shape node!
@@ -878,10 +878,10 @@ class VrCameraTemplate(CameraTemplate):
         self.endLayout()
 
         self.beginLayout("Pole Merging", collapse=False)
-        self.addControl("aiTopMergeMode")
+        self.addControl("aiTopMergeMode", label = "Top Merge Mode *") # Not supported in GPU
         self.addControl("aiTopMergeAngle")
         self.addSeparator()
-        self.addControl("aiBottomMergeMode")
+        self.addControl("aiBottomMergeMode", label = "Bottm Merge Mode *") # Not supported in GPU
         self.addControl("aiBottomMergeAngle")
         self.addSeparator()
         self.addControl("aiMergeShader")
