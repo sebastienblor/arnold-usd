@@ -1582,7 +1582,11 @@ void COptionsTranslator::Export(AtNode *options)
                MPlug elemPlug = gpuDevices[i];
                if (!elemPlug.isNull())
                {
-                  devices.push_back(elemPlug.asInt());
+                  // Horrible Hack. The value in this plug is also used to select items in a text Scroll list 
+                  // which starts with index 1.
+                  int deviceId = elemPlug.asInt()-1; 
+                  if (deviceId < 0 ) { deviceId = 0 ; }
+                  devices.push_back(deviceId);
                }
             }
          }
