@@ -57,6 +57,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         abcTransverser = AlembicTransverser()
         abcTransverser.filenameAttr = 'cacheFileName'
         abcTransverser.selectionAttr = None
+        self.currentNode = ''
+        self.currentFilename = ''
 
         self.tree = ProceduralTreeView(abcTransverser, currentWidget)
         self.tree.setObjectName("abcTreeWidget")
@@ -68,23 +70,35 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         self.tree.itemSelected.connect(self.showItemProperties)
         self.abcInfoReplace(nodeAttr)
-
-        fileAttr = self.nodeName + ".cacheFileName"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateAlembicFile],
-                       replacePrevious=True, parent=self.inspectAlembicPath)
-
+        
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback],
                        replacePrevious=True, parent=self.inspectAlembicPath)
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback],
                        replacePrevious=True, parent=self.inspectAlembicPath)
 
     def abcInfoReplace(self, nodeAttr):
-        self.tree.setCurrentNode(self.nodeName)
+        
+        nodeName = nodeAttr.split('.')[0]
+        fileAttr = '{}.cacheFileName'.format(nodeName)
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateAlembicFile])
+        
+        filename = cmds.getAttr(fileAttr)
         self.properties_panel.setItem(self.nodeName, None)
+
+        filename_changed = False
+        if nodeName == self.currentNode and filename != self.currentFilename:
+            filename_changed = True
+
+        self.currentNode = nodeName
+        self.currentFilename = filename
+
+        self.tree.setCurrentNode(self.nodeName, True, filename_changed)
         self.properties_panel.setNode(self.nodeName)
         if self.tree.transverser:
             self.tree.transverser.filenameAttr = 'cacheFileName'
             self.tree.transverser.selectionAttr = None
+
+
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
@@ -99,8 +113,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def updateAlembicFile(self):
         # clear the cache
         self.abcItems = []
-        self.abcPath = cmds.getattr(self.nodeName + ".cacheFileName", type="string")
-        self.abcInfoReplace(self.nodeName + ".cacheFileName")
+        self.abcPath = cmds.getAttr(self.nodeName + ".cacheFileName")
+        self.abcInfoReplace(self.nodeName + ".aiInfo")
 
     def populateParams(self, node_type):
         # iterate over params
