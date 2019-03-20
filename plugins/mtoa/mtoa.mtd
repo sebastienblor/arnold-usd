@@ -21,7 +21,6 @@
         max                 INT     100
         softmin             INT     1
         softmax             INT     10
-        default             INT     8
         linkable            BOOL    false
         maya.orig_shortname STRING  "AAsmax"
     [attr bucket_size]
