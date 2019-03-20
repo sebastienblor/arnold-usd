@@ -213,7 +213,7 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
       MFnDependencyNode dnode(node);
       std::vector< CNodeTranslator * > translatorsToUpdate;
       bool reexport = true;
-      MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers");
+      MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers", true);
       const unsigned int numElements = dagSetMembersPlug.numElements();
       for(unsigned int i = 0; i < numElements; i++)
       {

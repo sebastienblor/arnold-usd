@@ -133,7 +133,7 @@ enum{
    SHADER_SNOW,
    SHADER_CONTRAST,
    SHADER_LAYEREDTEXTURE,
-   SHADER_LAYEREDSHADER,
+   //SHADER_LAYEREDSHADER,
    SHADER_SOLIDFRACTAL,
    SHADER_VOLUMENOISE,
    SHADER_BROWNIAN,
@@ -423,14 +423,14 @@ node_loader
       node->name        = "MayaLayeredTexture";
       node->node_type   = AI_NODE_SHADER;
       break;
-
+/*
    case SHADER_LAYEREDSHADER:
       node->methods     = MayaLayeredShaderMtd;
       node->output_type = AI_TYPE_CLOSURE;
       node->name        = "MayaLayeredShader";
       node->node_type   = AI_NODE_SHADER;
       break;
-
+*/
    case SHADER_SOLIDFRACTAL:
       node->methods     = MayaSolidFractalMtd;
       node->output_type = AI_TYPE_RGBA;

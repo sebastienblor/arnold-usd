@@ -304,7 +304,7 @@ MStatus CMayaScene::Restart()
 
       // Execute post export callback
    MFnDependencyNode fnArnoldRenderOptions(GetSceneArnoldRenderOptionsNode());
-   MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation").asString();
+   MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation", true).asString();
    ExecuteScript(postTranslationCallbackScript);
 
    return MStatus::kSuccess;
@@ -349,7 +349,7 @@ MStatus CMayaScene::Export(MSelectionList* selected)
       // Execute post export callback
       // FIXME: do we also want to do it in Update() ? 
       MFnDependencyNode fnArnoldRenderOptions(GetSceneArnoldRenderOptionsNode());
-      MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation").asString();
+      MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation", true).asString();
       ExecuteScript(postTranslationCallbackScript);
    }
    else
@@ -633,7 +633,7 @@ void CMayaScene::IPRIdleCallback(void *)
       s_renderSession->InterruptRender();
 
       MFnDependencyNode fnArnoldRenderOptions(GetSceneArnoldRenderOptionsNode());
-      bool forceUpdate = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
+      bool forceUpdate = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh", true).asBool();
             
       if(forceUpdate)
       {

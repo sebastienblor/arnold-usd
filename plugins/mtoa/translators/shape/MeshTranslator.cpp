@@ -13,7 +13,7 @@ static unsigned int GetNumMeshGroups(const MDagPath& dagPath)
    MFnDependencyNode fnDGNode(node);
    int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
 
-   MPlug plug = fnDGNode.findPlug("instObjGroups");
+   MPlug plug = fnDGNode.findPlug("instObjGroups", true);
 
    if (plug.elementByLogicalIndex(instanceNum).isConnected())
    {
@@ -22,7 +22,7 @@ static unsigned int GetNumMeshGroups(const MDagPath& dagPath)
    else
    {
       MFnMesh mesh(node);
-      MPlug plug = mesh.findPlug("instObjGroups").elementByLogicalIndex(instanceNum);
+      MPlug plug = mesh.findPlug("instObjGroups", true).elementByLogicalIndex(instanceNum);
       MPlugArray conns;
       plug.connectedTo(conns, false, true);
       if (conns.length() != 0) // no per face assigment
@@ -79,7 +79,7 @@ bool CMeshTranslator::IsGeoDeforming()
    bool history = false;
    bool pnts = false;
 
-   MPlug inMeshPlug = fnMesh.findPlug("inMesh");
+   MPlug inMeshPlug = fnMesh.findPlug("inMesh", true);
    MPlugArray conn;
    inMeshPlug.connectedTo(conn, true, false);
    if (conn.length())
@@ -87,7 +87,7 @@ bool CMeshTranslator::IsGeoDeforming()
      history = true;
    }
 
-   inMeshPlug = fnMesh.findPlug("pnts");
+   inMeshPlug = fnMesh.findPlug("pnts", true);
    unsigned int numElements = inMeshPlug.numElements();
    if (numElements > 0)
    {
@@ -115,7 +115,7 @@ bool CMeshTranslator::Tessellate(const MDagPath &path)
    m_geometry = path.node();
 
    // Check if the object is smoothed with maya method
-   if (fnMesh.findPlug("displaySmoothMesh").asBool())
+   if (fnMesh.findPlug("displaySmoothMesh", true).asBool())
    {
       MMeshSmoothOptions options;
       status = fnMesh.getSmoothMeshDisplayOptions(options);
@@ -164,12 +164,12 @@ bool CMeshTranslator::Tessellate(const MDagPath &path)
 
 void CMeshTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   const MString plugName = plug.partialName(false, false, false, false, false, true);
    
-   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
-   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
+   bool recreate_geom = (plugName == "pnts" || plugName == "inMesh" || plugName == "dispResolution" || plugName == "useMeshSculptCache");
+   recreate_geom = recreate_geom || (plugName.length() > 8 && plugName.substring(0,7) == "aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
    recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1); // parameters relative to smooth
-   recreate_geom = recreate_geom || (plugName.length() > 7 && plugName.substring(0,6) == ".aiDisp");
+   recreate_geom = recreate_geom || (plugName.length() > 6 && plugName.substring(0,5) == "aiDisp");
    
    // UVs being changed. Most of the time they trigger a change in .inMesh
    // but not always

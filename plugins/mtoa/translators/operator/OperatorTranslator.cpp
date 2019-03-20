@@ -74,65 +74,6 @@ void COperatorTranslator::Export(AtNode *shader)
    if (AiNodeIs(shader, set_parameter_str ))
       ExportAssignedShaders(shader);      
 
-
-   MPlug outPlug = FindMayaPlug("out");
-   MPlugArray outConn;
-   outPlug.connectedTo(outConn, false, true);
-   outPlug = FindMayaPlug("message");
-   MPlugArray messageConn;
-   outPlug.connectedTo(messageConn, false, true);
-   for (unsigned int i = 0; i < messageConn.length(); ++i)
-      outConn.append(messageConn[i]);
-
-   //bool globalOp = false;
-   MStringArray procList;
-
-   for (unsigned int i = 0; i < outConn.length(); ++i)
-   {
-      MStatus retStat;
-      MObject targetObj(outConn[i].node());
-      MFnDependencyNode target(targetObj, &retStat);
-      if (retStat != MS::kSuccess)
-         continue;
-
-      MString plugName = outConn[i].name();
-
-      // TODO : need to do the loop recursively until a procedural is found. 
-      // We're currently not supporting sub-graphs connected to procedurals
-      plugName = plugName.substring(plugName.rindex('.'), plugName.length()-1);
-      if (plugName.length() >= 10 && plugName.substringW(0, 9) == MString(".operators"))
-      {
-         MDagPath dagPath;      
-         if (MDagPath::getAPathTo(targetObj, dagPath) == MS::kSuccess)
-         {
-            MString dagName(CDagTranslator::GetArnoldNaming(dagPath));
-            if (dagName.length() > 0)
-            {
-               procList.append(dagName);
-            }
-         }
-      } 
-   }
-
-   if (procList.length() > 0)
-   {
-      MPlug selectionPlug = FindMayaPlug("selection");
-      MString selection = selectionPlug.asString();
-      MString finalSelection;
-      //if (globalOp)
-         //finalSelection = selection;
-
-      for (unsigned int i = 0; i < procList.length(); ++i)
-      {
-         if (finalSelection.length() > 0)
-            finalSelection += MString(" or ");
-
-         finalSelection += procList[i] + MString("/") + selection;
-      }
-      AiNodeSetStr(shader, "selection", AtString(finalSelection.asChar()));
-      
-   }
-   // add standin name   
 }
 void COperatorTranslator::NodeInitializer(CAbTranslator context)
 {   
@@ -154,11 +95,11 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
       MStringArray assignmentSplit;
       assignment.split('=', assignmentSplit);
       if (assignmentSplit.length() <= 1)
-         return;
+         continue;
 
-      MString attrName = assignmentSplit[0].substringW(0, 5);
-      if (attrName != MString("shader"))
-         return; // here we only care about shader assignments
+      MString attrName = assignmentSplit[0].substringW(0, 8);
+      if (attrName != MString("shader") && attrName != MString("disp_map"))
+         continue; // here we only care about shader and disp_map assignments
 
       std::string attrValue = assignmentSplit[1].asChar(); // this is meant to be the name of the arnold shader
       while (attrValue.length() > 0 && (attrValue[0] == ' ' || attrValue[0] == '\'' || attrValue[0] == '"'))
@@ -170,16 +111,16 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
       MSelectionList sel;
       sel.add(MString(attrValue.c_str()));
       if (sel.length() == 0)
-         return; // the referenced shader wasn't found in the maya scene
-      
+         continue; // the referenced shader wasn't found in the maya scene
+
       MObject shaderNode;
       sel.getDependNode(0,shaderNode);
       if (shaderNode.isNull())
-         return;
-      MPlug dummyPlug = MFnDependencyNode(shaderNode).findPlug("message");
+         continue;
+      MPlug dummyPlug = MFnDependencyNode(shaderNode).findPlug("message", true);
       if (dummyPlug.isNull())
-         return;
-      
+         continue;
+
       ExportConnectedNode(dummyPlug); // do export the shader
    }
 }

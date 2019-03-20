@@ -25,9 +25,8 @@ def aiSwatchLabel(nodeName) :
 def aiSwatchDisplayNew(plugName) :
     nodeAndAttrs = plugName.split(".")
     node = nodeAndAttrs[0]
-        
     cmds.formLayout('swatchDisplayForm')
-    cmds.text('swatchLabel', label=aiSwatchLabel(node))
+    cmds.text('swatchLabel', label="")
     cmds.swatchDisplayPort('swatchDisplay',
                            wh=(64, 64), rs=64)
     cmds.popupMenu('swatchPopup', button=3)
@@ -66,7 +65,7 @@ def aiSwatchDisplayReplace(plugName) :
                    command=lambda *args: cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(96, 96), rs=96))
     cmds.menuItem( 'swatchLarge', edit=True,
                    command=lambda *args: cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(128, 128), rs=128))
-    cmds.text('swatchLabel', edit=True, label=aiSwatchLabel(node))
+    # cmds.text('swatchLabel', edit=True, label=aiSwatchLabel(node))
 
 
 def aiSwatchDisplay(nodeName) :

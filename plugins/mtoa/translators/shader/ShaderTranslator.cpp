@@ -75,7 +75,7 @@ void CShaderTranslator::ExportMotion(AtNode *shader)
       // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
       if (strcmp(paramName, "placementMatrix") == 0)
       {
-         AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "values");
+         AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "matrix");
          m_impl->ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaPlug(paramName));
       }
    }
@@ -145,10 +145,10 @@ bool CShaderTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &re
       // for basic shaders with a single output, which this translator represents, message attributes are equivalent
       // to outColor/outValue
       MFnDependencyNode fnNode(outputPlug.node());
-      resolvedOutputPlug = fnNode.findPlug("outColor", &status);
+      resolvedOutputPlug = fnNode.findPlug("outColor", true, &status);
       if (status != MS::kSuccess)
       {
-         resolvedOutputPlug = fnNode.findPlug("outValue", &status);
+         resolvedOutputPlug = fnNode.findPlug("outValue", true, &status);
          if (status != MS::kSuccess)
          {
             AiMsgError("[mtoa] Cannot resolve message attribute \"%s\" to a valid shader output (e.g. outColor/outValue)",

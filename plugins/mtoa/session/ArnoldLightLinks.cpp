@@ -301,7 +301,7 @@ bool CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, bool checkExistin
 {
    // attribute "message" contains the linking information
    // for this MFnDependencyNode
-   MPlug messagePlug = dNode.findPlug("message");
+   MPlug messagePlug = dNode.findPlug("message", true);
    static MPlugArray conns;
    messagePlug.connectedTo(conns, false, true);
    unsigned int numConnections = conns.length();
@@ -331,7 +331,7 @@ void CArnoldLightLinks::CheckNode(MObject node)
    CheckMessage(dNode); // checking the outgoing message
    // for the node
    
-   MPlug instObjGroupsPlug = dNode.findPlug("instObjGroups", &status);
+   MPlug instObjGroupsPlug = dNode.findPlug("instObjGroups", true, &status);
    instObjGroupsPlug = instObjGroupsPlug.elementByLogicalIndex(0);
    
    instObjGroupsPlug.connectedTo(conns, false, true);

@@ -1,8 +1,9 @@
 # vim: filetype=python
 
 ## load our own python modules
-import system
-from build_tools import *
+import utils.system as system
+from utils.build_tools import *
+from utils.mtoa_build_tools import *
 
 import os, subprocess, shutil
 
@@ -20,11 +21,11 @@ def build_api_docs(target, source, env):
 
    previous_path = os.environ['PATH']
    
-   if system.os() == 'darwin' and os.path.exists('/Applications/Doxygen.app/Contents/Resources/doxygen'):
+   if system.os == 'darwin' and os.path.exists('/Applications/Doxygen.app/Contents/Resources/doxygen'):
       ## put this in the path for people who forgot it :)
       os.environ['PATH'] = '/Applications/Doxygen.app/Contents/Resources/:%s' % os.environ['PATH']
    
-   if system.os() == 'windows':
+   if system.os == 'windows':
       DOXYGEN = 'doxygen.exe'
    else:
       DOXYGEN = 'doxygen'

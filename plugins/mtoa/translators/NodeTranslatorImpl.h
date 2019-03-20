@@ -26,7 +26,6 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
-MString GetAOVNodeType(int type);
 #define NODE_TRANSLATOR_REFERENCES 1
 
 class CNodeTranslator;

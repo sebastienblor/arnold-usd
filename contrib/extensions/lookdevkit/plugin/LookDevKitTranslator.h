@@ -14,6 +14,9 @@ public:
         return new CLookDevKitTranslator();
     }
 
+protected:
+	virtual void NodeChanged(MObject& node, MPlug& plug);
+	
 private:
 	void ExportRGBAChannels(AtNode *shader, const char *arnoldParam, const char *rgbParam, const char *alphaParam);
 };

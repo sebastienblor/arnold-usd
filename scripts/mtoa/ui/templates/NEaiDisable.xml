@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+    <using package='maya'/>
+    <template name='NEaiDisable'>
+        <attribute name='outColor' type='maya.message'>
+            <label>Out Color</label>
+        </attribute>
+        <attribute name='inputs' type='maya.message'>
+            <label>Inputs</label>
+        </attribute>
+    </template>
+    <view name='NEDefault' template='NEaiDisable'>
+        <property name='outColor'/>
+        <property name='inputs'/>
+    </view>
+    <view name='NEDefaultSoloOutput' template='NEaiDisable'>
+        <property name='outColor'/>
+    </view>
+</templates>

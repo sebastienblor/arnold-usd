@@ -105,7 +105,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         nodeName = tokens[0]        
 
         controlName = 'Ctrl' + tokens[1]
-        cmds.attrFieldSliderGrp(controlName, attribute=attr, label='Dispersion Abbe <span>&#8801;</span>')
+        cmds.attrFieldSliderGrp(controlName, attribute=attr, label='Dispersion Abbe * <span>&#8801;</span>') # Not supported in GPU
         
         attrChildren = cmds.layout(controlName, query=True, childArray=True)
         cmds.popupMenu(button=1, parent=attrChildren[0])
@@ -190,7 +190,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         #self.addControl("subsurfaceColor", label="Color", annotation="Subsurface Scattering Color")
         self.addControl("subsurfaceRadius", label="Radius", annotation="Subsurface Scattering Radius")
         self.addControl("subsurfaceScale", label="Scale", annotation="Subsurface Scattering Scale")
-        self.addControl("subsurfaceType", label="Type", annotation="Subsurface Type",  changeCommand=self.changeParams)
+        self.addControl("subsurfaceType", label="Type *", annotation="Subsurface Type",  changeCommand=self.changeParams) # Not supported in GPU
         self.addControl("subsurfaceAnisotropy", label="Anisotropy", annotation="Subsurface Anisotropy")
         self.endLayout() 
 
@@ -200,6 +200,9 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("coatRoughness", label="Roughness", annotation="Coat Roughness")
         self.addSeparator()
         self.addCustom("coatIOR", self.createIOR, self.updateIOR)
+        self.addSeparator()
+        self.addControl("coatAnisotropy", label="Anisotropy", annotation="Coat Anisotropy")
+        self.addControl("coatRotation", label="Rotation", annotation="Coat Anisotropy Rotation")
         self.addSeparator()
         self.addControl("coatNormal", label="Normal", annotation="Coat Normal")
         self.endLayout()
@@ -262,7 +265,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.beginLayout("Advanced", collapse=True)
         self.addControl("caustics", label="Caustics", annotation="Enable Caustics")
         self.addControl("internalReflections", label="Internal Reflections", annotation="Enable Internal Reflections")
-        self.addControl("exitToBackground", label="Exit To Background", annotation="When bounce depth is exceeded, use background color instead")
+        self.addControl("exitToBackground", label="Exit To Background *", annotation="When bounce depth is exceeded, use background color instead")
         self.addSeparator()
         self.addControl("indirectDiffuse", label="Indirect Diffuse", annotation="Indirect Diffuse")
         self.addControl("indirectSpecular", label="Indirect Specular", annotation="Indirect Specular")

@@ -169,6 +169,9 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
     mSolidShader->setParameter(colorParameterName_, solidColor);
     mBlinnShader->setParameter(diffuseColorParameterName_, solidColor);
 
+    float  solidiColor[4] = { 0.2f, 0.2f, 0.5f, 1.0f};
+    mSelectedSolidUIShader->setParameter(colorParameterName_, solidiColor);
+    
 
     mNodeDirtyPlugID = MNodeMessage::addNodeDirtyPlugCallback(mLocatorNode, standInNodeDirtyPlugCallback, this);
     MStatus status;
@@ -319,7 +322,6 @@ void CArnoldStandInSubSceneOverride::update(
 {
     if (!anyChanges(container))
         return;
-
     // initialize
     mOneTimeUpdate = false;
     //container.clear();
@@ -405,7 +407,7 @@ void CArnoldStandInSubSceneOverride::update(
             // to give some indication of the selection.  Don't draw any boxes for unselected items.
             wantBox = true;
             anyInstanceUnselected = false;
-        }
+        } 
     }
     if (!wantShaded) // clear or reset the item if not used
         clearRenderItem(container, shadedPolyItemName_, mReuseBuffers);
@@ -440,13 +442,12 @@ void CArnoldStandInSubSceneOverride::update(
     // update the UI items
     MHWRender::MGeometry::Primitive geometryType = MHWRender::MGeometry::kLines;
 
-    // arrays of elements each to handle selected, unselected, and lead items
-    const bool test[] = {anyInstanceUnselected, anyInstanceSelected, hasLeadItem};
+
     MHWRender::MRenderItem** items[] = {&unselectedItem, &selectedItem, &leadItem};
     //MHWRender::MRenderItem** deferItems[] = { &unselectedDeferItem, &selectedDeferItem, &leadDeferItem };
     const MString itemNames[] = { unselectedItemName_, selectedItemName_, leadItemName_};
     const MHWRender::MShaderInstance* shaders[] = { mSolidUIShader, mSelectedSolidUIShader, mLeadSolidUIShader };
-
+    //const MHWRender::MShaderInstance* shaders[] = { mSolidUIShader, mSolidUIShader, mSolidUIShader };
     if (wantWireframe)
     {
         geom = geom ? geom : standIn->geometry(); // load this as late as possible
@@ -462,6 +463,22 @@ void CArnoldStandInSubSceneOverride::update(
         geom = geom ? geom : standIn->geometry(); // load this as late as possible
         wantBox = (geom->VisibleGeometryCount() == 0); // no visible geometry.  Draw a single box.
     }
+	 bool hasSelection = (geom && geom->hasSelection) && (hasLeadItem);
+     bool addSelectedBox = false;
+
+     if (hasSelection)
+     {
+        if ( anyInstanceSelected || hasLeadItem) 
+            unselectedInstanceMatrixArray = selectedInstanceMatrixArray = instanceMatrixArray;
+        anyInstanceSelected = true;
+        if (wantBox)
+        {
+            addSelectedBox = true;
+            wantBoxes = true;
+        }
+     }
+	 // arrays of elements each to handle selected, unselected, and lead items
+    const bool test[] = {anyInstanceUnselected, anyInstanceSelected, hasLeadItem};
 
     const bool testType[] = { wantPoints, wantWireframe, wantBoxes, wantBox/*, wantDeferBox*/ };
     const MString typeNames[] = { "_wires", "_points", "_boxes", "_box", /*"_deferBox"*/ };
@@ -470,6 +487,7 @@ void CArnoldStandInSubSceneOverride::update(
     MHWRender::MRenderItem* thisItem = NULL;
 
     unsigned int depthPriority;
+    StandinSelectionFilter selectionFilter = STANDIN_GEOM_ALL;
 
     // three different states (unselected, selected, and lead)
     // same geometry, different shaders.
@@ -477,14 +495,21 @@ void CArnoldStandInSubSceneOverride::update(
     {
         if (test[x])
         {
+            if (hasSelection)
+                selectionFilter = (x > 1) ? STANDIN_GEOM_SELECTED : STANDIN_GEOM_UNSELECTED;
+
             // five different types (wires, points, boxes, box, and/or deferBox)
             for (int i = 0; i < 4; ++i)
             {
                 MString itemName = itemNames[x];
                 itemName += typeNames[i];
-
                 if (testType[i])
                 {
+                    // displaying "boxes" -> if we just added the box on top of the existing display,
+                    // we want to skip "unselected"
+                    if (i == 2 && addSelectedBox && selectionFilter != STANDIN_GEOM_SELECTED)
+                        continue;
+
                     //bool isDeferBox = (i == 4);
                     thisItem = findRenderItem(container, itemName, mReuseBuffers);
                     if (!thisItem)
@@ -502,12 +527,15 @@ void CArnoldStandInSubSceneOverride::update(
                         geometryType = (i > 0) ? MHWRender::MGeometry::kLines : MHWRender::MGeometry::kPoints;
                         thisItem = getItem(container, itemName, geometryType, depthPriority);
                         if (i > 2) // first three are not cubes, last two are.
+                        {
                             updateWireframeCubeItem(standIn, thisItem, shaders[x], false /*isDeferBox*/);
+                        }
                         else
                         {
                             bool boxMode = (i == 2);
-                            size_t totalPoints = wantBoxes ? geom->VisibleGeometryCount()*kCubeCount : geom->PointCount();
-                            updateRenderItem(container, geom, thisItem, totalPoints, shaders[x], false, boxMode);
+                            size_t totalPoints = wantBoxes ? geom->VisibleGeometryCount(selectionFilter)*kCubeCount : geom->PointCount(selectionFilter);
+                            updateRenderItem(container, geom, thisItem, totalPoints, shaders[x], false, boxMode, selectionFilter);
+                            
                         }
                     }
                     else
@@ -531,7 +559,6 @@ void CArnoldStandInSubSceneOverride::update(
             }
         }
     }
-
     if (leadItem)
         leadItem->setMatrix(&instanceMatrixArray[leadIndex]);
     if (leadDeferItem)
@@ -628,7 +655,7 @@ void CArnoldStandInSubSceneOverride::updateWireframeCubeItem(CArnoldStandInShape
 }
 
 void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContainer& container, CArnoldStandInGeom* geom, 
-     MHWRender::MRenderItem* item, size_t totalCount, const MHWRender::MShaderInstance* shader, bool wantNormals, bool boxMode)
+     MHWRender::MRenderItem* item, size_t totalCount, const MHWRender::MShaderInstance* shader, bool wantNormals, bool boxMode, StandinSelectionFilter selectionFilter)
 {
     // sanity check
     if(!item)
@@ -647,10 +674,10 @@ void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContai
         switch (item->primitive())
         {
         case MHWRender::MGeometry::kTriangles:
-            totalIndexCount = geom->TriangleIndexCount(wantNormals);
+            totalIndexCount = geom->TriangleIndexCount(wantNormals, selectionFilter);
             break;
         case MHWRender::MGeometry::kLines:
-            totalIndexCount = geom->WireIndexCount();
+            totalIndexCount = geom->WireIndexCount(selectionFilter);
             break;
         case MHWRender::MGeometry::kPoints:
             totalIndexCount = totalCount;
@@ -684,18 +711,28 @@ void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContai
     for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
         it != geom->m_geometryList.end(); ++it)
     {
-        // fill the index, vertex, and optionally the normal streams with data from the geometry
-        fillBuffers(*it->second, indices, vertices, normals, startIndex, pointOffset, 
-            item->primitive(), wantNormals, boxMode);
+        // we weren't testing IsVisible before, but it sounds like we should. 
+        // The size of the buffers was computed based on the visibility
+        if (it->second->Visible(selectionFilter)) 
+        {            
+            // fill the index, vertex, and optionally the normal streams with data from the geometry
+            fillBuffers(*it->second, indices, vertices, normals, startIndex, pointOffset, 
+                item->primitive(), wantNormals, boxMode);
+        }
     }
 
     // process each of the instances
     for (CArnoldStandInGeom::instanceListIterType it = geom->m_instanceList.begin();
         it != geom->m_instanceList.end(); ++it)
     {
-        // fill the index, vertex, and optionally the normal streams with data from the geometry
-        fillBuffers((*it)->GetGeometry(), indices, vertices, normals, startIndex, pointOffset, 
-            item->primitive(), wantNormals, boxMode);
+        // we weren't testing IsVisible before, but it sounds like we should. 
+        // The size of the buffers was computed based on the visibility
+        if ((*it)->GetGeometry().Visible(selectionFilter))
+        {
+            // fill the index, vertex, and optionally the normal streams with data from the geometry
+            fillBuffers((*it)->GetGeometry(), indices, vertices, normals, startIndex, pointOffset, 
+                item->primitive(), wantNormals, boxMode);
+        }        
     }
 
     // commit the index and vertex buffers for completion
@@ -795,7 +832,7 @@ int CArnoldStandInSubSceneOverride::getDrawOverride()
     MFnDagNode node(mLocatorNode, &status);
 
     int drawOverride = 0;
-    MPlug plug = node.findPlug("standInDrawOverride", &status);
+    MPlug plug = node.findPlug("standInDrawOverride", true, &status);
     if (!plug.isNull() && status)
     {
         const int localDrawOverride = plug.asShort();
@@ -803,7 +840,7 @@ int CArnoldStandInSubSceneOverride::getDrawOverride()
         {
             MObject ArnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
             if (!ArnoldRenderOptionsNode.isNull())
-                drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort();
+                drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort();
         }
         else
             drawOverride = localDrawOverride - 1;
@@ -825,7 +862,7 @@ void CArnoldStandInSubSceneOverride::updateShaderFromNode()
             MFnDependencyNode fnSet(sets[i], &status);
             if (status)
             {
-                MPlug shaderPlug = fnSet.findPlug("surfaceShader");
+                MPlug shaderPlug = fnSet.findPlug("surfaceShader", true);
                 if (!shaderPlug.isNull())
                 {
                     shaderPlug.connectedTo(connectedPlugs, true, false);

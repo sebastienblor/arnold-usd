@@ -1,56 +1,96 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291\test_0291.log', using stdout instead
-
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0291', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
+ 
+ ==== Exec cmd ==== 
+ 
+D:\arnold\Maya-runtimes\windows\Maya2018\bin\Render -proj "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291" -rd "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291\test.ma"
+ 
+ 
 Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
-Initialized VP2.0 renderer {
-  Version : 2016.11.40.12. Feature Level 5.
-  Adapter : Quadro K620/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:23.21.13.9103.
-  API : OpenGL V.4.6.
-  Max texture size : 16384 * 16384.
-  Max tex coords : 32
-  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
-  Shader compiler profile : (Best card profile)
-  Active stereo support available : 0
-  GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
-  MultiDraw consolidation: enabled
-}
-OpenCL evaluator is attempting to initialize OpenCL.
-Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
- Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
-OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
-OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: svgFileTranslator, mayaHIK, invertShape, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, mtoa, renderSetup, fbxmaya
-File read in  0.082 seconds.
-File read in  0.082 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0291/test.ma
-Export operator graph=================================00:00:00   620MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   620MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-Import operator graph00:00:00   620MB         | log started Tue Aug  7 17:09:27 2018
-00:00:00   620MB         | Arnold 5.2.0.0 [09db38ac] windows icc-17.0.2 oiio-1.7.17 osl-1.9.9 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 2018/08/06 13:52:03
-00:00:00   620MB         | host application: MtoA 3.1.0.wip 1ffe7057 (develop) Maya 2018
-00:00:00   620MB         | running on REM8WCK8D2, pid=6412
-00:00:00   620MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   620MB         |  Nvidia driver version 391.03
-00:00:00   620MB         |  GPU 0: Quadro K620 @ 1124MHz (compute 5.0) with 2048MB (1539MB available)
-00:00:00   620MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   620MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   620MB         |  
-00:00:00   620MB         | loading plugins from D:/arnold/alShaders/bin ...
-00:00:00   620MB         | loading plugins from C:/solidangle/mtoadeploy/2018/shaders ...
-00:00:00   620MB         | loading plugins from C:/solidangle/mtoadeploy/2018/procedurals ...
-00:00:00   620MB         | loaded 147 plugins from 34 lib(s) in 0:00.02
-00:00:00   620MB         | loading plugins from C:\solidangle\mtoadeploy\2018\bin\..\plugins ...
-00:00:00   620MB         | loaded 5 plugins from 3 lib(s) in 0:00.00
-00:00:00   621MB         | [ass] loading data/op.ass ...
-00:00:00   621MB         | [ass] read 1440 bytes, 7 nodes in 0:00.00
-00:00:00   621MB         |  
-00:00:00   621MB         | releasing resources
-00:00:00   616MB         | Arnold shutdown
-00:00:00   621MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   621MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   622MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   624MB WARNING | rendering with watermarks because of failed authorization:
-Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291\test.ma completed.
+sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+
+Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+
+Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+
+Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+
+00:00:00   263MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
+
+00:00:00   267MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+
+00:00:00   267MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+
+Successfully imported python module 'arnold'
+
+Successfully imported python module 'mtoa'
+
+Successfully registered renderer 'arnold'
+
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+
+File read in  1.3 seconds.
+
+File read in  1.3 seconds.
+
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0291/test.ma
+
+Export operator graph=================================00:00:00   328MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   329MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   330MB         | log started Wed Mar  6 14:34:23 2019
+
+00:00:00   330MB         | Arnold 5.3.0.0.wip [bce34157] windows icc-17.0.2 oiio-2.1.0 osl-1.11.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 optix-6.0.0 2019/03/06 00:31:17
+
+00:00:00   330MB         | host application: MtoA 3.2.0.wip a540ba8e (develop) Maya 2018
+
+00:00:00   330MB         | running on REM8WCK8D2, pid=15584
+
+00:00:00   330MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+
+00:00:00   330MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+
+00:00:00   330MB         |  soft limit for open files raised from 2048 to 2048
+
+00:00:00   330MB         |  
+
+00:00:00   330MB         | loading plugins from D:/arnold/custom_shapes ...
+
+00:00:00   330MB         | loading plugins from C:/solidangle/mtoadeploy/2018/shaders ...
+
+00:00:00   330MB         | loading plugins from C:/solidangle/mtoadeploy/2018/procedurals ...
+
+00:00:00   330MB         | loaded 123 plugins from 11 lib(s) in 0:00.08
+
+00:00:00   330MB         | loading plugins from C:\solidangle\mtoadeploy\2018\bin\..\plugins ...
+
+00:00:00   330MB         | loaded 5 plugins from 3 lib(s) in 0:00.00
+
+00:00:00   330MB         | [ass] loading data/op.ass ...
+
+00:00:00   330MB         | [ass] read 1456 bytes, 7 nodes in 0:00.00
+
+00:00:00   330MB         |  
+
+00:00:00   330MB         | releasing resources
+
+00:00:00   325MB         | Arnold shutdown
+
+00:00:00   330MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   330MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   330MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   332MB WARNING | rendering with watermarks because of failed authorization:
+
+Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291\test.ma completed.
+

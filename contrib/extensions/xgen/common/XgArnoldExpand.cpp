@@ -140,7 +140,7 @@ public:
    {
       AiCritSecInitRecursive(&mMutex);
    }
-   ~XgMutex()
+   virtual ~XgMutex()
    {
       AiCritSecClose(&mMutex);
    }
@@ -152,6 +152,7 @@ public:
    {
       AiCritSecLeave(&mMutex);
    }
+private:
    AtCritSec mMutex;
 };
 
@@ -161,7 +162,7 @@ XgMutex* Procedural::m_mutex = new XgMutex();
 
 #define XGDebug( x ) {}
 #define XGError( x ) {}
-#define XGDebugLevel 4
+#define XGDebugLevel 3
 
 #define XGRenderAPIError XGError
 #define XGRenderAPIWarning XGWarning
@@ -195,16 +196,15 @@ Procedural::Procedural()
 
 Procedural::~Procedural()
 {
+
+#ifndef XGEN_RENDER_API_PARALLEL
    if( m_patch )
    {
       delete m_patch;
-      //delete m_mutex;
+      delete m_mutex;
       m_patch = NULL;
-      //m_mutex = NULL;
+      m_mutex = NULL;
    }
-
-#ifdef XGEN_RENDER_API_PARALLEL
-    delete m_parallel;
 #endif
 }
 
@@ -258,6 +258,7 @@ bool Procedural::render()
            m_parallel->enqueue(*it);
        }
        m_parallel->spawnAndWait();
+       m_parallel->destroy();
    }
    else
    {
@@ -275,13 +276,6 @@ bool Procedural::render()
    m_mutex->leave();
    return true;
 }
-/*
-const char* Procedural::getUniqueName( char* buf, const char* basename )
-{
-   static unsigned int g_counter = 0;
-   sprintf( buf, "%s__%X", basename, g_counter++ );
-   return buf;
-}*/
 
 int Procedural::Init(AtNode* node, bool procParent)
 {
@@ -339,18 +333,6 @@ int Procedural::Init(AtNode* node, bool procParent)
       unsigned int f = -1;
       //while( nextFace( b, f ) )
       {
-         // Skip camera culled bounding boxes.
-         //if( isEmpty( b ) )
-         //   continue;
-
-         //string strFaceProcName = strParentName + string("_face");// + itoa( f );
-
-         /*Procedural* pProc = new Procedural();
-         pProc->m_node = m_node;
-         pProc->m_sphere = m_sphere;
-         pProc->m_shaders = m_shaders;*/
-
-   
          while( nextFace( b, f ) )
          {
             // Skip camera culled bounding boxes.
@@ -369,39 +351,7 @@ int Procedural::Init(AtNode* node, bool procParent)
          }
 
          m_node_face = m_node;
-         // Clone ourself, this will help us keep all the user parameters.
-         // We could also provide a back pointer to the original top level node.
-         /*AtNode* nodeFaceProc = AiNode( "procedural" );
-         pProc->m_node_face = nodeFaceProc;
-
-         // Change name, dso, userdata, and bounding box
-         AiNodeSetStr( nodeFaceProc, "name", getUniqueName(buf,strFaceProcName.c_str()) );
-         AiNodeSetStr( nodeFaceProc, "dso", strParentDso.c_str() );
-         AiNodeSetPtr( nodeFaceProc, "userptr", (void*)new ProceduralWrapper( pProc, false ) );
-         AiNodeSetPnt( nodeFaceProc, "min", (float)total.xmin, (float)total.ymin, (float)total.zmin );
-         AiNodeSetPnt( nodeFaceProc, "max", (float)total.xmax, (float)total.ymax, (float)total.zmax );
-
-         m_nodes.push_back( nodeFaceProc );*/
       }
-
-      // Add a cleanup procedural that will be responsible to cleanup the Top Level Patch data.
-      /*{
-         AtNode* nodeCleanupProc = AiNode( "procedural" );
-         string strCleanupProcName =  strParentName + "_cleanup";
-
-         AiNodeSetStr( nodeCleanupProc, "name", getUniqueName(buf,strCleanupProcName.c_str()) );
-         AiNodeSetStr( nodeCleanupProc, "dso", strParentDso.c_str() );
-         AiNodeSetStr( nodeCleanupProc, "data", "cleanup" );
-         AiNodeSetPtr( nodeCleanupProc, "userptr", (void*)new ProceduralWrapper( this, true ) );
-
-         AtPoint minParentBBox = AiNodeGetPnt( m_node, "min" );
-         AtPoint maxParentBBox = AiNodeGetPnt( m_node, "max" );
-
-         AiNodeSetPnt( nodeCleanupProc, "min", minParentBBox.x, minParentBBox.y, minParentBBox.z );
-         AiNodeSetPnt( nodeCleanupProc, "max", maxParentBBox.x, maxParentBBox.y, maxParentBBox.z );
-
-         m_nodes.push_back( nodeCleanupProc );
-      }*/
    }
 
    // Face Init
@@ -425,12 +375,6 @@ int Procedural::Cleanup()
    m_nodes.clear();
    m_node = m_node_face = m_options = m_sphere = m_parent = NULL; // Don't delete.
 
-   if( m_faces.size()!=0 )
-   {
-      for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
-         delete *it;
-      m_faces.clear();
-   }
    return 1;
 }
 
@@ -821,92 +765,6 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
       out_bbox = m_bboxes[asstocfile];
    }
    return true;
-
-   // Use an auto_fclose since we are returning from the function all over the place.
-
- //   // Do not attempt to read non-RIB archives (e.g. .caf)
- //   if (XGDebugLevel >= 2)
- //       XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Reading "+ fname);
-
- //   if (fname.find(".abc") == (fname.length()-4))
- //   {
- //      out_bbox.xmin = -1.0;
- //      out_bbox.ymin = -1.0;
- //      out_bbox.zmin = -1.0;
-
- //      out_bbox.xmax = 1.0;
- //      out_bbox.ymax = 1.0;
- //      out_bbox.zmax = 1.0;
-
- //       return true;
- //   }
-
- //   if (fname.find(".ass") == (fname.length()-4))
- //   {
-   //   FILE *fd = fopen(in_filename, "rb");
-   //   if (!fd) {
-   //      if (XGDebugLevel >= 2)
-   //         XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ fname);
-   //      return false;
-   //   }
-
-   //   // Use an auto_fclose since we are returning from the function all over the place.
-   //   auto_fclose afd( fd );
-
-   //   // Scan the first N lines searching for "## BBOX ...."
-   //   const int limit = 13;
-   //   const int inner_limit = 192;
-   //   int matched;
-   //   int count = 0;
-   //   int inner_count = 0;
-
-   //   while (count < limit) {
-   //      count++;
-   //      inner_count = 0;
-   //      matched = fscanf(fd, "## BBOX %lf %lf %lf %lf %lf %lf",
-   //                   &out_bbox.xmin, &out_bbox.xmax, &out_bbox.ymin, &out_bbox.ymax, &out_bbox.zmin, &out_bbox.zmax);
-
-   //      if (matched == 0) {
-   //         // Skip this line
-   //         char c = fgetc(fd);
-   //         if (/*EOF == c ||*/ feof(fd))
-   //            return false;
-
-   //         while (c != '\n') {
-   //            c = fgetc(fd);
-   //            // Guard against really long lines
-   //            if (inner_limit <= inner_count++)
-   //               break;
-   //            if (/*EOF == c ||*/ feof(fd)) {
-   //               if (XGDebugLevel >= 2)
-   //                  XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
-   //               return false;
-   //            }
-   //         }
-   //         continue;
-   //      }
-
-   //      if (matched == 6) {
-   //         if (XGDebugLevel >= 2)
-   //            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/
-   //                  "DRA BBOX" +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.xmin) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.xmax) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.ymin) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.ymax) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.zmin) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.zmax));
-
-   //         return true;
-   //      }
-   //      if (EOF == matched || feof(fd)) {
-   //         if (XGDebugLevel >= 2)
-   //            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
-   //         break;
-   //      }
-   //   }
- //   }
-
 }
 
 void Procedural::convertMatrix( const AtMatrix in_mat, mat44& out_mat )
@@ -955,6 +813,7 @@ void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
  */
 void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 {
+    XGRenderAPIDebug( "[xgen_procedural] Flush Splines" );
     bool bFaceCamera = pc->get( PC(FaceCamera) );
     int mode = AiNodeGetInt( m_node, "ai_mode" );
 
@@ -1404,6 +1263,90 @@ const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / 
  */
 void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigned int cacheCount)
 {
+
+   // if we are running interactivly we need to force the user data to be placed on to the child nodes
+   if ( m_parent == NULL && in_node )
+   {
+       AtUserParamIterator *itr = AiNodeGetUserParamIterator(m_node);
+       while (!AiUserParamIteratorFinished(itr))
+       {
+          const AtUserParamEntry* param = AiUserParamIteratorGetNext(itr);
+          string declarestr = "";
+          unsigned int cat = AiUserParamGetCategory(param);
+          if (cat == AI_USERDEF_CONSTANT || cat == AI_USERDEF_UNIFORM)
+          {
+            const char *param_name = AiUserParamGetName(param);
+            switch (cat)
+            {
+              case AI_USERDEF_CONSTANT:
+                declarestr += "constant ";
+                break;
+              case AI_USERDEF_UNIFORM:
+                declarestr += "uniform ";
+                break;
+            }
+
+            // TODO Add Arrays, for now we only copy constant FLOAT,STRING,RGB and VECTOR
+            unsigned int type = AiUserParamGetType(param);
+            switch (type)
+            {
+               case AI_TYPE_FLOAT:
+                  declarestr += "FLOAT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetFlt( in_node, param_name, AiNodeGetFlt(m_node, param_name));
+                  break;
+               case AI_TYPE_INT:
+                  declarestr += "INT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetInt( in_node, param_name, AiNodeGetInt(m_node, param_name));
+                  break;
+               case AI_TYPE_UINT:
+                  declarestr += "UINT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetUInt( in_node, param_name, AiNodeGetUInt(m_node, param_name));
+                  break;
+               case AI_TYPE_BOOLEAN:
+                  declarestr += "BOOL";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetBool( in_node, param_name, AiNodeGetBool(m_node, param_name));
+                  break;
+               case AI_TYPE_STRING:
+                  declarestr += "STRING";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetStr( in_node, param_name, AiNodeGetStr(m_node, param_name));
+                  break;
+               case AI_TYPE_RGB:
+                {
+                  declarestr += "RGB";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AtRGB color = AiNodeGetRGB(m_node, param_name);
+                  AiNodeSetRGB( in_node, param_name,  color.r, color.g, color.b);
+                  break;
+                }
+               case AI_TYPE_RGBA:
+                {
+                  declarestr += "RGBA";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AtRGBA color = AiNodeGetRGBA(m_node, param_name);
+                  AiNodeSetRGBA( in_node, param_name,  color.r, color.g, color.b, color.a);
+                  break;
+                }
+               case AI_TYPE_VECTOR:
+                 {
+                  declarestr += "VECTOR";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AtVector value = AiNodeGetVec(m_node, param_name);
+                  AiNodeSetVec( in_node, param_name, value.x, value.y, value.z );
+                  break;
+                }
+               default:
+                  break;
+            }
+          }
+       }
+       AiUserParamIteratorDestroy (itr);
+   }
+
    unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
    // Push any user-defined custom attributes.
    for ( unsigned int j = 0; j<customAttrCount; j++ ) {
@@ -1465,6 +1408,7 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
       }
 
     }
+
 }
 
 void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
@@ -1783,7 +1727,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
       AiArrayDestroy(matrix);
     }
-    
+
     delete [] archives;
     delete [] archivesAbsolute;
 }

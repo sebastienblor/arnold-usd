@@ -98,9 +98,9 @@ void CArnoldMeshLightNode::postConstructor()
 
 #if MAYA_API_VERSION >= 201700
    MFnDependencyNode node(me);
-   MPlug plug = node.findPlug("receiveShadows");
+   MPlug plug = node.findPlug("receiveShadows", true);
    plug.setValue(false);
-   plug = node.findPlug("castsShadows");
+   plug = node.findPlug("castsShadows", true);
    plug.setValue(false);
 #endif
 
@@ -145,18 +145,18 @@ void CArnoldMeshLightNode::AttrChangedCallback(MNodeMessage::AttributeMessage ms
 
          MFnDependencyNode dependNode(plug.node());
 
-         MPlug srcR = dependNode.findPlug("aiShadowColorR");
+         MPlug srcR = dependNode.findPlug("aiShadowColorR", true);
          srcR.getValue(shadowColorR);
-         MPlug srcG = dependNode.findPlug("aiShadowColorG");
+         MPlug srcG = dependNode.findPlug("aiShadowColorG", true);
          srcG.getValue(shadowColorG);
-         MPlug srcB = dependNode.findPlug("aiShadowColorB");
+         MPlug srcB = dependNode.findPlug("aiShadowColorB", true);
          srcB.getValue(shadowColorB);
 
-         MPlug destR = dependNode.findPlug("shadowColorR");
+         MPlug destR = dependNode.findPlug("shadowColorR", true);
          destR.setValue(shadowColorR);
-         MPlug destG = dependNode.findPlug("shadowColorG");
+         MPlug destG = dependNode.findPlug("shadowColorG", true);
          destG.setValue(shadowColorG);
-         MPlug destB = dependNode.findPlug("shadowColorB");
+         MPlug destB = dependNode.findPlug("shadowColorB", true);
          destB.setValue(shadowColorB);
       }
 
@@ -200,8 +200,8 @@ void CArnoldMeshLightNode::MeshDirtyCallback(MObject& node, MPlug& plug, void *c
    if (!lightNode)
       return;
 
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-   if(plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution")
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if(plugName == "pnts" || plugName == "inMesh" || plugName == "dispResolution")
    {
       lightNode->scheduleGeometryUpdate();
    }
@@ -210,7 +210,7 @@ void CArnoldMeshLightNode::MeshDirtyCallback(MObject& node, MPlug& plug, void *c
 void CArnoldMeshLightNode::PreDeleteCallback(MObject& node, MDGModifier& modifier, void* clientData)
 {
    MFnDependencyNode fnNode(node);
-   MPlug plug = fnNode.findPlug("showOriginalMesh");
+   MPlug plug = fnNode.findPlug("showOriginalMesh", true);
    plug.setValue(true);
 }
 

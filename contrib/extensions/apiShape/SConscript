@@ -1,7 +1,8 @@
 # vim: filetype=python
 
-import system, os
-from build_tools import find_files_recursive
+import os
+from utils.build_tools import find_files_recursive
+import utils.system as system
 
 # import build env
 Import('ext_env')
@@ -14,7 +15,7 @@ include_files = find_files_recursive(src_base_dir, ['.h'])
 
 EXT = local_env.SharedLibrary('apiShape', source_files, LIBPREFIX='')
 
-if system.os() == 'windows':
+if system.os == 'windows':
    local_env['MSVSSCONSCRIPT'] = ext_env.File('SConscript')
    EXT_PRJ = local_env.MSVSProject(target = 'apiShape' + local_env['MSVS']['PROJECTSUFFIX'],
                                     srcs = source_files + include_files,

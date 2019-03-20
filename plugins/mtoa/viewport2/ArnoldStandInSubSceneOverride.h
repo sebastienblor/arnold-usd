@@ -14,9 +14,10 @@
 #include <vector>
 #include <map>
 
+#include "nodes/shape/ArnoldStandInGeometry.h"
+
 class CArnoldStandInShape;
 class CArnoldStandInGeom;
-class CArnoldStandInGeometry;
 
 class CArnoldStandInSubSceneOverride : public MHWRender::MPxSubSceneOverride
 {
@@ -68,7 +69,7 @@ private:
                                  const MHWRender::MShaderInstance* shader, bool scaled);
     void updateRenderItem(MHWRender::MSubSceneContainer& container, CArnoldStandInGeom* geom, 
                           MHWRender::MRenderItem* item, size_t totalCount, const MHWRender::MShaderInstance* shader, 
-                          bool wantNormals = false, bool boxMode = false);
+                          bool wantNormals = false, bool boxMode = false, StandinSelectionFilter updateSelected = STANDIN_GEOM_ALL);
 
     void fillBuffers(const CArnoldStandInGeometry& standIn, unsigned int* indices, float* vertices, float* normals, 
                      size_t& startIndex, size_t& pointOffset, const MHWRender::MGeometry::Primitive& primitive, 

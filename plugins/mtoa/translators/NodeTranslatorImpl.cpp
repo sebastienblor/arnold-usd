@@ -385,7 +385,7 @@ MPlug CNodeTranslatorImpl::FindMayaOverridePlug(const MString &attrName, MStatus
 MPlug CNodeTranslatorImpl::FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus) const
 {
    MFnDependencyNode fnNode(m_handle.object());
-   return fnNode.findPlug(attrName, ReturnStatus);
+   return fnNode.findPlug(attrName, true, ReturnStatus);
 }
 
 void CNodeTranslatorImpl::RemoveUpdateCallbacks()
@@ -480,7 +480,9 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
    for (unsigned int i=0; i<ns; i++)
    {
       fnSet.setObject(overrideSetObjs[i]);
-      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
+      CNodeTranslator *translator = m_session->ExportNode(fnSet.findPlug("message", true));
+      if (translator)
+         m_overrideSets.push_back(translator);
    }
    if (MtoaTranslationInfo())
    {
@@ -588,7 +590,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             closureName += "_clos";
             AtNode *child = m_tr.GetArnoldNode(closureName.c_str());
             if (child == NULL)
-               child = m_tr.AddArnoldNode("MayaFlatClosure", closureName.c_str());
+               child = m_tr.AddArnoldNode("flat", closureName.c_str());
 
             AiNodeSetRGB(child, "color", col.r, col.g, col.b);
             AiNodeLink(child, arnoldParamName, arnoldNode);
@@ -755,14 +757,14 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             // create an interpolation node for matrices
             AtNode* animNode = m_tr.GetArnoldNode(arnoldParamName);
             if (animNode == NULL)
-               animNode = m_tr.AddArnoldNode("MtoaAnimMatrix", arnoldParamName);
+               animNode = m_tr.AddArnoldNode("matrix_interpolate", arnoldParamName);
 
             AtArray* matrices = AiArrayAllocate(1, m_tr.GetNumMotionSteps(), AI_TYPE_MATRIX);
 
             ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, m_tr.GetMotionStep(), plug);
 
             // Set the parameter for the interpolation node
-            AiNodeSetArray(animNode, "values", matrices);
+            AiNodeSetArray(animNode, "matrix", matrices);
             // link to our node
             AiNodeLink(animNode, arnoldParamName, arnoldNode);
          }
@@ -825,12 +827,13 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       // handled above by ProcessParameterInputs
       break;
    case AI_TYPE_ARRAY:
-      {
-         if (!plug.isArray())
+      {// FIXME in some cases (e.g. matrix_interpolate) the arnold attribute is an array, but appears as a simple parameter on the maya side.
+      // Since Arnold allows setting a simple value for arrays, maybe we should let this happen here too ?
+/*         if (!plug.isArray())
          {
             MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not : " + plug.name());
             return NULL;
-         }
+         }*/
          m_tr.ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
       }
       break;
@@ -1030,9 +1033,9 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          if (AiNodeIs(node, polymeshStr) || AiNodeIs(node, pointsStr) || AiNodeIs(node, boxStr) || AiNodeIs(node, sphereStr))
          {
             MFnDependencyNode fnDGNode(m_tr.GetMayaObject());
-            MPlug stepSizePlug = fnDGNode.findPlug("stepSize");
+            MPlug stepSizePlug = fnDGNode.findPlug("stepSize", true);
             if (stepSizePlug.isNull())
-               stepSizePlug = fnDGNode.findPlug("aiStepSize");
+               stepSizePlug = fnDGNode.findPlug("aiStepSize", true);
 
             if (!stepSizePlug.isNull())
                isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
@@ -1082,7 +1085,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          
          for (unsigned int i = 0; i < 4; ++i)
          {
-            MPlug plug = sgNode.findPlug(shaderAttrNames[i]);
+            MPlug plug = sgNode.findPlug(shaderAttrNames[i], true);
             if (plug.isNull()) continue;
             
             connections.clear();

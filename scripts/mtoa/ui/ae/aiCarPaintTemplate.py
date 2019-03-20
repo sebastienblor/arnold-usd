@@ -36,6 +36,7 @@ class AEaiCarPaintTemplate(ShaderAETemplate):
         self.addControl("flake_layers", label='Layers')
         self.addControl("flake_normal_randomize", label='Normal Randomize')
         self.addControl("flake_coord_space", label='Coord Space')
+        self.addControl("pref_name", label='Pref Name')
         self.endLayout()
         self.endLayout()
 

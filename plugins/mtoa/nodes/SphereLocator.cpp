@@ -380,10 +380,10 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
 
    MFnDagNode fn(thisMObject());
 
-   MPlug radiusPlug  = fn.findPlug("skyRadius");
+   MPlug radiusPlug  = fn.findPlug("skyRadius", true);
    radiusPlug.getValue(radius);
 
-   MPlug facingPlug  = fn.findPlug("skyFacing");
+   MPlug facingPlug  = fn.findPlug("skyFacing", true);
    facingPlug.getValue(facing);
    
    int renderMode;
@@ -411,7 +411,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    {
       // Check if we have a texture file or a simple color
       // in our SkyShaderNode
-      MPlug skyColorPlug  = fn.findPlug("color");
+      MPlug skyColorPlug  = fn.findPlug("color", true);
       MPlugArray conn;
       skyColorPlug.connectedTo(conn, true, false);
       glEnable(GL_CULL_FACE);
@@ -426,7 +426,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          // check if we need to resample
          if (m_goSample == true)
          {
-            MPlug plugColor = fn.findPlug(s_color);
+            MPlug plugColor = fn.findPlug(s_color, true);
             SampleSN(plugColor);
          }
          
@@ -444,7 +444,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-            float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
+            float hwTexAlpha  = fn.findPlug("hwtexalpha", true).asFloat();
             glColor4f(0.0f, 0.0f, 0.0f, hwTexAlpha);
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
             glEnable(GL_CULL_FACE);
@@ -454,7 +454,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
                glCullFace(GL_BACK);
 
             // Our Custom Sphere
-            MPlug formatPlug  = fn.findPlug(s_format);
+            MPlug formatPlug  = fn.findPlug(s_format, true);
             int format;
             formatPlug.getValue(format);
             DrawUVSphere(radius, divisions * 4, divisions * 4, format);
@@ -473,7 +473,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       else
       {
          glColor4f(skyColorPlug.child(0).asFloat(), skyColorPlug.child(1).asFloat(), skyColorPlug.child(2).asFloat(), 0.6f);
-         MPlug formatPlug  = fn.findPlug(s_format);
+         MPlug formatPlug  = fn.findPlug(s_format, true);
          int format;
          formatPlug.getValue(format);
          DrawUVSphere(radius, divisions * 4, divisions * 4, format, false);
@@ -509,7 +509,7 @@ MBoundingBox CSphereLocator::boundingBox() const
    float scaleX, scaleY, scaleZ, radius;
    MFnDagNode fn(thisMObject());
 
-   MPlug radiusPlug  = fn.findPlug("skyRadius");
+   MPlug radiusPlug  = fn.findPlug("skyRadius", true);
    radiusPlug.getValue(radius);
 
    scaleX = radius;

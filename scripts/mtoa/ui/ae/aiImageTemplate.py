@@ -89,7 +89,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl('frame')
         self.addControl("filter", label="Filter")
         
-        self.addControl("mipmap_bias", label="Mipmap Bias")
+        self.addControl("mipmap_bias", label="Mipmap Bias *") # Not supported in GPU
         self.addControl("multiply", label="Multiply")
         self.addControl("offset", label="Offset")
         # self.addCustom('imageName', self.imageNameConnect, self.imageNameConnect)

@@ -1,0 +1,7 @@
+Converted MayaRemapValueToValue  MayaRemapValueToColor and MayaRemapColor following Maya shaders to arnold shaders
+
+See trac#3716
+
+author: Krishnan Ramachandran
+
+

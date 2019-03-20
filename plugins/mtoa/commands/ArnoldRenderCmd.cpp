@@ -114,15 +114,15 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    {
       list.getDependNode(0, node);
       MFnDependencyNode fnArnoldRenderOptions(node);
-      renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
-      outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
-      expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
-      kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags").asString();
-      useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
-      forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
-      progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
-      exportAllShadingGroups = fnArnoldRenderOptions.findPlug("exportAllShadingGroups").asBool();
-      exportFullPaths = fnArnoldRenderOptions.findPlug("exportFullPaths").asBool();
+      renderType = fnArnoldRenderOptions.findPlug("renderType", true).asShort();
+      outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox", true).asBool();
+      expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals", true).asBool();
+      kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags", true).asString();
+      useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss", true).asBool();
+      forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines", true).asBool();
+      progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering", true).asBool();
+      exportAllShadingGroups = fnArnoldRenderOptions.findPlug("exportAllShadingGroups", true).asBool();
+      exportFullPaths = fnArnoldRenderOptions.findPlug("exportFullPaths", true).asBool();
    }
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
@@ -316,7 +316,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
 
             MFnDependencyNode camDag(dagIterCameras.item());
-            if (camDag.findPlug("renderable").asBool())
+            if (camDag.findPlug("renderable", true).asBool())
             {
                cameras.append(dagPath);
             }

@@ -18,6 +18,7 @@
 class CArnoldStandInGeom
 {
 public:
+
    CArnoldStandInGeom();
    ~CArnoldStandInGeom();
    MString dso;
@@ -45,14 +46,17 @@ public:
    int updateView;
    int updateBBox;
    int drawOverride;
+   bool hasSelection;
+
+
 
    void Clear();
    void Draw(int DrawMode);
-   size_t PointCount() const;
-   size_t SharedVertexCount() const;
-   size_t VisibleGeometryCount() const;
-   size_t WireIndexCount() const;
-   size_t TriangleIndexCount(bool sharedVertices = false) const;
+   size_t PointCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
+   size_t SharedVertexCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
+   size_t VisibleGeometryCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
+   size_t WireIndexCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
+   size_t TriangleIndexCount(bool sharedVertices = false, StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
 };
 
 // Shape class - defines the non-UI part of a shape node
@@ -111,6 +115,7 @@ private:
    static MObject s_boundingBoxMax;
    static MObject s_drawOverride;
    static MObject s_selectedItems;
+   static MObject s_ignoreGroupNodes;
 
    MCallbackId m_attrChangeId;
    bool m_refreshAvoided;

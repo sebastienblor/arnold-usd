@@ -126,21 +126,21 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
    MFnFluid mayaFluid(GetMayaObject());
    MFnDependencyNode mayaFluidNode(GetMayaObject());
 
-   const int colorGradientType = mayaFluidNode.findPlug("colorInput").asShort();
+   const int colorGradientType = mayaFluidNode.findPlug("colorInput", true).asShort();
 
-   ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid2d, "color_gradient");
+   ExportRGBGradient(mayaFluidNode.findPlug("color", true), fluid2d, "color_gradient");
    AiNodeSetInt(fluid2d, "color_gradient_type", colorGradientType);
-   AiNodeSetFlt(fluid2d, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias").asFloat());
+   AiNodeSetFlt(fluid2d, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias", true).asFloat());
    
-   const int incandescenceGradientType = mayaFluidNode.findPlug("incandescenceInput").asShort();
-   ExportRGBGradient(mayaFluidNode.findPlug("incandescence"), fluid2d, "incandescence_gradient");
+   const int incandescenceGradientType = mayaFluidNode.findPlug("incandescenceInput", true).asShort();
+   ExportRGBGradient(mayaFluidNode.findPlug("incandescence", true), fluid2d, "incandescence_gradient");
    AiNodeSetInt(fluid2d, "incandescence_gradient_type", incandescenceGradientType);
-   AiNodeSetFlt(fluid2d, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias").asFloat());   
+   AiNodeSetFlt(fluid2d, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias", true).asFloat());   
    
-   const int opacityGradientType = mayaFluidNode.findPlug("opacityInput").asShort();
-   ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid2d, "opacity_gradient");
+   const int opacityGradientType = mayaFluidNode.findPlug("opacityInput", true).asShort();
+   ExportFloatGradient(mayaFluidNode.findPlug("opacity", true), fluid2d, "opacity_gradient");
    AiNodeSetInt(fluid2d, "opacity_gradient_type", opacityGradientType);
-   AiNodeSetFlt(fluid2d, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias").asFloat());
+   AiNodeSetFlt(fluid2d, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias", true).asFloat());
 
    ProcessParameter(fluid2d, "dropoff_shape", AI_TYPE_INT, "dropoffShape");
    ProcessParameter(fluid2d, "edge_dropoff", AI_TYPE_FLOAT, "edgeDropoff");

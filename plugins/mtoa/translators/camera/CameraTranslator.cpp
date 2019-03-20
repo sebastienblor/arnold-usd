@@ -191,7 +191,7 @@ double CCameraTranslator::GetDeviceAspect()
       MFnDependencyNode fnRenderGlobals(node);
 
       MPlugArray connectedPlugs;
-      MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
+      MPlug      resPlug = fnRenderGlobals.findPlug("resolution", true);
 
       resPlug.connectedTo(connectedPlugs,
                           true,  // asDestination
@@ -206,7 +206,7 @@ double CCameraTranslator::GetDeviceAspect()
          if (status)
          {
             MFnDependencyNode fnRes(resNode);
-            deviceAspect = fnRes.findPlug("deviceAspectRatio").asFloat();
+            deviceAspect = fnRes.findPlug("deviceAspectRatio", true).asFloat();
          }
       }
    }
@@ -262,9 +262,9 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
       maxPoint = MVector(width, width);
    }
 
-   if (m_fnCamera.findPlug("renderPanZoom").asBool() && m_fnCamera.findPlug("panZoomEnabled").asBool())
+   if (m_fnCamera.findPlug("renderPanZoom", true).asBool() && m_fnCamera.findPlug("panZoomEnabled", true).asBool())
    {      
-      double zoom = m_fnCamera.findPlug("zoom").asDouble();
+      double zoom = m_fnCamera.findPlug("zoom", true).asDouble();
       filmTranslateX *= zoom;
       filmTranslateY *= zoom;
 
@@ -303,8 +303,8 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
          break;
       }
 
-      double panX = m_fnCamera.findPlug("horizontalPan").asDouble() / horizontalAperture * 2;
-      double panY = m_fnCamera.findPlug("verticalPan").asDouble() / verticalAperture * 2;
+      double panX = m_fnCamera.findPlug("horizontalPan", true).asDouble() / horizontalAperture * 2;
+      double panY = m_fnCamera.findPlug("verticalPan", true).asDouble() / verticalAperture * 2;
 
       filmTranslateX += panX;
       filmTranslateY += (panY * (deviceAspect / filmAspect));

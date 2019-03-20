@@ -67,7 +67,7 @@ void CArnoldVolumeTranslator::ExportMotion(AtNode* anode)
 AtNode* CArnoldVolumeTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    MFnDependencyNode masterDepNode(masterInstance.node());
-   MPlug dummyPlug = masterDepNode.findPlug("matrix");
+   MPlug dummyPlug = masterDepNode.findPlug("matrix", true);
    // in case master instance wasn't exported (#648)
    // and also to create the reference between both translators
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
@@ -157,7 +157,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       
       ExportBoundingBox(volume);
 */
-      MString filename = m_DagNode.findPlug("filename").asString();
+      MString filename = m_DagNode.findPlug("filename", true).asString();
       int start = 0;
       int end = 0;
       MString newFilename = "";
@@ -168,7 +168,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       
       if(start >= 0)
       {
-         sprintf(frameExt, "%0*d", end - start + 1, m_DagNode.findPlug("frame").asInt());
+         sprintf(frameExt, "%0*d", end - start + 1, m_DagNode.findPlug("frame", true).asInt());
          newFilename = filename.substring(0,start-1) + frameExt + filename.substring(end+1,filename.length());
       }
       else
@@ -180,7 +180,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       AiNodeDeclare( volume, "filename", "constant STRING" );
       AiNodeSetStr( volume, "filename", newFilename.asChar() );
       
-      MString grids = m_DagNode.findPlug("grids").asString();
+      MString grids = m_DagNode.findPlug("grids", true).asString();
       MStringArray gridList;
       grids.split(' ',gridList);
       
@@ -194,14 +194,14 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
          }
          AiNodeSetArray( volume, "grids", ary);
       }
-      float stepSize = m_DagNode.findPlug("stepSize").asFloat();
-      if (m_DagNode.findPlug("autoStepSize").asBool())
+      float stepSize = m_DagNode.findPlug("stepSize", true).asFloat();
+      if (m_DagNode.findPlug("autoStepSize", true).asBool())
          stepSize = 0.f;
       
       AiNodeSetFlt(volume, "step_size", stepSize);
-      AiNodeSetFlt(volume, "step_scale", m_DagNode.findPlug("stepScale").asFloat());
+      AiNodeSetFlt(volume, "step_scale", m_DagNode.findPlug("stepScale", true).asFloat());
       
-      MString vGrids = m_DagNode.findPlug("velocityGrids").asString();
+      MString vGrids = m_DagNode.findPlug("velocityGrids", true).asString();
       MStringArray vGridList;
       vGrids.split(' ',vGridList);
       
@@ -217,32 +217,32 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       }      
       
       AiNodeDeclare( volume, "velocity_scale", "constant FLOAT" );
-      AiNodeSetFlt(volume, "velocity_scale", m_DagNode.findPlug("velocityScale").asFloat());
+      AiNodeSetFlt(volume, "velocity_scale", m_DagNode.findPlug("velocityScale", true).asFloat());
       
       AiNodeDeclare( volume, "velocity_fps", "constant FLOAT" );
-      AiNodeSetFlt(volume, "velocity_fps", m_DagNode.findPlug("velocityFps").asFloat());
+      AiNodeSetFlt(volume, "velocity_fps", m_DagNode.findPlug("velocityFps", true).asFloat());
       
       AiNodeDeclare( volume, "motion_start", "constant FLOAT" );
-      AiNodeSetFlt(volume, "motion_start", m_DagNode.findPlug("motionStart").asFloat());
+      AiNodeSetFlt(volume, "motion_start", m_DagNode.findPlug("motionStart", true).asFloat());
       
       AiNodeDeclare( volume, "motion_end", "constant FLOAT" );
-      AiNodeSetFlt(volume, "motion_end", m_DagNode.findPlug("motionEnd").asFloat());
+      AiNodeSetFlt(volume, "motion_end", m_DagNode.findPlug("motionEnd", true).asFloat());
       
       AiNodeDeclare( volume, "velocity_outlier_threshold", "constant FLOAT" );
-      AiNodeSetFlt(volume, "velocity_outlier_threshold", m_DagNode.findPlug("velocityThreshold").asFloat());         
+      AiNodeSetFlt(volume, "velocity_outlier_threshold", m_DagNode.findPlug("velocityThreshold", true).asFloat());         
          
-      AiNodeSetBool(volume, "disable_ray_extents", m_DagNode.findPlug("disableRayExtents").asBool());
-      AiNodeSetBool(volume, "compress", m_DagNode.findPlug("compress").asBool());
-      AiNodeSetFlt(volume, "volume_padding", m_DagNode.findPlug("volumePadding").asFloat());
+      AiNodeSetBool(volume, "disable_ray_extents", m_DagNode.findPlug("disableRayExtents", true).asBool());
+      AiNodeSetBool(volume, "compress", m_DagNode.findPlug("compress", true).asBool());
+      AiNodeSetFlt(volume, "volume_padding", m_DagNode.findPlug("volumePadding", true).asFloat());
 
       const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(volume));
       if (strcmp(nodeType, "volume_implicit") == 0)
       {
          // export as implicit
-         AiNodeSetFlt(volume, "threshold", m_DagNode.findPlug("threshold").asFloat());
-         AiNodeSetUInt(volume, "samples", m_DagNode.findPlug("samples").asInt());
-         AiNodeSetInt(volume, "solver", m_DagNode.findPlug("solver").asInt());
-         AiNodeSetStr(volume, "field_channel", AtString(m_DagNode.findPlug("fieldChannel").asString().asChar()));
+         AiNodeSetFlt(volume, "threshold", m_DagNode.findPlug("threshold", true).asFloat());
+         AiNodeSetUInt(volume, "samples", m_DagNode.findPlug("samples", true).asInt());
+         AiNodeSetInt(volume, "solver", m_DagNode.findPlug("solver", true).asInt());
+         AiNodeSetStr(volume, "field_channel", AtString(m_DagNode.findPlug("fieldChannel", true).asString().asChar()));
 
          MPlugArray conns;   
          MPlug field = FindMayaPlug("field");

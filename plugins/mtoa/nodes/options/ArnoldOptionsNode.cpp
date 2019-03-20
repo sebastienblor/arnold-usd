@@ -122,9 +122,10 @@ MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
 MObject CArnoldOptionsNode::s_gpu;
 MObject CArnoldOptionsNode::s_render_devices;
+MObject CArnoldOptionsNode::s_gpu_max_texture_resolution;
 MObject CArnoldOptionsNode::s_manual_devices;
 MObject CArnoldOptionsNode::s_ignore_list;
-
+MObject CArnoldOptionsNode::s_render_device_fallback;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -203,7 +204,8 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("batch_only", 2);
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
-
+   
+   
    s_denoiseBeauty = nAttr.create("denoiseBeauty", "opdenb", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_denoiseBeauty);
@@ -394,7 +396,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_mb_object_deform_enable);
 
-   s_mb_shader_enable = nAttr.create("mb_shader_enable", "mb_sen", MFnNumericData::kBoolean, 1);
+   s_mb_shader_enable = nAttr.create("mb_shader_enable", "mb_sen", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_mb_shader_enable);
 
@@ -464,9 +466,19 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotx);
 
-   s_gpu = nAttr.create("gpu", "gpu", MFnNumericData::kBoolean, false);
-   nAttr.setKeyable(false);
+   s_gpu = eAttr.create("renderDevice", "rndrdvc");
+   eAttr.setKeyable(false);
+   eAttr.addField("CPU", 0);
+   eAttr.addField("GPU ( BETA )", 1);
+   eAttr.setDefault(0);
    addAttribute(s_gpu);
+
+   s_render_device_fallback = eAttr.create("render_device_fallback", "rndfb");
+   eAttr.setKeyable(false);
+   eAttr.addField("Error", 0);
+   eAttr.addField("CPU", 1);
+   eAttr.setDefault(0);
+   addAttribute(s_render_device_fallback);
 
    s_manual_devices = nAttr.create("manual_gpu_devices", "manualdevs", MFnNumericData::kBoolean, false);
    nAttr.setKeyable(false);
@@ -476,6 +488,12 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setArray(true);
    addAttribute(s_render_devices);   
+
+   // Cannot use s_attributes.MakeInput because the attribute only exists in the gpu version
+   s_gpu_max_texture_resolution =  nAttr.create("gpu_max_texture_resolution", "gpumtr", MFnNumericData::kInt, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_gpu_max_texture_resolution);   
+
 
    s_attributes.MakeInput("gpu_default_names");
    s_attributes.MakeInput("gpu_default_min_memory_MB");
@@ -490,7 +508,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_displacement");
    s_attributes.MakeInput("ignore_bump");   
    s_attributes.MakeInput("ignore_smoothing");   
-   s_attributes.MakeInput("ignore_motion_blur");
+   s_attributes.MakeInput("ignore_motion_blur"); // now exposed as "instantaneous shutter"
+   s_attributes.MakeInput("ignore_motion");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
    s_attributes.MakeInput("ignore_operators");
@@ -498,9 +517,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_ignore_list = tAttr.create("ignore_list", "igl", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_ignore_list);
-
-   
-
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
@@ -600,7 +616,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("reference_time");
       
-   s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 1);
+   s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_enable_swatch_render);
 

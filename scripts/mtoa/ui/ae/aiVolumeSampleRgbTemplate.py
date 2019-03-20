@@ -3,6 +3,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiVolumeSampleRgbTemplate(ShaderAETemplate):
     def setup(self):
+        self.addSwatch()
         self.beginScrollLayout()
         
         self.beginLayout('Volume Sample RGB Attributes', collapse=False)

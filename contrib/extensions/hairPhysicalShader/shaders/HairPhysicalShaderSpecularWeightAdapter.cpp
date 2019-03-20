@@ -14,6 +14,7 @@ node_parameters
     AiParameterFlt("longitudinalWidth", 3.5f);
 
     AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 node_initialize

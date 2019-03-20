@@ -22,7 +22,7 @@ void CXgSplineDescriptionTranslator_ExportSplineData(MDagPath& dagPath, AtNode* 
 
     // Stream out the spline data
     std::string data;
-    MPlug       outPlug = fnDagNode.findPlug("outRenderData");
+    MPlug       outPlug = fnDagNode.findPlug("outRenderData", true);
     MObject     outObj  = outPlug.asMObject();
     MPxData*    outData = MFnPluginData(outObj).data();
     if (outData)

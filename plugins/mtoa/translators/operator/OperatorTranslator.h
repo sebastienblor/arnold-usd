@@ -18,6 +18,7 @@ public:
    void Export(AtNode* atNode);
 
   protected:
-  	void ExportAssignedShaders(AtNode *shader);
+    void ExportAssignedShaders(AtNode *shader);
+    MStringArray WalkOutputs(MObject obj);
    
 };

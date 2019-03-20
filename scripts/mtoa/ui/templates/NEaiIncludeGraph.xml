@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+    <using package='maya'/>
+    <template name='NEaiIncludeGraph'>
+        <attribute name='outColor' type='maya.message'>
+            <label>Out Color</label>
+        </attribute>
+        <attribute name='inputs' type='maya.message'>
+            <label>Inputs</label>
+        </attribute>
+    </template>
+    <view name='NEDefault' template='NEaiIncludeGraph'>
+        <property name='outColor'/>
+        <property name='inputs'/>
+    </view>
+    <view name='NEDefaultSoloOutput' template='NEaiIncludeGraph'>
+        <property name='outColor'/>
+    </view>
+</templates>

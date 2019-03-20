@@ -1,3 +1,8 @@
 Curve Collector must ignore intermediate objects (#2785)
 
 author: sebastien.ortega
+
+PARAMS: {
+  'diff_fail': 0.03, 	
+  'diff_hardfail' : 0.03  
+}

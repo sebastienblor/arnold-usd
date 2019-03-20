@@ -20,7 +20,7 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
         self.addControl('aiCurveShader', label='Shader')
         self.addControl('aiExportRefPoints', label='Export Reference Points')
 
-        self.addControl('aiMinPixelWidth', label='Min Pixel Width')
+        self.addControl('aiMinPixelWidth', label='Min Pixel Width *') # Not supported in GPU
         self.addSeparator()
         
         self.addControl("aiUserOptions", label="User Options")

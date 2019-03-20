@@ -193,7 +193,7 @@ static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData,
    MObject curve(curvePath.node());
    MFnDependencyNode fnDepNodeCurve(curve);
    MStatus stat;
-   MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", &stat);
+   MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", true, &stat);
    if (stat != MStatus::kSuccess)
       return MS::kSuccess;
    
@@ -223,7 +223,7 @@ static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData,
    MPlugArray conns;
    MPlug plug;
 
-   plug = fnDepNodeCurve.findPlug("referenceObject", &stat);
+   plug = fnDepNodeCurve.findPlug("referenceObject", true, &stat);
    plug.connectedTo(conns, true, false);
    bool hasReferenceObject = (exportReference && motion == false && conns.length() > 0);
 
@@ -440,12 +440,9 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
          shader = GetArnoldNode("hairShader");
          if (shader == NULL)
             shader = AddArnoldNode("standard_hair", "hairShader");
-         
-         // Add shader uparam and vparam names
-         //AiNodeSetStr(shader, "uparam", "uparamcoord");
-         //AiNodeSetStr(shader, "vparam", "vparamcoord");
+
       }
-      SetRootShader(shader);      
+      AiNodeSetPtr(curve, "shader", shader);
    }   
 
    m_sampleRate = 5;

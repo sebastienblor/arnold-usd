@@ -16,12 +16,7 @@ public:
     }
 
 private:
-    // Add an adapter node to the shader node
-    AtNode* AddAdapterNode(AtNode* shader, const char* input, const char* type);
-
-    // Get the previously created adapter node
-    AtNode* GetAdapterNode(const char* input);
-
+    
     // Export the Maya plug to the adapter node input
     void ExportAdapterParameter(AtNode* adapter, const char* input, const char* plugName);
 

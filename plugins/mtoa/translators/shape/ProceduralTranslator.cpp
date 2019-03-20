@@ -217,7 +217,7 @@ void CProceduralTranslator::ExportMotion(AtNode* anode)
 AtNode* CProceduralTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    MFnDependencyNode masterDepNode(masterInstance.node());
-   MPlug dummyPlug = masterDepNode.findPlug("matrix");
+   MPlug dummyPlug = masterDepNode.findPlug("matrix", true);
    // in case master instance wasn't exported (#648)
    // and also to create the reference between both translators
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
@@ -291,29 +291,49 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
    
    AiNodeSetBool(procedural, "override_nodes", FindProceduralPlug("overrideNodes").asBool());
 
-   MString nsName = m_DagNode.findPlug("aiNamespace").asString();
+   MString nsName = m_DagNode.findPlug("aiNamespace", true).asString();
    if (nsName.length() > 0)
       AiNodeSetStr(procedural, "namespace", nsName.asChar());
    else
       AiNodeResetParameter(procedural, "namespace");
 
+
+   // Now check the "operators" input. In Arnold it's a single node pointer, whereas MtoA provides an array.
+   // If there are multiple inputs in the maya node we'll insert a merge op in the middle
+   std::vector<AtNode *> inputOps;
    MPlug ops = FindMayaPlug("operators");
    unsigned nelems = ops.numElements();
    MPlug elemPlug;
-   bool hasOperators = false;
    for (unsigned int i = 0; i < nelems; ++i)
    {
       elemPlug = ops[i];       
-      
       MPlugArray connections;
       elemPlug.connectedTo(connections, true, false);
       if (connections.length() > 0)
-         if (ExportConnectedNode(connections[0]))
-            hasOperators = true;
+      {
+         AtNode *op = ExportConnectedNode(connections[0]); // ensure this operator is exported
+         if (op)
+            inputOps.push_back(op); // append the operator node to the list 
+      }
    }
-   if (hasOperators)
-      m_impl->m_session->AddProceduralOperators(m_impl->m_handle);
+   if (inputOps.empty())
+      AiNodeResetParameter(procedural, "operator"); // don't forget to clear this attribute for IPR updates
+   else if (inputOps.size() == 1)
+      AiNodeSetPtr(procedural, "operator", (void*)inputOps[0]); // single input, basic translation
+   else
+   {
+      // Multiple ops, let's insert a merge operator
 
+      AtNode *mergeOp = GetArnoldNode("input_merge_op");
+      if (mergeOp == NULL)
+         mergeOp = AddArnoldNode("merge", "input_merge_op");
+      AtArray* opArray = AiArrayAllocate(inputOps.size(), 1, AI_TYPE_NODE);
+      for (unsigned int i = 0; i < inputOps.size(); ++i)
+         AiArraySetPtr(opArray, i, (void*)inputOps[i]);
+      
+      AiNodeSetArray(mergeOp, "inputs", opArray);
+      AiNodeSetPtr(procedural, "operator", mergeOp);
+   }
    return procedural;
 }
 
@@ -321,8 +341,14 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
 void CProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
+   MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   if (!IsTransformPlug(plug))
+   if (plugName == "selectedItems" || plugName == "selected_items" || 
+      plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
+      plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2") return;
+
+   MGlobal::displayWarning(plugName.substringW(0, 9));
+   if (!(IsTransformPlug(plug) || (plugName.length() > 10 && plugName.substringW(0, 9) == MString("operators["))))
       SetUpdateMode(AI_RECREATE_NODE);
    
    CShapeTranslator::NodeChanged(node, plug);
@@ -346,13 +372,13 @@ MPlug CProceduralTranslator::FindProceduralPlug(const char *name)
    if (attrName.length() == 0)
       return MPlug();
 
-   MPlug plug = m_DagNode.findPlug(MString(name));
+   MPlug plug = m_DagNode.findPlug(MString(name), true);
    if (plug.isNull())
    {
       MString prefix = attrName.substringW(0, 0);
       attrName = MString ("ai") + prefix.toUpperCase() + attrName.substringW(1, attrName.length() - 1);
 
-      plug = m_DagNode.findPlug(attrName);
+      plug = m_DagNode.findPlug(attrName, true);
    }
 
    MStatus overstat;

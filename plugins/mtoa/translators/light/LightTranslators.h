@@ -160,7 +160,9 @@ public:
    AtNode* CreateArnoldNodes()
    {
       AddArnoldNode("polymesh", "mesh");
-      AddArnoldNode("MtoaMeshLightMaterial", "shader");
+      AddArnoldNode("two_sided", "two_sided");
+      AddArnoldNode("ray_switch_shader", "shader");
+      AddArnoldNode("multiply", "multShader");
       return AddArnoldNode("mesh_light");
    }
 
@@ -172,7 +174,7 @@ protected:
    MPlug GetPlug(const MObject& obj, const MString &attrName, MStatus* ReturnStatus = NULL) const
    {
       MFnDependencyNode fnNode(obj);
-      return fnNode.findPlug(attrName, ReturnStatus);
+      return fnNode.findPlug(attrName, true, ReturnStatus);
    }
    virtual AtNode* ExportSimpleMesh(const MObject& meshObject);
    virtual MObject GetMeshObject() const;

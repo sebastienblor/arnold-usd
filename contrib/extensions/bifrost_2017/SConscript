@@ -1,7 +1,8 @@
 # vim: filetype=python
 
-import system, os
-from build_tools import find_files_recursive
+import os
+import utils.system as system
+from utils.build_tools import find_files_recursive
 Import('ext_env')
 ##############################################################
 ## COMMON ENV
@@ -11,11 +12,11 @@ BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
 ROOT_DIR = common_env['ROOT_DIR']
 
 mayaRoot = common_env['MAYA_ROOT']
-if system.os() == 'darwin':
+if system.os == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
     mayaRoot = mayaRoot.replace('//', '/')
 
-if system.os() !='windows':
+if system.os !='windows':
     common_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
 ext_base_dir = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2017')
@@ -23,7 +24,7 @@ ext_base_dir = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'bi
 def setup(env, library):
     '''Adds the include paths, lib paths and libs to the given environment for the given library.'''
     def addLib(env, lib):
-        env.Append(LIBS=Split(lib + ('.lib' if system.os() =='windows' else '')))
+        env.Append(LIBS=Split(lib + ('.lib' if system.os =='windows' else '')))
 
     def addBifrostApi(env):
 
@@ -39,32 +40,32 @@ def setup(env, library):
             env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostcore', 'api')])
             env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'aminomath', 'api')])
 
-        if system.os() == 'darwin' and int(maya_version) < 201800:
+        if system.os == 'darwin' and int(maya_version) < 201800:
             env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin')])
         else:
-            if system.os() == 'windows' and int(maya_version) >= 201800:
+            if system.os == 'windows' and int(maya_version) >= 201800:
                 env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'lib')])
             else:
                 env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
 
         bifrostLib = 'bifrostapi'
         
-        env.Append(LIBS=Split(bifrostLib + ('.lib' if system.os() =='windows' else '')))
+        env.Append(LIBS=Split(bifrostLib + ('.lib' if system.os =='windows' else '')))
 
     def addBifrostRenderCore(env):
         # TEMPORARY
         env.Append(CPPPATH = [os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost_2017', 'bifrostrendercore', 'api')])
         #env.Append(LIBPATH = [os.path.join(ROOT_DIR, BUILD_BASE_DIR, 'bifrost')])
-        #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
+        #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os =='windows' else '')))
         #env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'plugins', 'bifrostrendercore', 'api')])
-        #env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin' if system.os() == 'darwin' else 'lib')])
-        #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
+        #env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin' if system.os == 'darwin' else 'lib')])
+        #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os =='windows' else '')))
 
     def addAi(env):
-        env.Append(LIBS=Split('ai' + '.lib' if system.os() =='windows' else ''))
+        env.Append(LIBS=Split('ai' + '.lib' if system.os =='windows' else ''))
 
     def addMtoa(env):
-        env.Append(LIBS=Split('mtoa_api' + '.lib' if system.os() =='windows' else ''))
+        env.Append(LIBS=Split('mtoa_api' + '.lib' if system.os =='windows' else ''))
 
     libToEnvSetup = {
         "bifrostapi" : addBifrostApi,
@@ -90,7 +91,7 @@ source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_bas
 
 local_env.Append(CPPDEFINES = Split('BIFROSTRENDERAPI') )
 src_rendercore_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')
-if system.os() == 'darwin':
+if system.os == 'darwin':
     local_env.Append(LIBS=Split('tbb'))
 
 local_env.Append(CPPPATH = os.path.join(src_rendercore_dir, 'api'))
@@ -109,7 +110,7 @@ shader_env = env.Clone()
 src_base_dir  = os.path.join(ext_base_dir, 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 
-if system.os() =='windows':
+if system.os =='windows':
    shader_env.Append(CPPPATH = ['.'])   
    shader_env.Append(LIBS=Split('ai.lib'))
 else:
@@ -129,7 +130,7 @@ setup(local_env, "bifrostapi")
 src_base_dir  = os.path.join(ext_base_dir, 'procedural')
 source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 local_env.Append(CPPPATH = [os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost_2017', 'procedural', 'common', 'include')])
-if system.os() == 'darwin':
+if system.os == 'darwin':
     local_env.Append(LIBS=Split('tbb'))
 local_env.Append(CPPDEFINES = Split('BIFROSTRENDERAPI') )
 src_rendercore_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')

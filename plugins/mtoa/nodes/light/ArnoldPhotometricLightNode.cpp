@@ -278,14 +278,14 @@ void CArnoldPhotometricLightNode::postConstructor()
    MObject me = thisMObject();    
 
    MFnDependencyNode node(me);
-   MPlug plug = node.findPlug("receiveShadows");
+   MPlug plug = node.findPlug("receiveShadows", true);
    plug.setValue(false);
-   plug = node.findPlug("castsShadows");
+   plug = node.findPlug("castsShadows", true);
    plug.setValue(false);
 
    // Alias aiExposure as exposure for internal attribute name recognition
    MStatus stat;
-   MPlug plg = node.findPlug("aiExposure", &stat);
+   MPlug plg = node.findPlug("aiExposure", true, &stat);
    node.setAlias("exposure", "aiExposure", plg, true /*add*/, &stat);
 
    m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
@@ -323,18 +323,18 @@ void CArnoldPhotometricLightNode::attrChangedCallBack(MNodeMessage::AttributeMes
 
          MFnDependencyNode dependNode(plug.node());
 
-         MPlug srcR = dependNode.findPlug("aiShadowColorR");
+         MPlug srcR = dependNode.findPlug("aiShadowColorR", true);
          srcR.getValue(shadowColorR);
-         MPlug srcG = dependNode.findPlug("aiShadowColorG");
+         MPlug srcG = dependNode.findPlug("aiShadowColorG", true);
          srcG.getValue(shadowColorG);
-         MPlug srcB = dependNode.findPlug("aiShadowColorB");
+         MPlug srcB = dependNode.findPlug("aiShadowColorB", true);
          srcB.getValue(shadowColorB);
 
-         MPlug destR = dependNode.findPlug("shadowColorR");
+         MPlug destR = dependNode.findPlug("shadowColorR", true);
 			destR.setValue(shadowColorR);
-         MPlug destG = dependNode.findPlug("shadowColorG");
+         MPlug destG = dependNode.findPlug("shadowColorG", true);
 			destG.setValue(shadowColorG);
-         MPlug destB = dependNode.findPlug("shadowColorB");
+         MPlug destB = dependNode.findPlug("shadowColorB", true);
 			destB.setValue(shadowColorB);
       }
       if (updateShadowAttr)

@@ -19,17 +19,17 @@
 #define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
 #define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
 
-#define EXPORT_BOOL(name) AiNodeSetBool(shape, name, dagNode.findPlug(name).asBool())
-#define EXPORT_INT(name)  AiNodeSetInt(shape, name, dagNode.findPlug(name).asInt())
-#define EXPORT_UINT(name) AiNodeSetUInt(shape, name, dagNode.findPlug(name).asInt())
-#define EXPORT_FLT(name)  AiNodeSetFlt(shape, name, dagNode.findPlug(name).asFloat())
-#define EXPORT_STR(name)  AiNodeSetStr(shape, name, dagNode.findPlug(name).asString().asChar())
+#define EXPORT_BOOL(name) AiNodeSetBool(shape, name, dagNode.findPlug(name, true).asBool())
+#define EXPORT_INT(name)  AiNodeSetInt(shape, name, dagNode.findPlug(name, true).asInt())
+#define EXPORT_UINT(name) AiNodeSetUInt(shape, name, dagNode.findPlug(name, true).asInt())
+#define EXPORT_FLT(name)  AiNodeSetFlt(shape, name, dagNode.findPlug(name, true).asFloat())
+#define EXPORT_STR(name)  AiNodeSetStr(shape, name, dagNode.findPlug(name, true).asString().asChar())
 
-#define EXPORT2_BOOL(name, aiName) AiNodeSetBool(shape, aiName, dagNode.findPlug(name).asBool())
-#define EXPORT2_INT(name,  aiName) AiNodeSetInt(shape, aiName, dagNode.findPlug(name).asInt())
-#define EXPORT2_UINT(name, aiName) AiNodeSetUInt(shape, aiName, dagNode.findPlug(name).asInt())
-#define EXPORT2_FLT(name,  aiName) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name).asFloat())
-#define EXPORT2_STR(name,  aiName) AiNodeSetStr(shape, aiName, dagNode.findPlug(name).asString().asChar())
+#define EXPORT2_BOOL(name, aiName) AiNodeSetBool(shape, aiName, dagNode.findPlug(name, true).asBool())
+#define EXPORT2_INT(name,  aiName) AiNodeSetInt(shape, aiName, dagNode.findPlug(name, true).asInt())
+#define EXPORT2_UINT(name, aiName) AiNodeSetUInt(shape, aiName, dagNode.findPlug(name, true).asInt())
+#define EXPORT2_FLT(name,  aiName) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name, true).asFloat())
+#define EXPORT2_STR(name,  aiName) AiNodeSetStr(shape, aiName, dagNode.findPlug(name, true).asString().asChar())
 
 namespace {
     AtArray* Convert(const MStringArray& array){
@@ -121,13 +121,13 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
       AiMsgError("Bifrost to Arnold package not installed in %s" , s_bifrostProceduralPath.asChar());
 
    MFnDagNode dagNode(m_dagPath.node());
-   if(dagNode.findPlug("tile_mode").asBool())
+   if(dagNode.findPlug("tile_mode", true).asBool())
       return AddArnoldNode("bifrost_blocks");
    
-   int render_as = dagNode.findPlug("render_as").asInt();
+   int render_as = dagNode.findPlug("render_as", true).asInt();
    switch(render_as)
    {
-      case 0: return AddArnoldNode(dagNode.findPlug("surface_type").asInt()==0? "bifrost_polymesh" : "bifrost_implicit");
+      case 0: return AddArnoldNode(dagNode.findPlug("surface_type", true).asInt()==0? "bifrost_polymesh" : "bifrost_implicit");
       case 1: return AddArnoldNode("bifrost_points");
       case 2: return AddArnoldNode("bifrost_volume");
       default: break;
@@ -138,16 +138,16 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
 
 void BifrostTranslator::Export( AtNode *shape ){
    MFnDagNode dagNode(m_dagPath.node());
-   if(dagNode.findPlug("tile_mode").asBool())
+   if(dagNode.findPlug("tile_mode", true).asBool())
    {
       ExportImplicit(dagNode, shape);
       return;
    }
-   int render_as = dagNode.findPlug("render_as").asInt();
+   int render_as = dagNode.findPlug("render_as", true).asInt();
    switch(render_as)
    {
       case 0:
-         if(dagNode.findPlug("surface_type").asInt()==0) ExportPolymesh(dagNode, shape);
+         if(dagNode.findPlug("surface_type", true).asInt()==0) ExportPolymesh(dagNode, shape);
          else ExportImplicit(dagNode, shape);
       break;
       case 1: ExportPoints(dagNode, shape); break;
@@ -171,7 +171,7 @@ void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
 
    this->ExportClipping(dagNode, shape);
 
-   MString channels = dagNode.findPlug("channels").asString();
+   MString channels = dagNode.findPlug("channels", true).asString();
    MStringArray array;
    channels.split(' ', array);
    AiNodeSetArray(shape, "channels", Convert(array));
@@ -181,7 +181,7 @@ void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
 
    ExportLightLinking( shape );
 
-   MPlug objectPlug = dagNode.findPlug("object");
+   MPlug objectPlug = dagNode.findPlug("object", true);
    AiNodeSetStr(shape, "object", objectPlug.asString().asChar());
 
    MString attrName = MFnAttribute(objectPlug.source().attribute()).name();
@@ -196,8 +196,8 @@ void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
    if(propPrefix.length() != 0)
    {
       MFnDependencyNode container(objectPlug.source().node());
-      MFnDependencyNode properties(container.findPlug(propPrefix+"CacheProperties").source().node());
-      AiNodeSetStr(shape, "cache_folder", (properties.findPlug(propPrefix+"CachePath").asString() + properties.findPlug(propPrefix+"CacheFileName").asString()).asChar());
+      MFnDependencyNode properties(container.findPlug(propPrefix+"CacheProperties", true).source().node());
+      AiNodeSetStr(shape, "cache_folder", (properties.findPlug(propPrefix+"CachePath", true).asString() + properties.findPlug(propPrefix+"CacheFileName", true).asString()).asChar());
    }
 
    ExportMatrix(shape);
@@ -268,12 +268,12 @@ void BifrostTranslator::ExportPoints(MFnDagNode &dagNode, AtNode *shape)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), m_dagPath.instanceNumber());
    if(!shadingGroupPlug.isNull()){
        MFnDependencyNode engine(shadingGroupPlug.node());
-       if(engine.findPlug("aiVolumeShader").isDestination() || engine.findPlug("volumeShader").isDestination()){
+       if(engine.findPlug("aiVolumeShader", true).isDestination() || engine.findPlug("volumeShader", true).isDestination()){
             hasVolume = true;
        }
    }
-   float step_size = dagNode.findPlug("points_step_size").asFloat();
-   int mode = dagNode.findPlug("points_type").asInt();
+   float step_size = dagNode.findPlug("points_step_size", true).asFloat();
+   int mode = dagNode.findPlug("points_type", true).asInt();
 
    if(hasVolume){
       if(step_size <= 0){
@@ -305,7 +305,7 @@ MMatrix BifrostTranslator::getRelativeMatrix(const MPlug &source){
 void BifrostTranslator::ExportClipping(const MFnDagNode &dagNode, AtNode *shape)
 {
    EXPORT_BOOL("clip");
-   MPlug clipBoxPlug = dagNode.findPlug("clip_box");
+   MPlug clipBoxPlug = dagNode.findPlug("clip_box", true);
    if(clipBoxPlug.isDestination())
    {
       MPlug source = clipBoxPlug.source();
@@ -324,7 +324,7 @@ void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shap
 {
    EXPORT_BOOL("enable_ocean_blending");
    EXPORT_FLT("ocean_blending_radius");
-   MPlug oceanMeshPlug = dagNode.findPlug("ocean_plane");
+   MPlug oceanMeshPlug = dagNode.findPlug("ocean_plane", true);
    float height = 0;
    MPoint center(0,0,0);
    MPoint dimensions(0,0,0);
@@ -338,7 +338,7 @@ void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shap
       center = (bbox.max() + bbox.min())*.5;
       dimensions = (bbox.max() - bbox.min());
    }
-   const float3& offsets = dagNode.findPlug("ocean_blending_offsets").asMDataHandle().asFloat3();
+   const float3& offsets = dagNode.findPlug("ocean_blending_offsets", true).asMDataHandle().asFloat3();
    height += offsets[1];
    dimensions.x += offsets[0];
    dimensions.z += offsets[2];
@@ -375,7 +375,7 @@ void BifrostTranslator::ExportBifrostShader(MFnDagNode& dagNode){
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), m_dagPath.instanceNumber());
    if (!shadingGroupPlug.isNull())
    {
-      int render_as = dagNode.findPlug("render_as").asInt();
+      int render_as = dagNode.findPlug("render_as", true).asInt();
       if (render_as == 1)
       {
          // Foam may have both a surface and a volume, so export them both directly
@@ -407,7 +407,7 @@ namespace {
    void GetDisplacement(MObject& obj, float& dispPadding)
    {
       MFnDependencyNode dNode(obj);
-      MPlug plug = dNode.findPlug("aiDisplacementPadding");
+      MPlug plug = dNode.findPlug("aiDisplacementPadding", true);
       if (!plug.isNull())
          dispPadding = plug.asFloat();
    }
@@ -421,7 +421,7 @@ void BifrostTranslator::ExportDisplacement()
 
    MPlugArray        connections;
    MFnDependencyNode fnDGShadingGroup(shadingGroupPlug.node());
-   MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+   MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader", true);
    shaderPlug.connectedTo(connections, true, false);
 
     // are there any connections to displacementShader?

@@ -828,7 +828,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MObject &object)
    if (typeName != "objectSet")
    {
       MStatus status;
-      MPlug plug = depFn.findPlug("aiTranslator", &status);
+      MPlug plug = depFn.findPlug("aiTranslator", true, &status);
       if (status == MStatus::kSuccess)
       {
          MObject attr = plug.attribute();
@@ -869,8 +869,9 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
    {
       foundTrs = FindRegisteredTranslator(mayaNode, searchTrs);
       if (NULL == foundTrs)
-      {
-         AiMsgWarning("[mtoa.ext]  %s Found no translator named \"%s\"",
+      {         
+         if (translatorName != MString("maya"))
+            AiMsgWarning("[mtoa.ext]  %s Found no translator named \"%s\"",
                mayaNode.name.asChar(), translatorName.asChar());
          return NULL;
       }
