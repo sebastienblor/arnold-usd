@@ -19,8 +19,8 @@ class AEaiCurvatureTemplate(ShaderAETemplate):
         self.addControl('threshold', label='Threshold')
         self.addControl('bias', label='Bias')
         self.addControl('multiply', label='multiply')
-        self.addControl('traceSet', label='Trace Set')
-        self.addControl('inclusive', label='Inclusive')
+        self.addControl('traceSet', label='Trace Set *') # Not supported in GPU
+        self.addControl('inclusive', label='Inclusive *') # Not supported in GPU
         self.addControl('selfOnly', label='Self Only')
         
         self.endLayout()

@@ -56,6 +56,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         abcTransverser = AlembicTransverser()
         abcTransverser.filenameAttr = 'cacheFileName'
+        abcTransverser.selectionAttr = None
 
         self.tree = ProceduralTreeView(abcTransverser, currentWidget)
         self.tree.setObjectName("abcTreeWidget")
@@ -81,6 +82,9 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.tree.setCurrentNode(self.nodeName)
         self.properties_panel.setItem(self.nodeName, None)
         self.properties_panel.setNode(self.nodeName)
+        if self.tree.transverser:
+            self.tree.transverser.filenameAttr = 'cacheFileName'
+            self.tree.transverser.selectionAttr = None
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
