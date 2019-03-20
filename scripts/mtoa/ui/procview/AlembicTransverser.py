@@ -66,10 +66,16 @@ class AlembicTransverser(ProceduralTransverser):
         self.filenameAttr = "filename"
 
     def getArchivePath(self, node):
-        return os.path.abspath(cmds.getAttr("{}.{}".format(node, self.filenameAttr)))
+        filename = cmds.getAttr("{}.{}".format(node, self.filenameAttr))
+        if len(filename) == 0:
+            return ''
+        return os.path.abspath(filename)
 
     def getArchive(self, node):
-        abc_file = self.getArchivePath(node)
+        abc_file = self.getArchivePath(node) or ''
+        if len(abc_file) == 0:
+            return None
+
         iarch = Abc.IArchive(str(abc_file))
         return iarch
 
@@ -93,6 +99,8 @@ class AlembicTransverser(ProceduralTransverser):
 
     def getRootObjectInfo(self, node):
         abc_file = self.getArchive(node)
+        if not abc_file:
+            return None
         return self.getObjectInfo(abc_file.getTop())
 
     def dir(self, iobject):
