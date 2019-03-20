@@ -587,7 +587,7 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportMaterialx(selected=True)', category="Utilities", annotation='Export the selected shading trees to .mtlx files')
         addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStart()', category="Utilities", annotation='Pre-Populate the Optix GPU Cache')
-        addRuntimeMenuItem('AbortGPUCache', label='Abort GPU Cache', parent='ArnoldUtilities', keywords='GPU',
+        addRuntimeMenuItem('AbortGPUCache', label='Abort GPU Cache pre-population', parent='ArnoldUtilities', keywords='GPU',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStop()', category="Utilities", annotation='Terminate the Optix GPU cache creation')
         cmds.menuItem('ArnoldLicensingMenu', label='RLM Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
