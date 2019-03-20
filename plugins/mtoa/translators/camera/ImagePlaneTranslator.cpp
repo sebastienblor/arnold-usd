@@ -108,7 +108,7 @@ void CImagePlaneTranslator::ExportImagePlane()
    ProcessParameter(colorCorrect, "add", AI_TYPE_RGB, "colorOffset");
    ProcessParameter(colorCorrect, "alpha_multiply", AI_TYPE_FLOAT, "alphaGain");
 
-   AiNodeSetFlt(colorCorrect, "mask",(RequiresColorCorrect() && type < 2 && displayMode > 1) ? 1.f: 0.f);
+   AiNodeSetFlt(colorCorrect, "mask",(type < 2 && displayMode > 1) ? 1.f: 0.f);
    // Now check what the displayMode says
 
    
@@ -126,6 +126,9 @@ void CImagePlaneTranslator::ExportImagePlane()
 
    MPlug colorPlug;
    MPlugArray conn;
+   double iAspect = 1.0;
+   double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
+
 
    if (type == 0)
    {
@@ -141,46 +144,9 @@ void CImagePlaneTranslator::ExportImagePlane()
 
       //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
       mImage.getSize(iWidth, iHeight);
-      double iAspect = 1.0;
       if (iWidth > 0 && iHeight > 0)
       {
          iAspect = double(iWidth) / iHeight;
-      }
-      double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
-
-      if (iAspect != planeAspect)
-      {
-         FitType fit = (FitType)fnRes.findPlug("fit", true, &status).asInt();
-
-         if (fit == FIT_BEST)
-         {
-            // fit all of the image in the plane
-            if (iAspect > planeAspect)
-               fit = FIT_HORIZONTAL;
-            else
-               fit = FIT_VERTICAL;
-         }
-         else if (fit == FIT_FILL)
-         {
-            // fill the entire plane with the image
-            if (iAspect < planeAspect)
-               fit = FIT_HORIZONTAL;
-            else
-               fit = FIT_VERTICAL;
-         }
-
-         // in either case we trim the plane to the dimensions of the image, or
-         // the image overflows and we adjust the plane's UVs to compensate
-         if (fit == FIT_HORIZONTAL)
-         {
-            scaleX = 1.f;
-            scaleY = iAspect / planeAspect;
-         }
-         else if (fit == FIT_VERTICAL)
-         {
-            scaleX =  planeAspect/iAspect;
-            scaleY = 1.f;
-         }
       }
 
       // check if filename has changed. If it has we tell ArnoldSession to update tx
@@ -250,20 +216,11 @@ void CImagePlaneTranslator::ExportImagePlane()
       
       AiNodeSetBool(image, "ignore_missing_textures", true);
       ProcessParameter(image, "missing_texture_color", AI_TYPE_RGBA, "aiOffscreenColor");
-      ProcessParameter(uv_transform, "wrap_frame_color", AI_TYPE_RGBA, "aiOffscreenColor");
-
-
+      
       if (requestUpdateTx)
       {
          m_impl->m_session->RequestUpdateTx();
       }
-
-      float rotate = FindMayaPlug("rotate").asFloat() * AI_RTOD;
-      AiNodeSetFlt(uv_transform, "rotate", rotate);
-      AiNodeSetVec2(uv_transform, "translate_frame", (float)offsetX, (float)offsetY);
-      AiNodeSetVec2(uv_transform, "scale_frame", 1.f / AiMax(AI_EPSILON, (float)scaleX), 1.f / AiMax(AI_EPSILON, (float)(scaleY)));
-      AiNodeSetStr(uv_transform, "wrap_frame_u", "color");
-      AiNodeSetStr(uv_transform, "wrap_frame_v", "color");
 
       if (coverageOriginX < 0)
          coverageX = AiMax((double)AI_EPSILON, coverageX + coverageOriginX);
@@ -271,9 +228,44 @@ void CImagePlaneTranslator::ExportImagePlane()
          coverageY = AiMax((double)AI_EPSILON, coverageY + coverageOriginY);
       
       AiNodeSetVec2(uv_transform, "coverage",  (float)iWidth / (float)coverageX , (float)iHeight / (float)coverageY);
-      // FIXME we're not supporting coverageOrigin here
-      // AiNodeSetVec2(uv_transform, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
 
+      if (iAspect != planeAspect)
+      {
+         FitType fit = (FitType)fnRes.findPlug("fit", true, &status).asInt();
+
+         if (fit == FIT_BEST)
+         {
+            // fit all of the image in the plane
+            if (iAspect > planeAspect)
+               fit = FIT_HORIZONTAL;
+            else
+               fit = FIT_VERTICAL;
+         }
+         else if (fit == FIT_FILL)
+         {
+            // fill the entire plane with the image
+            if (iAspect < planeAspect)
+               fit = FIT_HORIZONTAL;
+            else
+               fit = FIT_VERTICAL;
+         }
+
+         // in either case we trim the plane to the dimensions of the image, or
+         // the image overflows and we adjust the plane's UVs to compensate
+         if (fit == FIT_HORIZONTAL)
+         {
+            scaleX = 1.f;
+            scaleY = iAspect / planeAspect;
+         }
+         else if (fit == FIT_VERTICAL)
+         {
+            scaleX =  planeAspect/iAspect;
+            scaleY = 1.f;
+         }
+      }
+      ProcessParameter(uv_transform, "wrap_frame_color", AI_TYPE_RGBA, "aiOffscreenColor");
+      AiNodeSetStr(uv_transform, "wrap_frame_u", "color");
+      AiNodeSetStr(uv_transform, "wrap_frame_v", "color");
    } else
    {
       // Connect shader to uv_transform
@@ -292,9 +284,18 @@ void CImagePlaneTranslator::ExportImagePlane()
       coverageOriginX = coverageOriginY = 0.0;
       scaleX = planeSizeX;
       scaleY = planeSizeY;
-
+      AiNodeSetStr(uv_transform, "wrap_frame_u", "periodic");
+      AiNodeSetStr(uv_transform, "wrap_frame_v", "periodic");
+      AiNodeResetParameter(uv_transform, "coverage");
    }
 
+   float rotate = FindMayaPlug("rotate").asFloat() * AI_RTOD;
+   AiNodeSetFlt(uv_transform, "rotate", rotate);
+   AiNodeSetVec2(uv_transform, "translate_frame", (float)offsetX, (float)offsetY);
+   AiNodeSetVec2(uv_transform, "scale_frame", 1.f / AiMax(AI_EPSILON, (float)scaleX), 1.f / AiMax(AI_EPSILON, (float)(scaleY)));
+   
+   // FIXME we're not supporting coverageOrigin here
+   // AiNodeSetVec2(uv_transform, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
    
    
 }
