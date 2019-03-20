@@ -21,8 +21,8 @@ class AEaiAmbientOcclusionTemplate(ShaderAETemplate):
         self.beginNoOptimize()
         self.addControl('invertNormals', label='Invert Normals')
         self.addControl('selfOnly', label='Self Only')
-        self.addControl('traceSet', label='Trace Set')
-        self.addControl('inclusive', label='Inclusive')
+        self.addControl('traceSet', label='Trace Set *') # Not supported in GPU
+        self.addControl('inclusive', label='Inclusive *') # Not supported in GPU
 
         self.endNoOptimize()
         self.addControl('normalCamera', label='Normal')
