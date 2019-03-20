@@ -779,6 +779,7 @@
     maya.id                 INT     0x00115C88
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
+    gpu_support             BOOL    true
     [attr color]
         linkable            BOOL    true
     [attr intensity]

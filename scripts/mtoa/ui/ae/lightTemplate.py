@@ -223,7 +223,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.endLayout()
 
         self.addSeparator()
-        self.addControl("aiAov", label="AOV Light Group")
+        self.addControl("aiAov", label="AOV Light Group *")
         
         self.lightFiltersLayout()
         
@@ -231,7 +231,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             self.addControl("aiUserOptions", "User Options")
 
     def lightFiltersLayout(self):
-        self.beginLayout("Light Filters", collapse=False)
+        self.beginLayout("Light Filters *", collapse=False)
         self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
         self.endLayout()
 
