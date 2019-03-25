@@ -15,6 +15,12 @@ import arnold as ai
 import ctypes
 from ctypes import *
 
+from multiprocessing import cpu_count
+from ui.qt.Qt import *
+from maya import OpenMayaUI as omui 
+import time
+
+
 from hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
 
 def even(num):
@@ -610,29 +616,45 @@ def getMayaVersion():
     version = cmds.about(f=True)
     return int(float(version[:4]))
 
+
+
 cb_id = None
-percent_done = 0
+percent_done = 0.0
+dialog = None
+start_time = 0
 
 def terminate_GPUCache():
+
     OpenMaya.MGlobal.displayWarning("GPU cache creation terminated")
     ai.AiGPUCachePopulateTerminate()
+    dialog.cancel()
+    OpenMaya.MMessage.removeCallback(cb_id)
     
 def GPU_optixCacheCallBack(*args):
-    global cb_id
-    (e, f) = ai.AiGPUCachePopulateStatus()
-    percent = int(f*100)
-    gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')
-    cmds.progressBar(gMainProgressBar, edit=True, pr=percent)
-    
-    if cmds.progressBar(gMainProgressBar, q=True, ic = True):
-        cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)
-        terminate_GPUCache()
 
+    global cb_id, start_time , time_remaining
+    (e, f) = ai.AiGPUCachePopulateStatus()
+    percent = f*100
+
+    elapsed = time.time() - start_time
+    elapsed_string = time.strftime("%H:%M:%S", time.gmtime(elapsed))
+
+    if (percent <= 0):
+        time_remaining_string = " ~10 - 20 mins"
+    else:
+        time_remaining = (elapsed / percent ) * ( 100 - percent)
+        time_remaining_string = time.strftime("%H:%M:%S", time.gmtime(time_remaining))
+
+    text = str( " Time Elapsed : " + elapsed_string + "     Time Remaining : " + time_remaining_string )
+
+    dialog.setValue(int(percent))
+    dialog.setLabelText(text)
     if e == ai.AI_RENDER_STATUS_FINISHED.value :
-        cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)
+        dialog.cancel()
         OpenMaya.MMessage.removeCallback(cb_id)
 
 def cache_populate_callback(cUserdata, status, fraction_done, msg):
+
    if fraction_done==0.0:
       print '[AiGPUCachePopulate] Running ..'
       return
@@ -647,13 +669,21 @@ def cache_populate_callback(cUserdata, status, fraction_done, msg):
       print '[AiGPUCachePopulate] Finished.'
 
 def populate_GPUCache():
-    gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar');
-    cmds.progressBar( gMainProgressBar,
-                                edit=True,
-                                beginProgress=True,
-                                isInterruptable=True,
-                                status='"Pre-Populating Optix Cache ',
-                                maxValue=100 )
-    global cb_id
+
+    global dialog , cb_id, start_time ,percent_done
+    start_time = 0
+    percent_done = 0
+    mayaMainWindowPtr = omui.MQtUtil.mainWindow() 
+    mayaMainWindow= shModule.wrapInstance(long(mayaMainWindowPtr), QtWidgets.QWidget) 
+    start_time = time.time()
+    text = str( " Time Elapsed : 00:00:00 " + "     Time Remaining : ~10 - 20 mins" )
+    dialog = QtWidgets.QProgressDialog( parent = mayaMainWindow , minimum = 0 , maximum = 100, labelText = text , flags = QtCore.Qt.Window )
+    dialog.setWindowTitle(' Pre Populating GPU Cache ')
+    dialog.setModal(True)
+    dialog.setMinimumWidth(500)
+    dialog.canceled.connect(terminate_GPUCache)
     cb_id =  OpenMaya.MTimerMessage.addTimerCallback(0.1, GPU_optixCacheCallBack)
-    ai.AiGPUCachePopulate(ai.AI_GPU_CACHE_POPULATE_NON_BLOCKING, 0, cache_populate_callback, 0)
+    use_threads = int(cpu_count()) - 2 # Total threads - 2 for other processes. 
+    ai.AiGPUCachePopulate(ai.AI_GPU_CACHE_POPULATE_NON_BLOCKING, use_threads , cache_populate_callback)
+    dialog.show()
+
