@@ -2828,7 +2828,7 @@ c4d.step FLOAT 0.01
         maya.name           STRING  "default"
         maya.shortname      STRING  "defaultValue" 
 
-[node user_data_rgb]
+[node user_data_rgba]
     maya.id                 INT      0x00115D14
     maya.classification     STRING  "utility/user data"
     maya.swatch             BOOL    false
@@ -2853,7 +2853,7 @@ c4d.step FLOAT 0.01
         maya.name           STRING  "default"
         maya.shortname      STRING  "defaultValue" 
 
-[node user_data_rgba]
+[node user_data_rgb]
     maya.hide               BOOL    true
 
 [node user_data_string]
