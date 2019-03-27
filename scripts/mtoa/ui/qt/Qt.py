@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 import maya.OpenMayaUI as OpenMayaUI
-import mtoa.utils as utils
+# import mtoa.utils as utils
 import importlib
 import sys
 
@@ -10,6 +10,9 @@ SUB_MODULES = ["QtWidgets", "QtGui", "QtCore"]
 
 Qt = sys.modules[__name__]
 
+def getMayaVersion():
+    version = cmds.about(f=True)
+    return int(float(version[:4]))
 
 def _setup(module, pymodules, modules, moduleName=None):
     """Install common submodules"""
@@ -29,7 +32,7 @@ def _setup(module, pymodules, modules, moduleName=None):
         setattr(Qt, modules[index], submodule)
 
 try:
-    version = utils.getMayaVersion()
+    version = getMayaVersion()
 except AttributeError:
     version = 2020
 

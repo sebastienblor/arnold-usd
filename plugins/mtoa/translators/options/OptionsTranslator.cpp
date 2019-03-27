@@ -1571,7 +1571,6 @@ void COptionsTranslator::Export(AtNode *options)
       MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
       if (manualDevices.asBool())
       {  // Manual Device selection
-
          std::vector<unsigned int> devices;
          MPlug gpuDevices = FindMayaPlug("render_devices");
          if (!gpuDevices.isNull())
@@ -1590,15 +1589,37 @@ void COptionsTranslator::Export(AtNode *options)
                }
             }
          }
-
          //
          if (!devices.empty())
          {
             autoSelect = false;
-            AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
-            AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
-            AiArrayDestroy(selectDevices);
-         } 
+            
+            if (m_renderDevicesList.empty())
+            {
+               AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+               AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
+               AiArrayDestroy(selectDevices);
+               m_renderDevicesList = devices;
+            } else
+            {               
+               // we've already set the render devices, we shouldn't update them during IPR
+               // First let's compare the new list with the previous one. If it changed, we'll dump a warning
+               bool foundDiff = (devices.size() != m_renderDevicesList.size());
+               if (!foundDiff) // same vector length
+               {
+                  for (size_t i = 0; i < devices.size(); ++i)
+                  {
+                     if (devices[i] != m_renderDevicesList[i])
+                     {
+                        foundDiff = true;
+                        break; 
+                     }
+                  }
+               }
+               if (foundDiff)
+                  AiMsgError("[mtoa.gpu] Render Devices list cannot be changed interactively. Please re-open the renderview or run \"Update Full Scene\" in the Arnold RenderView");
+            }
+         }
       }
 
       if (autoSelect) // automatically select the GPU devices
