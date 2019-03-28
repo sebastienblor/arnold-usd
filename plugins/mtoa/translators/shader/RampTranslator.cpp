@@ -290,6 +290,7 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
 
    if (!IsFloatAttrDefault(FindMayaPlug("valNoise"), 0.f))
    {
+      // FIXME we don't support value noise + colorGain linked to another shader
       AtNode *noise = GetArnoldNode("val_noise");
       if (noise == NULL)
          noise = AddArnoldNode("noise", "val_noise");
@@ -308,8 +309,7 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
       AiNodeSetRGB(noise, "color1", mult.r * (1.f - valNoise), mult.g*(1.f - valNoise),mult.b*(1.f - valNoise));
       AiNodeSetRGB(noise, "color2", mult.r*(1.f + valNoise),mult.g*(1.f + valNoise), mult.g*(1.f + valNoise));
       
-   } else
-      AiNodeUnlink(colorCorrectNode, "multiply");  
+   } 
    
    return colorCorrectNode;
 }
