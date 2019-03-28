@@ -23,14 +23,9 @@ void CInstancerTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CInstancerTranslator::CreateArnoldNodes()
 {
-   // FIXME  this master dag return needs to be null because it doesen't contain anything, the instancer
-   // produces individual ginstances for each particle instance
-   if (IsMasterInstance())
-      return  AddArnoldNode("ginstance");
-   else
-      return  AddArnoldNode("ginstance");
-
-   // the code above is interesting....
+   // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
+   IsMasterInstance();
+   return AddArnoldNode("ginstance");
 }
 
 
@@ -689,7 +684,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
          } else
          { 
             // Regular instances
-            instance = GetArnoldNode(instanceKey.asChar());
+            instance = (globalIndex == 0) ? node : GetArnoldNode(instanceKey.asChar());
             if (instance == NULL)
             {
                // Create and register this ginstance node, so that it is properly cleared later
