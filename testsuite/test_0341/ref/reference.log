@@ -1,0 +1,370 @@
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0341', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
+ 
+ ==== Exec cmd ==== 
+ 
+D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch -file D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0341\test.ma -script "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0341\test.mel" -proj "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0341"
+ 
+ 00:00:00   238MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138176 to associated Maya type name mandelbulb.
+
+Cannot open file ':/expression.svg', because: No such file or directory
+
+Cannot open file ':/expression.svg', because: No such file or directory
+
+Cannot open file ':/expression.svg', because: No such file or directory
+
+Cannot open file ':/expression.svg', because: No such file or directory
+
+C:\solidangle\mtoadeploy\2018\scripts\mtoa\cmds\rendererCallbacks.py:23: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+
+  cmds.loadPlugin('renderSetup', qt=True)
+
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+
+File read in  0.38 seconds.
+
+File read in  0.38 seconds.
+
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0341/test.ma
+
+Warning: file: D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0341\test.mel line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+
+File read in  0.032 seconds.
+
+File read in  0.032 seconds.
+
+ZAAAAAARMAAAAAAAAAAA
+
+00:00:00   327MB WARNING | [mtoa] No light in scene
+
+CRenderViewInterface::SetOption
+
+00:00:00   327MB WARNING | Do update
+
+00:00:00   327MB WARNING | Do update DONE
+
+init = false
+
+Render = true
+
+ZAAAAAARMAAAAAAAAAAA
+
+Render Loop BEGIN = true
+
+Restart render loop = true
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+00:00:00   330MB WARNING | rendering with watermarks because of failed authorization:
+
+fiinsh good render = false
+
+wait finished
+
+00:00:00   349MB WARNING | ArnoldSession::RequestUpdate
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+00:00:00   349MB WARNING | Do update
+
+Restart render loop = true
+
+00:00:00   349MB WARNING | Do update DONE
+
+00:00:00   349MB WARNING | ArnoldSession::RequestUpdate
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+fiinsh good render = false
+
+wait finished
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+Saving D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0341/testrender_1.tif
+
+00:00:00   350MB WARNING | ArnoldSession::RequestUpdate
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+00:00:00   350MB WARNING | Do update
+
+00:00:00   350MB WARNING | ArnoldSession::RequestUpdate
+
+Scene Changed
+
+00:00:00   350MB WARNING | ArnoldSession::RequestUpdate
+
+Scene Changed
+
+Scene Changed
+
+Restart render loop = true
+
+00:00:00   350MB WARNING | Do update DONE
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+00:00:00   350MB WARNING |   [polymesh] pSphereShape1: discarded 1 duplicate deformation keys
+
+00:00:00   350MB WARNING |   [polymesh] pTorusShape1: discarded 1 duplicate deformation keys
+
+fiinsh good render = false
+
+wait finished
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+Saving D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0341/testrender_2.tif
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+00:00:00   350MB WARNING | Do update
+
+Scene Changed
+
+Scene Changed
+
+Scene Changed
+
+Restart render loop = true
+
+00:00:00   350MB WARNING | Do update DONE
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+00:00:00   350MB WARNING |   [polymesh] pTorusShape1: discarded 1 duplicate deformation keys
+
+fiinsh good render = false
+
+wait finished
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+Saving D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0341/testrender_3.tif
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+00:00:00   351MB WARNING | Do update
+
+Restart render loop = true
+
+Scene Changed
+
+Scene Changed
+
+Scene Changed
+
+00:00:00   351MB WARNING | Do update DONE
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+00:00:00   351MB WARNING |   [polymesh] pTorusShape1: discarded 1 duplicate deformation keys
+
+fiinsh good render = false
+
+wait finished
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+Saving D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0341/testrender_4.tif
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+Scene Changed
+
+Scene Changed
+
+Scene Changed
+
+Restart render loop = true
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+00:00:01   351MB WARNING |   [polymesh] pTorusShape1: discarded 1 duplicate deformation keys
+
+fiinsh good render = false
+
+wait finished
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+Scene Changed
+
+Scene Changed
+
+Scene Changed
+
+Restart render loop = true
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+fiinsh good render = false
+
+wait finished
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+Scene Changed
+
+Scene Changed
+
+Scene Changed
+
+Restart render loop = true
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+fiinsh good render = false
+
+wait finished
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+Scene Changed
+
+Scene Changed
+
+Scene Changed
+
+Restart render loop = true
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+fiinsh good render = false
+
+wait finished
+
+Scene Changed
+
+yes recive host changes
+
+RenderRender = true
+
+Scene Changed
+
+Scene Changed
+
+Restart render loop = true
+
+Scene Changed
+
+Scene Changed
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+MtoA wait for render
+Wait
+
+fiinsh good render = false
+
+wait finished
+
+ZAAAAAARMAAAAAAAAAAA
+
+CRenderViewInterface::SetOption
+
+Saving D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0341/testrender_5.tif
+
