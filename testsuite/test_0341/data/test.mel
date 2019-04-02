@@ -1,6 +1,5 @@
-file -f -o "test.ma";
 arnoldRenderView -mode "render_silent";
-refresh -f;
+pause -sec 1;
 arnoldRenderView -option "Wait Render"  "1";
 
 //============= add motion blur
@@ -48,4 +47,3 @@ $img = `pwd`;
 $img += "/testrender_5.tif";
 arnoldRenderView -option "Save Image" $img;
 
-quit -force -abort;
