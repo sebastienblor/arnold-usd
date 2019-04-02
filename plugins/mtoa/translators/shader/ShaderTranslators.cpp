@@ -1998,16 +1998,21 @@ bool CProjectionTranslator::RequiresColorCorrect() const
 
 AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 {
-   AddArnoldNode("utility", "uv");
+   AddArnoldNode("state_float", "u");
+   AddArnoldNode("state_float", "v");
    return AddArnoldNode("uv_transform");
 }
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
 {
-   AtNode *utility = GetArnoldNode("uv");
-   AiNodeSetStr(utility, "color_mode", "uv");
-   AiNodeSetStr(utility, "shade_mode", "flat");
-   AiNodeLink(utility, "passthrough", shader);
+   AtNode *state_u = GetArnoldNode("u");
+   AtNode *state_v = GetArnoldNode("v");
+   
+   AiNodeSetRGBA(shader, "passthrough", 0.f, 0.f, 0.f, 1.f);
+   AiNodeLink(state_u, "passthrough.r", shader);
+   AiNodeLink(state_v, "passthrough.g", shader);
+   AiNodeSetStr(state_u, "variable", "u");
+   AiNodeSetStr(state_v, "variable", "v");
 
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray connections;
