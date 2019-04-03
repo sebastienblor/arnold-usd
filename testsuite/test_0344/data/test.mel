@@ -1,0 +1,90 @@
+// Comment:  For now we can't "un-hide" a shape that was originally hidden, 
+// because it needs to go through a Maya "idle" process and I can't make this work by script so far
+
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+//======== Hide the sphere
+setAttr "pSphere1.visibility" 0;
+setAttr "pSphere1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+string $img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+//======== Hide the cone
+setAttr "pCone1.visibility" 0;
+setAttr "pCone1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+//======== Unhide the sphere
+setAttr "pSphere1.visibility" 1;
+setAttr "pSphere1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Delete the torus
+delete pTorusShape1 pTorus1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Create a second sphere
+polySphere -r 1 -sx 20 -sy 20 -ax 0 1 0 -cuv 2 -ch 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_5.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Hide it and unhide the cone
+setAttr "pSphere2.visibility" 0;
+setAttr "pSphere2.inheritsTransform" 1;
+setAttr "pCone1.visibility" 1;
+setAttr "pCone1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_6.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== move the cone
+setAttr "pCone1.translateX" 0;
+setAttr "pCone1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_7.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//========== deform the cone
+select -r pCone1.vtx[20] ;
+move -r 0 3.238114 0 ;
+
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_8.tif";
+arnoldRenderView -option "Save Image" $img;
+
