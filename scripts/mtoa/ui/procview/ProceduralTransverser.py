@@ -336,13 +336,14 @@ class ProceduralTransverser(BaseTransverser):
         col_ops = self.getOperators(node, path, COLLECTION_OP, exact_match)
         collections = []
         for op in col_ops:
+
             collections.append(cmds.getAttr('{}.collection'.format(op)))
         return collections
 
     @classmethod
     def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1):
 
-        def walkInputs(op, path, plug, collections):
+        def walkInputs(op, path, plug, collections, parent_ops=[]):
             """
             walk the inputs of the given plug and
             return list of operators matching the path
@@ -351,11 +352,15 @@ class ProceduralTransverser(BaseTransverser):
             ops = []
             sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
             if sel_mat and op:
+                for p_op in parent_ops:
+                    if p_op not in ops and \
+                       (operator_type is None or cmds.nodeType(p_op) == operator_type):
+                        ops.append(p_op)
                 ops.append(op)
 
+            parent_ops.append(op)
             if cmds.attributeQuery('inputs', node=op, exists=True):
-                # FIXME what if switch node, should we only traverse down the
-                #  input that is the same as the input switch?
+
                 if cmds.nodeType(op) == SWITCH_OP:
                     switch_index = cmds.getAttr("{}.index".format(op))
                     inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
@@ -364,7 +369,7 @@ class ProceduralTransverser(BaseTransverser):
                 it = iter(inputs_raw)
                 inputs = zip(it, it)
                 for plug, ipt in inputs:
-                    ops += walkInputs(ipt, path, plug, collections)
+                    ops += walkInputs(ipt, path, plug, collections, parent_ops)
 
             return ops
 
