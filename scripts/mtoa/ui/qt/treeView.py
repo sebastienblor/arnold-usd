@@ -32,11 +32,6 @@ class BaseTreeView(QtWidgets.QTreeView):
         """Called after the instance has been created."""
         super(BaseTreeView, self).__init__(parent)
 
-        # FIXME: currently completely overriding maya style
-        if not style:
-            style = MtoAStyle.currentStyle()
-        style.apply(self)
-
         self.setObjectName("BaseTreeView")
         # Set the custom tree model
         model = BaseModel(self)

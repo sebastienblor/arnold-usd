@@ -28,7 +28,10 @@ EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
 OVERRIDE_OP = "aiSetParameter"
 DISABLE_OP = "aiDisable"
 COLLECTION_OP = "aiCollection"
+MERGE_OP = "aiMerge"
 SWITCH_OP = "aiSwitchOperator"
+INCLUDEGRAPH_OP = "aiIncludeGraph"
+MATERIALX_OP = "aiMaterialx"
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 

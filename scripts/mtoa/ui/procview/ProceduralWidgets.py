@@ -12,8 +12,9 @@ import maya.cmds as cmds
 
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                             PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
-                            OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, NODE_TYPES,\
-                            PARM, OP, VALUE, INDEX, OPERATOR
+                            OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
+                            SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
+                            NODE_TYPES, PARM, OP, VALUE, INDEX, OPERATOR
 
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
@@ -114,6 +115,37 @@ class OperatorTreeModel(BaseModel):
             self.transverser.toggleOperator(item.name)
             item.enabled = not item.enabled
 
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        """
+        Return the data stored under the given role for the item referred to by
+        the index.
+        """
+        if not index.isValid():
+            return
+        item = index.internalPointer()
+
+        if (role == QtCore.Qt.DisplayRole or
+                role == QtCore.Qt.EditRole):
+            return item.getName()
+        if role == QtCore.Qt.ToolTipRole:
+            return "{} : {}".format(item.getName(), item.getNodeType())
+        elif role == QtCore.Qt.SizeHintRole:
+            return QtCore.QSize(250, ITEM_HEIGHT)
+        elif role == QtCore.Qt.BackgroundRole:
+            return item.getBackgroundColor()
+        elif role == NODE_BAR_COLOUR:
+            return item.getLabelColor()
+        elif role == CHILD_COUNT:
+            return item.childCount()
+        elif role == ACTIONS:
+            return item.getActions()
+        elif role == ICON:
+            return item.getIcon()
+        elif role == TEXT_INDENT:
+            return item.getIndent()
+        elif role == NODE_ENABLED:
+            return item.isEnabled()
+
 
 class OperatorTreeViewDelegate(BaseDelegate):
 
@@ -131,6 +163,10 @@ class OperatorItem(BaseItem):
     COLOR_SETPARAMETER = QtGui.QColor(18, 82, 18)
     COLOR_COLLECTION = QtGui.QColor(204, 203, 129)
     COLOR_DISABLE = QtGui.QColor(227, 149, 141)
+    COLOR_MERGE = QtGui.QColor(129, 140, 204)
+    COLOR_SWITCH = QtGui.QColor(129, 192, 204)
+    COLOR_INCLUDEGRAPH = QtGui.QColor(129, 204, 166)
+    COLOR_MATERIALX = QtGui.QColor(204, 129, 203)
 
     BACKGROUND_COLOR_LOCAL = QtGui.QColor(82, 82, 82)
     BACKGROUND_COLOR_INHERITED = QtGui.QColor(71, 71, 71)
@@ -139,6 +175,23 @@ class OperatorItem(BaseItem):
      ACTION_NONE,
      ACTION_SELECT,
      ACTION_DISABLE) = range(4)
+
+    node_colors = {
+        COLLECTION_OP:
+            COLOR_COLLECTION,
+        OVERRIDE_OP:
+            COLOR_SETPARAMETER,
+        DISABLE_OP:
+            COLOR_DISABLE,
+        MERGE_OP:
+            COLOR_MERGE,
+        SWITCH_OP:
+            COLOR_SWITCH,
+        INCLUDEGRAPH_OP:
+            COLOR_INCLUDEGRAPH,
+        MATERIALX_OP:
+            COLOR_MATERIALX
+    }
 
     def __init__(self, parentItem, name, enabled=True, local=True, index=-1):
         super(OperatorItem, self).__init__(parentItem, name, index)
@@ -153,12 +206,8 @@ class OperatorItem(BaseItem):
 
     def getLabelColor(self):
         node_type = self.getNodeType()
-        if node_type == COLLECTION_OP:
-            return self.COLOR_COLLECTION
-        if node_type == OVERRIDE_OP:
-            return self.COLOR_SETPARAMETER
-        if node_type == DISABLE_OP:
-            return self.COLOR_DISABLE
+        if node_type in self.node_colors:
+            return self.node_colors[node_type]
         else:
             return QtGui.QColor(0, 0, 0)  # default to black if unknown operator
 
