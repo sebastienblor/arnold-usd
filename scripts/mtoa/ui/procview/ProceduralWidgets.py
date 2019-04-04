@@ -209,7 +209,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         self.layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.layout)
-        self.object_label = QtWidgets.QLabel("Select Item")
+        self.object_label = QtWidgets.QLineEdit(self)
+        self.object_label.setPlaceholderText("Select Item")
+        self.object_label.setReadOnly(True)
         self.object_label.setAlignment(QtCore.Qt.AlignHCenter)
         self.layout.addWidget(self.object_label)
 
@@ -405,7 +407,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.addOverrideMenu()
             self.addOperatorMenu()
         elif self.item is None:
-            self.object_label.setText("Select Item")
+            self.object_label.setText("")
             self.toolBar.setEnabled(False)
 
         self.populateOperatorsList()
