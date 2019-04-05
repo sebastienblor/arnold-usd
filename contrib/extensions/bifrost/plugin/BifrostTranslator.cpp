@@ -98,9 +98,22 @@ namespace {
          // We haven't been able to load bifrost, let's try with the one shipped with MtoA
          MString mtoaExtPath;
          MGlobal::executeCommand("getenv MTOA_EXTENSIONS_PATH", mtoaExtPath);
+         MStringArray arr;
          if (mtoaExtPath.length() > 0)
          {
-            mtoaExtPath += MString("/bifrost/1.5.0"); // in the future we will have to get the current version of bifrost, for now we hardcode it to 1.5.0
+            mtoaExtPath.split(*PATH_SEPARATOR,arr);
+            if (arr.length() > 1) // If there are additional directorries in the path , we strip the last one to add bifrost to it
+            {
+               MString lastbit = arr[arr.length() -1 ] + MString("/bifrost/1.5.0");
+               int delemit_index = mtoaExtPath.rindexW(';');
+               MString firstbit = mtoaExtPath.substringW(0,delemit_index);
+               mtoaExtPath = firstbit + lastbit ;
+            }
+            else
+            {
+               mtoaExtPath += MString("/bifrost/1.5.0"); // in the future we will have to get the current version of bifrost, for now we hardcode it to 1.5.0
+            }
+            
             fo.setRawFullName(mtoaExtPath);
             if (fo.exists())
             {
