@@ -3,7 +3,7 @@ from .Qt import OpenMayaUI
 from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
-from .itemStyle import ItemStyle
+from .treeStyle import TreeStyle
 from .utils import dpiScale, dpiScaledIcon
 from .color import Color
 from .style import MtoAStyle
@@ -43,6 +43,7 @@ class BaseTreeView(QtWidgets.QTreeView):
         # Custom style
         delegate = BaseDelegate(self)
         self.setItemDelegate(delegate)
+        self.setStyle(TreeStyle(self.style()))
         self.setIndentation(ITEM_INDENT)
 
         self.setRootIsDecorated(False)
