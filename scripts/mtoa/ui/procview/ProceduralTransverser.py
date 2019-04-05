@@ -15,12 +15,13 @@ from arnold import *
  PROC_ENTRY_TYPE,
  PROC_IOBJECT) = range(7)
 
-(PARM, OP, VALUE, INDEX, OPERATOR) = range(5)
+(PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR) = range(6)
 
 
 SELECTION_REGEX = re.compile(r'.*(?=/\*)')
 
-EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
+EXP_REGEX = re.compile(r"""(?P<type>bool|byte|int|uint|float|rgb|rgba|vector|vector2|string|matrix|node)?\s* # parameter
+                         (?P<param>\w+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
                          (?P<value>.*) # value
                          """, re.X)
@@ -398,7 +399,7 @@ class ProceduralTransverser(BaseTransverser):
 
         def getParmInList(param, param_list):
             for i, p in enumerate(param_list):
-                if p[0] == param:
+                if p[PARAM] == param:
                     return i
             return -1
 

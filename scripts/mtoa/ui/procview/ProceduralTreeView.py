@@ -10,7 +10,8 @@ from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
-                           OVERRIDE_OP, DISABLE_OP
+                           OVERRIDE_OP, DISABLE_OP, \
+                           PARAM
 
 SHADER = "shader"
 DISPLACEMENT = "disp_map"
@@ -382,11 +383,11 @@ class ProceduralItem(BaseItem):
         actions = []
 
         my_overrides = self.getOverrides()
-        params = [p[0] for p in my_overrides]
+        params = [p[PARAM] for p in my_overrides]
         attr_params = [x for x in params if x not in [SHADER, DISPLACEMENT]]
 
         parent_overrides = self.getOverrides(True)
-        parent_params = [p[0] for p in parent_overrides]
+        parent_params = [p[PARAM] for p in parent_overrides]
         parent_attr_params = [x for x in parent_params if x not in [SHADER, DISPLACEMENT]]
 
         OVERRIDES = {SHADER: False,

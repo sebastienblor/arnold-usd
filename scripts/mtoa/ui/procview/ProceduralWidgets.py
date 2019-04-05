@@ -14,7 +14,7 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
-                            NODE_TYPES, PARM, OP, VALUE, INDEX, OPERATOR
+                            NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR
 
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
@@ -578,14 +578,14 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                     ops = [ops]
                 inherited = operator not in ops
 
-                if override[PARM] in [SHADER, "disp_map"]:
+                if override[PARAM] in [SHADER, DISP_MAP]:
                     # set the shader slot
                     node = override[VALUE].replace("'", "").replace('"', "")
-                    self.shadingWidgets[override[PARM]].setNode(node, False)
-                    self.shadingWidgets[override[PARM]].setVisible(True)
-                    self.shadingWidgets[override[PARM]].setInherited(inherited)
-                    self.shadingWidgets[override[PARM]].data['operator'] = operator
-                    self.shadingWidgets[override[PARM]].data['index'] = index
+                    self.shadingWidgets[override[PARAM]].setNode(node, False)
+                    self.shadingWidgets[override[PARAM]].setVisible(True)
+                    self.shadingWidgets[override[PARAM]].setInherited(inherited)
+                    self.shadingWidgets[override[PARAM]].data['operator'] = operator
+                    self.shadingWidgets[override[PARAM]].data['index'] = index
                 else:
                     widget = self.addOverrideGUI(*override)
                     widget.setInherited(inherited)
@@ -610,7 +610,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             return []
         return self.transverser.getOverrides(self.node, data[PROC_PATH])
 
-    def addOverrideGUI(self, param, op, value, index, operator):
+    def addOverrideGUI(self, param_type, param, op, value, index, operator):
 
         parentPanel = self.inheritedOverridesPanel
         data = self.getData(self.item)
