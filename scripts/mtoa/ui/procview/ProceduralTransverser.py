@@ -209,6 +209,11 @@ class ProceduralTransverser(BaseTransverser):
         data = item.data
         # get parent index
         index = 0
+        op_idxs = self.getOperatorIndices(node)
+        for idx in op_idxs:
+            op = self.getConnectedOperator(node, idx)
+            if op and cmds.nodeType(self.getConnectedOperator(node, idx)) != OVERRIDE_OP:
+                index = idx+1
 
         parent_op = item.getOverridesOp(True)
         if not type(parent_op) == list:
