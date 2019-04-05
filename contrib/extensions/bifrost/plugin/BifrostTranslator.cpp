@@ -101,7 +101,7 @@ namespace {
          MStringArray arr;
          if (mtoaExtPath.length() > 0)
          {
-            mtoaExtPath.split(';',arr);
+            mtoaExtPath.split(*PATH_SEPARATOR,arr);
             if (arr.length() > 1) // If there are additional directorries in the path , we strip the last one to add bifrost to it
             {
                MString lastbit = arr[arr.length() -1 ] + MString("/bifrost/1.5.0");
