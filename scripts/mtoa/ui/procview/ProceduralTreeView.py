@@ -22,6 +22,9 @@ class ProceduralTreeView(BaseTreeView):
 
     itemSelected = QtCore.Signal(str, object)
 
+    MIN_VISIBLE_ENTRIES = 4
+    MAX_VISIBLE_ENTRIES = 10
+
     def __init__(self, transverser, parent=None):
         super(ProceduralTreeView, self).__init__(parent)
         self.transverser = transverser
@@ -35,6 +38,10 @@ class ProceduralTreeView(BaseTreeView):
 
         self.pressed.connect(self.onPressed)
         self.expanded.connect(self.onExpanded)
+        self.collapsed.connect(self.onCollapse)
+
+        self.INITIAL_HEIGHT = self.sizeHintForRow(0) * self.MIN_VISIBLE_ENTRIES + 2 * self.frameWidth()
+        self.MAX_HEIGHT = self.sizeHintForRow(0) * self.MAX_VISIBLE_ENTRIES + 2 * self.frameWidth()
 
     def setTransverser(self, transverser, refresh=True):
         self.transverser = transverser
@@ -58,6 +65,13 @@ class ProceduralTreeView(BaseTreeView):
         # refresh the children of this item if needed
         item.obtainChildren()
 
+    def _calculateHeight(self):
+
+        model = self.model()
+        contentSizeHeight = self.sizeHintForRow(0) * model.expandedCount() + 2 * self.frameWidth()
+        contentSizeHeight = self.INITIAL_HEIGHT if contentSizeHeight < self.INITIAL_HEIGHT else self.MAX_HEIGHT if contentSizeHeight > self.MAX_HEIGHT else contentSizeHeight
+        return contentSizeHeight
+
     def onExpanded(self, index):
         """It is called when the item specified by index is expanded."""
         if not index.isValid():
@@ -68,6 +82,13 @@ class ProceduralTreeView(BaseTreeView):
         for i in range(item.childCount()):
             child = item.child(i)
             child.obtainChildren()
+
+        # scale the treeView based on number of expanded rows
+        self.setFixedHeight(self._calculateHeight())
+
+    def onCollapse(self, index):
+        # scale the treeView based on number of expanded rows
+        self.setFixedHeight(self._calculateHeight())
 
     def select(self, path):
         root = self.model().rootItem
@@ -175,6 +196,22 @@ class ProceduralTreeModel(BaseModel):
             return True
 
         return False
+
+    def expandedCount(self):
+        def count_expanded(item):
+            c = 0
+            index = self.indexFromItem(item)
+            is_expanded = self.treeView().isExpanded(index)
+            if is_expanded or item.itemType == item.UNKNWON_TYPE:
+                c += item.childCount()
+                for i in item.childItems:
+                    c += count_expanded(i)
+            return c
+
+        c = 1
+        if self.rootItem:
+            return c + count_expanded(self.rootItem)
+        return c
 
     def executeAction(self, action, index):
         """User pressed by one of the actions."""

@@ -142,6 +142,9 @@ class BaseTreeView(QtWidgets.QTreeView):
         """Show the properties of the item at index `index`."""
         raise NotImplemenedError("{}.showProperties not implemented yet".format(str(self.__class__.__name__)))
 
+    def sizeHintForRow(self, row):
+        return ITEM_HEIGHT
+
 
 class BaseModel(QtCore.QAbstractItemModel):
     """Data model for our QTreeView."""
