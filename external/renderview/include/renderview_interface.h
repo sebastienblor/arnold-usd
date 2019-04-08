@@ -157,7 +157,7 @@ public:
    virtual void ReceiveSelectionChanges(bool receive) = 0;
 
    // This Function is called when the Renderview window is closed
-   virtual void RenderViewClosed(){};
+   virtual void RenderViewClosed(bool close_ui){};
    virtual void RenderOptionsClosed(){};
 
    // This function is invoked by the RenderView when it changes a parameter 
