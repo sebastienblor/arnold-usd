@@ -1,0 +1,27 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+string $img = "";
+
+setAttr "aiAreaLightShape1.aiTranslator" -type "string" "cylinder";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+setAttr "aiAreaLightShape1.aiTranslator" -type "string" "cylinder";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Change the scale in the mesh node
+setAttr "pSphereShape1.aiTranslator" -type "string" "mesh_light";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+setAttr "pSphereShape1.aiTranslator" -type "string" "mesh_light";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;

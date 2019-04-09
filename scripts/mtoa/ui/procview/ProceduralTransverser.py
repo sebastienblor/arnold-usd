@@ -210,6 +210,11 @@ class ProceduralTransverser(BaseTransverser):
         data = item.data
         # get parent index
         index = 0
+        op_idxs = self.getOperatorIndices(node)
+        for idx in op_idxs:
+            op = self.getConnectedOperator(node, idx)
+            if op and cmds.nodeType(self.getConnectedOperator(node, idx)) != OVERRIDE_OP:
+                index = idx+1
 
         parent_op = item.getOverridesOp(True)
         if not type(parent_op) == list:
@@ -345,9 +350,9 @@ class ProceduralTransverser(BaseTransverser):
         return collections
 
     @classmethod
-    def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1):
+    def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1, gather_parents=False):
 
-        def walkInputs(op, path, plug, collections, parent_ops=[]):
+        def walkInputs(op, path, plug, collections, gather_parents=False, parent_ops=[]):
             """
             walk the inputs of the given plug and
             return list of operators matching the path
@@ -361,8 +366,8 @@ class ProceduralTransverser(BaseTransverser):
                        (operator_type is None or cmds.nodeType(p_op) == operator_type):
                         ops.append(p_op)
                 ops.append(op)
-
-            parent_ops.append(op)
+            if gather_parents:
+                parent_ops.append(op)
             if cmds.attributeQuery('inputs', node=op, exists=True):
 
                 if cmds.nodeType(op) == SWITCH_OP:
@@ -373,7 +378,7 @@ class ProceduralTransverser(BaseTransverser):
                 it = iter(inputs_raw)
                 inputs = zip(it, it)
                 for plug, ipt in inputs:
-                    ops += walkInputs(ipt, path, plug, collections, parent_ops)
+                    ops += walkInputs(ipt, path, plug, collections, gather_parents, parent_ops)
 
             return ops
 
@@ -385,7 +390,7 @@ class ProceduralTransverser(BaseTransverser):
         if cmds.attributeQuery('operators', node=node, exists=True):
             con_operators = cmds.listConnections('{}.operators'.format(node)) or []
             for idx, op in enumerate(con_operators):
-                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections)
+                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents)
                 for op in out_op:
                     if op not in operators:
                         operators.append(op)

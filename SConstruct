@@ -467,6 +467,11 @@ if env['COMPILER'] == 'gcc':
             env.Append(CXXFLAGS = Split('-std=c++11'))
             env.Append(CCFLAGS = Split('-std=c++11'))
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
+    
+    if system.os == 'darwin':
+        if int(maya_version_base) >= 2020:
+            env.Append(CXXFLAGS = Split('-std=c++11'))
+            env.Append(CCFLAGS = Split('-std=c++11'))
 
     ## warning level
     if env['WARN_LEVEL'] == 'none':

@@ -17,7 +17,7 @@ void CRenderViewMtoA::GetSelection(AtNode **selectedNodes) {}
 void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append){}
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
-void CRenderViewMtoA::RenderViewClosed() {}
+void CRenderViewMtoA::RenderViewClosed(bool close_ui) {}
 void CRenderViewMtoA::RenderChanged(){}
 
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
@@ -1071,18 +1071,19 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 
 }
 
-void CRenderViewMtoA::RenderViewClosed()
+void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 {
 
-
 #ifdef ARV_DOCKED
-   if (!s_arvWorkspaceControl)
-      return;
-   
-   // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
-   if (s_arvWorkspaceControl)
-      MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
- 
+   if (close_ui)
+   {
+      if (!s_arvWorkspaceControl)
+         return;
+      
+      // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
+      if (s_arvWorkspaceControl)
+         MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+   } 
    
 #else
 
@@ -1099,26 +1100,30 @@ void CRenderViewMtoA::RenderViewClosed()
 
    ReceiveSelectionChanges(false);
 
-   // Saving user prefs when the render view is closed
-   const char *userSerialized = Serialize(true, false); // user settings
-   if (userSerialized)
+   if (close_ui)
    {
-      MString arvOptionName("arv_user_options");
-      MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+      // Saving user prefs when the render view is closed
+      const char *userSerialized = Serialize(true, false); // user settings
+      if (userSerialized)
+      {
+         MString arvOptionName("arv_user_options");
+         MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+      }
+
+      if (s_sequenceData != NULL)
+      {
+         SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+         SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+         if (m_rvIdleCb)
+         {
+            MMessage::removeCallback(m_rvIdleCb);
+            m_rvIdleCb = 0;
+         }
+         delete s_sequenceData;
+         s_sequenceData = NULL;
+      }
    }
 
-   if (s_sequenceData != NULL)
-   {
-      SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
-      SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
-      if (m_rvIdleCb)
-      {
-         MMessage::removeCallback(m_rvIdleCb);
-         m_rvIdleCb = 0;
-      }
-      delete s_sequenceData;
-      s_sequenceData = NULL;
-   }
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   
