@@ -942,7 +942,6 @@ void CRenderSession::FillRenderViewCameras()
  //     else
       // Now we always export the short name. We'll let ARV find the corresponding AtNode based on the user data dcc_name
       camerasList = viewCam = activeCameraPath.partialPathName();
-      
    }
    
    MDagPath path;
@@ -976,7 +975,7 @@ void CRenderSession::FillRenderViewCameras()
                continue;
          }
          // we can't call GetArnoldNaming if there's no active session
-         MString camName = (renderSession) ? CDagTranslator::GetArnoldNaming(path) : path.partialPathName();
+         MString camName = path.partialPathName();
          if (camName == viewCam) continue; // we've already set this camera in the list
 
          if (camerasList.length() > 0)

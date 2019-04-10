@@ -1214,9 +1214,7 @@ void CNodeTranslator::RequestTxUpdate()
 MString CNodeTranslator::GetArnoldNaming(const MObject &object)
 {
    MString name = MFnDependencyNode(object).name();
-   const MString &prefix = GetSessionOptions().GetExportPrefix();
-   if (prefix.length() > 0)
-      name = prefix + name;
+   CNodeTranslatorImpl::AddNamingOptions(name);
    return name;
 }
 

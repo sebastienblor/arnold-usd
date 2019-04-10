@@ -712,34 +712,36 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
    MGlobal::getActiveSelectionList(activeList);
    if(activeList.isEmpty()) return;
 
-   //CArnoldSession *session = CMayaScene::GetArnoldSession();
-   //session->FlattenSelection(&activeList, false);
-   
+   MDagPath dagPath;
    MObject objNode;
    activeList.getDependNode(0, objNode);
-   if (objNode.hasFn(MFn::kTransform))
+
+   MString name;
+
+   if (activeList.getDagPath(0, dagPath) == MS::kSuccess)
    {
-      // from Transform to Shape
-      MDagPath dagPath;
-      activeList.getDagPath(0, dagPath);
-      objNode = dagPath.child(0);
-   }
-   if (objNode.hasFn(MFn::kDisplacementShader))
+      dagPath.extendToShape();
+      name = CDagTranslator::GetArnoldNaming(dagPath);
+   } else
    {
-      MFnDependencyNode depNode(objNode);
-      MPlug dispPlug = depNode.findPlug("displacement", true);
-      if (!dispPlug.isNull())
+      if (objNode.hasFn(MFn::kDisplacementShader))
       {
-         MPlugArray conn;
-         dispPlug.connectedTo(conn, true, false);
-         if (conn.length() > 0)
-            objNode = conn[0].node();
-            
+         MFnDependencyNode depNode(objNode);
+         MPlug dispPlug = depNode.findPlug("displacement", true);
+         if (!dispPlug.isNull())
+         {
+            MPlugArray conn;
+            dispPlug.connectedTo(conn, true, false);
+            if (conn.length() > 0)
+               objNode = conn[0].node();
+               
+         }
+       
       }
-    
+      name = MFnDependencyNode(objNode).name();
    }
-   MFnDependencyNode nodeFn( objNode );
-   AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
+
+   AtNode *selected = AiNodeLookUpByName(name.asChar());
    if (selected) selectedNodes.push_back(selected);
    
 }
