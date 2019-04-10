@@ -22,7 +22,25 @@ from arnold import *
 
 OPERATIONS = ["=", "+=", "-=", "*=", "/=", "^=", "%="]
 
-TYPES = ["string", "int", "byte", "uint", "float", "bool", "node"]
+TYPES = ["string", "int", "uint", "byte", "float", "bool", "node"]
+TYPES_DICT = {"string": AI_TYPE_STRING,
+              "int":    AI_TYPE_INT,
+              "uint":   AI_TYPE_UINT,
+              "byte":   AI_TYPE_BYTE,
+              "float":  AI_TYPE_FLOAT,
+              "bool":   AI_TYPE_BOOLEAN,
+              "node":   AI_TYPE_NODE}
+
+TYPES_DICT_STRINGS = {v:k for k,v in TYPES_DICT.items()}
+
+TYPES_DEFAULT = {AI_TYPE_STRING: "",
+                 AI_TYPE_INT: 0,
+                 AI_TYPE_UINT: 0,
+                 AI_TYPE_BYTE: 0,
+                 AI_TYPE_FLOAT: 0.0,
+                 AI_TYPE_BOOLEAN: False,
+                 AI_TYPE_NODE: ""}
+
 # TYPES = ["string", "int", "byte", "uint", "float", "bool", "node", "rgb", "rgba", "vector", "vector2", "matrix"]
 
 DEFAULT_VISBILITIES = {'AI_RAY_CAMERA': True,
@@ -149,6 +167,10 @@ class MtoARGBControl(QtWidgets.QFrame):
 
     def __init__(self, value=True, parent=None):
         super(MtoARGBControl, self).__init__(parent)
+
+        # color rect
+        
+        # RGB float boxes
 
 
 class MtoACheckbox(QtWidgets.QCheckBox):
@@ -409,19 +431,21 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     deleteMe = QtCore.Signal(object)
     paramChanged = QtCore.Signal(str)
-    valueChanged = QtCore.Signal((str, str, str, int, str),
-                                 (str, str, int, int, str),
-                                 (str, str, bool, int, str),
-                                 (str, str, float, int, str))
+    #                             param, operation, value, param_type, custom, index, operator
+    valueChanged = QtCore.Signal((str, str, str, int, bool, int, str),
+                                 (str, str, int, int, bool, int, str),
+                                 (str, str, bool, int, bool, int, str),
+                                 (str, str, float, int, bool, int, str))
     overrideTriggered = QtCore.Signal(str)
 
-    def __init__(self, param=None, op=None, value=None, paramDict={}, parent=None):
+    def __init__(self, paramType=None, param=None, op=None, value=None, paramDict={}, parent=None):
         super(MtoAOperatorOverrideWidget, self).__init__(parent)
 
         self.setObjectName("MtoAOperatorOverrideWidget")
         # set the paramater type so we know what type of widget to create.
         self.param_name = None
         self.param_type = None
+        self.user_param = False
         self.param_dict = paramDict
         self.index = -1
         self.operator = ""
@@ -470,6 +494,9 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
         self.layout().addWidget(self.delBtn, alignment=QtCore.Qt.AlignTop)
 
+        if paramType:
+            self.setParamType(paramType)
+            self.user_param = True
         if param:
             self.setParam(param)
             self.setControlWidget(param)
@@ -485,6 +512,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def setup(self):
         self.delBtn.clicked.connect(self.callDeleteMe)
         self.paramWidget.paramChanged.connect(self.emitParamChanged)
+        self.paramWidget.paramTypeChanged.connect(self.emitParamTypeChanged)
         self.expBtn.toggled.connect(self.valueWidget.setCurrentIndex)
         self.expressionEditor.textEdited.connect(self.emitExpressionValueChanged)
         self.op_menu.currentTextChanged.connect(self.emitOperationChanged)
@@ -504,10 +532,23 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         param_data = self.getParamData(param)
         if param_data:
             default_value = param_data[DEFAULT_VALUE]
+            self.user_param = False
         self.param_name = param
         self.setControlWidget(param)
         self.setValue(default_value)
         self.emitValueChanged(default_value)
+
+    def emitParamTypeChanged(self, paramType):
+        current_paramType = self.getParamType()
+        param = self.getParam()
+        arn_type = TYPES_DICT[paramType]
+        if current_paramType == arn_type:
+            return
+
+        self.param_type = arn_type
+        self.setControlWidget(param)
+        self.setValue(TYPES_DEFAULT[arn_type])
+        self.emitValueChanged(TYPES_DEFAULT[arn_type])
 
     def emitOverrideTriggered(self):
         param = self.getParam()
@@ -516,30 +557,36 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def emitValueChanged(self, value):
 
         param = self.getParam()
-        self.valueChanged[str, str, type(value), int, str].emit(
+        self.valueChanged[str, str, type(value), int, bool, int, str].emit(
                                    param,
                                    self.getOperation(),
                                    value,
+                                   self.param_type,
+                                   self.user_param,
                                    self.index,
                                    self.operator)
         self.expressionEditor.setText(str(value))
 
     def emitExpressionValueChanged(self, value):
         param = self.getParam()
-        self.valueChanged[str, str, type(value), int, str].emit(
+        self.valueChanged[str, str, type(value), int, bool, int, str].emit(
                                    param,
                                    self.getOperation(),
                                    value,
+                                   self.param_type,
+                                   self.user_param,
                                    self.index,
                                    self.operator)
 
     def emitOperationChanged(self, operation):
         param = self.getParam()
         value = self.getValue()
-        self.valueChanged[str, str, type(value), int, str].emit(
+        self.valueChanged[str, str, type(value), int, bool, int, str].emit(
                                    param,
                                    operation,
                                    value,
+                                   self.param_type,
+                                   self.user_param,
                                    self.index,
                                    self.operator)
 
@@ -567,7 +614,14 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.setControlWidget(param)
         self.paramWidget.editBox.blockSignals(oldState)
 
-    def setParamType(self, param):
+    def getParamType(self):
+        return self.param_type
+
+    def setParamType(self, param_type):
+        self.param_type = TYPES_DICT[param_type]
+        self.paramWidget.setParamType(param_type)
+
+    def setParamTypeFromParam(self, param):
         param_data = self.getParamData(param)
         if param_data:
             self.param_type = param_data[PARAM_TYPE]
@@ -594,7 +648,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     def setControlWidget(self, param):
         # make sure the param type is updated
-        self.setParamType(param)
+        if not self.user_param:
+            self.setParamTypeFromParam(param)
         # delete old widgets
         clearWidget(self.controlWidget)
         control = None
@@ -618,12 +673,19 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         control.valueChanged.connect(self.emitValueChanged)
         self.controlWidget.setWidget(control)
 
+        # hide the ops menu if the param is not a digit
+        if self.param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT, AI_TYPE_FLOAT]:
+            self.op_menu.setVisible(False)
+        else:
+            self.op_menu.setVisible(True)
+
 
 class MtoAParamBox(QtWidgets.QFrame):
     """docstring for MtoAMenuBox"""
     PARAM_ICON = QtGui.QPixmap(":/list.svg")
 
     paramChanged = QtCore.Signal(str)
+    paramTypeChanged = QtCore.Signal(str)
 
     def __init__(self, parent):
         super(MtoAParamBox, self).__init__(parent)
@@ -653,7 +715,15 @@ class MtoAParamBox(QtWidgets.QFrame):
 
     def setup(self):
         self.menu.triggered.connect(self.setTextFromAction)
+        self.paramTypeBox.currentTextChanged.connect(self.emitParamTypeChanged)
         self.editBox.editingFinished.connect(self.emitChange)
+
+    def setParamType(self, paramType):
+        self.paramTypeBox.setVisible(True)
+        self.paramTypeBox.setCurrentText(paramType)
+
+    def emitParamTypeChanged(self, paramType):
+        self.paramTypeChanged.emit(paramType)
 
     def emitChange(self):
         self.paramChanged.emit(self.getText())
@@ -661,6 +731,8 @@ class MtoAParamBox(QtWidgets.QFrame):
     def setTextFromAction(self, action):
         new_text = action.text()
         self.setText(new_text)
+        if new_text != "custom":
+            self.paramTypeBox.setVisible(False)
         self.paramChanged.emit(new_text)
 
     def setText(self, text):

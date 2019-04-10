@@ -622,16 +622,16 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         parentPanel.setVisible(True)
 
-        new_widget = MtoAOperatorOverrideWidget(param, op, value, self.paramDict, parentPanel)
+        new_widget = MtoAOperatorOverrideWidget(param_type, param, op, value, self.paramDict, parentPanel)
 
         new_widget.index = index
         new_widget.operator = operator
         new_widget.deleteMe.connect(self.removeOverrideWidget)
 
-        new_widget.valueChanged[str, str, str, int, str].connect(self.setOverride)
-        new_widget.valueChanged[str, str, int, int, str].connect(self.setOverride)
-        new_widget.valueChanged[str, str, bool, int, str].connect(self.setOverride)
-        new_widget.valueChanged[str, str, float, int, str].connect(self.setOverride)
+        new_widget.valueChanged[str, str, str, int, bool, int, str].connect(self.setOverride)
+        new_widget.valueChanged[str, str, int, int, bool, int, str].connect(self.setOverride)
+        new_widget.valueChanged[str, str, bool, int, bool, int, str].connect(self.setOverride)
+        new_widget.valueChanged[str, str, float, int, bool, int, str].connect(self.setOverride)
         # add widget
         parentPanel.layout().addWidget(new_widget)
         return new_widget
@@ -655,11 +655,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         return None
 
-    @QtCore.Slot(str, str, str, int)
-    @QtCore.Slot(str, str, int, int)
-    @QtCore.Slot(str, str, bool, int)
-    @QtCore.Slot(str, str, float, int)
-    def setOverride(self, param, op, value, index=-1, operator=None):
+    def setOverride(self, param, op, value, param_type, custom=False,  index=-1, operator=None):
         if not operator:
             ops = self.getItemOverrideOperator()
             if not type(ops) == list:
@@ -668,7 +664,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 return
             operator = ops[-1]
 
-        param_type = None
         is_array = False
         data = self.getData(self.item)
         if not data:
@@ -676,7 +671,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         param_data = self.getParamData(param)
         if param_data:
-            param_type = param_data[PARAM_TYPE]
             is_array = param_data[IS_ARRAY]
 
-        return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, is_array, index)
+        return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, is_array, index)

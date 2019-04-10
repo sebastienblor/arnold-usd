@@ -4,6 +4,7 @@ import fnmatch
 import maya.cmds as cmds
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser, valueIsExpression
+from mtoa.ui.qt.widgets import TYPES_DICT_STRINGS
 from alembic import Abc, AbcGeom
 from arnold import *
 
@@ -432,7 +433,7 @@ class ProceduralTransverser(BaseTransverser):
         return overrides
 
     @classmethod
-    def setOverride(cls, node, path, operator, param, operation, value, param_type, array=False, index=-1):
+    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, array=False, index=-1):
 
         op = operator
         if index == -1:
@@ -451,7 +452,12 @@ class ProceduralTransverser(BaseTransverser):
         if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
             value = "'{}'".format(value)
 
-        param_exp = "{}{}{}".format(param, operation, value)
+        # get if this is a custom param
+        type_str = ''
+        if custom:
+            type_str = TYPES_DICT_STRINGS[param_type] + ' '
+
+        param_exp = "{}{}{}{}".format(type_str, param, operation, value)
         cmds.setAttr("{}.assignment[{}]".format(op, index),
                      param_exp,
                      type="string")
