@@ -588,7 +588,10 @@ AtNode* CRampTranslator::ExportUvTransform()
    // FIXME: for UV & Tartan types, we actually need 2 ramp_float
    AtNode *rampFloat = GetArnoldNode("ramp_float");
    if (rampFloat == NULL)
+   {
       rampFloat = AddArnoldNode("ramp_float", "ramp_float");
+      AiNodeSetArray(rampFloat, "interpolation", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   }
    // if we're in UV / Tartan, it should be ramps with U & V types
    AiNodeSetStr(rampFloat, "uvset", ""); // the uvset was already set on the uv_transform node
 
@@ -655,6 +658,10 @@ bool CRampTranslator::RequiresUvTransform() const
 
    if (srcNodeFn.typeName() != "place2dTexture")
       return false;
+
+   if (IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true) &&
+       IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true))
+      return true;
 
    return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger", true), false) &&
             IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU", true), false) &&
