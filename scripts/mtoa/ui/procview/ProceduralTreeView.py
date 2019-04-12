@@ -2,6 +2,7 @@
 #
 #
 
+import os
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
@@ -402,9 +403,15 @@ class ProceduralItem(BaseItem):
             OVERRIDES[DISPLACEMENT] = DISPLACEMENT in parent_params
             OVERRIDES[PARAMETER] = len(parent_attr_params) > 0
 
+        inherited_params = list(set(parent_params) - set(params))
+        inherited_attr_params = [x for x in inherited_params if x not in [SHADER, DISPLACEMENT]]
+
         for override, enabled in OVERRIDES.items():
             icon = None
             action = None
+            overlay = None
+
+            is_inherited = override in inherited_params or (override == PARAMETER and len(inherited_attr_params) > 0)
 
             if override in params or (override == PARAMETER and len(attr_params) > 0):
                 opacity = 1.0
@@ -428,7 +435,11 @@ class ProceduralItem(BaseItem):
                 if icon:
                     icon = BaseItem.dpiScaledIcon(icon)
 
-            actions.append((icon, opacity, action, False))
+            if is_inherited:
+                inherited_icon = os.path.join(cmds.getModulePath(moduleName='mtoa'), 'icons', "inherit_100.png")
+                overlay = BaseItem.dpiScaledIcon(inherited_icon)
+
+            actions.append((icon, opacity, action, False, overlay))
 
         return actions
 
