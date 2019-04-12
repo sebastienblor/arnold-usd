@@ -674,7 +674,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.controlWidget.setWidget(control)
 
         # hide the ops menu if the param is not a digit
-        if self.param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT, AI_TYPE_FLOAT]:
+        if self.param_type not in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT, AI_TYPE_FLOAT]:
+            self.setOperation("=")
             self.op_menu.setVisible(False)
         else:
             self.op_menu.setVisible(True)
