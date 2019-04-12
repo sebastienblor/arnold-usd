@@ -5,6 +5,7 @@ import os.path
 import mtoa.melUtils as mu
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.utils import resolveFilePathSequence
+from mtoa.ui.ae.utils import expandEnvVars
 import mtoa.core as core
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import arnold as ai
@@ -166,6 +167,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         nodeName = nodeAttr.split('.')[0]
         fileAttr = '{}.dso'.format(nodeName)
         filename = cmds.getAttr(fileAttr)
+        filename = expandEnvVars(filename)
         if nodeName == self.currentNode and filename == self.currentFilename:
             self.properties_panel.setItem(self.nodeName, None)
             return  # nothing to do here...
