@@ -706,6 +706,13 @@ def createArnoldRenderSettings():
     cmds.attrControlGrp('os_exportFullPaths',
                         label='Export Full Paths',
                         attribute='defaultArnoldRenderOptions.exportFullPaths')
+    cmds.attrControlGrp('os_exportNamespace',
+                        label='Export Namespace',
+                        attribute='defaultArnoldRenderOptions.exportNamespace')
+    cmds.attrControlGrp('os_exportSeparator',
+                        label='Export Separator',
+                        attribute='defaultArnoldRenderOptions.exportSeparator')
+    
     cmds.attrControlGrp('os_exportShadingEngine',
                         label='Export Shading Engine (Legacy)',
                         attribute='defaultArnoldRenderOptions.exportShadingEngine')

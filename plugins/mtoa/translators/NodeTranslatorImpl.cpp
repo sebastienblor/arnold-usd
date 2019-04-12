@@ -1147,6 +1147,69 @@ MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* ta
    return name;
 }
 
+void CNodeTranslatorImpl::AddNamingOptions(MString &name)
+{
+   const CSessionOptions &options = CNodeTranslator::GetSessionOptions();
+
+   // What to do with the namespaces ? either keep them (ON), or strip them (OFF),
+   // or keep them only once at the root of the hierarchy (ROOT) as if it was a parent
+   unsigned int exportNamespace = options.GetExportNamespace();
+   if (exportNamespace != MTOA_EXPORT_NAMESPACE_ON)
+   {
+      MString origStr;
+      while(true)
+      {
+         // store the name at the beginning of each iteration, in order to ensure
+         // it does change and we don't enter an infinite loop
+         origStr = name; 
+         
+         int namespaceEnd = name.indexW(':');
+         if (namespaceEnd < 0)
+            break;
+
+         const char *data = name.asChar();
+         int namespaceBegin = namespaceEnd-1;
+         for (; namespaceBegin >= 0; namespaceBegin--)
+         {
+            // Found the beginning of the namespace
+            if (data[namespaceBegin] == '|')
+               break;
+         }
+         MString namespaceStr = (namespaceBegin < 0) ? 
+               MString("|") + name.substringW(0, namespaceEnd) :
+               name.substringW(namespaceBegin, namespaceEnd);
+         
+         if (exportNamespace == MTOA_EXPORT_NAMESPACE_OFF)
+         {
+            if (namespaceBegin < 0)
+               name = name.substringW(namespaceEnd + 1, name.length() -1);
+         
+         } else if (exportNamespace ==  MTOA_EXPORT_NAMESPACE_ROOT)
+         {
+            MString tmpStr = name.substringW(0, namespaceEnd - 1) + MString("|");
+            name = tmpStr + name.substringW(namespaceEnd + 1, name.length() -1); // replace the ':' by a '|'
+         }
+         name.substitute(namespaceStr, MString("|")); 
+
+         if (name == origStr)
+         {
+            // Mayday, we have a problem, the name hasn't changed at all and we're going 
+            // to enter an infinite loop. Let's get out of here before it explodes.
+            // store the name at the beginning of each iteration
+            AiMsgError("[mtoa] Namespace couldn't be stripped from name %s", name.asChar());
+            break;
+         }
+      }
+   }
+
+   // replace all pipes by slashes if the separator is set to "/"
+   if (options.GetExportSeparator() == MTOA_EXPORT_SEPARATOR_SLASHES)
+      name.substitute(MString("|"), MString ("/"));
+   
+   const MString &prefix = options.GetExportPrefix();
+   if (prefix.length() > 0)
+      name = prefix + name;
+}
 
 // check if an AtArray is animated,  i.e. has different values on multiple keys
 // it would be nice if this could be done in arnold core

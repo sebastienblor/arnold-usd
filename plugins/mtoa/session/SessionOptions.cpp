@@ -104,7 +104,14 @@ MStatus CSessionOptions::GetFromMaya()
       plug = fnArnoldRenderOptions.findPlug("exportFullPaths", true);
       if (!plug.isNull())
          m_exportFullPath = plug.asBool();
-      
+
+      plug = fnArnoldRenderOptions.findPlug("exportSeparator", true);
+      if (!plug.isNull())
+         m_exportSlashSeparator = (plug.asInt() == MTOA_EXPORT_SEPARATOR_SLASHES);
+
+      plug = fnArnoldRenderOptions.findPlug("exportNamespace", true);
+      if (!plug.isNull())
+         m_exportNamespace = plug.asInt();
 
       plug = fnArnoldRenderOptions.findPlug("texture_searchpath", true);
       if (!plug.isNull())
@@ -212,4 +219,3 @@ MStatus CSessionOptions::GetFromMaya()
 
    return status;
 }
-

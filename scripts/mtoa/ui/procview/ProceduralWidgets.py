@@ -224,9 +224,9 @@ class OperatorItem(BaseItem):
     def getActions(self):
 
         actions = []
-        actions.append((self.CONNECTED_ICON, 1.0, self.ACTION_SELECT, False))
+        actions.append((self.CONNECTED_ICON, 1.0, self.ACTION_SELECT, False, None))
 
-        actions.append((self.DISABLED_ICON, 1.0, self.ACTION_DISABLE, not self.enabled))
+        actions.append((self.DISABLED_ICON, 1.0, self.ACTION_DISABLE, not self.enabled, None))
 
         return actions
 

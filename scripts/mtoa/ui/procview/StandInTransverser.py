@@ -5,6 +5,7 @@ import os.path
 import mtoa.melUtils as mu
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.utils import resolveFilePathSequence
+from mtoa.ui.ae.utils import expandEnvVars
 import mtoa.core as core
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import arnold as ai
@@ -65,6 +66,7 @@ class StandInTransverser(ProceduralTransverser):
 
         filenameAttr = self.nodeName + '.dso'
         filename = cmds.getAttr(filenameAttr)
+        filename = expandEnvVars(filename)
         self.cache = {} # for now we're just storing the entry_type, but we might want to store more data 
         if not os.path.exists(str(filename)):
             return

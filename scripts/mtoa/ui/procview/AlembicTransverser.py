@@ -1,6 +1,7 @@
 import os
 import os.path
 
+from mtoa.ui.ae.utils import expandEnvVars
 from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt.Qt import QtGui
 from mtoa.ui.qt.Qt import QtWidgets
@@ -67,6 +68,7 @@ class AlembicTransverser(ProceduralTransverser):
 
     def getArchivePath(self, node):
         filename = cmds.getAttr("{}.{}".format(node, self.filenameAttr))
+        filename = expandEnvVars(filename)
         if len(filename) == 0:
             return ''
         return os.path.abspath(filename)

@@ -497,7 +497,7 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         self.drawToolbarFrame(painter, rect, len([a for a in actions if a[0]]))
 
         iconRectCumul = None
-        for pixmap, opacity, action, checked in actions:
+        for pixmap, opacity, action, checked, overlay in actions:
 
             if not pixmap or not opacity:
                 continue
@@ -536,6 +536,12 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
                 self.lastHitAction = action
 
             painter.drawPixmap(iconRect, pixmap)
+
+            if overlay:
+                ov_w = overlay.rect().width()
+                ov_h = overlay.rect().height()
+                painter.setOpacity(1.0)
+                painter.drawPixmap(left, top, ov_w, ov_h, overlay)
 
             # Highlight the icon depending on the mouse over.
             if buttonPressed and iconRect.contains(cursorPosition):
