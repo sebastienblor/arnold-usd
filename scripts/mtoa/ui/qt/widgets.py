@@ -43,6 +43,8 @@ TYPES_DEFAULT = {AI_TYPE_STRING: "",
 
 # TYPES = ["string", "int", "byte", "uint", "float", "bool", "node", "rgb", "rgba", "vector", "vector2", "matrix"]
 
+VISIBILITY_PARAMS = ["visibility", "sidedness", "autobump_visibility"]
+
 DEFAULT_VISBILITIES = {'AI_RAY_CAMERA': True,
                        'AI_RAY_SHADOW': True,
                        'AI_RAY_DIFFUSE_REFLECT': True,
@@ -108,6 +110,7 @@ def getVisibilityDict(value):
             else:
                 compViz += v
     return vis_dict
+
 
 
 class MtoAVisibilityCheckBox(QtWidgets.QCheckBox):
@@ -653,7 +656,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         # delete old widgets
         clearWidget(self.controlWidget)
         control = None
-        if self.param_type in [AI_TYPE_BYTE] and param in ['visibility', 'sidedness']:
+        if self.param_type in [AI_TYPE_BYTE] and param in VISIBILITY_PARAMS:
             control = MtoAVisibilityWidget()
         elif self.param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:
             control = MtoAIntControl()
