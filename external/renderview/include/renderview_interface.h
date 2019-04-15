@@ -49,14 +49,14 @@ public:
  **/
 
    // RenderView functions
-   void OpenRenderView(int width, int height, QWidget *parent = NULL, bool showWin = true);
+   void OpenRenderView(int width, int height, float scaleFactor, QWidget *parent = NULL, bool showWin = true);
    void CloseRenderView();
    void DestroyRenderView();
    // return the renderView Qt Window
    QMainWindow *GetRenderView();
 
    // Options Window doesn't show the render itself, only the menus
-   void OpenOptionsWindow(int width, int height, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
+   void OpenOptionsWindow(int width, int height, float scaleFactor, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
    void CloseOptionsWindow();
    void DestroyOptionsWindow();
 
