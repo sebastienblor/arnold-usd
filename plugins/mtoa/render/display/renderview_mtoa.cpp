@@ -316,7 +316,6 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    double scaleFactor = 1.0;
    MString scaleCommand = "mayaDpiSetting -q -realScaleValue;" ;
    MGlobal::executeCommand(scaleCommand, scaleFactor);
-   std::cout << " Scale Factor is " << scaleFactor << std::endl;
    OpenRenderView(width, height,scaleFactor, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
 
    QMainWindow *arv = GetRenderView();  
