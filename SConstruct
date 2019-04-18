@@ -112,6 +112,9 @@ vars.AddVariables(
     PathVariable('GLEW_LIB', 
                  'Where to find GLEW static library', 
                  glew_default_lib, PathVariable.PathIsFile),
+    PathVariable('BIFROST_ROOT',
+                 'Directory where Bifrost SDK headers are installed',
+                 '.'),
     PathVariable('TARGET_MODULE_PATH', 
                  'Path used for installation of the mtoa module', 
                  '.', PathVariable.PathIsDirCreate),
@@ -279,6 +282,7 @@ env['ENABLE_XGEN'] = 0
 env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
+env['ENABLE_BIFROST_BOARD'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
 env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
@@ -341,6 +345,8 @@ if int(maya_version) >= 201700:
 if int(maya_version) >= 201800:
     bifrost_ext = 'bifrost'
     env.Append(CPPDEFINES = Split('MTOA_ENABLE_AVP'))
+    # TODO add detection of Bifrost board plugin SDk and bifrost sdk
+    env["ENABLE_BIFROST_BOARD"] = 1
 
 
 
@@ -1093,7 +1099,8 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
             (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor') or
-            (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache')):
+            (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache') or
+            (env['ENABLE_BIFROST_BOARD'] == 1 and ext == 'bifrostBoard')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
@@ -1296,6 +1303,9 @@ if env['ENABLE_BIFROST'] == 1:
         PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR,  bifrost_ext, 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
 
 
+if env['ENABLE_BIFROST_BOARD'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrostBoard', 'bifShapeTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrostBoard', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_LOOKDEVKIT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])
