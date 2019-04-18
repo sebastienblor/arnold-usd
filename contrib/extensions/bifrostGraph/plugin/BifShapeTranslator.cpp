@@ -1,5 +1,14 @@
 #include "BifShapeTranslator.h"
 
+#include <bifData.h>
+#include <maya/MFnDependencyNode.h>
+#include <maya/MFnDagNode.h>
+#include <maya/MProfiler.h>
+#include <maya/MSelectionContext.h>
+#include <maya/MPlug.h>
+#include <maya/MDataHandle.h>
+#include <maya/MFnPluginData.h>
+
 static bool s_bifrostBoardSupported = false;
 
 
@@ -37,6 +46,26 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
 
 void CBifShapeTranslator::Export( AtNode *shape )
 {
+
+   // // test code taken from bifSubSCeneOverride.h in maya-bifrostboard-plugin
+   // MFnDagNode dagNode(m_dagPath.node()); // get the bifShape node
+   // MPlug viewport = FindMayaPlug("viewport");
+   // MDataHandle handle;
+   // plug.getValue(handle);
+   // MFnPluginData fnData(handle.data());
+   // BifData* data = static_cast<BifData*>(fnData.data(&status));
+   // if (data)
+   //   {
+   //       if (!data->empty()) // only one type of data (BifrostExp::Object) so if not empty it must be it!
+   //       {
+   //           unsigned int index = 1;
+   //           for (auto iter = data->bifrostObjects().begin(); iter != data->bifrostObjects().end(); ++iter, ++index)
+   //           {
+   //               Amino::Ptr< const BifrostExp::Object > bifrostObj = *iter;
+   //           }
+   //       }
+   //    }
+
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull())
