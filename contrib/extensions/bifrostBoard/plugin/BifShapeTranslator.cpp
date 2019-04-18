@@ -37,21 +37,15 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
 
 void CBifShapeTranslator::Export( AtNode *shape )
 {
-   if (s_bifrostBoardSupported == false || shape == NULL)
-      return;
-
-   // ExportMatrix(shape);
-   // ProcessRenderFlags(shape);
-
    // export BifShape parameters
-   MPlug filenamePlug = FindMayaPlug("filename");
+   MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull())
    {
       MString filename = filenamePlug.asString();
       AiNodeSetStr(shape, "filename", filename.asChar());
    }
 
-   MPlug geomPlug = FindMayaPlug("compound");
+   MPlug geomPlug = FindMayaPlug("aiCompound");
    if (!geomPlug.isNull())
    {
       MString geomPath = geomPlug.asString();
