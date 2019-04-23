@@ -124,7 +124,9 @@ class ProceduralTransverser(BaseTransverser):
 
                     default_value = self._getDefaultValue(param, param_type)
 
-                    if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys():
+                    # I'm removing the common attributes from the exclusion because we sometimes show only this specific node parameters.
+                    # Common parameters will only appear for groups.
+                    if paramName not in self.paramDict[nodeType].keys(): # + self.paramDict['common'].keys(): 
                         is_array = param_type == AI_TYPE_ARRAY
                         self.paramDict[nodeType][paramName] = (param_type,
                                                                default_value,
