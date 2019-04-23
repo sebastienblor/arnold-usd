@@ -11,7 +11,7 @@ import time
 import maya.cmds as cmds
 
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
                             NODE_TYPES, PARM, OP, VALUE, INDEX, OPERATOR

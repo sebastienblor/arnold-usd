@@ -12,8 +12,9 @@ from arnold import *
  PROC_PARENT,
  PROC_VISIBILITY,
  PROC_INSTANCEPATH,
- PROC_ENTRY_TYPE,
- PROC_IOBJECT) = range(7)
+ PROC_ENTRY,
+ PROC_IOBJECT, 
+ PROC_ENTRY_TYPE) = range(8)
 
 (PARM, OP, VALUE, INDEX, OPERATOR) = range(5)
 
@@ -145,7 +146,7 @@ class ProceduralTransverser(BaseTransverser):
         if not objectInfo:
             return None
 
-        return [objectInfo[PROC_ENTRY_TYPE]]
+        return [objectInfo[PROC_ENTRY]]
 
     def properties(self, node, path):
         pass
@@ -235,9 +236,9 @@ class ProceduralTransverser(BaseTransverser):
             # given object path
             if cmds.attributeQuery('selection', node=op, exists=True):
                 path = data[PROC_PATH]
-                if data[PROC_ENTRY_TYPE] == "xform":
+                if data[PROC_ENTRY] == "xform":
                     path += "/*"
-                elif data[PROC_ENTRY_TYPE] == None:
+                elif data[PROC_ENTRY] == None:
                     path += "*"
                 cmds.setAttr(op + ".selection",
                              path,
@@ -285,7 +286,7 @@ class ProceduralTransverser(BaseTransverser):
                 selectionStr = '' 
                 break
             selectionStr += sel[PROC_PATH]
-            if sel[PROC_ENTRY_TYPE] =='xform':
+            if sel[PROC_ENTRY] =='xform':
                 selectionStr += '/*'
         if selectionStr == self.selectionStr:
             return

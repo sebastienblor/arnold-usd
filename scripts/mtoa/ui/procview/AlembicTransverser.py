@@ -12,7 +12,7 @@ from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTr
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
 
 
@@ -95,9 +95,10 @@ class AlembicTransverser(ProceduralTransverser):
         name = iobject.getName()
         parent = iobject.getParent().getFullName()
         instancedPath = iobject.instanceSourcePath()
-        entity_type = abcToArnType(iobject)
+        nodeEntry = abcToArnType(iobject)
         visibility = VISIBILITY[int(AbcGeom.GetVisibility(iobject))+1]
-        return [path, name, parent, visibility, instancedPath, entity_type, iobject]
+        nodeEntryType = 'shape' if (nodeEntry == 'points' or nodeEntry == 'polymesh' or nodeEntry == 'curves') else None
+        return [path, name, parent, visibility, instancedPath, nodeEntry, iobject, nodeEntryType]
 
     def getRootObjectInfo(self, node):
         abc_file = self.getArchive(node)
