@@ -2446,6 +2446,8 @@ void CDisplacementTranslator::Export(AtNode* shader)
    // vectorSpace = {WORLD, OBJECT, TANGENT}
    int vectorSpace = FindMayaPlug("vectorSpace").asInt();
    AiNodeSetBool(vectorMap, "tangent_space", (vectorSpace == 2)); 
+   if (vectorSpace == 2)
+      AiNodeSetStr(vectorMap, "order", "XZY");
 
    if (spaceTransform)
    {
