@@ -281,8 +281,6 @@ def run_test(target, source, env):
       
       if test_env['USE_GPU'] == True:
          options ='-ai:device 1'
-      else:
-         options ='-ai:device 0'
 
       cmd = string.replace(cmd, "%proj%", test_dir)
       cmd = string.replace(cmd, "%dir%", test_dir)
