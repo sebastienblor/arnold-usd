@@ -22,13 +22,17 @@ from arnold import *
 
 OPERATIONS = ["=", "+=", "-=", "*=", "/=", "^=", "%="]
 
-TYPES = ["string", "int", "uint", "byte", "float", "bool", "node"]
+TYPES = ["string", "int", "uint", "byte", "float", "bool", "node", "rgb", "rgba", "vector", "vector2"]
 TYPES_DICT = {"string": AI_TYPE_STRING,
               "int":    AI_TYPE_INT,
               "uint":   AI_TYPE_UINT,
               "byte":   AI_TYPE_BYTE,
               "float":  AI_TYPE_FLOAT,
               "bool":   AI_TYPE_BOOLEAN,
+              "rgb":    AI_TYPE_RGB,
+              "rgba":   AI_TYPE_RGBA,
+              "vector": AI_TYPE_VECTOR,
+              "vector2":AI_TYPE_VECTOR2,
               "node":   AI_TYPE_NODE}
 
 TYPES_DICT_STRINGS = {v:k for k,v in TYPES_DICT.items()}
@@ -39,6 +43,10 @@ TYPES_DEFAULT = {AI_TYPE_STRING: "",
                  AI_TYPE_BYTE: 0,
                  AI_TYPE_FLOAT: 0.0,
                  AI_TYPE_BOOLEAN: False,
+                 AI_TYPE_RGB: (0.5, 0.5, 0.5),
+                 AI_TYPE_RGBA: (0.5, 0.5, 0.5, 1.0),
+                 AI_TYPE_VECTOR: (0, 0, 0),
+                 AI_TYPE_VECTOR2: (0, 0),
                  AI_TYPE_NODE: ""}
 
 # TYPES = ["string", "int", "byte", "uint", "float", "bool", "node", "rgb", "rgba", "vector", "vector2", "matrix"]
@@ -164,16 +172,51 @@ class MtoAVisibilityWidget(QtWidgets.QFrame):
         self.valueChanged.emit(self.getValue())
 
 
-class MtoARGBControl(QtWidgets.QFrame):
+class MtoAVecControl(QtWidgets.QFrame):
 
-    valueChanged = QtCore.Signal(float, float, float)
+    valueChanged = QtCore.Signal(str)
+
+    def __init__(self, value=True, parent=None):
+        super(MtoAVecControl, self).__init__(parent)
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.ctrls = [MtoAFltControl(self),
+                      MtoAFltControl(self),
+                      MtoAFltControl(self)]
+
+        for c in self.ctrls:
+            self.layout().addWidget(c)
+            c.valueChanged.connect(self.emitValueChanged)
+
+    def emitValueChanged(self, value):
+        self.valueChanged.emit(self.getValue())
+
+    def getValue(self):
+
+        values = [0, 0, 0]
+
+        i = 0
+        for c in self.ctrls:
+            values[i] = c.value()
+            i += 1
+
+        return '[{} {} {}]'.format(*values)
+
+    def setValue(self, value):
+        vs = re.match(r'\[\s*(\d*(?:\.\d+)?)\s+(\d*(?:\.\d+)?)\s+(\d*(?:\.\d+)?)\s*\]', value)
+
+        if vs:
+            i = 0
+            for v in vs.groups():
+                self.ctrls[i].setValue(float(v))
+                i += 1
+
+
+class MtoARGBControl(MtoAVecControl):
 
     def __init__(self, value=True, parent=None):
         super(MtoARGBControl, self).__init__(parent)
-
-        # color rect
-        
-        # RGB float boxes
 
 
 class MtoACheckbox(QtWidgets.QCheckBox):
@@ -438,6 +481,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     valueChanged = QtCore.Signal((str, str, str, int, bool, int, str),
                                  (str, str, int, int, bool, int, str),
                                  (str, str, bool, int, bool, int, str),
+                                 (str, str, tuple, int, bool, int, str),
                                  (str, str, float, int, bool, int, str))
     overrideTriggered = QtCore.Signal(str)
 
@@ -662,6 +706,10 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             control = MtoAIntControl()
         elif self.param_type is AI_TYPE_FLOAT:
             control = MtoAFltControl()
+        elif self.param_type is AI_TYPE_VECTOR:
+            control = MtoAVecControl()
+        elif self.param_type is AI_TYPE_RGB:
+            control = MtoARGBControl()
         elif self.param_type is AI_TYPE_BOOLEAN:
             control = MtoACheckbox()
         elif self.param_type is AI_TYPE_ENUM:
