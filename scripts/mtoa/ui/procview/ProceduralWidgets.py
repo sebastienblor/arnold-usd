@@ -560,6 +560,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if not data:
             return
 
+        nodeEntry = data[PROC_ENTRY]
         isGroup = (nodeEntry == None or nodeEntry == '' or nodeEntry == 'xform')
         # For groups, let's append the default node types (for alembic shapes)
         if isGroup: 

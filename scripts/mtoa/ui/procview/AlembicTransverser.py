@@ -121,7 +121,7 @@ class AlembicTransverser(ProceduralTransverser):
         children = self.visitObject(iObj)
 
         for child in children:
-            if child[PROC_ENTRY_TYPE] not in node_types:
-                node_types.append(child[PROC_ENTRY_TYPE])
+            if child[PROC_ENTRY] not in node_types:
+                node_types.append(child[PROC_ENTRY])
 
         return node_types
