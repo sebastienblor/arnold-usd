@@ -74,6 +74,9 @@ def loadAETemplates():
 
 def expandEnvVars(filePath):
 
+    if not filePath:
+        return ""
+
     filePath = os.path.expandvars(filePath)
 
     envvars = re.findall(r'\[(\w+)\]', filePath)

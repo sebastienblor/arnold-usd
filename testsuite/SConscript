@@ -170,6 +170,13 @@ def run_test(target, source, env):
    for k in env['ENV']:
       local_env[k] = str(env['ENV'][k])
 
+   # In Windows, NVML detection depends on %ProgramW6432% expansion (#7626, #7698)
+   if sa.system.is_windows and ('ProgramW6432' in os.environ):
+      local_env['ProgramW6432'] = os.environ['ProgramW6432']
+   
+   if sa.system.is_windows and ('LOCALAPPDATA' in os.environ):
+      local_env['LOCALAPPDATA'] = os.environ['LOCALAPPDATA']
+
    if test_env['ENVIRONMENT']:
       for var in test_env['ENVIRONMENT']:
          if show_test_output:
@@ -268,11 +275,12 @@ def run_test(target, source, env):
       # NOTE #5079: Execute the test printing the logs to the standard output
       # if requested (parameter verbose), and always write them to a .log file.
 
-      if show_test_output:
-         print '====Exec %s' % cmd
-         print os.getenv('PATH')
 
-      options =''
+
+      options = ''
+      
+      if test_env['USE_GPU'] == True:
+         options ='-ai:device 1'
 
       cmd = string.replace(cmd, "%proj%", test_dir)
       cmd = string.replace(cmd, "%dir%", test_dir)
@@ -301,7 +309,11 @@ def run_test(target, source, env):
       os.environ['MAYA_VERSION'] = test_env['MAYA_VERSION']
    
       os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
-
+      
+      if show_test_output:
+         print '====Exec %s' % cmd
+         print os.getenv('PATH')
+      
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
       
       with open(logfile, 'w') as f:

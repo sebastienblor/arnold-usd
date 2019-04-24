@@ -313,8 +313,10 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    }
    workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
 
-
-   OpenRenderView(width, height, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
+   double scaleFactor = 1.0;
+   MString scaleCommand = "mayaDpiSetting -q -realScaleValue;" ;
+   MGlobal::executeCommand(scaleCommand, scaleFactor);
+   OpenRenderView(width, height,scaleFactor, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
 
    QMainWindow *arv = GetRenderView();  
    arv->setWindowFlags(Qt::Widget);
@@ -354,7 +356,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       s_arvWidth = -1;
       s_arvHeight = -1;
    }
-   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+   OpenRenderView(width, height,scaleFactor, MQtUtil::mainWindow(),scaleFactor); // this creates ARV or restarts the render
 #endif
 
    MStatus status;   
@@ -518,10 +520,14 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
       workspaceCmd += " -l \"Arnold ViewportRenderer Options\" "; // label
    }
    workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
+   
+   double scaleFactor = 1.0;
+   MString scaleCommand = "mayaDpiSetting -q -realScaleValue;" ;
+   MGlobal::executeCommand(scaleCommand, scaleFactor);
 
    std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
-   CRenderViewInterface::OpenOptionsWindow(250, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
+   CRenderViewInterface::OpenOptionsWindow(250, 50,scaleFactor, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
 
@@ -542,7 +548,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
     //s_creatingARV = false;
 #else
-   CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
+   CRenderViewInterface::OpenOptionsWindow(200, 50,scaleFactor, NULL, MQtUtil::mainWindow(), false);
 #endif
 
    // Callbacks for scene open/save, as well as render layers changes

@@ -13,8 +13,9 @@ from arnold import *
  PROC_PARENT,
  PROC_VISIBILITY,
  PROC_INSTANCEPATH,
- PROC_ENTRY_TYPE,
- PROC_IOBJECT) = range(7)
+ PROC_ENTRY,
+ PROC_IOBJECT, 
+ PROC_ENTRY_TYPE) = range(8)
 
 (PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR) = range(6)
 
@@ -125,7 +126,9 @@ class ProceduralTransverser(BaseTransverser):
 
                     default_value = self._getDefaultValue(param, param_type)
 
-                    if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys():
+                    # I'm removing the common attributes from the exclusion because we sometimes show only this specific node parameters.
+                    # Common parameters will only appear for groups.
+                    if paramName not in self.paramDict[nodeType].keys(): # + self.paramDict['common'].keys(): 
                         is_array = param_type == AI_TYPE_ARRAY
                         self.paramDict[nodeType][paramName] = (param_type,
                                                                default_value,
@@ -147,7 +150,7 @@ class ProceduralTransverser(BaseTransverser):
         if not objectInfo:
             return None
 
-        return [objectInfo[PROC_ENTRY_TYPE]]
+        return [objectInfo[PROC_ENTRY]]
 
     def properties(self, node, path):
         pass
@@ -237,9 +240,9 @@ class ProceduralTransverser(BaseTransverser):
             # given object path
             if cmds.attributeQuery('selection', node=op, exists=True):
                 path = data[PROC_PATH]
-                if data[PROC_ENTRY_TYPE] == "xform":
+                if data[PROC_ENTRY] == "xform":
                     path += "/*"
-                elif data[PROC_ENTRY_TYPE] == None:
+                elif data[PROC_ENTRY] == None:
                     path += "*"
                 cmds.setAttr(op + ".selection",
                              path,
@@ -287,7 +290,7 @@ class ProceduralTransverser(BaseTransverser):
                 selectionStr = '' 
                 break
             selectionStr += sel[PROC_PATH]
-            if sel[PROC_ENTRY_TYPE] =='xform':
+            if sel[PROC_ENTRY] =='xform':
                 selectionStr += '/*'
         if selectionStr == self.selectionStr:
             return
@@ -360,6 +363,7 @@ class ProceduralTransverser(BaseTransverser):
             """
 
             ops = []
+            op_type = cmds.nodeType(op)
             sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
             if sel_mat and op:
                 for p_op in parent_ops:
@@ -367,7 +371,7 @@ class ProceduralTransverser(BaseTransverser):
                        (operator_type is None or cmds.nodeType(p_op) == operator_type):
                         ops.append(p_op)
                 ops.append(op)
-            if gather_parents:
+            if gather_parents and (op_type != OVERRIDE_OP):
                 parent_ops.append(op)
             if cmds.attributeQuery('inputs', node=op, exists=True):
 

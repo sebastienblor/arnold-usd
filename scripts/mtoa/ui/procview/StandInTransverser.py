@@ -22,7 +22,7 @@ from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTr
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
 
 from mtoa.callbacks import *
@@ -44,21 +44,23 @@ class StandInTransverser(ProceduralTransverser):
     def __init__(self):
         self.nodeName = ''
         self.universe = None
-        self.cache = {}
+        self.nodeEntries = {}
+        self.nodeEntryTypes = {}
 
         super(StandInTransverser, self).__init__()
 
     def getObjectInfo(self, iObj):
         if iObj == None:
-            return ['/', '/', '', 'visible', '', '/', None]
+            return ['/', '/', '', 'visible', '', '/', None, None]
 
         name = iObj
-        entryName = self.cache[iObj]
-        return [name, name, '', 'visible', name, entryName, name]
+        nodeEntry = self.nodeEntries[iObj]
+        nodeEntryType = self.nodeEntryTypes[iObj]
+        return [name, name, '', 'visible', name, nodeEntry, name, nodeEntryType]
 
     def getRootObjectInfo(self, node):
         self.nodeName = node
-        return ["/", "/", '', 'visible', '', '/', None]
+        return ["/", "/", '', 'visible', '', '/', None, None]
 
     def dir(self, iobject):
         if iobject != None:
@@ -67,7 +69,7 @@ class StandInTransverser(ProceduralTransverser):
         filenameAttr = self.nodeName + '.dso'
         filename = cmds.getAttr(filenameAttr)
         filename = expandEnvVars(filename)
-        self.cache = {} # for now we're just storing the entry_type, but we might want to store more data 
+        self.nodeEntries = {} 
         if not os.path.exists(str(filename)):
             return
 
@@ -93,9 +95,19 @@ class StandInTransverser(ProceduralTransverser):
             entryName = ai.AiNodeEntryGetName(nodeEntry)
 
             name = ai.AiNodeGetName(node)
-            entryType = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
-            ass_nodes.append([name, name, '', 'visible', name, entryType, name])
-            self.cache[name] = entryType
+            nentry = ai.AiNodeGetNodeEntry(node)
+            nodeEntry = ai.AiNodeEntryGetName(nentry)
+            nodeEntryType = ai.AiNodeEntryGetTypeName(nentry)
+            if nodeEntryType == 'shape':
+                derivedType = ai.AiNodeEntryGetDerivedType(nentry)
+                if derivedType == ai.AI_NODE_SHAPE_PROCEDURAL:
+                    nodeEntryType = 'procedural'
+                elif derivedType == ai.AI_NODE_SHAPE_VOLUME:
+                    nodeEntryType = 'volume'
+                    
+            ass_nodes.append([name, name, '', 'visible', name, nodeEntry, name, nodeEntryType])
+            self.nodeEntries[name] = nodeEntry
+            self.nodeEntryTypes[name] = nodeEntryType
 
         ai.AiNodeIteratorDestroy(iter)
         ai.AiUniverseDestroy(universe)

@@ -11,7 +11,7 @@ import time
 import maya.cmds as cmds
 
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
                             NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR
@@ -373,23 +373,38 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             for menu in self.rootMenus:
                 menu.deleteLater()
             self.rootMenus = []
-        self.overrideMenu.addAction("shader")
-        self.overrideMenu.addAction("displacement")
-        self.overrideMenu.addSeparator()
-        for node_type, params in sorted(self.paramDict.items()):
-            if node_type != 'hidden':
-                parent_menu = self.overrideMenu
-                for sub_menu in self.rootMenus:
-                    if sub_menu.title() == node_type:
-                        parent_menu = sub_menu
 
-                for param, data in sorted(params.items()):
-                    # check if a root item exists
-                    if parent_menu == self.overrideMenu:
-                        parent_menu = self.overrideMenu.addMenu(node_type)
-                    self.rootMenus.append(parent_menu)
-                    if parent_menu:
-                        parent_menu.addAction(param)
+        nodeEntry = self.object[PROC_ENTRY]
+        nodeEntryType = self.object[PROC_ENTRY_TYPE]
+
+        isShape = (nodeEntryType == 'shape')
+        isGroup = (nodeEntry == None or nodeEntry == '' or nodeEntry == 'xform')
+
+        if isShape or isGroup:
+            self.overrideMenu.addAction("shader")
+            self.overrideMenu.addAction("displacement")
+            self.overrideMenu.addSeparator()
+        
+        for node_type, params in sorted(self.paramDict.items()):
+            if node_type == 'hidden':
+                continue
+
+            # For groups, we show all possible menus. Otherwise, only show this specific node type
+            if isGroup == False and node_type != self.object[PROC_ENTRY]:
+                continue
+                
+            parent_menu = self.overrideMenu
+            for sub_menu in self.rootMenus:
+                if sub_menu.title() == node_type:
+                    parent_menu = sub_menu
+
+            for param, data in sorted(params.items()):
+                # check if a root item exists
+                if parent_menu == self.overrideMenu:
+                    parent_menu = self.overrideMenu.addMenu(node_type)
+                self.rootMenus.append(parent_menu)
+                if parent_menu:
+                    parent_menu.addAction(param)
 
     def setOverrideFromMenu(self, action):
         param = action.text()
@@ -545,8 +560,14 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if not data:
             return
 
-        # node_types = self.transverser.getNodeTypes(data[PROC_IOBJECT])
-        self.paramDict = self.transverser.getParams(NODE_TYPES)
+        nodeEntry = data[PROC_ENTRY]
+        isGroup = (nodeEntry == None or nodeEntry == '' or nodeEntry == 'xform')
+        # For groups, let's append the default node types (for alembic shapes)
+        if isGroup: 
+            self.paramDict = self.transverser.getParams(NODE_TYPES)
+        else: 
+            # for specific node types, let's just use this node type attributes
+            self.paramDict = self.transverser.getParams([data[PROC_ENTRY]])
 
     def resetShadingWidgets(self):
         for widget in self.shadingWidgets.values():

@@ -1017,10 +1017,8 @@ bool CCheckerTranslator::RequiresUvTransform() const
             IsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapU", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapV", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorU", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorV", true), 0.f, 0.f ));
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true ) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true ));
 
 }
 void CCheckerTranslator::NodeInitializer(CAbTranslator context)
@@ -2448,6 +2446,8 @@ void CDisplacementTranslator::Export(AtNode* shader)
    // vectorSpace = {WORLD, OBJECT, TANGENT}
    int vectorSpace = FindMayaPlug("vectorSpace").asInt();
    AiNodeSetBool(vectorMap, "tangent_space", (vectorSpace == 2)); 
+   if (vectorSpace == 2)
+      AiNodeSetStr(vectorMap, "order", "XZY");
 
    if (spaceTransform)
    {

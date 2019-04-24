@@ -10,9 +10,14 @@ from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
+<<<<<<< HEAD
                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP, \
                            PARAM
+=======
+                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           OVERRIDE_OP, DISABLE_OP
+>>>>>>> develop
 
 SHADER = "shader"
 DISPLACEMENT = "disp_map"
@@ -247,6 +252,17 @@ class ProceduralItem(BaseItem):
     CURVES_ICON = QtGui.QPixmap(":/nurbsCurve.svg")
     INSTANCE_ICON = QtGui.QPixmap(":/out_instancer.png")
     UNKNOWN_ICON = QtGui.QPixmap(":/question.png")
+    MATERIAL_ICON = QtGui.QPixmap(":/out_blinn.png")
+    LIGHT_ICON = QtGui.QPixmap(":/out_ambientLight.png")
+    CAMERA_ICON = QtGui.QPixmap(":/out_camera.png")
+    VOLUME_ICON = QtGui.QPixmap(":/VolumeShelf.png")
+    PROCEDURAL_ICON = QtGui.QPixmap(":/openScript.png") # or StandinShelf.png ?
+    OPERATOR_ICON = QtGui.QPixmap(":/gear.png")
+    UNKNOWN_SHAPE_ICON = QtGui.QPixmap(":/cube.png")
+    TEXTURE_ICON = QtGui.QPixmap(":/menuIconImages")
+
+
+
 
     COLOR_OBJECT = QtGui.QColor(113, 142, 164)
     COLOR_OPERATOR = QtGui.QColor(18, 54, 82)
@@ -345,17 +361,36 @@ class ProceduralItem(BaseItem):
         return None
 
     def getIcon(self):
-        if self.data[PROC_ENTRY_TYPE] == 'polymesh':
+        nodeEntry = self.data[PROC_ENTRY]
+        nodeEntryType = self.data[PROC_ENTRY_TYPE]
+
+        if nodeEntry == 'polymesh':
             return self.MESH_ICON
-        elif self.data[PROC_ENTRY_TYPE] == 'points':
+        elif nodeEntry == 'points':
             return self.POINTS_ICON
-        elif self.data[PROC_ENTRY_TYPE] == 'curves':
+        elif nodeEntry == 'curves':
             return self.CURVES_ICON
-        elif self.data[PROC_ENTRY_TYPE] == 'ginstance':
+        elif nodeEntry == 'ginstance':
             return self.INSTANCE_ICON
         elif self.childItems:
             return self.GROUP_ICON
-        return self.UNKNOWN_ICON
+        elif nodeEntryType == 'procedural': # we hack the node entry type for procedurals
+            return self.PROCEDURAL_ICON    
+        elif nodeEntryType == 'volume': # we hack the node entry type for volumes
+            return self.VOLUME_ICON
+        elif nodeEntryType == 'shape':
+            return self.UNKNOWN_SHAPE_ICON
+        elif nodeEntry == 'image':
+            return self.TEXTURE_ICON
+        elif nodeEntryType == 'shader':
+            return self.MATERIAL_ICON
+        elif nodeEntryType == 'light':
+            return self.LIGHT_ICON
+        elif nodeEntryType == 'camera':
+            return self.CAMERA_ICON
+        elif nodeEntryType == 'operator':
+            return self.OPERATOR_ICON
+        return None
 
     def getBackgroundColor(self):
         """

@@ -70,6 +70,10 @@ public:
 
    static void CloseOtherViews(const MString& destination);
 
+   static void RenderViewPlayblast(bool state, void * data);
+
+
+
    // Render Methods.
    /// Render into the Render View, not IPR.
    int DoInteractiveRender();
