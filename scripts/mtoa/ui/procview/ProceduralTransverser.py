@@ -361,6 +361,7 @@ class ProceduralTransverser(BaseTransverser):
             """
 
             ops = []
+            op_type = cmds.nodeType(op)
             sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
             if sel_mat and op:
                 for p_op in parent_ops:
@@ -368,7 +369,7 @@ class ProceduralTransverser(BaseTransverser):
                        (operator_type is None or cmds.nodeType(p_op) == operator_type):
                         ops.append(p_op)
                 ops.append(op)
-            if gather_parents:
+            if gather_parents and (op_type != OVERRIDE_OP):
                 parent_ops.append(op)
             if cmds.attributeQuery('inputs', node=op, exists=True):
 
