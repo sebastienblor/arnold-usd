@@ -49,6 +49,8 @@ TYPES_DEFAULT = {AI_TYPE_STRING: "",
                  AI_TYPE_VECTOR2: '[0 0]',
                  AI_TYPE_NODE: ""}
 
+NUMERICAL_TYPES = [AI_TYPE_INT, AI_TYPE_UINT, AI_TYPE_BYTE, AI_TYPE_FLOAT, AI_TYPE_RGB, AI_TYPE_RGBA, AI_TYPE_VECTOR, AI_TYPE_VECTOR2]
+
 # TYPES = ["string", "int", "byte", "uint", "float", "bool", "node", "rgb", "rgba", "vector", "vector2", "matrix"]
 
 VISIBILITY_PARAMS = ["visibility", "sidedness", "autobump_visibility"]
@@ -761,7 +763,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.controlWidget.setWidget(control)
 
         # hide the ops menu if the param is not a digit
-        if self.param_type not in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT, AI_TYPE_FLOAT]:
+        if self.param_type not in NUMERICAL_TYPES:
             self.setOperation("=")
             self.op_menu.setVisible(False)
         else:
