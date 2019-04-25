@@ -43,10 +43,10 @@ TYPES_DEFAULT = {AI_TYPE_STRING: "",
                  AI_TYPE_BYTE: 0,
                  AI_TYPE_FLOAT: 0.0,
                  AI_TYPE_BOOLEAN: False,
-                 AI_TYPE_RGB: (0.5, 0.5, 0.5),
-                 AI_TYPE_RGBA: (0.5, 0.5, 0.5, 1.0),
-                 AI_TYPE_VECTOR: (0, 0, 0),
-                 AI_TYPE_VECTOR2: (0, 0),
+                 AI_TYPE_RGB: '[0.5 0.5 0.5]',
+                 AI_TYPE_RGBA: '[0.5 0.5 0.5 1.0]',
+                 AI_TYPE_VECTOR: '[0 0 0]',
+                 AI_TYPE_VECTOR2: '[0 0]',
                  AI_TYPE_NODE: ""}
 
 # TYPES = ["string", "int", "byte", "uint", "float", "bool", "node", "rgb", "rgba", "vector", "vector2", "matrix"]
@@ -570,6 +570,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         if paramType:
             self.setParamType(paramType)
             self.user_param = True
+            self.paramWidget.setCustom(True)
         if param:
             self.setParam(param)
             self.setControlWidget(param)
@@ -601,15 +602,20 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         if current_param == param:
             return
 
-        default_value = ""
+        value = ""
         param_data = self.getParamData(param)
         if param_data:
-            default_value = param_data[DEFAULT_VALUE]
+            value = param_data[DEFAULT_VALUE]
             self.user_param = False
+        if self.user_param:
+            value = self.getValue()
+
         self.param_name = param
-        self.setControlWidget(param)
-        self.setValue(default_value)
-        self.emitValueChanged(default_value)
+        if not self.user_param:
+            self.setControlWidget(param)
+
+        self.setValue(value)
+        self.emitValueChanged(value)
 
     def emitParamTypeChanged(self, paramType):
         current_paramType = self.getParamType()
@@ -707,7 +713,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     def getValue(self):
         if self.controlWidget and self.valueWidget.currentIndex() == 0:
-            return self.controlWidget.value()
+            return self.controlWidget.getValue()
         else:
             return self.expressionEditor.text()
 
@@ -803,6 +809,9 @@ class MtoAParamBox(QtWidgets.QFrame):
     def setParamType(self, paramType):
         self.paramTypeBox.setVisible(True)
         self.paramTypeBox.setCurrentText(paramType)
+
+    def setCustom(self, custom):
+        self.editBox.setReadOnly(not custom)
 
     def emitParamTypeChanged(self, paramType):
         self.paramTypeChanged.emit(paramType)
