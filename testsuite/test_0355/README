@@ -1,0 +1,4 @@
+Image plane in None mode shouldn't appear in alpha 
+See trac#3781
+
+author: sebastien.ortega
