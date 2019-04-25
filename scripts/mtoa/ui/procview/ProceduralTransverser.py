@@ -451,6 +451,8 @@ class ProceduralTransverser(BaseTransverser):
         if value is None:
             value = ''
 
+        value = str(value)
+
         if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
             value = "'{}'".format(value)
 
@@ -535,6 +537,18 @@ class ProceduralTransverser(BaseTransverser):
             value = param_default.contents.BOOL
         elif param_type is AI_TYPE_STRING:
             value = param_default.contents.STR
+        elif param_type is AI_TYPE_RGB:
+            rgb = param_default.contents.RGB
+            value = '[{} {} {}]'.format(rgb.r, rgb.g, rgb.b)
+        elif param_type is AI_TYPE_RGBA:
+            rgb = param_default.contents.RGBA
+            value = '[{} {} {} {}]'.format(rgb.r, rgb.g, rgb.b, rgb.a)
+        elif param_type is AI_TYPE_VECTOR:
+            vec = param_default.contents.VEC
+            value = '[{} {} {}]'.format(vec.x, vec.y, vec.z)
+        elif param_type is AI_TYPE_VECTOR2:
+            vec = param_default.contents.VEC2
+            value = '[{} {}]'.format(vec.x, vec.y)
         elif param_type is AI_TYPE_ENUM:
             idx = param_default.contents.INT
             value = AiEnumGetString(AiParamGetEnum(param), idx)
