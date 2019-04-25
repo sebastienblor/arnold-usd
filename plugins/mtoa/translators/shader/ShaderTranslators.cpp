@@ -604,9 +604,19 @@ void CFileTranslator::NodeChanged(MObject& node, MPlug& plug)
       !RequiresColorCorrect())
       SetUpdateMode(AI_RECREATE_NODE);
 
-if ((plugName == "uvCoord") &&
+   if ((plugName == "uvCoord") &&
       !RequiresUvTransform())
       SetUpdateMode(AI_RECREATE_NODE);
+
+   if (plugName == "fileTextureName")
+   {
+      // We're receiving a signal from the filename parameter.
+      // So we don't want to compare the filenames in the next export, we'll just want to update the TX.
+      // In fact, the texture could have changed even though the filename is still the same (see  #3792)
+      // We could rather store a flag for that, but for now we can reset the "previous" color space, 
+      // as it will force a refresh
+      m_colorSpace = "";
+   }
 
    CShaderTranslator::NodeChanged(node, plug);
 }
