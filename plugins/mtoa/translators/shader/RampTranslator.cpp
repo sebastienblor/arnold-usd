@@ -108,7 +108,8 @@ void CRampTranslator::Export(AtNode* shader)
       // FIXME also need to set it eventually to ramp_float shaders....
       if (FindMayaPlug("aiCurveImplicitUvs").asBool())
          AiNodeSetStr(shader, "use_implicit_uvs", "curves_only");
-
+      else
+         AiNodeSetStr(shader, "use_implicit_uvs", "off");
 
       if (m_type == RT_UV || m_type == RT_TARTAN)
       {
@@ -219,6 +220,16 @@ void CRampTranslator::Export(AtNode* shader)
          AtNode *rampFloat2 = GetArnoldNode("ramp_float2");
          if (rampFloat2 == NULL)
             rampFloat2 = AddArnoldNode("ramp_float", "ramp_float2");
+
+         if (FindMayaPlug("aiCurveImplicitUvs").asBool())
+         {
+            AiNodeSetStr(rampFloat, "use_implicit_uvs", "curves_only");
+            AiNodeSetStr(rampFloat2, "use_implicit_uvs", "curves_only");
+         } else
+         {
+            AiNodeSetStr(rampFloat, "use_implicit_uvs", "off");
+            AiNodeSetStr(rampFloat2, "use_implicit_uvs", "off");
+         }
 
          ExportRampType(rampFloat, RT_U);
          ExportRampType(rampFloat2, RT_V);
@@ -594,7 +605,11 @@ AtNode* CRampTranslator::ExportUvTransform()
    }
    // if we're in UV / Tartan, it should be ramps with U & V types
    AiNodeSetStr(rampFloat, "uvset", ""); // the uvset was already set on the uv_transform node
-
+   if (FindMayaPlug("aiCurveImplicitUvs").asBool())
+      AiNodeSetStr(rampFloat, "use_implicit_uvs", "curves_only");
+   else
+      AiNodeSetStr(rampFloat, "use_implicit_uvs", "off");
+   
    AtNode *rampFloat2 = NULL;
 
    if (m_type == RT_UV || m_type == RT_TARTAN || m_type == RT_4CORNER)
