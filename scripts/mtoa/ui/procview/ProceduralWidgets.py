@@ -389,10 +389,13 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             if node_type == 'hidden':
                 continue
 
-            # For groups, we show all possible menus. Otherwise, only show this specific node type
-            if isGroup == False and node_type != self.object[PROC_ENTRY]:
+            showMenu = isGroup or (node_type == self.object[PROC_ENTRY])
+            if isShape and node_type == 'common':
+                showMenu = True
+
+            if not showMenu:
                 continue
-                
+
             parent_menu = self.overrideMenu
             for sub_menu in self.rootMenus:
                 if sub_menu.title() == node_type:
