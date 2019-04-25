@@ -409,6 +409,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 if parent_menu:
                     parent_menu.addAction(param)
 
+        self.overrideMenu.addAction("custom")
+
     def setOverrideFromMenu(self, action):
         param = action.text()
         self.setNewOverride(param)
@@ -422,6 +424,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.addShader()
         elif param == "displacement":
             self.addDisplacement()
+        elif param == "custom":
+            self.addCustomOverride()
         else:
             value = self.getDefaultValue(param)
             self.setOverride(param, "=", value, operator=op)
@@ -530,6 +534,11 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             index = self.shadingWidgets[param].data['index']
             operator = self.shadingWidgets[param].data['operator']
             self.removeOverride(operator, index)
+
+    def addCustomOverride(self):
+        operator = self.getOverrideOperator()
+        self.setOverride("myParam", "=", "1", TYPES_DICT['int'], custom=True, operator=operator)
+        self.refresh()
 
     def newShadingNode(self, param):
         # feed the output of the createRedner Node dialog to the setShader method
@@ -679,7 +688,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         return None
 
-    def setOverride(self, param, op, value, param_type, custom=False,  index=-1, operator=None):
+    def setOverride(self, param, op, value, param_type=None, custom=False,  index=-1, operator=None):
         if not operator:
             ops = self.getItemOverrideOperator()
             if not type(ops) == list:
@@ -696,5 +705,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         param_data = self.getParamData(param)
         if param_data:
             is_array = param_data[IS_ARRAY]
+            if not param_type:
+                param_type = param_data[PARAM_TYPE]
 
         return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, is_array, index)
