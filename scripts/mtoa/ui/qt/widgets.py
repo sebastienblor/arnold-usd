@@ -302,6 +302,8 @@ class MtoAFltControl(QtWidgets.QDoubleSpinBox):
     def __init__(self, parent=None):
         super(MtoAFltControl, self).__init__(parent)
 
+        self.setSingleStep(0.01)
+
     def setValue(self, value):
         super(MtoAFltControl, self).setValue(float(value))
 
