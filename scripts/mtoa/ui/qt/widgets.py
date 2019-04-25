@@ -172,51 +172,78 @@ class MtoAVisibilityWidget(QtWidgets.QFrame):
         self.valueChanged.emit(self.getValue())
 
 
-class MtoAVecControl(QtWidgets.QFrame):
+class MtoAMultiFloatControl(QtWidgets.QFrame):
 
     valueChanged = QtCore.Signal(str)
 
-    def __init__(self, value=True, parent=None):
-        super(MtoAVecControl, self).__init__(parent)
+    def __init__(self, value='[0 0 0]', controls=3, parent=None):
+        super(MtoAMultiFloatControl, self).__init__(parent)
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.ctrls = [MtoAFltControl(self),
-                      MtoAFltControl(self),
-                      MtoAFltControl(self)]
+        self.ctrls = []
 
-        for c in self.ctrls:
-            self.layout().addWidget(c)
-            c.valueChanged.connect(self.emitValueChanged)
+        self.setNumControls(controls)
 
     def emitValueChanged(self, value):
         self.valueChanged.emit(self.getValue())
 
     def getValue(self):
 
-        values = [0, 0, 0]
+        values = []
 
         i = 0
         for c in self.ctrls:
-            values[i] = c.value()
+            values.append(c.value())
             i += 1
 
-        return '[{} {} {}]'.format(*values)
+        return '[{}]'.format(' '.join(str(v) for v in values))
 
     def setValue(self, value):
-        vs = re.match(r'\[\s*(\d*(?:\.\d+)?)\s+(\d*(?:\.\d+)?)\s+(\d*(?:\.\d+)?)\s*\]', value)
-
-        if vs:
+        vs = re.findall(r'(\.?\d+(?:\.\d+)?)', value)
+        if len(vs):
             i = 0
-            for v in vs.groups():
+            for v in vs:
                 self.ctrls[i].setValue(float(v))
                 i += 1
 
+    def setNumControls(self, count):
+        self._deleteControls()
+        for c in range(count):
+            ctrl = MtoAFltControl(self)
 
-class MtoARGBControl(MtoAVecControl):
+            self.ctrls.append(ctrl)
 
-    def __init__(self, value=True, parent=None):
-        super(MtoARGBControl, self).__init__(parent)
+            self.layout().addWidget(ctrl)
+            ctrl.valueChanged.connect(self.emitValueChanged)
+
+    def _deleteControls(self):
+        clearWidget(self)
+        self.ctrls = []
+
+
+class MtoAVecControl(MtoAMultiFloatControl):
+
+    def __init__(self, value='[0 0 0]', parent=None):
+        super(MtoAVecControl, self).__init__(value, 3, parent)
+
+
+class MtoAVec2Control(MtoAMultiFloatControl):
+
+    def __init__(self, value='[0 0]', parent=None):
+        super(MtoAVec2Control, self).__init__(value, 2, parent)
+
+
+class MtoARGBControl(MtoAMultiFloatControl):
+
+    def __init__(self, value='[0.5 0.5 0.5]', parent=None):
+        super(MtoARGBControl, self).__init__(value, 3, parent)
+
+
+class MtoARGBAControl(MtoAMultiFloatControl):
+
+    def __init__(self, value='[0.5 0.5 0.5 1.0]', parent=None):
+        super(MtoARGBAControl, self).__init__(value, 4, parent)
 
 
 class MtoACheckbox(QtWidgets.QCheckBox):
@@ -481,7 +508,6 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     valueChanged = QtCore.Signal((str, str, str, int, bool, int, str),
                                  (str, str, int, int, bool, int, str),
                                  (str, str, bool, int, bool, int, str),
-                                 (str, str, tuple, int, bool, int, str),
                                  (str, str, float, int, bool, int, str))
     overrideTriggered = QtCore.Signal(str)
 
@@ -708,8 +734,12 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             control = MtoAFltControl()
         elif self.param_type is AI_TYPE_VECTOR:
             control = MtoAVecControl()
+        elif self.param_type is AI_TYPE_VECTOR2:
+            control = MtoAVec2Control()
         elif self.param_type is AI_TYPE_RGB:
             control = MtoARGBControl()
+        elif self.param_type is AI_TYPE_RGBA:
+            control = MtoARGBAControl()
         elif self.param_type is AI_TYPE_BOOLEAN:
             control = MtoACheckbox()
         elif self.param_type is AI_TYPE_ENUM:
