@@ -95,7 +95,7 @@ class AEaiIncludeGraphTemplate(OperatorAETemplate):
         self.targetPath = cmds.textField( 'arnoldTargetOp', height=20)
         cmds.setParent('..')
         cmds.setParent('..')
-        self.targetListPath = cmds.textScrollList(height=50, width=120, allowMultiSelection=False)
+        self.targetListPath = cmds.textScrollList(height=120, width=120, allowMultiSelection=False)
         cmds.setParent('..')
         self.targetParamReplace(nodeName)
         
