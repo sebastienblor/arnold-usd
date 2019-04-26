@@ -111,6 +111,8 @@ void CRampTranslator::Export(AtNode* shader)
       else
          AiNodeSetStr(shader, "use_implicit_uvs", "off");
 
+      AiNodeSetBool(shader, "wrap_uvs", true);
+
       if (m_type == RT_UV || m_type == RT_TARTAN)
       {
          AtNode *comp_uv = GetArnoldNode("comp_uv");
@@ -474,7 +476,8 @@ AtNode* CRampTranslator::ExportUvTransform()
          ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
          ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
          ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
-
+/*
+         We shouldn't need wrap UVs because we're setting it directly in the ramp
          if (srcNodeFn.findPlug("wrapU", true).asBool())
             AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
          else
@@ -485,7 +488,8 @@ AtNode* CRampTranslator::ExportUvTransform()
             AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
          else
             AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");         
-
+*/
+        
          ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
          if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
          {
@@ -673,10 +677,6 @@ bool CRampTranslator::RequiresUvTransform() const
 
    if (srcNodeFn.typeName() != "place2dTexture")
       return false;
-
-   if (IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true) &&
-       IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true))
-      return true;
 
    return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger", true), false) &&
             IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU", true), false) &&
