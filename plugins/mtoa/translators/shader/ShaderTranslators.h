@@ -68,8 +68,7 @@ public:
    static void* creator(){return new CDisplacementTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
-   bool DependsOnOutputPlug() { return true; }
-
+   
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
    bool m_isVectorDisp;
