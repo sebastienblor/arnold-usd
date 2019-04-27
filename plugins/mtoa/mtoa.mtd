@@ -3571,6 +3571,8 @@ desc STRING "Apply a gamma correction to the color."
     [attr v_angle]
         softmin             FLOAT     0
         softmax             FLOAT     360
+    [attr matrix]
+        maya.name           STRING    "placementMatrix"
 
 [node matrix_multiply_vector]
     maya.classification STRING "utility/math"
