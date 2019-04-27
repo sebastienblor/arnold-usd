@@ -751,21 +751,31 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
    case AI_TYPE_MATRIX:
       {
          // special case for shaders with matrix values that represent transformations
-         // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
-         if (m_tr.RequiresMotionData() && strcmp(arnoldParamName, "placementMatrix") == 0)
+         if (m_tr.RequiresMotionData() && AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) == AI_NODE_SHADER)
          {
             // create an interpolation node for matrices
             AtNode* animNode = m_tr.GetArnoldNode(arnoldParamName);
             if (animNode == NULL)
                animNode = m_tr.AddArnoldNode("matrix_interpolate", arnoldParamName);
 
-            AtArray* matrices = AiArrayAllocate(1, m_tr.GetNumMotionSteps(), AI_TYPE_MATRIX);
-
+            unsigned int numSteps = m_tr.GetNumMotionSteps();
+            AtArray* matrices = AiArrayAllocate(1, numSteps, AI_TYPE_MATRIX);
             ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, m_tr.GetMotionStep(), plug);
+
+            // Set the current matrix to all steps, in case there's a problem and a step is skipped
+            AtMatrix mtx = AiArrayGetMtx(matrices, m_tr.GetMotionStep());
+            for (unsigned int s = 0; s < numSteps; ++s)
+            {
+               if (s == m_tr.GetMotionStep())
+                  continue;
+               AiArraySetMtx(matrices, s, mtx);
+            }
+            AiNodeSetMatrix(arnoldNode, arnoldParamName, mtx);
 
             // Set the parameter for the interpolation node
             AiNodeSetArray(animNode, "matrix", matrices);
             // link to our node
+
             AiNodeLink(animNode, arnoldParamName, arnoldNode);
          }
          else
