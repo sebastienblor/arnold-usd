@@ -18,7 +18,7 @@ from arnold import *
  PROC_ENTRY_TYPE) = range(8)
 
 (PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR) = range(6)
-
+(DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES) = range(4)
 
 SELECTION_REGEX = re.compile(r'.*(?=/\*)')
 
@@ -453,6 +453,8 @@ class ProceduralTransverser(BaseTransverser):
             value = ''
 
         value = str(value)
+
+        print value, param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE], valueIsExpression(value)
 
         if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
             value = "'{}'".format(value)

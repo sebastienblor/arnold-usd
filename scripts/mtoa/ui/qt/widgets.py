@@ -4,7 +4,7 @@ from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .treeView import BaseItem
-from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression
+from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression, STRING_EXP
 
 from .button import MtoAButton, MtoACheckableButton
 
@@ -72,9 +72,6 @@ RAYS = [("ai_ray_camera", AI_RAY_CAMERA),
         ("ai_ray_diffuse_reflect", AI_RAY_DIFFUSE_REFLECT),
         ("ai_ray_specular_reflect", AI_RAY_SPECULAR_REFLECT),
         ("ai_ray_subsurface", AI_RAY_SUBSURFACE)]
-
-
-STRING_EXP = re.compile(r'["\']*(\w+)["\']*')
 
 
 def getVisibilityValue(ai_ray_camera=True,

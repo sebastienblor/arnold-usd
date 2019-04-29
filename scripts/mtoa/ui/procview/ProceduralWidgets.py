@@ -661,6 +661,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         new_widget.operator = operator
         new_widget.deleteMe.connect(self.removeOverrideWidget)
 
+        # param, operation, value, param_type, custom, index, operator
         new_widget.valueChanged[str, str, str, int, bool, int, str].connect(self.setOverride)
         new_widget.valueChanged[str, str, int, int, bool, int, str].connect(self.setOverride)
         new_widget.valueChanged[str, str, bool, int, bool, int, str].connect(self.setOverride)
@@ -704,8 +705,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         param_data = self.getParamData(param)
         if param_data:
-            is_array = param_data[IS_ARRAY]
+            is_array = param_data[DATA_IS_ARRAY]
             if not param_type:
-                param_type = param_data[PARAM_TYPE]
+                param_type = param_data[DATA_PARAM_TYPE]
 
         return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, is_array, index)

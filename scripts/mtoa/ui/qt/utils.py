@@ -16,6 +16,9 @@ _DPI_SCALE = \
     cmds.mayaDpiSetting(query=True, realScaleValue=True)
 
 
+STRING_EXP = re.compile(r'[\'\"](.*)[\'\"]')
+
+
 def dpiScale(value):
     """Scale the value according to the current DPI of the current monitor."""
     return _DPI_SCALE * value
@@ -100,11 +103,13 @@ def valueIsExpression(value):
             return True
         return False
 
+    if STRING_EXP.match(value):
+        return False
     if isDigit(value):
         return False
     if isBoolean(value):
         return False
-    if re.search(r'[@#\+\-\*/\^\%]+', value):
+    if re.search(r'(\.?\d+(?:\.\d+)?)|(?:[@#][a-zA-Z0-9]*)\s*[\+\-\*/\^\%]*', value):
         return True
 
     return False
