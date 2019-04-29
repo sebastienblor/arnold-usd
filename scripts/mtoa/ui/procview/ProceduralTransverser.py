@@ -36,6 +36,8 @@ SWITCH_OP = "aiSwitchOperator"
 INCLUDEGRAPH_OP = "aiIncludeGraph"
 MATERIALX_OP = "aiMaterialx"
 
+SELECTION_OPS = [OVERRIDE_OP, DISABLE_OP, COLLECTION_OP]
+
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
 PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
@@ -369,7 +371,7 @@ class ProceduralTransverser(BaseTransverser):
                        (operator_type is None or cmds.nodeType(p_op) == operator_type):
                         ops.append(p_op)
                 ops.append(op)
-            if gather_parents and (op_type != OVERRIDE_OP):
+            if gather_parents and (op_type not in SELECTION_OPS):
                 parent_ops.append(op)
             if cmds.attributeQuery('inputs', node=op, exists=True):
 
