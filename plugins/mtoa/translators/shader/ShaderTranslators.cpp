@@ -1809,6 +1809,10 @@ void CProjectionTranslator::Export(AtNode* shader)
       }
       ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
 
+      bool wrap = FindMayaPlug("wrap").asBool();
+      AiNodeSetBool(shader, "clamp", !wrap);
+      ProcessParameter(shader, "default_color", AI_TYPE_RGBA, "defaultColor");
+
       // Warning: the angles seem to appear as degrees in the Maya interface, 
       // but they're actually returned as radians!
       AiNodeSetFlt(shader, "u_angle", FindMayaPlug("uAngle").asFloat() * AI_RTOD);
