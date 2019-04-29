@@ -137,17 +137,17 @@ void CBifShapeTranslator::Export( AtNode *shape )
       bool fastHack = false;
       MPlug fastHackPlug = FindMayaPlug("aiFastBifHack");
       if (!fastHackPlug.isNull())
-      {
-         AiMsgWarning("[bifShapeTranslator] %s: using fast hack (passing pointers -- veeerrry dangerous!)", AiNodeGetName(shape));
          fastHack = fastHackPlug.asBool();
-      }
       
       if (fastHack)
       {
          // Pass pointers to bifrost objects directly
+         AiMsgWarning("[bifShapeTranslator] %s: using fast hack (passing pointers -- veeerrry dangerous!)", AiNodeGetName(shape));
+
          AtArray *inputsArray = AiArrayAllocate(static_cast<uint32_t>(data->bifrostObjects().size()), 1, AI_TYPE_STRING);
          // We can get away with one entry, because they're all the same and arnold_bifrost figures this out
          AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "pointer");
+
          uint32_t i = 0;
          for (auto iter = data->bifrostObjects().begin(); iter != data->bifrostObjects().end(); ++iter, ++i)
          {
@@ -168,7 +168,12 @@ void CBifShapeTranslator::Export( AtNode *shape )
       else
       {
          // Serialize to disk, tell the procedural about it
+         // NOTE: this temp file workflow sucks, we need real temp files (_tmpnam and friends, perhaps)
+#ifdef _WIN32
+         std::string filename = "C:\\temp\\bifrost-";
+#else
          std::string filename = "/tmp/bifrost-";
+#endif
          filename += AiNodeGetName(shape);
          filename += ".bob";
          if (!BifrostExp::IO::serialize(data->bifrostObjects(), Amino::String(filename.c_str())))
