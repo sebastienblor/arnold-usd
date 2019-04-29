@@ -361,7 +361,6 @@ class ProceduralTransverser(BaseTransverser):
             walk the inputs of the given plug and
             return list of operators matching the path
             """
-
             ops = []
             op_type = cmds.nodeType(op)
             sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
@@ -371,7 +370,7 @@ class ProceduralTransverser(BaseTransverser):
                        (operator_type is None or cmds.nodeType(p_op) == operator_type):
                         ops.append(p_op)
                 ops.append(op)
-            if gather_parents and (op_type not in SELECTION_OPS):
+            if gather_parents:
                 parent_ops.append(op)
             if cmds.attributeQuery('inputs', node=op, exists=True):
 
@@ -395,7 +394,7 @@ class ProceduralTransverser(BaseTransverser):
         if cmds.attributeQuery('operators', node=node, exists=True):
             con_operators = cmds.listConnections('{}.operators'.format(node)) or []
             for idx, op in enumerate(con_operators):
-                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents)
+                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents, [])
                 for op in out_op:
                     if op not in operators:
                         operators.append(op)
