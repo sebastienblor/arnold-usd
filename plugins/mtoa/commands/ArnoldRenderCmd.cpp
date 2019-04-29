@@ -259,6 +259,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
 
+   //#3784 Closing other views (AVP) before rendring with Maya Render View
+   CRenderSession::CloseOtherViews("");
    CMayaScene::End(); // In case we're already rendering (e.g. IPR).
 
    // Check if in multiframe mode
@@ -377,6 +379,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MGlobal::executeCommand("exists renderLayerDisplayName", scriptExists);
       if (scriptExists)
          MGlobal::executeCommand("renderLayerDisplayName " + layerDisplayName, layerDisplayName);
+      
+      
 
       for (std::set<double>::const_iterator frameIt = frameSet.begin(); frameIt != frameSet.end(); ++frameIt)
       {

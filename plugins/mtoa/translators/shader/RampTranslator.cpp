@@ -57,6 +57,10 @@ AtNode*  CRampTranslator::CreateArnoldNodes()
    AtNode *cc = (m_hasColorCorrect) ? AddArnoldNode("color_correct", "cc") : NULL;
    
    AtNode *comp_uv = (m_type == RT_UV || m_type == RT_TARTAN) ? AddArnoldNode("composite", "comp_uv") : NULL;
+   AtNode *unwrap = RequiresUnwrap() ? AddArnoldNode("uv_transform", "unwrap") : NULL;
+
+   if (unwrap)
+      return unwrap;
 
    if (cc)
       return cc;
@@ -110,6 +114,8 @@ void CRampTranslator::Export(AtNode* shader)
          AiNodeSetStr(shader, "use_implicit_uvs", "curves_only");
       else
          AiNodeSetStr(shader, "use_implicit_uvs", "off");
+
+      AiNodeSetBool(shader, "wrap_uvs", true);
 
       if (m_type == RT_UV || m_type == RT_TARTAN)
       {
@@ -243,7 +249,36 @@ void CRampTranslator::Export(AtNode* shader)
    }
 
    if (m_hasColorCorrect)
-      ExportColorCorrect(shader);
+   {
+      shader = ExportColorCorrect(shader);
+   }
+      
+   shader = ExportUnwrap(shader);
+}
+
+AtNode *CRampTranslator::ExportUnwrap(AtNode *target)
+{
+   AtNode *unwrap = GetArnoldNode("unwrap");
+   if (!unwrap)
+      return target;
+
+   AiNodeLink(target, "passthrough", unwrap);
+   MFnDependencyNode fnNode(GetMayaObject());   
+   MPlugArray connections;
+   fnNode.findPlug("uvCoord", true).connectedTo(connections, true, false);
+   if (connections.length() != 0)
+   {
+      MObject srcObj = connections[0].node();
+      MFnDependencyNode srcNodeFn(srcObj);
+      if (srcNodeFn.typeName() == "place2dTexture")
+      {
+         AiNodeSetStr(unwrap, "wrap_frame_u", (srcNodeFn.findPlug("wrapU", true).asBool()) ? "periodic" : "color");
+         AiNodeSetStr(unwrap, "wrap_frame_v", (srcNodeFn.findPlug("wrapV", true).asBool()) ? "periodic" : "color");
+      }
+   }
+   
+   ProcessParameter(unwrap, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
+   return unwrap;
 }
 
 
@@ -474,7 +509,8 @@ AtNode* CRampTranslator::ExportUvTransform()
          ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
          ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
          ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
-
+/*
+         We shouldn't need wrap UVs because we're setting it directly in the ramp
          if (srcNodeFn.findPlug("wrapU", true).asBool())
             AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
          else
@@ -485,7 +521,8 @@ AtNode* CRampTranslator::ExportUvTransform()
             AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
          else
             AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");         
-
+*/
+        
          ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
          if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
          {
@@ -674,10 +711,6 @@ bool CRampTranslator::RequiresUvTransform() const
    if (srcNodeFn.typeName() != "place2dTexture")
       return false;
 
-   if (IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true) &&
-       IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true))
-      return true;
-
    return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger", true), false) &&
             IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU", true), false) &&
             IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV", true), false) &&
@@ -687,6 +720,25 @@ bool CRampTranslator::RequiresUvTransform() const
             IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("repeatUV", true), 1.f, 1.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) );
+
+}
+bool CRampTranslator::RequiresUnwrap() const
+{
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("uvCoord");
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() == 0)
+      return false;
+
+   MObject srcObj = connections[0].node();
+   MFnDependencyNode srcNodeFn(srcObj);
+
+   if (srcNodeFn.typeName() != "place2dTexture")
+      return false;
+
+   return !(IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true));
 
 }
 bool CRampTranslator::RequiresColorCorrect() const
@@ -717,6 +769,10 @@ void CRampTranslator::NodeChanged(MObject& node, MPlug& plug)
 if ((plugName == "uvCoord" || plugName == "uWave" || plugName == "vWave" || plugName == "noise") &&
       !RequiresUvTransform())
       SetUpdateMode(AI_RECREATE_NODE);*/
+
+   if (plugName == "uvCoord")
+      SetUpdateMode(AI_RECREATE_NODE);    
+
    CShaderTranslator::NodeChanged(node, plug);
    
 }
