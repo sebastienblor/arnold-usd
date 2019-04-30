@@ -466,9 +466,9 @@ class ProceduralItem(BaseItem):
                 if icon:
                     icon = BaseItem.dpiScaledIcon(icon)
 
-            if is_inherited:
-                inherited_icon = os.path.join(cmds.getModulePath(moduleName='mtoa'), 'icons', "inherit_100.png")
-                overlay = BaseItem.dpiScaledIcon(inherited_icon)
+            # if is_inherited:
+            #     inherited_icon = os.path.join(cmds.getModulePath(moduleName='mtoa'), 'icons', "inherit_100.png")
+            #     overlay = BaseItem.dpiScaledIcon(inherited_icon)
 
             actions.append((icon, opacity, action, False, overlay))
 
