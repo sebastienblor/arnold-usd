@@ -109,7 +109,15 @@ def valueIsExpression(value):
         return False
     if isBoolean(value):
         return False
-    if re.search(r'(\.?\d+(?:\.\d+)?)|(?:[@#][a-zA-Z0-9]*)\s*[\+\-\*/\^\%]*', value):
+    if re.match(r'\[(\.?\d+(?:\.\d+)?\s?)*\]$', value):
+        return False
+    if re.match(r'\[(\.?\d+(?:\.\d+)?\s?)*\]\s+[\+\-\*/\^\%]?', value):
+        return True
+    if re.search(r'[@#][a-zA-Z0-9]*', value):
+        return True
+    if re.search(r'[@#][a-zA-Z0-9]*', value):
+        return True
+    if re.match(r'^(\.?\d+(?:\.\d+)?|(?:[@#][a-zA-Z0-9]*))\s*[\+\-\*/\^\%]?', value):
         return True
 
     return False

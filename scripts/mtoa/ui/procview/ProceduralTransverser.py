@@ -454,8 +454,6 @@ class ProceduralTransverser(BaseTransverser):
 
         value = str(value)
 
-        print value, param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE], valueIsExpression(value)
-
         if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
             value = "'{}'".format(value)
 
