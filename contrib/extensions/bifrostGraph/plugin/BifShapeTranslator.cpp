@@ -9,6 +9,10 @@
 #include <maya/MPlug.h>
 #include <maya/MDataHandle.h>
 #include <maya/MFnPluginData.h>
+#include <maya/MFileObject.h>
+
+#include "extension/Extension.h"
+#include "extension/ExtensionsManager.h"
 
 #define BIFDATA_HACK 1
 
@@ -41,24 +45,24 @@ class BifData : public MPxData
 public:
     enum class BifDataModel { NotSet, BifrostExp, };
 
-	//////////////////////////////////////////////////////////////////
-	//
-	// Overrides from MPxData
-	//
-	//////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////////////////////////////
+   //
+   // Overrides from MPxData
+   //
+   //////////////////////////////////////////////////////////////////
 
-	BifData() : fDataModel(BifDataModel::NotSet) { }
-	~BifData() override { }
+   BifData() : fDataModel(BifDataModel::NotSet) { }
+   ~BifData() override { }
 
-	MStatus			readASCII( const MArgList& argList, unsigned& idx ) override { return MS::kSuccess; }
-	MStatus			readBinary( istream& in, unsigned length ) override { return MS::kSuccess; }
-	MStatus			writeASCII( ostream& out ) override { return MS::kSuccess; }
-	MStatus			writeBinary( ostream& out ) override { return MS::kSuccess; }
+   MStatus        readASCII( const MArgList& argList, unsigned& idx ) override { return MS::kSuccess; }
+   MStatus        readBinary( istream& in, unsigned length ) override { return MS::kSuccess; }
+   MStatus        writeASCII( ostream& out ) override { return MS::kSuccess; }
+   MStatus        writeBinary( ostream& out ) override { return MS::kSuccess; }
 
-	MTypeId         typeId() const override { return BifDataId; }
-	MString         name() const override { return BifDataTypeName; }
+   MTypeId        typeId() const override { return BifDataId; }
+   MString        name() const override { return BifDataTypeName; }
 
-	bool empty() const 
+   bool empty() const 
     { 
         switch (fDataModel)
         {
@@ -82,15 +86,50 @@ private:
 
 #endif // BIFDATA_HACK
 
+static bool s_loadedProcedural = false;
 
-static bool s_bifrostBoardSupported = false;
+static MString s_bifrostProcedural = "arnold_bifrost";
 
+static bool LoadBifrostProcedural()
+{
+   if (s_loadedProcedural)
+      return true;
+
+   if (AiNodeEntryLookUp("bifrost_graph") != NULL)
+   {
+      s_loadedProcedural = true;
+      return true;
+   }
+
+   MString bifrostModuleLocation;
+   MString cmd("import bifrost_utils; bifrost_utils.get_arnold_bifrost_path()");
+   bifrostModuleLocation = MGlobal::executePythonCommandStringResult(cmd);
+
+   AiMsgInfo("[bifrost] %s", bifrostModuleLocation.asChar());
+
+   if (bifrostModuleLocation.length() > 0)
+   {
+      CExtension *extension = CExtensionsManager::GetExtensionByName("bifShapeTranslator");
+      if (extension)
+      {
+         MFileObject fo;
+         fo.setRawFullName(bifrostModuleLocation);
+         if (fo.exists())
+         {
+            extension->LoadArnoldPlugin(s_bifrostProcedural, bifrostModuleLocation);
+            s_loadedProcedural = true;
+            return true;
+         }
+      }
+   }
+   return false;
+}
 
 void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
 {
-   s_bifrostBoardSupported = (AiNodeEntryLookUp("bifrost_graph") != NULL);
-   if (!s_bifrostBoardSupported)
-      return;
+
+   if (!LoadBifrostProcedural())
+      AiMsgError("Bifrost procedural could not be found");
 
    CExtensionAttrHelper helper(context.maya, "bifrost_graph");
    CShapeTranslator::MakeCommonAttributes(helper);
@@ -118,7 +157,8 @@ void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CBifShapeTranslator::CreateArnoldNodes()
 {
-   if (!s_bifrostBoardSupported) return NULL;
+   if (!LoadBifrostProcedural())
+      AiMsgError("Bifrost procedural could not be found");
 
    return AddArnoldNode("bifrost_graph");
 }
@@ -217,7 +257,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
 
 void CBifShapeTranslator::ExportShaders()
 {
-   if (s_bifrostBoardSupported == false)
+   if (!LoadBifrostProcedural())
       return;
 
    AtNode *node = GetArnoldNode();
@@ -243,7 +283,7 @@ void CBifShapeTranslator::ExportShaders()
 
 void CBifShapeTranslator::ExportMotion(AtNode *shape)
 {
-   if (s_bifrostBoardSupported == false || shape == NULL)
+   if (LoadBifrostProcedural() == false || shape == NULL)
       return;
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
