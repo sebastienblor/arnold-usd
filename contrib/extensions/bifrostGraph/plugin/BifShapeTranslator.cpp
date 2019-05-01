@@ -21,6 +21,8 @@ static bool s_loadedProcedural = false;
 static MString s_bifrostProcedural = "arnold_bifrost";
 static MString s_bifrostProceduralPath = "";
 
+//#define DEBUG_DUMP_TO_FILE 1
+
 static bool LoadBifrostProcedural()
 {
    if (s_loadedProcedural)
@@ -119,6 +121,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
 
       AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
 
+#ifdef DEBUG_DUMP_TO_FILE
+      // Write all inputs to file and have the proc read them back in
 #ifdef _WIN32
       std::string filename = "C:\\temp\\bifrost-";
 #else
@@ -135,23 +139,17 @@ void CBifShapeTranslator::Export( AtNode *shape )
       AiNodeDeclare(shape, "bifrost:input0", "constant STRING");
       AiNodeSetStr(shape, "bifrost:input0", filename.c_str());
 
-      for (unsigned int idx=0; idx < nEle; ++idx)
-      {
-         fwrite( &serialisedData[idx], sizeof(uint8_t), nEle * sizeof(double), fp );
-      }
+      fwrite( &serialisedData[0], sizeof(uint8_t), nEle * sizeof(double), fp );
 
       fclose(fp);
+#else
+      // Send serialized data directly to arnold_bifrost
+      AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "serialized");
 
-      // AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "serialized");
-
-      // AtArray *dataArray = AiArrayAllocate(nEle * sizeof(double), 1, AI_TYPE_BYTE);
-
-      // for (unsigned int idx=0; idx < nEle; ++idx)
-      // {
-      //    AiArraySetByte(dataArray, idx, (uint8_t)serialisedData[idx]);
-      // }
-      // AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY BYTE");
-      // AiNodeSetArray(shape, "bifrost:input0", dataArray);
+      AtArray *dataArray = AiArrayConvert(nEle * sizeof(double), 1, AI_TYPE_BYTE, &serialisedData[0]);
+      AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY BYTE");
+      AiNodeSetArray(shape, "bifrost:input0", dataArray);
+#endif
 
       AiNodeSetArray(shape, "input_names", inputsArray);
       AiNodeSetArray(shape, "input_interpretations", interpsArray);
