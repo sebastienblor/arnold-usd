@@ -15,7 +15,7 @@
 #include "extension/Extension.h"
 #include "extension/ExtensionsManager.h"
 
-// #define BIFDATA_HACK 1
+#define BIFDATA_HACK 1
 
 
 /*
