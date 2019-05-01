@@ -23,7 +23,10 @@ if system.os !='windows':
 # TEMP: add paths to Bifrost SDK temporarily so we can get something rendered
 local_env.Append(CPPPATH = [ os.path.join(local_env['BIFROST_ROOT'], 'sdk', 'include'),
                              os.path.join(local_env['BIFROST_ROOT'], 'sdk', 'include', 'Amino') ])
-local_env.Append(LIBPATH = [ os.path.join(local_env['BIFROST_ROOT'], 'lib') ])
+if system.os == 'windows':
+    local_env.Append(LIBPATH = [ os.path.join(local_env['BIFROST_ROOT'], 'sdk', 'lib') ])
+else:
+    local_env.Append(LIBPATH = [ os.path.join(local_env['BIFROST_ROOT'], 'lib') ])
 local_env.Append(LIBS = Split('bifrostapi_1_0 bifrostprocessing_1_0 bif_0_9 geometry_0_9 bifrost_object_0_9 AminoSDK_4_1 AminoCore_4_1 AminoCppOpSDK_4_1 AminoPrivateRT_4_1 AminoPrivateRT_4_1 AminoPrivateDM_4_1 AminoPrivateBase_4_1 AminoPrivateCppOpABI_4_1 tbb'))
 
 # Automatically add all source and include files found in the source path
