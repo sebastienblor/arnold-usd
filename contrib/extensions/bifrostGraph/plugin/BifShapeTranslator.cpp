@@ -295,6 +295,20 @@ void CBifShapeTranslator::ExportShaders()
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
+      MFnDependencyNode shadingEngineNode(shadingGroupPlug.node());
+      MPlug surfaceShaderPlug = shadingEngineNode.findPlug("surfaceShader", true);
+      MPlugArray connections;
+      surfaceShaderPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         std::size_t found_shader = std::string(connections[0].name().asChar()).find(std::string("lambert1")); 
+         std::size_t found_engine = std::string(shadingGroupPlug.name().asChar()).find(std::string("initialShadingGroup")); 
+         if ( found_shader != std::string::npos && found_engine != std::string::npos )
+         {
+            return;
+         }
+      }
+
       AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
