@@ -10,11 +10,12 @@
 #include <maya/MDataHandle.h>
 #include <maya/MFnPluginData.h>
 #include <maya/MFileObject.h>
+#include <maya/MFnDoubleArrayData.h>
 
 #include "extension/Extension.h"
 #include "extension/ExtensionsManager.h"
 
-#define BIFDATA_HACK 1
+// #define BIFDATA_HACK 1
 
 
 /*
@@ -165,8 +166,8 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
 
 void CBifShapeTranslator::Export( AtNode *shape )
 {
-#ifdef BIFDATA_HACK
    MStatus status = MS::kSuccess;
+#ifdef BIFDATA_HACK
    MPlug viewport = FindMayaPlug("viewport");
    MDataHandle handle;
    viewport.getValue(handle);
@@ -232,12 +233,37 @@ void CBifShapeTranslator::Export( AtNode *shape )
    else
 #endif // BIFDATA_HACK
    {
+
       // export BifShape parameters
       MPlug filenamePlug = FindMayaPlug("aiFilename");
-      if (!filenamePlug.isNull())
+      if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
       {
          MString filename = filenamePlug.asString();
          AiNodeSetStr(shape, "filename", filename.asChar());
+      }
+
+      // export the Bifrost graph data if not file is supplied
+      MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
+      if (!serialisedDataPlug.isNull() && filenamePlug.isDefaultValue())
+      {
+         AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
+
+         // ProcessArrayParameter(shape, "graph_contents", serialisedDataPlug, AI_TYPE_BYTE);
+
+         MDataHandle handle;
+         serialisedDataPlug.getValue(handle);
+         MFnDoubleArrayData ArrData(handle.data());
+         MDoubleArray serialisedData = ArrData.array();
+
+         // double dVal ;
+         unsigned int nEle = serialisedData.length();
+         AiMsgInfo("[mtoa.bifrost_graph] : Setting graph_contents, size: %i", nEle);
+         AtArray *dataArray = AiArrayAllocate(nEle, 1, AI_TYPE_BYTE);
+         for (unsigned int idx=0; idx < nEle; ++idx)
+         {
+            AiArraySetByte(dataArray, idx, (AtByte)serialisedData[idx]);
+         }
+         AiNodeSetArray(shape, "graph_contents", dataArray);
       }
 
       MPlug geomPlug = FindMayaPlug("aiCompound");
