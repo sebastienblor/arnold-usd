@@ -62,25 +62,28 @@ void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
 {
 
    if (!LoadBifrostProcedural())
-      AiMsgError("Bifrost procedural could not be found: %s", s_bifrostProceduralPath.asChar());
+      AiMsgWarning("Bifrost procedural could not be found: %s", s_bifrostProceduralPath.asChar());
 
-   CExtensionAttrHelper helper(context.maya, "bifrost_graph");
+   CExtensionAttrHelper helper(context.maya, "procedural");
    CShapeTranslator::MakeCommonAttributes(helper);
 
+   CAttrData data;
+
    // bifrost_board procedural parameters
-   helper.MakeInput("filename");
-   helper.MakeInput("compound");
-   CAttrData fastBifHackData;
-   fastBifHackData.defaultValue.BOOL() = false;
-   fastBifHackData.name = "aiFastBifHack";
-   fastBifHackData.shortName = "aiFastBifHack";
-   helper.MakeInputBoolean(fastBifHackData);
+   data.defaultValue.STR() = AtString("");
+   data.name = "aiFilename";
+   data.shortName = "aiFilename";
+   helper.MakeInputString ( data );
+
+   data.defaultValue.STR() = AtString("");
+   data.name = "aiCompound";
+   data.shortName = "aiCompound";
+   helper.MakeInputString ( data );
 
    // procedural namespace parameter
    helper.MakeInput("namespace");
 
    //// operators attribute for adding operators to custom procedurals
-   CAttrData data;
    data.name = "operators";
    data.shortName = "operators";
    data.type = AI_TYPE_NODE;
