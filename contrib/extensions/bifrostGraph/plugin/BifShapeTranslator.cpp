@@ -142,17 +142,22 @@ void CBifShapeTranslator::Export( AtNode *shape )
       fwrite( &serialisedData[0], sizeof(uint8_t), nEle * sizeof(double), fp );
 
       fclose(fp);
+      AiNodeSetArray(shape, "input_names", inputsArray);
+      AiNodeSetArray(shape, "input_interpretations", interpsArray);
 #else
       // Send serialized data directly to arnold_bifrost
       AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "serialized");
 
       AtArray *dataArray = AiArrayConvert(nEle * sizeof(double), 1, AI_TYPE_BYTE, &serialisedData[0]);
-      AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY BYTE");
-      AiNodeSetArray(shape, "bifrost:input0", dataArray);
+      if (AiArrayGetNumElements(dataArray) > 0)
+      {
+         AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY BYTE");
+         AiNodeSetArray(shape, "bifrost:input0", dataArray);
+         AiNodeSetArray(shape, "input_names", inputsArray);
+         AiNodeSetArray(shape, "input_interpretations", interpsArray);
+      }
 #endif
 
-      AiNodeSetArray(shape, "input_names", inputsArray);
-      AiNodeSetArray(shape, "input_interpretations", interpsArray);
    }
 
    MPlug geomPlug = FindMayaPlug("aiCompound");
