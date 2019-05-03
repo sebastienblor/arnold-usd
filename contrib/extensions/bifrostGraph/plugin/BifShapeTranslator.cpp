@@ -12,6 +12,8 @@
 #include <maya/MFnPluginData.h>
 #include <maya/MFileObject.h>
 #include <maya/MFnDoubleArrayData.h>
+#include <maya/MFnStringArrayData.h>
+#include <maya/MSelectionList.h>
 
 #include "extension/Extension.h"
 #include "extension/ExtensionsManager.h"
@@ -171,13 +173,13 @@ void CBifShapeTranslator::Export( AtNode *shape )
    }
 
    if (RequiresShaderExport())
-      ExportShaders();
+      ExportShaders(shape);
 
    ExportProcedural(shape);
 }
 
 
-void CBifShapeTranslator::ExportShaders()
+void CBifShapeTranslator::ExportShaders(AtNode *shape)
 {
    if (!LoadBifrostProcedural())
       return;
@@ -187,6 +189,37 @@ void CBifShapeTranslator::ExportShaders()
       return;
 
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+
+   // Exporting all material references done inside the biforst graph
+   MPlug materialReferencesPlug = FindMayaPlug("outputMaterialReferences");
+   MDataHandle matDataHandle;
+   materialReferencesPlug.getValue(matDataHandle);
+   MFnStringArrayData data1(matDataHandle.data());
+   MStringArray shaders =data1.array();
+   if (shaders.length() > 0 )
+   {
+      AtArray* materialReferences = AiArrayAllocate( shaders.length(), 1, AI_TYPE_STRING );
+      AtArray* shaderReferences = AiArrayAllocate( shaders.length(), 1, AI_TYPE_NODE );
+      for (uint i = 0; i < shaders.length(); i++)
+      {
+            MSelectionList selection;
+            selection.add(shaders[i]);
+            MDagPath shPath;
+            MObject shNode;
+            selection.getDagPath(0,shPath);
+            selection.getDependNode(0,shNode);
+            MPlug dummyPlug = MFnDependencyNode(shNode).findPlug("message", true);
+            if (dummyPlug.isNull())
+               continue;
+            
+            AtNode* node = ExportConnectedNode(dummyPlug); // do export the shader
+            AiArraySetStr(materialReferences, i , shaders[i].asChar());
+            AiArraySetPtr(shaderReferences, i , node);
+      }
+      AiNodeSetArray(shape, "material_references", materialReferences);
+      AiNodeSetArray(shape, "shader_references", shaderReferences);
+     }
+
 
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
@@ -215,6 +248,7 @@ void CBifShapeTranslator::ExportShaders()
          AiNodeSetPtr(node, "shader", NULL);
       }
    }
+
 }
 
 void CBifShapeTranslator::ExportMotion(AtNode *shape)

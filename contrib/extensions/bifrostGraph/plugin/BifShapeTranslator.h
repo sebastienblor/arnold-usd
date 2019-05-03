@@ -22,7 +22,7 @@ public:
    {
       return new CBifShapeTranslator();
    }
-   virtual void ExportShaders();
+   virtual void ExportShaders(AtNode* shape);
 
 private:
 };
