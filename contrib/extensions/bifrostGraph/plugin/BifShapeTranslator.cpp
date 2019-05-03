@@ -172,10 +172,55 @@ void CBifShapeTranslator::Export( AtNode *shape )
       AiNodeSetStr(shape, "compound", geomPath.asChar());
    }
 
+   // Export all material references done inside the bifrost graph
+   MPlug materialReferencesPlug = FindMayaPlug("outputMaterialReferences");
+   if (!materialReferencesPlug.isNull())
+   {
+      MDataHandle matDataHandle;
+      materialReferencesPlug.getValue(matDataHandle);
+      MFnStringArrayData data1(matDataHandle.data());
+      MStringArray shaders = data1.array();
+      if (shaders.length() > 0)
+      {
+         AtArray* materialReferences = AiArrayAllocate( shaders.length(), 1, AI_TYPE_STRING );
+         AtArray* shaderReferences = AiArrayAllocate( shaders.length(), 1, AI_TYPE_NODE );
+         for (uint32_t i = 0; i < shaders.length(); i++)
+         {
+            MSelectionList selection;
+            selection.add(shaders[i]);
+            MDagPath shPath;
+            MObject shNode;
+            selection.getDagPath(0, shPath);
+            selection.getDependNode(0, shNode);
+            MPlug dummyPlug = MFnDependencyNode(shNode).findPlug("message", true);
+            if (dummyPlug.isNull())
+               continue;
+
+            AtNode* shaderNode = ExportConnectedNode(dummyPlug); // do export the shader
+            AiArraySetStr(materialReferences, i, shaders[i].asChar());
+            AiArraySetPtr(shaderReferences, i, shaderNode);
+         }
+         AiNodeSetArray(shape, "material_references", materialReferences);
+         AiNodeSetArray(shape, "shader_references", shaderReferences);
+      }
+   }
+
    if (RequiresShaderExport())
       ExportShaders(shape);
 
    ExportProcedural(shape);
+}
+
+
+static bool namespaceEndsWith(const std::string& str, const std::string& compareStr)
+{
+    // Skip any components after the name
+    std::string nameStr = str.substr(0, str.rfind('.'));
+    if (nameStr.length() < compareStr.length())
+        return false;
+    if (nameStr.length() > compareStr.length() && nameStr[nameStr.length() - compareStr.length() - 1] != '|')
+        return false; // We only want to match the last part of the namespace
+    return nameStr.substr(nameStr.length() - compareStr.length()) == compareStr;
 }
 
 
@@ -190,37 +235,6 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
 
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
-   // Exporting all material references done inside the biforst graph
-   MPlug materialReferencesPlug = FindMayaPlug("outputMaterialReferences");
-   MDataHandle matDataHandle;
-   materialReferencesPlug.getValue(matDataHandle);
-   MFnStringArrayData data1(matDataHandle.data());
-   MStringArray shaders =data1.array();
-   if (shaders.length() > 0 )
-   {
-      AtArray* materialReferences = AiArrayAllocate( shaders.length(), 1, AI_TYPE_STRING );
-      AtArray* shaderReferences = AiArrayAllocate( shaders.length(), 1, AI_TYPE_NODE );
-      for (uint i = 0; i < shaders.length(); i++)
-      {
-            MSelectionList selection;
-            selection.add(shaders[i]);
-            MDagPath shPath;
-            MObject shNode;
-            selection.getDagPath(0,shPath);
-            selection.getDependNode(0,shNode);
-            MPlug dummyPlug = MFnDependencyNode(shNode).findPlug("message", true);
-            if (dummyPlug.isNull())
-               continue;
-            
-            AtNode* node = ExportConnectedNode(dummyPlug); // do export the shader
-            AiArraySetStr(materialReferences, i , shaders[i].asChar());
-            AiArraySetPtr(shaderReferences, i , node);
-      }
-      AiNodeSetArray(shape, "material_references", materialReferences);
-      AiNodeSetArray(shape, "shader_references", shaderReferences);
-     }
-
-
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
@@ -230,9 +244,10 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
       surfaceShaderPlug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         std::size_t found_shader = std::string(connections[0].name().asChar()).find(std::string("lambert1")); 
-         std::size_t found_engine = std::string(shadingGroupPlug.name().asChar()).find(std::string("initialShadingGroup")); 
-         if ( found_shader != std::string::npos && found_engine != std::string::npos )
+         // Skip any default shader assigned, we don't want this overriding the proc child node shaders
+         bool found_shader = namespaceEndsWith(connections[0].name().asChar(), "lambert1");
+         bool found_engine = namespaceEndsWith(shadingGroupPlug.name().asChar(), "initialShadingGroup");
+         if ( found_shader && found_engine )
          {
             return;
          }
@@ -248,7 +263,6 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
          AiNodeSetPtr(node, "shader", NULL);
       }
    }
-
 }
 
 void CBifShapeTranslator::ExportMotion(AtNode *shape)
@@ -260,6 +274,4 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    // Set transform matrix
    ExportMatrix(shape);
-
 }
-
