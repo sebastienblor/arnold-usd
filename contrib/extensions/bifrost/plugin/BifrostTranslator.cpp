@@ -39,21 +39,15 @@ namespace {
         }
         return out;
     }
+
 #ifdef _WIN32
-   static MString s_bifrostProceduralPath = "C:/Program Files/Autodesk/bifrost/1.5.0/Arnold-5.2.0.0/bin";
-   static MString s_bifrostProceduralPathUpper = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.2.0.0/bin";
-   static MString s_bifrostProcedural = "bifrost_procedural_0_2";
+   static MString s_bifrostProcedural = "arnold_bifrost";
+#else
+   static MString s_bifrostProcedural = "libarnold_bifrost";
 #endif
-#ifdef _LINUX
-   static MString s_bifrostProceduralPath = "/usr/autodesk/bifrost/1.5.0/Arnold-5.2.0.0/lib";
-   static MString s_bifrostProceduralPathUpper = "/usr/autodesk/Bifrost/1.5.0/Arnold-5.2.0.0/lib";
-   static MString s_bifrostProcedural = "libbifrost_procedural_0_2";
-#endif
-#ifdef _DARWIN
-   static MString s_bifrostProceduralPath = "/Applications/Autodesk/bifrost/1.5.0/arnold-5.2.0.0/lib";
-   static MString s_bifrostProceduralPathUpper = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.2.0.0/lib";
-   static MString s_bifrostProcedural = "libbifrost_procedural_0_2";
-#endif
+
+   static MString s_bifrostProceduralPath = "";
+
    static bool s_loadedProcedural = false;
 
    static bool LoadBifrostProcedural()
@@ -61,82 +55,47 @@ namespace {
       if (s_loadedProcedural)
          return true;
 
-      MString bifrostEnvVar;
-      MGlobal::executeCommand("getenv BIFROST_ARNOLD_PATH", bifrostEnvVar);
-      if (bifrostEnvVar.length() > 0)
+      if (AiNodeEntryLookUp("bifrost_polymesh") != NULL)
       {
-         MString firstChar = bifrostEnvVar.substringW(0, 0);
-         // eventually remove quotes from the path
-         if (firstChar == "\"")
-            bifrostEnvVar = bifrostEnvVar.substringW(1, bifrostEnvVar.length() -2);
-         
-         s_bifrostProceduralPath = bifrostEnvVar;
+         s_loadedProcedural = true;
+         return true;
       }
-      
-      CExtension *extension = CExtensionsManager::GetExtensionByName("bifrostTranslator");
-      if (extension)
-      {
-         MFileObject fo;
-         fo.setRawFullName(s_bifrostProceduralPath);
-         if (fo.exists())
-         {
-            extension->LoadArnoldPlugin(s_bifrostProcedural, s_bifrostProceduralPath);
-            s_loadedProcedural = true;
-            return true;
-         } else if (bifrostEnvVar.length() == 0) // this is actually only a problem on Mac
-         {
-            // try with upper case
-            fo.setRawFullName(s_bifrostProceduralPathUpper);
-            if (fo.exists())
-            {
-               extension->LoadArnoldPlugin(s_bifrostProcedural, s_bifrostProceduralPathUpper);
-               s_loadedProcedural = true;
-               return true;
-            } 
-         }
 
-         // We haven't been able to load bifrost, let's try with the one shipped with MtoA
-         MString mtoaExtPath;
-         MGlobal::executeCommand("getenv MTOA_EXTENSIONS_PATH", mtoaExtPath);
-         MStringArray arr;
-         if (mtoaExtPath.length() > 0)
+      MString s_bifrostProceduralPath;
+      MString cmd("import bifrost_utils; bifrost_utils.get_arnold_bifrost_path()");
+      s_bifrostProceduralPath = MGlobal::executePythonCommandStringResult(cmd);
+
+      AiMsgInfo("[bifrost] %s", s_bifrostProceduralPath.asChar());
+
+      if (s_bifrostProceduralPath.length() > 0)
+      {
+         CExtension *extension = CExtensionsManager::GetExtensionByName("bifrostTranslator");
+         if (extension)
          {
-            mtoaExtPath.split(*PATH_SEPARATOR,arr);
-            if (arr.length() > 1) // If there are additional directorries in the path , we strip the last one to add bifrost to it
-            {
-               MString lastbit = arr[arr.length() -1 ] + MString("/bifrost/1.5.0");
-               int delemit_index = mtoaExtPath.rindexW(';');
-               MString firstbit = mtoaExtPath.substringW(0,delemit_index);
-               mtoaExtPath = firstbit + lastbit ;
-            }
-            else
-            {
-               mtoaExtPath += MString("/bifrost/1.5.0"); // in the future we will have to get the current version of bifrost, for now we hardcode it to 1.5.0
-            }
-            
-            fo.setRawFullName(mtoaExtPath);
+            MFileObject fo;
+            fo.setRawFullName(s_bifrostProceduralPath);
             if (fo.exists())
             {
-               extension->LoadArnoldPlugin(s_bifrostProcedural, mtoaExtPath);
+               extension->LoadArnoldPlugin(s_bifrostProcedural, s_bifrostProceduralPath);
                s_loadedProcedural = true;
                return true;
-            } 
+            }
          }
-      }      
+      }
       return false;
    }
 } // namespace
 
 
 AtNode* BifrostTranslator::CreateArnoldNodes()
-{    
+{
    if (!LoadBifrostProcedural())
       AiMsgError("Bifrost to Arnold package not installed in %s" , s_bifrostProceduralPath.asChar());
 
    MFnDagNode dagNode(m_dagPath.node());
    if(dagNode.findPlug("tile_mode", true).asBool())
       return AddArnoldNode("bifrost_blocks");
-   
+
    int render_as = dagNode.findPlug("render_as", true).asInt();
    switch(render_as)
    {
@@ -205,7 +164,7 @@ void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
       propPrefix = "foam";
    else if(attrName == "AeroObject")
       propPrefix = "aero";
-   
+
    if(propPrefix.length() != 0)
    {
       MFnDependencyNode container(objectPlug.source().node());

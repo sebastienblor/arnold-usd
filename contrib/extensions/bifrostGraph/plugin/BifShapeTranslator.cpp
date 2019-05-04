@@ -20,7 +20,12 @@
 
 static bool s_loadedProcedural = false;
 
+#ifdef _WIN32
 static MString s_bifrostProcedural = "arnold_bifrost";
+#else
+static MString s_bifrostProcedural = "libarnold_bifrost";
+#endif
+
 static MString s_bifrostProceduralPath = "";
 
 //#define DEBUG_DUMP_TO_FILE 1
