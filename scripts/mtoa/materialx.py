@@ -50,13 +50,15 @@ class MtoAExportToMaterialX(object):
         lookName = cmds.textFieldGrp('LookName', q=True, tx=True)
         properties = cmds.textFieldGrp('Properties', q=True, tx=True)
         relativeAssignments = cmds.checkBox('relativeAssignments', q=True, v=True)
+        fullName = cmds.checkBox('exportFullPath', q=True, v=True)
+        separator = cmds.optionMenu( 'exportSeparator', q=True, v=True)
 
         selList = cmds.ls(sl=1)
         if (len(selList) == 0):
             cmds.confirmDialog( title='Export to MaterialX', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldExportToMaterialX(filename=filename, look=lookName, properties=properties, relative=relativeAssignments)
+        cmds.arnoldExportToMaterialX(filename=filename, look=lookName, properties=properties, relative=relativeAssignments, fullPath=fullName, separator=separator)
         cmds.deleteUI(self.window)
         return True
     
@@ -68,7 +70,7 @@ class MtoAExportToMaterialX(object):
 
         winTitle = "Export to MaterialX"
 
-        self.window = cmds.window(self.window, widthHeight=(460, 140), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(460, 160), title=winTitle)
         self.createUI()
 
         cmds.setParent(menu=True)
@@ -103,6 +105,15 @@ class MtoAExportToMaterialX(object):
         cmds.text(label='                ')
         cmds.checkBox( 'relativeAssignments',label='Relative Assignments', value=True )
         cmds.setParent("..")
+        cmds.rowLayout(numberOfColumns=4, columnAlign4=('left','left', 'left', 'left'))
+        cmds.text(label='                ')
+        cmds.checkBox( 'exportFullPath',label='Export Full Paths', value=True )
+        cmds.text(label='                                     ')
+        cmds.optionMenu( 'exportSeparator',label='Path Separator')
+        cmds.menuItem(label='/')
+        cmds.menuItem(label='|')
+        cmds.setParent("..")
+
 
         cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))
         cmds.text( '                                             ')
