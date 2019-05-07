@@ -76,16 +76,12 @@ procedural_cleanup
 {
    // AiMsgDebug("[xgArnoldProcedural] Cleanup()");
 
-   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
-   {
-         guard.leave();
          return 0;
-   }
+
    int ret = ud->Cleanup();
    delete ud;
-   guard.leave();
    return ret;
 }
 
@@ -94,15 +90,11 @@ procedural_num_nodes
 {
    // AiMsgDebug("[xgArnoldProcedural] NumNodes()");
 
-   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
-   {
-      guard.leave();
       return 0;
-   }
+
    int numnodes = ud->NumNodes();
-   guard.leave();
    return numnodes;
 }
 
@@ -111,15 +103,11 @@ procedural_get_node
 {
    // AiMsgDebug("[xgArnoldProcedural] GetNode()");
 
-   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
-   {
-      guard.leave();
       return 0;
-   }
+
    AtNode *this_node = ud->GetNode(i);
-   guard.leave();
    return this_node;
 }
 
