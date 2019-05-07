@@ -1267,6 +1267,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    // Setting the reference time properly (used when ignore motion blur is turned on)
    float referenceTime = 0.f;
+   /*
    if (FindMayaPlug("mb_en").asBool())
    {
       // if motion blur is enabled, check the motion's range type 
@@ -1291,8 +1292,8 @@ void COptionsTranslator::Export(AtNode *options)
          break;
          }
       }
-   }
-   AiNodeSetFlt(options, "reference_time", referenceTime);
+   }*/
+   AiNodeSetFlt(options, "reference_time", 0.f);
 
    AddProjectFoldersToSearchPaths(options);
    
@@ -1472,7 +1473,7 @@ void COptionsTranslator::Export(AtNode *options)
    
       // This AOV has a shader assigned to it. I want to check if this is an AOV shader or not (based on its metadata)
       // - If it's an AOV shader => add it to the "aov_shaders" list
-      // - If it's not -> insert an MtoaAovWriteColor in between
+      // - If it's not -> insert an aov_write_rgba in between
       AtNode *shaderNode = aovData.shaderTranslator->GetArnoldNode();
       if (shaderNode == NULL)
          continue;
@@ -1488,17 +1489,37 @@ void COptionsTranslator::Export(AtNode *options)
          // not an AOV shader, it cannot fill the aov. We need to create an "aov_write_" node
          // and insert it in the middle
 
+         MString aovInputAttr("input");
+
          // first get the type of the AOV
-         MString aovWriteType = GetAOVNodeType(aovData.type);
-         std::string shaderTag = "aov_shader_" + std::string(aovData.name.asChar());
-         AtNode *aovWriteNode = AddArnoldNode(aovWriteType.asChar(), shaderTag.c_str());
-         std::string aovWriteName = AiNodeGetName(shaderNode);
-         aovWriteName += "@aov_shader";
-         AiNodeSetStr(aovWriteNode, "name", aovWriteName.c_str());
+         MString aovWriteType;
+         switch (aovData.type)
+         {
+         case AI_TYPE_FLOAT:
+            aovWriteType = "aov_write_float";
+            break;
+         case AI_TYPE_VECTOR2:
+         case AI_TYPE_VECTOR:
+         case AI_TYPE_RGB:
+            aovWriteType = "aov_write_rgb";
+            break;
+         default:
+         case AI_TYPE_RGBA:
+            aovWriteType = "aov_write_rgba";
+            break;
+         }
+
+         std::string shaderTag = std::string(aovWriteType.asChar()) + std::string("_") + std::string(aovData.name.asChar());
+         AtNode *aovWriteNode = GetArnoldNode(shaderTag.c_str());
+         if (aovWriteNode == NULL)
+            aovWriteNode = AddArnoldNode(aovWriteType.asChar(), shaderTag.c_str());
+         //std::string aovWriteName = AiNodeGetName(shaderNode);
+         //aovWriteName += "@aov_shader";
+         //AiNodeSetStr(aovWriteNode, "name", aovWriteName.c_str());
          if (aovWriteNode)
          {
             aovShaders.insert(aovWriteNode);
-            AiNodeLink(shaderNode, "input", aovWriteNode);
+            AiNodeLink(shaderNode, "aov_input", aovWriteNode);
             AiNodeSetStr(aovWriteNode, "aov_name", aovData.name.asChar());
          }
       }      
@@ -1519,13 +1540,21 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetBool(options, "enable_dependency_graph", true);
 
    bool gpuRender = false;
+   bool gpuFallbackBool = false;
    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
    {
-      MPlug gpuPlug = FindMayaPlug("gpu");
+      MPlug gpuPlug = FindMayaPlug("renderDevice");
+      MPlug gpuFallbackPlug = FindMayaPlug("render_device_fallback");
       if (GetSessionMode() != MTOA_SESSION_SWATCH && (!gpuPlug.isNull()))
          gpuRender = gpuPlug.asBool();
 
+      if (!gpuFallbackPlug.isNull())
+      {
+         gpuFallbackBool = gpuFallbackPlug.asBool();
+      }
+
       AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
+      AiNodeSetStr(options, "render_device_fallback", (gpuFallbackBool) ? "CPU" : "error");
 
       // For GPU render, we want to force options.enable_progressive_render to be ON, even if its value is ignored by Arnold.
       // At least we can take this parameter into account later on, for example when ARV needs to do special things depending on 
@@ -1542,7 +1571,6 @@ void COptionsTranslator::Export(AtNode *options)
       MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
       if (manualDevices.asBool())
       {  // Manual Device selection
-
          std::vector<unsigned int> devices;
          MPlug gpuDevices = FindMayaPlug("render_devices");
          if (!gpuDevices.isNull())
@@ -1553,19 +1581,45 @@ void COptionsTranslator::Export(AtNode *options)
                MPlug elemPlug = gpuDevices[i];
                if (!elemPlug.isNull())
                {
-                  devices.push_back(elemPlug.asInt());
+                  // Horrible Hack. The value in this plug is also used to select items in a text Scroll list 
+                  // which starts with index 1.
+                  int deviceId = elemPlug.asInt()-1; 
+                  if (deviceId < 0 ) { deviceId = 0 ; }
+                  devices.push_back(deviceId);
                }
             }
          }
-
          //
          if (!devices.empty())
          {
             autoSelect = false;
-            AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
-            AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
-            AiArrayDestroy(selectDevices);
-         } 
+            
+            if (m_renderDevicesList.empty())
+            {
+               AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+               AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
+               AiArrayDestroy(selectDevices);
+               m_renderDevicesList = devices;
+            } else
+            {               
+               // we've already set the render devices, we shouldn't update them during IPR
+               // First let's compare the new list with the previous one. If it changed, we'll dump a warning
+               bool foundDiff = (devices.size() != m_renderDevicesList.size());
+               if (!foundDiff) // same vector length
+               {
+                  for (size_t i = 0; i < devices.size(); ++i)
+                  {
+                     if (devices[i] != m_renderDevicesList[i])
+                     {
+                        foundDiff = true;
+                        break; 
+                     }
+                  }
+               }
+               if (foundDiff)
+                  AiMsgError("[mtoa.gpu] Render Devices list cannot be changed interactively. Please re-open the renderview or run \"Update Full Scene\" in the Arnold RenderView");
+            }
+         }
       }
 
       if (autoSelect) // automatically select the GPU devices

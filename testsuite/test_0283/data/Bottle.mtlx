@@ -1,66 +1,70 @@
 <?xml version="1.0"?>
-<materialx version="1.35">
-  <nodedef name="standard_surface" type="standard_surface" node="standard_surface">
-    <input name="base" type="float" />
-    <input name="base_color" type="color3" />
-    <input name="specular" type="float" />
-    <input name="specular_color" type="color3" />
-    <input name="diffuse_roughness" type="float" />
-    <input name="specular_roughness" type="float" />
-    <input name="transmission" type="float" />
-    <input name="opacity" type="color3" />
-  </nodedef>
-  <material name="bottle_material">
-    <shaderref name="srf_shader_bottle" node="standard_surface">
-      <bindinput name="base" type="float" value="0.0" />
-      <bindinput name="specular" type="float" value="1.0" />
-      <bindinput name="transmission" type="float" value="1.0" />
-      <bindinput name="opacity" type="color3" value="0.0 0.0 0.0" />
-    </shaderref>
-  </material>
-  <material name="cap1_material">
-    <shaderref name="srf_shader_cap1" node="standard_surface">
-      <bindinput name="base" type="float" value="0.7" />
-      <bindinput name="specular" type="float" value="0.5" />
-      <bindinput name="base_color" type="color3" value="0.3, 0.5, 1.0" />
-      <bindinput name="specular_color" type="color3" value="0.6, 0.0, 0.9" />
-      <bindinput name="diffuse_roughness" type="float" value="0.0" />
-      <bindinput name="specular_roughness" type="float" value="0.5" />
-    </shaderref>
-  </material>
-  <material name="cap2_material">
-    <shaderref name="srf_shader_cap2" node="standard_surface">
-      <bindinput name="base" type="float" value="0.7" />
-      <bindinput name="specular" type="float" value="0.5" />
-      <bindinput name="base_color" type="color3" value="0.5, 0.1, 0.9" />
-      <bindinput name="specular_color" type="color3" value="0.6, 0.0, 0.9" />
-      <bindinput name="diffuse_roughness" type="float" value="0.0" />
-      <bindinput name="specular_roughness" type="float" value="0.1" />
-    </shaderref>
-  </material>
-  <material name="red_material">
-    <shaderref name="srf_shader_red" node="standard_surface">
-      <bindinput name="base_color" type="color3" value="1.0, 0.0, 0.0" />
-    </shaderref>
-  </material>
-  <material name="green_material">
-    <shaderref name="srf_shader_green" node="standard_surface">
-      <bindinput name="base_color" type="color3" value="0.0, 1.0, 0.0" />
-    </shaderref>
-  </material>
-  <material name="blue_material">
-    <shaderref name="srf_shader_blue" node="standard_surface">
-      <bindinput name="base_color" type="color3" value="0.0, 0.0, 1.0" />
-    </shaderref>
-  </material>
+<materialx version="1.36">
+  <xi:include href="materialx/arnold/nodedefs.mtlx" />
   <look name="look1">
-    <materialassign name="assign_bottle" material="bottle_material" geom="/Bottle/Bottle_Shape" />
-    <materialassign name="assign_cap1" material="cap1_material" geom="/Cap/Cap_Shape_Face" />
-    <materialassign name="assign_cap2" material="cap2_material" geom="/Cap/Cap_Shape_SubD" />
+    <materialassign name="materialassign1" material="look1_ai_default_reflection_shader_material_shader" geom="aiStandInShape" />
+    <materialassign name="materialassign2" material="look1_aiCarPaint1_material_shader" geom="/Bottle/Bottle_Shape" />
+    <materialassign name="materialassign3" material="look1_aiFlat1_material_shader" geom="/Cap/Cap_Shape_Face" />
+    <materialassign name="materialassign4" material="look1_aiFlat1_material_shader" geom="/Cap/Cap_Shape_SubD" />
   </look>
+  <material name="look1_ai_default_reflection_shader_material_shader">
+    <shaderref name="ai_default_reflection_shader" node="utility" />
+  </material>
+  <material name="look1_aiCarPaint1_material_shader">
+    <shaderref name="aiCarPaint1" node="car_paint">
+      <bindinput name="base_color" type="color3" nodegraph="NG_look1_aiCarPaint1_base_color" output="out" />
+    </shaderref>
+  </material>
+  <nodegraph name="NG_look1_aiCarPaint1_base_color">
+    <ramp_rgb name="ramp1" type="color3">
+      <input name="type" type="string" value="v" />
+      <input name="position" type="floatarray" value="0, 1" />
+      <input name="color" type="floatarray" value="0, 1, 0, 0, 0, 1" />
+      <input name="interpolation" type="integerarray" value="1, 1" />
+      <input name="use_implicit_uvs" type="string" value="curves_only" />
+    </ramp_rgb>
+    <output name="out" type="color3" nodename="ramp1" />
+  </nodegraph>
+  <material name="look1_aiFlat1_material_shader">
+    <shaderref name="aiFlat1" node="flat">
+      <bindinput name="color" type="color3" nodegraph="NG_look1_aiFlat1_color" output="out" />
+    </shaderref>
+  </material>
+  <nodegraph name="NG_look1_aiFlat1_color">
+    <noise name="aiNoise1" type="color3">
+      <input name="scale" type="vector3" value="10, 10, 10" />
+      <input name="color1" type="color3" value="0, 0, 1" />
+      <input name="color2" type="color3" value="0, 1, 0" />
+    </noise>
+    <output name="out" type="color3" nodename="aiNoise1" />
+  </nodegraph>
   <look name="look2">
-    <materialassign name="assign_bottle" material="red_material" geom="/Bottle/Bottle_Shape" />
-    <materialassign name="assign_cap1" material="blue_material" geom="/Cap/Cap_Shape_Face" />
-    <materialassign name="assign_cap2" material="green_material" geom="/Cap/Cap_Shape_SubD" />
+    <materialassign name="materialassign1" material="look2_ai_default_reflection_shader_material_shader" geom="BottleShape" />
+    <materialassign name="materialassign2" material="look2_aiStandardSurface1_material_shader" geom="/Bottle/Bottle_Shape" />
+    <materialassign name="materialassign3" material="look2_aiStandardSurface4_material_shader" geom="/Cap/Cap_Shape_Face" />
+    <materialassign name="materialassign4" material="look2_aiStandardSurface4_material_shader" geom="/Cap/Cap_Shape_SubD" />
   </look>
+  <material name="look2_ai_default_reflection_shader_material_shader">
+    <shaderref name="ai_default_reflection_shader" node="utility" />
+  </material>
+  <material name="look2_aiStandardSurface1_material_shader">
+    <shaderref name="aiStandardSurface1" node="standard_surface">
+      <bindinput name="base" type="float" value="1" />
+      <bindinput name="transmission" type="float" value="0.775229" />
+      <bindinput name="transmission_color" type="color3" value="1, 0, 0" />
+      <bindinput name="opacity" type="color3" value="0.15873, 0.15873, 0.15873" />
+    </shaderref>
+  </material>
+  <material name="look2_aiStandardSurface4_material_shader">
+    <shaderref name="aiStandardSurface4" node="standard_surface">
+      <bindinput name="base_color" type="color3" nodegraph="NG_look2_aiStandardSurface4_base_color" output="out" />
+    </shaderref>
+  </material>
+  <nodegraph name="NG_look2_aiStandardSurface4_base_color">
+    <checkerboard name="checker1" type="color3">
+      <input name="color1" type="color3" value="1, 0, 0" />
+      <input name="color2" type="color3" value="0, 0, 1" />
+    </checkerboard>
+    <output name="out" type="color3" nodename="checker1" />
+  </nodegraph>
 </materialx>

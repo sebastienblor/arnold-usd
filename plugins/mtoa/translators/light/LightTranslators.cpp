@@ -42,6 +42,10 @@ void CPointLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CPointLightTranslator::NodeInitializer(CAbTranslator context)
@@ -52,6 +56,8 @@ void CPointLightTranslator::NodeInitializer(CAbTranslator context)
    // point light attributes
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("radius");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 // SpotLight
@@ -136,6 +142,10 @@ void CQuadLightTranslator::Export(AtNode* light)
    MPlugArray conn;
    colorPlug.connectedTo(conn, true, false);
    m_colorTexture = (conn.length() > 0);
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CQuadLightTranslator::NodeChanged(MObject& node, MPlug& plug)
@@ -166,6 +176,8 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("soft_edge");
    //helper.MakeInput("portal"); removed it from here as we now have a dedicated light portal node
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 // Cylinder AreaLight
@@ -182,6 +194,10 @@ void CCylinderLightTranslator::Export(AtNode* light)
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
    AiNodeSetFlt(light, "radius", float (scale[0]+scale[2])/2.0f);
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
@@ -191,6 +207,8 @@ void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 // Disk AreaLight
@@ -208,6 +226,10 @@ void CDiskLightTranslator::Export(AtNode* light)
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
    AiNodeSetFlt(light, "radius", float (scale[0]+scale[1])/2.0f);
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
@@ -218,6 +240,8 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("shadow_color");
    helper.MakeInput("spread");
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 void CSkyDomeLightTranslator::Export(AtNode* light)
@@ -235,7 +259,6 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    AiNodeSetInt(light, "portal_mode", FindMayaPlug("portal_mode").asInt());
    AiNodeSetFlt(light, "camera", FindMayaPlug("camera").asFloat());
-   AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
    AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
    AiNodeSetBool(light, "aov_indirect", FindMayaPlug("aiAovIndirect").asBool());
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
@@ -495,26 +518,37 @@ void CMeshLightTranslator::Export(AtNode* light)
 
    AiNodeSetPtr(light, "mesh", meshNode);
 
-   AtNode* shaderNode = GetArnoldNode("shader");
-   AiNodeSetPtr(meshNode, "shader", shaderNode);
+   AtNode* shaderTwoSided = GetArnoldNode("two_sided");
+   AtNode* shaderRaySwitch = GetArnoldNode("shader");
+   AtNode *shaderMult = GetArnoldNode("multShader");
+
+   if (shaderTwoSided == NULL || shaderMult == NULL || shaderRaySwitch == NULL)
+      return; // shouldn't happen
+
+   AiNodeSetPtr(meshNode, "shader", shaderRaySwitch);
+
+   AiNodeLink(shaderMult, "front", shaderTwoSided);
+   // "back" should remain empty, so that it renders black on backfacing polygons
+   
+   AiNodeLink(shaderTwoSided, "camera", shaderRaySwitch);
+   AiNodeLink(shaderTwoSided, "specular_transmission", shaderRaySwitch);
+   // other ray types should render black
 
    if (FindMayaPlug("aiUseColorTemperature").asBool())
    {
       AtRGB color = ConvertKelvinToRGB(FindMayaPlug("aiColorTemperature").asFloat());
-      AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
+      AiNodeSetRGB(shaderMult, "input1", color.r, color.g, color.b);
    }
    else
-      ProcessParameter(shaderNode, "color", AI_TYPE_RGB, FindMayaPlug("color"));
+      ProcessParameter(shaderMult, "input1", AI_TYPE_RGB, FindMayaPlug("color"));
 
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible", true).asBool())
-   {      
-      AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);
-      
+   {
+      AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);      
       AtRGB colorMultiplier = AI_RGB_WHITE;
       colorMultiplier = colorMultiplier * AiNodeGetFlt(light, "intensity") * 
-         powf(2.f, AiNodeGetFlt(light, "exposure"));
-      
+         powf(2.f, AiNodeGetFlt(light, "exposure"));      
       // if normalize is set to false, we need to multiply
       // the color with the surface area
       // doing a very simple triangulation, good for
@@ -522,12 +556,12 @@ void CMeshLightTranslator::Export(AtNode* light)
       if (AiNodeGetBool(light, "normalize"))
          NormalizeColor(meshObject, colorMultiplier);
       
-      AiNodeSetRGB(shaderNode, "color_multiplier", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
+      AiNodeSetRGB(shaderMult, "input2", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
    }
    else
    {
       AiNodeSetByte(meshNode, "visibility", AI_RAY_SPECULAR_REFLECT);
-      AiNodeSetRGB(shaderNode, "color_multiplier", 0.f, 0.f, 0.f);
+      AiNodeSetRGB(shaderMult, "input2", 0.f, 0.f, 0.f);
    }
 }
 
@@ -616,10 +650,10 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
 }
 void CMeshLightTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   const MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-
-   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
-   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
+   const MString plugName = plug.partialName(false, false, false, false, false, true);
+   
+   bool recreate_geom = (plugName == "pnts" || plugName == "inMesh" || plugName == "dispResolution" || plugName == "useMeshSculptCache");
+   recreate_geom = recreate_geom || (plugName.length() > 8 && plugName.substring(0,7) == "aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
    recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1);
    
    if (recreate_geom)

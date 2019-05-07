@@ -50,6 +50,7 @@ protected:
     // Callback IDs for tracking viewport changes
     MCallbackId mRendererChangeCB;
     MCallbackId mRenderOverrideChangeCB;
+    MCallbackId mPlablastCB;
     static void sRendererChangeFunc(
         const MString& panelName,
         const MString& oldRenderer,

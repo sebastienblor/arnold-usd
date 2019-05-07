@@ -1,0 +1,88 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+string $img = "";
+
+//======== Change the curves width
+setAttr "curveShape3.aiCurveWidth" 2;
+setAttr "curve3.inheritsTransform" 1;
+setAttr "aiCurveCollectorShape1.aiCurveWidth" 2;
+setAttr "aiCurveCollector1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//====== Set the sample rate to 1
+setAttr "curveShape3.aiSampleRate" 1;
+setAttr "curve3.inheritsTransform" 1;
+setAttr "aiCurveCollectorShape1.aiSampleRate" 1;
+setAttr "aiCurveCollector1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//====== Change the curve render mode (thick, ribbon, oriented)
+
+setAttr "aiCurveCollectorShape1.aiMode" 2;
+setAttr "curveShape3.aiMode" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Change the curve profile in curve collector
+setAttr "aiCurveCollectorShape1.aiWidthProfile[1].aiWidthProfile_FloatValue" 0;
+setAttr "curveShape3.aiMode" 0;
+setAttr "curveShape3.aiMinPixelWidth" 10;
+setAttr "curve3.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Assign different shaders
+connectAttr -f aiFlat1.outColor curveShape3.aiCurveShader;
+connectAttr -f aiFlat1.outColor aiCurveCollectorShape1.aiCurveShader;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_5.tif";
+arnoldRenderView -option "Save Image" $img;
+
+// create a skydome to see it in the background
+createNode "aiSkyDomeLight";
+
+//======== Delete shaders
+delete aiFlat1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_6.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Hide the curves / set primary visibility off
+setAttr "curveShape3.primaryVisibility" 0;
+setAttr "curve3.inheritsTransform" 1;
+setAttr "aiCurveCollector1.visibility" 0;
+setAttr "aiCurveCollector1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_7.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+

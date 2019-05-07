@@ -1,31 +1,85 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0023\test_0023.log', using stdout instead
-
-Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0023', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
+ 
+ ==== Exec cmd ==== 
+ 
+D:\arnold\Maya-runtimes\windows\Maya2018\bin\Render -proj "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0023" -rd "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0023" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0023\test.ma"
+ 
+ 
+Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 2016.3.78.11. Feature Level 5.
+
+  Version : 2016.11.40.12. Feature Level 5.
+
   Adapter : Quadro K620/PCIe/SSE2
+
   Vendor ID: 4318. Device ID : 5051
+
   Driver : nvoglv64.dll:23.21.13.9103.
+
   API : OpenGL V.4.6.
+
   Max texture size : 16384 * 16384.
+
   Max tex coords : 32
+
   Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+
   Shader compiler profile : (Best card profile)
+
   Active stereo support available : 0
+
   GPU Memory Limit : 2048 MB.
+
   CPU Memory Limit: 62185.1 MB.
+
+  MultiDraw consolidation: enabled
+
 }
+
 OpenCL evaluator is attempting to initialize OpenCL.
+
 Detected 1 OpenCL Platforms: 
+
  0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+
  Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-File read in  0.26 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0023/test.ma
-00:00:00   624MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   624MB WARNING | [mtoa] No light in scene
-00:00:00   624MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   624MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0023\test.ma completed.
+
+00:00:00   292MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
+
+00:00:00   296MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+
+00:00:00   296MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+
+C:\solidangle\mtoadeploy\2018\scripts\mtoa\cmds\rendererCallbacks.py:23: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+
+  cmds.loadPlugin('renderSetup', qt=True)
+
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+
+File read in  0.37 seconds.
+
+File read in  0.37 seconds.
+
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0023/test.ma
+
+00:00:00   388MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   388MB WARNING | [mtoa] No light in scene
+
+00:00:00   388MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   388MB WARNING |     [mtoa.translator]  mtoa_shaders: Maya node place2dTexture6(place2dTexture) does not have attribute defaultColor to match parameter wrap_frame_color on Arnold node place2dTexture6(uv_transform).
+
+00:00:00   388MB WARNING |    [mtoa.translator]  mtoa_shaders: Maya node mountain2(mountain) does not have attribute exposure to match parameter exposure on Arnold node mountain2(MayaMountain).
+
+00:00:00   388MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   390MB WARNING | rendering with watermarks because of failed authorization:
+
+Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0023\test.ma completed.
+

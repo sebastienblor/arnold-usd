@@ -9,6 +9,7 @@ node_parameters
    AiParameterRGB("value", 0.0f, 0.0f, 0.0f);
    AiParameterBool("enabled", false);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 IMPLEMENT_APPLY_ABS_OVERRIDE_SHADER(RGB, AiShaderEvalParamRGB)

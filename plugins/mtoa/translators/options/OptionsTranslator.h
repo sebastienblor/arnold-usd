@@ -103,4 +103,5 @@ protected:
    unordered_map<std::string, AtNode*> m_multiDriverMap;
    MStringArray m_imageFilenames;
    std::vector<MCallbackId> m_aovCallbacks;
+   std::vector<unsigned int> m_renderDevicesList;
 };

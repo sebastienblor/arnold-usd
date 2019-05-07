@@ -1,37 +1,64 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0174\test_0174.log', using stdout instead
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0174', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
+ 
+ ==== Exec cmd ==== 
+ 
+D:\arnold\Maya-runtimes\windows\Maya2018\bin\Render -proj "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0174" -rd "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0174" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0174\test.ma"
+ 
+ 
+Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
+sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
 
-Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
-Initialized VP2.0 renderer {
-  Version : 2016.3.78.11. Feature Level 5.
-  Adapter : Quadro K620/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:10.18.13.5413.
-  API : OpenGL V.4.5.
-  Max texture size : 16384 * 16384.
-  Max tex coords : 32
-  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
-  Shader compiler profile : (Best card profile)
-  Active stereo support available : 0
-  GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
-}
-OpenCL evaluator is attempting to initialize OpenCL.
-Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
- Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
-OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
-OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   492MB WARNING |  node "MayaClamp" is already installed
-00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   492MB WARNING |  node "MayaCondition" is already installed
-00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
+Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
 
-Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0174/test.ma line 9: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+
+Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+
+00:00:00   264MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
+
+00:00:00   268MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+
+00:00:00   268MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+
+Successfully imported python module 'arnold'
+
+Successfully imported python module 'mtoa'
+
+Successfully registered renderer 'arnold'
+
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.62 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0174/test.ma
-Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0174\test.ma completed.
+
+File read in  1.3 seconds.
+
+File read in  1.3 seconds.
+
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0174/test.ma
+
+00:00:00   328MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   329MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   329MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   329MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   329MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+
+00:00:00   329MB WARNING |   node entry "sky" is deprecated, and may be removed in the future
+
+00:00:00   329MB WARNING |   aiSky1.visibility: use type BYTE, not INT (converted automatically)
+
+00:00:00   329MB WARNING | aiSky1.visibility: use type BYTE, not INT (converted automatically)
+
+00:00:00   332MB WARNING | rendering with watermarks because of failed authorization:
+
+Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0174\test.ma completed.
+

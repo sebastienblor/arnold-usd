@@ -323,7 +323,10 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
    else
    {
       // Multiple ops, let's insert a merge operator
-      AtNode *mergeOp = AddArnoldNode("merge", "input_merge_op");
+
+      AtNode *mergeOp = GetArnoldNode("input_merge_op");
+      if (mergeOp == NULL)
+         mergeOp = AddArnoldNode("merge", "input_merge_op");
       AtArray* opArray = AiArrayAllocate(inputOps.size(), 1, AI_TYPE_NODE);
       for (unsigned int i = 0; i < inputOps.size(); ++i)
          AiArraySetPtr(opArray, i, (void*)inputOps[i]);
@@ -338,8 +341,14 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
 void CProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
+   MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   if (!IsTransformPlug(plug))
+   if (plugName == "selectedItems" || plugName == "selected_items" || 
+      plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
+      plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2") return;
+
+   MGlobal::displayWarning(plugName.substringW(0, 9));
+   if (!(IsTransformPlug(plug) || (plugName.length() > 10 && plugName.substringW(0, 9) == MString("operators["))))
       SetUpdateMode(AI_RECREATE_NODE);
    
    CShapeTranslator::NodeChanged(node, plug);

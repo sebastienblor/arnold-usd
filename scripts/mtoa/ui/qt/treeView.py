@@ -3,8 +3,8 @@ from .Qt import OpenMayaUI
 from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
-from .itemStyle import ItemStyle
-from .utils import dpiScale
+from .treeStyle import TreeStyle
+from .utils import dpiScale, dpiScaledIcon
 from .color import Color
 from .style import MtoAStyle
 import weakref
@@ -12,7 +12,7 @@ from copy import deepcopy
 
 
 # Global look variables.
-ITEM_HEIGHT = dpiScale(22)
+ITEM_HEIGHT = dpiScale(24)
 ITEM_INDENT = dpiScale(8)
 EXPAND_SENSITIVITY = dpiScale(4)
 
@@ -20,6 +20,7 @@ NODE_BAR_COLOUR = QtCore.Qt.UserRole + 1
 ACTIONS = QtCore.Qt.UserRole + 2
 ICON = QtCore.Qt.UserRole + 3
 TEXT_INDENT = QtCore.Qt.UserRole + 4
+NODE_ENABLED = QtCore.Qt.UserRole + 5
 
 CHILD_COUNT = QtCore.Qt.UserRole + 64
 
@@ -30,10 +31,6 @@ class BaseTreeView(QtWidgets.QTreeView):
     def __init__(self, parent=None, style=None):
         """Called after the instance has been created."""
         super(BaseTreeView, self).__init__(parent)
-
-        if not style:
-            style = MtoAStyle.currentStyle()
-        style.apply(self)
 
         self.setObjectName("BaseTreeView")
         # Set the custom tree model
@@ -46,6 +43,7 @@ class BaseTreeView(QtWidgets.QTreeView):
         # Custom style
         delegate = BaseDelegate(self)
         self.setItemDelegate(delegate)
+        self.setStyle(TreeStyle(self.style()))
         self.setIndentation(ITEM_INDENT)
 
         self.setRootIsDecorated(False)
@@ -53,6 +51,9 @@ class BaseTreeView(QtWidgets.QTreeView):
         self.setAnimated(True)
 
         self.setExpandsOnDoubleClick(False)
+
+        # for mouseMoveEvent to redraw on hover
+        self.setMouseTracking(True)
 
         # We need this custom flag because if setDropIndicatorShown is set to
         # false, dropIndicatorPosition returns wrong data. We use this flag to
@@ -81,6 +82,19 @@ class BaseTreeView(QtWidgets.QTreeView):
             return
 
         # Redraw the item
+        self.redraw(index)
+
+    def mouseMoveEvent(self, event):
+
+        super(BaseTreeView, self).mouseMoveEvent(event)
+
+        index = self.indexAt(event.pos())
+
+        if not index.isValid():
+            return
+
+        # Redraw the item
+        self.itemDelegate().clearLastAction()
         self.redraw(index)
 
     def mouseDoubleClickEvent(self, event):
@@ -122,7 +136,10 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def showProperties(self, event):
         """Show the properties of the item at index `index`."""
-        pass
+        raise NotImplemenedError("{}.showProperties not implemented yet".format(str(self.__class__.__name__)))
+
+    def sizeHintForRow(self, row):
+        return ITEM_HEIGHT
 
 
 class BaseModel(QtCore.QAbstractItemModel):
@@ -182,9 +199,9 @@ class BaseModel(QtCore.QAbstractItemModel):
         elif role == QtCore.Qt.SizeHintRole:
             return QtCore.QSize(250, ITEM_HEIGHT)
         elif role == QtCore.Qt.BackgroundRole:
-            return QtGui.QColor(71, 71, 71)
+            return item.getBackgroundColor()
         elif role == NODE_BAR_COLOUR:
-            return QtGui.QColor(113, 142, 164)
+            return item.getLabelColor()
         elif role == CHILD_COUNT:
             return item.childCount()
         elif role == ACTIONS:
@@ -193,6 +210,8 @@ class BaseModel(QtCore.QAbstractItemModel):
             return item.getIcon()
         elif role == TEXT_INDENT:
             return item.getIndent()
+        elif role == NODE_ENABLED:
+            return item.isEnabled()
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """Set the role data for the item at index to value."""
@@ -274,7 +293,16 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
     COLOR_BAR_WIDTH = dpiScale(6)
     ICON_WIDTH = dpiScale(20)
     ACTION_BORDER = dpiScale(2)
-    ICON_HIGHLIGHT = QtGui.QColor(113, 142, 164)
+    ACTION_WIDTH = dpiScale(24)
+    ICON_TOP_OFFSET = dpiScale(2)
+
+    BACKGROUND_RECT_LENGTH = dpiScale(28)
+    BACKGROUND_RECT_LEFT_OFFSET = dpiScale(4)
+
+    DISABLED_BACKGROUND_IMAGE = dpiScaledIcon(":/RS_disabled_tile.png")
+    DISABLED_HIGHLIGHT_IMAGE = dpiScaledIcon(":/RS_disabled_tile_highlight.png")
+
+    ICON_HIGHLIGHT = QtGui.QColor(113, 142, 184)
 
     EXPANDED_ARROW = (
         dpiScale(QtCore.QPointF(12.0, -2.5)),
@@ -308,8 +336,7 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
             option.showDecorationSelected and \
             option.state & QtWidgets.QStyle.State_Selected
 
-        self.drawBackground(
-            painter, rect, index, isHighlighted, highlightedColor)
+        self.drawBackground(painter, rect, index, isHighlighted, highlightedColor)
         self.drawColorBar(painter, rect, index)
         self.drawFill(painter, rect)
         actionIconRect = self.drawActionIcons(rect, painter, option, index)
@@ -348,16 +375,37 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
         painter.restore()
 
+    def drawToolbarFrame(self, painter, rect, toolbarCount):
+        # draw the darkened toolbar background
+        if toolbarCount > 0:
+            top = rect.top() + self.ICON_TOP_OFFSET
+            backgroundColor = QtGui.QColor(55, 55, 55)
+            toolbarLength = toolbarCount*self.ACTION_WIDTH + (2*self.ACTION_BORDER)
+            left = rect.right() - (toolbarLength + self.ACTION_BORDER)
+            left = left if left > 0 else 0
+            painter.setOpacity(0.8)
+            painter.fillRect(left, top-self.ACTION_BORDER, toolbarLength, self.ACTION_WIDTH, backgroundColor)
+            painter.setOpacity(1.0)
+
     def drawBackground(
             self, painter, rect, index, isHighlighted, highlightColor):
+        painter.save()
+        rect2 = deepcopy(rect)
+
         """Draw the cell bacground color / image."""
         if isHighlighted:
-            # Draw the highlight color
-            painter.fillRect(rect, highlightColor)
+            # Draw the highlight colorif not item.data(renderSetupRoles.NODE_ENABLED):
+            if not index.data(NODE_ENABLED):
+                painter.drawTiledPixmap(rect2, self.DISABLED_HIGHLIGHT_IMAGE)
+            else:
+                painter.fillRect(rect2, highlightColor)
         else:
             # Otherwise draw our background color
             background = toPyObject(index.data(QtCore.Qt.BackgroundRole))
             painter.fillRect(rect, background)
+            if not index.data(NODE_ENABLED):
+                painter.drawTiledPixmap(rect2, self.DISABLED_BACKGROUND_IMAGE)
+        painter.restore()
 
     def drawColorBar(self, painter, rect, index):
         """Draw the label color bar."""
@@ -375,7 +423,8 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
         # Draw a 2 pixel border around the box
         painter.setPen(QtGui.QPen(QtGui.QColor(43, 43, 43), 2))
-        painter.drawRoundedRect(rect, 3, 3)
+        # painter.drawRoundedRect(rect, 3, 3)
+        painter.drawRect(rect)
 
         painter.restore()
 
@@ -428,6 +477,9 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
         return textRect
 
+    def drawPixmap(self, painter, pixmap, left, top):
+        painter.drawPixmap(QtCore.QRect(left, top, self.ICON_WIDTH, self.ICON_WIDTH), pixmap)
+
     def drawActionIcons(self, rect, painter, option, index):
         """Draw the icons and buttons on the right side of the item."""
         painter.save()
@@ -442,30 +494,56 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         center = toPyObject(index.data(QtCore.Qt.SizeHintRole)).height() / 2
         start = self.ACTION_BORDER
 
+        self.drawToolbarFrame(painter, rect, len([a for a in actions if a[0]]))
+
         iconRectCumul = None
-        for pixmap, opacity, action in actions:
+        for pixmap, opacity, action, checked, overlay in actions:
 
             if not pixmap or not opacity:
                 continue
+
+            cursorPosition = self.treeView().mapFromGlobal(QtGui.QCursor.pos())
+
             # Draw icon
             start += self.ICON_WIDTH + self.ACTION_BORDER
 
             width = min(self.ICON_WIDTH, pixmap.rect().width())
             height = min(self.ICON_WIDTH, pixmap.rect().height())
 
+            left = rect.right() - start + (self.ICON_WIDTH - width) / 2
+            top = rect.top() + center - height / 2
+
+            painter.setOpacity(1.0)
+
             iconRect = QtCore.QRect(
-                rect.right() - start + (self.ICON_WIDTH - width) / 2,
-                rect.top() + center - height / 2,
+                left,
+                top,
                 width,
                 height)
             iconRectCumul = iconRect
 
+            backgroundRect = QtCore.QRect(left - self.BACKGROUND_RECT_LEFT_OFFSET, top - self.ACTION_BORDER, self.BACKGROUND_RECT_LENGTH, self.ACTION_WIDTH)
+
+            if checked:
+                painter.fillRect(iconRect, self.ICON_HIGHLIGHT)
+
             painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
-            painter.setOpacity(opacity)
+
+            if not iconRect.contains(cursorPosition):
+                painter.setOpacity(opacity * 0.7)
+            else:
+                painter.setOpacity(opacity)
+                self.lastHitAction = action
+
             painter.drawPixmap(iconRect, pixmap)
 
+            if overlay:
+                ov_w = overlay.rect().width()
+                ov_h = overlay.rect().height()
+                painter.setOpacity(1.0)
+                painter.drawPixmap(left, top, ov_w, ov_h, overlay)
+
             # Highlight the icon depending on the mouse over.
-            cursorPosition = self.treeView().mapFromGlobal(QtGui.QCursor.pos())
             if buttonPressed and iconRect.contains(cursorPosition):
                 painter.setOpacity(0.75)
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -491,7 +569,6 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
                 painter.drawEllipse(iconRect)
 
                 # Save the action to know
-                self.lastHitAction = action
 
                 painter.setClipping(False)
 
@@ -551,13 +628,16 @@ class BaseItem(object):
     and/or children. It's a tree data structure with parent and children.
     """
 
-    ACTION_EXPAND = 1
+    ACTION_EXPAND = 0
 
-    def __init__(self, parentItem, name):
+    def __init__(self, parentItem, name, index=-1):
         """Called after the instance has been created."""
         self.name = name
         self.childItems = []
-        self.setParent(parentItem)
+        if index >= 0:
+            self.setParent(parentItem, index)
+        else:
+            self.setParent(parentItem)
 
     def getName(self):
         """The label of the item."""
@@ -636,22 +716,31 @@ class BaseItem(object):
         """
         pass
 
+    def getBackgroundColor(self):
+        """
+        The background color of current node. It can be different depending on
+        the item type.
+        """
+        return QtGui.QColor(71, 71, 71)
+
+    def getLabelColor(self):
+        """
+        The background color of current node. It can be different depending on
+        the item type.
+        """
+        return QtGui.QColor(113, 142, 164)
+
     def getIndent(self):
         """The text indent."""
         return dpiScale(20)
 
+    def isEnabled(self):
+        return True
+
     @staticmethod
     def dpiScaledIcon(path):
         """Creates QPixmap and scales it for hi-dpi mode"""
-        icon = QtGui.QPixmap(path)
-
-        scale = dpiScale(1.0)
-        if scale > 1.0:
-            icon = icon.scaledToHeight(
-                icon.height() * scale,
-                QtCore.Qt.SmoothTransformation)
-
-        return icon
+        return dpiScaledIcon(path)
 
     @staticmethod
     def coloredIcon(fileName, color=QtGui.QColor(255, 255, 255, 255)):

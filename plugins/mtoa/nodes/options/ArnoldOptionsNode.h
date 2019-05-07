@@ -121,6 +121,8 @@ public:
    static MObject s_export_all_shading_groups;
    static MObject s_export_full_paths;
    static MObject s_export_shading_engine;
+   static MObject s_export_separator;
+   static MObject s_export_namespace;
 
    static MObject s_version;
    static MObject s_enable_standin_draw;
@@ -145,8 +147,9 @@ public:
    static MObject s_legacy_gi_refraction_samples;
 
    static MObject s_gpu;   
-   static MObject s_render_devices;   
+   static MObject s_render_devices;
    static MObject s_manual_devices;
+   static MObject s_render_device_fallback;
    
    static MObject s_stats_enable;
    static MObject s_stats_file;
@@ -154,5 +157,6 @@ public:
    static MObject s_profile_enable;
    static MObject s_profile_file;
    static MObject s_ignore_list;
+   static MObject s_gpu_max_texture_resolution;
 
 };  // class CArnoldOptionsNode

@@ -5,164 +5,31 @@ import os.path
 import mtoa.melUtils as mu
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.utils import resolveFilePathSequence
+from mtoa.ui.ae.utils import expandEnvVars
 import mtoa.core as core
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import arnold as ai
 
+from mtoa.ui.qt.Qt import QtCore
+from mtoa.ui.qt.Qt import QtGui
+from mtoa.ui.qt.Qt import QtWidgets
+from mtoa.ui.qt.Qt import shiboken
+from mtoa.ui.qt import toQtObject
+
 CACHE_ATTR = 'ai_asscache'
 
+from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
+from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
+from mtoa.ui.procview.StandInTransverser import StandInTransverser
+from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
+from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
+
 from mtoa.callbacks import *
-
-###### UI to create a procedural operator
-
-class MtoAProceduralOperator(object):
-    window = None
-    def __new__(cls, *args, **kwargs):
-        if not '_instance' in vars(cls):
-            cls._instance = super(MtoAProceduralOperator, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
-
-    def __init__(self):
-        if self.window is None:
-            self.window = 'MtoAProceduralOperator'
-            self.listElements = []
-            self.column = ''
-            self.selection = ''
-            self.selectedItems = []
-            self.selectedTypes = []
-
-    def doCreateOperator(self):
-        opType = cmds.optionMenuGrp(self.operatorType, q=True, v=True)
-        opNode = cmds.createNode(opType, name = self.standinName + '_op')
-        if opNode and len(opNode) > 0:
-            selString = cmds.textFieldGrp(self.selection, q=True, tx=True)
-            if selString[:1] == ' ':
-                selString  = selString[1:]
-                selString = '*.(@node==\'{}\')'.format(selString)
-            cmds.setAttr('{}.selection'.format(opNode), selString, type='string')
-            if opType == 'aiSetParameter':
-                paramName = cmds.optionMenuGrp(self.paramBox, q=True, v=True)
-                paramVal = cmds.textFieldGrp(self.paramValue, q=True, tx=True)
-                if paramName == 'shader':
-                    paramVal = '"{}"'.format(paramVal)
-                cmds.setAttr('{}.assignment[0]'.format(opNode), '{}={}'.format(paramName, paramVal), type='string')
-
-            attrSize = mu.getAttrNumElements(self.standinName, 'operators')
-            newItem = '{}.operators[{}]'.format(self.standinName, attrSize)
-            cmds.connectAttr("%s.message"%opNode, newItem, force=True)
-
-        
-        cmds.deleteUI(self.window)
-        return True
-
-    def doCancel(self):
-        cmds.deleteUI(self.window)
-        return True
-
-    def create(self, standinName, selectedItems, selectedTypes):
-        if cmds.window(self.window, exists=True):
-            cmds.deleteUI(self.window)
-
-        winTitle = "Create Operator on " + standinName
-        self.selectedItems = selectedItems
-        self.selectedTypes = selectedTypes
-        self.standinName = standinName
-        self.selection = ''
-
-        for sel in selectedItems:
-            if len(self.selection) > 0:
-                self.selection += ' or '
-            self.selection += sel
-        
-        self.window = cmds.window(self.window, widthHeight=(460, 200), title=winTitle)
-        self.createUI()
-
-        cmds.setParent(menu=True)
-        cmds.showWindow(self.window)
-
-        try:
-            initPos = cmds.windowPref( self.window, query=True, topLeftCorner=True )
-            if initPos[0] < 0:
-                initPos[0] = 0
-            if initPos[1] < 0:
-                initPos[1] = 0
-            cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
-        except :
-            pass
-
-    def updateLayout(self, val):
-        setParam = (val == 'aiSetParameter')
-        cmds.textFieldGrp(self.paramValue, edit=True, visible=setParam)
-        cmds.optionMenuGrp(self.paramBox, edit=True, visible=setParam)
-
-
-    def createUI(self):
-        cmds.scrollLayout(childResizable=True,)
-        cmds.columnLayout(adjustableColumn=True)
-        #cmds.setParent("..")
-        cmds.rowLayout(numberOfColumns=1, columnAlign1='both')
-        self.selection = cmds.textFieldGrp('selection', label='Selection', ct2=('left', 'left'), cw2=(90,310), text=self.selection, w=450)
-        cmds.setParent("..")
-        cmds.rowLayout(numberOfColumns=1, columnAlign1='both')
-        self.operatorType = cmds.optionMenuGrp('operatorType', label='Operator Type')
- 
-        operators = cmds.arnoldPlugins(listOperators=True) or []
-        for operator in operators:
-            cmds.menuItem(operator)
-
-        # get list of operators
-        cmds.optionMenuGrp(self.operatorType, e=True, w=230, ct2=('left', 'left'), cw2=(90,110), v='aiSetParameter', cc=self.updateLayout)
-        cmds.setParent("..")
-
-        cmds.rowLayout(numberOfColumns=2, columnAlign1='both')
-        self.paramBox = cmds.optionMenuGrp('param', label='Parameter')        
-        
-        paramList = []
-        universeCreated = False
-
-        if not ai.AiUniverseIsActive():
-            universeCreated = True
-            ai.AiBegin()
-
-        defaultParam = ''
-
-        for nodeType in self.selectedTypes:
-            nodeEntry = ai.AiNodeEntryLookUp(nodeType)
-            paramIter = ai.AiNodeEntryGetParamIterator(nodeEntry)
-            while not ai.AiParamIteratorFinished(paramIter):
-                param = ai.AiParamIteratorGetNext(paramIter)
-                paramName = ai.AiParamGetName(param)
-                if not (paramName in paramList):
-                    paramList.append(paramName)
-
-            ai.AiParamIteratorDestroy(paramIter)
-
-        for param in paramList:
-            if (len(defaultParam) == 0) or (param == 'shader'):
-                defaultParam = param
-            cmds.menuItem( label=param)
-
-
-        cmds.optionMenuGrp(self.paramBox,  e=True, w=200, ct2=('left', 'left'), v=defaultParam, cw2=(90,110))
-
-        self.paramValue = cmds.textFieldGrp('paramValue', label='Value', ct2=('left', 'left'), cw2=(90,150), text='', w=350)
-        cmds.setParent("..")
-        
-        cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))
-        cmds.text( '                                             ')
-
-        cmds.button(label='Ok', al='right', w=85, h=25, command=lambda *args: self.doCreateOperator())
-        cmds.text( '              ')
-        cmds.button(label='Cancel', al='right', w=85, h=25, command=lambda *args: self.doCancel())
-        cmds.setParent("..")
-
-        if universeCreated:
-            ai.AiEnd()
-
+    
 ################################################
 
 def LoadStandInButtonPush(attrName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
     defaultDir = cmds.workspace(query=True, directory=True)
     currentDir = cmds.getAttr(attrName) or ''
     currentDir = os.path.dirname(currentDir)
@@ -243,17 +110,37 @@ def editLabelCmd(str1, str2):
 
 class AEaiStandInTemplate(ShaderAETemplate):
 
+    def __currentWidget(self, pySideType=QtWidgets.QWidget):
+        """Cast and return the current widget."""
+        # Get the current widget Maya name.
+        currentWidgetName = cmds.setParent(query=True)
+        return toQtObject(currentWidgetName, pySideType)
+
+    def updateSelectedItems(self):
+        if not self.tree or not self.tree.transverser:
+            return
+        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items'))
+        
+        if selection == self.tree.transverser.selectionStr:
+            return
+        #self.tree.transverser.selectionStr = selection
+        selectionSplit = selection.split(',')
+        for selected in selectionSplit:
+            if selected:
+                # Prevent firing signals in Qt to avoid infinite loop.
+                #oldState = self.tree.blockSignals(True)
+                self.tree.select(selected)
+                #self.tree.blockSignals(oldState)
+                return
+                
     def updateAssFile(self):
-        # clear the cache
         self.assItems = []
-        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
+        self.fileInfoReplace(self.nodeName + ".dso")
+        # FIXME for now let's not rely on this cache attribute
+        #cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
 
-        cmds.treeView(self.assInfoPath, edit=True, visible=False)
-        cmds.button(self.inspectAssPath, edit=True, visible=True)
-        cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
-        cmds.button(self.overrideSelectionButton, edit=True, visible=False)
-        cmds.button(self.selectOperatorButton, edit=True, visible=False)
 
+    '''
     def selectElement(self, itemName, itemValue):
         if itemValue == 0:
             cmds.button(self.overrideSelectionButton, edit=True, enable=False)
@@ -273,54 +160,87 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         selAttr = self.nodeName + ".selectedItems"
         cmds.setAttr(selAttr, attrVal, type='string')
-
         return True
+    '''
 
-    def fileInfoNew(self, nodeAttr) :
-        cmds.rowLayout(nc=2)
-        cmds.text(label='')
-        self.inspectAssPath = cmds.button(align="center", label='Inspect Arnold File', command=lambda *args: self.inspectFile())
-        cmds.setParent('..') # rowLayout
-        self.assInfoPath = cmds.treeView(height=300, numberOfButtons=0, allowReparenting=False, editLabelCommand=editLabelCmd, selectCommand=self.selectElement)
-        
-        cmds.rowLayout(nc=3)
-        self.overrideSelectionButton = cmds.button(align="left", label='Override Selection', command=lambda *args: self.overrideSelection())
-        cmds.text(label='')
-        self.selectOperatorButton = cmds.button(align="right", label='Select Operators', command=lambda *args: self.selectOperators())
-        cmds.setParent('..') # rowLayout
-        self.fileInfoReplace(nodeAttr)
-        
+    def fileInfoReplace(self, nodeAttr) :
+        nodeName = nodeAttr.split('.')[0]
+        fileAttr = '{}.dso'.format(nodeName)
+        filename = cmds.getAttr(fileAttr)
+        filename = expandEnvVars(filename)
+        if nodeName == self.currentNode and filename == self.currentFilename:
+            self.properties_panel.setItem(self.nodeName, None)
+            return  # nothing to do here...
+
+        filename_changed = False
+        if nodeName == self.currentNode and filename != self.currentFilename:
+            filename_changed = True
+
+        self.currentNode = nodeName
+        self.currentFilename = filename
+
+        ext_str = ".ass"
+        if filename:
+            ext_str = os.path.splitext(filename)[1].lower()
+
+        expand = False
+        if ext_str == '.abc':
+            transverser = AlembicTransverser()
+            transverser.filenameAttr = 'dso'
+            expand = True
+        elif ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
+            # need to find out which procedural to use with it
+            procName = 'usd'
+            transverser = CustomProceduralTransverser(procName, 'filename', filename)
+        else:
+            transverser = StandInTransverser()
+
+        transverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
+        # setting refresh to False forces the tranverser not to refresh the tree
+        self.tree.setTransverser(transverser, refresh=False)
+        self.properties_panel.setTransverser(transverser)
+        # setting node triggers the refresh
+        self.tree.setCurrentNode(self.nodeName, expand, filename_changed)
+        self.properties_panel.setNode(self.nodeName)
+
         fileAttr = self.nodeName + ".dso"
-        cmds.scriptJob(attributeChange=[fileAttr,self.updateAssFile],
-                     replacePrevious=True, parent=self.inspectAssPath)
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile])
 
-    def fileInfoReplace(self, nodeAttr) :
-        if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
-            # make the attr
-            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
-        self.populateItems()
-        if len(self.assItems):
-            self.displayTree()
-        else:
-            cmds.treeView(self.assInfoPath, edit=True, visible=False)
-            cmds.button(self.inspectAssPath, edit=True, visible=True)
-            cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
-            cmds.button(self.overrideSelectionButton, edit=True, visible=False)
-            cmds.button(self.selectOperatorButton, edit=True, visible=False)
+        fileAttr = self.nodeName + ".selected_items"
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
 
-    def fileInfoReplace(self, nodeAttr) :
-        if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
-            # make the attr
-            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
-        self.populateItems()
-        if len(self.assItems):
-            self.displayTree()
-        else:
-            cmds.treeView(self.assInfoPath, edit=True, visible=False)
-            cmds.button(self.inspectAssPath, edit=True, visible=True)
-            cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
-            cmds.button(self.overrideSelectionButton, edit=True, visible=False)
-            cmds.button(self.selectOperatorButton, edit=True, visible=False)
+    def fileInfoNew(self, nodeAttr):
+
+        currentWidget = self.__currentWidget()
+        self.currentNode = ''
+        self.currentFilename = ''
+
+        # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser, because we'll set it later or 
+        # in fileInfoReplace
+        self.tree = ProceduralTreeView(None, currentWidget)
+        self.tree.setObjectName("standinTreeWidget")
+        currentWidget.layout().addWidget(self.tree)
+
+        # now add the preperties panel
+        self.properties_panel = ProceduralPropertiesPanel(None, currentWidget)
+        currentWidget.layout().addWidget(self.properties_panel)
+
+        self.tree.itemSelected.connect(self.showItemProperties)
+
+        cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
+        cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
+
+        self.fileInfoReplace(nodeAttr)
+
+    def newSceneCallback(self):
+        self.tree.setCurrentNode(None)
+        self.tree.clearSelection()
+        self.properties_panel.setItem(None, None)
+
+    @QtCore.Slot(str, object)
+    def showItemProperties(self, node, items):
+        for item in items:
+            self.properties_panel.setItem(node, item)
 
     def displayTree(self):
         cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
@@ -361,53 +281,16 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def selectOperators(self):
         return
 
-    def inspectFile(self):
-        filenameAttr = self.nodeName + '.dso'
-        filename = cmds.getAttr(filenameAttr)
-
-        if not os.path.exists(filename):
-            return
-       
-        self.assItems = []
-
-        universeCreated = False
-        if not ai.AiUniverseIsActive():
-            universeCreated = True
-            ai.AiBegin()
-
-        universe = ai.AiUniverse()
-        ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
-
-        iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
-        
-        while not ai.AiNodeIteratorFinished(iter):
-            node = ai.AiNodeIteratorGetNext(iter)
-            nodeName = ai.AiNodeGetName(node)
-            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options':
-                continue
-            
-            nodeEntry = ai.AiNodeGetNodeEntry(node)
-            entryName = ai.AiNodeEntryGetName(nodeEntry)
-            #entryType = ai.AiNodeEntryGetTypeName(nodeEntry)
-            
-            self.assItems.append([nodeName, entryName])
-
-        ai.AiNodeIteratorDestroy(iter)
-        ai.AiUniverseDestroy(universe)
-
-        if universeCreated:
-            ai.AiEnd()
-
-        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), len(self.assItems), *[','.join(a) for a in self.assItems], type="stringArray")
-        self.displayTree()
 
     def populateItems(self):
         self.assItems = []
         self.selectedItems = []
         # get the items in the cache
+        '''
         cache_str_list = cmds.getAttr('{}.{}'.format(self.nodeName, CACHE_ATTR)) or []
         for s in cache_str_list:
             self.assItems.append(s.split(','))
+        '''
 
     def useSequenceChange(self, nodeName):
         
@@ -504,6 +387,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('overrideNodes')
         self.addControl('aiNamespace', label='Namespace')
+        self.addSeparator()
+        self.addControl('ignoreGroupNodes', label='Ignore Group Nodes')
+        
 
         self.endLayout()
         
@@ -512,7 +398,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.beginLayout("File Contents", collapse=False)
         self.addCustom('aiInfo', self.fileInfoNew, self.fileInfoReplace)
         self.endLayout()
-        self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
+        # self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
         self.addSeparator()
         
 

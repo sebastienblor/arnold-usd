@@ -5,20 +5,24 @@
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
+		<attribute name='camera' type='maya.message'>
+			<label>Camera</label>
+		</attribute>
 		<attribute name='projectionColor' type='maya.float3'>
 			<label>Projection Color</label>
-		</attribute>
-		<attribute name='offscreenColor' type='maya.float3'>
-			<label>Offscreen Color</label>
 		</attribute>
 		<attribute name='mask' type='maya.float'>
 			<label>Mask</label>
 		</attribute>
+		
 	</template>
 	<view name='NEDefault' template='NEaiCameraProjection'>
 		<property name='outColor'/>
+		<property name='camera'/>
 		<property name='projectionColor'/>
-		<property name='offscreenColor'/>
 		<property name='mask'/>
+	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiCameraProjection'>
+		<property name='outColor'/>
 	</view>
 </templates>

@@ -24,6 +24,31 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
    // before we test it in ExportUserAttribute #3673
    IsMasterInstance();
+
+   MString dso = FindMayaPlug("dso").asString();
+   if (dso.length() == 0)
+      return NULL;
+
+   MStringArray splitStr;
+   dso.split('.', splitStr);
+
+   if (splitStr.length() > 1)
+   {
+      MString ext = splitStr[splitStr.length() -1].toLowerCase();
+      if (ext == "abc")
+         return AddArnoldNode("alembic");
+
+      if (ext == "usd")
+      {
+         if (AiNodeEntryLookUp("usd"))
+         {
+            // oh amazing, there's a usd node available ! let's use it
+            return AddArnoldNode("usd");  
+         }
+         AiMsgError("[mtoa.standin] USD files not supported : %s", GetMayaNodeName().asChar());         
+      }
+   }
+       
    return AddArnoldNode("procedural");
 }
 
@@ -41,8 +66,8 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
 {
    // Is this needed ? since we always use AI_RECREATE_NODE
    // this test doesn't seem necessary
-   if (IsExported())
-      return;
+   // if (IsExported())
+   //    return;
    
    MString dso = m_DagNode.findPlug("dso", true).asString().expandEnvironmentVariablesAndTilde();
    MString filename;
@@ -149,5 +174,35 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    
    GetSessionOptions().FormatProceduralPath(resolvedName);
    AiNodeSetStr(node, "filename", resolvedName.asChar());
-   
+
+   if ( strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(node)), "alembic" ) == 0)
+      AiNodeSetFlt(node, "frame", framestep);
+}
+
+void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
+   // Discard all the attributes related to the Attribute Editor, or to the viewport
+   if (plugName == "selectedItems" || plugName == "selected_items" || 
+      plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
+      plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2" ||
+      plugName == "standInDrawOverride" || plugName == "mode") return;
+
+   // Since the created arnold type depends on the dso, we need to recreate the geometry if it changes
+   if (plugName == "dso")
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   if (plugName == "ignoreGroupNodes")
+   {
+      MGlobal::displayWarning("[mtoa] ignoreGroupNodes isn't updated properly during IPR. Please restart the render or do 'Update Full Scene' in the Arnold Render View");
+   }
+   // we're calling directly the shape translator function, as we don't want to make it a AI_RECREATE_NODE
+   CShapeTranslator::NodeChanged(node, plug);  
+}
+
+bool CArnoldStandInsTranslator::ExportDagChildren() const
+{
+   return !FindMayaPlug("ignoreGroupNodes").asBool();
 }

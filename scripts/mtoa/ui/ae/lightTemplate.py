@@ -204,12 +204,16 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.addControl("aiVolumeSamples", label="Volume Samples")
         
         self.addSeparator()
-    
+        
         self.beginLayout("Visibility" , collapse = False)
-        # for now only Skydome supports it, but area lights will also have it soon
         if addVisibility:
-            self.addControl("camera", label="Camera")
-            self.addControl("transmission", label="Transmission")    
+            if self.nodeName == None or cmds.objExists('{}.aiCamera'.format(self.nodeName)):
+                self.addControl("aiCamera", label="Camera")
+                self.addControl("aiTransmission", label="Transmission")
+            elif cmds.objExists('{}.camera'.format(self.nodeName)):
+                self.addControl("camera", label="Camera")
+                self.addControl("transmission", label="Transmission")    
+
         self.addControl("aiDiffuse", label="Diffuse")
         self.addControl("aiSpecular", label="Specular")
         self.addControl("aiSss", label="SSS")
@@ -219,7 +223,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.endLayout()
 
         self.addSeparator()
-        self.addControl("aiAov", label="AOV Light Group")
+        self.addControl("aiAov", label="AOV Light Group *")
         
         self.lightFiltersLayout()
         
@@ -227,7 +231,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             self.addControl("aiUserOptions", "User Options")
 
     def lightFiltersLayout(self):
-        self.beginLayout("Light Filters", collapse=False)
+        self.beginLayout("Light Filters *", collapse=False)
         self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
         self.endLayout()
 

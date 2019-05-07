@@ -1,66 +1,205 @@
 #include "translators.h"
 #include <maya/MFnDependencyNode.h>
 
-namespace
+AtNode* CApplyRelIntOverrideTranslator::CreateArnoldNodes()
 {
-    template<typename T>
-    inline void transfer(const MFnDependencyNode& mnode, const char* name, AtNode* node);
-
-    template<> void transfer<bool>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        AiNodeSetBool(node, name, mnode.findPlug(name, true).asBool());
-    }
-    template<> void transfer<float>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        AiNodeSetFlt(node, name, mnode.findPlug(name, true).asFloat());
-    }
-    template<> void transfer<float2>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        const float2& v = mnode.findPlug(name, true).asMDataHandle().asFloat2();
-        AiNodeSetVec2(node, name, v[0], v[1]);
-    }
-    template<> void transfer<float3>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        const float3& v = mnode.findPlug(name, true).asMDataHandle().asFloat3();
-        AiNodeSetRGB(node, name, v[0], v[1], v[2]);
-
-    }
-    template<> void transfer<int>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        AiNodeSetInt(node, name, mnode.findPlug(name, true).asInt());
-    }
+    AtNode* multiply = AddArnoldNode("multiply", "multiply");
+    AtNode* add = AddArnoldNode("add", "offset");
+    AtNode* float_to_int = AddArnoldNode("float_to_int", "float_to_int");
+    AiNodeLink(multiply, "input2", add);
+    AiNodeLink(add, "input", float_to_int);
+    return add;
 }
 
-template<> AtNode* CApplyAbsOverrideTranslator<float>::CreateArnoldNodes()  { return AddArnoldNode("applyAbsFloatOverride");   }
-template<> AtNode* CApplyAbsOverrideTranslator<float2>::CreateArnoldNodes() { return AddArnoldNode("applyAbs2FloatsOverride"); }
-template<> AtNode* CApplyAbsOverrideTranslator<float3>::CreateArnoldNodes() { return AddArnoldNode("applyAbs3FloatsOverride"); }
-template<> AtNode* CApplyAbsOverrideTranslator<int>::CreateArnoldNodes()    { return AddArnoldNode("applyAbsIntOverride");     }
-
-template<> AtNode* CApplyRelOverrideTranslator<float>::CreateArnoldNodes()  { return AddArnoldNode("applyRelFloatOverride");   }
-template<> AtNode* CApplyRelOverrideTranslator<float2>::CreateArnoldNodes() { return AddArnoldNode("applyRel2FloatsOverride"); }
-template<> AtNode* CApplyRelOverrideTranslator<float3>::CreateArnoldNodes() { return AddArnoldNode("applyRel3FloatsOverride"); }
-template<> AtNode* CApplyRelOverrideTranslator<int>::CreateArnoldNodes()    { return AddArnoldNode("applyRelIntOverride");     }
-
-template<typename T>
-void CApplyAbsOverrideTranslator<T>::Export(AtNode* node)
+void CApplyRelIntOverrideTranslator::Export( AtNode* shader)
 {
     MFnDependencyNode mnode(this->GetMayaObject());
-    transfer<T>(mnode, "original", node);
-    transfer<T>(mnode, "value", node);
-    transfer<bool>(mnode, "enabled", node);
+    AtNode* multiply = GetArnoldNode("multiply");
+    AtNode* add = GetArnoldNode("offset");
+    AtNode* float_to_int = shader;
+    const float orig = mnode.findPlug("original", true).asFloat();
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        const float mult = mnode.findPlug("multiply", true).asFloat();
+        const float offset = mnode.findPlug("offset", true).asFloat();
+        AiNodeSetRGB(multiply, "input1", orig,0,0);
+        AiNodeSetRGB(multiply, "input2", mult,0,0);
+        AiNodeSetRGB(add, "input1", offset,0,0);
+    }
+    else
+    {
+        AiNodeSetRGB(add, "input1", orig,0,0);
+        AiNodeSetRGB(multiply, "input2", 0,0,0);
+        AiNodeSetRGB(multiply, "input1", 0,0,0);
+    }
 }
 
-template<typename T>
-void CApplyRelOverrideTranslator<T>::Export(AtNode* node)
+
+AtNode* CApplyRelFloatOverrideTranslator::CreateArnoldNodes()
+{
+    AtNode* multiply = AddArnoldNode("multiply", "multiply");
+    AtNode* add = AddArnoldNode("add", "offset");
+    AiNodeLink(multiply, "input2", add);
+    return add;
+}
+
+void CApplyRelFloatOverrideTranslator::Export( AtNode* shader)
 {
     MFnDependencyNode mnode(this->GetMayaObject());
-    transfer<T>(mnode, "original", node);
-    transfer<T>(mnode, "multiply", node);
-    transfer<T>(mnode, "offset",   node);
-    transfer<bool>(mnode, "enabled", node);
+    AtNode* multiply = GetArnoldNode("multiply");
+    AtNode* add = shader;
+    const float orig = mnode.findPlug("original", true).asFloat();
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        const float mult = mnode.findPlug("multiply", true).asFloat();
+        const float offset = mnode.findPlug("offset", true).asFloat();
+        AiNodeSetRGB(multiply, "input1", orig,orig,orig);
+        AiNodeSetRGB(multiply, "input2", mult,mult,mult);
+        AiNodeSetRGB(add, "input1", offset,offset,offset);
+    }
+    else
+    {
+        AiNodeSetRGB(add, "input1", orig,orig,orig);
+        AiNodeSetRGB(multiply, "input2", 0,0,0);
+        AiNodeSetRGB(multiply, "input1", 0,0,0);
+    }
 }
 
-template class CApplyAbsOverrideTranslator<float>;
-template class CApplyAbsOverrideTranslator<float2>;
-template class CApplyAbsOverrideTranslator<float3>;
-template class CApplyAbsOverrideTranslator<int>;
+AtNode* CApplyRelFloat2OverrideTranslator::CreateArnoldNodes()
+{
+    AtNode* multiply = AddArnoldNode("multiply", "multiply");
+    AtNode* add = AddArnoldNode("add", "offset");
+    AiNodeLink(multiply, "input2", add);
+    return add;
+}
 
-template class CApplyRelOverrideTranslator<float>;
-template class CApplyRelOverrideTranslator<float2>;
-template class CApplyRelOverrideTranslator<float3>;
-template class CApplyRelOverrideTranslator<int>;
+void CApplyRelFloat2OverrideTranslator::Export( AtNode* shader)
+{
+    MFnDependencyNode mnode(this->GetMayaObject());
+    AtNode* multiply = GetArnoldNode("multiply");
+    AtNode* add = shader;
+    const float2& orig = mnode.findPlug("original", true).asMDataHandle().asFloat2();
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        const float2& mult = mnode.findPlug("multiply", true).asMDataHandle().asFloat2();
+        const float2& offset = mnode.findPlug("offset", true).asMDataHandle().asFloat2();
+        AiNodeSetRGB(multiply, "input1", orig[0],orig[1],0);
+        AiNodeSetRGB(multiply, "input2", mult[0],mult[1],0);
+        AiNodeSetRGB(add, "input1", offset[0],offset[1],0);
+    }
+    else
+    {
+        AiNodeSetRGB(add, "input1", orig[0],orig[1],0);
+        AiNodeSetRGB(multiply, "input2", 0,0,0);
+        AiNodeSetRGB(multiply, "input1", 0,0,0);
+    }
+}
+
+AtNode* CApplyRelFloat3OverrideTranslator::CreateArnoldNodes()
+{
+    AtNode* multiply = AddArnoldNode("multiply", "multiply");
+    AtNode* add = AddArnoldNode("add", "offset");
+    AiNodeLink(multiply, "input2", add);
+    return add;
+}
+
+void CApplyRelFloat3OverrideTranslator::Export( AtNode* shader)
+{
+    MFnDependencyNode mnode(this->GetMayaObject());
+    AtNode* multiply = GetArnoldNode("multiply");
+    AtNode* add = shader;
+    const float3& orig = mnode.findPlug("original", true).asMDataHandle().asFloat3();
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        const float3& mult = mnode.findPlug("multiply", true).asMDataHandle().asFloat3();
+        const float3& offset = mnode.findPlug("offset", true).asMDataHandle().asFloat3();
+        AiNodeSetRGB(multiply, "input1", orig[0],orig[1],orig[2]);
+        AiNodeSetRGB(multiply, "input2", mult[0],mult[1],mult[2]);
+        AiNodeSetRGB(add, "input1", offset[0],offset[1],offset[2]);
+    }
+    else
+    {
+        AiNodeSetRGB(add, "input1", orig[0],orig[2],orig[3]);
+        AiNodeSetRGB(multiply, "input2", 0,0,0);
+        AiNodeSetRGB(multiply, "input1", 0,0,0);
+    }
+}
+
+AtNode* CApplyAbsIntOverrideTranslator::CreateArnoldNodes()
+{
+    return AddArnoldNode("float_to_int");
+}
+
+void CApplyAbsIntOverrideTranslator::Export( AtNode* shader)
+{
+    MFnDependencyNode mnode(this->GetMayaObject());
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        AiNodeSetFlt(shader, "input", mnode.findPlug("value", true).asFloat());
+    }
+    else
+    {
+        AiNodeSetFlt(shader, "input", mnode.findPlug("original", true).asFloat());
+    }
+}
+
+AtNode* CApplyAbsFloatOverrideTranslator::CreateArnoldNodes()
+{
+    return AddArnoldNode("flat");
+}
+
+void CApplyAbsFloatOverrideTranslator::Export( AtNode* shader)
+{
+    MFnDependencyNode mnode(this->GetMayaObject());
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        const float& v = mnode.findPlug("value", true).asFloat();
+        AiNodeSetRGB(shader, "color", v,v,v);
+    }
+    else
+    {
+        const float& v = mnode.findPlug("original", true).asFloat();
+        AiNodeSetRGB(shader, "color", v,v,v);
+    }
+}
+
+AtNode* CApplyAbsFloat2OverrideTranslator::CreateArnoldNodes()
+{
+    return AddArnoldNode("flat");
+}
+
+void CApplyAbsFloat2OverrideTranslator::Export( AtNode* shader)
+{
+    MFnDependencyNode mnode(this->GetMayaObject());
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        const float2& v = mnode.findPlug("value", true).asMDataHandle().asFloat2();
+        AiNodeSetRGB(shader, "color",v[0] ,v[1],0);
+    }
+    else
+    {
+        const float2& v = mnode.findPlug("original", true).asMDataHandle().asFloat2();
+        AiNodeSetRGB(shader, "color", v[0],v[1],0);
+    }
+}
+
+AtNode* CApplyAbsFloat3OverrideTranslator::CreateArnoldNodes()
+{
+    return AddArnoldNode("flat");
+}
+
+void CApplyAbsFloat3OverrideTranslator::Export( AtNode* shader)
+{
+    MFnDependencyNode mnode(this->GetMayaObject());
+    
+    if (mnode.findPlug("enabled", true).asBool())
+    {
+        const float3& v = mnode.findPlug("value", true).asMDataHandle().asFloat3();
+        AiNodeSetRGB(shader, "color",v[0] ,v[1],v[2]);
+    }
+    else
+    {
+        const float3& v = mnode.findPlug("original", true).asMDataHandle().asFloat3();
+        AiNodeSetRGB(shader, "color", v[0],v[1],v[2]);
+    }
+}

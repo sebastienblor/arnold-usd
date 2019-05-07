@@ -1,0 +1,64 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+//============= add motion blur
+setAttr "defaultArnoldRenderOptions.motion_blur_enable" 1;
+arnoldRenderView -option "Wait Render"  "1";
+string $img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//============= add camera blur
+setAttr "defaultArnoldRenderOptions.mb_camera_enable" 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//============ change the shutter length
+setAttr "defaultArnoldRenderOptions.motion_frames" 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//============= switch range to start on frame
+setAttr "defaultArnoldRenderOptions.range_type" 0;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//============= switch range to custom, and switch multiple times the range values
+setAttr "defaultArnoldRenderOptions.range_type" 3;
+arnoldRenderView -option "Wait Render"  "1";
+setAttr "defaultArnoldRenderOptions.motion_start" -0.54;
+arnoldRenderView -option "Wait Render"  "1";
+setAttr "defaultArnoldRenderOptions.motion_end" 0.68;
+arnoldRenderView -option "Wait Render"  "1";
+setAttr "defaultArnoldRenderOptions.motion_end" 0.9;
+arnoldRenderView -option "Wait Render"  "1";
+setAttr "defaultArnoldRenderOptions.motion_start" -0.3;
+refresh -f;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_5.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//====== Disable motion blur
+setAttr "defaultArnoldRenderOptions.motion_blur_enable" 0;
+setAttr "defaultArnoldRenderOptions.mb_object_deform_enable" 0;
+setAttr "defaultArnoldRenderOptions.mb_camera_enable" 0;
+setAttr "defaultArnoldRenderOptions.motion_blur_enable" 0;
+
+setAttr "pTorus1.inheritsTransform" 1;
+setAttr "pCube1.inheritsTransform" 1;
+setAttr "pSphere1.inheritsTransform" 1;
+setAttr "persp.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_6.tif";
+arnoldRenderView -option "Save Image" $img;

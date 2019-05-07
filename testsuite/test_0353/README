@@ -1,0 +1,7 @@
+Test MayaRamp to standard_surface transmission, with offset UVs
+
+See trac#3776
+
+author: Ashley Handscomb Retallack
+
+PARAMS: {} # Remove this line if no custom params are needed

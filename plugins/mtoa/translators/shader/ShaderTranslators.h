@@ -35,14 +35,10 @@ public:
 SHADER_TRANSLATOR(CLambertTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
-SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
-SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
-SHADER_TRANSLATOR(CRemapColorTranslator);
-SHADER_TRANSLATOR(CProjectionTranslator);
-SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
+SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
 SHADER_TRANSLATOR(CMayaPhongTranslator);
 SHADER_TRANSLATOR(CMayaPhongETranslator);
@@ -57,17 +53,25 @@ SHADER_TRANSLATOR(CConditionTranslator);
 SHADER_TRANSLATOR(CLuminanceTranslator);
 SHADER_TRANSLATOR(CReverseTranslator);
 SHADER_TRANSLATOR(CSurfaceLuminanceTranslator);
+SHADER_TRANSLATOR(CGammaCorrectTranslator);
+SHADER_TRANSLATOR(CRgbToHsvTranslator);
+SHADER_TRANSLATOR(CHsvToRgbTranslator);
+SHADER_TRANSLATOR(CUserDataVec2Translator);
+SHADER_TRANSLATOR(CUserDataBoolTranslator);
+SHADER_TRANSLATOR(CUserDataVectorTranslator);
+SHADER_TRANSLATOR(CSetRangeTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {
+   CDisplacementTranslator() : CShaderTranslator(), m_isVectorDisp(false) {}
 public:
    static void* creator(){return new CDisplacementTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
-   bool DependsOnOutputPlug() { return true; }
-
+   
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
+   bool m_isVectorDisp;
 };
 
 class CMayaShadingSwitchTranslator : public CShaderTranslator{
@@ -87,7 +91,7 @@ void* CreateQuadShadingSwitchTranslator();
 
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
-void ProjectionTranslatorNodeInitializer(CAbTranslator context);
+
 
 class CBump2DTranslator : public CShaderTranslator
 {
@@ -166,6 +170,23 @@ public:
    AtNode* CreateArnoldNodes();
 };
 
+class CRampRgbTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CRampRgbTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
+class CRampFloatTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CRampFloatTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
+
 class CAiStandardHairTranslator : public CShaderTranslator{
 public:
    static void* creator(){return new CAiStandardHairTranslator();}
@@ -224,12 +245,51 @@ public:
 
 class CRampTranslator : public CShaderTranslator{
 public:
+   enum RampType
+   {
+      RT_V = 0,
+      RT_U,
+      RT_DIAGONAL,
+      RT_RADIAL,
+      RT_CIRCULAR,
+      RT_BOX,
+      RT_UV,
+      RT_4CORNER,
+      RT_TARTAN
+   };
+   enum RampInterpolationType
+   {
+      RIT_NONE = 0,
+      RIT_LINEAR,
+      RIT_EXP_UP,
+      RIT_EXP_DOWN,
+      RIT_SMOOTH,
+      RIT_BUMP,
+      RIT_SPIKE
+   };
+
    static void* creator(){return new CRampTranslator();}
 
    virtual void Export(AtNode* shader);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+private:
+   bool RequiresColorCorrect() const;
+   bool RequiresUnwrap() const;
+   bool RequiresUvTransform() const;
+   AtNode *ExportUvTransform();
+   AtNode *ExportColorCorrect(AtNode *target);
+   AtNode *ExportUnwrap(AtNode *target);
+   void ExportRampKeys(AtNode *shader);
+   void ExportRampType(AtNode *rampShader, RampType type);
+   void GetUvSet();
 
+   int m_type;
+   AtNode *m_custom_uvs;
+   bool m_hasColorCorrect;
+   MString m_uvSet;
 };
 
 
@@ -273,4 +333,126 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
 
 
+};
+
+class CSurfaceShaderTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CSurfaceShaderTranslator();}
+
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};
+
+class CContrastTranslator : public CShaderTranslator
+{   
+public:
+   CContrastTranslator() : CShaderTranslator(), m_isRgb(false) {}
+   
+   static void* creator(){return new CContrastTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   bool m_isRgb;
+};   
+
+class CRemapValueTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CRemapValueTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   bool DependsOnOutputPlug() { return true; }
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+
+};
+
+class CLayeredTextureTranslator : public CShaderTranslator
+{
+public:
+   
+enum LayeredTextureBlendMode
+{
+   BM_NONE = 0,
+   BM_OVER,
+   BM_IN,
+   BM_OUT,
+   BM_ADD,
+   BM_SUBTRACT,
+   BM_MULTIPLY,
+   BM_DIFFERENCE,
+   BM_LIGHTEN,
+   BM_DARKEN,
+   BM_SATURATE,
+   BM_DESATURATE,
+   BM_ILLUMINATE
+};
+
+   static void* creator(){return new CLayeredTextureTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};
+
+class CProjectionTranslator : public CShaderTranslator
+{
+public:
+enum ProjectionType
+{
+   PT_NONE = 0,
+   PT_PLANAR,
+   PT_SPHERICAL,
+   PT_CYLINDRICAL,
+   PT_BALL,
+   PT_CUBIC,
+   PT_TRIPLANAR,
+   PT_CONCENTRIC,
+   PT_PERSPECTIVE
+};
+
+enum FitType
+{
+   FIT_NONE = 0,
+   FIT_CAMERA_FILM_GATE, 
+   FIT_CAMERA_RESOLUTION
+};
+enum FillType
+{
+   FILL_FILL = 0,
+   FILL_HORIZONTAL,
+   FILL_VERTICAL
+};
+
+
+   static void* creator(){return new CProjectionTranslator();}
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   bool RequiresColorCorrect() const;
+};
+
+class CPlusMinusAverageTranslator : public CShaderTranslator
+{
+public:
+
+enum MathOperation
+{
+   OP_NONE = 0,
+   OP_PLUS,
+   OP_MINUS,
+   OP_AVERAGE
+};
+   static void* creator(){return new CPlusMinusAverageTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+  // bool DependsOnOutputPlug() { return true; } 
+protected:
+   int m_inputSize;
 };

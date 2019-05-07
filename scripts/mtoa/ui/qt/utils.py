@@ -8,16 +8,32 @@ from .Qt import QtWidgets
 from .Qt import shiboken
 from .Qt import cmds
 
+import re
+
 _DPI_SCALE = \
     1.0 \
     if not hasattr(cmds, "mayaDpiSetting") else \
     cmds.mayaDpiSetting(query=True, realScaleValue=True)
 
 
+STRING_EXP = re.compile(r'[\'\"](.*)[\'\"]')
+
+
 def dpiScale(value):
     """Scale the value according to the current DPI of the current monitor."""
     return _DPI_SCALE * value
 
+def dpiScaledIcon(path):
+    """Creates QPixmap and scales it for hi-dpi mode"""
+    icon = QtGui.QPixmap(path)
+
+    scale = dpiScale(1.0)
+    if scale > 1.0:
+        icon = icon.scaledToHeight(
+            icon.height() * scale,
+            QtCore.Qt.SmoothTransformation)
+
+    return icon
 
 def toPyObject(obj):
     """Call QVariant.toPyObject on the case we are in PyQt."""
@@ -29,7 +45,7 @@ def toPyObject(obj):
     return obj
 
 
-def toQtObject(mayaUIName):
+def toQtObject(mayaUIName, pySideType=QtCore.QObject):
     '''
     Given the name of a Maya UI element of any type,
     return the corresponding QWidget or QAction.
@@ -42,7 +58,7 @@ def toQtObject(mayaUIName):
             ptr = OpenMayaUI.MQtUtil.findMenuItem(mayaUIName)
 
     if ptr is not None:
-        obj = shiboken.wrapInstance(long(ptr), QObject)
+        obj = shiboken.wrapInstance(long(ptr), pySideType)
         return obj
 
 
@@ -50,22 +66,61 @@ def clearWidget(widget):
     """clear children from given widget"""
     while widget.layout().count():
         item = widget.layout().takeAt(0)
-        if isinstance(item, QWidgetItem):
+        if isinstance(item, QtWidgets.QWidgetItem):
             item.widget().close()
-        elif isinstance(item, QSpacerItem):
+        elif isinstance(item, QtWidgets.QSpacerItem):
             widget.layout().removeItem(item)
 
 
 def setStaticSize(widget, width=0, height=0, posx=0, posy=0):
     if width:
-        widget.setMinimumWidth(width)
-        widget.setMaximumWidth(width)
+        widget.setMinimumWidth(dpiScale(width))
+        widget.setMaximumWidth(dpiScale(width))
+
     if height:
-        widget.setMinimumHeight(height)
-        widget.setMaximumHeight(height)
+        widget.setMinimumHeight(dpiScale(height))
+        widget.setMaximumHeight(dpiScale(height))
 
     if width and height and posx and posy:
-        widget.setGeometry(width, height, width, height)
+        widget.setGeometry(dpiScale(width),
+                           dpiScale(height),
+                           dpiScale(width),
+                           dpiScale(height))
+
+
+def valueIsExpression(value):
+    """Check if the given value is a expression"""
+
+    def isDigit(value):
+        try:
+            float(value)
+            return True
+        except (ValueError, TypeError):
+            return False
+
+    def isBoolean(value):
+        if value.lower() in ['true', 'false', 'on', 'off', '0', '1']:
+            return True
+        return False
+
+    if STRING_EXP.match(value):
+        return False
+    if isDigit(value):
+        return False
+    if isBoolean(value):
+        return False
+    if re.match(r'\[(\.?\d+(?:\.\d+)?\s?)*\]$', value):
+        return False
+    if re.match(r'\[(\.?\d+(?:\.\d+)?\s?)*\]\s+[\+\-\*/\^\%]?', value):
+        return True
+    if re.search(r'[@#][a-zA-Z0-9]*', value):
+        return True
+    if re.search(r'[@#][a-zA-Z0-9]*', value):
+        return True
+    if re.match(r'^(\.?\d+(?:\.\d+)?|(?:[@#][a-zA-Z0-9]*))\s*[\+\-\*/\^\%]?', value):
+        return True
+
+    return False
 
 
 def getMayaWindow():

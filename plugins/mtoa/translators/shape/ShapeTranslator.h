@@ -48,13 +48,8 @@ protected:
    /// For initializer callbacks : Create attributes common to arnold shape nodes
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
       
-   /** Set an already created shader as the root shader for this shape.
-    This is used when the shader is created manually. The return value contains the
-    shading engine that has to be linked to the "shader" param of the shape.
-    Do not invoke it if RequiresShaderExport returns false
-    \see RequiresShaderExport
-    */
-   void SetRootShader(AtNode *rootShader);
+   // DEPRECATED: Shaders need to be set with AiNodeSetPtr(GetArnoldNode(), "shader", shaderNode);
+   void SetRootShader(AtNode *rootShader); 
 
 
    /// Returns the Maya MPlug for the shading group attribute on the given MObject

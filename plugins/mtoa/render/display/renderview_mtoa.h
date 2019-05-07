@@ -68,7 +68,7 @@ public:
    virtual void SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append = false);
    virtual void ReceiveSelectionChanges(bool receive);
    virtual void NodeParamChanged(AtNode *node, const char *paramName);
-   virtual void RenderViewClosed();
+   virtual void RenderViewClosed(bool close_ui);
    virtual void RenderOptionsClosed();
    virtual void Resize(int width, int height);
 

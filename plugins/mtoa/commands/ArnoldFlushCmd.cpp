@@ -10,10 +10,8 @@
 #include "scene/MayaScene.h"
 
 
-static const AtString MayaFile_str("MayaFile");
 static const AtString image_str("image");
 static const AtString skydome_light_str("skydome_light");
-static const AtString MayaImagePlane_str("MayaImagePlane");
 
 
 MSyntax CArnoldFlushCmd::newSyntax()
@@ -33,7 +31,7 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
 {
    if(node == NULL) return;
 
-   if(AiNodeIs(node, MayaFile_str) || AiNodeIs(node, image_str))
+   if(AiNodeIs(node, image_str))
    {
       // this is an image node
       MString filename = AiNodeGetStr(node, "filename").c_str();
@@ -133,7 +131,7 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 
          if (selected)
          {
-            if (AiNodeIs(selected, MayaFile_str) || AiNodeIs(selected, image_str) ||  AiNodeIs(selected, MayaImagePlane_str))
+            if (AiNodeIs(selected, image_str))
             {
                MString filename = AiNodeGetStr(selected, "filename").c_str();
                MStringArray expandedFilenames = expandFilename(filename);

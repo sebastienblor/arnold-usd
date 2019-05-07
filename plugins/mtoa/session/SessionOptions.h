@@ -76,6 +76,14 @@ struct CMayaExportFilter
 #define MTOA_MBLUR_TYPE_END      0x0002
 #define MTOA_MBLUR_TYPE_CUSTOM   0x0003
 
+#define MTOA_EXPORT_NAMESPACE_OFF       0x0000
+#define MTOA_EXPORT_NAMESPACE_ON        0x0001
+#define MTOA_EXPORT_NAMESPACE_ROOT      0x0002
+
+#define MTOA_EXPORT_SEPARATOR_PIPES     0x0000
+#define MTOA_EXPORT_SEPARATOR_SLASHES   0x0001
+
+
 struct CMotionBlurOptions
 {
    unsigned int   enable_mask;
@@ -188,6 +196,9 @@ struct CSessionOptions
    bool IsBatch() const { return (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS); }
    bool IsInteractiveRender() const {return (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_IPR); }
 
+   unsigned int GetExportSeparator() const {return (m_exportSlashSeparator) ? MTOA_EXPORT_SEPARATOR_SLASHES : MTOA_EXPORT_SEPARATOR_PIPES;}
+   unsigned int GetExportNamespace() const {return (unsigned int) m_exportNamespace;}
+
 private:
 
    CSessionOptions() :  m_options(MObject()),
@@ -206,7 +217,9 @@ private:
                         m_absoluteTexturePaths(true),
                         m_absoluteProceduralPaths(true),
                         m_exportFullPath(false),
-                        m_exportAllShadingGroups(false)
+                        m_exportAllShadingGroups(false),
+                        m_exportSlashSeparator(false),
+                        m_exportNamespace(MTOA_EXPORT_NAMESPACE_ON)
                         
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
@@ -276,4 +289,8 @@ private:
    bool                 m_absoluteProceduralPaths;
    bool                 m_exportFullPath;
    bool                 m_exportAllShadingGroups;
+   bool                 m_exportSlashSeparator;
+   unsigned char        m_exportNamespace;
+
+
 };

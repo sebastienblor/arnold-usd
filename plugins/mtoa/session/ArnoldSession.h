@@ -112,6 +112,9 @@ public:
 
    inline bool GetExportFullPath() const {return m_sessionOptions.GetExportFullPath();}
    inline const MString &GetExportPrefix() const {return m_sessionOptions.GetExportPrefix();}
+
+   inline unsigned int GetExportNamespace() const {return m_sessionOptions.GetExportNamespace();}
+   inline unsigned int GetExportSeparator() const {return m_sessionOptions.GetExportSeparator();}
    
    inline void SetExportFullPath(bool b) {m_sessionOptions.SetExportFullPath(b);}
    inline void SetExportPrefix(const MString &prefix) {m_sessionOptions.SetExportPrefix(prefix);}

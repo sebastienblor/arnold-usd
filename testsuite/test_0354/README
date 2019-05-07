@@ -1,0 +1,6 @@
+Projection should use world coordinates if Pref aren't found 
+
+See trac#3679
+
+author: sebastien.ortega
+

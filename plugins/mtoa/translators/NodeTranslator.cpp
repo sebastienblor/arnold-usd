@@ -51,33 +51,6 @@
 #define new DEBUG_NEW
 #endif
 
-
-MString GetAOVNodeType(int type)
-{
-   MString nodeType = "";
-   switch (type)
-   {
-   case AI_TYPE_FLOAT:
-      nodeType = "MtoaAovWriteFloat";
-      break;
-   case AI_TYPE_RGB:
-   case AI_TYPE_RGBA:
-      nodeType = "MtoaAovWriteColor";
-      break;
-   case AI_TYPE_VECTOR:
-      nodeType = "MtoaAovWriteVector";
-      break;
-   case AI_TYPE_VECTOR2:
-      nodeType = "MtoaAovWritePoint2"; // not renaming the shader for now...
-      break;
-   default:
-      {
-         break;
-      }
-   }
-   return nodeType;
-}
-
 // Utility function to check plug for any incoming connection on it or its childs or elements
 bool HasIncomingConnection(const MPlug &plug)
 {
@@ -1241,9 +1214,7 @@ void CNodeTranslator::RequestTxUpdate()
 MString CNodeTranslator::GetArnoldNaming(const MObject &object)
 {
    MString name = MFnDependencyNode(object).name();
-   const MString &prefix = GetSessionOptions().GetExportPrefix();
-   if (prefix.length() > 0)
-      name = prefix + name;
+   CNodeTranslatorImpl::AddNamingOptions(name);
    return name;
 }
 

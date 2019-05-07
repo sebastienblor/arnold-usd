@@ -4,6 +4,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiWriteIntTemplate(ShaderAETemplate):
 
     def setup(self):
+        self.addSwatch()
         self.beginScrollLayout()
         self.beginLayout("Write Int Attributes", collapse=False)
 

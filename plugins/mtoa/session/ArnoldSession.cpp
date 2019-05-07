@@ -382,37 +382,6 @@ bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 
 // Private Methods
 
-/*
-/// For each active AOV add a CAOV class to m_aovs
-void CArnoldSession::ProcessAOVs()
-{
-   MFnDependencyNode fnOptions = MFnDependencyNode(GetArnoldRenderOptions());
-   AOVMode aovMode = AOVMode(fnOptions.findPlug("aovMode").asInt());
-   if (aovMode == AOV_MODE_ENABLED ||
-         (IsBatch() && aovMode == AOV_MODE_BATCH_ONLY))
-   {
-      MPlugArray conns;
-      MPlug pAOVs = fnOptions.findPlug("aovs");
-      for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
-      {
-         if (pAOVs[i].connectedTo(conns, true, false))
-         {
-            CAOV aov;
-            MObject oAOV = conns[0].node();
-            if (aov.FromMaya(oAOV))
-               if (aov.IsEnabled())
-                  m_aovs.insert(aov);
-            else
-               MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
-         }
-      }
-   }
-   else
-      AiMsgDebug("[mtoa] [aovs] disabled");
-}
-*/
-   
-
 MStatus CArnoldSession::Begin(const CSessionOptions &options)
 {
  
@@ -437,7 +406,6 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
 
    m_origin = options.GetOrigin();
 
-   //ProcessAOVs();
    return status;
 }
 
@@ -2339,9 +2307,7 @@ void CArnoldSession::ExportTxFiles()
    ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
 
-   static const AtString MayaFile_str("MayaFile");
    static const AtString image_str("image");
-   static const AtString MayaImagePlane_str("MayaImagePlane");
 
    for ( ; it != itEnd; ++it)
    {
@@ -2351,7 +2317,7 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
 
-      if (AiNodeIs(node, MayaFile_str) || AiNodeIs(node, image_str) || AiNodeIs(node, MayaImagePlane_str)) textureNodes.push_back(translator);
+      if (AiNodeIs(node, image_str)) textureNodes.push_back(translator);
       
    }
 
@@ -2772,7 +2738,7 @@ void CArnoldSession::ExportImagePlane()
          {
             imgPlaneTranslator->SetCamera(fnNode.name());
 
-            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
+            AtNode *imgPlaneShader = imgPlaneTranslator->m_impl->m_atRoot;
             
             if (imgPlaneShader)      
             {

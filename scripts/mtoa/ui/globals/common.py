@@ -92,12 +92,12 @@ def getMultiCameraChildren(camera):
     return cameras
 
 def fileTypeToExtension(fileType):
-   if (fileType == "jpeg") :
-       return "jpg"
-   elif (fileType == "tiff") :
-       return "tif"
-   else :
-       return fileType
+    if (fileType == "jpeg") :
+        return "jpg"
+    elif (fileType == "tiff") :
+        return "tif"
+    else :
+        return fileType
 
 
 # ----------------------------------------------------------------------------

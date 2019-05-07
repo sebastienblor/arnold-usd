@@ -1,5 +1,6 @@
 #include "ShaderTranslators.h"
 #include "platform/Platform.h"
+#include "../../common/UnorderedContainer.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -30,67 +31,86 @@
 
 #include <utils/MayaUtils.h>
 
-bool IsFloatAttrDefault(MPlug plug, float value)
+
+static const MStringArray SHADER_INVALID_COMPONENTS;
+static const char* shaderRgbComp[3] = {"r", "g", "b"};
+static const MStringArray SHADER_RGB_COMPONENTS(shaderRgbComp, 3);
+static const char* shaderRgbaComp[4] = {"r", "g", "b", "a"};
+static const MStringArray SHADER_RGBA_COMPONENTS(shaderRgbaComp, 4);
+const char* shaderPoint2Comp[2] = {"x", "y"};
+const MStringArray SHADER_VECTOR2_COMPONENTS(shaderPoint2Comp, 2);
+const char* shaderVectorComp[3] = {"x", "y", "z"};
+const MStringArray SHADER_VECTOR_COMPONENTS(shaderVectorComp, 3);
+
+const MStringArray& GetShaderComponentNames(int arnoldParamType)
 {
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-   float plugValue = plug.asFloat();
-   if (std::abs(plugValue - value) > AI_EPSILON)
-      return false; 
-
-   return true;
-}
-bool IsBoolAttrDefault(MPlug plug, bool value)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-   bool plugValue = plug.asBool();
-   
-   return (plugValue == value);
-}
-
-bool IsVec2AttrDefault(MPlug plug, float valueX, float valueY)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-
-   return (IsFloatAttrDefault(plug.child(0), valueX) &&
-           IsFloatAttrDefault(plug.child(1), valueY));
-
+   MStringArray componentNames;
+   switch (arnoldParamType)
+   {
+   case AI_TYPE_RGB:
+      return SHADER_RGB_COMPONENTS;
+   case AI_TYPE_RGBA:
+      return SHADER_RGBA_COMPONENTS;
+   case AI_TYPE_VECTOR:
+      return SHADER_VECTOR_COMPONENTS;
+   case AI_TYPE_VECTOR2:
+      return SHADER_VECTOR2_COMPONENTS;
+   // FIXME Arnold5 make sure we don't want any components with closures
+   default:
+      return SHADER_INVALID_COMPONENTS;
+   }
 }
 
-bool IsRGBAttrDefault(MPlug plug, float valueR, float valueG, float valueB)
+// returns 0-3 or -1 if failed
+int GetShaderFloatComponentIndex(const MPlug &plug)
 {
-   if (plug.isNull())
-      return true;
+   MStatus stat;
+   MFnNumericAttribute nAttr(plug.attribute(), &stat);
+   if (stat == MS::kSuccess && nAttr.unitType() == MFnNumericData::kFloat)
+   {
+      if (plug.isChild())
+      {
+         MPlug parentPlug = plug.parent();
+         if (parentPlug.numChildren() > 3)
+            // TODO: print warning
+            return -1;
+         for (unsigned int i=0; i < parentPlug.numChildren(); ++i)
+         {
+            if (parentPlug.child(i) == plug)
+               return i;
+         }
+         return -1;
+      }
+      else if (plug.partialName(false, false, false, false, false, true) == OUT_ALPHA_NAME)
+      {
+         return 3;
+      }
+   }
+   return -1;
+}
 
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
+MString GetShaderComponentName(int arnoldParamType, const MPlug &plug)
+{
+   const MStringArray names = GetShaderComponentNames(arnoldParamType);
+   int index = GetShaderFloatComponentIndex(plug);
 
-   return (IsFloatAttrDefault(plug.child(0), valueR) &&
-           IsFloatAttrDefault(plug.child(1), valueG) &&
-           IsFloatAttrDefault(plug.child(1), valueB));
-
+   if (index >= 0 && (unsigned int)index < names.length())
+      return names[index];
+   return "";
 }
 
 
+static void ShaderComputeLink(CShaderTranslator *translator, const MPlug &plug, AtNode *shader, const char *attr)
+{
+   AtNode *target = translator->ExportConnectedNode(plug);
+   if (plug.isChild())
+   {
+      int outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(target));
+      MString component = GetShaderComponentName(outputType,plug);
+      AiNodeLinkOutput(target, component.asChar(), shader, attr);
+   } else
+      AiNodeLink(target, attr, shader);
+}
 // Sky
 //
 AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
@@ -157,7 +177,7 @@ void CLambertTranslator::Export(AtNode* shader)
             MString tag = "transparency";
             AtNode* reverseNode = GetArnoldNode(tag.asChar());
             if (reverseNode == NULL)
-               reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
+               reverseNode = AddArnoldNode("complement", tag.asChar());
             AiNodeLink(inNode, "input", reverseNode);
             AiNodeLink(reverseNode, "opacity", shader);
          }
@@ -276,6 +296,9 @@ void CFileTranslator::Export(AtNode* shader)
          {
             // we need to set the UV controls in the uv_transform node
             AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            if (connections.length() > 0)
+               AiNodeResetParameter(shader, "uvset");
+
             ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
             ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
             ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
@@ -581,9 +604,19 @@ void CFileTranslator::NodeChanged(MObject& node, MPlug& plug)
       !RequiresColorCorrect())
       SetUpdateMode(AI_RECREATE_NODE);
 
-if ((plugName == "uvCoord") &&
+   if ((plugName == "uvCoord") &&
       !RequiresUvTransform())
       SetUpdateMode(AI_RECREATE_NODE);
+
+   if (plugName == "fileTextureName")
+   {
+      // We're receiving a signal from the filename parameter.
+      // So we don't want to compare the filenames in the next export, we'll just want to update the TX.
+      // In fact, the texture could have changed even though the filename is still the same (see  #3792)
+      // We could rather store a flag for that, but for now we can reset the "previous" color space, 
+      // as it will force a refresh
+      m_colorSpace = "";
+   }
 
    CShaderTranslator::NodeChanged(node, plug);
 }
@@ -870,18 +903,20 @@ void CCheckerTranslator::Export(AtNode* shader)
          {
             // we need to set the UV controls in the uv_transform node
             AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            // if the uvset was set on the uv_transform node, the actual shader should now look at the default coordinates
+            AiNodeSetStr(shader, "uvset", ""); 
             ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
             ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
             ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
 
             if (srcNodeFn.findPlug("wrapU", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "none");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
                
 
             if (srcNodeFn.findPlug("wrapV", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "none");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
             
@@ -992,10 +1027,8 @@ bool CCheckerTranslator::RequiresUvTransform() const
             IsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapU", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapV", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorU", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorV", true), 0.f, 0.f ));
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true ) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true ));
 
 }
 void CCheckerTranslator::NodeInitializer(CAbTranslator context)
@@ -1014,7 +1047,7 @@ AtNode*  CBump3DTranslator::CreateArnoldNodes()
 void CBump3DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");   
+   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
 }
 
 // SamplerInfo
@@ -1023,32 +1056,123 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
    MString outputAttr = GetMayaOutputAttributeName();
    AtNode* shader = NULL;
-   if (outputAttr == "facingRatio" || outputAttr == "flippedNormal")
+
+   // 1D Conditions 
+   if (outputAttr == "facingRatio")
    {
-      shader = AddArnoldNode("MayaSamplerInfo1D");
+      shader = AddArnoldNode("facing_ratio");
    }
-   else if (outputAttr == "uvCoord" || outputAttr == "pixelCenter")
+   else if (outputAttr == "flippedNormal")
    {
-      shader = AddArnoldNode("MayaSamplerInfo2D");
+      shader = AddArnoldNode("compare");
+      AtNode* dot_shader = AddArnoldNode("dot", "dot");
+      AtNode* Nf_shader = AddArnoldNode("state_vector", "nf");
+      AiNodeSetStr(Nf_shader, "variable", "Nf");
+      AtNode* N_shader = AddArnoldNode("state_vector", "n");
+      AiNodeSetStr(N_shader, "variable", "N");
+      AiNodeLink(Nf_shader, "input1", dot_shader);
+      AiNodeLink(N_shader, "input2", dot_shader);
+      AiNodeSetStr(shader, "test", "<");
+      AiNodeSetFlt(shader, "input2", 0.0f);
+      AiNodeLink(dot_shader, "input1", shader);
    }
-   else if (outputAttr == "pointWorld" || outputAttr == "pointObj" || outputAttr == "pointCamera" ||
-            outputAttr == "normalCamera" || outputAttr == "rayDirection" ||
-            outputAttr == "tangentUCamera" ||outputAttr == "tangentVCamera")
+
+   // // 2D Conditions
+   else if (outputAttr == "uvCoord" )
    {
-      shader = AddArnoldNode("MayaSamplerInfo3D");
+      shader = AddArnoldNode("float_to_rgb");
+      AtNode* u_shader = AddArnoldNode("state_float", "u");
+      AiNodeSetStr(u_shader, "variable", "u");
+      AtNode* v_shader = AddArnoldNode("state_float", "v");
+      AiNodeSetStr(v_shader, "variable", "v");
+      AiNodeLink(u_shader, "r", shader);
+      AiNodeLink(v_shader, "g", shader);
+   }
+   else if (outputAttr == "pixelCenter")
+   {
+      shader = AddArnoldNode("float_to_rgb");
+      AtNode* screenx_shader = AddArnoldNode("state_int", "x");
+      AiNodeSetStr(screenx_shader, "variable", "x");
+      AtNode* screeny_shader = AddArnoldNode("state_int", "y");
+      AiNodeSetStr(screeny_shader, "variable", "y");
+      AiNodeLink(screenx_shader, "r", shader);
+      AiNodeLink(screeny_shader, "g", shader);
+   }
+
+   // // 3D Conditions 
+   else if ( outputAttr == "pointWorld")
+   {
+      shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(shader, "variable", "P");
+   }
+   else if ( outputAttr == "pointObj")
+   {
+      shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(shader, "variable", "Po");
+   }
+   else if ( outputAttr == "pointCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AtNode* P_shader = AddArnoldNode("state_vector", "P");
+      AiNodeSetStr(P_shader, "variable", "P");
+      AiNodeLink(P_shader, "input", shader);
+   }
+   else if ( outputAttr == "normalCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "normal");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AtNode* N_shader = AddArnoldNode("state_vector", "N");
+      AiNodeSetStr(N_shader, "variable", "N");
+      AiNodeLink(N_shader, "input", shader);
+   }
+   else if ( outputAttr == "rayDirection")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "vector");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AtNode* Rd_shader = AddArnoldNode("state_vector", "Rd");
+      AiNodeSetStr(Rd_shader, "variable", "Rd");
+      AiNodeLink(Rd_shader, "input", shader);
+   }
+   else if ( outputAttr == "tangentUCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "vector");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AiNodeSetBool(shader, "normalize", true);
+      AtNode* tgtU_shader = AddArnoldNode("state_vector", "u");
+      AiNodeSetStr(tgtU_shader, "variable", "dPdu");
+      AiNodeLink(tgtU_shader, "input", shader);
+   }
+   else if ( outputAttr == "tangentVCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "vector");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AiNodeSetBool(shader, "normalize", true);
+      AtNode* tgtV_shader = AddArnoldNode("state_vector", "v");
+      AiNodeSetStr(tgtV_shader, "variable", "dPdv");
+      AiNodeLink(tgtV_shader, "input", shader);
    }
    else
    {
       AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
-   AtEnum modeEnum = AiParamGetEnum(AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(shader), "mode"));
-   AiNodeSetInt(shader, "mode", AiEnumGetValue(modeEnum, outputAttr.asChar()));
    return shader;
 }
 
 void CSamplerInfoTranslator::Export(AtNode* shader)
-{}
+{
+}
 
 // PlusMinusAverage
 //
@@ -1057,27 +1181,203 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
    MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "output1D")
-   {
-      return AddArnoldNode("MayaPlusMinusAverage1D");
-   }
+      m_inputSize = 1;
    else if (outputAttr == "output2D")
-   {
-      return AddArnoldNode("MayaPlusMinusAverage2D");
-   }
+      m_inputSize = 2;
    else if (outputAttr == "output3D")
-   {
-      return AddArnoldNode("MayaPlusMinusAverage3D");
-   }
+      m_inputSize = 3;
    else
    {
+      m_inputSize = 0;
       AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
+
+   return AddArnoldNode("layer_rgba");
 }
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
-   CShaderTranslator::Export(shader);
+   int operation = FindMayaPlug("operation").asInt();
+   std::string opStr;
+   switch(operation)
+   {
+      default:
+      case OP_NONE:
+         opStr = "overwrite";
+         break;
+      case OP_PLUS:
+         opStr = "plus";
+         break;
+      case OP_MINUS:
+         opStr = "minus";
+         break;   
+      case OP_AVERAGE: 
+         opStr = "plus";
+         break;
+   }
+   MFnDependencyNode fnNode(GetMayaObject());
+
+   char aiAttr[64];
+   MPlugArray connections;
+   unsigned int size = 1;
+   for (unsigned int i = 1; i <= 8; ++i)
+   {
+      sprintf(aiAttr, "enable%u", i);
+      AiNodeSetBool(shader, aiAttr, false);
+   }
+
+   if (m_inputSize == 1)
+   {
+      MPlug plug = FindMayaPlug("input1D");
+            
+      size = plug.numElements();
+      if (size > 8)
+      {
+         AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
+         size = 8;
+      }
+      if (operation == OP_NONE)
+         size = 1;
+
+      for (unsigned int i = 0; i < size; ++i)
+      {
+         sprintf(aiAttr, "enable%u", i+1);
+         AiNodeSetBool(shader, aiAttr, true);
+         
+         sprintf(aiAttr, "input%u", i+1);
+         // can be linked
+         float val = plug[i].asFloat();
+         AiNodeSetRGBA(shader, aiAttr, val, val, val, 1.f);
+         plug[i].connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            ShaderComputeLink(this, connections[0], shader, aiAttr);
+         
+         if (i > 0)
+         {
+            sprintf(aiAttr, "operation%u", i+1);
+            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         }
+         
+      }
+   } else if (m_inputSize == 2)
+   {
+      MPlug plug = FindMayaPlug("input2D");
+      MObject ox = fnNode.attribute("input2Dx");
+      MObject oy = fnNode.attribute("input2Dy");
+      size = plug.numElements();
+      if (size > 8)
+      {
+         AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
+         size = 8;
+      }
+      if (operation == OP_NONE)
+         size = 1;
+      
+      for (unsigned int i = 0; i < size; ++i)
+      {
+         sprintf(aiAttr, "enable%u", i+1);
+         AiNodeSetBool(shader, aiAttr, true);
+         
+         sprintf(aiAttr, "input%u", i+1);
+         AiNodeSetRGBA(shader, aiAttr, plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(), 0.f, 1.f);
+
+         connections.clear();
+         plug[i].connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            ShaderComputeLink(this, connections[0], shader, aiAttr);
+         connections.clear();
+         plug[i].child(ox).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".r");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         connections.clear();
+         plug[i].child(oy).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".g");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+
+         if (i > 0)
+         {
+            sprintf(aiAttr, "operation%u", i+1);
+            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         }
+      }
+   } else if (m_inputSize == 3)
+   {
+      MPlug plug = FindMayaPlug("input3D");
+      MObject ox = fnNode.attribute("input3Dx");
+      MObject oy = fnNode.attribute("input3Dy");
+      MObject oz = fnNode.attribute("input3Dz");
+
+      size = plug.numElements();
+      if (size > 8)
+      {
+         AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
+         size = 8;
+      }
+      if (operation == OP_NONE)
+         size = 1;
+      
+      for (unsigned int i = 0; i < size; ++i)
+      {
+         sprintf(aiAttr, "enable%u", i+1);
+         AiNodeSetBool(shader, aiAttr, true);
+         
+         sprintf(aiAttr, "input%u", i+1);
+         AiNodeSetRGBA(shader, aiAttr, plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(),  plug[i].child(oz).asFloat(), 1.f);
+         connections.clear();
+         plug[i].connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            ShaderComputeLink(this, connections[0], shader, aiAttr);
+
+         connections.clear();
+         plug[i].child(ox).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".r");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         connections.clear();
+         plug[i].child(oy).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".g");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         connections.clear();
+         plug[i].child(oz).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".b");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         if (i > 0)
+         {
+            sprintf(aiAttr, "operation%u", i+1);
+            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         }
+      }      
+
+   }
+   if (operation == OP_AVERAGE)
+   {
+      AiNodeUnlink(shader, "input8");
+      AiNodeSetStr(shader, "operation8", "divide");
+      AiNodeSetRGBA(shader, "input8", float(size), float(size), float(size), 1.f);
+      AiNodeSetBool(shader, "enable8", true);
+   }
+   
+  
 }
 
 // ParticleSamplerInfo
@@ -1092,13 +1392,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "outTransparency"||
          outputAttr == "rgbPP" ||
          outputAttr == "incandescensePP" ||
-         outputAttr == "incandescense"
-      )
-   {
-      return AddArnoldNode("MtoaUserDataColor");
-   }
-
-   else if(
+         outputAttr == "incandescense" ||
          outputAttr == "acceleration" ||
          outputAttr == "force" ||
          outputAttr == "position" ||
@@ -1114,7 +1408,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userVector5PP"
          )
    {
-      return AddArnoldNode("MtoaUserDataVector");
+      return AddArnoldNode("user_data_rgb");
    }
    else if (
          outputAttr == "ageNormalized" ||
@@ -1153,11 +1447,11 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 
    if (outputAttr == "outColor" || outputAttr == "rgbPP")
    {
-      AiNodeSetStr(shader, "colorAttrName", "rgbPP");
+      AiNodeSetStr(shader, "attribute", "rgbPP");
    }
    else if (outputAttr == "outTransparency" )
    {
-      AiNodeSetStr(shader, "colorAttrName", "opacityPP");
+      AiNodeSetStr(shader, "attribute", "opacityPP");
    }
    else if ( outputAttr == "opacityPP" || outputAttr == "opacity")
    {
@@ -1165,7 +1459,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
    }
    else if (outputAttr == "outIncandescence" || outputAttr == "incandescensePP" || outputAttr == "incandescense" )
    {
-      AiNodeSetStr(shader, "colorAttrName", "incandescencePP");
+      AiNodeSetStr(shader, "attribute", "incandescencePP");
    }
    else if (outputAttr == "lifespanPP" || outputAttr == "lifespan")
    {
@@ -1189,12 +1483,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
             outputAttr == "userVector2PP" ||
             outputAttr == "userVector3PP" ||
             outputAttr == "userVector4PP" ||
-            outputAttr == "userVector5PP"
-            )
-      {
-         AiNodeSetStr(shader, "vectorAttrName", outputAttr.asChar());
-      }
-   else if (
+            outputAttr == "userVector5PP" ||
             outputAttr == "ageNormalized" ||
             outputAttr == "colorRed" ||
             outputAttr == "colorGreen" ||
@@ -1223,203 +1512,465 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
    MString outputAttr = GetMayaOutputAttributeName();
 
-   if (outputAttr == "outValue")
-   {
-      return AddArnoldNode("MayaRemapValueToValue");
-   }
-   else if (outputAttr == "outColor")
-   {
-      return AddArnoldNode("MayaRemapValueToColor");
-   }
-   else
-   {
-      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
-      return NULL;
-   }
+   AtNode* remapRamp = AddArnoldNode((outputAttr == "outValue") ? "ramp_float" : "ramp_rgb");
+   AtNode* outRemapRange = NULL;
+   if (!(IsFloatAttrDefault(FindMayaPlug("outputMin"), 0.f) &&
+         IsFloatAttrDefault(FindMayaPlug("outputMax"), 1.f)))
+      return AddArnoldNode("range", "outRemapRange");
+   
+   return remapRamp;
 }
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
    MString outputAttr = GetMayaOutputAttributeName();
    MFnDependencyNode fnNode(GetMayaObject());
+   MPlug attr, elem, pos, val, interp;
+
+   AtNode* inRemapRange = NULL;
+   if (!(IsFloatAttrDefault(FindMayaPlug("inputMin"), 0.f) &&
+         IsFloatAttrDefault(FindMayaPlug("inputMax"), 1.f)))
+   {
+      inRemapRange = GetArnoldNode("inRemapRange");
+      if (inRemapRange == NULL)
+         inRemapRange = AddArnoldNode("range", "inRemapRange");
+   }
+
+   AtNode* remapRamp = GetArnoldNode();
+   AtNode* outRemapRange = GetArnoldNode("outRemapRange");
+   if (inRemapRange)
+   {
+      AiNodeLink(inRemapRange, "input", remapRamp);
+      ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
+      ProcessParameter(inRemapRange, "input_max" ,AI_TYPE_FLOAT, "inputMax");         
+      ProcessParameter(inRemapRange, "input", AI_TYPE_FLOAT, "inputValue");
+   } else
+      ProcessParameter(remapRamp, "input", AI_TYPE_FLOAT, "inputValue");
+   
+   if (outRemapRange)
+   {
+      AiNodeLink(remapRamp, "input", outRemapRange);
+      ProcessParameter(outRemapRange, "output_min" , AI_TYPE_FLOAT, "outputMin");
+      ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT, "outputMax");
+   }
+
+
    if (outputAttr == "outValue")
    {
-      MPlug attr, elem, pos, val, interp;
-
-
-      // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader or set metadata
-      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
-      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
-      
       attr = FindMayaPlug("value");
 
       MObject opos = fnNode.attribute("value_Position");
-      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+      ProcessArrayParameter(remapRamp, "position", attr, AI_TYPE_FLOAT, &opos);
 
       MObject oval = fnNode.attribute("value_FloatValue");
-      ProcessArrayParameter(shader, "values", attr, AI_TYPE_FLOAT, &oval);
+      ProcessArrayParameter(remapRamp, "value", attr, AI_TYPE_FLOAT, &oval);
 
       MObject ointerp = fnNode.attribute("value_Interp");
-      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
+      ProcessArrayParameter(remapRamp, "interpolation", attr, AI_TYPE_INT, &ointerp);
+      
    }
-   else if (outputAttr == "outColor")
-   {
-      MPlug attr, elem, pos, val, interp;
-
-
-      // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
-      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
-
-      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
-
+   else
+   {  
       attr = FindMayaPlug("color");
 
       MObject opos = fnNode.attribute("color_Position");
-      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+      ProcessArrayParameter(remapRamp, "position", attr, AI_TYPE_FLOAT, &opos);
 
       MObject oval = fnNode.attribute("color_Color");
-      ProcessArrayParameter(shader, "values", attr, AI_TYPE_RGB, &oval);
+      ProcessArrayParameter(remapRamp, "color", attr, AI_TYPE_RGB, &oval);
 
       MObject ointerp = fnNode.attribute("color_Interp");
-      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
+      ProcessArrayParameter(remapRamp, "interpolation", attr, AI_TYPE_INT, &ointerp);
    }
 }
 
+void CRemapValueTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "outputMin" || plugName == "outputMax") && (GetArnoldNode("outRemapRange") == NULL))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
 // Remap Color
 //
 AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaRemapColor");
+
+   AtNode* inRemapRange = AddArnoldNode("range", "inRemapRange");
+   AtNode* R_Ramp = AddArnoldNode("ramp_float", "R_ramp");
+   AtNode* G_Ramp = AddArnoldNode("ramp_float", "G_ramp");
+   AtNode* B_Ramp = AddArnoldNode("ramp_float", "B_ramp");
+
+   AtNode* outRemapRange = AddArnoldNode("range", "outRemapRange");
+
+   AiNodeLinkOutput(inRemapRange, "r", R_Ramp, "input");
+   AiNodeLinkOutput(inRemapRange, "g", G_Ramp, "input");
+   AiNodeLinkOutput(inRemapRange, "b", B_Ramp, "input");
+
+   AiNodeLink(R_Ramp, "input.r", outRemapRange);
+   AiNodeLink(G_Ramp, "input.g", outRemapRange);
+   AiNodeLink(B_Ramp, "input.b", outRemapRange);
+
+   return outRemapRange;
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
 {
    MPlug attr, elem, pos, val, interp;
 
-   const char *plugNames[3] = {"red", "green", "blue"};
-   const char *posNames[6] = {"red_Position",   "rPositions",
-                              "green_Position", "gPositions",
-                              "blue_Position",  "bPositions"};
-   const char *valNames[6] = {"red_FloatValue",   "rValues",
-                              "green_FloatValue", "gValues",
-                              "blue_FloatValue",  "bValues"};
-   const char *interpNames[6] = {"red_Interp",   "rInterpolations",
-                                 "green_Interp", "gInterpolations",
-                                 "blue_Interp",  "bInterpolations"};
+   AtNode* inRemapRange = GetArnoldNode("inRemapRange");
+   AtNode* R_Ramp = GetArnoldNode("R_ramp");
+   AtNode* G_Ramp = GetArnoldNode("G_ramp");
+   AtNode* B_Ramp = GetArnoldNode("B_ramp");
+   AtNode* outRemapRange = shader;
 
-   // FIXME: change shader parameter name to match maya
-   ProcessParameter(shader, "input", AI_TYPE_RGB, "color");
-   ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
+   ProcessParameter(inRemapRange, "input", AI_TYPE_RGB, "color");
+   ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
+   ProcessParameter(inRemapRange, "input_max", AI_TYPE_FLOAT,"inputMax");
+
+   ProcessParameter(outRemapRange, "output_min", AI_TYPE_FLOAT,"outputMin");
+   ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT),"outputMax";
 
    MFnDependencyNode fnNode(GetMayaObject());
 
-   for (int ci=0; ci<3; ++ci)
-   {
-      attr = FindMayaPlug(plugNames[ci]);
+   attr = FindMayaPlug("red");
+   MObject rpos = fnNode.attribute("red_Position");
+   ProcessArrayParameter(R_Ramp, "position", attr, AI_TYPE_FLOAT, &rpos);
 
-      MObject opos = fnNode.attribute(posNames[ci*2]);
-      ProcessArrayParameter(shader, posNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &opos);
+   MObject rval = fnNode.attribute("red_FloatValue");
+   ProcessArrayParameter(R_Ramp, "value", attr, AI_TYPE_FLOAT, &rval);
 
-      MObject oval = fnNode.attribute(valNames[ci*2]);
-      ProcessArrayParameter(shader, valNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &oval);
-      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
-      ProcessArrayParameter(shader, interpNames[ci*2 + 1], attr, AI_TYPE_INT, &ointerp);
-   }
+   MObject rinterp = fnNode.attribute("red_Interp");
+   ProcessArrayParameter(R_Ramp,"interpolation", attr, AI_TYPE_INT, &rinterp);
+
+// ####
+
+   attr = FindMayaPlug("green");
+   MObject gpos = fnNode.attribute("green_Position");
+   ProcessArrayParameter(G_Ramp, "position", attr, AI_TYPE_FLOAT, &gpos);
+
+   MObject gval = fnNode.attribute("green_FloatValue");
+   ProcessArrayParameter(G_Ramp, "value", attr, AI_TYPE_FLOAT, &gval);
+
+   MObject ginterp = fnNode.attribute("green_Interp");
+   ProcessArrayParameter(G_Ramp,"interpolation", attr, AI_TYPE_INT, &ginterp);
+
+// ####
+
+   attr = FindMayaPlug("blue");
+   MObject bpos = fnNode.attribute("blue_Position");
+   ProcessArrayParameter(B_Ramp, "position", attr, AI_TYPE_FLOAT, &bpos);
+
+   MObject bval = fnNode.attribute("blue_FloatValue");
+   ProcessArrayParameter(B_Ramp, "value", attr, AI_TYPE_FLOAT, &bval);
+
+   MObject binterp = fnNode.attribute("blue_Interp");
+   ProcessArrayParameter(B_Ramp,"interpolation", attr, AI_TYPE_INT, &binterp);
+
 }
 
 // Remap Hsv
 //
 AtNode* CRemapHsvTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaRemapHsv");
+   AtNode* RGBtoHSV = AddArnoldNode("color_convert", "RGBtoHSV");
+   AtNode* inRemapRange = AddArnoldNode("range", "inRemapRange");
+   AtNode* H_Ramp = AddArnoldNode("ramp_float", "H_ramp");
+   AtNode* S_Ramp = AddArnoldNode("ramp_float", "S_ramp");
+   AtNode* V_Ramp = AddArnoldNode("ramp_float", "V_ramp");
+   AtNode* outRemapRange = AddArnoldNode("range", "outRemapRange");
+   AtNode* HSVtoRGB = AddArnoldNode("color_convert", "HSVtoRGB");
+
+   AiNodeLink(RGBtoHSV, "input", inRemapRange);
+   AiNodeLinkOutput(inRemapRange, "r", H_Ramp, "input");
+   AiNodeLinkOutput(inRemapRange, "g", S_Ramp, "input");
+   AiNodeLinkOutput(inRemapRange, "b", V_Ramp, "input");
+
+   AiNodeLink(H_Ramp, "input.r", outRemapRange);
+   AiNodeLink(S_Ramp, "input.g", outRemapRange);
+   AiNodeLink(V_Ramp, "input.b", outRemapRange);
+
+   AiNodeLink(outRemapRange, "input", HSVtoRGB);
+   AiNodeSetStr(HSVtoRGB, "from", "HSV");
+   AiNodeSetStr(HSVtoRGB, "to", "RGB");
+   
+
+   return HSVtoRGB;
 }
 
 void CRemapHsvTranslator::Export(AtNode* shader)
 {
    MPlug attr, elem, pos, val, interp;
 
-   const char *plugNames[3] = {"hue", "saturation", "value"};
-   const char *posNames[6] = {"hue_Position",   "hPositions",
-                              "saturation_Position", "sPositions",
-                              "value_Position",  "vPositions"};
-   const char *valNames[6] = {"hue_FloatValue",   "hValues",
-                              "saturation_FloatValue", "sValues",
-                              "value_FloatValue",  "vValues"};
-   const char *interpNames[6] = {"hue_Interp",   "hInterpolations",
-                                 "saturation_Interp", "sInterpolations",
-                                 "value_Interp",  "vInterpolations"};
+   AtNode* RGBtoHSV = GetArnoldNode("RGBtoHSV");
+   AtNode* inRemapRange = GetArnoldNode("inRemapRange");
+   AtNode* H_Ramp = GetArnoldNode("H_ramp");
+   AtNode* S_Ramp = GetArnoldNode("S_ramp");
+   AtNode* V_Ramp = GetArnoldNode("V_ramp");
+   AtNode* outRemapRange = GetArnoldNode("outRemapRange");
+   AtNode* HSVtoRGB = shader;
 
-   // FIXME: change shader parameter name to match maya
-   ProcessParameter(shader, "input", AI_TYPE_RGB, "color");
-   ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
+   ProcessParameter(RGBtoHSV, "input", AI_TYPE_RGB, "color");
+   
+   ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
+   ProcessParameter(inRemapRange, "input_max", AI_TYPE_FLOAT,"inputMax");
+
+   ProcessParameter(outRemapRange, "output_min", AI_TYPE_FLOAT,"outputMin");
+   ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT),"outputMax";
 
    MFnDependencyNode fnNode(GetMayaObject());
-   for (int ci=0; ci<3; ++ci)
-   {
-      attr = FindMayaPlug(plugNames[ci]);
 
-      MObject opos = fnNode.attribute(posNames[ci*2]);
-      ProcessArrayParameter(shader, posNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &opos);
+   attr = FindMayaPlug("hue");
+   MObject rpos = fnNode.attribute("hue_Position");
+   ProcessArrayParameter(H_Ramp, "position", attr, AI_TYPE_FLOAT, &rpos);
 
-      MObject oval = fnNode.attribute(valNames[ci*2]);
-      ProcessArrayParameter(shader, valNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &oval);
+   MObject rval = fnNode.attribute("hue_FloatValue");
+   ProcessArrayParameter(H_Ramp, "value", attr, AI_TYPE_FLOAT, &rval);
 
-      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
-      ProcessArrayParameter(shader, interpNames[ci*2 + 1], attr, AI_TYPE_INT, &ointerp);
-   }
+   MObject rinterp = fnNode.attribute("hue_Interp");
+   ProcessArrayParameter(H_Ramp,"interpolation", attr, AI_TYPE_INT, &rinterp);
+
+// ####
+
+   attr = FindMayaPlug("saturation");
+   MObject gpos = fnNode.attribute("saturation_Position");
+   ProcessArrayParameter(S_Ramp, "position", attr, AI_TYPE_FLOAT, &gpos);
+
+   MObject gval = fnNode.attribute("saturation_FloatValue");
+   ProcessArrayParameter(S_Ramp, "value", attr, AI_TYPE_FLOAT, &gval);
+
+   MObject ginterp = fnNode.attribute("saturation_Interp");
+   ProcessArrayParameter(S_Ramp,"interpolation", attr, AI_TYPE_INT, &ginterp);
+
+// ####
+
+   attr = FindMayaPlug("value");
+   MObject bpos = fnNode.attribute("value_Position");
+   ProcessArrayParameter(V_Ramp, "position", attr, AI_TYPE_FLOAT, &bpos);
+
+   MObject bval = fnNode.attribute("value_FloatValue");
+   ProcessArrayParameter(V_Ramp, "value", attr, AI_TYPE_FLOAT, &bval);
+
+   MObject binterp = fnNode.attribute("value_Interp");
+   ProcessArrayParameter(V_Ramp,"interpolation", attr, AI_TYPE_INT, &binterp);
+
+
 }
 
 // Projection
 //
 AtNode*  CProjectionTranslator::CreateArnoldNodes()
-{
-   return AddArnoldNode("MayaProjection");
+{  
+   int type = FindMayaPlug("projType").asInt();
+   AtNode *projection = NULL;
+   if (type == PT_PERSPECTIVE)
+      projection = AddArnoldNode("camera_projection"); 
+   else if (type == PT_TRIPLANAR)
+      projection = AddArnoldNode("triplanar");
+   else if (type == PT_NONE)
+      projection = AddArnoldNode("flat");
+   else
+      projection = AddArnoldNode("uv_projection");
+
+   if (RequiresColorCorrect())
+      return AddArnoldNode("color_correct", "cc");
+
+   return projection;
 }
 
 void CProjectionTranslator::Export(AtNode* shader)
 {
-   MStatus status;
-
-   CShaderTranslator::Export(shader);
-
-   MPlug typePlug = FindMayaPlug("projType");
-   MPlug camPlug = FindMayaPlug("linkedCamera");
-   MPlugArray connections;
-   camPlug.connectedTo(connections, true, false);
-   if (connections.length() >= 1 && typePlug.asInt() == 8)
+   if (AiNodeIs(shader, AtString("uv_projection")))
    {
-      ExportConnectedNode(connections[0]);
-      MObject camObj = connections[0].node();
-      MFnCamera cam(camObj);
+      int projType = FindMayaPlug("projType").asInt();
+      switch(projType)
+      {
+         default:
+         break; // shouldn't be here
+         case PT_PLANAR:
+            AiNodeSetStr(shader, "projection_type", "planar");
+            break;
+         case PT_SPHERICAL:
+            AiNodeSetStr(shader, "projection_type", "spherical");
+            break;
+         case PT_CYLINDRICAL:
+            AiNodeSetStr(shader, "projection_type", "spherical");
+            break;
+         case PT_BALL:
+            AiNodeSetStr(shader, "projection_type", "ball");
+            break;
+         case PT_CUBIC:
+            AiNodeSetStr(shader, "projection_type", "cubic");
+            break;
+         case PT_CONCENTRIC:
+            // error message, not supported            
+         break;
+      }
+      ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
 
-      // this will create a MtoA connection between this shader and the camera
-      ExportConnectedNode(connections[0]);
-      //ProcessParameter(shader, "linkedCamera", AI_TYPE_NODE);
-      AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
-      AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
-      AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));
-   }
-   else
+      bool wrap = FindMayaPlug("wrap").asBool();
+      AiNodeSetBool(shader, "clamp", !wrap);
+      ProcessParameter(shader, "default_color", AI_TYPE_RGBA, "defaultColor");
+
+      // Warning: the angles seem to appear as degrees in the Maya interface, 
+      // but they're actually returned as radians!
+      AiNodeSetFlt(shader, "u_angle", FindMayaPlug("uAngle").asFloat() * AI_RTOD);
+      AiNodeSetFlt(shader, "v_angle", FindMayaPlug("vAngle").asFloat() * AI_RTOD);
+      
+      ProcessParameter(shader, "matrix", AI_TYPE_MATRIX, "placementMatrix");
+      if (FindMayaPlug("local").asBool())
+         AiNodeSetStr(shader, "coord_space", "object");
+      else if (FindMayaPlug("aiUseReferenceObject").asBool())
+         AiNodeSetStr(shader, "coord_space", "Pref");
+      else
+         AiNodeSetStr(shader, "coord_space", "world");
+
+   } else if (AiNodeIs(shader, AtString("triplanar")))
    {
-      // no linked camera, fit type needs to be None ?
-      AiNodeSetInt(shader, "fitType", 0);
+      /*
+      AtNode *uv_transform = GetArnoldNode("uv");
+      if (uv_transform == NULL)
+         uv_transform = AddArnoldNode("uv_transform", "uv");
+
+      AiNodeLink(uv_transform, "input", shader);
+      */
+      ProcessParameter(shader, "input", AI_TYPE_RGB, "image");
+      
+      ProcessParameter(shader, "matrix", AI_TYPE_MATRIX, "placementMatrix");
+      if (FindMayaPlug("local").asBool())
+         AiNodeSetStr(shader, "coord_space", "object");
+      else if (FindMayaPlug("aiUseReferenceObject").asBool())
+         AiNodeSetStr(shader, "coord_space", "Pref");
+      else
+         AiNodeSetStr(shader, "coord_space", "world");
+
+      AiNodeSetVec(shader, "scale", 0.5f, 0.5f, 0.5f);
+      //AiNodeSetBool(uv_transform, "flip_v", true);
+
+   } else if (AiNodeIs(shader, AtString("camera_projection")))
+   {
+      MPlug camPlug = FindMayaPlug("linkedCamera");
+      MPlugArray connections;
+      camPlug.connectedTo(connections, true, false);
+      float camAR = 1.f;
+
+      if (connections.length() > 0)
+      {
+         AtNode *cam = ExportConnectedNode(connections[0]);
+         AiNodeSetPtr(shader, "camera", cam);
+         MObject camObj = connections[0].node();
+         MFnCamera mfnCam(camObj);
+         camAR = static_cast<float>(mfnCam.aspectRatio());
+      }
+      else
+         AiNodeResetParameter(shader, "camera");
+      /*
+      if (FindMayaPlug("local").asBool())
+         AiNodeSetStr(shader, "coord_space", "object");
+      else if (FindMayaPlug("aiUseReferenceObject").asBool())
+         AiNodeSetStr(shader, "coord_space", "Pref");
+      else
+         AiNodeSetStr(shader, "coord_space", "world");
+      */
+
+      AiNodeUnlink(shader, "projection_color");
+      ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
+      ProcessParameter(shader, "offscreen_color", AI_TYPE_RGBA, "defaultColor");
+
+      MSelectionList resList;
+      resList.add(MString(":defaultResolution"));
+      
+      if (resList.length() > 0)
+      {
+         MObject resObject;
+         resList.getDependNode(0,resObject);
+         MFnDependencyNode fnRes(resObject);
+         int width = 1;
+         int height = 1;
+         float outAR = 1.f;
+         
+         MStatus status;
+         MPlug plug = fnRes.findPlug("width", true, &status);
+         if (status == MS::kSuccess)
+            width = plug.asInt();
+         plug = fnRes.findPlug("height", true, &status);
+         if (status == MS::kSuccess)
+            height = plug.asInt();
+         plug = fnRes.findPlug("deviceAspectRatio", true, &status);
+         if (status == MS::kSuccess)
+         {
+            AiNodeSetFlt(shader, "aspect_ratio", plug.asFloat());
+            outAR = 1.0f / (((float)height / width) * plug.asFloat());
+         }
+         
+         float uScale = 1.f;
+         float vScale = 1.f;
+
+         int fitType = FindMayaPlug("fitType").asInt();
+         int fitFill = FindMayaPlug("fitFill").asInt();
+         float resAR = (float(width) / float(height));
+
+         const float invOutAR = 1.0f / outAR;
+         const float invCamAR = 1.0f / camAR;
+         const float invResAR = 1.f / resAR;
+
+         if (fitFill == FILL_FILL)
+         {
+            if (fitType == FIT_CAMERA_FILM_GATE)
+            {
+               vScale = resAR * invCamAR * invOutAR;
+            } 
+         }
+         else if (fitFill == FILL_HORIZONTAL)
+         {
+            vScale = resAR * invOutAR;
+         }
+         else // FILL_VERTICAL
+         {
+            if (fitType == FIT_CAMERA_FILM_GATE)
+            {
+               vScale = resAR * invCamAR * invOutAR;
+               uScale = invCamAR;
+            }
+            else
+            {
+               uScale = invResAR * outAR;
+            }
+         }
+
+         if (std::abs(uScale - 1.f) > AI_EPSILON || std::abs(vScale - 1.f) > AI_EPSILON)
+         {
+            AtNode *uv_transform = GetArnoldNode("uv");
+            if (uv_transform == NULL)
+               uv_transform = AddArnoldNode("uv_transform", "uv");
+
+            ProcessParameter(uv_transform, "passthrough", AI_TYPE_RGBA, "image");
+            AiNodeSetVec2(uv_transform, "scale_frame", uScale, vScale);
+            AiNodeLink(uv_transform, "projection_color", shader);
+         } 
+         
+      }
+
+   } else if (AiNodeIs(shader, AtString("flat")))
+   {
+      ProcessParameter(shader, "color", AI_TYPE_RGBA, "image");
    }
-   ProcessParameter(shader, "useReferenceObject", AI_TYPE_BOOLEAN, "aiUseReferenceObject");
+  
+   AtNode *cc = GetArnoldNode("cc");
+   if (cc)
+   {
+      AiNodeLink(shader, "input", cc);
+      ProcessParameter(cc, "multiply", AI_TYPE_RGB, "colorGain");
+      ProcessParameter(cc, "add", AI_TYPE_RGB, "colorOffset");
+      ProcessParameter(cc, "alphaGain", AI_TYPE_FLOAT, "alphaGain");
+      ProcessParameter(cc, "alphaOffset", AI_TYPE_FLOAT, "alphaOffset");
+      ProcessParameter(cc, "invert", AI_TYPE_BOOLEAN, "invert");
+   }
+
 }
 
-void ProjectionTranslatorNodeInitializer(CAbTranslator context)
+void CProjectionTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper("projection");
    
@@ -1432,104 +1983,98 @@ void ProjectionTranslatorNodeInitializer(CAbTranslator context)
    data.keyable = false;       
    helper.MakeInputBoolean(data);
 }
-
-// Ramp
-//
-AtNode*  CRampTranslator::CreateArnoldNodes()
+void CProjectionTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   return AddArnoldNode("MayaRamp");
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "projType")
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   if ((plugName == "alphaGain" || plugName == "alphaOffset" || plugName == "colorGain" || 
+        plugName == "colorOffset" || plugName == "invert" ) && GetArnoldNode("cc") == NULL)
+      SetUpdateMode(AI_RECREATE_NODE);
+ 
+   CShaderTranslator::NodeChanged(node, plug);  
 }
 
-void CRampTranslator::Export(AtNode* shader)
+bool CProjectionTranslator::RequiresColorCorrect() const
 {
-   ProcessParameter(shader, "type", AI_TYPE_INT);
-   ProcessParameter(shader, "interpolation", AI_TYPE_INT);
-   ProcessParameter(shader, "uWave", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "vWave", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "noise", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "noiseFreq", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "hueNoise", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "hueNoiseFreq", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "satNoise", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "satNoiseFreq", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "valNoise", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "valNoiseFreq", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
-   ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
-   ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
-   ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
-   AiNodeSetBool(shader, "alphaIsLuminance", true);
-   ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "uvCoord", AI_TYPE_VECTOR2);
-   ProcessParameter(shader, "curveImplicitUvs", AI_TYPE_BOOLEAN, "aiCurveImplicitUvs");
-
-   MPlug plug, elem, pos, col;
-
-   MFnDependencyNode fnNode(GetMayaObject());
-
-   plug = FindMayaPlug("colorEntryList");
-
-   MObject opos = fnNode.attribute("position");
-   ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
-
-   MObject ocol = fnNode.attribute("color");
-   ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);   
-
+   return ! (IsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f) &&
+             IsFloatAttrDefault(FindMayaPlug("alphaOffset"), 0.f) &&
+             IsRGBAttrDefault(FindMayaPlug("colorGain"), 1.f, 1.f, 1.f) &&
+             IsRGBAttrDefault(FindMayaPlug("colorOffset"), 0.f, 0.f, 0.f) &&
+             IsBoolAttrDefault(FindMayaPlug("invert"), false));
 }
 
-void CRampTranslator::NodeInitializer(CAbTranslator context)
-{
-   CExtensionAttrHelper helper("ramp");
-   
-   CAttrData data;
-   
-   data.defaultValue.BOOL() = true;
-   data.name = "aiCurveImplicitUvs";
-   data.shortName = "ai_curve_implicit_uvs";
-   data.channelBox = false;
-   data.keyable = false;       
-   helper.MakeInputBoolean(data);
-}
 
 // Place2DTexture
 
 AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaPlace2DTexture");
+   AddArnoldNode("state_float", "u");
+   AddArnoldNode("state_float", "v");
+   return AddArnoldNode("uv_transform");
 }
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2);
-   ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2);
-   ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2);
-   ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, "offset");
-   ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2);
+   AtNode *state_u = GetArnoldNode("u");
+   AtNode *state_v = GetArnoldNode("v");
+   
+   AiNodeSetRGBA(shader, "passthrough", 0.f, 0.f, 0.f, 1.f);
+   AiNodeLink(state_u, "passthrough.r", shader);
+   AiNodeLink(state_v, "passthrough.g", shader);
+   AiNodeSetStr(state_u, "variable", "u");
+   AiNodeSetStr(state_v, "variable", "v");
 
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray connections;
+   AiNodeSetStr(shader, "uvset", "");
    fnNode.findPlug("uvCoord", true).connectedTo(connections, true, false);
    if (connections.length() > 0)
    {
       MFnDependencyNode uvcNodeFn(connections[0].node());
       if (uvcNodeFn.typeName() == "uvChooser")
-         AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
+         AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
    }
+   ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2, fnNode.findPlug("coverage", true));
+   ProcessParameter(shader, "mirror_u", AI_TYPE_BOOLEAN, fnNode.findPlug("mirrorU", true));
+   ProcessParameter(shader, "mirror_v", AI_TYPE_BOOLEAN, fnNode.findPlug("mirrorV", true));
+
+   if (fnNode.findPlug("wrapU", true).asBool())
+      AiNodeSetStr(shader, "wrap_frame_u", "none");
+   else
+      AiNodeSetStr(shader, "wrap_frame_u", "color");
+      
+
+   if (fnNode.findPlug("wrapV", true).asBool())
+      AiNodeSetStr(shader, "wrap_frame_v", "none");
+   else
+      AiNodeSetStr(shader, "wrap_frame_v", "color");
+   
+   // if not linked, set alpha to zero
+   ProcessParameter(shader, "repeat", AI_TYPE_VECTOR2, fnNode.findPlug("repeatUV", true));
+   ProcessParameter(shader, "offset", AI_TYPE_VECTOR2, fnNode.findPlug("offset", true));
+
+
+   float rotateFrame = fnNode.findPlug("rotateFrame", true).asFloat();
+   AiNodeSetFlt(shader, "rotate_frame", rotateFrame * 180.f / AI_PI);
+   //ProcessParameter(shader, "rotate_frame", AI_TYPE_FLOAT, fnNode.findPlug("rotateFrame"));
+   ProcessParameter(shader, "translate_frame", AI_TYPE_VECTOR2, fnNode.findPlug("translateFrame", true));
+   float rotateUV = fnNode.findPlug("rotateUV", true).asFloat();
+   AiNodeSetFlt(shader, "rotate", rotateUV * 180.f / AI_PI);
+   ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN, fnNode.findPlug("stagger", true));
+   ProcessParameter(shader, "noise", AI_TYPE_VECTOR2, fnNode.findPlug("noiseUV", true));
 }
 
 // LayeredTexture
 //
 AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredTexture");
+   AtNode *layer_rgba = AddArnoldNode("layer_rgba");
+   if (FindMayaPlug("alphaIsLuminance").asBool())
+      return AddArnoldNode("color_correct", "cc");
+
+   return layer_rgba;
 }
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
@@ -1540,40 +2085,53 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    bool colorConnectedToAlpha;
    char aiAttr[64];
    
+   AtNode *cc = GetArnoldNode("cc");
+   if (cc)
+   {
+      AiNodeLink(shader, "input", cc);
+      AiNodeSetBool(cc, "alpha_is_luminance", true);
+   }
+
    MFnDependencyNode fnNode(GetMayaObject());
 
    attr = fnNode.findPlug("inputs", true);
-   unsigned int numElements = attr.numElements();
-   if (numElements > 16)
-   {
-      AiMsgWarning("[mtoa] [translator %s] layeredTexture node has more than 16 inputs, only the first 16 will be handled", GetTranslatorName().asChar());
-      numElements = 16;
-   }
-
-   AiNodeSetUInt(shader, "numInputs", numElements);
-
-   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   int numElements = attr.numElements();
    
    MObject colorAttr = fnNode.attribute("color");
    MObject alphaAttr = fnNode.attribute("alpha");
    MObject blendModeAttr = fnNode.attribute("blendMode");
    MObject isVisibleAttr = fnNode.attribute("isVisible");
 
-   for (unsigned int i = 0; i < numElements; ++i)
+   // first initialize all layers to be disabled.
+   for (unsigned int i = 0; i < 8; ++i)
+   {
+      sprintf(aiAttr, "enable%u", i);
+      AiNodeSetBool(shader, aiAttr, false);
+   }
+
+   int arnoldIndex = 1;
+   int shader_index = 0;
+   if (numElements == 0)
+      return;
+
+   AtNode *rootShader = shader;
+   if (numElements > 8)
+   {
+      shader_index++;
+      shader = GetArnoldNode("l1");
+      if (shader == NULL)
+         shader = AddArnoldNode("layer_rgba", "l1");
+   }
+   for (int i = numElements - 1; i >= 0 ; --i, ++arnoldIndex)
    {
       elem = attr.elementByPhysicalIndex(i);
-
       color = elem.child(colorAttr);
       alpha = elem.child(alphaAttr);
       blendMode = elem.child(blendModeAttr);
       isVisible = elem.child(isVisibleAttr);
 
-      sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_RGBA, color);
-
       // Alpha connection is only handled when 
       // The input in color and alpha is the same
-
       colorSrc = MObject::kNullObj;
       alphaSrc = MObject::kNullObj;
 
@@ -1591,35 +2149,114 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
       else
          colorConnectedToAlpha = (colorSrc == alphaSrc);
 
-      sprintf(aiAttr, "colorConnectedToAlpha%u", i);
-      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? true : false);
 
+      if (arnoldIndex > 8 )
+      {
+         // I already finished the whole layer(shader_index)
+         // I need to link it to the first input of the next layer
+
+         // I still  have (i+1) layers to compute, and the first layer of my next shader
+         // will be used to chain the previous layer_rgba. Let's see if that amount if < 8 so that
+         // I can use the original layer_rgba shader
+         AtNode *prevShader = shader;
+         if (i < 7)
+         {
+            shader = rootShader;
+         } else
+         {
+            shader_index++;
+            MString key = "l";
+            key += shader_index;
+            shader = GetArnoldNode(key.asChar());
+            if (shader == NULL)
+               shader = AddArnoldNode("layer_rgba", key.asChar());
+         }
+         // link the whole previous layer_rgba to input1 so that we can continue with the following ones
+         AiNodeLink(prevShader, "input1", shader); 
+         arnoldIndex = 2;
+      }
+
+      sprintf(aiAttr, "input%u", arnoldIndex);
+      ProcessParameter(shader, aiAttr, AI_TYPE_RGBA, color);
+
+
+      sprintf(aiAttr, "mix%u", arnoldIndex);
       if (!colorConnectedToAlpha && alphaSrc.isNull())
-      {
-         // Export alpha value when it's not connected
-
-         sprintf(aiAttr, "alpha%u", i);
          AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
-      }
       else
-      {
-         sprintf(aiAttr, "alpha%u", i);
          ProcessParameter(shader, aiAttr, AI_TYPE_FLOAT, alpha);
+
+      int mayaBlend = blendMode.asInt();
+      MString arnoldBlend;
+      switch (mayaBlend){
+         // set the arnold blend mode based on the maya one 
+         default:
+         case BM_NONE:
+            arnoldBlend = "overwrite";
+            AiNodeUnlink(shader, aiAttr);
+            AiNodeSetFlt(shader, aiAttr, 1.f); // none = over with mix = 1 ?
+            break;
+         case BM_OVER:
+            arnoldBlend = "overwrite";
+            break;
+         case BM_IN:
+            // FIXME this isn't rendering properly
+            arnoldBlend = "in";
+            break;
+         case BM_OUT:
+            arnoldBlend = "out";
+            break;
+         case BM_ADD:
+            arnoldBlend = "plus";
+            break;
+         case BM_SUBTRACT:
+            arnoldBlend = "minus";
+            break;
+         case BM_MULTIPLY:
+            arnoldBlend = "multiply";
+            break;
+         case BM_DIFFERENCE:
+            arnoldBlend = "difference";
+            break;
+         case BM_LIGHTEN:
+            arnoldBlend = "max";
+            break;
+         case BM_DARKEN:
+            arnoldBlend = "min";
+            break;
+         case BM_SATURATE:
+            arnoldBlend = "hard_light";
+            break;
+         case BM_DESATURATE:
+            arnoldBlend = "exclusion";
+            break;
+         case BM_ILLUMINATE:
+            arnoldBlend = "geometric";
+            break;
       }
-
-      sprintf(aiAttr, "blendMode%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_ENUM, blendMode);
-
-      sprintf(aiAttr, "visible%u", i);
+      sprintf(aiAttr, "operation%u", arnoldIndex);
+      AiNodeSetStr(shader, aiAttr, arnoldBlend.asChar());
+      
+      sprintf(aiAttr, "enable%u", arnoldIndex);
       ProcessParameter(shader, aiAttr, AI_TYPE_BOOLEAN, isVisible);
+
    }
+
+}
+void CLayeredTextureTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "alphaIsLuminance")
+      SetUpdateMode(AI_RECREATE_NODE);
+ 
+   CShaderTranslator::NodeChanged(node, plug);  
 }
 
 // LayeredShader
 //
 AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredShader");
+   return AddArnoldNode("maya_layered_shader");
 }
 
 void CLayeredShaderTranslator::Export(AtNode* shader)
@@ -1696,25 +2333,51 @@ AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
    if (!IsMotionBlurEnabled(MTOA_MBLUR_SHADER))
       return NULL;
 
-   return AddArnoldNode("MtoaAnimFloat");
+   return AddArnoldNode("ramp_float");
 }
 
 void CAnimCurveTranslator::Export(AtNode* shader)
 {
+   if (shader == NULL)
+      return;
+
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
+   AiNodeSetStr(shader, "type", "time"); // we want time-driven ramps
 
    if (RequiresMotionData())
    {
-      AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
+      int numMotionSteps = GetNumMotionSteps();
+      int motionStep = GetMotionStep();
+
+      // Note that here we're exporting the different keys as elements in the ramp
+      AtArray* values = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_FLOAT);
       AiArraySetFlt(values, GetMotionStep(), value);
-      AiNodeSetArray(shader, "values", values);
+      AiNodeSetArray(shader, "value", values);
+
+      // For positions, we can set the values right away...
+      AtArray* positions = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_FLOAT);
+      AtArray* interpolations = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_INT);
+
+      for (int i = 0; i < numMotionSteps; ++i)
+      {
+         AiArraySetFlt(positions, i, float(i) / float(numMotionSteps - 1.f));
+         // 1=Linear interpolation. Can we set a single array element, or does ramp_float expect the 
+         // same amount of elements for the 3 arrays ?
+         AiArraySetInt(interpolations, i, 1);
+      }
+      
+      AiNodeSetArray(shader, "position", positions);
+      AiNodeSetArray(shader, "interpolation", interpolations);
    }
    else
-   {
-      AiNodeSetFlt(shader, "values", value);
+   {      
+      AiNodeSetFlt(shader, "value", value);
+      AiNodeSetFlt(shader, "position", 0.f);
+      AiNodeSetInt(shader, "interpolation", 1); // linear
    }
+   
 }
 
 void CAnimCurveTranslator::ExportMotion(AtNode* shader)
@@ -1722,7 +2385,7 @@ void CAnimCurveTranslator::ExportMotion(AtNode* shader)
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
-   AtArray* values = AiNodeGetArray(shader, "values");
+   AtArray* values = AiNodeGetArray(shader, "value");
    AiArraySetFlt(values, GetMotionStep(), value);
 }
 
@@ -1738,29 +2401,125 @@ AtNode*  CDisplacementTranslator::CreateArnoldNodes()
    plug.connectedTo(connections, true, false);
 
    if (connections.length() != 0)
-   {
-      return AddArnoldNode("MayaVectorDisplacement");
+   {      
+      m_isVectorDisp = true;
+      AtNode *vectorMap = AddArnoldNode("vector_map");
+      
+      // if space is world (0), we need to insert a space_transform node
+      AtNode *spaceTransform = (FindMayaPlug("vectorSpace").asInt() == 0) ? AddArnoldNode("space_transform", "space_transform") : NULL;
+
+      if (!IsFloatAttrDefault(FindMayaPlug("displacement"), 0.f))
+      {
+         // on top of the vector displacement, there will be a regular displacement along the normal,
+         // thus the root shader should be add
+         AtNode *add = AddArnoldNode("add", "add");
+         AddArnoldNode("state_vector", "state_vector");
+         AddArnoldNode("multiply", "multiply1");
+         AddArnoldNode("multiply", "multiply2");
+         return add;
+      }
+      if (spaceTransform)
+         return spaceTransform;
+      
+      return vectorMap;
    }
    else
-   {
-      return AddArnoldNode("MayaNormalDisplacement");
+   {      
+      m_isVectorDisp = false;
+      return AddArnoldNode("range");
    }
 }
 
 void CDisplacementTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "displacement", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "vectorDisplacement", AI_TYPE_VECTOR);
-   ProcessParameter(shader, "scale", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "vectorEncoding", AI_TYPE_INT);
-   ProcessParameter(shader, "vectorSpace", AI_TYPE_INT);
-   ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
-   static const AtString MayaNormalDisplacement_str("MayaNormalDisplacement");
-   if (AiNodeIs(shader, MayaNormalDisplacement_str))
-      ProcessParameter(shader, "zeroValue", AI_TYPE_FLOAT, "aiDisplacementZeroValue");
+   if (!m_isVectorDisp)
+   {
+      // simple displacement along the normal.
+      // We just need the displacement input + scale + zeroValue
+      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "displacement");
+      ProcessParameter(shader, "contrast", AI_TYPE_FLOAT, "scale");
+      AiNodeSetFlt(shader, "contrast_pivot", 0.f);
+      // Now to match the formulas I need output_min = - aiDisplacementZeroValue
+      // and (output_max - output_min) = 1
+      MPlug zeroValPlug = FindMayaPlug("aiDisplacementZeroValue");
+      float zeroVal = zeroValPlug.asFloat();
+      AiNodeSetFlt(shader, "output_min", - zeroVal);
+      AiNodeSetFlt(shader, "output_max", 1 - zeroVal);
+      return;
+   }
+
+   // vector displacement, let the fun begin !
+   AtNode *vectorMap = GetArnoldNode();
+   AtNode *spaceTransform = GetArnoldNode("space_transform");
+   AtNode *add = GetArnoldNode("add");
+  
+   ProcessParameter(vectorMap, "input", AI_TYPE_VECTOR, "vectorDisplacement");
+   ProcessParameter(vectorMap, "scale", AI_TYPE_FLOAT);
+   ProcessParameter(vectorMap, "tangent", AI_TYPE_VECTOR);
+   AiNodeSetBool(vectorMap, "color_to_signed", (FindMayaPlug("vectorEncoding").asInt() != 0));
+   // vectorSpace = {WORLD, OBJECT, TANGENT}
+   int vectorSpace = FindMayaPlug("vectorSpace").asInt();
+   AiNodeSetBool(vectorMap, "tangent_space", (vectorSpace == 2)); 
+   if (vectorSpace == 2)
+      AiNodeSetStr(vectorMap, "order", "XZY");
+
+   if (spaceTransform)
+   {
+      AiNodeSetStr(spaceTransform, "to", "object");  // object
+      AiNodeSetStr(spaceTransform, "from", (vectorSpace == 0) ? "world" : "object");
+      AiNodeSetStr(spaceTransform, "type", "vector");
+      AiNodeLink(vectorMap, "input", spaceTransform);
+   }
+
+   if (add)
+   {
+      AtNode *stateVector = GetArnoldNode("state_vector");
+      AtNode *multiply1 = GetArnoldNode("multiply1");
+      AtNode *multiply2 = GetArnoldNode("multiply2");
+
+      AiNodeLink((spaceTransform) ? spaceTransform : vectorMap, "input1", add);
+      AiNodeLink(stateVector, "input1", multiply1);
+      AiNodeSetStr(stateVector, "variable", "N");
+      AiNodeLink(multiply1, "input2", add);
+      
+      float scale = FindMayaPlug("scale").asFloat();
+      MPlugArray connections;
+      MPlug displacementPlug = FindMayaPlug("displacement");
+      displacementPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         // there's a link on "displacement" so we can't just multiply it with "scale"
+         // so we link multiply2 to the input2 of multiply1, we link multiply2.input1 to the 
+         // displacement link, and we set scale to its input2
+         AiNodeLink(multiply2, "input2", multiply1);
+
+         ShaderComputeLink(this, connections[0], multiply2, "input1");
+
+         AiNodeSetRGB(multiply2, "input2", scale, scale, scale);
+      }
+      else
+      {
+         // no link on "displacement", se we don't need multiply2. We just multiply it with "scale"
+         AiNodeUnlink(multiply1, "input2"); // it case it was linked before
+         float displacement = displacementPlug.asFloat();
+         displacement *= scale;
+         AiNodeSetRGB(multiply1, "input2", displacement, displacement, displacement);
+      }
+   }
 }
 void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (!m_isVectorDisp)
+   {
+      if (plugName == "vectorDisplacement")
+         SetUpdateMode(AI_RECREATE_NODE);
+   } else
+   {
+      if (plugName == "vectorSpace" || plugName == "displacement")
+         SetUpdateMode(AI_RECREATE_NODE);
+   }
+
    CShaderTranslator::NodeChanged(node, plug);
 
    MPlug disp = MFnDependencyNode(node).findPlug("displacement", true);
@@ -1805,39 +2564,6 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 
             translator2->SetUpdateMode(AI_RECREATE_NODE);
             translator2->RequestUpdate();
-
-            /*
-              Ok, there was surely a good reason to request updates twice here, but this was done a long time 
-              ago. So given that this original commit didn't contain any detail about "why twice", then we have 
-              to comment it and see exactly what issues it introduces....
-
-            // TODO: By now we have to check the connected nodes and if something that is not a mesh
-            //  is connected, we do not reexport, as some crashes may happen.
-            if(translator2->GetMayaNodeTypeName() != "mesh")
-            {
-               reexport = false;
-               break;
-            }
-            translatorsToUpdate.push_back(translator2);
-
-         }
-
-      }
-
-      // We only reexport if all nodes connected to the displacement are mesh nodes
-      if (reexport)
-      {
-         for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
-            iter != translatorsToUpdate.end(); ++iter)
-         {
-            CNodeTranslator* translator3 = (*iter);
-            if (translator3 != NULL)
-            {
-               translator3->SetUpdateMode(AI_RECREATE_NODE);
-               translator3->RequestUpdate();
-            }
-         }
-      }*/
          }
       }
    }
@@ -2720,19 +3446,19 @@ CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType,
 
 }
 
-void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
+void CMayaShadingSwitchTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shadingSwitch, "default", m_paramType, "default");
-   std::vector<AtNode*> inputs;
-   std::vector<AtNode*> shapes;
-
    MFnDependencyNode dnode(GetMayaObject());
+
+   unordered_map<std::string, std::vector<AtNode *> > shapeMap;
 
    MPlug inputPlug = dnode.findPlug("input", true);
    MIntArray existingIndices;
    inputPlug.getExistingArrayAttributeIndices(existingIndices);
    if (existingIndices.length() == 0)
       return;
+
+   // First build a map for all the shapes and the corresponding shaders
    for (unsigned int i = 0; i < existingIndices.length(); ++i)
    {
       MPlug currentInputPlug = inputPlug.elementByLogicalIndex(existingIndices[i]);      
@@ -2753,41 +3479,144 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
       AtNode* shape = ExportConnectedNode(inputShapePlug);
       if (shape == 0)
          continue;
-      inputs.push_back(shader);
-      shapes.push_back(shape);
+
+      shapeMap[AiNodeGetName(shader)].push_back(shape);
+      
    }
-   if (inputs.size() == 0)
+
+   if (shapeMap.empty())
       return;
-   AiNodeSetArray(shadingSwitch, "inputs", AiArrayConvert((unsigned int)inputs.size(), 1, AI_TYPE_NODE, &inputs[0]));
-   AiNodeSetArray(shadingSwitch, "shapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+
+   unordered_map<std::string, std::vector<AtNode *> >::iterator it = shapeMap.begin();
+   unordered_map<std::string, std::vector<AtNode *> >::iterator itEnd = shapeMap.end();
+
+   int ind = 0;
+   AtNode *previousSwitch = NULL;
+      
+   for (; it != itEnd; ++it)
+   {
+      const std::vector<AtNode*> &shapes = it->second;
+      if (shapes.empty())
+         continue;
+      
+      AtNode *shapeShader = AiNodeLookUpByName(it->first.c_str());
+      if (shapeShader == NULL)
+         continue;
+      
+      // Get a query_shape shader and set the list of shapes
+      MString queryKey = "query";
+      queryKey += (ind + 1);
+      AtNode *query = GetArnoldNode(queryKey.asChar());
+      if (query == NULL)
+         query = AddArnoldNode("query_shape", queryKey.asChar());
+
+      AiNodeSetArray(query, "shapes", AiArrayConvert((unsigned int) shapes.size(), 1, AI_TYPE_NODE, &(shapes[0])));
+
+      // Now get the switch_rgba shader
+      MString switchKey = "switch";
+      switchKey += (ind + 1);
+
+      AtNode *switch_rgba = (previousSwitch == NULL) ? shader : GetArnoldNode(switchKey.asChar());
+      if (switch_rgba == NULL)
+         switch_rgba = AddArnoldNode("switch_rgba", switchKey.asChar());
+
+      AiNodeLink(query, "index", switch_rgba);
+      // if condition is verified, we'll have index one, zero otherwise
+      AiNodeLink(shapeShader, "input1", switch_rgba);
+
+      if (previousSwitch)
+      {
+         // link this new layer_rgba shader to previous one's input0
+         // so that it's only called if the previous condition was false
+         AiNodeLink(switch_rgba, "input0", previousSwitch);
+      }
+      
+      previousSwitch = switch_rgba;
+      ind++;
+   }
+   // We did all the shapes, now let's set the default value on the last switch input0
+   if (previousSwitch)
+   {
+      MPlugArray connections;
+      MPlug plug = FindMayaPlug("default");
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         ShaderComputeLink(this, connections[0], previousSwitch, "input0");
+      else
+      {
+         std::vector<std::string> compInputs(3);
+         compInputs[0] = "input0.r";
+         compInputs[1] = "input0.g";
+         compInputs[2] = "input0.b";
+         switch(m_paramType)
+         {
+            {
+            case AI_TYPE_FLOAT:
+               float val = plug.asFloat();
+               AiNodeSetRGBA(previousSwitch, "input0", val, val, val, 1.f);
+               break;
+            }
+            {
+            case AI_TYPE_VECTOR2:
+               AiNodeSetRGBA(previousSwitch, "input0", plug.child(0).asFloat(), plug.child(1).asFloat(), 0.f, 1.f);
+               for (int c = 0; c < 2; ++c)
+               {
+                  connections.clear();
+                  plug.child(c).connectedTo(connections, true, false);
+                  if (connections.length() > 0)
+                     ShaderComputeLink(this, connections[0], previousSwitch, compInputs[c].c_str());
+
+               }
+            break;
+            }
+            {
+            case AI_TYPE_RGB:
+               AiNodeSetRGBA(previousSwitch, "input0", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.f);
+               for (int c = 0; c < 3; ++c)
+               {
+                  connections.clear();
+                  plug.child(c).connectedTo(connections, true, false);
+                  if (connections.length() > 0)
+                     ShaderComputeLink(this, connections[0], previousSwitch, compInputs[c].c_str());
+
+               }
+            break;
+            }
+            {
+            default:
+            case AI_TYPE_RGBA:
+               ProcessParameter(previousSwitch, "input0", AI_TYPE_RGBA, "default");
+               break;
+            }
+         }
+      }      
+   }
 }
 
 AtNode* CMayaShadingSwitchTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode(m_nodeType.c_str());
+   return AddArnoldNode("switch_rgba");
 }
 
 void* CreateSingleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaSingleShadingSwitch", AI_TYPE_FLOAT);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_FLOAT);
 }
 
 void* CreateDoubleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_VECTOR2);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_VECTOR2);
 }
 
 void* CreateTripleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaTripleShadingSwitch", AI_TYPE_RGB);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_RGB);
 }
 
 void* CreateQuadShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_RGBA);
 }
-
-
 
 
 // Toon
@@ -2944,7 +3773,7 @@ void CConditionTranslator::Export(AtNode* shader)
    }
    ProcessParameter(compare, "input1", AI_TYPE_FLOAT, "firstTerm");
    ProcessParameter(compare, "input2", AI_TYPE_FLOAT, "secondTerm");
-   AiNodeLink(compare, "index", shader);   
+   AiNodeLink(compare, "index", shader);
    
    ProcessParameter(shader, "input0", AI_TYPE_RGBA, "colorIfFalse");
    ProcessParameter(shader, "input1", AI_TYPE_RGBA, "colorIfTrue");
@@ -3013,4 +3842,457 @@ void CAiOslShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
       SetUpdateMode(AI_RECREATE_NODE);
 
    CShaderTranslator::NodeChanged(node, plug);
+}
+
+AtNode* CGammaCorrectTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("pow");
+}
+
+void CGammaCorrectTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "base", AI_TYPE_RGB, "value");
+
+   MPlug plug = FindMayaPlug("gamma");
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      AtNode* linkedNode = ExportConnectedNode(connections[0]);
+      // there is a link on the gamma attribute. We need to insert an invert shader in the middle
+      AtNode* invert = GetArnoldNode("invert");
+      if (invert == NULL)
+         invert = AddArnoldNode("reciprocal", "invert");
+
+      AiNodeLink(linkedNode, "input", invert);   
+      AiNodeLink(invert, "exponent", shader);
+      
+   } else
+   {
+      // no connection on the gamma attribute, just set the exponent as 1/gamma
+      AiNodeSetRGB(shader, "exponent", 1.f / AiMax(AI_EPSILON, plug.child(0).asFloat()), 
+                                       1.f / AiMax(AI_EPSILON, plug.child(1).asFloat()), 
+                                       1.f / AiMax(AI_EPSILON, plug.child(2).asFloat()));
+   }
+   
+}
+
+// Maya's SurfaceShader
+// If no matte is set (outMatteOpacity=white), we just want a standard_surface
+// with emission + transparency. If there is matte, then we also need to insert
+// a matte shader before the standard_surface, which will be evaluated for camera
+// rays and behave like a passthrough for other ray types.
+// We need to set the matte's color (same as standard_surface emission) and opacity.
+// The matte color is converted to a scalar value here.
+AtNode*  CSurfaceShaderTranslator::CreateArnoldNodes()
+{
+   AtNode *surface = AddArnoldNode("standard_surface");
+   if (IsRGBAttrDefault(FindMayaPlug("outMatteOpacity"), 1.f, 1.f, 1.f))
+      return surface;
+
+   AtNode *matte = AddArnoldNode("matte", "matte");
+   AiNodeLink(surface, "passthrough", matte);
+   return matte;
+}
+
+void CSurfaceShaderTranslator::Export(AtNode* shader)
+{
+   shader = GetArnoldNode();
+   AtNode *matte = GetArnoldNode("matte");
+   AtNode* reverseNode = NULL;
+   AtRGB opacity(1.f, 1.f, 1.f);
+
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "outColor");
+   AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, "base", 0.f);
+   AiNodeSetFlt(shader, "specular", 0.f);
+   
+   // Transparency to opacity
+   MPlug plug = FindMayaPlug("outTransparency");
+   if (!plug.isNull())
+   {
+      MPlugArray connections;
+      // For IPR unlink first
+      if (AiNodeIsLinked(shader, "opacity")) AiNodeUnlink(shader, "opacity");
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode* inNode = ExportConnectedNode(connections[0]);
+         // Need to reverse it
+         if (inNode != NULL)
+         {
+            MString tag = "outTransparency";
+            reverseNode = GetArnoldNode(tag.asChar());
+            if (reverseNode == NULL)
+               reverseNode = AddArnoldNode("complement", tag.asChar());
+            AiNodeLink(inNode, "input", reverseNode);
+            AiNodeLink(reverseNode, "opacity", shader);
+         }
+      } 
+      else
+      {
+         // Need also to support component linking. 
+         // FIXME we have the same issue with all the other translations here where we just 
+         // ask for the connection on the whole attribute plug
+         bool comp_linking = false;
+         for (int i = 0; i < 3; ++i)
+         {
+            plug.child(i).connectedTo(connections, true, false);
+            comp_linking |= (connections.length() > 0);
+         }
+         if (comp_linking)
+         {
+            MString tag = "outTransparency";
+            reverseNode = GetArnoldNode(tag.asChar());
+            if (reverseNode == NULL)
+               reverseNode = AddArnoldNode("complement", tag.asChar());
+            AiNodeLink(reverseNode, "opacity", shader);
+            ProcessParameter(reverseNode, "input", AI_TYPE_RGB, "outTransparency" );
+         } else
+         {
+            opacity = AtRGB(1.0f - plug.child(0).asFloat(),
+                           1.0f - plug.child(1).asFloat(),
+                           1.0f - plug.child(2).asFloat());
+
+            AiNodeSetRGB(shader, "opacity", opacity.r, opacity.g, opacity.b);
+         }
+      }
+   }
+
+   if (matte == NULL)
+      return;
+
+   // Need to deal with matte
+   AtRGB color = AiNodeGetRGB(shader, "emission_color");
+   if (AiNodeIsLinked(shader, "emission_color"))
+   {
+      // outColor attribute is linked, we need to link each R, G, B component separately
+      // because the alpha must be connected to the outMatteOpacity
+      AtNode *colorLink = AiNodeGetLink(shader, "emission_color");
+      if (colorLink)
+      {
+         AiNodeLinkOutput(colorLink, "r", matte, "color.r");
+         AiNodeLinkOutput(colorLink, "g", matte, "color.g");
+         AiNodeLinkOutput(colorLink, "b", matte, "color.b");
+      }
+   } else // outColor isn't linked, let's just set the parameters (don't worry about color.a, we'll set it below)
+      AiNodeSetRGBA(matte, "color", color.r, color.g, color.b, 1.f);
+
+   // matte :  Note, we're not trying to support colored matte opacity, just a scalar matte value (in color.a)
+   plug = FindMayaPlug("outMatteOpacity");
+   if (!plug.isNull())
+   {
+      MPlugArray connections;
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         // outMatteOpacity is connected. 
+         // To avoid inserting yet another node in this mess for such a rare use case, 
+         // we're just linking with the "r" output
+         AtNode* inNode = ExportConnectedNode(connections[0]);
+         AiNodeLinkOutput(inNode, "r", matte, "color.a");   
+      } else
+      {
+         // outMatteOpacity is not connected, let's set color.a to the value of the color
+         float matteVal = AiMax(plug.child(0).asFloat(), AiMax(plug.child(1).asFloat(), plug.child(2).asFloat()));
+         AiNodeSetRGBA(matte, "color", color.r, color.g, color.b, matteVal);
+      }
+
+      // set matte's opacity to the same value as the standard_surface
+      AiNodeSetRGB(matte, "opacity", opacity.r, opacity.g, opacity.b);
+      // if we connected something to standard_surface's opacity, let's connect it here too
+      if (reverseNode)
+         AiNodeLink(reverseNode, "opacity", matte);
+
+   }   
+}
+
+void CSurfaceShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // If I didn't have created the matte before and if outMatteOpacity is being changed, 
+   // it means we're likely going to have to create it and insert it at the root of this translator nodes.
+   // So let's recreate the node in that case. If the matte shader already exists, we can leave it where it is,
+   // even if outMatteOpacity is now set to white during IPR.
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "outMatteOpacity" && (GetArnoldNode("matte") == NULL))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
+
+
+AtNode* CRgbToHsvTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("color_convert");
+}
+
+void CRgbToHsvTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "inRgb");
+   AiNodeSetStr(shader, "from", "RGB");
+   AiNodeSetStr(shader, "to", "HSV");
+}
+
+AtNode* CHsvToRgbTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("color_convert");
+}
+
+void CHsvToRgbTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "inHsv");
+   AiNodeSetStr(shader, "from", "HSV");
+   AiNodeSetStr(shader, "to", "RGB");  
+}
+
+AtNode* CUserDataVec2Translator::CreateArnoldNodes()
+{
+   return AddArnoldNode("user_data_rgb");
+}
+
+void CUserDataVec2Translator::Export(AtNode* shader)
+{
+
+   ProcessParameter(shader, "attribute", AI_TYPE_STRING, "vec2AttrName");
+   float defX = FindMayaPlug("defaultValueX").asFloat();
+   float defY = FindMayaPlug("defaultValueY").asFloat();
+   AiNodeSetRGB(shader,"default", defX, defY, 0.0f);
+
+}
+
+AtNode* CUserDataVectorTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("user_data_rgb");
+}
+
+void CUserDataVectorTranslator::Export(AtNode* shader)
+{
+
+   ProcessParameter(shader, "attribute", AI_TYPE_STRING, "vectorAttrName");
+   float defX = FindMayaPlug("defaultValueX").asFloat();
+   float defY = FindMayaPlug("defaultValueY").asFloat();
+   float defZ = FindMayaPlug("defaultValueZ").asFloat();
+   AiNodeSetRGB(shader,"default", defX, defY, defZ);
+
+}
+AtNode* CUserDataBoolTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("user_data_int");
+}
+
+void CUserDataBoolTranslator::Export(AtNode* shader)
+{
+
+   ProcessParameter(shader, "attribute", AI_TYPE_STRING, "boolAttrName");
+   AiNodeSetInt(shader,"default", FindMayaPlug("defaultValue").asBool() ? 1 : 0);
+}
+
+AtNode* CContrastTranslator::CreateArnoldNodes()
+{
+   MPlug contrastPlug = FindMayaPlug("contrast");
+   MPlug biasPlug = FindMayaPlug("bias");
+
+   AtRGB contrast(contrastPlug.child(0).asFloat(), contrastPlug.child(1).asFloat(), contrastPlug.child(2).asFloat());
+   AtRGB bias(biasPlug.child(0).asFloat(), biasPlug.child(1).asFloat(), biasPlug.child(2).asFloat());
+   
+   if (std::abs(contrast.r - contrast.g) < AI_EPSILON && std::abs(contrast.r - contrast.b) < AI_EPSILON &&
+      std::abs(bias.r - bias.g) < AI_EPSILON && std::abs(bias.r - bias.b) < AI_EPSILON)
+      m_isRgb = false;
+   else
+      m_isRgb = true;
+
+   if (m_isRgb)
+   {
+      AddArnoldNode("range", "range_r");
+      AddArnoldNode("range", "range_g");
+      AddArnoldNode("range", "range_b");
+      AddArnoldNode("flat", "flat");
+      return AddArnoldNode("float_to_rgb");
+   }
+
+   return AddArnoldNode("range");
+}
+
+void CContrastTranslator::Export(AtNode* shader)
+{
+   if (!m_isRgb)
+   {
+      ProcessParameter(shader, "input", AI_TYPE_RGB, "value");
+      float contrast = FindMayaPlug("contrast").child(0).asFloat();
+      AiNodeSetFlt(shader, "gain", 1.f - powf(2.f, -contrast));
+      float bias = FindMayaPlug("bias").child(0).asFloat();
+      AiNodeSetFlt(shader, "bias", 1.f - bias);
+      return;
+   }
+   AtNode *flat = GetArnoldNode("flat");
+   AtNode *range_r = GetArnoldNode("range_r");
+   AtNode *range_g = GetArnoldNode("range_g");
+   AtNode *range_b = GetArnoldNode("range_b");
+   AiNodeLink(range_r, "r", shader);
+   AiNodeLink(range_g, "g", shader);
+   AiNodeLink(range_b, "b", shader);
+   AiNodeLinkOutput(flat, "r", range_r, "input");
+   AiNodeLinkOutput(flat, "g", range_g, "input");
+   AiNodeLinkOutput(flat, "b", range_b, "input");
+   ProcessParameter(flat, "color", AI_TYPE_RGB, "value");
+   MPlug contrastPlug = FindMayaPlug("contrast");
+   AtRGB contrast(contrastPlug.child(0).asFloat(), contrastPlug.child(1).asFloat(), contrastPlug.child(2).asFloat());
+   MPlug biasPlug = FindMayaPlug("bias");
+   AtRGB bias(biasPlug.child(0).asFloat(), biasPlug.child(1).asFloat(), biasPlug.child(2).asFloat());
+   AiNodeSetFlt(range_r, "gain", 1.f - powf(2.f, -contrast.r));
+   AiNodeSetFlt(range_g, "gain", 1.f - powf(2.f, -contrast.g));
+   AiNodeSetFlt(range_b, "gain", 1.f - powf(2.f, -contrast.b));
+   AiNodeSetFlt(range_r, "bias", 1.f - bias.r);
+   AiNodeSetFlt(range_g, "bias", 1.f - bias.g);
+   AiNodeSetFlt(range_b, "bias", 1.f - bias.b);
+}
+
+
+void CContrastTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (!m_isRgb && (plugName == "contrast" || plugName == "bias"))
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShaderTranslator::NodeChanged(node, plug);
+
+}
+
+AtNode* CSetRangeTranslator::CreateArnoldNodes()
+{
+   AtNode* X_Range = AddArnoldNode("range", "X_Range");
+   AtNode* Y_Range = AddArnoldNode("range", "Y_Range");
+   AtNode* Z_Range = AddArnoldNode("range", "Z_Range");
+   AtNode* outFlat = AddArnoldNode("flat");
+   AtNode* inFlat = AddArnoldNode("flat", "inFlat");
+
+   AiNodeLink(X_Range, "color.r", outFlat);
+   AiNodeLink(Y_Range, "color.g", outFlat);
+   AiNodeLink(Z_Range, "color.b", outFlat);
+
+   AiNodeLinkOutput(inFlat, "r", X_Range, "input");
+   AiNodeLinkOutput(inFlat, "g", Y_Range, "input");
+   AiNodeLinkOutput(inFlat, "b", Z_Range, "input");
+   
+
+   return outFlat;
+}
+void CSetRangeTranslator::Export(AtNode* shader)
+{
+   AtNode* X_Range = GetArnoldNode("X_Range");
+   AtNode* Y_Range = GetArnoldNode("Y_Range");
+   AtNode* Z_Range = GetArnoldNode("Z_Range");
+   AtNode* inFlat  = GetArnoldNode("inFlat");
+   AtNode* outFlat = shader;
+   
+   ProcessParameter(inFlat, "color", AI_TYPE_RGB, "value");
+   
+   ProcessParameter(X_Range, "input_min", AI_TYPE_FLOAT, "oldMinX");
+   ProcessParameter(Y_Range, "input_min", AI_TYPE_FLOAT, "oldMinY");
+   ProcessParameter(Z_Range, "input_min", AI_TYPE_FLOAT, "oldMinZ");
+   ProcessParameter(X_Range, "input_max", AI_TYPE_FLOAT, "oldMaxX");
+   ProcessParameter(Y_Range, "input_max", AI_TYPE_FLOAT, "oldMaxY");
+   ProcessParameter(Z_Range, "input_max", AI_TYPE_FLOAT, "oldMaxZ");
+
+   ProcessParameter(X_Range, "output_min", AI_TYPE_FLOAT, "minX");
+   ProcessParameter(Y_Range, "output_min", AI_TYPE_FLOAT, "minY");
+   ProcessParameter(Z_Range, "output_min", AI_TYPE_FLOAT, "minZ");
+   ProcessParameter(X_Range, "output_max", AI_TYPE_FLOAT, "maxX");
+   ProcessParameter(Y_Range, "output_max", AI_TYPE_FLOAT, "maxY");
+   ProcessParameter(Z_Range, "output_max", AI_TYPE_FLOAT, "maxZ");
+}
+
+void CRampRgbTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiRampRgb");
+   CAttrData data;
+   data.name = "ramp";
+   data.shortName = "aiRamp";
+   helper.MakeInputColorRamp(data);
+}
+
+AtNode* CRampRgbTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("ramp_rgb");
+}
+void CRampRgbTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "type", AI_TYPE_INT);
+   ProcessParameter(shader, "input", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "uvset", AI_TYPE_STRING);
+   ProcessParameter(shader, "use_implicit_uvs", AI_TYPE_INT);
+     
+   MFnDependencyNode fnNode(GetMayaObject());
+   MPlug plug;
+   plug = FindMayaPlug("ramp");
+   MObject opos = fnNode.attribute("ramp_Position");
+   ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
+   MObject ocol = fnNode.attribute("ramp_Color");
+   ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);
+   MObject oint = fnNode.attribute("ramp_Interp");
+   ProcessArrayParameter(shader, "interpolation", plug, AI_TYPE_INT, &oint);
+
+   AtArray *interpArray = AiNodeGetArray(shader, "interpolation");
+   unsigned int numElems = (interpArray) ? AiArrayGetNumElements(interpArray) : 0;
+   for (unsigned int i = 0; i < numElems; ++i)
+   {
+      switch (AiArrayGetInt(interpArray, i))
+      {
+         default: // 0: None and 1: Linear are already ok
+            break;
+         case 2: // smooth
+            AiArraySetInt(interpArray, i, 6); // Smooth is 6 in ramp_rgb
+            break;
+         case 3: // spline
+            AiArraySetInt(interpArray, i, 2); // Converting "Spline" as "Catmull-Rom" (2)
+            break;
+      }
+   }
+}
+
+void CRampFloatTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiRampFloat");
+   
+   CAttrData data;
+   data.name = "ramp";
+   data.shortName = "aiRamp";
+   helper.MakeInputCurveRamp(data);
+}
+
+AtNode* CRampFloatTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("ramp_float");
+}
+void CRampFloatTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "type", AI_TYPE_INT);
+   ProcessParameter(shader, "input", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "uvset", AI_TYPE_STRING);
+   MFnDependencyNode fnNode(GetMayaObject());
+   MPlug plug;
+   plug = FindMayaPlug("ramp");
+   MObject opos = fnNode.attribute("ramp_Position");
+   ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
+   MObject ocol = fnNode.attribute("ramp_FloatValue");
+   ProcessArrayParameter(shader, "value", plug, AI_TYPE_FLOAT, &ocol);
+   MObject oint = fnNode.attribute("ramp_Interp");
+   ProcessArrayParameter(shader, "interpolation", plug, AI_TYPE_INT, &oint);
+
+   AtArray *interpArray = AiNodeGetArray(shader, "interpolation");
+   unsigned int numElems = (interpArray) ? AiArrayGetNumElements(interpArray) : 0;
+   for (unsigned int i = 0; i < numElems; ++i)
+   {
+      switch (AiArrayGetInt(interpArray, i))
+      {
+         default: // 0: None and 1: Linear are already ok
+            break;
+         case 2: // smooth
+            AiArraySetInt(interpArray, i, 6); // Smooth is 6 in ramp_rgb
+            break;
+         case 3: // spline
+            AiArraySetInt(interpArray, i, 2); // Converting "Spline" as "Catmull-Rom" (2)
+            break;
+      }
+   }  
 }

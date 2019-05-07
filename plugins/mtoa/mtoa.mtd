@@ -21,7 +21,6 @@
         max                 INT     100
         softmin             INT     1
         softmax             INT     10
-        default             INT     8
         linkable            BOOL    false
         maya.orig_shortname STRING  "AAsmax"
     [attr bucket_size]
@@ -84,6 +83,9 @@
         maya.keyable        BOOL    false
         linkable            BOOL    false
     [attr ignore_motion_blur]
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
+    [attr ignore_motion]
         maya.keyable        BOOL    false
         linkable            BOOL    false
     [attr ignore_smoothing]
@@ -308,6 +310,14 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
+        maya.channelbox     BOOL    false
+    [attr camera]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
+    [attr transmission]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
         maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
@@ -583,7 +593,14 @@
         min                 FLOAT   0
         max                 FLOAT   1
         maya.channelbox     BOOL    true
-
+    [attr camera]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
+    [attr transmission]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
@@ -650,6 +667,14 @@
         max                 INT     100
         default             INT     1
         maya.channelbox     BOOL    false
+    [attr camera]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
+    [attr transmission]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
@@ -709,6 +734,14 @@
         max                 INT     100
         default             INT     1
         maya.channelbox     BOOL    false
+    [attr camera]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
+    [attr transmission]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
@@ -745,6 +778,7 @@
     maya.id                 INT     0x00115C88
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
+    gpu_support             BOOL    true
     [attr color]
         linkable            BOOL    true
     [attr intensity]
@@ -1295,8 +1329,8 @@
         min             FLOAT   0.0
         softmax         FLOAT   100.0
     [attr transmission_extra_roughness]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
+        softmin         FLOAT   0.0
+        softmax         FLOAT   1.0
     [attr subsurface]
         min             FLOAT   0.0
         max             FLOAT   1.0
@@ -1347,7 +1381,12 @@
     [attr thin_film_IOR]
         min             FLOAT   0.0
         softmax         FLOAT   3.0
-
+    [attr coat_anisotropy]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_rotation]
+        softmin         FLOAT   0.0
+        softmax         FLOAT   1.0
 
 
 [node utility]
@@ -1774,7 +1813,6 @@
     maya.name               STRING  "aiOslShader"
     maya.id                 INT     0x00115D56  
     maya.classification     STRING  "utility/shader"
-    maya.hide               BOOL    false
 
 [node sky]
     desc                    STRING  "Sky environment texture."
@@ -2154,8 +2192,16 @@
 
 
 [node camera_projection]
-    maya.hide               BOOL    true
     maya.id                 INT     0x00115D88
+    maya.name               STRING  "aiCameraProjection"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+    [attr mask]
+        min                 FLOAT   0
+        softmax             FLOAT   1
+    [attr aspect_ratio]
+        min                 FLOAT   0.0001
+        softmax             FLOAT   2
 
 [node checkerboard]
     maya.hide               BOOL    true
@@ -2487,10 +2533,37 @@ desc STRING "Multiplies the curvature by this factor."
 
 
 [node ramp_float]
-    maya.hide               BOOL    true
+    maya.name               STRING  "aiRampFloat"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115DA7
+    [attr position]
+        maya.hide           BOOL    true
+    [attr value]
+        maya.hide           BOOL    true
+    [attr interpolation]
+        maya.hide           BOOL    true
+    [attr input]
+        min                 FLOAT   0
+        max                 FLOAT   1
+    [attr type]
+        default             INT     2
+
 
 [node ramp_rgb]
-    maya.hide               BOOL    true
+    maya.name               STRING  "aiRampRgb"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115DA6
+    [attr position]
+        maya.hide           BOOL    true
+    [attr color]
+        maya.hide           BOOL    true
+    [attr interpolation]
+        maya.hide           BOOL    true
+    [attr input]
+        min                 FLOAT   0
+        max                 FLOAT   1
+    [attr type]
+        default             INT     2
 
 [node random]
     maya.id                 INT     0x00115D74
@@ -2564,7 +2637,10 @@ desc STRING "Multiplies the curvature by this factor."
     maya.hide               BOOL    true
 
 [node rgba_to_float]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115DA8
+    maya.name               STRING  "aiRgbaToFloat"
+    maya.classification     STRING  "utility/conversion"
+    
 
 # enable shadow matte
 [node shadow_matte]
@@ -2752,6 +2828,18 @@ c4d.step FLOAT 0.01
         maya.name           STRING  "default"
         maya.shortname      STRING  "defaultValue" 
 
+[node user_data_rgba]
+    maya.id                 INT      0x00115D14
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    false
+    maya.name               STRING  "aiUserDataColor"
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "colorAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
+
 
 [node user_data_int]
     maya.id                 INT      0x00115D1D
@@ -2766,8 +2854,6 @@ c4d.step FLOAT 0.01
         maya.shortname      STRING  "defaultValue" 
 
 [node user_data_rgb]
-    maya.hide               BOOL    true
-[node user_data_rgba]
     maya.hide               BOOL    true
 
 [node user_data_string]
@@ -3475,6 +3561,19 @@ desc STRING "Apply a gamma correction to the color."
 [node cryptomatte_manifest_driver]
     maya.hide BOOL  TRUE        
 
+[node uv_projection]
+    maya.classification     STRING   "utility/shader"
+    maya.id                 INT      0x00115DA4
+    maya.swatch             BOOL     true
+    [attr u_angle]
+        softmin             FLOAT     0
+        softmax             FLOAT     360
+    [attr v_angle]
+        softmin             FLOAT     0
+        softmax             FLOAT     360
+    [attr matrix]
+        maya.name           STRING    "placementMatrix"
+
 [node matrix_multiply_vector]
     maya.classification STRING "utility/math"
     maya.id INT 0x00115DA0
@@ -3483,8 +3582,30 @@ desc STRING "Apply a gamma correction to the color."
     maya.classification STRING "utility/math"
     maya.id INT 0x00115DA1
 
+[node matrix_interpolate]
+    maya.classification STRING "utility/math"
+    maya.id INT 0x00115DA5
+    [attr value]
+        min             FLOAT     0
+        max             FLOAT     1
+    [attr matrix]
+        maya.name       STRING  "placementMatrix"   
+    
 
+[node c4d_texture_tag]
+    maya.hide BOOL TRUE
+    
+[node c4d_texture_tag_rgba]
+    maya.hide BOOL TRUE
 
+[node driver_no_op]
+    maya.hide BOOL TRUE
+
+[node maya_layered_shader]
+    maya.hide BOOL TRUE
+
+[node query_shape]
+    maya.hide BOOL TRUE
 
 
 

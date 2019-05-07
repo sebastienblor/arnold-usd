@@ -4,37 +4,7 @@ import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
 import os
 import os.path
-
-def GetMtlxLooks(filename):
-    looks = []
-
-    if os.path.exists(filename):
-        with open(filename, 'r') as content_file:
-            fileLine = content_file.read()
-            ind = fileLine.find('<look name')
-
-            while ind >= 0:
-                ind = ind + 12
-                fileLine = fileLine[ind:]
-
-                ind = fileLine.find('>')
-                if ind > 1:
-                    lookName = fileLine[:ind - 1]
-                    firstChar = lookName[:1]
-                    while firstChar == ' ' or firstChar == '=' or firstChar == '\'' or firstChar == '\"':
-                        lookName = lookName[1:]
-                        firstChar = lookName[:1]
-
-                    lastChar = lookName[-1:]
-                    while lastChar == ' ' or lastChar == '\'' or lastChar == '\"':
-                        lookName = lookName[:-1]
-                        firstChar = lookName[-1:]
-
-                    looks.append(lookName)
-
-                ind = fileLine.find('<look name')
-
-    return looks
+import arnold as ai
 
 class AEaiMaterialxTemplate(OperatorAETemplate):
 
@@ -138,12 +108,13 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
 
         if filename is not None:
             filename = os.path.expandvars(filename)
-            
             if os.path.isfile(filename):
-                looksList = GetMtlxLooks(filename)
-                for look in looksList:
+                looksArray = ai.AiMaterialxGetLookNames(filename)
+                numLooks = ai.AiArrayGetNumElements(looksArray)
+                for i in range(numLooks):
+                    look = ai.AiArrayGetStr(looksArray, i)
                     cmds.textScrollList(self.looksListField, edit=True, append=str(look))
-
+                
         cmds.textField(self.lookTextField, edit=True, text=cmds.getAttr(attrName))
         
 

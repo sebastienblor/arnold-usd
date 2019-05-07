@@ -1273,6 +1273,90 @@ const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / 
  */
 void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigned int cacheCount)
 {
+
+   // if we are running interactivly we need to force the user data to be placed on to the child nodes
+   if ( m_parent == NULL && in_node )
+   {
+       AtUserParamIterator *itr = AiNodeGetUserParamIterator(m_node);
+       while (!AiUserParamIteratorFinished(itr))
+       {
+          const AtUserParamEntry* param = AiUserParamIteratorGetNext(itr);
+          string declarestr = "";
+          unsigned int cat = AiUserParamGetCategory(param);
+          if (cat == AI_USERDEF_CONSTANT || cat == AI_USERDEF_UNIFORM)
+          {
+            const char *param_name = AiUserParamGetName(param);
+            switch (cat)
+            {
+              case AI_USERDEF_CONSTANT:
+                declarestr += "constant ";
+                break;
+              case AI_USERDEF_UNIFORM:
+                declarestr += "uniform ";
+                break;
+            }
+
+            // TODO Add Arrays, for now we only copy constant FLOAT,STRING,RGB and VECTOR
+            unsigned int type = AiUserParamGetType(param);
+            switch (type)
+            {
+               case AI_TYPE_FLOAT:
+                  declarestr += "FLOAT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetFlt( in_node, param_name, AiNodeGetFlt(m_node, param_name));
+                  break;
+               case AI_TYPE_INT:
+                  declarestr += "INT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetInt( in_node, param_name, AiNodeGetInt(m_node, param_name));
+                  break;
+               case AI_TYPE_UINT:
+                  declarestr += "UINT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetUInt( in_node, param_name, AiNodeGetUInt(m_node, param_name));
+                  break;
+               case AI_TYPE_BOOLEAN:
+                  declarestr += "BOOL";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetBool( in_node, param_name, AiNodeGetBool(m_node, param_name));
+                  break;
+               case AI_TYPE_STRING:
+                  declarestr += "STRING";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetStr( in_node, param_name, AiNodeGetStr(m_node, param_name));
+                  break;
+               case AI_TYPE_RGB:
+                {
+                  declarestr += "RGB";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AtRGB color = AiNodeGetRGB(m_node, param_name);
+                  AiNodeSetRGB( in_node, param_name,  color.r, color.g, color.b);
+                  break;
+                }
+               case AI_TYPE_RGBA:
+                {
+                  declarestr += "RGBA";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AtRGBA color = AiNodeGetRGBA(m_node, param_name);
+                  AiNodeSetRGBA( in_node, param_name,  color.r, color.g, color.b, color.a);
+                  break;
+                }
+               case AI_TYPE_VECTOR:
+                 {
+                  declarestr += "VECTOR";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AtVector value = AiNodeGetVec(m_node, param_name);
+                  AiNodeSetVec( in_node, param_name, value.x, value.y, value.z );
+                  break;
+                }
+               default:
+                  break;
+            }
+          }
+       }
+       AiUserParamIteratorDestroy (itr);
+   }
+
    unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
    // Push any user-defined custom attributes.
    for ( unsigned int j = 0; j<customAttrCount; j++ ) {
@@ -1334,6 +1418,7 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
       }
 
     }
+
 }
 
 void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )

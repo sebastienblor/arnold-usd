@@ -17,7 +17,7 @@ void CRenderViewMtoA::GetSelection(AtNode **selectedNodes) {}
 void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append){}
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
-void CRenderViewMtoA::RenderViewClosed() {}
+void CRenderViewMtoA::RenderViewClosed(bool close_ui) {}
 void CRenderViewMtoA::RenderChanged(){}
 
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
@@ -313,8 +313,10 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    }
    workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
 
-
-   OpenRenderView(width, height, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
+   double scaleFactor = 1.0;
+   MString scaleCommand = "mayaDpiSetting -q -realScaleValue;" ;
+   MGlobal::executeCommand(scaleCommand, scaleFactor);
+   OpenRenderView(width, height,scaleFactor, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
 
    QMainWindow *arv = GetRenderView();  
    arv->setWindowFlags(Qt::Widget);
@@ -354,7 +356,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       s_arvWidth = -1;
       s_arvHeight = -1;
    }
-   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+   OpenRenderView(width, height,scaleFactor, MQtUtil::mainWindow(),scaleFactor); // this creates ARV or restarts the render
 #endif
 
    MStatus status;   
@@ -518,10 +520,14 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
       workspaceCmd += " -l \"Arnold ViewportRenderer Options\" "; // label
    }
    workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
+   
+   double scaleFactor = 1.0;
+   MString scaleCommand = "mayaDpiSetting -q -realScaleValue;" ;
+   MGlobal::executeCommand(scaleCommand, scaleFactor);
 
    std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
-   CRenderViewInterface::OpenOptionsWindow(250, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
+   CRenderViewInterface::OpenOptionsWindow(250, 50,scaleFactor, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
 
@@ -542,7 +548,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
     //s_creatingARV = false;
 #else
-   CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
+   CRenderViewInterface::OpenOptionsWindow(200, 50,scaleFactor, NULL, MQtUtil::mainWindow(), false);
 #endif
 
    // Callbacks for scene open/save, as well as render layers changes
@@ -712,34 +718,36 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
    MGlobal::getActiveSelectionList(activeList);
    if(activeList.isEmpty()) return;
 
-   //CArnoldSession *session = CMayaScene::GetArnoldSession();
-   //session->FlattenSelection(&activeList, false);
-   
+   MDagPath dagPath;
    MObject objNode;
    activeList.getDependNode(0, objNode);
-   if (objNode.hasFn(MFn::kTransform))
+
+   MString name;
+
+   if (activeList.getDagPath(0, dagPath) == MS::kSuccess)
    {
-      // from Transform to Shape
-      MDagPath dagPath;
-      activeList.getDagPath(0, dagPath);
-      objNode = dagPath.child(0);
-   }
-   if (objNode.hasFn(MFn::kDisplacementShader))
+      dagPath.extendToShape();
+      name = CDagTranslator::GetArnoldNaming(dagPath);
+   } else
    {
-      MFnDependencyNode depNode(objNode);
-      MPlug dispPlug = depNode.findPlug("displacement", true);
-      if (!dispPlug.isNull())
+      if (objNode.hasFn(MFn::kDisplacementShader))
       {
-         MPlugArray conn;
-         dispPlug.connectedTo(conn, true, false);
-         if (conn.length() > 0)
-            objNode = conn[0].node();
-            
+         MFnDependencyNode depNode(objNode);
+         MPlug dispPlug = depNode.findPlug("displacement", true);
+         if (!dispPlug.isNull())
+         {
+            MPlugArray conn;
+            dispPlug.connectedTo(conn, true, false);
+            if (conn.length() > 0)
+               objNode = conn[0].node();
+               
+         }
+       
       }
-    
+      name = MFnDependencyNode(objNode).name();
    }
-   MFnDependencyNode nodeFn( objNode );
-   AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
+
+   AtNode *selected = AiNodeLookUpByName(name.asChar());
    if (selected) selectedNodes.push_back(selected);
    
 }
@@ -910,29 +918,76 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
 
 
 void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append)
-{   
+{  
+   MStringArray selectedObjects;
    CArnoldSession *session = CMayaScene::GetArnoldSession();
-   if (append)
-   {
-      if (selectionCount == 0) return;
-      for (unsigned int i = 0; i < selectionCount; ++i)
-      {
-         MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[i]), MGlobal::kAddToList);
-      }
+   unordered_map<std::string, std::vector<std::string> > proceduralSelectedItems;
 
-   } else 
+   for (unsigned int i = 0; i < selectionCount; ++i)
    {
-      if (selectionCount == 0) 
+      const AtNode *pickedObject = selectedNodes[i];
+      if (pickedObject == NULL)
+         continue;
+
+      MString selectedPath = AiNodeGetName(pickedObject);
+
+      // get the root parent node
+      AtNode *parentNode = AiNodeGetParent(pickedObject);
+      while(parentNode)
       {
-         MGlobal::clearSelectionList();
-         return;
+         pickedObject = parentNode;
+         parentNode = AiNodeGetParent(pickedObject);
+         if (parentNode)
+            selectedPath = MString(AiNodeGetName(pickedObject)) + MString("/") + selectedPath;
+         else
+            break;      
       }
-      
-      MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[0]), MGlobal::kReplaceList);
-      for (unsigned int i = 1; i < selectionCount; ++i)
+      MString objName = session->GetMayaObjectName(pickedObject);
+      std::string objNameStr(objName.asChar());
+      // selectedObjects contain the list of root parent nodes (eg the root standin that exists in the maya scene)
+      selectedObjects.append(objName);
+
+      // selectedFullName contain the list of paths (procedural child names) that we'll use to update the UI list
+      if(AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(pickedObject)) == AI_NODE_SHAPE_PROCEDURAL) 
+         proceduralSelectedItems[objNameStr].push_back(selectedPath.asChar());
+
+   }
+   
+   if (selectedObjects.length() == 0 && !append)
+   {
+      MGlobal::clearSelectionList();
+      return;
+   }
+
+   for (unsigned int i = 0; i < selectedObjects.length(); ++i)
+      MGlobal::selectByName(selectedObjects[i], (append || i > 0) ? MGlobal::kAddToList : MGlobal::kReplaceList);
+
+   unordered_map<std::string, std::vector<std::string> >::iterator it = proceduralSelectedItems.begin();
+   
+   for (; it != proceduralSelectedItems.end(); ++it)
+   {
+      // First check if the procedural has an attribute called "selectedItems"
+      int exists = 0;
+      MString cmd = "attributeExists \"selectedItems\" \"";
+      cmd += MString(it->first.c_str());
+      cmd += MString("\"");
+      MGlobal::executeCommand(cmd, exists);
+      if (exists == 0)
+         continue;
+
+      std::vector<std::string> &selectedItems = it->second;
+      cmd = MString("setAttr -type \"string\" ");
+      cmd += MString(it->first.c_str());
+      cmd += ".selectedItems \"";
+
+      for (size_t i = 0; i < selectedItems.size(); ++i)
       {
-         MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[i]), MGlobal::kAddToList);
+         if (i > 0)
+            cmd += MString(",");
+         cmd += MString(selectedItems[i].c_str());
       }
+      cmd += MString("\"");
+      MGlobal::executeCommand(cmd);
    }
 }
 
@@ -1024,18 +1079,19 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 
 }
 
-void CRenderViewMtoA::RenderViewClosed()
+void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 {
 
-
 #ifdef ARV_DOCKED
-   if (!s_arvWorkspaceControl)
-      return;
-   
-   // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
-   if (s_arvWorkspaceControl)
-      MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
- 
+   if (close_ui)
+   {
+      if (!s_arvWorkspaceControl)
+         return;
+      
+      // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
+      if (s_arvWorkspaceControl)
+         MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+   } 
    
 #else
 
@@ -1052,26 +1108,30 @@ void CRenderViewMtoA::RenderViewClosed()
 
    ReceiveSelectionChanges(false);
 
-   // Saving user prefs when the render view is closed
-   const char *userSerialized = Serialize(true, false); // user settings
-   if (userSerialized)
+   if (close_ui)
    {
-      MString arvOptionName("arv_user_options");
-      MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+      // Saving user prefs when the render view is closed
+      const char *userSerialized = Serialize(true, false); // user settings
+      if (userSerialized)
+      {
+         MString arvOptionName("arv_user_options");
+         MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+      }
+
+      if (s_sequenceData != NULL)
+      {
+         SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+         SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+         if (m_rvIdleCb)
+         {
+            MMessage::removeCallback(m_rvIdleCb);
+            m_rvIdleCb = 0;
+         }
+         delete s_sequenceData;
+         s_sequenceData = NULL;
+      }
    }
 
-   if (s_sequenceData != NULL)
-   {
-      SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
-      SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
-      if (m_rvIdleCb)
-      {
-         MMessage::removeCallback(m_rvIdleCb);
-         m_rvIdleCb = 0;
-      }
-      delete s_sequenceData;
-      s_sequenceData = NULL;
-   }
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   

@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 import maya.OpenMayaUI as OpenMayaUI
-import mtoa.utils as utils
+# import mtoa.utils as utils
 import importlib
 import sys
 
@@ -10,6 +10,9 @@ SUB_MODULES = ["QtWidgets", "QtGui", "QtCore"]
 
 Qt = sys.modules[__name__]
 
+def getMayaVersion():
+    version = cmds.about(f=True)
+    return int(float(version[:4]))
 
 def _setup(module, pymodules, modules, moduleName=None):
     """Install common submodules"""
@@ -29,18 +32,18 @@ def _setup(module, pymodules, modules, moduleName=None):
         setattr(Qt, modules[index], submodule)
 
 try:
-    version = utils.getMayaVersion()
+    version = getMayaVersion()
 except AttributeError:
     version = 2020
 
-if int(version) < 2018:
+if int(version) < 2017:
     import PySide as module
     _setup(module, PYSIDE_SUB_MODULES, SUB_MODULES)
 
     import shiboken as shModule
     setattr(Qt, 'shiboken', shModule)
 
-elif int(version) >= 2018:
+elif int(version) >= 2017:
     import PySide2 as module
     _setup(module, PYSIDE2_SUB_MODULES, SUB_MODULES)
 

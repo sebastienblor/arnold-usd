@@ -26,7 +26,6 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
-MString GetAOVNodeType(int type);
 #define NODE_TRANSLATOR_REFERENCES 1
 
 class CNodeTranslator;
@@ -108,6 +107,7 @@ public :
    /// Get the type of the Maya node. Mainly used for debug logs : do we want to keep it in the API?
    MString GetMayaNodeTypeName() const;
 
+   static void AddNamingOptions(MString &name);
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
@@ -132,8 +132,6 @@ public :
 
    virtual void ExportUserAttribute(AtNode *anode);
 
-#ifdef NODE_TRANSLATOR_REFERENCES
-   
    void AddReference(CNodeTranslator *tr, bool addReciprocal = true)
    {
       if(std::find(m_references.begin(), m_references.end(), tr) != m_references.end())
@@ -203,8 +201,6 @@ public :
    unordered_set<CNodeTranslator *> m_backReferences;
 protected:
 
-
-#endif
 
 protected:
    CNodeTranslator &m_tr;

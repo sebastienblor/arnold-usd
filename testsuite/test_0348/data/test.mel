@@ -1,0 +1,58 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+string $img = "";
+
+//======== Add the displacement
+connectAttr -f displacementShader1.displacement aiStandard2SG.displacementShader;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Change the scale in the displacementShader node
+setAttr "displacementShader1.scale" 0.5;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Change the scale in the mesh node
+setAttr "pSphereShape1.aiDispHeight" 2;
+setAttr "pSphere1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Change the displacement shader
+connectAttr -f aiNoise1.outColor aiStandard2SG.displacementShader;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== Change the zero value
+setAttr "pSphereShape1.aiDispZeroValue" 3;
+setAttr "pSphere1.inheritsTransform" 1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_5.tif";
+arnoldRenderView -option "Save Image" $img;
+
+//======== delete the displacement shader
+delete aiNoise1;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_6.tif";
+arnoldRenderView -option "Save Image" $img;
+
+

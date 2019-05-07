@@ -178,7 +178,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
 
    // What mode are we in?
-   if (mode == "render" || mode == "open")
+   if (mode == "render" || mode == "open" || mode == "render_silent")
    {
        // Close any viewports renderers before opening the ARV.
 
@@ -192,8 +192,9 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          // let's pop-up the window, and eventually re-render
          CMayaScene::GetRenderSession()->StartRenderView();
          
-         if (mode == "render")
+         if (mode == "render" || mode == "render_silent")
             CMayaScene::GetRenderSession()->SetRenderViewOption("Run IPR", "1");
+         
          return MS::kSuccess;
       }
       if (mode == "open")
@@ -232,7 +233,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       if (!defaultCamera.isValid())
          defaultCamera = GetDefaultCamera();
       
-      startRenderView(defaultCamera, width, height);
+      startRenderView(defaultCamera, width, height, (mode != "render_silent"));
 
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->InterruptRender();
@@ -299,7 +300,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 }
 
 
-void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, int height)
+void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, int height, bool ui)
 {   
    // only set the default (view) camera when we run ARV
    // for the first time
@@ -348,7 +349,8 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    
    // Set resolution and camera as passed in.
    renderSession->SetResolution(width, height);
-   CMayaScene::GetRenderSession()->StartRenderView();
+   if (ui)
+      CMayaScene::GetRenderSession()->StartRenderView();
 
    // If we were viewport-rendering, previous calls to SetRenderViewOption will land in the viewport
    // so we must set this now that we create ARV

@@ -433,9 +433,9 @@ bool CMaterialView::BeginSession()
    // Install our driver
    AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "materialview_display", "mtoa", (AtNodeMethods*) materialview_driver_mtd, AI_VERSION);
 
-   m_dummyShader = AiNode("MayaSurfaceShader");
+   m_dummyShader = AiNode("utility");
    AiNodeSetStr(m_dummyShader, "name", "mtrlViewDummyShader");
-   AiNodeSetRGB(m_dummyShader, "outColor", 0.0f, 0.0f, 0.0f);
+   AiNodeSetRGB(m_dummyShader, "color", 0.0f, 0.0f, 0.0f);
 
    m_active = true;
 
@@ -559,11 +559,67 @@ void CMaterialView::InitOptions()
       AiNodeSetInt(options, "GI_diffuse_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth"), true).asInt());
       AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth"), true).asInt());
       AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth"), true).asInt());
+
+
+      // Check if we're rendering in GPU or CPU
+      bool gpuRender = false;
+      // FIXME this code is duplicated from OptionsTranslator, we should rather handle the whole export from there
+      if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
+      {
+         MPlug gpuPlug = fnArnoldRenderOptions.findPlug("renderDevice");
+         if (!gpuPlug.isNull())
+            gpuRender = gpuPlug.asBool();
+
+         AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
+      }
+      if (gpuRender)
+      {
+
+         MString gpu_default_names = fnArnoldRenderOptions.findPlug("gpu_default_names").asString();
+         AiNodeSetStr(options, "gpu_default_names", AtString(gpu_default_names.asChar()));
+         AiNodeSetInt(options, "gpu_default_min_memory_MB",fnArnoldRenderOptions.findPlug("gpu_default_min_memory_MB").asInt());
+         
+         bool autoSelect = true;
+         MPlug manualDevices = fnArnoldRenderOptions.findPlug("manual_gpu_devices");
+         if (manualDevices.asBool())
+         {  // Manual Device selection
+            std::vector<unsigned int> devices;
+            MPlug gpuDevices = fnArnoldRenderOptions.findPlug("render_devices");
+            if (!gpuDevices.isNull())
+            {
+               unsigned int numElements = gpuDevices.numElements();
+               for (unsigned int i = 0; i < numElements; ++i)
+               {
+                  MPlug elemPlug = gpuDevices[i];
+                  if (!elemPlug.isNull())
+                  {
+                     devices.push_back(elemPlug.asInt());
+                  }
+               }
+            }
+
+            //
+            if (!devices.empty())
+            {
+               autoSelect = false;
+               AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+               AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
+               AiArrayDestroy(selectDevices);
+            } 
+         }
+
+         if (autoSelect) // automatically select the GPU devices
+            AiDeviceAutoSelect();
+      }
+
+
+
    }
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    if (arnoldSession)
       arnoldSession->ExportColorManager();
 
+   
 }
 
 void CMaterialView::InterruptRender(bool waitFinished)

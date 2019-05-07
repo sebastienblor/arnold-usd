@@ -23,6 +23,7 @@ node_parameters
     AiParameterVec2("offsetUV", 0.0f, 0.0f);
 
     AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 node_initialize

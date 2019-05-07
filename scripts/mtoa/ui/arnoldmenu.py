@@ -8,10 +8,14 @@ import maya.mel
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
+import mtoa.materialx
+import mtoa.operators
 import mtoa.denoise
 import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
+from maya.api import OpenMaya
+
 
 from uuid import getnode as get_mac
 import os
@@ -125,7 +129,7 @@ def doCreateLightPortal():
 def arnoldAboutDialog():
     legaltext = "Arnold\n\
 \n\
-(c) 2018 Autodesk, Inc.  All rights reserved.\n\
+(c) 2019 Autodesk, Inc.  All rights reserved.\n\
 \n\
 All use of this Software is subject to the terms and conditions of the software license agreement accepted upon installation of this Software and/or packaged with the Software.\n\
 \n\
@@ -136,7 +140,7 @@ Portions relate to The OpenGL Extension Wrangler Library (GLEW) v. 1.10.0:\n\
 Copyright (C) 2008-2016, Nigel Stewart <nigels[]users sourceforge net>.  Copyright (C) 2002-2008, Milan Ikits <milan ikits[]ieee org>.  Copyright (C) 2002-2008, Marcelo E. Magallon <mmagallo[]debian org>.  Copyright (C) 2002, Lev Povalahev.  All rights reserved.  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. * The name of the author may be sed to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
 \n\
 Certain portions Copyright (c) Autodesk, Inc. 2016. All rights reserved.\n\
-Portions related to OpenImageIO 1.7.17 Copyright 2008-2015 Larry Gritz et al. All Rights Reserved.  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.  * Neither the name of the software's owners nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
+Portions related to OpenImageIO 2.10 Copyright 2008-2018 Larry Gritz et al. All Rights Reserved.  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.  * Neither the name of the software's owners nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
 \n\
 Portions related to IlmBase 2.2 Copyright (c) 2002-2011, Industrial Light & Magic, a division of Lucasfilm Entertainment Company Ltd. All rights reserved. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.  Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.  Neither the name of Industrial Light & Magic nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
 \n\
@@ -185,12 +189,15 @@ Portions related to argparse that is part of OpenColorIO 1.0.9 Copyright 2008 La
 \n\
 Portions related to Python v. 2.5, 2.6, 2.7 Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006 Python Software Foundation; All Rights Reserved.\n\
 \n\
+Portions related to OpenShadingLanguage 1.11.0 Copyright (c) 2009-2019 Sony Pictures Imageworks Inc., et al.  All Rights Reserved. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. * Neither the name of Sony Pictures Imageworks nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
+\n\
 Portions related to JsonCpp 1.8.0 Copyright (c) 2007-2010 Baptiste Lepilleur.  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.  THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
+\n\
+MurmurHash3 \n------------------------------------------------------------------------\nThe MIT License (MIT)\n\
+Copyright (c) 2012 The Go Authors. All rights reserved.  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
 \n\
 Portions related to psutil 5.1.1 Copyright (c) 2009, Jay Loden, Dave Daeschler, Giampaolo Rodola'.  All rights reserved.  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. * Neither the name of the psutil authors nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\n\
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
-\n\
-Portions related to Open Shading Language 1.9.0 Copyright © 2016 Chaos Software.  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
 \n\
 Portions Copyright (C) 2005-2015 Intel Corporation. Intel Threading Building Blocks v. 4.2 is distributed with this Autodesk software as a separate work. Intel Threading Building Blocks is licensed under the GNU General Public License v.2 with the Runtime Exception, which can be found at http://www.threadingbuildingblocks.org/. A text copy of this license and the source code for Intel Threading Building Blocks v. 4.2 (and modifications made by Autodesk, if any) can be found at the Autodesk website www.autodesk.com/lgplsource.\n\
 \n\
@@ -309,7 +316,6 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
     arnoldAboutText += "\nCLM V"+ cmds.arnoldPlugins(getClmVersion=True) + "\n\n"
-    arnoldAboutText += u"Copyright (c) 2001-2009 Marcos Fajardo and\nCopyright (c) 2009-2016 Solid Angle  S.L.\nAll rights reserved\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Blaineau-Ortega, Ashley Handscomb Retallack,\nKrishnan Ramachandran\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant"
 
@@ -322,7 +328,7 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
 
     cmds.text(label="")
-    cmds.image(image="MtoA_Logo.png")
+    cmds.image(image="arnold_small.png")
     cmds.text(label="")
     cmds.text(align="left",label=arnoldAboutText)
 
@@ -423,78 +429,10 @@ def arnoldDenoise():
     win.create()    
 
 
-def arnoldExportOperators(selected=False):
+def arnoldExportOperators():
+    win = mtoa.operators.MtoAExportOperatorGraph()
+    win.create()
 
-    operatorsToExport = []
-    target_op = melUtils.getAttrInputs('defaultArnoldRenderOptions', 'operator')
-    if target_op and len(target_op):
-        target_op = target_op[0]
-    else:
-        target_op = None
-
-    if selected:
-        # We're exporting the selected operator graph. If a procedural/standin is selected, 
-        # we'll export all operators plugged into it
-
-        # First let's get the current list of known operators, so that we 
-        # can ensure we're really exporting operators and not bananas
-        operatorTypes = cmds.arnoldPlugins(listOperators=True)
-        
-        selList = cmds.ls(sl=1)
-        for sel in selList:
-            objType = cmds.objectType(sel)
-            if objType in operatorTypes:
-                # this node is an operator, let's add it to our list
-                operatorsToExport.append(sel)
-            elif cmds.objExists('{}.operators'.format(sel)): 
-                # in case we selected a procedural that has one or several operators connected to it
-                inputOperators = melUtils.getAttrInputs(sel, 'operators')
-                for inputOp in inputOperators:
-                    # check if it's really an operator that is connected
-                    objType = cmds.objectType(inputOp)
-                    if objType in operatorTypes:
-                        operatorsToExport.append(inputOp)
-
-    else:
-        operatorsToExport.append(target_op)
-
-    if len(operatorsToExport) == 0:
-        # No operators to export, say goodbye
-        cmds.error("Export Operator Graph: no operator found")
-        return
-
-    global defaultOperatorsFolder
-    if defaultOperatorsFolder == "":
-        defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
-    
-    objFilter = "ASS File (*.ass)"        
-    ret = cmds.fileDialog2(cap='Export Operator Graph',okc='Select',ff=objFilter,fm=0,dir=defaultOperatorsFolder) or []
-    if len(ret) == 0:
-        return
-
-    defaultOperatorsFolder = ret[0]
-    cmds.arnoldScene(mode="destroy") # first ensure we don't have an active scene going on
-
-    # delete all the nodes that were exported with the options (in particular the scene operator graph)
-    new_nodes = cmds.arnoldScene(operatorsToExport, mode="convert_selected_only", list="all_nodes")
-    
-    if len(operatorsToExport) == 1:
-        ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', ai.AiNodeLookUpByName(operatorsToExport[0]))
-    else:
-        # insert a merge operator to combine the multiple operators that are meant to be attached to the options
-        merge_op = ai.AiNode(None, 'merge', 'root_op')
-        new_nodes.append(ai.AiNodeGetName(merge_op))
-        operatorsArray = ai.AiArrayAllocate(len(operatorsToExport), 1, ai.AI_TYPE_POINTER)
-        for i in range(len(operatorsToExport)):
-            ai.AiArraySetPtr(operatorsArray, i, ai.AiNodeLookUpByName(operatorsToExport[i]))
-        ai.AiNodeSetArray(merge_op, 'inputs', operatorsArray)
-        ai.AiNodeSetPtr(ai.AiUniverseGetOptions(), 'operator', merge_op)
-
-    ai.AiNodeResetParameter(ai.AiUniverseGetOptions(), 'color_manager') # ensure we don't set the color_manager node
-    print "Exporting operators : %s " % operatorsToExport
-    ai.AiASSWrite(None, defaultOperatorsFolder, 4097)
-    print "Exported operators to file %s" % defaultOperatorsFolder
-    cmds.arnoldScene(mode="destroy") # let's clean the scene now
 
 def arnoldImportOperators():
     global defaultOperatorsFolder
@@ -507,7 +445,13 @@ def arnoldImportOperators():
         defaultOperatorsFolder = ret[0]
         cmds.arnoldImportAss(f=ret[0])
 
-
+def arnoldExportMaterialx(selected=False):
+    selList = cmds.ls(sl=1)
+    if (len(selList) == 0):
+        cmds.confirmDialog( title='Export to MaterialX', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+        return False
+    win = mtoa.materialx.MtoAExportToMaterialX()
+    win.create()
 
 def arnoldRenderToTexture():
     selList = cmds.ls(sl=1)
@@ -540,6 +484,11 @@ def addRuntimeMenuItem(name, parent, command, label = '', rtcLabel = '', tearOff
         cmds.runTimeCommand('cmd{}'.format(name), d=True, label=rtcLabel, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
         cmds.menuItem(name, parent=parent, rtc='cmd{}'.format(name), label = label, sourceType= 'mel', optionBox=optionBox, tearOff=tearOff)
 
+def GPUCacheStart():
+    mutils.populate_GPUCache()
+
+def GPUCacheStop():
+    mutils.terminate_GPUCache();
 
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -629,13 +578,16 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldLightManager()')
         cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
-        addRuntimeMenuItem('ArnoldExportSceneOperators', label='Export Scene Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export the scene operator graph to .ass')
-        addRuntimeMenuItem('ArnoldExportSelectedOperators', label='Export Selected Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators(selected=True)', category="Utilities", annotation='Export the selected operator graph to .ass')
+        addRuntimeMenuItem('ArnoldExportOperators', label='Export Operator Graph', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to .ass')
         addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
-        
+        addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportMaterialx(selected=True)', category="Utilities", annotation='Export the selected shading trees to .mtlx files')
+        addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStart()', category="Utilities", annotation='Pre-Populate the Optix GPU Cache')
+        addRuntimeMenuItem('AbortGPUCache', label='Abort GPU Cache pre-population', parent='ArnoldUtilities', keywords='GPU',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStop()', category="Utilities", annotation='Terminate the Optix GPU cache creation')
         cmds.menuItem('ArnoldLicensingMenu', label='RLM Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',

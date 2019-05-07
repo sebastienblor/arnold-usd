@@ -4,6 +4,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiWriteFloatTemplate(ShaderAETemplate):
 
     def setup(self):
+        self.addSwatch()
         self.beginScrollLayout()
         self.beginLayout("Write Float Attributes", collapse=False)
 

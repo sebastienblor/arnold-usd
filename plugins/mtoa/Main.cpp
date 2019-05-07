@@ -49,6 +49,8 @@
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldBakeGeoCmd.h"
 #include "commands/ArnoldRenderToTextureCmd.h"
+#include "commands/ArnoldExportToMaterialXCmd.h"
+#include "commands/ArnoldExportOperatorsCmd.h"
 #include "commands/ArnoldPluginCmd.h"
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
@@ -66,6 +68,9 @@
 #include "nodes/SphereLocator.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
+#include "nodes/shader/ArnoldUserDataVec2Node.h"
+#include "nodes/shader/ArnoldUserDataVectorNode.h"
+#include "nodes/shader/ArnoldUserDataBoolNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
@@ -157,7 +162,9 @@ namespace // <anonymous>
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
       {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
       {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
-      {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax}
+      {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
+      {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax},
+      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
@@ -205,6 +212,7 @@ namespace // <anonymous>
 #endif
 
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
+   const MString AI_USER_DATA_NODE_CLASSIFICATION = ":rendernode/arnold/utility/user data";
 
    struct mayaNode {
       const char* name;
@@ -266,6 +274,18 @@ namespace // <anonymous>
          "aiSky", CArnoldSkyNode::id,
          CArnoldSkyNode::creator, CArnoldSkyNode::initialize,
          MPxNode::kLocatorNode, &AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH
+      } , {
+         "aiUserDataVec2", CArnoldUserDataVec2Node::id,
+         CArnoldUserDataVec2Node::creator, CArnoldUserDataVec2Node::initialize,
+         MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
+      } , {
+         "aiUserDataVector", CArnoldUserDataVectorNode::id,
+         CArnoldUserDataVectorNode::creator, CArnoldUserDataVectorNode::initialize,
+         MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
+      } , {
+         "aiUserDataBool", CArnoldUserDataBoolNode::id,
+         CArnoldUserDataBoolNode::creator, CArnoldUserDataBoolNode::initialize,
+         MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
       }
    };
 
@@ -573,6 +593,17 @@ namespace // <anonymous>
                                     "",
                                     CAiOslShaderTranslator::creator,
                                     CAiOslShaderTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiRampRgb",
+                                    "",
+                                    CRampRgbTranslator::creator,
+                                    CRampRgbTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiRampFloat",
+                                    "",
+                                    CRampFloatTranslator::creator,
+                                    CRampFloatTranslator::NodeInitializer);
+      
+
 
       // Lights
       builtin->RegisterTranslator("directionalLight",
@@ -708,7 +739,7 @@ namespace // <anonymous>
                                     CSphericalCameraTranslator::creator,
                                     CSphericalCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("imagePlane",
-                                    "MayaImagePlane",
+                                    "",
                                     CImagePlaneTranslator::creator,
                                     CImagePlaneTranslator::NodeInitializer);                          
        // Hair
@@ -762,7 +793,7 @@ namespace // <anonymous>
 #endif
          MString modulePluginPath = pluginPath + MString("shaders");
          MString proceduralsPath = pluginPath + MString("procedurals");
-         MString moduleExtensionPath = pluginPath + MString("extensions");         
+         MString moduleExtensionPath = pluginPath + MString("extensions");
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
          MString envVarStr = (envVar) ? MString(envVar) : MString("");
          if (envVarStr.length() > 0 && envVarStr != modulePluginPath && envVarStr != proceduralsPath)
@@ -789,7 +820,7 @@ namespace // <anonymous>
       //CHECK_MSTATUS(status); no longer return error if an extension didn't load properly
 
       // Will load all found plugins and try to register nodes and translators
-      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);      
+      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);
       //CHECK_MSTATUS(status);
 
       // I need to retrieve the mtoa_shaders extension, so that I can register its translators
@@ -844,7 +875,7 @@ namespace // <anonymous>
          shaders->RegisterTranslator("projection",
                                        "",
                                        CProjectionTranslator::creator,
-                                       ProjectionTranslatorNodeInitializer);
+                                       CProjectionTranslator::NodeInitializer);
          shaders->RegisterTranslator("ramp",
                                        "",
                                        CRampTranslator::creator,
@@ -924,7 +955,33 @@ namespace // <anonymous>
          shaders->RegisterTranslator("surfaceLuminance",
                                        "",
                                        CSurfaceLuminanceTranslator::creator);
-
+         shaders->RegisterTranslator("gammaCorrect",
+                                       "",
+                                       CGammaCorrectTranslator::creator);
+         shaders->RegisterTranslator("surfaceShader",
+                                       "",
+                                       CSurfaceShaderTranslator::creator);
+         shaders->RegisterTranslator("rgbToHsv",
+                                       "",
+                                       CRgbToHsvTranslator::creator);
+         shaders->RegisterTranslator("hsvToRgb",
+                                       "",
+                                       CHsvToRgbTranslator::creator);
+         shaders->RegisterTranslator("aiUserDataVec2",
+                                       "",
+                                       CUserDataVec2Translator::creator);
+         shaders->RegisterTranslator("aiUserDataVector",
+                                       "",
+                                       CUserDataVectorTranslator::creator);
+         shaders->RegisterTranslator("aiUserDataBool",
+                                       "",
+                                       CUserDataBoolTranslator::creator);
+         shaders->RegisterTranslator("contrast",
+                                       "",
+                                       CContrastTranslator::creator);
+         shaders->RegisterTranslator("setRange",
+                                       "",
+                                       CSetRangeTranslator::creator);
 
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");

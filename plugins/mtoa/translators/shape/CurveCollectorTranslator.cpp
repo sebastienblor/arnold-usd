@@ -440,12 +440,9 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
          shader = GetArnoldNode("hairShader");
          if (shader == NULL)
             shader = AddArnoldNode("standard_hair", "hairShader");
-         
-         // Add shader uparam and vparam names
-         //AiNodeSetStr(shader, "uparam", "uparamcoord");
-         //AiNodeSetStr(shader, "vparam", "vparamcoord");
+
       }
-      SetRootShader(shader);      
+      AiNodeSetPtr(curve, "shader", shader);
    }   
 
    m_sampleRate = 5;

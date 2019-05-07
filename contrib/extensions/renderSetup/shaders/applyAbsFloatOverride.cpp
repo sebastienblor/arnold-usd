@@ -9,6 +9,7 @@ node_parameters
    AiParameterFlt("value", 0.0f);
    AiParameterBool("enabled", false);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 IMPLEMENT_APPLY_ABS_OVERRIDE_SHADER(FLT, AiShaderEvalParamFlt)

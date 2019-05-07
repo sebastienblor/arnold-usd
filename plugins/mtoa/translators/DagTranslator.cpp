@@ -77,12 +77,13 @@ bool CDagTranslator::IsTransformPlug(const MPlug &plug)
 
 MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
 {
-   MString name = GetSessionOptions().GetExportFullPath() ? 
+   const CSessionOptions& options = GetSessionOptions();
+   
+   // Use either the "short" name or the "full path" name depending on the option
+   MString name = options.GetExportFullPath() ? 
       dagPath.fullPathName() : dagPath.partialPathName();
 
-   const MString &prefix = GetSessionOptions().GetExportPrefix();
-   if (prefix.length() > 0)
-      name = prefix + name;
+   CDagTranslatorImpl::AddNamingOptions(name);
    return name;
 }
 

@@ -171,29 +171,10 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 // called for root shaders that have already been created
 void CShapeTranslator::SetRootShader(AtNode *rootShader)
 {
-   // handle the situation where a previous rootShader was deleted
-   if (rootShader == NULL)
-   {
-      AtNode *shape = GetArnoldNode();
-      if (shape != NULL)
-         AiNodeSetPtr(shape, "shader", NULL);
-
-      return;
-   }
-   
-   // First check if the internal SG node has already been created
-   AtNode *shadingEngine = GetArnoldNode("SG");
-   if (shadingEngine == NULL)
-   {
-      // register this AtNode in our Translator, so that it is properly cleared later
-      shadingEngine = AddArnoldNode("MayaShadingEngine", "SG");
-   }
-
-   AiNodeLink(rootShader, "beauty", shadingEngine);
-
+   AiMsgWarning("[mtoa] SetRootShader function is deprecated, please set the shader with AiNodeSetPtr");
    AtNode *shape = GetArnoldNode();
    if (shape != NULL)
-      AiNodeSetPtr(shape, "shader", shadingEngine);
+      AiNodeSetPtr(shape, "shader", rootShader);
 }
 
 

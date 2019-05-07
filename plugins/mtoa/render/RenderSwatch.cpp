@@ -18,6 +18,7 @@
 #include <string.h> // for memset.
 #include <string>
 #include <algorithm>
+#include <cctype>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -40,6 +41,7 @@ CRenderSwatchGenerator::CRenderSwatchGenerator(MObject dependNode,
    m_iteration = 0;
    ClearSwatch();
    SetSwatchClass(dependNode);
+
 }
 
 CRenderSwatchGenerator::~CRenderSwatchGenerator()
@@ -118,6 +120,13 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
    }
 }
 
+bool returnResult(MStatus status)
+{
+   if (status == MStatus::kSuccess) { return true;}
+   else {return false ;}
+}
+
+
 MStatus CRenderSwatchGenerator::BuildArnoldScene()
 {
    MStatus status;
@@ -152,6 +161,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    AtNode* arnoldNode = NULL;
    CNodeTranslator* translator = NULL;
    status = ExportNode(arnoldNode, translator);
+
    if (MStatus::kSuccess != status)
    {
       ErrorSwatch("Could not export \"" + mayaNodeName + "\" of type \"" + mayaNodeType + "\"");
@@ -253,6 +263,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
 {
    MStatus status;
    MObject mayaNode = swatchNode();
+
    CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
 
    if (mayaNode.hasFn(MFn::kDagNode))
@@ -274,7 +285,8 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
          dagTranslator->m_impl->Init(exportSession, dagPath, "");
          arnoldNode = dagTranslator->m_impl->DoExport();
       }
-   } else {
+   } 
+   else {
       translator = CExtensionsManager::GetTranslator(mayaNode);
       if (NULL != translator)
       {
@@ -480,97 +492,160 @@ void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
    ClearSwatch();
 }
 
-bool CRenderSwatchGenerator::doIteration()
+bool CRenderSwatchGenerator::DoSwatchRender()
 {
-   MStatus status;
-   
-   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR)
+   MStatus status ;
+   status = CMayaScene::Begin(MTOA_SESSION_SWATCH);
+   MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+   status = BuildArnoldScene();
+   if (MStatus::kSuccess == status)
    {
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.swatch] " + MFnDependencyNode(swatchNode()).name() + " | Rendering");
+
+      image().create(resolution(),
+                     resolution(),
+                  4,                               // RGBA
+                  MImage::kFloat);                // Has to be for swatches it seems.
+
+      // if use tx is enabled, call exportTx that will *not* try to convert the mipmaps
+      // but will check for existing tx for sake of optimization
+      if (ArnoldRenderOptionsNode.isNull() || MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("use_existing_tiled_textures", true).asBool())
+         CMayaScene::GetArnoldSession()->ExportTxFiles();
+
+      CMayaScene::GetRenderSession()->DoSwatchRender(image(), resolution());
+      #ifndef NDEBUG
+      // Catch this as it would lead to a Maya UI crash
+      // with no proper stack info on what caused it
+      unsigned int iWidth, iHeight;
+      image().getSize(iWidth, iHeight);
+      assert(resolution() == (int)iWidth);
+      assert(resolution() == (int)iHeight);
+      assert(MImage::kFloat == image().pixelType());
+      #endif
+      image().convertPixelFormat(MImage::kByte);
+      // Stop being called/iterated.
+      CMayaScene::End();
       return true;
    }
+   CMayaScene::End();
+   return returnResult(status);
+}
+
+bool CRenderSwatchGenerator::DoNoGPUImage()
+{
+   MString iconsPath = MString(getenv("MTOA_PATH")) +MString ("icons//") ;
+   MString noGpuPath = iconsPath + MString ("noGPU.png");
+   MStatus stat =  image().readFromFile(noGpuPath);
+   image().verticalFlip();
+   image().resize(resolution(), resolution());
+   
+   return returnResult(stat);
+}
+
+bool CRenderSwatchGenerator::DoStaticImage()
+{
+   MString iconsPath = MString(getenv("MTOA_PATH")) +MString ("icons//") ;
+   MString noGpuPath = iconsPath + MString ("arnold.png");
+   MStatus stat =  image().readFromFile(noGpuPath);
+   image().verticalFlip();
+   image().resize(resolution(), resolution());
+   
+   return returnResult(stat);
+}
 
 
+bool CRenderSwatchGenerator::doIteration()
+{
+   if (CMayaScene::GetSessionMode() == MTOA_SESSION_BATCH )
+      return true; // shouldn't even be here in batch
+   
+
+   MObject mayaNode = swatchNode();
+   MObject arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+
+   if (arnoldRenderOptionsNode.isNull())
    {
-      // No need to start a new swatch iteration process if option is off
-      MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
-      // FIXME: what do we want to do when no ArnoldOptionsNode exists yet
-      // (happens if you open hypershade and create a shader before opening render settings
-      if (!ArnoldRenderOptionsNode.isNull()
-         && !MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool())
-      {
-         return true;
-      }
-      // Start, must build the swatch scene
-      // Arnold can only render one thing at a time. It may be an option to block/wait here,
-      // but only if it's another swatch render taking place. We don't want to end the
-      // current session there
-      // if (AiUniverseIsActive())
-      if (CMayaScene::IsActive())
-      {
-         // Other export or rendering process in progress.
-         // Wait if it's another swatch, abort else.
-         if (CMayaScene::GetSessionMode() == MTOA_SESSION_SWATCH)
-         {
-            return false;
-         }
-         else
-         {
-            return true;
-         }
-      }
-      // If all clear, begin a swatch session
-      if (MStatus::kSuccess == CMayaScene::Begin(MTOA_SESSION_SWATCH))
-      {
-         // Build the swatch scene, abort swatch in case of error
-         status = BuildArnoldScene();
-         if (MStatus::kSuccess == status)
-         {
-            if (MtoaTranslationInfo())
-               MtoaDebugLog("[mtoa.swatch] " + MFnDependencyNode(swatchNode()).name() + " | Rendering");
-
-            image().create(resolution(),
-                           resolution(),
-                         4,                               // RGBA
-                         MImage::kFloat);                // Has to be for swatches it seems.
-
-
-
-            // if use tx is enabled, call exportTx that will *not* try to convert the mipmaps
-            // but will check for existing tx for sake of optimization
-            if (ArnoldRenderOptionsNode.isNull() || MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("use_existing_tiled_textures", true).asBool())
-               CMayaScene::GetArnoldSession()->ExportTxFiles();
-
-
-            CMayaScene::GetRenderSession()->DoSwatchRender(image(), resolution());
-#ifndef NDEBUG
-            // Catch this as it would lead to a Maya UI crash
-            // with no proper stack info on what caused it
-            unsigned int iWidth, iHeight;
-            image().getSize(iWidth, iHeight);
-            assert(resolution() == (int)iWidth);
-            assert(resolution() == (int)iHeight);
-            assert(MImage::kFloat == image().pixelType());
-#endif
-            image().convertPixelFormat(MImage::kByte);
-            // Stop being called/iterated.
-            CMayaScene::End();
-            return true;
-         }
-         else
-         {
-            // Abort
-            ErrorSwatch("Could not build swatch scene.");
-            CMayaScene::End();
-            return true;
-         }
-      }
-      else
-      {
-         ErrorSwatch("Could not create Arnold swatch render session");
-         return true;
-      }
+      MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
+      arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
    }
-   // we'll never get here
+
+   bool sceneSwatch = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
+   
+   bool universeExists = AiUniverseIsActive();
+   // If no universe already exists, we should start a session
+   if (!universeExists)
+      CMayaScene::Begin(MTOA_SESSION_SWATCH);
+
+   MFnDependencyNode depNode(mayaNode);
+   std::string nodeType = depNode.typeName().asChar();
+   MString arnoldType;
+   // In the most common case, we can easily get the name of the arnold node entry
+   // from the maya node type (e.g. aiStandardSurface -> standard_surface)
+   if (nodeType.length() > 2 && nodeType[0] == 'a' && nodeType[1] == 'i')
+   {
+      std::string arnoldTypeStr;
+      arnoldTypeStr.reserve(nodeType.length() * 2);
+      for (size_t i = 2; i < nodeType.length(); ++i)
+      {
+         if (i > 2 && std::isupper(nodeType[i]))
+            arnoldTypeStr.push_back('_');
+         arnoldTypeStr.push_back(nodeType[i]);
+      }
+      arnoldType = arnoldTypeStr.c_str();
+      arnoldType.toLowerCase();
+   }
+   // Get the AtNodeEntry for this type name
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnoldType.asChar());
+   if (nodeEntry == NULL)
+   {
+      // We didn't find the arnold node entry, let's loop over the known node entries and see
+      // if one of them has the maya.name metadata pointing to our maya node type
+      AtString arnoldAStr(arnoldType.asChar());
+      AtNodeEntryIterator* nodeEntryIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
+      AtString mayaNameMtd;
+      while (!AiNodeEntryIteratorFinished(nodeEntryIter))
+      {
+         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeEntryIter);
+         if (!AiMetaDataGetStr(nentry, NULL, "maya.name", &mayaNameMtd))
+            continue;
+         if (mayaNameMtd == arnoldAStr)
+         {
+            nodeEntry = nentry;
+            break;
+         }
+      }
+      AiNodeEntryIteratorDestroy(nodeEntryIter);
+   }
+   
+   bool gpuRenderCompatibility = true;
+   bool doSwatch = false;
+
+   if (nodeEntry)
+   {
+      AiMetaDataGetBool(nodeEntry, NULL, "gpu_support", &gpuRenderCompatibility);
+      doSwatch = sceneSwatch && (AiNodeEntryGetType(nodeEntry) == AI_NODE_SHADER);
+      AiMetaDataGetBool(nodeEntry, NULL, "maya.swatch", &doSwatch);
+   }
+   
+   // if a universe was created, let's clear it
+   if (!universeExists)
+      CMayaScene::End();
+
+   if (!gpuRenderCompatibility)
+   {
+      // If GPU isn't supported for this node, we always show the no-gpu icon
+      DoNoGPUImage();
+   } else if (doSwatch && !universeExists)
+   {
+      // if swatch is enabled AND no render is in progress, we can start a swatch rendering
+      DoSwatchRender();
+   } else
+   {
+      // fallback behaviour, show a static image
+      DoStaticImage();
+   }
+
    return true;
 }
 

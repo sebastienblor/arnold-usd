@@ -9,10 +9,9 @@ from qt import dpiScale, getMayaWindow
 from qt.window import BaseWindow
 from qt.treeView import BaseTreeView, BaseModel, BaseItem
 
-
 TreeData = {"/":
             {"child1": {
-             "sub-child1": {}, "sub-child2": {}},
+             "sub-child1": {"sub1": {}, "sub2": {}, "sub3": {}, "sub4": {}}, "sub-child2": {}},
              "child2": {
              "sub-child1": {}, "sub-child2": {}}
              }
@@ -26,7 +25,7 @@ class TestModel(BaseModel):
 
     def refresh(self):
         def __walkPath(data, parent):
-            for path in data.keys():
+            for path in sorted(data.keys()):
                 item = BaseItem(parent, path)
                 __walkPath(data[path], item)
 
