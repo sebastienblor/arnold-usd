@@ -293,8 +293,13 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 {
    if (LoadBifrostProcedural() == false || shape == NULL)
       return;
+      // Check if motionblur is enabled and early out if it's not.
+
+   if (!IsMotionBlurEnabled()) return;
    
-   // Check if motionblur is enabled and early out if it's not.
+   // Set transform matrix
+   ExportMatrix(procedural);
+
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
    int step = GetMotionStep();
@@ -306,6 +311,5 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    char *dataList = (char*)AiArrayMapKey(dataArray, step);
    memcpy(dataList, data, AiArrayGetKeySize(dataArray));
    AiArrayUnmap(dataArray);
-   // Set transform matrix
-   ExportMatrix(shape);
+
 }
