@@ -199,13 +199,13 @@ Procedural::~Procedural()
 
 #ifndef XGEN_RENDER_API_PARALLEL
    if( m_patch )
+#else
+   if( !m_parallel )
+#endif
    {
       delete m_patch;
-      delete m_mutex;
       m_patch = NULL;
-      m_mutex = NULL;
    }
-#endif
 }
 
 bool Procedural::nextFace( bbox& b, unsigned int& f )
@@ -375,6 +375,16 @@ int Procedural::Cleanup()
    m_nodes.clear();
    m_node = m_node_face = m_options = m_sphere = m_parent = NULL; // Don't delete.
 
+#ifndef XGEN_RENDER_API_PARALLEL
+   if( m_faces.size()!=0 )
+#else
+   if( !m_parallel && m_faces.size()!=0)
+#endif
+   {
+      for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
+         delete *it;
+      m_faces.clear();
+   }
    return 1;
 }
 
