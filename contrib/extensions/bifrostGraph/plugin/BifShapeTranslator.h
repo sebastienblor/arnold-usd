@@ -25,4 +25,6 @@ public:
    virtual void ExportShaders(AtNode* shape);
 
 private:
+
+   void GetSerializedData(MDoubleArray& array);
 };

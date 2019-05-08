@@ -65,6 +65,7 @@ static bool LoadBifrostProcedural()
    return false;
 }
 
+
 void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
 {
 
@@ -106,9 +107,23 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
    return AddArnoldNode("bifrost_graph");
 }
 
+
+void CBifShapeTranslator::GetSerializedData(MDoubleArray& array)
+{
+   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
+   if (!serialisedDataPlug.isNull() )
+   {
+      AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
+      MDataHandle handle;
+      serialisedDataPlug.getValue(handle);
+      MFnDoubleArrayData ArrData(handle.data());
+      array = ArrData.array();
+   }
+}
+
 void CBifShapeTranslator::Export( AtNode *shape )
 {
-
+   unsigned int step = GetMotionStep();
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
@@ -119,17 +134,10 @@ void CBifShapeTranslator::Export( AtNode *shape )
 
    // export the Bifrost graph data if not file is supplied
    MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
-   if (!serialisedDataPlug.isNull() && filenamePlug.isDefaultValue())
-   {
-      AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
-
-      MDataHandle handle;
-      serialisedDataPlug.getValue(handle);
-      MFnDoubleArrayData ArrData(handle.data());
-      MDoubleArray serialisedData = ArrData.array();
-      unsigned int nEle = serialisedData.length();
-
-      AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
+   MDoubleArray serialisedData;
+   GetSerializedData(serialisedData);
+   unsigned int nEle = serialisedData.length();
+   AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
 
 #ifdef DEBUG_DUMP_TO_FILE
       // Write all inputs to file and have the proc read them back in
@@ -144,7 +152,6 @@ void CBifShapeTranslator::Export( AtNode *shape )
       // write the data to file
       const char *fname = filename.c_str();
       FILE * fp = fopen(fname,"wb");
-
       AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "file");
       AiNodeDeclare(shape, "bifrost:input0", "constant STRING");
       AiNodeSetStr(shape, "bifrost:input0", filename.c_str());
@@ -155,20 +162,32 @@ void CBifShapeTranslator::Export( AtNode *shape )
       AiNodeSetArray(shape, "input_names", inputsArray);
       AiNodeSetArray(shape, "input_interpretations", interpsArray);
 #else
+
       // Send serialized data directly to arnold_bifrost
       AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "serialized");
-
-      AtArray *dataArray = AiArrayConvert(nEle * sizeof(double), 1, AI_TYPE_BYTE, &serialisedData[0]);
-      if (AiArrayGetNumElements(dataArray) > 0)
+      AtArray *dataArray = 0;
+      
+      if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
       {
-         AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY BYTE");
-         AiNodeSetArray(shape, "bifrost:input0", dataArray);
-         AiNodeSetArray(shape, "input_names", inputsArray);
-         AiNodeSetArray(shape, "input_interpretations", interpsArray);
+         dataArray = AiArrayConvert(nEle * sizeof(double), 1, AI_TYPE_BYTE, &serialisedData[0]);
       }
+      else
+      {
+         dataArray = AiArrayAllocate(nEle * sizeof(double) , GetNumMotionSteps(), AI_TYPE_BYTE);
+         char* data = reinterpret_cast<char*>(&serialisedData[0]);
+         char *dataList = (char*)AiArrayMapKey(dataArray, step);
+         memcpy(dataList, data, AiArrayGetKeySize(dataArray));
+         AiArrayUnmap(dataArray);
+      }
+
+      AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY BYTE");
+      AiNodeSetArray(shape, "bifrost:input0", dataArray);
+      AiNodeSetArray(shape, "input_names", inputsArray);
+      AiNodeSetArray(shape, "input_interpretations", interpsArray);
+
 #endif
 
-   }
+   // }
 
    MPlug geomPlug = FindMayaPlug("aiCompound");
    if (!geomPlug.isNull())
@@ -274,9 +293,19 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 {
    if (LoadBifrostProcedural() == false || shape == NULL)
       return;
+   
    // Check if motionblur is enabled and early out if it's not.
-   if (!IsMotionBlurEnabled()) return;
+   if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
+   int step = GetMotionStep();
+   MDoubleArray serialisedData;
+   GetSerializedData(serialisedData);
+
+   AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
+   char* data = reinterpret_cast<char*>(&serialisedData[0]);
+   char *dataList = (char*)AiArrayMapKey(dataArray, step);
+   memcpy(dataList, data, AiArrayGetKeySize(dataArray));
+   AiArrayUnmap(dataArray);
    // Set transform matrix
    ExportMatrix(shape);
 }
