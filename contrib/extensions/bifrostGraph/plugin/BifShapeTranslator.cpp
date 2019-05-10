@@ -168,7 +168,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
       // Send serialized data directly to arnold_bifrost
       AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "serialized");
       AtArray *dataArray = 0;
-      
+
       if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
       {
          dataArray = AiArrayConvert(nEle * sizeof(double), 1, AI_TYPE_BYTE, &serialisedData[0]);
@@ -176,8 +176,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
       else
       {
          dataArray = AiArrayAllocate(nEle * sizeof(double) , GetNumMotionSteps(), AI_TYPE_BYTE);
-         char* data = reinterpret_cast<char*>(&serialisedData[0]);
-         char *dataList = (char*)AiArrayMapKey(dataArray, step);
+         uint8_t* data = reinterpret_cast<uint8_t*>(&serialisedData[0]);
+         uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
          memcpy(dataList, data, AiArrayGetKeySize(dataArray));
          AiArrayUnmap(dataArray);
       }
@@ -298,7 +298,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
       // Check if motionblur is enabled and early out if it's not.
 
    if (!IsMotionBlurEnabled()) return;
-   
+
    // Set transform matrix
    ExportMatrix(shape);
 
@@ -309,9 +309,32 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    GetSerializedData(serialisedData);
 
    AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
-   char* data = reinterpret_cast<char*>(&serialisedData[0]);
-   char *dataList = (char*)AiArrayMapKey(dataArray, step);
-   memcpy(dataList, data, AiArrayGetKeySize(dataArray));
+   size_t serialisedSize = serialisedData.length() * sizeof(double);
+   uint8_t nKeys = AiArrayGetNumKeys(dataArray);
+   size_t keySize = AiArrayGetKeySize(dataArray);
+   if (serialisedSize > keySize)
+   {
+      // Resize the data array with a larger size and move w/ zero-pad any earlier keys
+      // NOTE: this does not move existing keys to new key locations, so we have to do it
+      AiArrayResize(dataArray, nKeys, serialisedSize);
+      uint8_t *existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
+      for (int key = step - 1; key >= 0; --key)
+      {
+         // Don't move the first key, it stays put, it just needs leftovers zeroed
+         if (key > 0)
+            memmove(&existingData[key * serialisedSize], &existingData[key * keySize], keySize);
+        // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
+        memset(&existingData[key * serialisedSize + keySize], 0, serialisedSize - keySize);
+      }
+      AiArrayUnmap(dataArray);
+      // Get the new key size for this motion sample's copy below
+      keySize = AiArrayGetKeySize(dataArray);
+   }
+   uint8_t* data = reinterpret_cast<uint8_t*>(&serialisedData[0]);
+   uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
+   memcpy(dataList, data, serialisedSize);
+   // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
+   if (serialisedSize < keySize)
+      memset(dataList + serialisedSize, 0, keySize - serialisedSize);
    AiArrayUnmap(dataArray);
-
 }
