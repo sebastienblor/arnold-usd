@@ -57,17 +57,15 @@ OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
 Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0161/test.ma line 5: Unknown Maya file version: 2018ff09.
 
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0161/test.ma line 2636: 'aiStandard1.message' is already connected to 'defaultShaderList1.shaders'.
-
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
 
-File read in  0.046 seconds.
+File read in  0.069 seconds.
 
-File read in  0.046 seconds.
+File read in  0.069 seconds.
 
 Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0161/test.ma
 
-00:00:00   523MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   526MB WARNING | rendering with watermarks because of failed authorization:
 
 Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0161\test.ma completed.
 
