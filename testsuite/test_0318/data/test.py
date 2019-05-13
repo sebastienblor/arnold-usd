@@ -24,7 +24,7 @@ elif OS == "darwin":
     xgen_lib_path = os.path.join(xgen_root_path, "lib")
     env["DYLD_LIBRARY_PATH"] = ":".join([maya_lib_path, xgen_lib_path])
 elif OS == "windows":
-    maya_lib_path = os.path.join(maya_root_path, "lib")
+    maya_lib_path = os.path.join(maya_root_path, "bin")
     xgen_lib_path = os.path.join(xgen_root_path, "bin")
     env["PATH"] = ";"+";".join([maya_lib_path, xgen_lib_path])
 
