@@ -748,12 +748,15 @@ def process_testsuite(target, source, env):
    if skipped > 0:
       result_string += ' (%d skipped)' % skipped
 
+   status = "CRASHED"
    if failed + crashed == 0:
       result_string += ' - ALL TESTS OK'
+      status = "OK"
    elif failed == 0:
       result_string += ' - %d crashed!' % crashed
    elif crashed == 0:
       result_string += ' - %d failed!' % failed
+      status = "FAILED"
    else:
       result_string += ' - %d failed and %d crashed!' % (failed, crashed)
 
@@ -771,6 +774,9 @@ def process_testsuite(target, source, env):
    html_path = os.path.abspath(str(target[0]))
    print_safe('View testsuite results at: file://%s\n' % html_path)
    shutil.copy(os.path.join(testsuite_common, 'style.css.template'), os.path.join(os.path.dirname(html_path), 'style.css'))
+   with open(os.path.join(os.path.dirname(html_path), 'STATUS'), 'w') as f:
+         f.write(status) ## so we can get the status of this test later
+
 
    # always succeeds, otherwise it prevents our builds from succeeding
    return None
