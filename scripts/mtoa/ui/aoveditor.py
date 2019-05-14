@@ -391,7 +391,11 @@ class AOVItem(object):
         driverNode = 'defaultArnoldDriver'
         filterNode = 'defaultArnoldFilter'
         outputAttr = '{}.outputs'.format(self.aov.node)
-        outputAttr = '{}[{}]'.format(outputAttr, melUtils.getAttrNumElements(*outputAttr.split('.', 1)))
+        idx = melUtils.getAttrNumElements(*outputAttr.split('.', 1))
+        indices = cmds.getAttr(outputAttr, multiIndices=True) or []
+        if len(indices):
+            idx = indices[-1]+1
+        outputAttr = '{}[{}]'.format(outputAttr, idx)
 
         cmds.connectAttr('{}.message'.format(driverNode), '{}.driver'.format(outputAttr))
         cmds.connectAttr('{}.message'.format(filterNode), '{}.filter'.format(outputAttr))
@@ -408,7 +412,7 @@ class AOVItem(object):
         outputRow = self.outputs.pop(index)
         outputRow.delete()
         self.outputsChanged = True
-        
+
     def buildPopupMenu(self, menu, parent):
         if self.outputsChanged:
             cmds.popupMenu(self.popupMenu, edit=True, deleteAllItems=True)
@@ -421,12 +425,12 @@ class AOVItem(object):
                 for i, outputRow in enumerate(self.outputs):
                     subMenu = cmds.menuItem(parent=menu, label='Output Driver %d' % (i+1), subMenu=True)
                     cmds.menuItem(parent=subMenu, label='Select Driver',
-                                     c=lambda *args: cmds.select(outputRow.driverNode))
+                                     c=lambda args=None, x=outputRow.driverNode: cmds.select(x))
                     cmds.menuItem(parent=subMenu, label='Select Filter',
-                                     c=lambda *args: cmds.select(outputRow.filterNode))
+                                     c=lambda args=None, x=outputRow.filterNode: cmds.select(x))
                     cmds.menuItem(parent=subMenu, divider=True)
                     cmds.menuItem(parent=subMenu, label='Remove',
-                                     c=lambda *args: self.removeOutput(i))
+                                     c=lambda args=None, x=i: self.removeOutput(x))
             elif len(self.outputs) == 1:
                 outputRow = self.outputs[0]
                 cmds.menuItem(parent=menu, label='Select Driver',
@@ -550,7 +554,7 @@ class AOVOutputItem(object):
             utils.safeDelete(self.driverNode)
 
         filter_outputs = cmds.listConnections('{}.message'.format(self.filterNode), source=False, destination=True) or []
-        if self.filterNode.message.outputs() > 1:
+        if len(filter_outputs) > 1:
             filter_connections = cmds.listConnections('{}.filter'.format(self.outputAttr),
                                                       source=False, destination=True,
                                                       connections=True,
@@ -559,7 +563,7 @@ class AOVOutputItem(object):
                 cmds.disconnectAttr(src, dest)
         else:
             utils.safeDelete(self.filterNode)
-        self.outputAttr.remove()
+        cmds.removeMultiInstance(self.outputAttr, b=True)
         cmds.deleteUI(self.row)
 
     def translatorChanged(self, translatorAttr, menu):
