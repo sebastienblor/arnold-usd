@@ -639,12 +639,7 @@ def GPU_optixCacheCallBack(*args):
     elapsed = time.time() - start_time
     elapsed_string = time.strftime("%H:%M:%S", time.gmtime(elapsed))
 
-    if (percent <= 0):
-        time_remaining_string = " ~10 - 20 mins"
-    else:
-        time_remaining = (elapsed / percent ) * ( 100 - percent)
-        time_remaining_string = time.strftime("%H:%M:%S", time.gmtime(time_remaining))
-
+    time_remaining_string = time.strftime("%H:%M:%S", time.gmtime(ai.AiGPUCachePopulateRemainingSeconds())) 
     text = str( " Time Elapsed : " + elapsed_string + "     Time Remaining : " + time_remaining_string )
 
     dialog.setValue(int(percent))
