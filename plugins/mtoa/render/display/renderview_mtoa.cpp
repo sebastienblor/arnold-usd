@@ -74,6 +74,7 @@ static QWidget *s_optWorkspaceControl = NULL;
 #include <maya/MSceneMessage.h>
 #include <maya/MTimerMessage.h>
 #include <maya/MPlugArray.h>
+#include <maya/MQtUtil.h>
 
 
 #ifdef _DARWIN
@@ -314,8 +315,8 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
 
    double scaleFactor = 1.0;
-   MString scaleCommand = "mayaDpiSetting -q -realScaleValue;" ;
-   MGlobal::executeCommand(scaleCommand, scaleFactor);
+   scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
+
    OpenRenderView(width, height,scaleFactor, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
 
    QMainWindow *arv = GetRenderView();  
@@ -522,8 +523,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
    
    double scaleFactor = 1.0;
-   MString scaleCommand = "mayaDpiSetting -q -realScaleValue;" ;
-   MGlobal::executeCommand(scaleCommand, scaleFactor);
+   scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
 
    std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
