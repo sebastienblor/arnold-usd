@@ -34,7 +34,6 @@ using namespace XGenRenderAPI;
 struct AtNode;
 
 struct XgMergedData;
-class XgMutex;
 
 namespace XGenArnold
 {  
@@ -64,10 +63,8 @@ namespace XGenArnold
       virtual bool getArchiveBoundingBox( const char* in_filename, bbox& out_bbox ) const;
       virtual void getTransform( float in_time, mat44& out_mat ) const;
       
-      static XgMutex* m_mutex;
-
+      
    private:
-      // These 4 methods are protected by the global mutex.
       bool nextFace( bbox& b, unsigned int& f );
       bool initPatchRenderer( const char* in_params );
       bool initFaceRenderer( Procedural* pProc, unsigned int f );
@@ -92,25 +89,27 @@ namespace XGenArnold
       const char* getUniqueName( char* buf, const char* basename );
 
       AtNode* getArchiveProceduralNode( const char* file_name, const char* instance_name, /*const bbox& arcbox, */double frame );
+      void createBaseSphere();
+      bool createMergedCurves();
 
       AtNode* m_node;
-      AtNode* m_node_face;
       AtNode* m_options;
       AtNode* m_camera;
       AtNode* m_sphere;
+      AtNode* m_mergedCurves;
       AtNode* m_parent;
       AtArray* m_shaders;
 
       PatchRenderer* m_patch;
-      std::vector<FaceRenderer*> m_faces;
-
+      
       std::vector<AtNode*> m_nodes;
       XgMergedData *m_merged_data;
+      bool m_multithread;
 
 #ifdef XGEN_RENDER_API_PARALLEL
       ParallelRenderer* m_parallel;
 #endif
-
+      
       mutable std::map<std::string, bbox> m_bboxes;
       InitArnoldNodeFnc m_initArnoldFunc;
    };

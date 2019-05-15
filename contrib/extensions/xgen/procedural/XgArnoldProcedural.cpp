@@ -65,7 +65,7 @@ procedural_init
 
    *user_ptr = (void*)ud;
 
-   bool result = ud->Init( node, true ); // "true" means that the procedural parent must be set
+   int result = ud->Init( node, true ); // "true" means that the procedural parent must be set
    guard.leave();
 
    return result;
@@ -78,7 +78,7 @@ procedural_cleanup
 
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
-         return 0;
+      return 0;
 
    int ret = ud->Cleanup();
    delete ud;
