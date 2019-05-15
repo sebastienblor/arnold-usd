@@ -957,7 +957,7 @@ void CRenderSession::FillRenderViewCameras()
    MStatus viewStatus;
    view = M3dView::active3dView(&viewStatus);
    MString viewCam;
-   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   //CRenderSession *renderSession = CMayaScene::GetRenderSession();
 
    if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
    {      

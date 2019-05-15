@@ -1513,7 +1513,7 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
    MString outputAttr = GetMayaOutputAttributeName();
 
    AtNode* remapRamp = AddArnoldNode((outputAttr == "outValue") ? "ramp_float" : "ramp_rgb");
-   AtNode* outRemapRange = NULL;
+   //AtNode* outRemapRange = NULL;
    if (!(IsFloatAttrDefault(FindMayaPlug("outputMin"), 0.f) &&
          IsFloatAttrDefault(FindMayaPlug("outputMax"), 1.f)))
       return AddArnoldNode("range", "outRemapRange");
@@ -1630,7 +1630,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
    ProcessParameter(inRemapRange, "input_max", AI_TYPE_FLOAT,"inputMax");
 
    ProcessParameter(outRemapRange, "output_min", AI_TYPE_FLOAT,"outputMin");
-   ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT),"outputMax";
+   ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT,"outputMax");
 
    MFnDependencyNode fnNode(GetMayaObject());
 
@@ -1709,7 +1709,7 @@ void CRemapHsvTranslator::Export(AtNode* shader)
    AtNode* S_Ramp = GetArnoldNode("S_ramp");
    AtNode* V_Ramp = GetArnoldNode("V_ramp");
    AtNode* outRemapRange = GetArnoldNode("outRemapRange");
-   AtNode* HSVtoRGB = shader;
+   //AtNode* HSVtoRGB = shader;
 
    ProcessParameter(RGBtoHSV, "input", AI_TYPE_RGB, "color");
    
@@ -1717,7 +1717,7 @@ void CRemapHsvTranslator::Export(AtNode* shader)
    ProcessParameter(inRemapRange, "input_max", AI_TYPE_FLOAT,"inputMax");
 
    ProcessParameter(outRemapRange, "output_min", AI_TYPE_FLOAT,"outputMin");
-   ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT),"outputMax";
+   ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT,"outputMax");
 
    MFnDependencyNode fnNode(GetMayaObject());
 
@@ -2349,7 +2349,7 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    if (RequiresMotionData())
    {
       int numMotionSteps = GetNumMotionSteps();
-      int motionStep = GetMotionStep();
+      //int motionStep = GetMotionStep();
 
       // Note that here we're exporting the different keys as elements in the ramp
       AtArray* values = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_FLOAT);
@@ -4183,7 +4183,7 @@ void CSetRangeTranslator::Export(AtNode* shader)
    AtNode* Y_Range = GetArnoldNode("Y_Range");
    AtNode* Z_Range = GetArnoldNode("Z_Range");
    AtNode* inFlat  = GetArnoldNode("inFlat");
-   AtNode* outFlat = shader;
+   //AtNode* outFlat = shader;
    
    ProcessParameter(inFlat, "color", AI_TYPE_RGB, "value");
    
