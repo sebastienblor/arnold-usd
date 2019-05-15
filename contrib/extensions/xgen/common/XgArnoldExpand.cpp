@@ -156,7 +156,7 @@ private:
    AtCritSec mMutex;
 };
 
-XgMutex* Procedural::m_mutex = new XgMutex();
+XgMutex* s_mutex = new XgMutex();
 
 #define MAX_NAME_SIZE 65535
 
@@ -178,20 +178,20 @@ namespace XGenArnold
 
 Procedural::Procedural()
 : m_node( NULL )
-, m_node_face( NULL )
 , m_options( NULL )
 , m_camera( NULL )
 , m_sphere( NULL )
+, m_mergedCurves(NULL)
 , m_parent(NULL)
 , m_shaders( NULL )
 , m_patch( NULL )
 , m_merged_data ( NULL )
-, m_initArnoldFunc( NULL )
+, m_multithread(false)
 #ifdef XGEN_RENDER_API_PARALLEL
 , m_parallel ( NULL )
 #endif
+, m_initArnoldFunc( NULL )
 {
-   //m_mutex = new XgMutex();
 }
 
 Procedural::~Procedural()
@@ -207,76 +207,30 @@ Procedural::~Procedural()
       m_patch = NULL;
    }
 }
-
-bool Procedural::nextFace( bbox& b, unsigned int& f )
-{
-   m_mutex->enter();
-   bool result = false;
-   if(m_patch)
-      result = m_patch->nextFace( b, f );
-   m_mutex->leave();
-   return result;
-}
-
+/**
+ * Initialize the xgen patch (description), and pass this class as an argument
+ * as well as the serialized parameters
+**/
 bool Procedural::initPatchRenderer( const char* in_params )
 {
-   m_mutex->enter();
    m_patch = PatchRenderer::init( (ProceduralCallbacks*)this, in_params );
-   /*const char* params = "-debug 1 -warning 1 -stats 1  -shutter 0.0 -file ${XGEN_ROOT}/../scen/untitled__collection9.xgen -palette collection9 -geom ${XGEN_ROOT}/../scen/untitled__collection9.abc -patch pSphere1  -description description10 -fps 24.0 -frame 1.000000";
-   m_patch = PatchRenderer::init( (ProceduralCallbacks*)this, params );*/
-   bool result = (m_patch!=NULL);
+
 #ifdef XGEN_RENDER_API_PARALLEL
-   if (result && AiNodeGetBool( m_node, "xgen_multithreading" ))
+   // the parameter "xgen_multithreading" is what determines if we must use face-parallelism
+   if (m_patch && AiNodeGetBool( m_node, "xgen_multithreading" ))
    {
-       m_parallel = ParallelRenderer::init( m_patch );
-   }
+      m_parallel = ParallelRenderer::init( m_patch );
+   } else
+      m_parallel = NULL;
 #endif
-   m_mutex->leave();
-   return result;
+   return (m_patch != NULL);
 }
 
-bool Procedural::initFaceRenderer( Procedural* pProc, unsigned int f )
-{
-   m_mutex->enter();
-   FaceRenderer* tmp_face = FaceRenderer::init( m_patch, f, pProc );
-   bool result = tmp_face!=NULL;
-   if(result)
-      pProc->m_faces.push_back( tmp_face );
-   m_mutex->leave();
-   return result;
-}
-
-bool Procedural::render()
-{
-   m_mutex->enter();
-#ifdef XGEN_RENDER_API_PARALLEL
-   if (m_parallel && m_parallel->canRunInParallel())
-   {
-       std::vector<FaceRenderer*>::iterator it;
-       for (it = m_faces.begin(); it != m_faces.end(); ++it)
-       {
-           m_parallel->enqueue(*it);
-       }
-       m_parallel->spawnAndWait();
-       m_parallel->destroy();
-   }
-   else
-   {
-       // Fallback
-       std::vector<FaceRenderer*>::iterator it;
-       for (it = m_faces.begin(); it != m_faces.end(); ++it)
-       {
-          (*it)->render();
-       }
-   }
-#else
-   for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
-      (*it)->render();
-#endif
-   m_mutex->leave();
-   return true;
-}
-
+/**
+ *   Init() is the function invoked to generate the Xgen data. Note that we're preventing multiple 
+ *   threads from invoking this function in parallel. The xgen procedural locks this call, 
+ *   and during interactive sessions, it is called serially
+**/
 int Procedural::Init(AtNode* node, bool procParent)
 {
    // Temporary fix to be able to render the clumping modifier outside Maya
@@ -289,102 +243,99 @@ int Procedural::Init(AtNode* node, bool procParent)
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
    
-
 #ifdef MTOA_XG_INIT_CONFIG
    char* xgenConfigPath = getenv("XGEN_CONFIG_PATH");
    if(xgenConfigPath != NULL)
       xgapi::initConfig(string(xgenConfigPath));
 #endif
-      
-   static AtString cleanupStr("cleanup");
-   // Cleanup Init
-   if( parameters == cleanupStr)
+   
+   // Xgen patch (description) already exists, goodbye
+   if(m_patch != NULL)
+      return 1;
+   
+   m_node = node;
+   m_parent = (procParent) ? m_node : NULL; // depends whether this is called from a parent procedural or not
+   m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
+   
+   // Initialize the Patch renderer and provide this class for the callbacks
+   initPatchRenderer( parameters.c_str() );
+   
+   // Patch wasn't created, something's wrong, goodbye
+   if (m_patch == NULL)
    {
-      // Noop!
+      AiMsgError("[xgen] Could not initialize the Patch renderer");
+      return 0;
    }
 
-   // Patch Init
-   else if( m_patch==NULL && m_faces.size()==0 )
+   bbox b = {AI_BIG, -AI_BIG, AI_BIG, -AI_BIG, AI_BIG, -AI_BIG};
+   unsigned int f = -1;
+
+#ifdef XGEN_RENDER_API_PARALLEL
+   // should we use multithread or not ?
+   m_multithread = (m_parallel && m_parallel->canRunInParallel());
+#endif
+
+   // Now we loop over all the faces (primitives) of this patch (description).
+   // This function will return false when we're done. It provide the face 
+   // bounding box and index
+   while(m_patch->nextFace(b, f))
    {
-      m_node = node;
-      m_parent = (procParent) ? m_node : NULL;
-      m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
+      // Skip camera culled bounding boxes.
+      if( isEmpty( b ) )
+         continue;
 
-      string strParentName = AiNodeGetName( m_node );
+      // Get the next face (index "f")
+      FaceRenderer* face = FaceRenderer::init(m_patch, f);
+      if (face == NULL)
+         continue;
       
-      // Create a sphere shape node
+      if (m_multithread)
       {
-         string nodeName = strParentName + string("_sphere_shape");
-         m_sphere = AiNode("sphere", nodeName.c_str(), m_parent);
-         AiNodeSetFlt( m_sphere, "radius", 0.5f );
-         AiNodeSetVec( m_sphere, "center", 0.0f, 0.0f, 0.0f );
-         AiNodeSetByte( m_sphere, "visibility", 0 );
-         AiNodeSetFlt(m_sphere, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-         AiNodeSetFlt(m_sphere, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
-
-         m_nodes.push_back( m_sphere );
-      }
-
-      // This is where we link our callbacks to the PatchRenderer.
-      initPatchRenderer( parameters.c_str() );
-
-      bbox b = {AI_BIG, -AI_BIG, AI_BIG, -AI_BIG, AI_BIG, -AI_BIG};
-      bbox total = {AI_BIG, -AI_BIG, AI_BIG, -AI_BIG, AI_BIG, -AI_BIG};
-      unsigned int f = -1;
-      //while( nextFace( b, f ) )
+#ifdef XGEN_RENDER_API_PARALLEL
+         // for parallel xgen, add this face to the queue
+         m_parallel->enqueue(face);
+         // note that we don't need to delete the faces here as it will be done in m_parallel->destroy
+#endif
+      } else
       {
-         while( nextFace( b, f ) )
-         {
-            // Skip camera culled bounding boxes.
-            if( isEmpty( b ) )
-               continue;
-
-            total.xmin = total.xmin < b.xmin ? total.xmin : b.xmin;
-            total.ymin = total.ymin < b.ymin ? total.ymin : b.ymin;
-            total.zmin = total.zmin < b.zmin ? total.zmin : b.zmin;
-
-            total.xmax = total.xmax > b.xmax ? total.xmax : b.xmax;
-            total.ymax = total.ymax > b.ymax ? total.ymax : b.ymax;
-            total.zmax = total.zmax > b.zmax ? total.zmax : b.zmax;
-
-            initFaceRenderer( this, f );
-         }
-
-         m_node_face = m_node;
+         // for non-parallel xgen, just render this face (will end up calling flush())
+         // and then delete the face
+         face->render();
+         delete face;
       }
    }
 
-   // Face Init
-   if( m_faces.size()!=0 )
+   // Now that all the faces were queues, let's spawn them and wait for them being flushed
+   if (m_multithread)
    {
-      render();
+#ifdef XGEN_RENDER_API_PARALLEL
+      m_parallel->spawnAndWait(); // this will end up calling flush(), in parallel
+      m_parallel->destroy(); // delete all the faces
+#endif
    }
 
-   if( m_merged_data )
+   // if a sphere has been created (for sphere instances), it's time to add it
+   if (m_sphere)
+      m_nodes.push_back(m_sphere);
+
+   // for splines only
+   if (m_mergedCurves && m_merged_data)
    {
-      m_merged_data->merge_into_node(m_nodes[1]);
+      // if a merged curves node was created, add it now to the list of nodes
+      m_nodes.push_back(m_mergedCurves);
+
+      // This will merge all the arrays into the merged curve node parameters
+      m_merged_data->merge_into_node(m_mergedCurves);
       delete m_merged_data;
       m_merged_data = NULL;
    }
-
    return 1;
 }
 
 int Procedural::Cleanup()
 {
    m_nodes.clear();
-   m_node = m_node_face = m_options = m_sphere = m_parent = NULL; // Don't delete.
-
-#ifndef XGEN_RENDER_API_PARALLEL
-   if( m_faces.size()!=0 )
-#else
-   if( !m_parallel && m_faces.size()!=0)
-#endif
-   {
-      for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
-         delete *it;
-      m_faces.clear();
-   }
+   m_node = m_options = m_sphere = m_mergedCurves = m_parent = NULL; // Don't delete.
    return 1;
 }
 
@@ -704,23 +655,6 @@ const char* Procedural::getOverride( const char* in_name )const
    return "";
 }
 
-// Auto close the file descriptor.
-class auto_fclose
-{
-public:
-   auto_fclose( FILE* fd )
-   {
-      m_fd = fd;
-   }
-
-   ~auto_fclose()
-   {
-      if(m_fd)
-         fclose(m_fd);
-   }
-   FILE* m_fd;
-};
-
 bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox )const
 {
    std::string fname( in_filename );
@@ -823,46 +757,47 @@ void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
  */
 void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 {
-    XGRenderAPIDebug( "[xgen_procedural] Flush Splines" );
-    bool bFaceCamera = pc->get( PC(FaceCamera) );
-    int mode = AiNodeGetInt( m_node, "ai_mode" );
+   XGRenderAPIDebug( "[xgen_procedural] Flush Splines" );
+   bool bFaceCamera = pc->get( PC(FaceCamera) );
+   int mode = AiNodeGetInt( m_node, "ai_mode" );
 
-    unsigned int numSamples = pc->get( PC(NumMotionSamples) );
+   unsigned int numSamples = pc->get( PC(NumMotionSamples) );
     //unsigned int shutterSize = pc->getSize( PC(Shutter) );
     //unsigned int cacheCount = pc->get( PC(CacheCount) );
 
-    unsigned int pointsTotal = pc->getSize2( PC(Points), 0 );
-    unsigned int numPointsTotal = pc->getSize2( PC(NumVertices), 0 );
-    //unsigned int orientationsTotal = pc->getSize2( PC(Norms), 0 );
-    unsigned int widthsSize = pc->getSize( PC(Widths) );
+   unsigned int pointsTotal = pc->getSize2( PC(Points), 0 );
+   unsigned int numPointsTotal = pc->getSize2( PC(NumVertices), 0 );
+   //unsigned int orientationsTotal = pc->getSize2( PC(Norms), 0 );
+   unsigned int widthsSize = pc->getSize( PC(Widths) );
 
-    AtArray* num_points = AiArrayAllocate( numPointsTotal, numSamples, AI_TYPE_UINT );
-    AtArray* points = AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
-    AtArray* radius = AiArrayAllocate( widthsSize>0 ? widthsSize : 1, 1, AI_TYPE_FLOAT );
-    AtArray* orientations = (bFaceCamera || (mode == 1)) ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
+
+   AtArray* num_points = AiArrayAllocate( numPointsTotal, numSamples, AI_TYPE_UINT );
+   AtArray* points = AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
+   AtArray* radius = AiArrayAllocate( widthsSize>0 ? widthsSize : 1, 1, AI_TYPE_FLOAT );
+   AtArray* orientations = (bFaceCamera || (mode == 1)) ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
 
     // FIXME Arnold5
-    unsigned int* curNumPoints = (unsigned int*)AiArrayMap(num_points);
-    AtVector* curPoints = (AtVector*)AiArrayMap(points);//->data;
-    AtVector* curOrientations = orientations ? (AtVector*)AiArrayMap(orientations)/*->data*/ : NULL;
-    float* curRadius = (float*)AiArrayMap(radius);//->data;
+   unsigned int* curNumPoints = (unsigned int*)AiArrayMap(num_points);
+   AtVector* curPoints = (AtVector*)AiArrayMap(points);//->data;
+   AtVector* curOrientations = orientations ? (AtVector*)AiArrayMap(orientations)/*->data*/ : NULL;
+   float* curRadius = (float*)AiArrayMap(radius);//->data;
 
-    // Add NumPoints
-    if (curNumPoints != NULL && curPoints != NULL)
-    {
-       for ( int i=0; i < (int)numSamples; i++ )
-       {
-           // Add the points.
-           XGRenderAPIDebug( "Adding points." );
-           memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtVector )*pointsTotal );
-           curPoints+=pointsTotal;
+   // Add NumPoints
+   if (curNumPoints != NULL && curPoints != NULL)
+   {
+      for ( int i=0; i < (int)numSamples; i++ )
+      {
+         // Add the points.
+         XGRenderAPIDebug( "Adding points." );
+         memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtVector )*pointsTotal );
+         curPoints+=pointsTotal;
 
-           const vec3* pNorms = pc->get( PC(Norms), i );
+         const vec3* pNorms = pc->get( PC(Norms), i );
 
-           int* numVertsPtr = (int*)pc->get( PC(NumVertices), i );
-           for( unsigned int j=0; j<pc->getSize2( PC(NumVertices), i ); ++j )
-           {
-              *curNumPoints = (unsigned int)numVertsPtr[j];
+         int* numVertsPtr = (int*)pc->get( PC(NumVertices), i );
+         for( unsigned int j=0; j<pc->getSize2( PC(NumVertices), i ); ++j )
+         {
+            *curNumPoints = (unsigned int)numVertsPtr[j];
 
               // Add the normals if necessary.
             if( curOrientations )
@@ -884,23 +819,23 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
             }
 
               curNumPoints++;
-           }
-        }
-    }
+         }
+      }
+   }
 
-    if (curRadius)
-    {
-       // Add the constant widths.
-       if( widthsSize==0 )
-       {
+   if (curRadius)
+   {
+      // Add the constant widths.
+      if( widthsSize==0 )
+      {
          float constantWidth = pc->get( PC(ConstantWidth) );
 
          XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
          *curRadius = constantWidth * 0.5f;
-       }
-       // Add Varying Widths
-       else
-       {
+      }
+      // Add Varying Widths
+      else
+      {
          const float* pWidths = pc->get( PC(Widths) );
 
          XGRenderAPIDebug( "Non-constant width.");
@@ -908,58 +843,31 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
          {
             curRadius[w] = pWidths[w] * 0.5f;
          }
-       }
-    }
+      }
+   }
     
    // Create only one node, all arrays get merged into it at the end
+   bool mergeDataCreated = false;
    if ( !m_merged_data )
    {
-      m_merged_data = new XgMergedData();
-
-      string strParentName = AiNodeGetName( m_node_face );
-      string strID = itoa( (int)m_nodes.size() );
-      string nodeName = strParentName + string("_curves_") + strID;
-      AtNode* nodeCurves = AiNode("curves", nodeName.c_str(), m_parent);
-
-      AiNodeSetUInt(nodeCurves, "id", getHash(nodeCurves));
-      AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
-      AiNodeSetStr( nodeCurves, "basis", "b-spline" );
-      AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
-
-      float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
-      AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
-
-      AiNodeSetFlt(nodeCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-      AiNodeSetFlt(nodeCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
-      // Transmitting parent node parameters to child nodes (#2752)
-      // ... but only do it when there's no parent procedural (#3606)
-      if (m_parent == NULL)
-      {
-         AiNodeSetBool(nodeCurves, "opaque", AiNodeGetBool(m_node, "opaque"));
-         AiNodeSetByte(nodeCurves, "visibility", AiNodeGetByte(m_node, "visibility"));
-         AiNodeSetBool(nodeCurves, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
-         AiNodeSetBool(nodeCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
-         AiNodeSetBool(nodeCurves, "matte", AiNodeGetBool(m_node, "matte"));
-         AiNodeSetArray(nodeCurves, "matrix", AiArrayCopy(AiNodeGetArray(m_node, "matrix")));
-      }
-      
-
-      // Add custom renderer parameters.
-      pushCustomParams( nodeCurves, pc );
-
-      // Keep our new nodes.
-      m_nodes.push_back( nodeCurves );
+      s_mutex->enter();      
+      mergeDataCreated = createMergedCurves();
+      s_mutex->leave();
    }
-   else
-   {
-      // Add custom renderer uniform parameters to m_merged_data
+   if (mergeDataCreated)
+   {  
+      AiNodeSetStr( m_mergedCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
+      pushCustomParams( m_mergedCurves, pc );
+   } else
       pushCustomParams( NULL, pc );
-   }
-
+   
+   s_mutex->enter();
    m_merged_data->add_array( "num_points", num_points );
    m_merged_data->add_array( "points", points );
    m_merged_data->add_array( "radius", radius );
    if( orientations ) m_merged_data->add_array( "orientations", orientations );
+   s_mutex->leave();
+
 
    if (num_points)
       AiArrayUnmap(num_points);
@@ -972,6 +880,54 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
 }
 
+bool Procedural::createMergedCurves()
+{
+   string strParentName = AiNodeGetName( m_node );
+   string nodeName = strParentName + string("_curves");
+
+   if (m_mergedCurves)
+      return false;
+
+   m_mergedCurves = AiNode("curves", nodeName.c_str(), m_parent);
+   m_merged_data = new XgMergedData();
+
+   AiNodeSetUInt(m_mergedCurves, "id", getHash(m_mergedCurves));
+   AiNodeSetStr( m_mergedCurves, "basis", "b-spline" );
+   AiNodeSetArray( m_mergedCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+
+   float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
+   AiNodeSetFlt( m_mergedCurves, "min_pixel_width", min_pixel_width );
+
+   AiNodeSetFlt(m_mergedCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+   AiNodeSetFlt(m_mergedCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+   // Transmitting parent node parameters to child nodes (#2752)
+   // ... but only do it when there's no parent procedural (#3606)
+   if (m_parent == NULL)
+   {
+      AiNodeSetBool(m_mergedCurves, "opaque", AiNodeGetBool(m_node, "opaque"));
+      AiNodeSetByte(m_mergedCurves, "visibility", AiNodeGetByte(m_node, "visibility"));
+      AiNodeSetBool(m_mergedCurves, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+      AiNodeSetBool(m_mergedCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+      AiNodeSetBool(m_mergedCurves, "matte", AiNodeGetBool(m_node, "matte"));
+      AiNodeSetArray(m_mergedCurves, "matrix", AiArrayCopy(AiNodeGetArray(m_node, "matrix")));
+   }
+   return true;
+}
+void Procedural::createBaseSphere()
+{
+   string strParentName = AiNodeGetName( m_node );
+   string nodeName = strParentName + string("_sphere_shape");
+
+   if (m_sphere)
+      return;
+
+   m_sphere = AiNode("sphere", nodeName.c_str(), m_parent);
+   AiNodeSetFlt( m_sphere, "radius", 0.5f );
+   AiNodeSetVec( m_sphere, "center", 0.0f, 0.0f, 0.0f );
+   AiNodeSetByte( m_sphere, "visibility", 0 );
+   AiNodeSetFlt(m_sphere, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+   AiNodeSetFlt(m_sphere, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+}
 /**
  * Emit the Arnold Sphere nodes for the cached primitives. This might be called
  * as primitives are emited to the renderer (to keep the size of the cache
@@ -979,8 +935,14 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
  */
 void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 {
-   string strParentName = AiNodeGetName( m_node_face );
+   string strParentName = AiNodeGetName( m_node );
 
+   if (m_sphere == NULL)
+   {   
+      s_mutex->enter();
+      createBaseSphere();
+      s_mutex->leave();
+   }
 
    // Build up the token and parameter lists to output for all
    // passes of motionBlur.
@@ -1006,155 +968,169 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
    bool normalParam = pc->get( PC(NormalParam) );
    bool flipParam = pc->get( PC(FlipParam) );
 
-    for ( unsigned int j=0; j<cacheCount; j++ )
-    {
-       AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
-       AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
+   for ( unsigned int j=0; j<cacheCount; j++ )
+   {
+      AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
+      AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
 
-        for ( unsigned int i=0; i < numSamples; i++ )
-        {
-            // Determine scaling values.
-            int p0 = j*4; // Start of first point
-            int p1 = j*4 + 1; // Start of second point
-            int p2 = j*4 + 2; // Start of third point
-            int p3 = j*4 + 3; // Start of fourth point
+      for ( unsigned int i=0; i < numSamples; i++ )
+      {
+         // Determine scaling values.
+         int p0 = j*4; // Start of first point
+         int p1 = j*4 + 1; // Start of second point
+         int p2 = j*4 + 2; // Start of third point
+         int p3 = j*4 + 3; // Start of fourth point
 
-            const vec3* points_i = pc->get( PC(Points), i );
+         const vec3* points_i = pc->get( PC(Points), i );
 
-            P = points_i[p0];
-            vec3 lengthP( points_i[p1] );
-            vec3 midP(( P + lengthP )/2.0 );
-            vec3 widthP( points_i[p2] );
-            vec3 depthP( points_i[p3] );
-            lengthVec = lengthP - P;
-            vec3 widthVec = widthP - midP;
-            length_ = length(lengthVec);
-            width = length(widthVec) * 2.0;
-            depth = length((depthP - midP)) * 2.0;
+         P = points_i[p0];
+         vec3 lengthP( points_i[p1] );
+         vec3 midP(( P + lengthP )/2.0 );
+         vec3 widthP( points_i[p2] );
+         vec3 depthP( points_i[p3] );
+         lengthVec = lengthP - P;
+         vec3 widthVec = widthP - midP;
+         length_ = length(lengthVec);
+         width = length(widthVec) * 2.0;
+         depth = length((depthP - midP)) * 2.0;
 
-            // Determine axis and angle of rotation.
-            vec3 yAxis = { 0.f, 1.f, 0.f };
-            vec3 xAxis = { 1.f, 0.f, 0.f };
-            vec3 xChange;
+         // Determine axis and angle of rotation.
+         vec3 yAxis = { 0.f, 1.f, 0.f };
+         vec3 xAxis = { 1.f, 0.f, 0.f };
+         vec3 xChange;
 
-            axis1 = yAxis * lengthVec;
-            if( normalize( axis1 ) > 0.0 ) {
-                angle1 = angle( yAxis, lengthVec );
-                xChange = rotateBy( xAxis, axis1, angle1 );
-            } else {
-                angle1 = 0.0;
-                axis1 = xAxis;
-                xChange = xAxis;
+         axis1 = yAxis * lengthVec;
+         if( normalize( axis1 ) > 0.0 ) 
+         {
+            angle1 = angle( yAxis, lengthVec );
+            xChange = rotateBy( xAxis, axis1, angle1 );
+         } else 
+         {
+            angle1 = 0.0;
+            axis1 = xAxis;
+            xChange = xAxis;
+         }
+         axis2 = xChange * widthVec;
+         if ( normalize( axis2 ) > 0.0 )
+         {
+            angle2[i%2] = angle( xChange, widthVec );
+            if ( dot( axis2, lengthVec ) < 0.0 )
+               angle2[i%2] *= -1.0;
+         } else 
+         {
+            angle2[i%2] = 0.0;
+         }
+         axis2 = yAxis;
+
+         // We want to make sure motion frames take the shortest
+         // distance from an angular position.
+         if ( i > 0 ) 
+         {
+            if ( angle2[i%2] - angle2[(i-1)%2] > 3.14159 ) 
+            {
+               angle2[i%2] -= 6.28319;
+            } else if ( angle2[i%2] - angle2[(i-1)%2] < -3.14159 ) {
+               angle2[i%2] += 6.28319;
             }
-            axis2 = xChange * widthVec;
-            if ( normalize( axis2 ) > 0.0 ) {
-                angle2[i%2] = angle( xChange, widthVec );
-                if ( dot( axis2, lengthVec ) < 0.0 )
-                    angle2[i%2] *= -1.0;
-            } else {
-                angle2[i%2] = 0.0;
-            }
-            axis2 = yAxis;
+         }
 
-            // We want to make sure motion frames take the shortest
-            // distance from an angular position.
-            if ( i > 0 ) {
-                if ( angle2[i%2] - angle2[(i-1)%2] > 3.14159 ) {
-                    angle2[i%2] -= 6.28319;
-                } else if ( angle2[i%2] - angle2[(i-1)%2] < -3.14159 ) {
-                    angle2[i%2] += 6.28319;
-                }
-            }
+         // Now use these values to create the transforms for each motion
+         // sample and put in a motion block
 
-            // Now use these values to create the transforms for each motion
-            // sample and put in a motion block
-
-            // Translation
-            translation( tmp, P + lengthVec / 2.0 );
-            xP = tmp;
-            
-            // Rotation 1
-            if ( axis1 != zeroAxis ) {
-                rotation( tmp, axis1, (float)angle1 );
-                multiply( xP, xP, tmp );
-                if ( normalParam && (i==0) )
-                    xN = tmp;
-            }
-            
-            // Rotation 2
-            if ( axis2 != zeroAxis ) {
-                rotation( tmp, axis2, (float)angle2[i%2] );
-                multiply( xP, xP, tmp );
-                if ( normalParam && (i==0) )
-                    multiply( xN, xN, tmp );
-            }
-            
-            // Scale
-            vec3 scaleV;
-            scaleV.x = (float)width;
-            scaleV.y = (float)length_;
-            scaleV.z = (float)depth;
-            scale( tmp, scaleV );
-
-            multiply( xP, xP, tmp );
-            if ( flipParam ) {
-                rotationX( tmp, (float)degtorad(-90.0) );
-            } else {
-                rotationX( tmp, (float)degtorad(90) );
-            }
+         // Translation
+         translation( tmp, P + lengthVec / 2.0 );
+         xP = tmp;
+         
+         // Rotation 1
+         if ( axis1 != zeroAxis ) 
+         {
+            rotation( tmp, axis1, (float)angle1 );
             multiply( xP, xP, tmp );
             if ( normalParam && (i==0) )
-                multiply( xN, xN, tmp );
-
-            if(i == 0)
-               xP0 = xP;
-
-            const float* xPi = &xP._00;
-            AtMatrix tmp = {{{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
-                            {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
-                            {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
-                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
-
-            if (m_parent == NULL)
-               AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
-            else
-               AiArraySetMtx( matrix, i, tmp );
-        }
-
-        // Add custom parameters and call sphere.
-        pc->inverseXformParams( j, xP0, xN );
-
-        string strID = itoa( (int)m_nodes.size() );
-
-        
-        // and a geometry instance node.
-        string nodeName = strParentName + string("_ginstance_") + strID;
-        AtNode* nodeInstance = AiNode("ginstance", nodeName.c_str(), m_parent);
-        AiNodeSetUInt(nodeInstance, "id", getHash(nodeInstance) );
-        AiNodeSetArray( nodeInstance, "matrix", matrix );
-        AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
-        AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
-        AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
-
-        // Transmitting parent node parameters to child nodes (#2752)
-        // ... but only do it when there's no parent procedural (#3606)
-        if (m_parent == NULL)
-        {
-           AiNodeSetBool(nodeInstance, "opaque", AiNodeGetBool(m_node, "opaque"));
-           AiNodeSetBool(nodeInstance, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
-           AiNodeSetBool(nodeInstance, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
-           AiNodeSetBool(nodeInstance, "matte", AiNodeGetBool(m_node, "matte"));
-
-           AiNodeSetFlt(nodeInstance, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-           AiNodeSetFlt(nodeInstance, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+               xN = tmp;
          }
-      
-        // Add custom renderer parameters.
-        pushCustomParams( nodeInstance, pc, j);
+         
+         // Rotation 2
+         if ( axis2 != zeroAxis ) 
+         {
+            rotation( tmp, axis2, (float)angle2[i%2] );
+            multiply( xP, xP, tmp );
+            if ( normalParam && (i==0) )
+               multiply( xN, xN, tmp );
+         }
+         
+         // Scale
+         vec3 scaleV;
+         scaleV.x = (float)width;
+         scaleV.y = (float)length_;
+         scaleV.z = (float)depth;
+         scale( tmp, scaleV );
 
-        // Keep our new nodes.
-        m_nodes.push_back( nodeInstance );
-    }
+         multiply( xP, xP, tmp );
+         if ( flipParam ) 
+            rotationX( tmp, (float)degtorad(-90.0) );
+         else 
+            rotationX( tmp, (float)degtorad(90) );
+         
+         multiply( xP, xP, tmp );
+         if ( normalParam && (i==0) )
+            multiply( xN, xN, tmp );
+
+         if(i == 0)
+            xP0 = xP;
+
+         const float* xPi = &xP._00;
+         AtMatrix tmp = {{{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
+                         {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
+                         {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
+                         {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
+
+         if (m_parent == NULL)
+            AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
+         else
+            AiArraySetMtx( matrix, i, tmp );
+      }
+
+      // Add custom parameters and call sphere.
+      pc->inverseXformParams( j, xP0, xN );
+      if (m_multithread)
+         s_mutex->enter();
+      string strID = itoa( (int)m_nodes.size() );
+      if (m_multithread)
+         s_mutex->leave();
+        
+      // and a geometry instance node.
+      string nodeName = strParentName + string("_ginstance_") + strID;
+      AtNode* nodeInstance = AiNode("ginstance", nodeName.c_str(), m_parent);
+      AiNodeSetUInt(nodeInstance, "id", getHash(nodeInstance) );
+      AiNodeSetArray( nodeInstance, "matrix", matrix );
+      AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
+      AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+      AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
+
+      // Transmitting parent node parameters to child nodes (#2752)
+      // ... but only do it when there's no parent procedural (#3606)
+      if (m_parent == NULL)
+      {
+         AiNodeSetBool(nodeInstance, "opaque", AiNodeGetBool(m_node, "opaque"));
+         AiNodeSetBool(nodeInstance, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+         AiNodeSetBool(nodeInstance, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+         AiNodeSetBool(nodeInstance, "matte", AiNodeGetBool(m_node, "matte"));
+
+         AiNodeSetFlt(nodeInstance, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+         AiNodeSetFlt(nodeInstance, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+      }
+      
+      // Add custom renderer parameters.
+      pushCustomParams( nodeInstance, pc, j);
+
+      // Keep our new nodes.
+      if (m_multithread)
+         s_mutex->enter();
+      m_nodes.push_back( nodeInstance );
+      if (m_multithread)
+         s_mutex->leave();
+   }
 }
 
 /**
@@ -1164,7 +1140,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
  */
 void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 {
-   string strParentName = AiNodeGetName( m_node_face );
+   string strParentName = AiNodeGetName( m_node );
 
    // Create a NURBS surface node for each card primitive. Properties are:
    // #span = 1,1, #degree = 3,3, #CVs = 4x4, #knots = 8,8
@@ -1205,7 +1181,11 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AtArray* knotsV = AiArray( 8, 1, AI_TYPE_FLOAT,
           0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f );
  
+      if (m_multithread)
+         s_mutex->enter();
       string strID = itoa( (int)m_nodes.size() );
+      if (m_multithread)
+         s_mutex->leave();      
 
       // and a geometry instance node.
       string nodeName = strParentName + string("_nurbs_") + strID;
@@ -1237,7 +1217,11 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
        pushCustomParams( nodeCard, pc );
 
       // Keep our new nodes.
+      if (m_multithread)
+         s_mutex->enter();
       m_nodes.push_back( nodeCard );
+      if (m_multithread)
+         s_mutex->leave();
     }
 
 }
@@ -1357,67 +1341,76 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
        AiUserParamIteratorDestroy (itr);
    }
 
-   unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
-   // Push any user-defined custom attributes.
-   for ( unsigned int j = 0; j<customAttrCount; j++ ) {
-      string attrName = pc->get( PC( CustomAttrNames ), j );
-      const float* attrValue = pc->get( PC( CustomAttrValues ), j );
-      unsigned int attrCount = pc->getSize2( PC( CustomAttrValues ), j );
+   if (pc)
+   {
+      unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
+      // Push any user-defined custom attributes.
+      for ( unsigned int j = 0; j<customAttrCount; j++ ) {
+         string attrName = pc->get( PC( CustomAttrNames ), j );
+         const float* attrValue = pc->get( PC( CustomAttrValues ), j );
+         unsigned int attrCount = pc->getSize2( PC( CustomAttrValues ), j );
 
-      // See if the entry is an array and if so the number of elements
-      int count = arrayindex( attrName );
-      if ( count<1 ) count = 1;
+         // See if the entry is an array and if so the number of elements
+         int count = arrayindex( attrName );
+         if ( count<1 ) count = 1;
 
-      for( size_t i=0; i<g_ulCustomParamTypesCount; ++i )
-      {
-         const CustomParamTypeEntry& e = g_mapCustomParamTypes[i];
-         if ( attrName.find( e.m_xgen ) != string::npos)
+         for( size_t i=0; i<g_ulCustomParamTypesCount; ++i )
          {
-            string fixedAttrName = attrName.substr( e.m_xgen.size() );
-            unsigned int fixAttrCount = (unsigned int)(attrCount/e.m_components);
-
-            // if in_node is NULL it means we are merging multiple nodes into
-            // one and we do not need to declare the same attribute again
-            if ( in_node )
-               AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
-
-            if(e.m_constant) //constant attribute
+            const CustomParamTypeEntry& e = g_mapCustomParamTypes[i];
+            if ( attrName.find( e.m_xgen ) != string::npos)
             {
+               string fixedAttrName = attrName.substr( e.m_xgen.size() );
+               unsigned int fixAttrCount = (unsigned int)(attrCount/e.m_components);
+
+               // if in_node is NULL it means we are merging multiple nodes into
+               // one and we do not need to declare the same attribute again
                if ( in_node )
+                  AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
+
+               if(e.m_constant) //constant attribute
                {
-                  unsigned int offset = (unsigned int)(cacheCount*e.m_components);
-                  switch(e.m_type)
+                  if ( in_node )
                   {
-                     case AI_TYPE_FLOAT:
-                        AiNodeSetFlt( in_node, fixedAttrName.c_str(), attrValue[offset]);
-                        break;
-                     case AI_TYPE_RGB:
-                        AiNodeSetRGB( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
-                        break;
-                     case AI_TYPE_VECTOR:
-                        AiNodeSetVec( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
-                        break;
+                     unsigned int offset = (unsigned int)(cacheCount*e.m_components);
+                     switch(e.m_type)
+                     {
+                        case AI_TYPE_FLOAT:
+                           AiNodeSetFlt( in_node, fixedAttrName.c_str(), attrValue[offset]);
+                           break;
+                        case AI_TYPE_RGB:
+                           AiNodeSetRGB( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                           break;
+                        case AI_TYPE_VECTOR:
+                           AiNodeSetVec( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                           break;
+                     }
                   }
                }
-            }
-            else // uniform attribute
-            {
-               AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
-               void *aData = AiArrayMap(a);
-               if (aData)
-                  memcpy( aData, attrValue, e.m_sizeOf*fixAttrCount );
-               if ( m_merged_data )
-                  m_merged_data->add_array( fixedAttrName.c_str(), a );
-               else
-                  AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+               else // uniform attribute
+               {
+                  AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
+                  void *aData = AiArrayMap(a);
+                  if (aData)
+                     memcpy( aData, attrValue, e.m_sizeOf*fixAttrCount );
+                  if ( m_merged_data )
+                  {
+                     if (m_multithread)
+                        s_mutex->enter();
+                     m_merged_data->add_array( fixedAttrName.c_str(), a );
+                     if (m_multithread)
+                        s_mutex->leave();
+                  }
+                  else
+                     AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
 
-               AiArrayUnmap(a);
+                  AiArrayUnmap(a);
+               }
+               break;
             }
-            break;
          }
-      }
 
-    }
+      }
+   }
 
 }
 
@@ -1448,7 +1441,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
     }
 */
 
-   string strParentName = AiNodeGetName( m_node_face );
+   string strParentName = AiNodeGetName( m_node );
 
    // Default to 1.0 so that it has no effect for archive files that
    // do not contain BBOX information
@@ -1498,129 +1491,130 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
    mat44 xP, xP0, xN, tmp;
 
+   
+   for ( unsigned int j = 0; j < cacheCount; j++ ) {
 
-    for ( unsigned int j = 0; j < cacheCount; j++ ) {
+      AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
+      AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
 
-        AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
-        AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
-
-        // Build up the token and parameter lists to output for all
-        // passes of motionBlur.
+      // Build up the token and parameter lists to output for all
+      // passes of motionBlur.
         
-        int jj=j*lodLevels*numSamples;
+      int jj=j*lodLevels*numSamples;
+      if (m_multithread)
+         s_mutex->enter();
+      string strID = itoa((int)m_nodes.size());
+      if (m_multithread)
+         s_mutex->leave();
+      
+      string instance_name = strParentName + string("_archive_") + strID;
+      for ( unsigned int i=0; i <numSamples; i++ )
+      {
+         // Determine scaling values.
+         int p0 = j*4; // Start of first point
+         int p1 = j*4 + 1; // Start of second point
+         int p2 = j*4 + 2; // Start of third point
+         int p3 = j*4 + 3; // Start of fourth point
 
-        string strID = itoa((int)m_nodes.size());
+         const vec3* points_i = pc->get( PC(Points), i );
 
-        string instance_name = strParentName + string("_archive_") + strID;
-        
-        for ( unsigned int i=0; i <numSamples; i++ )
-        {
-            // Determine scaling values.
-            int p0 = j*4; // Start of first point
-            int p1 = j*4 + 1; // Start of second point
-            int p2 = j*4 + 2; // Start of third point
-            int p3 = j*4 + 3; // Start of fourth point
+         P = points_i[p0];
+         vec3 lengthP( points_i[p1] );
+         vec3 midP(( P + lengthP )/2.0 );
+         vec3 widthP( points_i[p2] );
+         vec3 depthP( points_i[p3] );
+         lengthVec = lengthP - P;
+         vec3 widthVec = widthP - midP;
+         length_ = length(lengthVec);
+         width = length( widthVec ) * 2.0;
+         depth = length(depthP - midP)* 2.0;
 
-            const vec3* points_i = pc->get( PC(Points), i );
+         // Determine axis and angle of rotation.
+         vec3 yAxis={ 0.0, 1.0, 0.0 };
+         vec3 xAxis={ 1.0, 0.0, 0.0 };
+         vec3 xChange;
 
-            P = points_i[p0];
-            vec3 lengthP( points_i[p1] );
-            vec3 midP(( P + lengthP )/2.0 );
-            vec3 widthP( points_i[p2] );
-            vec3 depthP( points_i[p3] );
-            lengthVec = lengthP - P;
-            vec3 widthVec = widthP - midP;
-            length_ = length(lengthVec);
-            width = length( widthVec ) * 2.0;
-            depth = length(depthP - midP)* 2.0;
-
-            // Determine axis and angle of rotation.
-            vec3 yAxis={ 0.0, 1.0, 0.0 };
-            vec3 xAxis={ 1.0, 0.0, 0.0 };
-            vec3 xChange;
-
-            axis1 = yAxis * lengthVec;
-            if ( normalize(axis1) > 0.0 ) {
-                angle1 = angle(yAxis, lengthVec );
-                xChange = rotateBy(xAxis, axis1, angle1 );
-            } else {
-                angle1 = 0.0;
-                axis1 = xAxis;
-                xChange = xAxis;
-            }
-            axis2 = xChange * widthVec;
-            if ( normalize(axis2) > 0.0 ) {
-                angle2[i%2] = angle( xChange, widthVec );
-                if ( dot( axis2, lengthVec ) < 0.0 )
-                    angle2[i%2] *= -1.0;
-            } else {
-                angle2[i%2] = 0.0;
-            }
-            axis2 = yAxis;
-
-
-            // We want to make sure motion frames take the shortest
-            // distance from an angular position.
-            if ( i > 0 ) {
-                if ( angle2[i%2] - angle2[(i-1)%2] > 3.14159 ) {
-                    angle2[i%2] -= 6.28319;
-                } else if ( angle2[i%2] - angle2[(i-1)%2] < -3.14159 ) {
-                    angle2[i%2] += 6.28319;
-                }
-            }
-
-            // Now use these values to create the transforms for each motion
-            // sample and put in a motion block
-
-            // Translation
-            translation( tmp, P );
-            xP = tmp;
-
-            // Rotation 1
-            if ( axis1 != zeroAxis ) {
-                rotation( tmp, axis1, (float)angle1 );
-                multiply( xP, xP, tmp );
-                if ( normalParam && (i==0))
-                    xN = tmp;
-            }
-
-            // Rotation 2
-            if ( axis2 != zeroAxis ) {
-                rotation( tmp, axis2, (float)angle2[i%2] );
-                multiply( xP, xP, tmp );
-                if ( normalParam && (i==0) )
-                    multiply( xN, xN, tmp );
-            }
-
-            // Scale
-            vec3 scaleV;
-            scaleV.x = (float)(bbox_scale * width);
-            scaleV.y = (float)(bbox_scale * length_);
-            scaleV.z = (float)(bbox_scale * depth);
-            scale( tmp, scaleV );
-            multiply( xP, xP, tmp );
+         axis1 = yAxis * lengthVec;
+         if ( normalize(axis1) > 0.0 ) {
+             angle1 = angle(yAxis, lengthVec );
+             xChange = rotateBy(xAxis, axis1, angle1 );
+         } else {
+             angle1 = 0.0;
+             axis1 = xAxis;
+             xChange = xAxis;
+         }
+         axis2 = xChange * widthVec;
+         if ( normalize(axis2) > 0.0 ) {
+             angle2[i%2] = angle( xChange, widthVec );
+             if ( dot( axis2, lengthVec ) < 0.0 )
+                 angle2[i%2] *= -1.0;
+         } else {
+             angle2[i%2] = 0.0;
+         }
+         axis2 = yAxis;
 
 
-            if(i == 0)
-               xP0 = xP;
+         // We want to make sure motion frames take the shortest
+         // distance from an angular position.
+         if ( i > 0 ) {
+             if ( angle2[i%2] - angle2[(i-1)%2] > 3.14159 ) {
+                 angle2[i%2] -= 6.28319;
+             } else if ( angle2[i%2] - angle2[(i-1)%2] < -3.14159 ) {
+                 angle2[i%2] += 6.28319;
+             }
+         }
 
-            float* xPi = &xP._00;
-            AtMatrix tmp = {{{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
-                            {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
-                            {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
-                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
+         // Now use these values to create the transforms for each motion
+         // sample and put in a motion block
 
-            if (m_parent == NULL)
-               AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
-            else
-               AiArraySetMtx( matrix, i, tmp );
-        }
+         // Translation
+         translation( tmp, P );
+         xP = tmp;
 
-        // Add custom parameters.
-        pc->inverseXformParams( j, xP0, xN );
+         // Rotation 1
+         if ( axis1 != zeroAxis ) {
+             rotation( tmp, axis1, (float)angle1 );
+             multiply( xP, xP, tmp );
+             if ( normalParam && (i==0))
+                 xN = tmp;
+         }
 
-        // Get archive bbox
+         // Rotation 2
+         if ( axis2 != zeroAxis ) {
+             rotation( tmp, axis2, (float)angle2[i%2] );
+             multiply( xP, xP, tmp );
+             if ( normalParam && (i==0) )
+                 multiply( xN, xN, tmp );
+         }
 
+         // Scale
+         vec3 scaleV;
+         scaleV.x = (float)(bbox_scale * width);
+         scaleV.y = (float)(bbox_scale * length_);
+         scaleV.z = (float)(bbox_scale * depth);
+         scale( tmp, scaleV );
+         multiply( xP, xP, tmp );
+
+
+         if(i == 0)
+            xP0 = xP;
+
+         float* xPi = &xP._00;
+         AtMatrix tmp = {{{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
+                         {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
+                         {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
+                         {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
+
+         if (m_parent == NULL)
+            AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
+         else
+            AiArraySetMtx( matrix, i, tmp );
+      }
+
+      // Add custom parameters.
+      pc->inverseXformParams( j, xP0, xN );
+
+      // Get archive bbox
       std::vector < std::string > vecFilenames;
       std::vector < std::string > vecMaterials;
       std::string archivesAbsoluteJJ = archivesAbsolute[jj];
@@ -1731,7 +1725,11 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             // Add custom renderer parameters.
             pushCustomParams( archive_procedural, pc ,j);
 
+            if (m_multithread)
+               s_mutex->enter();
             m_nodes.push_back( archive_procedural );
+            if (m_multithread)
+               s_mutex->leave();
          }
       }
 
@@ -1766,7 +1764,11 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
    // Return a procedural node
 
    string strParentName = AiNodeGetName( m_node );
+   if (m_multithread)
+      s_mutex->enter();
    string strID = itoa( (int)m_nodes.size() );
+   if (m_multithread)
+      s_mutex->leave();  
 
 
    // and a geometry instance node.
