@@ -86,7 +86,8 @@ void CImagePlaneTranslator::ExportImagePlane()
    if (type >= 2 || displayMode <= 1)
    {
       AiNodeUnlink(colorCorrect, "input");
-      AiNodeResetParameter(colorCorrect, "input");
+      AiNodeSetRGBA(colorCorrect, "input", 0.f, 0.f, 0.f, 0.f);
+      AiNodeSetFlt(colorCorrect, "alpha_multiply", 0.f);      
    }
    else
    {
@@ -102,14 +103,11 @@ void CImagePlaneTranslator::ExportImagePlane()
 
       } else
          AiNodeLink(uv_transform, "input", colorCorrect);
+
+      ProcessParameter(colorCorrect, "multiply", AI_TYPE_RGB, "colorGain");
+      ProcessParameter(colorCorrect, "add", AI_TYPE_RGB, "colorOffset");
+      ProcessParameter(colorCorrect, "alpha_multiply", AI_TYPE_FLOAT, "alphaGain");
    }
-
-   ProcessParameter(colorCorrect, "multiply", AI_TYPE_RGB, "colorGain");
-   ProcessParameter(colorCorrect, "add", AI_TYPE_RGB, "colorOffset");
-   ProcessParameter(colorCorrect, "alpha_multiply", AI_TYPE_FLOAT, "alphaGain");
-
-   AiNodeSetFlt(colorCorrect, "mask",(type < 2 && displayMode > 1) ? 1.f: 0.f);
-   // Now check what the displayMode says
 
    
    double planeSizeX = fnRes.findPlug("sizeX", true, &status).asDouble();

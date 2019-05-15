@@ -54,34 +54,34 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.currentItem = None
         currentWidget = self.__currentWidget()
 
-        abcTransverser = AlembicTransverser()
-        abcTransverser.filenameAttr = 'cacheFileName'
-        abcTransverser.selectionAttr = None
+        self.abcTransverser = AlembicTransverser()
+        self.abcTransverser.filenameAttr = 'cacheFileName'
+        self.abcTransverser.selectionAttr = None
         self.currentNode = ''
         self.currentFilename = ''
 
-        self.tree = ProceduralTreeView(abcTransverser, currentWidget)
+        self.tree = ProceduralTreeView(self.abcTransverser, currentWidget)
         self.tree.setObjectName("abcTreeWidget")
         currentWidget.layout().addWidget(self.tree)
 
         # now add the preperties panel
-        self.properties_panel = ProceduralPropertiesPanel(abcTransverser, currentWidget)
+        self.properties_panel = ProceduralPropertiesPanel(self.abcTransverser, currentWidget)
         currentWidget.layout().addWidget(self.properties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
         self.abcInfoReplace(nodeAttr)
-        
+
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback],
                        replacePrevious=True, parent=self.inspectAlembicPath)
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback],
                        replacePrevious=True, parent=self.inspectAlembicPath)
 
     def abcInfoReplace(self, nodeAttr):
-        
+
         nodeName = nodeAttr.split('.')[0]
         fileAttr = '{}.cacheFileName'.format(nodeName)
         cmds.scriptJob(attributeChange=[fileAttr, self.updateAlembicFile])
-        
+
         filename = cmds.getAttr(fileAttr)
         self.properties_panel.setItem(self.nodeName, None)
 
@@ -92,11 +92,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.currentNode = nodeName
         self.currentFilename = filename
 
+        if self.abcTransverser:
+            self.abcTransverser.filenameAttr = 'cacheFileName'
+            self.abcTransverser.selectionAttr = None
+
         self.tree.setCurrentNode(self.nodeName, True, filename_changed)
         self.properties_panel.setNode(self.nodeName)
-        if self.tree.transverser:
-            self.tree.transverser.filenameAttr = 'cacheFileName'
-            self.tree.transverser.selectionAttr = None
 
 
 
@@ -424,6 +425,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.user_attrs = {}
         self.attr_ctrls = {}
         self.currentItem = None
+        self.abcTransverser = None
 
         self.commonShapeAttributes()
         self.beginLayout("Translator Options", collapse=False)

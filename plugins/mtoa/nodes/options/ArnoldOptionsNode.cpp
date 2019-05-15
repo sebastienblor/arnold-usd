@@ -105,6 +105,8 @@ MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 MObject CArnoldOptionsNode::s_export_all_shading_groups;
 MObject CArnoldOptionsNode::s_export_shading_engine;
 MObject CArnoldOptionsNode::s_export_full_paths;
+MObject CArnoldOptionsNode::s_export_separator;
+MObject CArnoldOptionsNode::s_export_namespace;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
 MObject CArnoldOptionsNode::s_postTranslationCallback;
@@ -553,7 +555,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_log_max_warnings);
 
    s_log_verbosity = eAttr.create("log_verbosity", "logv", 1);
-   nAttr.setKeyable(false);
+   eAttr.setKeyable(false);
    eAttr.addField("Errors", MTOA_LOG_ERRORS);
    eAttr.addField("Warnings", MTOA_LOG_WARNINGS);
    eAttr.addField("Info", MTOA_LOG_INFO);
@@ -570,7 +572,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_stats_file);
 
    s_stats_mode = eAttr.create("stats_mode", "statsm", 1);
-   nAttr.setKeyable(false);
+   eAttr.setKeyable(false);
    eAttr.addField("Overwrite", AI_STATS_MODE_OVERWRITE);
    eAttr.addField("Append", AI_STATS_MODE_APPEND);
    addAttribute(s_stats_mode);
@@ -689,6 +691,20 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(false);
    addAttribute(s_export_full_paths);
+
+   s_export_separator = eAttr.create("exportSeparator", "export_separator", MTOA_EXPORT_SEPARATOR_PIPES);
+   eAttr.setKeyable(false);
+   eAttr.addField("|", MTOA_EXPORT_SEPARATOR_PIPES);
+   eAttr.addField("/", MTOA_EXPORT_SEPARATOR_SLASHES);
+   addAttribute(s_export_separator);
+   
+   s_export_namespace = eAttr.create("exportNamespace", "export_namespace", MTOA_EXPORT_NAMESPACE_ON);
+   eAttr.setKeyable(false);
+   eAttr.addField("Off", MTOA_EXPORT_NAMESPACE_OFF);
+   eAttr.addField("On", MTOA_EXPORT_NAMESPACE_ON);
+   eAttr.addField("Root", MTOA_EXPORT_NAMESPACE_ROOT);
+   addAttribute(s_export_namespace);
+   
 
    s_export_shading_engine = nAttr.create("exportShadingEngine", "export_shading_engine", MFnNumericData::kBoolean);
    nAttr.setKeyable(false);

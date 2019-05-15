@@ -68,8 +68,7 @@ public:
    static void* creator(){return new CDisplacementTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
-   bool DependsOnOutputPlug() { return true; }
-
+   
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
    bool m_isVectorDisp;
@@ -278,9 +277,11 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
 private:
    bool RequiresColorCorrect() const;
+   bool RequiresUnwrap() const;
    bool RequiresUvTransform() const;
    AtNode *ExportUvTransform();
    AtNode *ExportColorCorrect(AtNode *target);
+   AtNode *ExportUnwrap(AtNode *target);
    void ExportRampKeys(AtNode *shader);
    void ExportRampType(AtNode *rampShader, RampType type);
    void GetUvSet();

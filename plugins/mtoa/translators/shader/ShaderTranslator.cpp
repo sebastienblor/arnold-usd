@@ -62,22 +62,39 @@ void CShaderTranslator::Export(AtNode *shader)
    ExportBump(shader);
 }
 
-   // For motion blur we just search for the parameter placementMatrix
+   // For motion blur we just search for the matrix parameters
 void CShaderTranslator::ExportMotion(AtNode *shader)
 {
    MStatus status;
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
+   const AtNodeEntry *nentry = AiNodeGetNodeEntry(shader);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nentry);
+
+   // We want to loop over all matrix parameters of this shader, to eventually fill the motion matrices properly
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      if (AiParamGetType(paramEntry) != AI_TYPE_MATRIX) // only matrices please
+         continue;
+
       const char* paramName = AiParamGetName(paramEntry);
 
-      // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
-      if (strcmp(paramName, "placementMatrix") == 0)
+      // Check if we exported an arnold node for this matrix parameter
+      AtNode *animNode = GetArnoldNode(paramName);
+      if (animNode == NULL)
+         continue;
+      
+      AtArray* matrices = AiNodeGetArray(animNode, "matrix");
+      // First search a parameter with the same name as maya
+      MPlug plug = FindMayaPlug(paramName);
+      if (plug.isNull())
       {
-         AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "matrix");
-         m_impl->ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaPlug(paramName));
+         // couldn't find it, let's see if it has a maya.name metadata pointing to a different attr name
+         AtString attrName;
+         if (AiMetaDataGetStr(nentry, paramName, "maya.name", &attrName))
+            plug = FindMayaPlug(attrName.c_str());
+         
       }
+      m_impl->ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), plug);
    }
    AiParamIteratorDestroy(nodeParam);
 }

@@ -57,6 +57,10 @@ AtNode*  CRampTranslator::CreateArnoldNodes()
    AtNode *cc = (m_hasColorCorrect) ? AddArnoldNode("color_correct", "cc") : NULL;
    
    AtNode *comp_uv = (m_type == RT_UV || m_type == RT_TARTAN) ? AddArnoldNode("composite", "comp_uv") : NULL;
+   AtNode *unwrap = RequiresUnwrap() ? AddArnoldNode("uv_transform", "unwrap") : NULL;
+
+   if (unwrap)
+      return unwrap;
 
    if (cc)
       return cc;
@@ -108,7 +112,10 @@ void CRampTranslator::Export(AtNode* shader)
       // FIXME also need to set it eventually to ramp_float shaders....
       if (FindMayaPlug("aiCurveImplicitUvs").asBool())
          AiNodeSetStr(shader, "use_implicit_uvs", "curves_only");
+      else
+         AiNodeSetStr(shader, "use_implicit_uvs", "off");
 
+      AiNodeSetBool(shader, "wrap_uvs", true);
 
       if (m_type == RT_UV || m_type == RT_TARTAN)
       {
@@ -220,6 +227,16 @@ void CRampTranslator::Export(AtNode* shader)
          if (rampFloat2 == NULL)
             rampFloat2 = AddArnoldNode("ramp_float", "ramp_float2");
 
+         if (FindMayaPlug("aiCurveImplicitUvs").asBool())
+         {
+            AiNodeSetStr(rampFloat, "use_implicit_uvs", "curves_only");
+            AiNodeSetStr(rampFloat2, "use_implicit_uvs", "curves_only");
+         } else
+         {
+            AiNodeSetStr(rampFloat, "use_implicit_uvs", "off");
+            AiNodeSetStr(rampFloat2, "use_implicit_uvs", "off");
+         }
+
          ExportRampType(rampFloat, RT_U);
          ExportRampType(rampFloat2, RT_V);
          AiNodeSetStr(rampFloat, "uvset", m_uvSet.asChar());
@@ -232,7 +249,36 @@ void CRampTranslator::Export(AtNode* shader)
    }
 
    if (m_hasColorCorrect)
-      ExportColorCorrect(shader);
+   {
+      shader = ExportColorCorrect(shader);
+   }
+      
+   shader = ExportUnwrap(shader);
+}
+
+AtNode *CRampTranslator::ExportUnwrap(AtNode *target)
+{
+   AtNode *unwrap = GetArnoldNode("unwrap");
+   if (!unwrap)
+      return target;
+
+   AiNodeLink(target, "passthrough", unwrap);
+   MFnDependencyNode fnNode(GetMayaObject());   
+   MPlugArray connections;
+   fnNode.findPlug("uvCoord", true).connectedTo(connections, true, false);
+   if (connections.length() != 0)
+   {
+      MObject srcObj = connections[0].node();
+      MFnDependencyNode srcNodeFn(srcObj);
+      if (srcNodeFn.typeName() == "place2dTexture")
+      {
+         AiNodeSetStr(unwrap, "wrap_frame_u", (srcNodeFn.findPlug("wrapU", true).asBool()) ? "periodic" : "color");
+         AiNodeSetStr(unwrap, "wrap_frame_v", (srcNodeFn.findPlug("wrapV", true).asBool()) ? "periodic" : "color");
+      }
+   }
+   
+   ProcessParameter(unwrap, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
+   return unwrap;
 }
 
 
@@ -463,7 +509,8 @@ AtNode* CRampTranslator::ExportUvTransform()
          ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
          ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
          ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
-
+/*
+         We shouldn't need wrap UVs because we're setting it directly in the ramp
          if (srcNodeFn.findPlug("wrapU", true).asBool())
             AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
          else
@@ -474,7 +521,8 @@ AtNode* CRampTranslator::ExportUvTransform()
             AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
          else
             AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");         
-
+*/
+        
          ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
          if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
          {
@@ -588,10 +636,17 @@ AtNode* CRampTranslator::ExportUvTransform()
    // FIXME: for UV & Tartan types, we actually need 2 ramp_float
    AtNode *rampFloat = GetArnoldNode("ramp_float");
    if (rampFloat == NULL)
+   {
       rampFloat = AddArnoldNode("ramp_float", "ramp_float");
+      AiNodeSetArray(rampFloat, "interpolation", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   }
    // if we're in UV / Tartan, it should be ramps with U & V types
    AiNodeSetStr(rampFloat, "uvset", ""); // the uvset was already set on the uv_transform node
-
+   if (FindMayaPlug("aiCurveImplicitUvs").asBool())
+      AiNodeSetStr(rampFloat, "use_implicit_uvs", "curves_only");
+   else
+      AiNodeSetStr(rampFloat, "use_implicit_uvs", "off");
+   
    AtNode *rampFloat2 = NULL;
 
    if (m_type == RT_UV || m_type == RT_TARTAN || m_type == RT_4CORNER)
@@ -667,6 +722,25 @@ bool CRampTranslator::RequiresUvTransform() const
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) );
 
 }
+bool CRampTranslator::RequiresUnwrap() const
+{
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("uvCoord");
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() == 0)
+      return false;
+
+   MObject srcObj = connections[0].node();
+   MFnDependencyNode srcNodeFn(srcObj);
+
+   if (srcNodeFn.typeName() != "place2dTexture")
+      return false;
+
+   return !(IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true));
+
+}
 bool CRampTranslator::RequiresColorCorrect() const
 {
    return ! (IsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f) &&
@@ -695,6 +769,10 @@ void CRampTranslator::NodeChanged(MObject& node, MPlug& plug)
 if ((plugName == "uvCoord" || plugName == "uWave" || plugName == "vWave" || plugName == "noise") &&
       !RequiresUvTransform())
       SetUpdateMode(AI_RECREATE_NODE);*/
+
+   if (plugName == "uvCoord")
+      SetUpdateMode(AI_RECREATE_NODE);    
+
    CShaderTranslator::NodeChanged(node, plug);
    
 }

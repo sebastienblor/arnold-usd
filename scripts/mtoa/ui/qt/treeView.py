@@ -3,7 +3,7 @@ from .Qt import OpenMayaUI
 from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
-from .itemStyle import ItemStyle
+from .treeStyle import TreeStyle
 from .utils import dpiScale, dpiScaledIcon
 from .color import Color
 from .style import MtoAStyle
@@ -32,11 +32,6 @@ class BaseTreeView(QtWidgets.QTreeView):
         """Called after the instance has been created."""
         super(BaseTreeView, self).__init__(parent)
 
-        # FIXME: currently completely overriding maya style
-        if not style:
-            style = MtoAStyle.currentStyle()
-        style.apply(self)
-
         self.setObjectName("BaseTreeView")
         # Set the custom tree model
         model = BaseModel(self)
@@ -48,6 +43,7 @@ class BaseTreeView(QtWidgets.QTreeView):
         # Custom style
         delegate = BaseDelegate(self)
         self.setItemDelegate(delegate)
+        self.setStyle(TreeStyle(self.style()))
         self.setIndentation(ITEM_INDENT)
 
         self.setRootIsDecorated(False)
@@ -141,6 +137,9 @@ class BaseTreeView(QtWidgets.QTreeView):
     def showProperties(self, event):
         """Show the properties of the item at index `index`."""
         raise NotImplemenedError("{}.showProperties not implemented yet".format(str(self.__class__.__name__)))
+
+    def sizeHintForRow(self, row):
+        return ITEM_HEIGHT
 
 
 class BaseModel(QtCore.QAbstractItemModel):
@@ -498,7 +497,7 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         self.drawToolbarFrame(painter, rect, len([a for a in actions if a[0]]))
 
         iconRectCumul = None
-        for pixmap, opacity, action, checked in actions:
+        for pixmap, opacity, action, checked, overlay in actions:
 
             if not pixmap or not opacity:
                 continue
@@ -537,6 +536,12 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
                 self.lastHitAction = action
 
             painter.drawPixmap(iconRect, pixmap)
+
+            if overlay:
+                ov_w = overlay.rect().width()
+                ov_h = overlay.rect().height()
+                painter.setOpacity(1.0)
+                painter.drawPixmap(left, top, ov_w, ov_h, overlay)
 
             # Highlight the icon depending on the mouse over.
             if buttonPressed and iconRect.contains(cursorPosition):

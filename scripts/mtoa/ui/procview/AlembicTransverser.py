@@ -1,6 +1,7 @@
 import os
 import os.path
 
+from mtoa.ui.ae.utils import expandEnvVars
 from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt.Qt import QtGui
 from mtoa.ui.qt.Qt import QtWidgets
@@ -11,7 +12,7 @@ from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTr
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
 
 
@@ -67,6 +68,7 @@ class AlembicTransverser(ProceduralTransverser):
 
     def getArchivePath(self, node):
         filename = cmds.getAttr("{}.{}".format(node, self.filenameAttr))
+        filename = expandEnvVars(filename)
         if len(filename) == 0:
             return ''
         return os.path.abspath(filename)
@@ -93,9 +95,10 @@ class AlembicTransverser(ProceduralTransverser):
         name = iobject.getName()
         parent = iobject.getParent().getFullName()
         instancedPath = iobject.instanceSourcePath()
-        entity_type = abcToArnType(iobject)
+        nodeEntry = abcToArnType(iobject)
         visibility = VISIBILITY[int(AbcGeom.GetVisibility(iobject))+1]
-        return [path, name, parent, visibility, instancedPath, entity_type, iobject]
+        nodeEntryType = 'shape' if (nodeEntry == 'points' or nodeEntry == 'polymesh' or nodeEntry == 'curves') else None
+        return [path, name, parent, visibility, instancedPath, nodeEntry, iobject, nodeEntryType]
 
     def getRootObjectInfo(self, node):
         abc_file = self.getArchive(node)
@@ -118,7 +121,7 @@ class AlembicTransverser(ProceduralTransverser):
         children = self.visitObject(iObj)
 
         for child in children:
-            if child[PROC_ENTRY_TYPE] not in node_types:
-                node_types.append(child[PROC_ENTRY_TYPE])
+            if child[PROC_ENTRY] not in node_types:
+                node_types.append(child[PROC_ENTRY])
 
         return node_types

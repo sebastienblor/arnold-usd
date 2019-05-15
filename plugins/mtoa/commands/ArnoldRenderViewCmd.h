@@ -19,6 +19,6 @@ public:
    static MSyntax newSyntax();
 
    MStatus doIt(const MArgList& argList);
-   void startRenderView(const MDagPath &camera, int width, int height);
+   void startRenderView(const MDagPath &camera, int width, int height, bool ui=true);
 
 }; // class CArnoldRenderViewCmd

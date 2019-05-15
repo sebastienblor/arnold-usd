@@ -1,0 +1,6 @@
+Expoert aiUserColorData as user_color_rgba testing Alpha componant of vertex colors
+
+See trac#3749
+
+author: Ashley Handscomb Retallack
+

@@ -37,6 +37,8 @@
 #include <maya/M3dView.h>
 #include <maya/MAtomic.h>
 #include <maya/MBoundingBox.h>
+#include <maya/MConditionMessage.h>
+
 
 #include <cstdio>
 #include <assert.h>
@@ -54,6 +56,7 @@
 static CRenderViewMtoA  *s_renderView = NULL;
 
 static bool s_closeRenderViewWithSession = true;
+bool is_playblasting = false;
 
 
 extern AtNodeMethods* mtoa_driver_mtd;
@@ -209,6 +212,18 @@ void CRenderSession::CloseOtherViews(const MString& destination)
          view.setRenderOverrideName("");
    }
 #endif
+}
+
+void CRenderSession::RenderViewPlayblast(bool state, void * data)
+{
+   if (state)
+   {
+      is_playblasting = true;
+   }
+   else 
+   {
+      is_playblasting = false;
+   }
 }
 
 MStatus CRenderSession::End()
@@ -891,6 +906,15 @@ void CRenderSession::UpdateRenderView()
 #ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
+      if (is_playblasting)
+      {
+         s_renderView->SetOption("Wait Render", "1");
+         SetProgressive(false);
+      }
+      else
+      {
+         SetProgressive(true);
+      }
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->SceneChanged();
@@ -942,7 +966,6 @@ void CRenderSession::FillRenderViewCameras()
  //     else
       // Now we always export the short name. We'll let ARV find the corresponding AtNode based on the user data dcc_name
       camerasList = viewCam = activeCameraPath.partialPathName();
-      
    }
    
    MDagPath path;
@@ -976,7 +999,7 @@ void CRenderSession::FillRenderViewCameras()
                continue;
          }
          // we can't call GetArnoldNaming if there's no active session
-         MString camName = (renderSession) ? CDagTranslator::GetArnoldNaming(path) : path.partialPathName();
+         MString camName = path.partialPathName();
          if (camName == viewCam) continue; // we've already set this camera in the list
 
          if (camerasList.length() > 0)
@@ -1141,6 +1164,7 @@ void CRenderSession::SetRenderViewOption(const MString &option, const MString &v
    {
       s_renderView = new CRenderViewMtoA;
    }
+   
    s_renderView->SetOption(option.asChar(), value.asChar());
 #endif
 }

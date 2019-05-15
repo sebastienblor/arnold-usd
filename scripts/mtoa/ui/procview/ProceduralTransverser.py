@@ -4,6 +4,7 @@ import fnmatch
 import maya.cmds as cmds
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser, valueIsExpression
+from mtoa.ui.qt.widgets import TYPES_DICT_STRINGS
 from alembic import Abc, AbcGeom
 from arnold import *
 
@@ -12,15 +13,17 @@ from arnold import *
  PROC_PARENT,
  PROC_VISIBILITY,
  PROC_INSTANCEPATH,
- PROC_ENTRY_TYPE,
- PROC_IOBJECT) = range(7)
+ PROC_ENTRY,
+ PROC_IOBJECT, 
+ PROC_ENTRY_TYPE) = range(8)
 
-(PARM, OP, VALUE, INDEX, OPERATOR) = range(5)
-
+(PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR) = range(6)
+(DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES) = range(4)
 
 SELECTION_REGEX = re.compile(r'.*(?=/\*)')
 
-EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
+EXP_REGEX = re.compile(r"""(?P<type>bool|byte|int|uint|float|rgb|rgba|vector|vector2|string|matrix|node)?\s* # parameter
+                         (?P<param>\w+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
                          (?P<value>.*) # value
                          """, re.X)
@@ -28,7 +31,12 @@ EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
 OVERRIDE_OP = "aiSetParameter"
 DISABLE_OP = "aiDisable"
 COLLECTION_OP = "aiCollection"
+MERGE_OP = "aiMerge"
 SWITCH_OP = "aiSwitchOperator"
+INCLUDEGRAPH_OP = "aiIncludeGraph"
+MATERIALX_OP = "aiMaterialx"
+
+SELECTION_OPS = [OVERRIDE_OP, DISABLE_OP, COLLECTION_OP]
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
@@ -119,8 +127,8 @@ class ProceduralTransverser(BaseTransverser):
                             i += 1
 
                     default_value = self._getDefaultValue(param, param_type)
-
-                    if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys():
+                    
+                    if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys(): 
                         is_array = param_type == AI_TYPE_ARRAY
                         self.paramDict[nodeType][paramName] = (param_type,
                                                                default_value,
@@ -142,7 +150,7 @@ class ProceduralTransverser(BaseTransverser):
         if not objectInfo:
             return None
 
-        return [objectInfo[PROC_ENTRY_TYPE]]
+        return [objectInfo[PROC_ENTRY]]
 
     def properties(self, node, path):
         pass
@@ -206,6 +214,11 @@ class ProceduralTransverser(BaseTransverser):
         data = item.data
         # get parent index
         index = 0
+        op_idxs = self.getOperatorIndices(node)
+        for idx in op_idxs:
+            op = self.getConnectedOperator(node, idx)
+            if op and cmds.nodeType(self.getConnectedOperator(node, idx)) != OVERRIDE_OP:
+                index = idx+1
 
         parent_op = item.getOverridesOp(True)
         if not type(parent_op) == list:
@@ -227,9 +240,9 @@ class ProceduralTransverser(BaseTransverser):
             # given object path
             if cmds.attributeQuery('selection', node=op, exists=True):
                 path = data[PROC_PATH]
-                if data[PROC_ENTRY_TYPE] == "xform":
+                if data[PROC_ENTRY] == "xform":
                     path += "/*"
-                elif data[PROC_ENTRY_TYPE] == None:
+                elif data[PROC_ENTRY] == None:
                     path += "*"
                 cmds.setAttr(op + ".selection",
                              path,
@@ -277,7 +290,7 @@ class ProceduralTransverser(BaseTransverser):
                 selectionStr = '' 
                 break
             selectionStr += sel[PROC_PATH]
-            if sel[PROC_ENTRY_TYPE] =='xform':
+            if sel[PROC_ENTRY] =='xform':
                 selectionStr += '/*'
         if selectionStr == self.selectionStr:
             return
@@ -336,26 +349,31 @@ class ProceduralTransverser(BaseTransverser):
         col_ops = self.getOperators(node, path, COLLECTION_OP, exact_match)
         collections = []
         for op in col_ops:
+
             collections.append(cmds.getAttr('{}.collection'.format(op)))
         return collections
 
     @classmethod
-    def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1):
+    def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1, gather_parents=False):
 
-        def walkInputs(op, path, plug, collections):
+        def walkInputs(op, path, plug, collections, gather_parents=False, parent_ops=[]):
             """
             walk the inputs of the given plug and
             return list of operators matching the path
             """
-
             ops = []
+            op_type = cmds.nodeType(op)
             sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
             if sel_mat and op:
+                for p_op in parent_ops:
+                    if p_op not in ops and \
+                       (operator_type is None or cmds.nodeType(p_op) == operator_type):
+                        ops.append(p_op)
                 ops.append(op)
-
+            if gather_parents:
+                parent_ops.append(op)
             if cmds.attributeQuery('inputs', node=op, exists=True):
-                # FIXME what if switch node, should we only traverse down the
-                #  input that is the same as the input switch?
+
                 if cmds.nodeType(op) == SWITCH_OP:
                     switch_index = cmds.getAttr("{}.index".format(op))
                     inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
@@ -364,7 +382,7 @@ class ProceduralTransverser(BaseTransverser):
                 it = iter(inputs_raw)
                 inputs = zip(it, it)
                 for plug, ipt in inputs:
-                    ops += walkInputs(ipt, path, plug, collections)
+                    ops += walkInputs(ipt, path, plug, collections, gather_parents, parent_ops)
 
             return ops
 
@@ -376,7 +394,7 @@ class ProceduralTransverser(BaseTransverser):
         if cmds.attributeQuery('operators', node=node, exists=True):
             con_operators = cmds.listConnections('{}.operators'.format(node)) or []
             for idx, op in enumerate(con_operators):
-                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections)
+                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents, [])
                 for op in out_op:
                     if op not in operators:
                         operators.append(op)
@@ -390,7 +408,7 @@ class ProceduralTransverser(BaseTransverser):
 
         def getParmInList(param, param_list):
             for i, p in enumerate(param_list):
-                if p[0] == param:
+                if p[PARAM] == param:
                     return i
             return -1
 
@@ -418,7 +436,7 @@ class ProceduralTransverser(BaseTransverser):
         return overrides
 
     @classmethod
-    def setOverride(cls, node, path, operator, param, operation, value, param_type, array=False, index=-1):
+    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, array=False, index=-1):
 
         op = operator
         if index == -1:
@@ -434,10 +452,17 @@ class ProceduralTransverser(BaseTransverser):
         if value is None:
             value = ''
 
+        value = str(value)
+
         if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
             value = "'{}'".format(value)
 
-        param_exp = "{}{}{}".format(param, operation, value)
+        # get if this is a custom param
+        type_str = ''
+        if custom:
+            type_str = TYPES_DICT_STRINGS[param_type] + ' '
+
+        param_exp = "{}{}{}{}".format(type_str, param, operation, value)
         cmds.setAttr("{}.assignment[{}]".format(op, index),
                      param_exp,
                      type="string")
@@ -513,6 +538,18 @@ class ProceduralTransverser(BaseTransverser):
             value = param_default.contents.BOOL
         elif param_type is AI_TYPE_STRING:
             value = param_default.contents.STR
+        elif param_type is AI_TYPE_RGB:
+            rgb = param_default.contents.RGB
+            value = '[{} {} {}]'.format(rgb.r, rgb.g, rgb.b)
+        elif param_type is AI_TYPE_RGBA:
+            rgb = param_default.contents.RGBA
+            value = '[{} {} {} {}]'.format(rgb.r, rgb.g, rgb.b, rgb.a)
+        elif param_type is AI_TYPE_VECTOR:
+            vec = param_default.contents.VEC
+            value = '[{} {} {}]'.format(vec.x, vec.y, vec.z)
+        elif param_type is AI_TYPE_VECTOR2:
+            vec = param_default.contents.VEC2
+            value = '[{} {}]'.format(vec.x, vec.y)
         elif param_type is AI_TYPE_ENUM:
             idx = param_default.contents.INT
             value = AiEnumGetString(AiParamGetEnum(param), idx)

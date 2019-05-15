@@ -2,6 +2,7 @@
 #
 #
 
+import os
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
@@ -9,8 +10,9 @@ from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
-                           OVERRIDE_OP, DISABLE_OP
+                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           OVERRIDE_OP, DISABLE_OP, \
+                           PARAM
 
 SHADER = "shader"
 DISPLACEMENT = "disp_map"
@@ -21,6 +23,9 @@ class ProceduralTreeView(BaseTreeView):
     """docstring for ProceduralTree"""
 
     itemSelected = QtCore.Signal(str, object)
+
+    MIN_VISIBLE_ENTRIES = 4
+    MAX_VISIBLE_ENTRIES = 10
 
     def __init__(self, transverser, parent=None):
         super(ProceduralTreeView, self).__init__(parent)
@@ -35,6 +40,10 @@ class ProceduralTreeView(BaseTreeView):
 
         self.pressed.connect(self.onPressed)
         self.expanded.connect(self.onExpanded)
+        self.collapsed.connect(self.onCollapse)
+
+        self.INITIAL_HEIGHT = self.sizeHintForRow(0) * self.MIN_VISIBLE_ENTRIES + 2 * self.frameWidth()
+        self.MAX_HEIGHT = self.sizeHintForRow(0) * self.MAX_VISIBLE_ENTRIES + 2 * self.frameWidth()
 
     def setTransverser(self, transverser, refresh=True):
         self.transverser = transverser
@@ -58,6 +67,13 @@ class ProceduralTreeView(BaseTreeView):
         # refresh the children of this item if needed
         item.obtainChildren()
 
+    def _calculateHeight(self):
+
+        model = self.model()
+        contentSizeHeight = self.sizeHintForRow(0) * model.expandedCount() + 2 * self.frameWidth()
+        contentSizeHeight = self.INITIAL_HEIGHT if contentSizeHeight < self.INITIAL_HEIGHT else self.MAX_HEIGHT if contentSizeHeight > self.MAX_HEIGHT else contentSizeHeight
+        return contentSizeHeight
+
     def onExpanded(self, index):
         """It is called when the item specified by index is expanded."""
         if not index.isValid():
@@ -68,6 +84,13 @@ class ProceduralTreeView(BaseTreeView):
         for i in range(item.childCount()):
             child = item.child(i)
             child.obtainChildren()
+
+        # scale the treeView based on number of expanded rows
+        self.setFixedHeight(self._calculateHeight())
+
+    def onCollapse(self, index):
+        # scale the treeView based on number of expanded rows
+        self.setFixedHeight(self._calculateHeight())
 
     def select(self, path):
         root = self.model().rootItem
@@ -176,6 +199,22 @@ class ProceduralTreeModel(BaseModel):
 
         return False
 
+    def expandedCount(self):
+        def count_expanded(item):
+            c = 0
+            index = self.indexFromItem(item)
+            is_expanded = self.treeView().isExpanded(index)
+            if is_expanded or item.itemType == item.UNKNWON_TYPE:
+                c += item.childCount()
+                for i in item.childItems:
+                    c += count_expanded(i)
+            return c
+
+        c = 1
+        if self.rootItem:
+            return c + count_expanded(self.rootItem)
+        return c
+
     def executeAction(self, action, index):
         """User pressed by one of the actions."""
         item = index.internalPointer()
@@ -208,6 +247,17 @@ class ProceduralItem(BaseItem):
     CURVES_ICON = QtGui.QPixmap(":/nurbsCurve.svg")
     INSTANCE_ICON = QtGui.QPixmap(":/out_instancer.png")
     UNKNOWN_ICON = QtGui.QPixmap(":/question.png")
+    MATERIAL_ICON = QtGui.QPixmap(":/out_blinn.png")
+    LIGHT_ICON = QtGui.QPixmap(":/out_ambientLight.png")
+    CAMERA_ICON = QtGui.QPixmap(":/out_camera.png")
+    VOLUME_ICON = QtGui.QPixmap(":/VolumeShelf.png")
+    PROCEDURAL_ICON = QtGui.QPixmap(":/openScript.png") # or StandinShelf.png ?
+    OPERATOR_ICON = QtGui.QPixmap(":/gear.png")
+    UNKNOWN_SHAPE_ICON = QtGui.QPixmap(":/cube.png")
+    TEXTURE_ICON = QtGui.QPixmap(":/menuIconImages")
+
+
+
 
     COLOR_OBJECT = QtGui.QColor(113, 142, 164)
     COLOR_OPERATOR = QtGui.QColor(18, 54, 82)
@@ -306,17 +356,36 @@ class ProceduralItem(BaseItem):
         return None
 
     def getIcon(self):
-        if self.data[PROC_ENTRY_TYPE] == 'polymesh':
+        nodeEntry = self.data[PROC_ENTRY]
+        nodeEntryType = self.data[PROC_ENTRY_TYPE]
+
+        if nodeEntry == 'polymesh':
             return self.MESH_ICON
-        elif self.data[PROC_ENTRY_TYPE] == 'points':
+        elif nodeEntry == 'points':
             return self.POINTS_ICON
-        elif self.data[PROC_ENTRY_TYPE] == 'curves':
+        elif nodeEntry == 'curves':
             return self.CURVES_ICON
-        elif self.data[PROC_ENTRY_TYPE] == 'ginstance':
+        elif nodeEntry == 'ginstance':
             return self.INSTANCE_ICON
         elif self.childItems:
             return self.GROUP_ICON
-        return self.UNKNOWN_ICON
+        elif nodeEntryType == 'procedural': # we hack the node entry type for procedurals
+            return self.PROCEDURAL_ICON    
+        elif nodeEntryType == 'volume': # we hack the node entry type for volumes
+            return self.VOLUME_ICON
+        elif nodeEntryType == 'shape':
+            return self.UNKNOWN_SHAPE_ICON
+        elif nodeEntry == 'image':
+            return self.TEXTURE_ICON
+        elif nodeEntryType == 'shader':
+            return self.MATERIAL_ICON
+        elif nodeEntryType == 'light':
+            return self.LIGHT_ICON
+        elif nodeEntryType == 'camera':
+            return self.CAMERA_ICON
+        elif nodeEntryType == 'operator':
+            return self.OPERATOR_ICON
+        return None
 
     def getBackgroundColor(self):
         """
@@ -345,11 +414,11 @@ class ProceduralItem(BaseItem):
         actions = []
 
         my_overrides = self.getOverrides()
-        params = [p[0] for p in my_overrides]
+        params = [p[PARAM] for p in my_overrides]
         attr_params = [x for x in params if x not in [SHADER, DISPLACEMENT]]
 
         parent_overrides = self.getOverrides(True)
-        parent_params = [p[0] for p in parent_overrides]
+        parent_params = [p[PARAM] for p in parent_overrides]
         parent_attr_params = [x for x in parent_params if x not in [SHADER, DISPLACEMENT]]
 
         OVERRIDES = {SHADER: False,
@@ -365,9 +434,15 @@ class ProceduralItem(BaseItem):
             OVERRIDES[DISPLACEMENT] = DISPLACEMENT in parent_params
             OVERRIDES[PARAMETER] = len(parent_attr_params) > 0
 
+        inherited_params = list(set(parent_params) - set(params))
+        inherited_attr_params = [x for x in inherited_params if x not in [SHADER, DISPLACEMENT]]
+
         for override, enabled in OVERRIDES.items():
             icon = None
             action = None
+            overlay = None
+
+            is_inherited = override in inherited_params or (override == PARAMETER and len(inherited_attr_params) > 0)
 
             if override in params or (override == PARAMETER and len(attr_params) > 0):
                 opacity = 1.0
@@ -391,7 +466,11 @@ class ProceduralItem(BaseItem):
                 if icon:
                     icon = BaseItem.dpiScaledIcon(icon)
 
-            actions.append((icon, opacity, action, False))
+            # if is_inherited:
+            #     inherited_icon = os.path.join(cmds.getModulePath(moduleName='mtoa'), 'icons', "inherit_100.png")
+            #     overlay = BaseItem.dpiScaledIcon(inherited_icon)
+
+            actions.append((icon, opacity, action, False, overlay))
 
         return actions
 

@@ -14,6 +14,7 @@ class AEaiUvProjectionTemplate(ShaderAETemplate):
         self.addControl('uAngle')
         self.addControl('vAngle')
         self.addControl('matrix')
+        self.addControl('wrap')
         
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         

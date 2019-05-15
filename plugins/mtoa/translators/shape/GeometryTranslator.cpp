@@ -1133,8 +1133,10 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          if (exportRefVerts)
             AiNodeDeclare(polymesh, "Pref", "varying VECTOR");
          if (exportRefNorms)
+         {
             AiNodeDeclare(polymesh, "Nref", "indexed VECTOR");
             AiNodeDeclare(polymesh, "Nrefidxs", "indexed UINT");
+         }
          if (exportRefTangents)
          {                        
             if (reftangentidxs)
@@ -1305,8 +1307,10 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             AiNodeSetArray(polymesh, "Pref", aRefVertices);
          }
          if (exportRefNorms)
+         {
             AiNodeSetArray(polymesh, "Nref", refNormals);
             AiNodeSetArray(polymesh, "Nrefidxs", rnidxs);
+         }
          if (exportRefTangents)
          {
             AiNodeSetArray(polymesh, "Tref", refTangents);

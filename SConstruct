@@ -74,6 +74,7 @@ vars.AddVariables(
     EnumVariable('TEST_ORDER', 'Set the execution order of tests to be run', 'reverse', allowed_values=('normal', 'reverse')),
     EnumVariable('USE_VALGRIND', 'Enable Valgrinding', 'False', allowed_values=('False', 'True', 'Full')),
     BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
+    BoolVariable('USE_GPU', 'Update the reference log/image for the specified targets', False),
     BoolVariable('SHOW_PLOTS', 'Display timing plots for the testsuite. gnuplot has to be found in the environment path.', False),
     BoolVariable('CLEAN_TESTSUITE_RESULTS', 'Remove all the test files from the testsuite output and only keep the reports/images', False),
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
@@ -467,6 +468,11 @@ if env['COMPILER'] == 'gcc':
             env.Append(CXXFLAGS = Split('-std=c++11'))
             env.Append(CCFLAGS = Split('-std=c++11'))
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
+    
+    if system.os == 'darwin':
+        if int(maya_version_base) >= 2020:
+            env.Append(CXXFLAGS = Split('-std=c++11'))
+            env.Append(CCFLAGS = Split('-std=c++11'))
 
     ## warning level
     if env['WARN_LEVEL'] == 'none':

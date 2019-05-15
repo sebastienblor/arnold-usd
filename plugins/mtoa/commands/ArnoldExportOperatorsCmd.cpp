@@ -20,7 +20,7 @@
 #include <ai_render.h>
 #include <ai_universe.h>
 #include <ai_bbox.h>
-#include <ai_materialx.h>
+//#include <ai_materialx.h>
 #include <math.h>
 
 MSyntax CArnoldExportOperatorsCmd::newSyntax()

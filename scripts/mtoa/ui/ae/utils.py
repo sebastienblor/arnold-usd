@@ -72,6 +72,27 @@ def loadAETemplates():
                 import traceback
                 print traceback.format_exc()
 
+def expandEnvVars(filePath):
+
+    if not filePath:
+        return ""
+
+    filePath = os.path.expandvars(filePath)
+
+    envvars = re.findall(r'\[(\w+)\]', filePath)
+    resolved_path = filePath
+    missing_envs =[]
+    for env in envvars:
+        if env in os.environ:
+            format_env = '[{}]'.format(env)
+            resolved_path = resolved_path.replace(format_env, os.environ[env])
+        else:
+            missing_envs.append(env)
+    if len(missing_envs):
+        cmds.warning("could not expand all the following environment variables, please check they are set correctly: {}".format(','.join(missing_envs)))
+
+    return resolved_path
+
 def aeCallback(func):
     return utils.pyToMelProc(func, [('string', 'nodeName')], procPrefix='AEArnoldCallback')
 

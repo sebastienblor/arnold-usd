@@ -604,9 +604,19 @@ void CFileTranslator::NodeChanged(MObject& node, MPlug& plug)
       !RequiresColorCorrect())
       SetUpdateMode(AI_RECREATE_NODE);
 
-if ((plugName == "uvCoord") &&
+   if ((plugName == "uvCoord") &&
       !RequiresUvTransform())
       SetUpdateMode(AI_RECREATE_NODE);
+
+   if (plugName == "fileTextureName")
+   {
+      // We're receiving a signal from the filename parameter.
+      // So we don't want to compare the filenames in the next export, we'll just want to update the TX.
+      // In fact, the texture could have changed even though the filename is still the same (see  #3792)
+      // We could rather store a flag for that, but for now we can reset the "previous" color space, 
+      // as it will force a refresh
+      m_colorSpace = "";
+   }
 
    CShaderTranslator::NodeChanged(node, plug);
 }
@@ -1017,10 +1027,8 @@ bool CCheckerTranslator::RequiresUvTransform() const
             IsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapU", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapV", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorU", true), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorV", true), 0.f, 0.f ));
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapU", true), true ) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("wrapV", true), true ));
 
 }
 void CCheckerTranslator::NodeInitializer(CAbTranslator context)
@@ -1801,6 +1809,10 @@ void CProjectionTranslator::Export(AtNode* shader)
       }
       ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
 
+      bool wrap = FindMayaPlug("wrap").asBool();
+      AiNodeSetBool(shader, "clamp", !wrap);
+      ProcessParameter(shader, "default_color", AI_TYPE_RGBA, "defaultColor");
+
       // Warning: the angles seem to appear as degrees in the Maya interface, 
       // but they're actually returned as radians!
       AiNodeSetFlt(shader, "u_angle", FindMayaPlug("uAngle").asFloat() * AI_RTOD);
@@ -2448,6 +2460,8 @@ void CDisplacementTranslator::Export(AtNode* shader)
    // vectorSpace = {WORLD, OBJECT, TANGENT}
    int vectorSpace = FindMayaPlug("vectorSpace").asInt();
    AiNodeSetBool(vectorMap, "tangent_space", (vectorSpace == 2)); 
+   if (vectorSpace == 2)
+      AiNodeSetStr(vectorMap, "order", "XZY");
 
    if (spaceTransform)
    {

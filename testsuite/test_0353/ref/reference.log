@@ -1,0 +1,336 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_TESTSUITE_COMMON': '/home/handsca/Dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/opt/solidangle/mtoa/dev/2018', 'ADCLMHUB_LOG_DIR': '/home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_opt/testsuite/test_0353', 'ADCLMHUB_LOG_LEVEL': 'T', 'HOME': '/home/handsca', 'MAYA_RENDER_DESC_PATH': '/opt/solidangle/mtoa/dev/2018', 'PATH': '/opt/solidangle/mtoa/dev/2018/bin;/usr/autodesk/maya2018/bin;/opt/solidangle/mtoa/dev/2018/lib;/opt/solidangle/mtoa/dev/2018/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.'}
+ 
+ ==== Exec cmd ==== 
+ 
+/usr/autodesk/maya2018/bin/Render -proj "/home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_opt/testsuite/test_0353" -rd "/home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_opt/testsuite/test_0353" -r arnold -x 160 -y 120  "/home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_opt/testsuite/test_0353/test.ma"
+ 
+ 
+Starting "/home/software/maya/2018/bin/maya"
+This plugin does not support createPlatformOpenGLContext!
+
+libai.so already loaded
+unable to bind to socket
+Set 'MAYA_DEBUG_STDOUT' to enable stdout to the terminal
+Error: file: /usr/autodesk/ApplicationPlugins/MayaBonusTools-2015-2018/Contents/scripts-2018/bonusToolsMenu.mel line 1666: UI commands can't be run in batch mode.
+sh: deadlinecommand: command not found
+Running submission script ""
+Warning: file: /home/handsca/maya/scripts/DeadlineMayaClient.mel line 132: The SubmitMayaToDeadline.mel script could not be found in the Deadline Repository. Please make sure that the Deadline Client has been installed on this machine, that the Deadline Client bin folder is set in the DEADLINE_PATH environment variable, and that the Deadline Client has been configured to point to a valid Repository.
+File read in  0.049 seconds.
+File read in  0.049 seconds.
+Result: /home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_opt/testsuite/test_0353/test.ma
+00:00:00   565MB         | log started Thu Apr 11 13:05:35 2019
+00:00:00   565MB         | Arnold 5.3.1.0 [c6ac32cf] linux clang-5.0.0 oiio-2.1.0 osl-1.11.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 optix-6.0.0 2019/04/10 11:14:41
+00:00:00   565MB         | host application: MtoA 3.2.1.wip daa0bad2 (develop) Maya 2018
+00:00:00   565MB         | running on rems4dc9705.ads.autodesk.com, pid=35079
+00:00:00   565MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz (24 cores, 48 logical) with 63994MB
+00:00:00   565MB         |  NVIDIA driver version 418.56
+00:00:00   565MB         |  GPU 0: TITAN V @ 1455MHz (compute 7.0) with 12003MB (4986MB available) (NVLink:0)
+00:00:00   565MB         |  GPU 1: Quadro M2000 @ 1162MHz (compute 5.2) with 4043MB (4031MB available) (NVLink:0)
+00:00:00   565MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-957.1.3.el7.x86_64
+00:00:00   565MB         |  soft limit for open files raised from 4096 to 4094
+00:00:00   565MB         |  
+00:00:00   565MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/shaders ...
+00:00:00   565MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.3.1.0
+00:00:00   565MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.3.1.0
+00:00:00   565MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.3.1.0
+00:00:00   565MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.3.1.0
+00:00:00   565MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkFloatConstant uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkFloatComposite uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkFloatCondition uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkFloatCorrect uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkFloatLogic uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkFloatMask uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkFloatMath uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkColorComposite uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkColorCondition uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkColorConstant uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkColorCorrect uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkColorLogic uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkColorMask uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkColorMath uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkChannels uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkPremultiply uses Arnold 5.3.1.0
+00:00:00   565MB         |  lookdevkit_shaders.so: ldkSimplexNoise uses Arnold 5.3.1.0
+00:00:00   565MB         |  xgenSpline_shaders.so: XGenHairMapping uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyAbsFloatOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyAbs2FloatsOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyAbs3FloatsOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyAbsIntOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyRelFloatOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyRel2FloatsOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyRel3FloatsOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  renderSetup_shaders.so: applyRelIntOverride uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaClamp uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaCondition uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaReverse uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaFile uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaRamp uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaProjection uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaChecker uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaBulge uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaCloth uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaGrid uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaFractal uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaNoise uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaCloud uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSnow uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaContrast uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaStucco uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaColorToFloat uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaVectorToFloat uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaPointToFloat uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaPoint2ToFloat uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaWriteColor uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAovWriteColor uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaWriteFloat uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAovWriteFloat uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAnimFloat uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAnimPoint uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAnimVector uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAnimColor uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAnimMatrix uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaUserDataVector uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaUserDataColor uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAovWriteVector uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaAovWriteVector2 uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaUserDataBool uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaHair uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaMeshLightMaterial uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaUserDataVec2 uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaBump2D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaFluid uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaMarble uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaMountain uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaWater uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaCrater uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaLeather uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaGranite uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaRock uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSingleShadingSwitch uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaDoubleShadingSwitch uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaTripleShadingSwitch uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaQuadShadingSwitch uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaFluidData uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaFluidTexture2D uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaSurfaceLuminance uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MtoaCameraUvMapper uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_shaders.so: MayaFlatClosure uses Arnold 5.3.1.0
+00:00:00   565MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/procedurals ...
+00:00:00   565MB         |  mtoa_ParticleInstancer_proc.so: particleInstancer uses Arnold 5.3.1.0
+00:00:00   565MB         |  xgenSpline_procedural.so: xgenProcedural uses Arnold 5.3.1.0
+00:00:00   565MB         |  xgen_procedural.so: xgen_procedural uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_ParticleVolume_proc.so: volume_particle uses Arnold 5.3.1.0
+00:00:00   565MB         |  mtoa_ParticleVolume_proc.so: implicit_particle uses Arnold 5.3.1.0
+00:00:00   565MB         | loaded 121 plugins from 9 lib(s) in 0:00.01
+00:00:00   565MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/plug-ins/../bin/../plugins ...
+00:00:00   565MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 5.3.1.0
+00:00:00   565MB         |  alembic_proc.so: alembic uses Arnold 5.3.1.0
+00:00:00   565MB         |  cryptomatte.so: cryptomatte uses Arnold 5.3.1.0
+00:00:00   565MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 5.3.1.0
+00:00:00   565MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 5.3.1.0
+00:00:00   565MB         | loaded 5 plugins from 3 lib(s) in 0:00.01
+00:00:00   565MB         | loading plugin: /usr/autodesk/bifrost/1.5.0/Arnold-5.2.0.0/lib/libbifrost_procedural_0_2.so ...
+00:00:00   565MB         |  libbifrost_procedural_0_2.so: bifrost_polymesh uses Arnold 5.0.0.3
+00:00:00   565MB         |  libbifrost_procedural_0_2.so: bifrost_points uses Arnold 5.0.0.3
+00:00:00   565MB         |  libbifrost_procedural_0_2.so: bifrost_volume uses Arnold 5.0.0.3
+00:00:00   565MB         |  libbifrost_procedural_0_2.so: bifrost_implicit uses Arnold 5.0.0.3
+00:00:00   565MB         |  libbifrost_procedural_0_2.so: bifrost_blocks uses Arnold 5.0.0.3
+00:00:00   565MB         | loaded 5 plugins from 1 lib(s) in 0:00.01
+00:00:00   635MB         |   [mtoa] RGBA attribute frd_ramp_cornea_transm.defaultColor has no alpha component: exporting as RGBA
+00:00:00   636MB         | 
+00:00:00   636MB         | authorizing with default license managers: rlm, clm ...
+00:00:00   638MB         | [clm] authorized for "86985ARNOL_2018_0F" in 0:00.06
+00:00:00   638MB         | [clm] expiration date: permanent, in use: 1/3
+00:00:00   638MB         | 
+00:00:00   652MB         | [color_manager] using color manager of type "color_manager_syncolor"
+00:00:00   653MB         | [color_manager_syncolor] synColor version 2018.0.80
+00:00:00   653MB         | [color_manager_syncolor] native catolog directory: /usr/autodesk/maya2018/synColor
+00:00:00   653MB         | [color_manager_syncolor] optional custom catalog directory: /home/handsca/maya/synColor/Shared/
+00:00:00   653MB         | [color_manager] rendering color space is "scene-linear Rec 709/sRGB" with declared chromaticities:
+00:00:00   653MB         |                 r(0.6400, 0.3300) g(0.3000, 0.6000) b(0.1500, 0.0600) and w(0.3127, 0.3290)
+00:00:00   665MB         |  
+00:00:00   665MB         | there are 1 light and 4 objects:
+00:00:00   665MB         |       1 persp_camera
+00:00:00   665MB         |       1 quad_light
+00:00:00   665MB         |       1 utility
+00:00:00   665MB         |       1 flat
+00:00:00   665MB         |       2 standard_surface
+00:00:00   665MB         |       1 ramp_float
+00:00:00   665MB         |       1 ramp_rgb
+00:00:00   665MB         |       1 uv_transform
+00:00:00   665MB         |       1 driver_tiff
+00:00:00   665MB         |       1 gaussian_filter
+00:00:00   665MB         |       3 polymesh
+00:00:00   665MB         |       1 list_aggregate
+00:00:00   665MB         |       1 color_manager_syncolor
+00:00:00   665MB         |  
+00:00:00   665MB         | rendering image at 160 x 120, 3 AA samples
+00:00:00   665MB         |   AA samples max    <disabled>
+00:00:00   665MB         |   AA sample clamp   <disabled>
+00:00:00   665MB         |   diffuse           samples  2 / depth  1
+00:00:00   665MB         |   specular          samples  2 / depth  1
+00:00:00   665MB         |   transmission      samples  2 / depth  8
+00:00:00   665MB         |   volume indirect   <disabled by depth>
+00:00:00   665MB         |   total                          depth 10
+00:00:00   665MB         |   bssrdf            samples  2
+00:00:00   665MB         |   transparency      depth 10
+00:00:00   665MB         |  initializing 17 nodes ...
+00:00:00   666MB         |   creating root object list ...
+00:00:00   666MB         |  node initialization done in 0:00.00 (multithreaded)
+00:00:00   666MB         |  updating 18 nodes ...
+00:00:00   666MB         |   aiAreaLightShape1: quad_light using 1 sample, 2 volume samples
+00:00:00   666MB         |   scene bounds: (1.72370625 160.168976 5.45973635) -> (4.21843481 162.663254 8.0590477)
+00:00:00   666MB         |  node update done in 0:00.00 (multithreaded)
+00:00:00   666MB         |  [aov] parsing 1 output statements ...
+00:00:00   666MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00   666MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   666MB         |  [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
+00:00:00   667MB         |  starting 48 bucket workers of size 64x64 ...
+00:00:02   895MB         |     5% done - 420 rays/pixel
+00:00:02   895MB         |    20% done - 116 rays/pixel
+00:00:02   895MB         |    35% done - 140 rays/pixel
+00:00:02   895MB         |    60% done - 28 rays/pixel
+00:00:02   895MB         |    75% done - 156 rays/pixel
+00:00:02   895MB         |   100% done - 0 rays/pixel
+00:00:02   895MB         |  render done in 0:02.018
+00:00:02   895MB         |  [driver_tiff] writing file `/home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_opt/testsuite/test_0353/testsrender.tif'
+00:00:02   895MB         | render done
+00:00:02   895MB         |  
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | scene creation time          0:00.20    machine utilization (2.43%) 
+00:00:02   895MB         |  plugin loading              0:00.04 
+00:00:02   895MB         |  unaccounted                 0:00.15 
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | frame time                   0:02.19    machine utilization (17.28%) 
+00:00:02   895MB         |  rendering                   0:02.01 
+00:00:02   895MB         |   subdivision                0:00.03 
+00:00:02   895MB         |   accel. building            0:00.11 
+00:00:02   895MB         |   pixel rendering            0:01.86 
+00:00:02   895MB         |  unaccounted                 0:00.15 
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | top session self-times by category 
+00:00:02   895MB         |  thread blocked                                                     0:01.61 (77.69%) 
+00:00:02   895MB         |  BVH::build                                                         0:00.10 ( 4.87%) 
+00:00:02   895MB         |  worker waiting                                                     0:00.09 ( 4.67%) 
+00:00:02   895MB         |  BVH::intersect                                                     0:00.06 ( 2.91%) 
+00:00:02   895MB         |   l_sclera_GEOShape                                                 0:00.04 ( 2.01%) 
+00:00:02   895MB         |  surface closure                                                    0:00.04 ( 2.15%) 
+00:00:02   895MB         |   frd_sclera_ai                                                     0:00.03 ( 1.64%) 
+00:00:02   895MB         |   iris_ai                                                           0:00.01 ( 0.52%) 
+00:00:02   895MB         |  polymesh::intersect                                                0:00.04 ( 2.09%) 
+00:00:02   895MB         |   l_sclera_GEOShape                                                 0:00.03 ( 1.63%) 
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | top session self-times by node 
+00:00:02   895MB         |  polymesh:l_sclera_GEOShape                                         0:01.81 (87.13%) 
+00:00:02   895MB         |   thread blocked                                                    0:01.59 (76.59%) 
+00:00:02   895MB         |   BVH::build                                                        0:00.09 ( 4.63%) 
+00:00:02   895MB         |   BVH::intersect                                                    0:00.04 ( 2.01%) 
+00:00:02   895MB         |   polymesh::intersect                                               0:00.03 ( 1.63%) 
+00:00:02   895MB         |   subdivision                                                       0:00.02 ( 1.32%) 
+00:00:02   895MB         |  worker waiting                                                     0:00.09 ( 4.67%) 
+00:00:02   895MB         |  polymesh:l_iris_GEOShape                                           0:00.06 ( 3.12%) 
+00:00:02   895MB         |   thread blocked                                                    0:00.02 ( 0.97%) 
+00:00:02   895MB         |  standard_surface:frd_sclera_ai                                     0:00.05 ( 2.56%) 
+00:00:02   895MB         |   surface closure                                                   0:00.03 ( 1.64%) 
+00:00:02   895MB         |  standard_surface:iris_ai                                           0:00.01 ( 0.92%) 
+00:00:02   895MB         |   surface closure                                                   0:00.01 ( 0.52%) 
+00:00:02   895MB         |  list_aggregate:root                                                0:00.00 ( 0.38%) 
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | peak CPU memory used     1080.56MB 
+00:00:02   895MB         |  at startup               556.08MB 
+00:00:02   895MB         |  plugins                    9.23MB 
+00:00:02   895MB         |  AOV samples                5.48MB 
+00:00:02   895MB         |  output buffers             0.45MB 
+00:00:02   895MB         |  framebuffers               0.38MB 
+00:00:02   895MB         |  node overhead              0.01MB 
+00:00:02   895MB         |  message passing            0.09MB 
+00:00:02   895MB         |  memory pools              34.05MB 
+00:00:02   895MB         |  geometry                  74.58MB 
+00:00:02   895MB         |   subdivs                  74.58MB 
+00:00:02   895MB         |  accel. structs            56.09MB 
+00:00:02   895MB         |  strings                   12.00MB 
+00:00:02   895MB         |  profiler                   0.57MB 
+00:00:02   895MB         |  unaccounted              331.56MB 
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | ray counts                       ( /pixel, /sample) (% total) (avg. hits) (max hits)
+00:00:02   895MB         |  camera                   178252 (   9.28,    1.00) (  8.22%) (     1.03) (       4)
+00:00:02   895MB         |  shadow                   591289 (  30.80,    3.32) ( 27.27%) (     0.67) (       5)
+00:00:02   895MB         |  diffuse_reflect          395273 (  20.59,    2.22) ( 18.23%) (     0.35) (       3)
+00:00:02   895MB         |  specular_reflect         719717 (  37.49,    4.04) ( 33.19%) (     0.00) (       4)
+00:00:02   895MB         |  specular_transmit        284112 (  14.80,    1.59) ( 13.10%) (     0.74) (       3)
+00:00:02   895MB         |  total                   2168643 ( 112.95,   12.17) (100.00%) (     0.43) (       5)
+00:00:02   895MB         | by ray depth:              0     1     2     3     4     5     6     7     8     9
+00:00:02   895MB         |  total                   17.2% 67.1%  9.0%  6.0%  0.6%  0.0%  0.0%  0.0%  0.0%  0.0% 
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | shader calls                     (  /pixel,  /sample) (% total)
+00:00:02   895MB         |  primary                 1184210 (   61.68,     6.64) ( 42.83%)
+00:00:02   895MB         |  transparent_shadow      1581008 (   82.34,     8.87) ( 57.17%)
+00:00:02   895MB         |  total                   2765218 (  144.02,    15.51) (100.00%)
+00:00:02   895MB         | by ray depth:              0     1     2     3     4     5     6     7     8     9
+00:00:02   895MB         |  total                   13.2% 51.3% 28.1%  6.0%  1.4%  0.1%  0.0%  0.0%  0.0%  0.0% 
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | geometry                         (% hit ) (instances) (  init mem,  final mem)
+00:00:02   895MB         |  lists                         1 (100.0%) (        0) (      0.00,       0.00)
+00:00:02   895MB         |  subdivs                       3 (100.0%) (        0) (      1.03,      74.58)
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | geometric elements               (      min) (       avg.) (      max)
+00:00:02   895MB         |  subdiv patches            28420 (      260) (     9473.3) (    26112)
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | triangle tessellation            (      min) (       avg.) (      max) (/ element) (% total)
+00:00:02   895MB         |  subdivs                 3637120 (    32640) (  1212373.4) (  3342336) (   127.98) (100.00%)
+00:00:02   895MB         |   iterations 3+          3637120 (    32640) (  1212373.4) (  3342336) (   127.98) (100.00%)
+00:00:02   895MB         |  unique triangles        3637120 
+00:00:02   895MB         |  CPU memory use            74.58MB 
+00:00:02   895MB         |   vertices                 20.82MB 
+00:00:02   895MB         |   vertex indices           18.25MB 
+00:00:02   895MB         |   packed normals            6.94MB 
+00:00:02   895MB         |   normal indices            0.00MB 
+00:00:02   895MB         |   uv coords                 6.94MB 
+00:00:02   895MB         |   uv coords idxs           18.25MB 
+00:00:02   895MB         |   uniform indices           3.38MB 
+00:00:02   895MB         |   userdata                  0.00MB 
+00:00:02   895MB         |  largest polymeshes by triangle count 
+00:00:02   895MB         |    3342336 tris -- l_sclera_GEOShape
+00:00:02   895MB         |     262144 tris -- l_iris_GEOShape
+00:00:02   895MB         |      32640 tris -- l_pupil_GEOShape
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         | performance warnings:
+00:00:02   895MB WARNING |  Rendering CPU utilization was only 17%. Your render may be bound by a single threaded process or I/O.
+00:00:02   895MB         | -----------------------------------------------------------------------------------
+00:00:02   895MB         |  
+00:00:02   895MB         | releasing resources
+00:00:02   682MB         | Arnold shutdown
+Scene /home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_opt/testsuite/test_0353/test.ma completed.

@@ -6,15 +6,20 @@
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
 		<attribute name='defaultValue' type='maya.float3'>
 			<label>Default Value</label>
 		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiUserDataColor'>
 		<property name='outColor'/>
+		<property name='outAlpha'/>
 		<property name='defaultValue'/>
 	</view>
 	<view name='NEDefaultSoloOutput' template='NEaiUserDataColor'>
 		<property name='outColor'/>
+		<property name='outAlpha'/>
 	</view>
 </templates>

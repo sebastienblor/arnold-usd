@@ -49,14 +49,14 @@ public:
  **/
 
    // RenderView functions
-   void OpenRenderView(int width, int height, QWidget *parent = NULL, bool showWin = true);
+   void OpenRenderView(int width, int height, float scaleFactor, QWidget *parent = NULL, bool showWin = true);
    void CloseRenderView();
    void DestroyRenderView();
    // return the renderView Qt Window
    QMainWindow *GetRenderView();
 
    // Options Window doesn't show the render itself, only the menus
-   void OpenOptionsWindow(int width, int height, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
+   void OpenOptionsWindow(int width, int height, float scaleFactor, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
    void CloseOptionsWindow();
    void DestroyOptionsWindow();
 
@@ -157,7 +157,7 @@ public:
    virtual void ReceiveSelectionChanges(bool receive) = 0;
 
    // This Function is called when the Renderview window is closed
-   virtual void RenderViewClosed(){};
+   virtual void RenderViewClosed(bool close_ui){};
    virtual void RenderOptionsClosed(){};
 
    // This function is invoked by the RenderView when it changes a parameter 

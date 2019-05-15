@@ -793,7 +793,7 @@ namespace // <anonymous>
 #endif
          MString modulePluginPath = pluginPath + MString("shaders");
          MString proceduralsPath = pluginPath + MString("procedurals");
-         MString moduleExtensionPath = pluginPath + MString("extensions");         
+         MString moduleExtensionPath = pluginPath + MString("extensions");
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
          MString envVarStr = (envVar) ? MString(envVar) : MString("");
          if (envVarStr.length() > 0 && envVarStr != modulePluginPath && envVarStr != proceduralsPath)
@@ -820,7 +820,7 @@ namespace // <anonymous>
       //CHECK_MSTATUS(status); no longer return error if an extension didn't load properly
 
       // Will load all found plugins and try to register nodes and translators
-      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);      
+      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);
       //CHECK_MSTATUS(status);
 
       // I need to retrieve the mtoa_shaders extension, so that I can register its translators
