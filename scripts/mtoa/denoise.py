@@ -1,4 +1,3 @@
-
 import maya.cmds as cmds
 import maya.utils as utils
 import maya.mel as mel
@@ -11,7 +10,9 @@ import threading
 import mtoa.callbacks as callbacks
 import maya.OpenMaya as om
 import mtoa.utils as mutils
+import mtoa.core as core
 import platform
+import maya.mel as mel
 
 inputFile = ""
 
@@ -165,8 +166,25 @@ class MtoANoice(object):
         cmds.columnLayout(adjustableColumn=True)
         
         label_margin = 150
+
+        core.createOptions()
+
+        global inputFile
+
+        if mel.eval('attributeExists ("noice_input_file", "defaultArnoldRenderOptions")'):
+            inputFile = str(cmds.getAttr('defaultArnoldRenderOptions.noice_input_file'))
+        elif cmds.optionVar(exists='mtoa_noice_input_file'):
+            inputFile = str(cmds.optionVar(query='mtoa_noice_input_file'))
+        
         cmds.textFieldButtonGrp('noice_input', label='Input', cw3=(label_margin,290, 70), text=inputFile, buttonLabel='...', buttonCommand=lambda *args: self.browseInputFilename())
-        cmds.textFieldButtonGrp('noice_output', label='Output', cw3=(label_margin,290, 70), text='', buttonLabel='...', buttonCommand=lambda *args: self.browseOutputFilename())
+        
+        noice_denoised_file = ''
+        if mel.eval('attributeExists ("noice_denoised_file", "defaultArnoldRenderOptions")'):
+            noice_denoised_file = str(cmds.getAttr('defaultArnoldRenderOptions.noice_denoised_file'))
+        elif cmds.optionVar(exists='mtoa_noice_denoised_file'):
+            noice_denoised_file = str(cmds.optionVar(query='mtoa_noice_denoised_file'))
+        
+        cmds.textFieldButtonGrp('noice_output', label='Output', cw3=(label_margin,290, 70), text=noice_denoised_file, buttonLabel='...', buttonCommand=lambda *args: self.browseOutputFilename())
 
         #cmds.setParent("..")
         
@@ -174,19 +192,71 @@ class MtoANoice(object):
         cmds.menuItem( label='Single Frame' )
         cmds.menuItem( label='Start / End' )
         cmds.menuItem( label='Complete Sequence' )
-        cmds.optionMenuGrp('noice_frame_range', e=True, w=230, ct2=('left', 'left'), cw2=(label_margin,110), v='Complete Sequence', cc=lambda *args: self.frameRateChanged())
 
-        # get the timeline by default ?
-        cmds.intFieldGrp('noice_start_frame', label='Start Frame', value1=0, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
-        cmds.intFieldGrp('noice_end_frame', label='End Frame', value1=10, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
-
-        cmds.intFieldGrp('noice_temporal_frames', label='Temporal Stability Frames', value1=0, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
-        cmds.floatFieldGrp('noice_variance', label='Variance', value1= 0.5, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+        noice_frame_range = 'Complete Sequence'
+        if mel.eval('attributeExists ("noice_frame_range", "defaultArnoldRenderOptions")'):
+            noice_frame_range = str(cmds.getAttr('defaultArnoldRenderOptions.noice_frame_range'))
+        elif cmds.optionVar(exists='mtoa_noice_frame_range'):
+            noice_frame_range = str(cmds.optionVar(query='mtoa_noice_frame_range'))
         
-        cmds.intFieldGrp('noice_pixel_search_radius', label='Pixel Search Radius', value1=9, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
-        cmds.intFieldGrp('noice_pixel_patch_radius', label='Pixel Patch Radius', value1=3, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+        cmds.optionMenuGrp('noice_frame_range', e=True, w=230, ct2=('left', 'left'), cw2=(label_margin,110), v=noice_frame_range, cc=lambda *args: self.frameRateChanged())
 
-        cmds.textFieldGrp('noice_light_group_aovs', label='Light Group AOVs', ct2=('left', 'left'), cw2=(label_margin,110), text="", w=380)
+        noice_start_frame = 0
+        if mel.eval('attributeExists ("noice_start_frame", "defaultArnoldRenderOptions")'):
+            noice_start_frame = cmds.getAttr('defaultArnoldRenderOptions.noice_start_frame')
+        elif cmds.optionVar(exists='mtoa_noice_start_frame'):
+            noice_start_frame = cmds.optionVar(query='mtoa_noice_start_frame')
+        
+        cmds.intFieldGrp('noice_start_frame', label='Start Frame', value1=noice_start_frame, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+
+        noice_end_frame = 10
+        if mel.eval('attributeExists ("noice_end_frame", "defaultArnoldRenderOptions")'):
+            noice_end_frame = cmds.getAttr('defaultArnoldRenderOptions.noice_end_frame')
+        elif cmds.optionVar(exists='mtoa_noice_end_frame'):
+            noice_end_frame = cmds.optionVar(query='mtoa_noice_end_frame')
+        
+        cmds.intFieldGrp('noice_end_frame', label='End Frame', value1=noice_end_frame, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+
+        noice_temporal_frames = 0
+
+        if mel.eval('attributeExists ("noice_temporal_frames", "defaultArnoldRenderOptions")'):
+            noice_temporal_frames = cmds.getAttr('defaultArnoldRenderOptions.noice_temporal_frames')
+        elif cmds.optionVar(exists='mtoa_noice_temporal_frames'):
+            noice_temporal_frames = cmds.optionVar(query='mtoa_noice_temporal_frames')
+        
+        cmds.intFieldGrp('noice_temporal_frames', label='Temporal Stability Frames', value1=noice_temporal_frames, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+        
+        noice_variance = 0.5
+        if mel.eval('attributeExists ("noice_variance", "defaultArnoldRenderOptions")'):
+            noice_variance = cmds.getAttr('defaultArnoldRenderOptions.noice_variance')
+        elif cmds.optionVar(exists='mtoa_noice_variance'):
+            noice_variance = cmds.optionVar(query='mtoa_noice_variance')
+        
+        cmds.floatFieldGrp('noice_variance', label='Variance', value1= noice_variance, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+
+        noice_pixel_search_radius = 9
+        if mel.eval('attributeExists ("noice_pixel_search_radius", "defaultArnoldRenderOptions")'):
+            noice_pixel_search_radius = cmds.getAttr('defaultArnoldRenderOptions.noice_pixel_search_radius')
+        elif cmds.optionVar(exists='mtoa_noice_pixel_search_radius'):
+            noice_pixel_search_radius = cmds.optionVar(query='mtoa_noice_pixel_search_radius')
+        
+        cmds.intFieldGrp('noice_pixel_search_radius', label='Pixel Search Radius', value1=noice_pixel_search_radius, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+        
+        noice_pixel_patch_radius = 3
+        if mel.eval('attributeExists ("noice_pixel_patch_radius", "defaultArnoldRenderOptions")'):
+            noice_pixel_patch_radius = cmds.getAttr('defaultArnoldRenderOptions.noice_pixel_patch_radius')
+        elif cmds.optionVar(exists='mtoa_noice_pixel_patch_radius'):
+            noice_pixel_patch_radius = cmds.optionVar(query='mtoa_noice_pixel_patch_radius')
+        
+        cmds.intFieldGrp('noice_pixel_patch_radius', label='Pixel Patch Radius', value1=noice_pixel_patch_radius, ct2=('left', 'left'),  cw2=(label_margin,110), w=230)
+
+        noice_light_group_aovs = ''
+        if mel.eval('attributeExists ("noice_light_group_aovs", "defaultArnoldRenderOptions")'):
+            noice_light_group_aovs = str(cmds.getAttr('defaultArnoldRenderOptions.noice_light_group_aovs'))
+        elif cmds.optionVar(exists='mtoa_noice_light_group_aovs'):
+            noice_light_group_aovs = str(cmds.optionVar(query='mtoa_noice_light_group_aovs'))
+        
+        cmds.textFieldGrp('noice_light_group_aovs', label='Light Group AOVs', ct2=('left', 'left'), cw2=(label_margin,110), text=noice_light_group_aovs, w=380)
         cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))
         cmds.text( '  ')
 
@@ -246,6 +316,59 @@ class MtoANoice(object):
         variance = cmds.floatFieldGrp('noice_variance', q=True, v1=True)
         light_group_aovs = cmds.textFieldGrp('noice_light_group_aovs', q=True, tx=True)
         
+        # Now set these values both in the scenes and in the prefs
+        core.createOptions()
+
+        if not mel.eval('attributeExists("noice_input_file", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_input_file', dt='string')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_input_file', inFile, type='string')
+        cmds.optionVar(sv=('mtoa_noice_input_file', inFile))
+
+        if not mel.eval('attributeExists("noice_denoised_file", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_denoised_file', dt='string')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_denoised_file', outFile, type='string')
+        cmds.optionVar(sv=('mtoa_noice_denoised_file', outFile))
+
+        if not mel.eval('attributeExists("noice_frame_range", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_frame_range', dt='string')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_frame_range', frame_range, type='string')
+        cmds.optionVar(sv=('mtoa_noice_frame_range', frame_range))
+
+        if not mel.eval('attributeExists("noice_start_frame", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_start_frame', at='long')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_start_frame', start_frame)
+        cmds.optionVar(iv=('mtoa_noice_start_frame', start_frame))
+
+        if not mel.eval('attributeExists("noice_end_frame", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_end_frame', at='long')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_end_frame', end_frame)
+        cmds.optionVar(iv=('mtoa_noice_end_frame', end_frame))
+
+        if not mel.eval('attributeExists("noice_temporal_frames", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_temporal_frames', at='long')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_temporal_frames', temporal_frames)
+        cmds.optionVar(iv=('mtoa_noice_temporal_frames', temporal_frames))
+
+        if not mel.eval('attributeExists("noice_pixel_search_radius", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_pixel_search_radius', at='long')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_pixel_search_radius', pixel_search_radius)
+        cmds.optionVar(iv=('mtoa_noice_pixel_search_radius', pixel_search_radius))
+
+        if not mel.eval('attributeExists("noice_pixel_patch_radius", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_pixel_patch_radius', at='long')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_pixel_patch_radius', pixel_patch_radius)
+        cmds.optionVar(iv=('mtoa_noice_pixel_patch_radius', pixel_patch_radius))
+
+        if not mel.eval('attributeExists("noice_variance", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_variance', at='float')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_variance', variance)
+        cmds.optionVar(fv=('mtoa_noice_variance', variance))
+
+        if not mel.eval('attributeExists("noice_light_group_aovs", "defaultArnoldRenderOptions")'):
+            cmds.addAttr('defaultArnoldRenderOptions',ln='noice_light_group_aovs', dt='string')
+        cmds.setAttr('defaultArnoldRenderOptions.noice_light_group_aovs', light_group_aovs, type='string')
+        cmds.optionVar(sv=('mtoa_noice_light_group_aovs', light_group_aovs))
+
         if not self.thread:
             self.thread = NoiceThread(self, start_frame, end_frame, inFile, outFile, temporal_frames, pixel_search_radius, pixel_patch_radius, variance, light_group_aovs)
             self.thread.start()
