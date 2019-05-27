@@ -2043,13 +2043,23 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
    if (fnNode.findPlug("wrapU", true).asBool())
       AiNodeSetStr(shader, "wrap_frame_u", "none");
    else
+   {
+      // 2d procedural texture shaders (grid, cloth, marble, etc...)
+      // expect a value of -1000000 when the Uvs are out-of-bounds #3822
       AiNodeSetStr(shader, "wrap_frame_u", "color");
+      AiNodeSetRGBA(shader, "wrap_frame_color", -1000000.f, -1000000.f, -1000000.f, 1.f);
+   }
       
 
    if (fnNode.findPlug("wrapV", true).asBool())
       AiNodeSetStr(shader, "wrap_frame_v", "none");
    else
+   {
+      // 2d procedural texture shaders (grid, cloth, marble, etc...)
+      // expect a value of -1000000 when the Uvs are out-of-bounds #3822
       AiNodeSetStr(shader, "wrap_frame_v", "color");
+      AiNodeSetRGBA(shader, "wrap_frame_color", -1000000.f, -1000000.f, -1000000.f, 1.f);
+   }
    
    // if not linked, set alpha to zero
    ProcessParameter(shader, "repeat", AI_TYPE_VECTOR2, fnNode.findPlug("repeatUV", true));
