@@ -128,6 +128,9 @@
     <attr n="ai:device" s="defaultArnoldRenderOptions.renderDevice" t="int" h="Render Device ( 0 - CPU , 1 - GPU )"/>
     <attr n="ai:manGpuSel" s="defaultArnoldRenderOptions.manual_gpu_devices" t="boolean" h=" Turn on/off Manual GPU Selection"/>
     <attr n="ai:gpu" s="defaultArnoldRenderOptions.render_devices[0]" t="int" h="Index of the GPU used for the render ( Works in conjunction with manGpuSel and can set a single GPU to render)"/>
+    <attr n="ai:enas" s="defaultArnoldRenderOptions.enableAdaptiveSampling" t="boolean" h="Enable Adaptive Sampling."/>
+    <attr n="ai:maxaa" s="defaultArnoldRenderOptions.AASamplesMax" t="int" h="AA Samples Max."/>
+    <attr n="ai:aath" s="defaultArnoldRenderOptions.AAAdaptiveThreshold" t="float" h="AA Adaptive Threshold."/>
     <attrString n="ai:uopt" s="defaultArnoldRenderOptions.aiUserOptions" t="string" h="User Options."/>
     <mel n="ai:port" s="if (!`objExists arnoldBatchNode`) {createNode -ss transform -n arnoldBatchNode;} if (!`objExists arnoldBatchNode.mtoaCommandPort`) { addAttr -longName mtoaCommandPort -shortName mtoa_com -at long arnoldBatchNode;} setAttr arnoldBatchNode.mtoaCommandPort %1;
 " p="1" t="int" h="Set the Command Port for the Batch Progress Driver"/>
