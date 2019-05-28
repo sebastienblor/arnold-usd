@@ -7,7 +7,7 @@ extern "C"
     {
         MStatus status;
 
-        extension.Requires ( "bifrostBoard" ); // require the bifrostBoard plugin
+        extension.Requires ( "bifrostGraph" ); // require the bifrostGraph plugin
         extension.RegisterTranslator("bifShape", // translate bifShape nodes
                                      "",
                                      CBifShapeTranslator::creator,
