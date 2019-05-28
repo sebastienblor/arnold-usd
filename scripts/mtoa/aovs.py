@@ -88,7 +88,13 @@ LIGHTING_AOVS = ['RGBA',
                 'sss_albedo',
                 'volume_direct', 
                 'volume_indirect',
-                'shadow_matte']
+                'volume_albedo',
+                'shadow_matte',
+                'sheen',
+                'sheen_direct',
+                'sheen_indirect',
+                'sheen_albedo'
+                ]
 
 TYPES = (
     ("int",    arnold.ai_params.AI_TYPE_INT),
