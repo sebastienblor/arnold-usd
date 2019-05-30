@@ -139,6 +139,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
       MDoubleArray serialisedData;
       GetSerializedData(serialisedData);
       unsigned int nEle = serialisedData.length();
+      unsigned int nBytes = nEle * sizeof(double);
       AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
 
 #ifdef DEBUG_DUMP_TO_FILE
@@ -171,14 +172,14 @@ void CBifShapeTranslator::Export( AtNode *shape )
 
       if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
       {
-         dataArray = AiArrayConvert(nEle * sizeof(double), 1, AI_TYPE_BYTE, &serialisedData[0]);
+         dataArray = AiArrayConvert(nBytes, 1, AI_TYPE_BYTE, &serialisedData[0]);
       }
       else
       {
-         dataArray = AiArrayAllocate(nEle * sizeof(double) , GetNumMotionSteps(), AI_TYPE_BYTE);
+         dataArray = AiArrayAllocate(nBytes, GetNumMotionSteps(), AI_TYPE_BYTE);
          uint8_t* data = reinterpret_cast<uint8_t*>(&serialisedData[0]);
          uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
-         memcpy(dataList, data, AiArrayGetKeySize(dataArray));
+         memcpy(dataList, data, nBytes);
          AiArrayUnmap(dataArray);
       }
       if (AiArrayGetNumElements(dataArray) > 0)
@@ -195,7 +196,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
    if (!geomPlug.isNull())
    {
       MString geomPath = geomPlug.asString();
-      AiNodeSetStr(shape, "compound", geomPath.asChar());
+      if (geomPath.length() > 0)
+         AiNodeSetStr(shape, "compound", geomPath.asChar());
    }
 
    // Export all material references done inside the bifrost graph
@@ -311,24 +313,31 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
    size_t serialisedSize = serialisedData.length() * sizeof(double);
    uint8_t nKeys = AiArrayGetNumKeys(dataArray);
+   if (nKeys <= step)
+   {
+      AiMsgWarning("[mtoa.bifrost_graph] attempted motion key export when key is not available");
+      return;
+   }
    size_t keySize = AiArrayGetKeySize(dataArray);
    if (serialisedSize > keySize)
    {
-      // Resize the data array with a larger size and move w/ zero-pad any earlier keys
-      // NOTE: this does not move existing keys to new key locations, so we have to do it
-      AiArrayResize(dataArray, nKeys, serialisedSize);
-      uint8_t *existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
-      for (int key = step - 1; key >= 0; --key)
+      // Allocate a new array and copy contents over (as AiArrayResize() should
+      // not be used when we care about the existing contents)
+      AtArray* newDataArray = AiArrayAllocate(serialisedSize, GetNumMotionSteps(), AI_TYPE_BYTE);
+      uint8_t* existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
+      uint8_t* newData = static_cast<uint8_t*>(AiArrayMap(newDataArray));
+      for (int key = 0; key < step; ++key)
       {
-         // Don't move the first key, it stays put, it just needs leftovers zeroed
-         if (key > 0)
-            memmove(&existingData[key * serialisedSize], &existingData[key * keySize], keySize);
-        // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
-        memset(&existingData[key * serialisedSize + keySize], 0, serialisedSize - keySize);
+         memcpy(&newData[key * serialisedSize], &existingData[key * keySize], keySize);
+         // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
+         memset(&newData[key * serialisedSize + keySize], 0, serialisedSize - keySize);
       }
       AiArrayUnmap(dataArray);
-      // Get the new key size for this motion sample's copy below
-      keySize = AiArrayGetKeySize(dataArray);
+      AiArrayUnmap(newDataArray);
+      AiNodeSetArray(shape, "bifrost:input0", newDataArray);
+      // Get the new array and key size for this motion sample's copy below
+      dataArray = newDataArray;
+      keySize = serialisedSize;
    }
    uint8_t* data = reinterpret_cast<uint8_t*>(&serialisedData[0]);
    uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
