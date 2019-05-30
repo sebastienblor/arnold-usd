@@ -33,7 +33,6 @@ CArnoldVolumeGeometryOverride::CArnoldVolumeGeometryOverride(const MObject& obj)
 	m_scale[0] = m_scale[1] = m_scale[2] = 1.0f;
 	m_offset[0] = m_offset[1] = m_offset[2] = 0.0f;
     m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3];
-
 	// Acquire resources
 	MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 	if (renderer)
@@ -264,10 +263,23 @@ void CArnoldVolumeGeometryOverride::populateGeometry(const MHWRender::MGeometryR
 		{
 			continue;
 		}
-
+		
 		switch (vertexBufforDescriptor.semantic())
 		{
 		case MHWRender::MGeometry::kPosition:
+			{
+				unsigned int totalVerts = m_wirePositions.length();
+				if (totalVerts > 0)
+				{
+					wirePositionBuffer = data.createVertexBuffer(vertexBufforDescriptor);
+					if (wirePositionBuffer)
+					{
+						wirePositionBuffer->update(&m_wirePositions[0], 0, totalVerts, true);
+					}
+				}
+			}
+			break;
+		case MHWRender::MGeometry::kNormal:
 			{
 				unsigned int totalVerts = m_wirePositions.length();
 				if (totalVerts > 0)
@@ -292,7 +304,6 @@ void CArnoldVolumeGeometryOverride::populateGeometry(const MHWRender::MGeometryR
 	for (int i=0; i<numItems; i++)
 	{
 		const MHWRender::MRenderItem* item = renderItems.itemAt(i);
-
 		if (!item)
 		{
 			continue;
