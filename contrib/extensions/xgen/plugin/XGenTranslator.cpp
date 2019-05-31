@@ -773,6 +773,8 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          float fps =  (float)oneSec.asUnits(MTime::uiUnit());
          sprintf(buf,"%f ",fps);
          strData += " -fps " + std::string(buf);
+         // #3821 force the interpolation to mlinear because of differnces between 2018 and 2019
+         strData += " -interpolation linear ";
          strData += " -motionSamplesLookup "+ mbSamplesString;
          strData += " -motionSamplesPlacement "+ mbSamplesString;
 
