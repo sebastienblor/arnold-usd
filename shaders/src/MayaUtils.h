@@ -75,15 +75,16 @@ void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out
    p_alphaGain,                 \
    p_alphaOffset,               \
    p_alphaIsLuminance,          \
-   p_invert,                    \
-   p_exposure
+   p_invert
+   
 
 void AddMayaColorBalanceParams(AtList *params, AtNodeEntry* nentry);
    
 void MayaColorBalance(AtShaderGlobals* sg,
                              AtNode* node,
                              int p_start,
-                             AtRGBA & result);
+                             AtRGBA & result,
+                             float exposure = 1.f);
 
 void MayaDefaultColor(AtShaderGlobals* sg,
                              AtNode* node,

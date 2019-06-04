@@ -57,6 +57,7 @@ enum MayaFileParams
    p_filter,
    p_use_default_color,
    p_color_space,
+   p_exposure,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -195,6 +196,7 @@ node_parameters
    AiParameterEnum("filter", 3, filterNames);
    AiParameterBool("useDefaultColor", true);
    AiParameterStr("color_space", "");
+   AiParameterFlt("exposure", 1.f);
    AddMayaColorBalanceParams(params, nentry);   
    
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
@@ -954,6 +956,9 @@ shader_evaluate
       if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
       else if (success)
-         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());     
+      {
+         const float exposure = powf(2.0f, AiShaderEvalParamFuncFlt(sg, node, p_exposure));
+         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA(), exposure);     
+      }
    }
 }
