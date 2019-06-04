@@ -1320,8 +1320,6 @@
     [attr transmission_depth]
         min             FLOAT   0.0
         softmax         FLOAT   100.0
-        linkable        BOOL    false
-        keyable         BOOL    false
     [attr transmission_scatter_anisotropy]
         min             FLOAT   -1.0
         max             FLOAT   1.0
