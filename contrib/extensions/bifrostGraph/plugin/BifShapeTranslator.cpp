@@ -73,7 +73,9 @@ void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
       AiMsgWarning("Bifrost procedural could not be found: %s", s_bifrostProceduralPath.asChar());
 
    CExtensionAttrHelper helper(context.maya, "procedural");
-   CShapeTranslator::MakeCommonAttributes(helper);
+//   Arnold-76 : no longer create the common shape attributes
+//   CShapeTranslator::MakeCommonAttributes(helper);
+   MakeArnoldVisibilityFlags(helper);
 
    CAttrData data;
 
@@ -237,6 +239,12 @@ void CBifShapeTranslator::Export( AtNode *shape )
       ExportShaders(shape);
 
    ExportProcedural(shape);
+   // ARNOLD-76 : we don't want to set the common shape parameters (self_shadows / opaque / etc...)
+   // otherwise it prevents bifrost from setting each children its own parameters.
+   // By removing CShapeTranslator::MakeCommonAttributes(helper) in NodeInitialize we're preventing most of them
+   // to be exported since they don't exist in Maya. But receiveShadows is a maya native attribute, so we can't
+   // prevent it from being exported. The best way to deal with this now is simply to reset the attribute here
+   AiNodeResetParameter(shape, "receive_shadows");
 }
 
 
