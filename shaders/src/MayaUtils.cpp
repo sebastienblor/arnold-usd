@@ -124,14 +124,14 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
 
 };
 
-bool isnan(float a)
+bool FltIsnan(float a)
 {
    return a != a;
 }
 
-bool isinf(float a)
+bool FltIsinf(float a)
 {
-   return !isnan(a) && isnan(a-a);
+   return !FltIsnan(a) && FltIsnan(a-a);
 }
 
 // This one is defined for the RampT template function to work properly

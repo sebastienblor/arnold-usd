@@ -11,8 +11,8 @@
 #endif
 #endif
 
-bool isnan(float a);
-bool isinf(float a);
+bool FltIsnan(float a);
+bool FltIsinf(float a);
 
 float Luminance(float v);
 float Luminance(const AtRGB &color);

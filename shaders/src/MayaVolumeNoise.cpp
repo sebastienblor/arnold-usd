@@ -247,7 +247,7 @@ shader_evaluate
                   waveVal += (float) cos(twopi * AiV3Dot(P, d) + time);
                }
 
-               if(isnan(waveVal))
+               if(FltIsnan(waveVal))
                   break;
 
                waveVal /= numWaves;
