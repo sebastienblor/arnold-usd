@@ -203,7 +203,7 @@ if system.os == 'windows':
     if int(maya_version_base) >= 2018:
         msvc_version = '14.0'
     if int(maya_version_base) >= 2020:
-        msvc_version = '15.0'
+        msvc_version = '15.9'
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
     tmp_env['MSVC_VERSION'] = msvc_version
