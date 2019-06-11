@@ -90,6 +90,12 @@ void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "aiCompound";
    helper.MakeInputString ( data );
 
+   // motion blur controls
+   data.defaultValue.FLT() = 1.0f;
+   data.name = "aiVelocityScale";
+   data.shortName = "aiVelocityScale";
+   helper.MakeInputFloat ( data );
+
    // procedural namespace parameter
    helper.MakeInput("namespace");
 
@@ -233,6 +239,13 @@ void CBifShapeTranslator::Export( AtNode *shape )
          AiNodeSetArray(shape, "material_references", materialReferences);
          AiNodeSetArray(shape, "shader_references", shaderReferences);
       }
+   }
+
+   MPlug velocityScalePlug = FindMayaPlug("aiVelocityScale");
+   if (!velocityScalePlug.isNull())
+   {
+      float velocityScale = velocityScalePlug.asFloat();
+      AiNodeSetFlt(shape, "velocity_scale", velocityScale);
    }
 
    if (RequiresShaderExport())
