@@ -96,6 +96,15 @@ void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "aiVelocityScale";
    helper.MakeInputFloat ( data );
 
+   MStringArray  enumNames;
+   enumNames.append ( "Auto" );
+   enumNames.append ( "Velocity Only" );
+   data.defaultValue.INT() = 0;
+   data.name = "aiMotionBlurMode";
+   data.shortName = "aiMotionBlurMode";
+   data.enums= enumNames;
+   helper.MakeInputEnum ( data );
+
    // procedural namespace parameter
    helper.MakeInput("namespace");
 
@@ -105,6 +114,7 @@ void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
    data.type = AI_TYPE_NODE;
    data.isArray = true;
    helper.MakeInput(data);
+
 }
 
 AtNode* CBifShapeTranslator::CreateArnoldNodes()
@@ -312,6 +322,13 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
          AiNodeSetPtr(node, "shader", NULL);
       }
    }
+}
+bool CBifShapeTranslator::RequiresMotionData()
+{
+   if (FindMayaPlug("aiMotionBlurMode").asInt() == 1)
+      return false;
+
+   return CProceduralTranslator::RequiresMotionData();
 }
 
 void CBifShapeTranslator::ExportMotion(AtNode *shape)
