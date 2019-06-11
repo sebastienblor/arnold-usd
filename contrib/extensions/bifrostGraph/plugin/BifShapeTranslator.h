@@ -16,6 +16,7 @@ public:
 
    virtual void Export(AtNode* curve);
    virtual void ExportMotion(AtNode* curve);
+   virtual bool RequiresMotionData(); 
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    static void* creator()
