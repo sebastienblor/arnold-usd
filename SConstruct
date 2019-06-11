@@ -202,8 +202,10 @@ if system.os == 'windows':
         msvc_version = '11.0'
     if int(maya_version_base) >= 2018:
         msvc_version = '14.0'
+    '''
     if int(maya_version_base) >= 2020:
         msvc_version = '15.9'
+    '''
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
     tmp_env['MSVC_VERSION'] = msvc_version
@@ -504,7 +506,7 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        if int(maya_version_base) >= 2020:
+        if False: #int(maya_version_base) >= 2020:
             env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.13'))
             env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.13'))
         else:
