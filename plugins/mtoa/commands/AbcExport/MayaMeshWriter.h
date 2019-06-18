@@ -34,8 +34,8 @@
 //
 //-*****************************************************************************
 
-#ifndef AbcExport_MayaMeshWriter_h
-#define AbcExport_MayaMeshWriter_h
+#ifndef CArnoldExportAbcCmd_MayaMeshWriter_h
+#define CArnoldExportAbcCmd_MayaMeshWriter_h
 
 #include "Foundation.h"
 #include "AttributesWriter.h"
@@ -108,4 +108,4 @@ class MayaMeshWriter
     UVParamsVec mUVparams;
 };
 
-#endif  // AbcExport_MayaMeshWriter_h
+#endif  // CArnoldExportAbcCmd_MayaMeshWriter_h

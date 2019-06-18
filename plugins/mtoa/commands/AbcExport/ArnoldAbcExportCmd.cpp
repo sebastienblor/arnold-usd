@@ -34,27 +34,25 @@
 //
 //-*****************************************************************************
 
-#include "AbcExport.h"
+#include "ArnoldAbcExportCmd.h"
 #include "AbcWriteJob.h"
-#include "Export.h"
 #include "MayaUtility.h"
 
-#include <maya/MFnPlugin.h>
 #include <maya/MFileObject.h>
 #include <maya/MItDependencyNodes.h>
 #include <fstream>
 
 namespace AbcA = Alembic::AbcCoreAbstract;
 
-AbcExport::AbcExport()
+CArnoldExportAbcCmd::CArnoldExportAbcCmd()
 {
 }
 
-AbcExport::~AbcExport()
+CArnoldExportAbcCmd::~CArnoldExportAbcCmd()
 {
 }
 
-MSyntax AbcExport::createSyntax()
+MSyntax CArnoldExportAbcCmd::createSyntax()
 {
     MSyntax syntax;
 
@@ -72,12 +70,12 @@ MSyntax AbcExport::createSyntax()
 }
 
 
-void* AbcExport::creator()
+void* CArnoldExportAbcCmd::creator()
 {
-    return new AbcExport();
+    return new CArnoldExportAbcCmd();
 }
 
-MStatus AbcExport::doIt(const MArgList & args)
+MStatus CArnoldExportAbcCmd::doIt(const MArgList & args)
 {
 try
 {
@@ -1142,43 +1140,4 @@ catch (std::exception & e)
     return MS::kFailure;
 }
 
-}
-
-
-
-ALEMBIC_MAYA_PLUGIN_EXPORT  MStatus initializePlugin(MObject obj)
-{
-    MStatus status;
-    MFnPlugin plugin(obj, "Alembic", ABCEXPORT_VERSION, "Any");
-
-    status = plugin.registerCommand(
-        "AbcExport", AbcExport::creator,
-        AbcExport::createSyntax );
-
-    if (!status)
-    {
-        status.perror("registerCommand");
-    }
-
-    MString info = "AbcExport v";
-    info += ABCEXPORT_VERSION;
-    info += " using ";
-    info += Alembic::Abc::GetLibraryVersion().c_str();
-    MGlobal::displayInfo(info);
-
-    return status;
-}
-
-ALEMBIC_MAYA_PLUGIN_EXPORT MStatus uninitializePlugin(MObject obj)
-{
-    MStatus status;
-    MFnPlugin plugin(obj);
-
-    status = plugin.deregisterCommand("AbcExport");
-    if (!status)
-    {
-        status.perror("deregisterCommand");
-    }
-
-    return status;
 }

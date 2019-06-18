@@ -34,8 +34,8 @@
 //
 //-*****************************************************************************
 
-#ifndef AbcExport_MayaNurbsSurfaceWriter_h
-#define AbcExport_MayaNurbsSurfaceWriter_h
+#ifndef CArnoldExportAbcCmd_MayaNurbsSurfaceWriter_h
+#define CArnoldExportAbcCmd_MayaNurbsSurfaceWriter_h
 
 #include "Foundation.h"
 #include "AttributesWriter.h"
@@ -63,4 +63,4 @@ class MayaNurbsSurfaceWriter
     Alembic::AbcGeom::ONuPatchSchema mSchema;
 };
 
-#endif  // AbcExport_MayaNurbsSurfaceWriter_h
+#endif  // CArnoldExportAbcCmd_MayaNurbsSurfaceWriter_h

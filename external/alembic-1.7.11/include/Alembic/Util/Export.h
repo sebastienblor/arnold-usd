@@ -1,7 +1,7 @@
 //-*****************************************************************************
 //
-// Copyright (c) 2009-2011,
-//  Sony Pictures Imageworks Inc. and
+// Copyright (c) 2009-2015,
+//  Sony Pictures Imageworks, Inc. and
 //  Industrial Light & Magic, a division of Lucasfilm Entertainment Company Ltd.
 //
 // All rights reserved.
@@ -16,7 +16,7 @@
 // in the documentation and/or other materials provided with the
 // distribution.
 // *       Neither the name of Sony Pictures Imageworks, nor
-// Industrial Light & Magic, nor the names of their contributors may be used
+// Industrial Light & Magic nor the names of their contributors may be used
 // to endorse or promote products derived from this software without specific
 // prior written permission.
 //
@@ -34,20 +34,23 @@
 //
 //-*****************************************************************************
 
-#ifndef AbcExport_AbcExport_h
-#define AbcExport_AbcExport_h
+#ifndef Alembic_Util_Export_h
+#define Alembic_Util_Export_h
 
-#include "Foundation.h"
+#if defined(ALEMBIC_DLL)
+    #if defined(ALEMBIC_EXPORTS)
+        #define ALEMBIC_EXPORT __declspec(dllexport)
+    #else
+        #define ALEMBIC_EXPORT __declspec(dllimport)
+    #endif
+    #define ALEMBIC_EXPORT_CONST
+#else
+    #if defined _WIN32 || defined _WIN64
+        #define ALEMBIC_EXPORT
+    #else
+        #define ALEMBIC_EXPORT __attribute__ ((visibility ("default")))
+    #endif
+    #define ALEMBIC_EXPORT_CONST const
+#endif
 
-class AbcExport : public MPxCommand
-{
-  public:
-    AbcExport();
-    ~AbcExport() override;
-    MStatus doIt(const MArgList& args) override;
-
-    static MSyntax  createSyntax();
-    static void* creator();
-};
-
-#endif  // AbcExport_AbcExport_h
+#endif /* Alembic_Util_Export_h */

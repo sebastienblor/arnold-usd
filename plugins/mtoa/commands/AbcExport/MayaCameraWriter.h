@@ -34,8 +34,8 @@
 //
 //-*****************************************************************************
 
-#ifndef AbcExport_MayaCameraWriter_h
-#define AbcExport_MayaCameraWriter_h
+#ifndef CArnoldExportAbcCmd_MayaCameraWriter_h
+#define CArnoldExportAbcCmd_MayaCameraWriter_h
 
 #include "Foundation.h"
 #include "AttributesWriter.h"
@@ -70,4 +70,4 @@ class MayaCameraWriter
 
 typedef Alembic::Util::shared_ptr < MayaCameraWriter > MayaCameraWriterPtr;
 
-#endif  // AbcExport_MayaCameraWriter_h
+#endif  // CArnoldExportAbcCmd_MayaCameraWriter_h

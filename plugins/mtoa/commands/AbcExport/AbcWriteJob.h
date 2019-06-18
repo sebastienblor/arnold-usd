@@ -34,8 +34,8 @@
 //
 //-*****************************************************************************
 
-#ifndef AbcExport_AbcWriteJob_h
-#define AbcExport_AbcWriteJob_h
+#ifndef CArnoldExportAbcCmd_AbcWriteJob_h
+#define CArnoldExportAbcCmd_AbcWriteJob_h
 
 #include "Foundation.h"
 
@@ -231,4 +231,4 @@ class AbcWriteJob
 
 typedef Alembic::Util::shared_ptr < AbcWriteJob > AbcWriteJobPtr;
 
-#endif  // AbcExport_AbcWriteJob_h
+#endif  // CArnoldExportAbcCmd_AbcWriteJob_h
