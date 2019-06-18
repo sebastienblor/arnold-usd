@@ -858,7 +858,7 @@ env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*"))
 if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
     env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'usd'), os.path.join(ARNOLD, 'usd', 'delegate'))
 if os.path.exists(os.path.join(os.path.join(ARNOLD, 'bin', 'usd'))):
-    env.Install(env['TARGET_BINARIES'], os.path.join(ARNOLD, 'bin', 'usd'))
+    env.Install(os.path.join(env['TARGET_BINARIES'], 'usd'), glob.glob(os.path.join(ARNOLD, 'bin', 'usd', '*')))
 # if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
 #     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
@@ -1239,7 +1239,12 @@ if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
     PACKAGE_FILES += [ [os.path.join(ARNOLD, 'usd', 'delegate', '*'), os.path.join('usd', 'delegate')]]
 
 if os.path.exists(os.path.join(ARNOLD, 'bin', 'usd')):
-    PACKAGE_FILES += [ [os.path.join(ARNOLD, 'bin', 'usd', '*'), os.path.join('bin', 'usd')]]
+    usd_resources = find_files_recursive(os.path.join(ARNOLD, 'bin', 'usd'), ['.json', '.usda', '.glslfx', '.h', '.cpp'])
+    for p in usd_resources:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [
+            [os.path.join(ARNOLD, 'bin', 'usd', p), os.path.join('bin', 'usd', d)]
+        ]
 
 for p in presetfiles:
     (d, f) = os.path.split(p)
