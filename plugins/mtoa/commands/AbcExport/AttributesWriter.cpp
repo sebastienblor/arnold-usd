@@ -124,6 +124,23 @@ bool endsWithArbAttr(const std::string & iStr)
         (len >= 8 && iStr.compare(len - 8, 8, cAttrType) == 0);
 }
 
+void  stripMtoAPrefix(std::string & plugName)
+{
+    if(strncmp(plugName.c_str(), "mtoa_", 5) == 0)
+    {
+        if (strncmp(plugName.c_str(), "mtoa_constant_", 14) == 0)
+            plugName.erase(0,14);
+
+        else if (strncmp(plugName.c_str(), "mtoa_uniform_", 13) == 0 || strncmp(plugName.c_str(), "mtoa_varying_", 13) == 0)
+            plugName.erase(0,13);
+    }
+}
+
+void resolveMtoAAttribute()
+{
+
+}
+
 void createUserPropertyFromNumeric(MFnNumericData::Type iType,
                                    const MObject& iAttr,
                                    const MPlug& iPlug,
@@ -134,6 +151,7 @@ void createUserPropertyFromNumeric(MFnNumericData::Type iType,
                                    std::vector < PlugAndObjArray > & oArrays)
 {
     std::string plugName = iPlug.partialName(0, 0, 0, 0, 0, 1).asChar();
+    stripMtoAPrefix(plugName);
     switch (iType)
     {
         case MFnNumericData::kBoolean:
@@ -315,6 +333,7 @@ void createGeomPropertyFromNumeric(MFnNumericData::Type iType, const MObject& iA
                                std::vector < PlugAndObjArray > & oArrayVec)
 {
     std::string plugName = iPlug.partialName(0, 0, 0, 0, 0, 1).asChar();
+    stripMtoAPrefix(plugName);
     switch (iType)
     {
         case MFnNumericData::kBoolean:
@@ -1314,6 +1333,7 @@ void createUserPropertyFromMFnAttr(const MObject& iAttr,
 {
     MStatus stat;
     std::string plugName = iPlug.partialName(0, 0, 0, 0, 0, 1).asChar();
+    stripMtoAPrefix(plugName);
 
     if (iAttr.hasFn(MFn::kNumericAttribute))
     {
@@ -1492,6 +1512,7 @@ void createGeomPropertyFromMFnAttr(const MObject& iAttr,
     MStatus stat;
 
     std::string plugName = iPlug.partialName(0, 0, 0, 0, 0, 1).asChar();
+    stripMtoAPrefix(plugName);
 
     if (iAttr.hasFn(MFn::kNumericAttribute))
     {
