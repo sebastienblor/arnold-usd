@@ -337,8 +337,14 @@ MayaMeshWriter::MayaMeshWriter(MDagPath & iDag,
     name = util::stripNamespaces(name, iArgs.stripNamespace);
 
     // check to see if this poly has been tagged as a SubD
-    MPlug plug = lMesh.findPlug("SubDivisionMesh", true);
+    MPlug plug = lMesh.findPlug("aiSubdivType", true);
 
+    MString msg = "Subdiv plug: ";
+    msg += mDagPath.fullPathName() + " : ";
+    msg += name + " : ";
+    msg += plug.name() + " : ";
+    msg += plug.asBool() + " : ";
+    msg += plug.asInt();
     // if there is flag "autoSubd", and NO "SubDivisionMesh" was defined,
     // let's check whether the mesh has crease edge, crease vertex or holes
     // then the mesh will be treated as SubD
@@ -365,8 +371,10 @@ MayaMeshWriter::MayaMeshWriter(MDagPath & iDag,
         sf = Alembic::Abc::kSparse;
     }
 
+    MGlobal::displayInfo(msg);
     if ( (!plug.isNull() && plug.asBool()) || hasToWriteSubd )
     {
+
         Alembic::AbcGeom::OSubD obj(iParent, name.asChar(), sf, iTimeIndex);
         mSubDSchema = obj.getSchema();
 
@@ -825,6 +833,41 @@ void MayaMeshWriter::writeUVSets()
     }
 }
 
+void MayaMeshWriter::writeArnoldSubDivAttrs()
+{
+    MStatus status = MS::kSuccess;
+    MFnMesh lMesh( mDagPath, &status );
+    const int subdivision = lMesh.findPlug("aiSubdivType", true).asInt();
+    if (subdivision!=0)
+    {
+        Alembic::Abc::OCompoundProperty cp = mSubDSchema.getArbGeomParams();
+        Alembic::Abc::OStringProperty subdiv_type(cp, "subdiv_type");
+
+        if (subdivision==1)
+            subdiv_type.set("catclark");
+        else
+            subdiv_type.set("linear");
+
+        Alembic::Abc::OCharProperty subdiv_iterations(cp, "subdiv_iterations");
+        subdiv_iterations.set(lMesh.findPlug("aiSubdivIterations", true).asInt());
+
+        Alembic::Abc::OInt32Property subdiv_adaptive_metric(cp, "subdiv_adaptive_metric");
+        subdiv_adaptive_metric.set(lMesh.findPlug("aiSubdivAdaptiveMetric", true).asInt());
+        Alembic::Abc::OInt32Property subdiv_adaptive_space(cp, "subdiv_adaptive_space");
+        subdiv_adaptive_space.set(lMesh.findPlug("aiSubdivAdaptiveSpace", true).asInt());
+        Alembic::Abc::OInt32Property subdiv_uv_smoothing(cp, "subdiv_uv_smoothing");
+        subdiv_uv_smoothing.set(lMesh.findPlug("aiSubdivUvSmoothing", true).asInt());
+
+        Alembic::Abc::OFloatProperty subdiv_adaptive_error(cp, "subdiv_adaptive_error");
+        subdiv_adaptive_error.set(lMesh.findPlug("aiSubdivPixelError", true).asFloat());
+
+        Alembic::Abc::OBoolProperty subdiv_smooth_derivs(cp, "subdiv_smooth_derivs");
+        subdiv_smooth_derivs.set(lMesh.findPlug("aiSubdivSmoothDerivs", true).asBool());
+        Alembic::Abc::OBoolProperty subdiv_frustum_ignore(cp, "subdiv_frustum_ignore");
+        subdiv_frustum_ignore.set(lMesh.findPlug("aiSubdivFrustumIgnore", true).asBool());
+    }
+}
+
 void MayaMeshWriter::writeColor()
 {
 
@@ -1109,6 +1152,7 @@ void MayaMeshWriter::writeSubD(
     mSubDSchema.set(samp);
     writeColor();
     writeUVSets();
+    writeArnoldSubDivAttrs();
 }
 
 // the arrays being passed in are assumed to be empty
