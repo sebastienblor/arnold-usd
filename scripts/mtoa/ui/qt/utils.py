@@ -21,7 +21,11 @@ STRING_EXP = re.compile(r'[\'\"](.*)[\'\"]')
 
 def dpiScale(value):
     """Scale the value according to the current DPI of the current monitor."""
+    if type(value) in [QtCore.QPoint, QtCore.QPointF]:
+        result = tuple([_DPI_SCALE * x for x in value.toTuple()])
+        return type(value)(*result)
     return _DPI_SCALE * value
+
 
 def dpiScaledIcon(path):
     """Creates QPixmap and scales it for hi-dpi mode"""
@@ -34,6 +38,7 @@ def dpiScaledIcon(path):
             QtCore.Qt.SmoothTransformation)
 
     return icon
+
 
 def toPyObject(obj):
     """Call QVariant.toPyObject on the case we are in PyQt."""
