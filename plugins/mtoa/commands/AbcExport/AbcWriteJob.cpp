@@ -410,7 +410,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
        }
 
         MayaNurbsCurveWriterPtr nurbsCurve;
-        if (iParent == NULL)
+        if (iParent == nullptr)
         {
             Alembic::Abc::OObject obj = mRoot.getTop();
             nurbsCurve = MayaNurbsCurveWriterPtr(new MayaNurbsCurveWriter(
@@ -456,7 +456,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
         }
 
         // parented to the root case
-        if (iParent == NULL)
+        if (iParent == nullptr)
         {
             Alembic::Abc::OObject obj = mRoot.getTop();
             trans = MayaTransformWriterPtr(new MayaTransformWriter(
@@ -511,7 +511,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != NULL)
+        if (iParent != nullptr)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaLocatorWriterPtr locator(new MayaLocatorWriter(
@@ -555,7 +555,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != NULL)
+        if (iParent != nullptr)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaPointPrimitiveWriterPtr particle(new MayaPointPrimitiveWriter(
@@ -601,7 +601,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != NULL)
+        if (iParent != nullptr)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaMeshWriterPtr mesh(new MayaMeshWriter(mCurDag, obj,
@@ -667,7 +667,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != NULL)
+        if (iParent != nullptr)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaCameraWriterPtr camera(new MayaCameraWriter(
@@ -709,7 +709,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != NULL)
+        if (iParent != nullptr)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaNurbsSurfaceWriterPtr nurbsSurface(new MayaNurbsSurfaceWriter(
@@ -755,7 +755,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != NULL)
+        if (iParent != nullptr)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaNurbsCurveWriterPtr nurbsCurve(new MayaNurbsCurveWriter(
@@ -872,7 +872,7 @@ bool AbcWriteJob::eval(double iFrame)
         bool foundShapeFrame = false;
         if (checkFrame != mShapeFrames.end())
         {
-            assert(mRoot != NULL);
+            assert(mRoot != nullptr);
             foundShapeFrame = true;
             mShapeSamples ++;
             double curTime = iFrame * util::spf();
