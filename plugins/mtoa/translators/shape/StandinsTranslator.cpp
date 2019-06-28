@@ -24,6 +24,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
    // before we test it in ExportUserAttribute #3673
    IsMasterInstance();
+   m_isAlembic = false;
 
    MString dso = FindMayaPlug("dso").asString();
    if (dso.length() == 0)
@@ -36,7 +37,10 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    {
       MString ext = splitStr[splitStr.length() -1].toLowerCase();
       if (ext == "abc")
+      {
+         m_isAlembic = true;
          return AddArnoldNode("alembic");
+      }
 
       if (ext == "usd")
       {
@@ -58,6 +62,8 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
    // First export the generic procedural parameters defined in ProceduralTranslator
    ExportProcedural(anode);
 
+   if ( m_isAlembic )
+      ExportAlembicParameters(anode);
    // Then export the standin filename
    ExportStandInFilename(anode);  
 }
@@ -175,7 +181,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    GetSessionOptions().FormatProceduralPath(resolvedName);
    AiNodeSetStr(node, "filename", resolvedName.asChar());
 
-   if ( strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(node)), "alembic" ) == 0)
+   if ( m_isAlembic )
       AiNodeSetFlt(node, "frame", framestep);
 }
 
@@ -205,4 +211,9 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
 bool CArnoldStandInsTranslator::ExportDagChildren() const
 {
    return !FindMayaPlug("ignoreGroupNodes").asBool();
+}
+
+void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
+{
+   
 }

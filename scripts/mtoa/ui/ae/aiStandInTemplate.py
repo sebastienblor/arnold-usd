@@ -367,7 +367,45 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.setParent('..') # frameLayout
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
-    
+    def alembicLayersNew(self, nodeAttr):
+
+        # 2 Columns (Left with label+line edit, Right with list)
+        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,320),(2,100)], columnAlign=[(1, 'right'),(2, 'left')], columnAttach=[(1, 'right', 0), (2, 'left', 5)]) 
+
+        self.abcLayersList = cmds.textScrollList(height=50,allowMultiSelection=True)
+
+        # add remove buttons
+        cmds.rowColumnLayout( numberOfRows=2, rowHeight=[(1,20),(2,20)] )
+
+
+    def addAlembicParams(self):
+
+        self.beginLayout('Alembic Settings', collapse=True)
+        # fps
+        self.addControl('abc_fps', label='FPS')
+        # exclude_xform
+        # layers
+        self.addCustom('abc_layers', alembicLayersNew, alembicLayersReplace)
+        # object_path
+        self.addControl('abc_objectpath', label='Object Path')
+        # make_instance
+        self.addControl('abc_make_instance', label='Make Instance')
+        # pull_user_params
+        self.addControl('abc_pull_user_params', label='Pull User Params')
+        # visibility_ignore
+        self.addControl('abc_visibility_ignore', label='Ignore Visibility Attributes')
+        # radius_attribute
+        # radius_default
+        # radius_scale
+        # scene_camera
+        # flip_v
+        # velocity_ignore
+        # velocity_scale
+        self.endLayout()
+
+    def userOptionsNew(self, nodeAttr):
+
+        
 
     def setup(self):
         self.assInfoPath = ''
@@ -384,14 +422,16 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('useFrameExtension', label='Use File Sequence', changeCommand=self.useSequenceChange)
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
+        # alembic options
         self.addSeparator()
         self.addControl('overrideNodes')
         self.addControl('aiNamespace', label='Namespace')
         self.addSeparator()
         self.addControl('ignoreGroupNodes', label='Ignore Group Nodes')
         
-
         self.endLayout()
+
+        self.addAlembicParams()
         
         self.beginNoOptimize()
 

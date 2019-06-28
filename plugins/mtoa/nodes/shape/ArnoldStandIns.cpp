@@ -424,6 +424,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          {
             proc = AiNode("alembic");
             AiNodeSetFlt(proc, "frame", frameStep);
+            AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
          }
          else if (isUsd)
          {
@@ -1144,6 +1145,71 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
 
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
+
+   // Alembic attributes
+
+   data.defaultValue.STR() = AtString("/");
+   data.name = "abcObjectPath";
+   data.shortName = "abc_objectpath";
+   s_attributes.MakeInputString(data);
+
+   data.defaultValue.STR() = AtString("");
+   data.name = "abcNamePrefix";
+   data.shortName = "abc_nameprefix";
+   s_attributes.MakeInputString(data);
+
+   data.defaultValue.STR() = AtString("");
+   data.name = "abcLayers";
+   data.shortName = "abc_layers";
+   data.isArray = true;
+   s_attributes.MakeInputString(data);
+
+   data.defaultValue.FLT() = 24.0f;
+   data.name = "abcFPS";
+   data.isArray = false;
+   data.shortName = "abc_fps";
+   s_attributes.MakeInputFloat(data);
+
+   data.defaultValue.STR() = AtString("width");
+   data.name = "abcRadiusAttribute";
+   data.shortName = "abc_radius_attribute";
+   s_attributes.MakeInputString(data);
+
+   data.defaultValue.FLT() = 0.01f;
+   data.name = "abcRadiusDefault";
+   data.shortName = "abc_radius_default";
+   s_attributes.MakeInputFloat(data);
+
+   data.defaultValue.FLT() = 1.0f;
+   data.name = "abcRadiusScale";
+   data.shortName = "abc_radius_scale";
+   s_attributes.MakeInputFloat(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcVelocityIgnore";
+   data.shortName = "abc_velocity_ignore";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.FLT() = 1.0f;
+   data.name = "abcVelocityScale";
+   data.shortName = "abc_velocity_scale";
+   s_attributes.MakeInputFloat(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcVisibilityIgnore";
+   data.shortName = "abc_visibility_ignore";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcMakeInstance";
+   data.shortName = "abc_make_instance";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcPullUserParams";
+   data.shortName = "abc_pull_user_params";
+   s_attributes.MakeInputBoolean(data);
+
 
    return MStatus::kSuccess;
 }
