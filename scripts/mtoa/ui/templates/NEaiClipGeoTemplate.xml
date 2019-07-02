@@ -9,11 +9,11 @@
             <label>Intersection</label>
         </attribute>
     </template>
-    <view name='NEDefault' template='NEaiSubtractGeo'>
+    <view name='NEDefault' template='NEaiClipGeo'>
         <property name='outColor'/>
         <property name='intersection'/>
     </view>
-    <view name='NEDefaultSoloOutput' template='NEaiSubtractGeo'>
+    <view name='NEDefaultSoloOutput' template='NEaiClipGeo'>
         <property name='outColor'/>
     </view>
 
