@@ -11,6 +11,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MRenderUtil.h>
+#include <maya/MFnStringArrayData.h>
 
 
 #include <maya/MString.h>
@@ -215,5 +216,52 @@ bool CArnoldStandInsTranslator::ExportDagChildren() const
 
 void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
 {
-   
+   // # objectpath
+   MString objectpath = m_DagNode.findPlug("objectPath", true).asString();
+   AiNodeSetStr(node, "objectpath", objectpath.asChar());
+
+   // # fps
+   float fps = FindProceduralPlug("abcFPS").asFloat();
+   AiNodeSetFlt(node, "fps", fps);
+   // # exclude_xform
+   bool exclude_xform = FindProceduralPlug("abc_exclude_xform").asBool();
+   AiNodeSetBool(node, "exclude_xform", exclude_xform);
+   // # layers
+
+   // loop through the layers list and append to the string array
+
+   MString layersString =  m_DagNode.findPlug("abcLayers", true).asString();
+
+   if (layersString.length())
+   {
+      MStringArray layerList;
+      layersString.split(';', layerList);
+      AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
+      for (unsigned int i=0; i < layerList.length(); i++)
+         AiArraySetStr(layersArray, i, layerList[i].asChar());
+
+      AiNodeSetArray(node, "layers", layersArray);
+   }
+   // # make_instance
+   bool make_instance = FindProceduralPlug("abc_make_instance").asBool();
+   AiNodeSetBool(node, "make_instance", make_instance);
+   // # pull_user_params
+   bool pull_user_params = FindProceduralPlug("abc_pull_user_params").asBool();
+   AiNodeSetBool(node, "pull_user_params", pull_user_params);
+   // # visibility_ignore
+   bool visibility_ignore = FindProceduralPlug("abc_visibility_ignore").asBool();
+   AiNodeSetBool(node, "visibility_ignore", visibility_ignore);
+   // # radius_attribute
+   // # radius_default
+   float radius_default = FindProceduralPlug("abc_radius_default").asFloat();
+   AiNodeSetFlt(node, "radius_default", radius_default);
+   // # radius_scale
+   float radius_scale = FindProceduralPlug("abc_radius_scale").asFloat();
+   AiNodeSetFlt(node, "radius_scale", radius_scale);
+   // # scene_camera
+   // # flip_v
+   // # velocity_ignore
+   // # velocity_scale
+   float velocity_scale = FindProceduralPlug("abc_velocity_scale").asFloat();
+   AiNodeSetFlt(node, "velocity_scale", velocity_scale);
 }

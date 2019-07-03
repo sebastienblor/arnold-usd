@@ -1146,12 +1146,14 @@ MStatus CArnoldStandInShape::initialize()
 
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
-   // Alembic attributes
+   // USD and Alembic have object path parameter
 
    data.defaultValue.STR() = AtString("/");
-   data.name = "abcObjectPath";
-   data.shortName = "abc_objectpath";
+   data.name = "objectPath";
+   data.shortName = "objectpath";
    s_attributes.MakeInputString(data);
+
+   // Alembic attributes
 
    data.defaultValue.STR() = AtString("");
    data.name = "abcNamePrefix";
@@ -1161,8 +1163,12 @@ MStatus CArnoldStandInShape::initialize()
    data.defaultValue.STR() = AtString("");
    data.name = "abcLayers";
    data.shortName = "abc_layers";
-   data.isArray = true;
    s_attributes.MakeInputString(data);
+
+   // s_abcLayers = tAttr.create("abcLayers", "abc_layers", MFnData::kStringArray); 
+   // tAttr.setInternal( true);
+   // tAttr.setStorable( true);
+   // addAttribute(s_abcLayers);
 
    data.defaultValue.FLT() = 24.0f;
    data.name = "abcFPS";
