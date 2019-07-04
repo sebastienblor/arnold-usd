@@ -66,6 +66,7 @@ MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
 MObject CArnoldStandInShape::s_ignoreGroupNodes;
+MObject CArnoldStandInShape::s_abcLayers;
 
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
@@ -425,6 +426,20 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             proc = AiNode("alembic");
             AiNodeSetFlt(proc, "frame", frameStep);
             AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
+            // add the layers
+            MPlug layerPlug(thisMObject(), s_abcLayers);
+            MString layersString =  layerPlug.asString();
+
+            if (layersString.length())
+            {
+              MStringArray layerList;
+              layersString.split(';', layerList);
+              AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
+              for (unsigned int i=0; i < layerList.length(); i++)
+                 AiArraySetStr(layersArray, i, layerList[i].asChar());
+
+              AiNodeSetArray(proc, "layers", layersArray);
+            }
          }
          else if (isUsd)
          {
@@ -1160,15 +1175,11 @@ MStatus CArnoldStandInShape::initialize()
    data.shortName = "abc_nameprefix";
    s_attributes.MakeInputString(data);
 
-   data.defaultValue.STR() = AtString("");
-   data.name = "abcLayers";
-   data.shortName = "abc_layers";
-   s_attributes.MakeInputString(data);
-
-   // s_abcLayers = tAttr.create("abcLayers", "abc_layers", MFnData::kStringArray); 
-   // tAttr.setInternal( true);
-   // tAttr.setStorable( true);
-   // addAttribute(s_abcLayers);
+   s_abcLayers = tAttr.create("abcLayers", "abc_layers", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setInternal( true);
+   tAttr.setStorable( true);
+   addAttribute(s_abcLayers);
 
    data.defaultValue.FLT() = 24.0f;
    data.name = "abcFPS";

@@ -116,6 +116,7 @@ private:
    static MObject s_drawOverride;
    static MObject s_selectedItems;
    static MObject s_ignoreGroupNodes;
+   static MObject s_abcLayers;
 
    MCallbackId m_attrChangeId;
    bool m_refreshAvoided;
