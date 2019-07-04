@@ -4,9 +4,12 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
 class aiClipGeoTemplate(ShaderAETemplate):
+    convertToMayaStyle = True
+
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.beginLayout('Main Attributes', collapse=False)
 
