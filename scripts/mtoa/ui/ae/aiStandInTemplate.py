@@ -454,12 +454,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def setUserOptions(self, nodeAttr):
 
         text = cmds.scrollField(self.userOptionsBox, q=True, text=True)
-        cmds.setAttr(nodeAttr, text.replace('\n', ' '), type='string')
+        cmds.setAttr(nodeAttr, text, type='string')
 
     def userOptionsNew(self, nodeAttr):
 
-        cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1,100), (2,100)], columnAlign=[(1, 'right'),(2, 'left')], columnAttach=[(1, 'right', 0), (2, 'left', 5)])
-        cmds.text(label="")
+        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1, 148)], adjustableColumn=2, columnAlign=[(2, 'right')],  columnAttach=[(1, 'right', 2)])
         cmds.text(label="User Options")
         self.userOptionsBox = cmds.scrollField(height=80)
 
