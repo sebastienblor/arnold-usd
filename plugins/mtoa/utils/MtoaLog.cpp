@@ -3,6 +3,7 @@
 #include "render/RenderOptions.h"
 
 #include <maya/MGlobal.h>
+#include <iostream>
 
 int GetFlagsFromVerbosityLevel(unsigned int level)
 {
@@ -29,7 +30,7 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
    if (NULL != buf)
    {
       sprintf(buf, header, msg_string);
-      clog << buf << endl;
+      std::clog << buf << std::endl;
       delete[] buf;
    }
    */
@@ -48,46 +49,46 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
       if (logmask & AI_LOG_INFO)
          // MGlobal::displayInfo(msg_string);
          // default color
-         // if (logmask & AI_LOG_COLOR) clog << "\033[0m";
+         // if (logmask & AI_LOG_COLOR) std::clog << "\033[0m";
 #ifndef _WIN32
-         clog << "\033[0m";
+         std::clog << "\033[0m";
 #endif
       break;
    case AI_SEVERITY_WARNING:
       if (logmask & AI_LOG_WARNINGS)
          MGlobal::displayWarning(msg_string);
          // yellow color
-         // if (logmask & AI_LOG_COLOR) clog << "\033[22;33m";
+         // if (logmask & AI_LOG_COLOR) std::clog << "\033[22;33m";
 #ifndef _WIN32
-         clog << "\033[22;33m";
+         std::clog << "\033[22;33m";
 #endif
       break;
    case AI_SEVERITY_ERROR:
       if (logmask & AI_LOG_ERRORS)
          MGlobal::displayError(msg_string);
          // red color
-         // if (logmask & AI_LOG_COLOR) clog << "\033[22;31m";
+         // if (logmask & AI_LOG_COLOR) std::clog << "\033[22;31m";
 #ifndef _WIN32
-         clog << "\033[22;31m";
+         std::clog << "\033[22;31m";
 #endif
       break;
    default:
       // default color
-      // if (logmask & AI_LOG_COLOR) clog << "\033[0m";
+      // if (logmask & AI_LOG_COLOR) std::clog << "\033[0m";
 #ifndef _WIN32
-      clog << "\033[0m";
+      std::clog << "\033[0m";
 #endif
       break;
    }
 
    // Standard log output
 #ifndef _WIN32
-   clog << msg_string << "\033[0m" << endl;
+   std::clog << msg_string << "\033[0m" << std::endl;
 #else
-   clog << msg_string << endl;
+   std::clog << msg_string << std::endl;
 #endif
-   // How do we know to write both in cerr and clog, or write in logFile even ?
-   // cerr << msg_string << endl;
+   // How do we know to write both in cerr and std::clog, or write in logFile even ?
+   // cerr << msg_string << std::endl;
 }
 
 // Setup a default logging level to use when not rendering.
@@ -118,5 +119,5 @@ DLLEXPORT void MtoaDebugLog(MString log)
 {
    // Do we want to dump this as a Maya log or as an arnold log ??
    MGlobal::displayInfo(log);
-   clog<<log.asChar()<<endl;
+   std::clog<<log.asChar()<<std::endl;
 }

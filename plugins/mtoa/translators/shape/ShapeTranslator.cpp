@@ -49,6 +49,15 @@ void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
    }
 }
 
+void CShapeTranslator::CheckCSGShader(AtNode* node, AtNode* shader)
+{
+   static const AtString subtract_geo_str("clip_geo");
+   if (AiNodeIs(shader, subtract_geo_str) )
+   {
+      AiNodeSetBool(node, "invert_normals", true);
+   }
+}
+
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)

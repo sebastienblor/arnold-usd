@@ -164,6 +164,7 @@
 #define ARNOLD_NODEID_SHADER_RAMP_RGB            0x00115DA6
 #define ARNOLD_NODEID_SHADER_RAMP_FLOAT          0x00115DA7
 #define ARNOLD_NODEID_SHADER_RGBA_TO_FLOAT       0x00115DA8
+#define ARNOLD_NODEID_SHADER_CLIP_GEO	         0x00115DA9
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00

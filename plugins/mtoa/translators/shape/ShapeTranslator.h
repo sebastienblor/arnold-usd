@@ -42,6 +42,9 @@ protected:
     */
    static void ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug);
 
+   /// Set invert_normals to true if the node is in the same set as the given clip_geo shader
+   static void CheckCSGShader(AtNode* node,AtNode* shader);
+
    /// Export the light linking for the current Maya Object
    void ExportLightLinking(AtNode* polymesh);
    
