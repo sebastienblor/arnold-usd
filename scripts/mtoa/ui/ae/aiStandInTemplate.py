@@ -391,16 +391,22 @@ class AEaiStandInTemplate(ShaderAETemplate):
             for i in selectedLayers:
                 currentLayers.pop(i-1)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
+            self.alembicLayersReplace(nodeAttr)
 
     def alembicLayersNew(self, nodeAttr):
 
         # 2 Columns (Left with label+line edit, Right with list)
-        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,320),(2,100)], columnAlign=[(1, 'right'),(2, 'left')], columnAttach=[(1, 'right', 0), (2, 'left', 5)]) 
+        cmds.rowColumnLayout(numberOfColumns=3,
+                             rowAttach=[(1, "top", 0)],
+                             columnWidth=[(1, 145),(2, 190), (3, 100)],
+                             columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')],
+                             columnAttach=[(1, 'right', 2), (2, 'left', 2)])
 
-        self.abcLayersList = cmds.textScrollList(height=100, allowMultiSelection=True)
+        cmds.text(label="Layers")
+        self.abcLayersList = cmds.textScrollList(height=100, width=180, allowMultiSelection=True)
 
         # add remove buttons
-        cmds.rowColumnLayout( numberOfRows=3, rowHeight=[(1,20),(2,20)] )
+        cmds.rowColumnLayout(numberOfRows=3, rowHeight=[(1,20),(2,20)], rowSpacing=[(2,2)])
         self.addLayerBtn = cmds.button(label='Add Layer', height=20, command=lambda *args: self.alembicAddLayer(nodeAttr))
         self.removeLayerBtn = cmds.button(label='Remove Layer', height=20, command=lambda *args: self.alembicRemoveLayer(nodeAttr))
 
@@ -414,8 +420,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         # add the layers from the new node
         # numlayers = mu.getAttrNumElements(*nodeAttr.split('.'))
-        for l in cmds.getAttr(nodeAttr).split(';'):
-            cmds.textScrollList(self.abcLayersList, e=True, append=l)
+        layer_str = cmds.getAttr(nodeAttr)
+        if not layer_str:
+            return
+
+        for l in layer_str.split(';'):
+            cmds.textScrollList(self.abcLayersList, e=True, append=os.path.basename(l))
 
         cmds.button(self.addLayerBtn, e=True, command=lambda *args: self.alembicAddLayer(nodeAttr))
         cmds.button(self.removeLayerBtn, e=True, command=lambda *args: self.alembicRemoveLayer(nodeAttr))
@@ -458,7 +468,13 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def userOptionsNew(self, nodeAttr):
 
-        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1, 148)], adjustableColumn=2, columnAlign=[(2, 'right')],  columnAttach=[(1, 'right', 2)])
+        cmds.rowColumnLayout(numberOfColumns=2,
+                             rowAttach=[(1, "top", 0)],
+                             columnWidth=[(1, 148)],
+                             adjustableColumn=2,
+                             columnAlign=[(2, 'right')],
+                             columnAttach=[(1, 'right', 2)])
+
         cmds.text(label="User Options")
         self.userOptionsBox = cmds.scrollField(height=80)
 
@@ -488,10 +504,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('aiNamespace', label='Namespace')
 
         self.addSeparator()
+        self.addCustom('aiUserOptions', self.userOptionsNew, self.userOptionsReplace)
 
         self.addSeparator()
         self.addControl('ignoreGroupNodes', label='Ignore Group Nodes')
-        self.addCustom('aiUserOptions', self.userOptionsNew, self.userOptionsReplace)
         # usd and alembic
         # object_path
         self.addControl('objectpath', label='Object Path')
