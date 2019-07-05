@@ -67,6 +67,7 @@ MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
 MObject CArnoldStandInShape::s_ignoreGroupNodes;
 MObject CArnoldStandInShape::s_abcLayers;
+MObject CArnoldStandInShape::s_abcFps;
 
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
@@ -425,6 +426,9 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          {
             proc = AiNode("alembic");
             AiNodeSetFlt(proc, "frame", frameStep);
+
+            MPlug fpsPlug(thisMObject(), s_abcFps);
+            AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
             AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
             // add the layers
             MPlug layerPlug(thisMObject(), s_abcLayers);
@@ -1181,11 +1185,11 @@ MStatus CArnoldStandInShape::initialize()
    tAttr.setStorable( true);
    addAttribute(s_abcLayers);
 
-   data.defaultValue.FLT() = 24.0f;
-   data.name = "abcFPS";
-   data.isArray = false;
-   data.shortName = "abc_fps";
-   s_attributes.MakeInputFloat(data);
+   s_abcFps = nAttr.create("abcFPS", "abc_fps", MFnNumericData::kFloat, 24.0f);
+   nAttr.setHidden(false);
+   nAttr.setInternal( true);
+   nAttr.setStorable( true);
+   addAttribute(s_abcFps);
 
    data.defaultValue.STR() = AtString("width");
    data.name = "abcRadiusAttribute";
@@ -1271,6 +1275,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    bool tmpUseFrameExtension = fGeometry.useFrameExtension;
    float tmpFrameStep = fGeometry.frame + fGeometry.frameOffset;
 
+   MString tmpAbcLayers = fGeometry.abcLayers;
+   float tmpAbcFps = fGeometry.abcFps;
+
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_dso);
    plug.getValue(fGeometry.dso);
@@ -1292,6 +1299,12 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry.frameOffset);
+
+   plug.setAttribute(s_abcLayers);
+   plug.getValue(fGeometry.abcLayers);
+
+   plug.setAttribute(s_abcFps);
+   plug.getValue(fGeometry.abcFps);
 
    //plug.setAttribute(s_deferStandinLoad);
    //plug.getValue(fGeometry.deferStandinLoad);
@@ -1412,7 +1425,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    }
    
    // Check if something has changed that requires us to reload the .ass (or at least the bounding box)
-   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride || tmpFrameStep != framestep))
+   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride || tmpFrameStep != framestep || tmpAbcLayers != fGeometry.abcLayers || tmpAbcFps != fGeometry.abcFps))
    {
       // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
       // If we can't, we have to load the .ass file and compute it ourselves
