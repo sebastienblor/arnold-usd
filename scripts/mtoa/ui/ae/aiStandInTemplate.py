@@ -370,6 +370,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def alembicAddLayer(self, nodeAttr):
         basicFilter = 'Alembic Cache(*.abc)'
         projectDir = cmds.workspace(query=True, directory=True)
+        projectRootDir = cmds.workspace(query=True, rootDirectory=True)
         ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Add Alembic Layer', okc='Load', fm=1, startingDirectory=projectDir)
         if ret is not None and len(ret):
             # get number of layers
@@ -378,7 +379,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 currentLayers = currentLayers.split(';')
             else:
                 currentLayers = []
-            currentLayers.append(ret[0])
+            rel_filepath = ret[0].replace(projectRootDir, "")
+            print rel_filepath
+            currentLayers.append(rel_filepath)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type="string")
             self.alembicLayersReplace(nodeAttr)
 
@@ -388,7 +391,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentLayers = cmds.getAttr(nodeAttr)
         if len(currentLayers):
             currentLayers = currentLayers.split(';')
-            for i in selectedLayers:
+            print selectedLayers
+            for i in reversed(selectedLayers):
+                print i-1
                 currentLayers.pop(i-1)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
             self.alembicLayersReplace(nodeAttr)
@@ -439,6 +444,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addCustom('abc_layers', self.alembicLayersNew, self.alembicLayersReplace)
 
         self.beginNoOptimize()
+        # name_prefix
+        self.addControl('abc_nameprefix', label='Name Prefix')
         # make_instance
         self.addControl('abc_make_instance', label='Make Instance')
         # pull_user_params
@@ -453,9 +460,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('abc_radius_scale', label='Radius Scale')
         # exclude_xform
         self.addControl('abc_exclude_xform', label='Exclude Xform')
-        # scene_camera
-        # flip_v
         # velocity_ignore
+        self.addControl('abc_velocity_ignore', label='Velocity Ignore')
         # velocity_scale
         self.addControl('abc_velocity_scale', label='Velocity Scale')
         self.endNoOptimize()
@@ -652,6 +658,19 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.suppress('collisionOffsetVelocityMultiplier')
         self.suppress('collisionDepthVelocityMultiplier')
         self.suppress('collisionDepthVelocityIncrement')
+
+        self.suppress('objectPath')
+        self.suppress('abcLayers')
+        self.suppress('abcFPS')
+        self.suppress('abcNamePrefix')
+        self.suppress('abcRadiusAttribute')
+        self.suppress('abcRadiusDefault')
+        self.suppress('abcRadiusScale')
+        self.suppress('abcVelocityIgnore')
+        self.suppress('abcVelocityScale')
+        self.suppress('abcVisibilityIgnore')
+        self.suppress('abcMakeInstance')
+        self.suppress('abcPullUserParams')
     
         self.addExtraControls()
         self.endScrollLayout()
