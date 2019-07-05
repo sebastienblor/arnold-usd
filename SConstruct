@@ -258,6 +258,17 @@ if env['MAYA_INCLUDE_PATH'] == '.':
 env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
+
+
+## TODO : HORRIBLE HACK TO GET IT TO WORK : MUST FIX 
+
+ARNOLD_AXF_INCLUDES = os.path.join(EXTERNAL_PATH, 'axf/include')
+ARNOLD_AXF_LIB = os.path.join(EXTERNAL_PATH, 'axf/lib/linux' )
+
+print "AXF INCLUDE PATH " , ARNOLD_AXF_INCLUDES 
+print "AXF LIB PATH", ARNOLD_AXF_LIB
+
+
 ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
 ARNOLD_BINARIES = env.subst(env['ARNOLD_BINARIES'])
 ARNOLD_PYTHON = env.subst(env['ARNOLD_PYTHON']) 
@@ -288,6 +299,7 @@ env['ENABLE_LOOKDEVKIT'] = 0
 env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
 env['ENABLE_GPU_CACHE'] = 1
+
 
 # Get arnold and maya versions used for this build
 
@@ -654,7 +666,12 @@ elif system.os == 'linux':
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
-   
+
+env.Append(CPPPATH = [ARNOLD_AXF_INCLUDES,])
+env.Append(LIBPATH = [ARNOLD_AXF_LIB,])
+
+
+
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
@@ -724,6 +741,8 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+        maya_env.Append(LIBS=Split('AxFtoA'))
+        #maya_env.Append(LIBS=Split('AxFDecoding'))
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
@@ -780,6 +799,7 @@ else:
         #env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
 
 Depends(MTOA, MTOA_API[0])
+Depends(MTOA, ARNOLD_API_LIB)
 
 
 SConscriptChdir(0)
@@ -846,6 +866,10 @@ clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'cl
 
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
+
+
+## TODO : HORRIBLE HACK TO GET IT TO WORK : MUST FIX 
+env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(clm_utils_path, "*")))
 

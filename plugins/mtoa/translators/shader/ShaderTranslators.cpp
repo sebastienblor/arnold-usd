@@ -6,6 +6,8 @@
 #include <ai_nodes.h>
 #include <ai_ray.h>
 
+#include <AxFtoA.h>
+
 #include <maya/MFnBlinnShader.h>
 #include <maya/MFnLambertShader.h>
 #include <maya/MFnPhongShader.h>
@@ -4307,4 +4309,41 @@ void CRampFloatTranslator::Export(AtNode* shader)
             break;
       }
    }  
+}
+// void CArnoldAxfShaderTranslator::NodeInitializer(CAbTranslator context)
+// {
+//    std::cout << " AXF Translating : Node Init" << std::endl;
+// }
+
+AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
+{
+   
+   MString axf_path = FindMayaPlug("axfFilePath").asString();
+   MString tex_path = FindMayaPlug("texturePath").asString();
+   float uvScale = FindMayaPlug("uvScale").asFloat();
+
+   AtUniverse *universe = AiUniverse();
+   
+   AtNode* ss = AxFtoAGetShader(NULL, axf_path.asChar(), tex_path.asChar(), uvScale);
+   if (ss == NULL)
+   {
+      std::cout << " Shader not supported" << std::endl;
+   }
+   return ss;
+}
+void CArnoldAxfShaderTranslator::Export(AtNode* shader)
+{
+std::cout << " AXF Translating : Node Init" << std::endl;
+  
+}
+
+void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "axfFilePath"))
+      SetUpdateMode(AI_RECREATE_NODE);
+   if ((plugName == "uvScale"))
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShaderTranslator::NodeChanged(node, plug);
 }
