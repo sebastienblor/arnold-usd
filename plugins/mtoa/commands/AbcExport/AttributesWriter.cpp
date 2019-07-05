@@ -115,6 +115,19 @@ AbcGeom::GeometryScope strToScope(MString iStr)
     return AbcGeom::kConstantScope;
 }
 
+AbcGeom::GeometryScope mtoaStrToScope(std::string &  plugName)
+{
+    // get the scope from
+    // mtoa_*_attrName string
+    if (strncmp(plugName.c_str(), "mtoa_constant_", 14) == 0)
+        return AbcGeom::kConstantScope;
+    else if (!strncmp(plugName.c_str(), "mtoa_uniform_", 13) == 0)
+        return AbcGeom::kUniformScope;
+    else if (!strncmp(plugName.c_str(), "mtoa_varying_", 13) == 0)
+        return AbcGeom::kVaryingScope;
+    return AbcGeom::kConstantScope;
+}
+
 // returns true if the string ends with _AbcGeomScope or _AbcType
 bool endsWithArbAttr(const std::string & iStr)
 {
@@ -122,6 +135,11 @@ bool endsWithArbAttr(const std::string & iStr)
 
     return (len >= 13 && iStr.compare(len - 13, 13, cAttrScope) == 0) ||
         (len >= 8 && iStr.compare(len - 8, 8, cAttrType) == 0);
+}
+
+bool isMtoAAttr(std::string & plugName)
+{
+    return strncmp(plugName.c_str(), "mtoa_", 5) == 0;
 }
 
 void  stripMtoAPrefix(std::string & plugName)
@@ -134,11 +152,6 @@ void  stripMtoAPrefix(std::string & plugName)
         else if (strncmp(plugName.c_str(), "mtoa_uniform_", 13) == 0 || strncmp(plugName.c_str(), "mtoa_varying_", 13) == 0)
             plugName.erase(0,13);
     }
-}
-
-void resolveMtoAAttribute()
-{
-
 }
 
 void createUserPropertyFromNumeric(MFnNumericData::Type iType,
@@ -1861,6 +1874,10 @@ AttributesWriter::AttributesWriter(
         else if (!scopePlug.isNull())
         {
             scope = strToScope(scopePlug.asString());
+        }
+        else if (isMtoAAttr(propStr))
+        {
+            scope = mtoaStrToScope(propStr);
         }
         else if (userPerParticleAttr)
         {

@@ -339,12 +339,6 @@ MayaMeshWriter::MayaMeshWriter(MDagPath & iDag,
     // check to see if this poly has been tagged as a SubD
     MPlug plug = lMesh.findPlug("aiSubdivType", true);
 
-    MString msg = "Subdiv plug: ";
-    msg += mDagPath.fullPathName() + " : ";
-    msg += name + " : ";
-    msg += plug.name() + " : ";
-    msg += plug.asBool() + " : ";
-    msg += plug.asInt();
     // if there is flag "autoSubd", and NO "SubDivisionMesh" was defined,
     // let's check whether the mesh has crease edge, crease vertex or holes
     // then the mesh will be treated as SubD
@@ -371,7 +365,6 @@ MayaMeshWriter::MayaMeshWriter(MDagPath & iDag,
         sf = Alembic::Abc::kSparse;
     }
 
-    MGlobal::displayInfo(msg);
     if ( (!plug.isNull() && plug.asBool()) || hasToWriteSubd )
     {
 
