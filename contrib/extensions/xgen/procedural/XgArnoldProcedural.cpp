@@ -41,6 +41,7 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(XgArnoldProceduralMtd);
 node_parameters
 {
    AiParameterStr("data", "");
+   AiMetaDataSetBool(nentry, AtString(""), AtString("parallel_init"), true);
 }
 
 procedural_init
