@@ -27,7 +27,8 @@ class AEaiMatteTemplate(ShaderAETemplate):
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()
-        
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+
         self.addCustom("passthrough", PassthroughNew, PassthroughReplace)
         self.addSeparator()
         self.addControl("color")
