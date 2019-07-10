@@ -588,7 +588,7 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStart()', category="Utilities", annotation='Pre-Populate the Optix GPU Cache')
         addRuntimeMenuItem('AbortGPUCache', label='Abort GPU Cache pre-population', parent='ArnoldUtilities', keywords='GPU',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStop()', category="Utilities", annotation='Terminate the Optix GPU cache creation')
-        cmds.menuItem('ArnoldLicensingMenu', label='RLM Licensing', parent='ArnoldMenu',
+        cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
@@ -657,6 +657,9 @@ def createArnoldMenu():
 
         cmds.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5ARP/Arnoldpedia'))
+        
+        cmds.menuItem('MtoAReleaseNotes', label='Release Notes', parent='ArnoldHelpMenu',
+        c=lambda *args: cmds.launch(webPage= 'https://docs.arnoldrenderer.com/display/A5AFMUG/' + str(cmds.pluginInfo( 'mtoa', query=True, version=True))))
                     
         cmds.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())

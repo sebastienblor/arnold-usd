@@ -264,6 +264,8 @@ AtNode*  CFileTranslator::CreateArnoldNodes()
       return uvTransformNode;
    }
 
+   // FIXME isolate selected in ARV is going to ignore color_correct & uv_transform
+
    return (colorCorrectNode) ? colorCorrectNode : imageNode;
 }
 
@@ -871,7 +873,7 @@ AtNode*  CCheckerTranslator::CreateArnoldNodes()
       AiNodeLink((colorCorrectNode) ? colorCorrectNode : checkerNode, "passthrough", uvTransformNode);
       return uvTransformNode;
    }
-
+   // FIXME: Isolate selected in ARV is going to ignore color_correct and uv_transform
    return (colorCorrectNode) ? colorCorrectNode : checkerNode;
 }
 
@@ -1602,7 +1604,7 @@ AtNode* CRemapColorTranslator::CreateArnoldNodes()
    AtNode* G_Ramp = AddArnoldNode("ramp_float", "G_ramp");
    AtNode* B_Ramp = AddArnoldNode("ramp_float", "B_ramp");
 
-   AtNode* outRemapRange = AddArnoldNode("range", "outRemapRange");
+   AtNode* outRemapRange = AddArnoldNode("range");
 
    AiNodeLinkOutput(inRemapRange, "r", R_Ramp, "input");
    AiNodeLinkOutput(inRemapRange, "g", G_Ramp, "input");
@@ -1680,7 +1682,7 @@ AtNode* CRemapHsvTranslator::CreateArnoldNodes()
    AtNode* S_Ramp = AddArnoldNode("ramp_float", "S_ramp");
    AtNode* V_Ramp = AddArnoldNode("ramp_float", "V_ramp");
    AtNode* outRemapRange = AddArnoldNode("range", "outRemapRange");
-   AtNode* HSVtoRGB = AddArnoldNode("color_convert", "HSVtoRGB");
+   AtNode* HSVtoRGB = AddArnoldNode("color_convert", "");
 
    AiNodeLink(RGBtoHSV, "input", inRemapRange);
    AiNodeLinkOutput(inRemapRange, "r", H_Ramp, "input");

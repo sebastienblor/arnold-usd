@@ -457,6 +457,8 @@ node_parameters
     AiParameterBool( "motionBlur" , 0);
     AiParameterFlt( "shutterStart" , 0);
     AiParameterFlt( "shutterEnd" , 0);
+
+	AiMetaDataSetBool(nentry, AtString(""), AtString("parallel_init"), true);
 }
 
 // we read the UI parameters into their global vars

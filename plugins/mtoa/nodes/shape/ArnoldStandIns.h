@@ -47,6 +47,8 @@ public:
    int updateBBox;
    int drawOverride;
    bool hasSelection;
+   MString abcLayers;
+   float abcFps;
 
 
 
@@ -116,6 +118,8 @@ private:
    static MObject s_drawOverride;
    static MObject s_selectedItems;
    static MObject s_ignoreGroupNodes;
+   static MObject s_abcLayers;
+   static MObject s_abcFps;
 
    MCallbackId m_attrChangeId;
    bool m_refreshAvoided;

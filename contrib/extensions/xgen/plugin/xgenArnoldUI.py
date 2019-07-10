@@ -283,7 +283,7 @@ def xgArnoldRefresh(selfid):
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
     self.declareCustomAttr( 'arnold_useAuxRenderPatch', "0" )
     self.declareCustomAttr( 'arnold_auxRenderPatch', "0" )
-    self.declareCustomAttr( 'arnold_multithreading', "1" )
+    self.declareCustomAttr( 'arnold_multithreading', "0" )
     
     # Get all the values
     rendermode = int(self.getCustomAttr( "arnold_rendermode" ))
