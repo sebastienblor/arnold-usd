@@ -154,9 +154,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      if (connections.length() > 0)
                      {
                         MObject opNode = connections[0].node();
-                        MFnDependencyNode fnNode(opNode);
-                        MString name = fnNode.name();
-
+                        MString name = CNodeTranslator::GetArnoldNaming(opNode);
                         AtNode *op = AiNodeLookUpByName(name.asChar());
 
                         if (op)
@@ -193,8 +191,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
             MFnDependencyNode fnNode(objNode);
             MPlug opPlug = fnNode.findPlug("message", true);
 
-            MString name = fnNode.name();
-
+            MString name = CNodeTranslator::GetArnoldNaming(objNode);
             if (!AiNodeLookUpByName(name.asChar()))
             {
                CNodeTranslator *tr = arnoldSession->ExportNode(opPlug, false, 0);

@@ -1,18 +1,18 @@
-//Maya ASCII 2019 scene
+//Maya ASCII 2018ff09 scene
 //Name: test.ma
-//Last modified: Fri, Jul 05, 2019 04:03:01 pm
-//Codeset: UTF-8
-requires maya "2019";
+//Last modified: Thu, Jul 11, 2019 01:17:11 PM
+//Codeset: 1252
+requires maya "2018ff09";
 requires -nodeType "aiStandIn" -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter"
 		 -nodeType "aiUtility" "mtoa" "3.3.0.wip";
 requires "stereoCamera" "10.0";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
-fileInfo "product" "Maya 2019";
-fileInfo "version" "2019";
-fileInfo "cutIdentifier" "201905131615-158f5352ad";
-fileInfo "osv" "Linux 3.10.0-957.21.3.el7.x86_64 #1 SMP Tue Jun 18 16:35:19 UTC 2019 x86_64";
+fileInfo "product" "Maya 2018";
+fileInfo "version" "2018";
+fileInfo "cutIdentifier" "201903222215-65bada0e52";
+fileInfo "osv" "Microsoft Windows 8 , 64-bit  (Build 9200)\n";
 createNode transform -s -n "persp";
 	rename -uid "DA3C3940-0000-6A22-5D1C-96B50000028C";
 	setAttr ".v" no;
@@ -85,10 +85,10 @@ createNode aiStandIn -n "aiStandInShape" -p "aiStandIn";
 	setAttr -k off ".v";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr ".dso" -type "string" "/home/handsca/maya/projects/default/cache/alembic/layers/basic_scene.abc";
+	setAttr ".dso" -type "string" "cache/alembic/layers/basic_scene.abc";
 	setAttr ".mode" 2;
-	setAttr ".min" -type "float3" -5 -1.110223e-15 -5 ;
-	setAttr ".max" -type "float3" 5 4.218081 5.0539808 ;
+	setAttr ".min" -type "float3" -5 -0.074439436 -5 ;
+	setAttr ".max" -type "float3" 5 2.4406304 5 ;
 	setAttr ".overrideCastsShadows" yes;
 	setAttr ".overridePrimaryVisibility" yes;
 	setAttr ".overrideVisibleInDiffuseReflection" yes;
@@ -100,19 +100,19 @@ createNode aiStandIn -n "aiStandInShape" -p "aiStandIn";
 	setAttr ".abc_pull_user_params" yes;
 	setAttr ".ai_user_options" -type "string" "declare polymesh:subdiv_type constant STRING \npolymesh:subdiv_type \"catclark\"";
 createNode lightLinker -s -n "lightLinker1";
-	rename -uid "25A559C0-0000-A9DB-5D1F-665D00000260";
+	rename -uid "43EBB3F7-4532-3CA9-C40F-5CB09186F68C";
 	setAttr -s 4 ".lnk";
 	setAttr -s 3 ".slnk";
 createNode shapeEditorManager -n "shapeEditorManager";
-	rename -uid "25A559C0-0000-A9DB-5D1F-665D00000261";
+	rename -uid "0E0E246E-478A-E7BA-5961-EBA96BAADBC4";
 createNode poseInterpolatorManager -n "poseInterpolatorManager";
-	rename -uid "25A559C0-0000-A9DB-5D1F-665D00000262";
+	rename -uid "43777DD0-46E7-CBB9-13CF-4A9F6E2E7468";
 createNode displayLayerManager -n "layerManager";
-	rename -uid "25A559C0-0000-A9DB-5D1F-665D00000263";
+	rename -uid "F0E8FF9A-4E2D-CB24-A2FB-0B936552D930";
 createNode displayLayer -n "defaultLayer";
 	rename -uid "DA3C3940-0000-6A22-5D1C-96B500000298";
 createNode renderLayerManager -n "renderLayerManager";
-	rename -uid "25A559C0-0000-A9DB-5D1F-665D00000265";
+	rename -uid "8F920F1D-4EEC-9F02-8096-77A4B652494F";
 createNode renderLayer -n "defaultRenderLayer";
 	rename -uid "DA3C3940-0000-6A22-5D1C-96B50000029A";
 	setAttr ".g" yes;
@@ -133,7 +133,7 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -sn "ARV_options" -ln "ARV_options" -dt "string";
 	setAttr ".logv" 2;
 	setAttr ".version" -type "string" "3.3.0.wip";
-	setAttr ".ARV_options" -type "string" "Test Resolution=100%;Camera=perspShape;Color Management.Gamma=1;Color Management.Exposure=0;Background.BG=BG Color;Background.Color=0 0 0;Background.Image=;Background.Scale=1         1;Background.Offset=0         0;Background.Apply Color Management=1;Foreground.Enable FG=0;Foreground.Image=;Foreground.Scale=1         1;Foreground.Offset=0         0;Foreground.Apply Color Management=1;";
+	setAttr ".ARV_options" -type "string" "Test Resolution=100%;Camera=perspShape;Color Management.Gamma=1;Color Management.Exposure=0;Background.BG=BG Color;Background.Color=0 0 0;Background.Image=;Background.Scale=1          1;Background.Offset=0          0;Background.Apply Color Management=1;Foreground.Enable FG=0;Foreground.Image=;Foreground.Scale=1          1;Foreground.Offset=0          0;Foreground.Apply Color Management=1;";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";
 	rename -uid "DA3C3940-0000-6A22-5D1C-96C1000002A2";
 	setAttr ".ai_translator" -type "string" "gaussian";
@@ -183,8 +183,6 @@ select -ne :defaultResolution;
 select -ne :hardwareRenderGlobals;
 	setAttr ".ctrs" 256;
 	setAttr ".btrs" 512;
-select -ne :ikSystem;
-	setAttr -s 4 ".sol";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":ArnoldStandInDefaultLightSet.message" ":defaultLightSet.message";
