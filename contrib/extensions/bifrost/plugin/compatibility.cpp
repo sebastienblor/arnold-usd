@@ -4,6 +4,7 @@
 #include <maya/MDGMessage.h>
 #include <maya/MGlobal.h>
 #include "helpers.h"
+#include <iostream>
 
 //*****************************************************************************
 // This file contains all the dirty compatibility and callback stuff
