@@ -852,7 +852,7 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.pat
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
-env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), os.path.join(ARNOLD, 'materialx', 'arnold'))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
@@ -1232,7 +1232,7 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
-[os.path.join(ARNOLD, 'materialx', 'arnold', '*'), os.path.join('materialx', 'arnold')],
+[os.path.join(ARNOLD, 'materialx', '*'), os.path.join('materialx')],
 ]
 
 if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
