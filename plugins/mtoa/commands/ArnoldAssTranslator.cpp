@@ -159,7 +159,7 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
       {
          MFnDagNode fnDagNode;
          MObject m_standin = fnDagNode.create("aiStandIn","ArnoldStandInShape");
-         for (uint i=0;i<fnDagNode.childCount();i++)
+         for (unsigned int i=0;i<fnDagNode.childCount();i++)
          {
             m_standin = fnDagNode.child(i);
             MFnDagNode fnDagNodeChildren(m_standin);
@@ -247,7 +247,7 @@ MStatus CArnoldAssTranslator::IterSelection(MSelectionList& selected)
       {
          // FIXME: if we selected a shape, and it's an instance,
          // should we export all its dag paths?
-         for (uint m_child = 0; (m_child < path.childCount()); m_child++)
+         for (unsigned int m_child = 0; (m_child < path.childCount()); m_child++)
          {
             MObject ChildObject = path.child(m_child);
             path.push(ChildObject);
