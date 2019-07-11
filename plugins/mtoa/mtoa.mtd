@@ -2164,25 +2164,25 @@
 
 [node aov_read_int]
     maya.name               STRING  "aiReadInt"
-    maya.id                 INT     0x00115DB0
+    maya.id                 INT     0x00115DAA
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
 
 [node aov_read_float]
     maya.name               STRING  "aiReadFloat"
-    maya.id                 INT     0x00115DB1
+    maya.id                 INT     0x00115DAB
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
 
 [node aov_read_rgb]
     maya.name               STRING  "aiReadRGB"
-    maya.id                 INT     0x00115DB2
+    maya.id                 INT     0x00115DAC
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
  
 [node aov_read_rgba]
     maya.name               STRING  "aiReadRGBA"
-    maya.id                 INT     0x00115DB3
+    maya.id                 INT     0x00115DAD
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true    
 
