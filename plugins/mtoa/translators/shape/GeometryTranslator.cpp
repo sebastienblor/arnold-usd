@@ -857,8 +857,6 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       if (shader != NULL)
       {
          AiNodeSetPtr(polymesh, "shader", shader);
-         // TEST for CSG shader
-         CheckCSGShader(polymesh, shader);
       }
       else
       {
@@ -924,7 +922,6 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                      AtNode *shader = ExportConnectedNode(connections[j]);
                      if (shader != NULL)
                      {
-                        CheckCSGShader(polymesh, shader);
                         meshShaders.push_back(shader);
                         exported = true;
                      }
