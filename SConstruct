@@ -859,6 +859,7 @@ if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
     env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'usd'), os.path.join(ARNOLD, 'usd', 'delegate'))
 if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
     env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins','usd'), glob.glob(os.path.join(ARNOLD, 'plugins', 'usd', '*')))
+
 # if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
 #     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
@@ -1232,11 +1233,17 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
-[os.path.join(ARNOLD, 'materialx', '*'), os.path.join('materialx')],
 ]
 
+materialx_files = find_files_recursive(os.path.join(ARNOLD, 'materialx'), None)
+for p in materialx_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
+    ]
+
 if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
-    usd_delegate_files = find_files_recursive(os.path.join(ARNOLD, 'usd'), ['.json', '.dll'])
+    usd_delegate_files = find_files_recursive(os.path.join(ARNOLD, 'usd'), None)
     for p in usd_delegate_files:
         (d, f) = os.path.split(p)
         PACKAGE_FILES += [
@@ -1244,7 +1251,7 @@ if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
         ]
 
 if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
-    usd_resources = find_files_recursive(os.path.join(ARNOLD, 'plugins', 'usd'), ['.json', '.usda', '.glslfx', '.h', '.cpp'])
+    usd_resources = find_files_recursive(os.path.join(ARNOLD, 'plugins', 'usd'), None)
     for p in usd_resources:
         (d, f) = os.path.split(p)
         PACKAGE_FILES += [
