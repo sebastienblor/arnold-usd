@@ -57,6 +57,8 @@ public:
    bool IsRegistered() const;
    bool IsDeferred() const;
 
+   void UpdateExtensionTranslators();
+   
    // Arnold Plugin loading
    MString LoadArnoldPlugin(const MString &file,
                             const MString &path=PLUGIN_SEARCH,

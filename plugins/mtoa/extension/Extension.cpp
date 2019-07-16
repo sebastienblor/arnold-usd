@@ -214,6 +214,12 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
    return m_impl->NewTranslator(translator, mayaNode);
 }
 
+void CExtension::UpdateExtensionTranslators()
+{
+   m_impl->m_registered = false;
+   CExtensionsManager::RegisterExtension(this);
+
+}
 
 MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, int dataType, const MString &aovAttr)
 {
