@@ -57,8 +57,6 @@ public:
    bool IsRegistered() const;
    bool IsDeferred() const;
 
-   void UpdateExtensionTranslators();
-   
    // Arnold Plugin loading
    MString LoadArnoldPlugin(const MString &file,
                             const MString &path=PLUGIN_SEARCH,
@@ -93,7 +91,9 @@ public:
    static bool IsArnoldPluginLoaded(const MString &path);
    static MStringArray GetAllLoadedArnoldPlugins();
 
-
+   // This function should be invoked explicitely when new translators / nodes are registered
+   // after the extension was loaded and registered in MtoA. This will force the registration over again
+   void RegisterExtension(); 
 
 protected:
    CExtensionImpl *m_impl;

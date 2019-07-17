@@ -214,7 +214,7 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
    return m_impl->NewTranslator(translator, mayaNode);
 }
 
-void CExtension::UpdateExtensionTranslators()
+void CExtension::RegisterExtension()
 {
    m_impl->m_registered = false;
    CExtensionsManager::RegisterExtension(this);
