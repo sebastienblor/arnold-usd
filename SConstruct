@@ -263,7 +263,7 @@ ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
 ## TODO : HORRIBLE HACK TO GET IT TO WORK : MUST FIX 
 
 ARNOLD_AXF_INCLUDES = os.path.join(EXTERNAL_PATH, 'axf/include')
-ARNOLD_AXF_LIB = os.path.join(EXTERNAL_PATH, 'axf/lib/linux' )
+ARNOLD_AXF_LIB = os.path.join(EXTERNAL_PATH, 'axf/lib/', system.os )
 
 print "AXF INCLUDE PATH " , ARNOLD_AXF_INCLUDES 
 print "AXF LIB PATH", ARNOLD_AXF_LIB
@@ -747,6 +747,7 @@ else:
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
+        maya_env.Append(LIBS=Split('AxFtoA'))
 
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
@@ -781,10 +782,13 @@ else:
     def osx_hardcode_path(target, source, env):
         cmd = None
 
+
         if target[0] == MTOA_API[0]:
             cmd = "install_name_tool -id @rpath/libmtoa_api.dylib"
         elif target[0] == MTOA[0]:
             cmd = " install_name_tool -add_rpath @loader_path/../bin/"
+            print cmd
+            
 
         if cmd:
             p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
@@ -1422,6 +1426,8 @@ elif system.os == 'darwin':
     PACKAGE_FILES += [
        [MTOA[0], 'plug-ins'],
     ]
+    PACKAGE_FILES.append([ARNOLD_AXF_LIB, 'bin'])
+
 
 if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
