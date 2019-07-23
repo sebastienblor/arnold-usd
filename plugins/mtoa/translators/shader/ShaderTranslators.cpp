@@ -4327,14 +4327,9 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    AtNode* ss = AxFtoAGetShader(NULL, axf_path.asChar(), tex_path.asChar(), uvScale);
    if (ss == NULL)
    {
-      std::cout << " Shader not supported" << std::endl;
+      AiMsgError("[mtoa] [translator %s] Unable to perform translation. Axf File is still not supported", GetTranslatorName().asChar());
    }
    return ss;
-}
-void CArnoldAxfShaderTranslator::Export(AtNode* shader)
-{
-std::cout << " AXF Translating : Node Init" << std::endl;
-  
 }
 
 void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
