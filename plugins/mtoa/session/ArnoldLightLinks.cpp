@@ -246,7 +246,9 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::ve
    }
    else
    {
-      std::string lightName = targetNode.name().asChar();
+      MDagPath dgPath;
+      MDagPath::getAPathTo(targetNode.object(), dgPath);
+      std::string lightName = CDagTranslator::GetArnoldNaming(dgPath).asChar();
       if(lightName.empty()) return; // can this happen ?
 
       if (std::find(nodeList.begin(), nodeList.end(), lightName) == nodeList.end())
@@ -261,8 +263,6 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::ve
          if (it == m_arnoldLights.end())
          {
             //if the shapeName is not unique we are testing the full path name
-            MDagPath dgPath;
-            MDagPath::getAPathTo(targetNode.object(), dgPath);
             lightName = dgPath.fullPathName().asChar();
             it = m_arnoldLights.find(lightName); 
             if (it == m_arnoldLights.end())
