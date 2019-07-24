@@ -420,12 +420,14 @@ class ProceduralTransverser(BaseTransverser):
             for op in ops:
                 for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
                     ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+                    enabled = cmds.getAttr("{}.enableAssignment[{}]".format(op, c))
                     mat = EXP_REGEX.match(ass_str)
                     if mat:
                         param = mat.group('param')
                         data = list(mat.groups())
                         data.append(c)
                         data.append(op)
+                        data.append(enabled)
                         # get if this parameter is already i the list, if so replace it with this one
                         idx = getParmInList(param, overrides)
                         if idx != -1:
@@ -436,7 +438,7 @@ class ProceduralTransverser(BaseTransverser):
         return overrides
 
     @classmethod
-    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, array=False, index=-1):
+    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, enable=True, index=-1):
 
         op = operator
         if index == -1:
@@ -466,6 +468,8 @@ class ProceduralTransverser(BaseTransverser):
         cmds.setAttr("{}.assignment[{}]".format(op, index),
                      param_exp,
                      type="string")
+        cmds.setAttr("{}.enableAssignment[{}]".format(op, index),
+                     enable)
         return True
 
     def _getOverrideIndices(self, op):
