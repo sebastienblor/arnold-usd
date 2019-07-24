@@ -1,6 +1,7 @@
 #include "ArnoldLightLinks.h"
 
 #include "SessionOptions.h"
+#include "translators/DagTranslator.h"
 
 #include <maya/MSelectionList.h>
 #include <maya/MObject.h>
@@ -141,9 +142,10 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                MDagPath childPath;
                status = MDagPath::getAPathTo(childObject, childPath);
                if (!status)
-                  continue;            
-               MFnDependencyNode linkedLight(childPath.node(), &status);            
-               unordered_map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
+                  continue;
+               MFnDependencyNode linkedLight(childPath.node(), &status);
+               MString lightName = CDagTranslator::GetArnoldNaming(childPath);
+               unordered_map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(lightName.asChar());
                if (it2 == m_arnoldLights.end())
                   it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
                if (it2 == m_arnoldLights.end())
