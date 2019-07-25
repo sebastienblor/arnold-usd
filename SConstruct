@@ -279,6 +279,7 @@ env['ENABLE_XGEN'] = 0
 env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
+env['ENABLE_BIFROST_GRAPH'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
 env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
@@ -341,6 +342,8 @@ if int(maya_version) >= 201700:
 if int(maya_version) >= 201800:
     bifrost_ext = 'bifrost'
     env.Append(CPPDEFINES = Split('MTOA_ENABLE_AVP'))
+    # TODO add detection of Bifrost board plugin SDk and bifrost sdk
+    env["ENABLE_BIFROST_GRAPH"] = 1
 
 
 
@@ -845,8 +848,8 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), os.path.join(A
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 
-if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
-    env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
+# if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
+#     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
 OCIO_DYLIBPATH =""
 
@@ -1093,7 +1096,8 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
             (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor') or
-            (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache')):
+            (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache') or
+            (env['ENABLE_BIFROST_GRAPH'] == 1 and ext == 'bifrostGraph')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
@@ -1296,6 +1300,9 @@ if env['ENABLE_BIFROST'] == 1:
         PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR,  bifrost_ext, 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
 
 
+if env['ENABLE_BIFROST_GRAPH'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrostGraph', 'bifShapeTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrostGraph', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_LOOKDEVKIT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])

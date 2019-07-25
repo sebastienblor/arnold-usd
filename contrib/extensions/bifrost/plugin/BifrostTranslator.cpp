@@ -31,6 +31,91 @@
 #define EXPORT2_FLT(name,  aiName) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name, true).asFloat())
 #define EXPORT2_STR(name,  aiName) AiNodeSetStr(shape, aiName, dagNode.findPlug(name, true).asString().asChar())
 
+// WARNING: The same function is duplicated in the new bifrostGraph extension.
+// If you change this one, don't forget to change the other
+static MString GetArnoldBifrostPath()
+{
+   MString str;
+   char archStr[64];
+   char majorStr[64];
+   char minorStr[64];
+   char fixStr[64];
+   // Get the current Arnold version
+   MString version = AiGetVersion(archStr, majorStr, minorStr, fixStr);
+   // convert each token to integer for comparison
+   int arch = MString(archStr).asInt();
+   int major = MString(majorStr).asInt();
+   int minor = MString(minorStr).asInt();
+   int fix = MString(fixStr).asInt();
+   // build a dummy unique version value
+   int versionVal = fix + 100 * minor + 10000 * major + 1000000 * arch;
+
+   // Get the path to the bifrost module
+   MString cmd("import maya.cmds as cmds; cmds.getModulePath(moduleName='Bifrost')");
+   MString bifrostPath = MGlobal::executePythonCommandStringResult(cmd);
+   
+   if (bifrostPath.length() == 0)
+      return MString(); // didn't find it, Bifrost is probably not loaded
+
+   DIR *dir;
+   struct dirent *ent;
+   int topVersionVal = -1;
+   MString topVersionPath = "";
+
+   // Loop over all directories in the bifrost module path, 
+   // and look for the arnold-xxxxx ones
+   if ((dir = opendir (bifrostPath.asChar())) != NULL) 
+   {
+      while ((ent = readdir (dir)) != NULL) 
+      {
+         MString dirName(ent->d_name);
+         // Skip the ones that don't start with "arnold-"
+         if (dirName.length() < 7 || dirName.substringW(0, 6) != MString("arnold-"))
+            continue;
+
+         // Get the version number this bifrost procedural was built against
+         MString folderVersion = dirName.substringW(7, dirName.length() -1);
+         
+         // We want to get the most recent bifrost procedural that is compatible with 
+         // the current arnold version
+         MStringArray splitVersion;
+         folderVersion.split('.', splitVersion);
+         if (splitVersion.length() < 2 || !splitVersion[0].isInt() || !splitVersion[1].isInt())
+            continue; // something wrong with the folder format, we need at least the 2 first integers
+
+         int currentArch = splitVersion[0].asInt();
+         // we need a procedural that matches the current architectural version of arnold
+         if (currentArch < arch)
+            continue; 
+
+         int currentMajor = splitVersion[1].asInt();
+         int currentVersionVal = 10000 * currentMajor + 1000000 * currentArch;
+
+         // The following tests are in case we end up stripping the
+         // minor and fix versions from the folders
+         if (splitVersion.length() >= 3 && splitVersion[2].isInt())
+            currentVersionVal += 100 * splitVersion[2].asInt();
+
+         if (splitVersion.length() >= 4 && splitVersion[3].isInt())
+            currentVersionVal += splitVersion[3].asInt();
+         
+         if (currentVersionVal > versionVal)
+            continue; // the arnold version is older than the older package, ignore it
+
+         if (currentVersionVal < topVersionVal)
+            continue; // nah, we already have a better candidate;
+
+         // this is the best candidate so far
+         topVersionVal = currentVersionVal;
+         topVersionPath = dirName;         
+      }
+      closedir (dir);
+   }  
+   str = bifrostPath + MString("/") + topVersionPath;
+   return str;
+}
+
+
 namespace {
     AtArray* Convert(const MStringArray& array){
         AtArray* out = AiArrayAllocate(array.length(), 1, AI_TYPE_STRING);
@@ -43,23 +128,33 @@ namespace {
    static MString s_bifrostProceduralPath = "C:/Program Files/Autodesk/bifrost/1.5.0/Arnold-5.2.0.0/bin";
    static MString s_bifrostProceduralPathUpper = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.2.0.0/bin";
    static MString s_bifrostProcedural = "bifrost_procedural_0_2";
+   static MString s_bifrostNewProcedural = "arnold_bifrost";
 #endif
 #ifdef _LINUX
    static MString s_bifrostProceduralPath = "/usr/autodesk/bifrost/1.5.0/Arnold-5.2.0.0/lib";
    static MString s_bifrostProceduralPathUpper = "/usr/autodesk/Bifrost/1.5.0/Arnold-5.2.0.0/lib";
    static MString s_bifrostProcedural = "libbifrost_procedural_0_2";
+   static MString s_bifrostNewProcedural = "libarnold_bifrost";
 #endif
 #ifdef _DARWIN
    static MString s_bifrostProceduralPath = "/Applications/Autodesk/bifrost/1.5.0/arnold-5.2.0.0/lib";
    static MString s_bifrostProceduralPathUpper = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.2.0.0/lib";
    static MString s_bifrostProcedural = "libbifrost_procedural_0_2";
+   static MString s_bifrostNewProcedural = "libarnold_bifrost";
 #endif
    static bool s_loadedProcedural = false;
+   static MString s_bifrostNewProceduralPath = "";
 
    static bool LoadBifrostProcedural()
    {
       if (s_loadedProcedural)
          return true;
+
+      if (AiNodeEntryLookUp("bifrost_polymesh") != NULL)
+      {
+         s_loadedProcedural = true;
+         return true;
+      }
 
       MString bifrostEnvVar;
       MGlobal::executeCommand("getenv BIFROST_ARNOLD_PATH", bifrostEnvVar);
@@ -72,10 +167,26 @@ namespace {
          
          s_bifrostProceduralPath = bifrostEnvVar;
       }
-      
+      s_bifrostNewProceduralPath = GetArnoldBifrostPath();
+
       CExtension *extension = CExtensionsManager::GetExtensionByName("bifrostTranslator");
-      if (extension)
+      if (!extension)
+         return false;
+
+      bool useNewProcedural = (s_bifrostNewProceduralPath.length() > 0);
+      if (useNewProcedural)
       {
+         MFileObject fo;
+         fo.setRawFullName(s_bifrostNewProceduralPath);
+         if (fo.exists())
+         {
+            extension->LoadArnoldPlugin(s_bifrostNewProcedural, s_bifrostNewProceduralPath);
+            s_loadedProcedural = true;
+            return true;
+         }
+      } else
+      {
+         AiMsgInfo("[bifrost] %s", s_bifrostProceduralPath.asChar());
          MFileObject fo;
          fo.setRawFullName(s_bifrostProceduralPath);
          if (fo.exists())
@@ -122,7 +233,7 @@ namespace {
                return true;
             } 
          }
-      }      
+      }
       return false;
    }
 } // namespace
