@@ -366,7 +366,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
     menuTriggered = QtCore.Signal(object)
     overrideTriggered = QtCore.Signal()
 
-    def __init__(self, label='label', nodeType="shader", parent=None):
+    def __init__(self, label='', nodeType="shader", override=False, parent=None):
         super(MtoANodeConnectionWidget, self).__init__(label, parent)
 
         self.node = None
@@ -374,11 +374,14 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         # attribute for adding custom user data
         self.data = {}
 
-        self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
-        self.overrideButton.setEnabled(False)
-        self.overrideButton.setToolTip("Override Assignment")
-        self.layout().insertWidget(0, self.overrideButton)
-        self.overrideButton.clicked.connect(self.emitOverrideTriggered)
+        self.overrideButton = None
+
+        if override:
+            self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
+            self.overrideButton.setEnabled(False)
+            self.overrideButton.setToolTip("Override Assignment")
+            self.layout().insertWidget(0, self.overrideButton)
+            self.overrideButton.clicked.connect(self.emitOverrideTriggered)
 
         self.conButton = MtoAButton(self, self.UNCONNECTED_ICON, dpiScale(15))
         self.layout().addWidget(self.conButton)
@@ -395,7 +398,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.setMenu(self.menu)
 
         self.setAcceptDrops(True)
-
+        self.lineEdit.setReadOnly(True)
         self.lineEdit.editingFinished.connect(self.manualSet)
 
     def emitOverrideTriggered(self):
@@ -415,6 +418,13 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
     def manualSet(self):
         self.setNode(self.getText())
 
+    def getValue(self):
+        return self.node
+
+    def setValue(self, value):
+        node = value.replace("'", "")
+        self.setNode(node, False)
+
     def setNode(self, node, emit=True):
         if node and node != '':
             self.node = node
@@ -422,11 +432,15 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
             self.conButton.setIcon(self.CONNECTED_ICON)
             self.conButton.clicked.disconnect()
             self.conButton.clicked.connect(self.selectNode)
+        if node == '':
+            self.disconnectNode(emit)
+            return
         if emit:
             self.valueChanged.emit(node)
 
     def setInherited(self, inherited):
-        self.overrideButton.setEnabled(inherited)
+        if self.overrideButton:
+            self.overrideButton.setEnabled(inherited)
 
     def disconnectNode(self, emit=True):
         self.node = None
@@ -436,6 +450,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.conButton.clicked.connect(self.connectionButtonClicked)
         if emit:
             self.nodeDisconnected.emit()
+            self.valueChanged.emit("")
 
     def selectNode(self):
         if self.node:
@@ -517,6 +532,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
                                  (str, str, bool, int, bool, int, str, bool),
                                  (str, str, float, int, bool, int, str, bool))
     overrideTriggered = QtCore.Signal(str)
+    connectionTriggered = QtCore.Signal()
 
     def __init__(self, paramType=None, param=None, op=None, value=None, paramDict={}, parent=None, enabled=True, custom=False):
         super(MtoAOperatorOverrideWidget, self).__init__(parent)
@@ -526,7 +542,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.param_name = None
         self.param_type = None
         self.user_param = False
-        self.enabled = True
+        self.enabled = enabled
         self.param_dict = paramDict
         self.index = -1
         self.operator = ""
@@ -534,7 +550,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.enabledCheckBox = MtoACheckbox(True, self)
+        self.enabledCheckBox = MtoACheckbox(enabled, self)
         self.layout().insertWidget(0, self.enabledCheckBox, alignment=QtCore.Qt.AlignTop)
         self.widgets.append(self.enabledCheckBox)
 
@@ -786,6 +802,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             param_data = self.getParamData(param)
             for i in param_data[ENUM_VALUES]:
                     control.addItem(i)
+        elif self.param_type is AI_TYPE_NODE:
+            control = MtoANodeConnectionWidget()
         else:
             control = MtoAStrControl()
 

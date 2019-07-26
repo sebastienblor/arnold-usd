@@ -14,7 +14,7 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
-                            NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, \
+                            NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, ENABLED,\
                             DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
@@ -303,7 +303,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         # shader override - HIDDEN BY DEFAULT
         self.shadingWidgets = {}
-        self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader")
+        self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader", override=True)
         deleteShaderAction = self.shaderOverrideWidget.menu.addAction("Delete")
         deleteShaderAction.triggered.connect(self.deleteShaderAssignment)
 
@@ -313,10 +313,15 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.shaderOverrideWidget.nodeDisconnected.connect(self.disconnectShader)
         self.shaderOverrideWidget.setVisible(False)
         self.shadingPanel.layout().addWidget(self.shaderOverrideWidget)
-        self.shadingWidgets[SHADER] = self.shaderOverrideWidget
+        self.shadingWidgets[SHADER] = [self.shaderOverrideWidget]
+
+        self.shaderEnabledCheckBox = MtoACheckbox(True, self)
+        self.shaderOverrideWidget.layout().insertWidget(0, self.shaderEnabledCheckBox, alignment=QtCore.Qt.AlignTop)
+        self.shaderEnabledCheckBox.toggled.connect(self.toggleShaderEnabled)
+        self.shadingWidgets[SHADER].append(self.shaderEnabledCheckBox)
 
         # displacement override - HIDDEN BY DEFAULT
-        self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement")
+        self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement", override=True)
         deleteDispAction = self.dispOverrideWidget.menu.addAction("Delete")
         deleteDispAction.triggered.connect(self.deleteDisplacementAssignment)
 
@@ -325,7 +330,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.dispOverrideWidget.connectionButtonClicked.connect(self.newDisplacement)
         self.dispOverrideWidget.setVisible(False)
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
-        self.shadingWidgets[DISP_MAP] = self.dispOverrideWidget
+        self.shadingWidgets[DISP_MAP] = [self.dispOverrideWidget]
+
+        self.dispEnabledCheckBox = MtoACheckbox(True, self)
+        self.dispOverrideWidget.layout().insertWidget(0, self.dispEnabledCheckBox, alignment=QtCore.Qt.AlignTop)
+        self.dispEnabledCheckBox.toggled.connect(self.toggleDisplacementEnabled)
+        self.shadingWidgets[DISP_MAP].append(self.dispEnabledCheckBox)
 
         self.overridesPanel.layout().addWidget(self.shadingPanel)
 
@@ -492,17 +502,18 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     def populateOperatorsList(self):
         self.operators_tree.setCurrentNode(self.node)
 
-    def setShader(self, shader, create=False):
-        self.setNodeParam("shader", shader, create)
+    def setShader(self, shader, create=False, enabled=True):
+        self.setNodeParam("shader", shader, create, enabled)
 
-    def setDisplacement(self, disp, create=False):
-        self.setNodeParam("disp_map", disp, create)
+    def setDisplacement(self, disp, create=False, enabled=True):
+        self.setNodeParam("disp_map", disp, create, enabled)
 
-    def setNodeParam(self, param, node, create=False):
-        operator = self.shadingWidgets[param].data.get('operator', None)
+    def setNodeParam(self, param, node, create=False, enabled=True):
+        widget, checkbox = self.shadingWidgets[param]
+        operator = widget.data.get('operator', None)
         if create:
             operator = self.getOverrideOperator()
-        self.setOverride(param, "=", node, operator=operator)
+        self.setOverride(param, "=", node, operator=operator, enabled=enabled)
         self.refresh()
 
     def addShader(self):
@@ -523,6 +534,14 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if self.item:
             self.setShader(None)
 
+    def toggleShaderEnabled(self, value):
+        shader = self.shaderOverrideWidget.getValue()
+        self.setShader(shader, False, value)
+
+    def toggleDisplacementEnabled(self, value):
+        disp = self.dispOverrideWidget.getValue()
+        self.setDisplacement(disp, False, value)
+
     def deleteShaderAssignment(self):
         self.deleteNodeAssignment(SHADER)
 
@@ -531,8 +550,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def deleteNodeAssignment(self, param):
         if self.item:
-            index = self.shadingWidgets[param].data['index']
-            operator = self.shadingWidgets[param].data['operator']
+            widget, checkbox = self.shadingWidgets[param]
+            index = widget.data['index']
+            operator = widget.data['operator']
             self.removeOverride(operator, index)
 
     def addCustomOverride(self):
@@ -542,7 +562,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def newShadingNode(self, param):
         # feed the output of the createRedner Node dialog to the setShader method
-        operator = self.shadingWidgets[param].data.get('operator', None)
+        widget, checkbox = self.shadingWidgets[param]
+        operator = widget.data.get('operator', None)
         callback = "from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser;"
         callback += "ProceduralTransverser.setOverride('{node}', '{path}', '{operator}', '{param}', '=', '%node', {param_type})"
 
@@ -582,7 +603,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.paramDict = self.transverser.getParams([data[PROC_ENTRY]])
 
     def resetShadingWidgets(self):
-        for widget in self.shadingWidgets.values():
+        for widget, checkbox in self.shadingWidgets.values():
             widget.disconnectNode(False)
 
     def getData(self, item):
@@ -595,8 +616,13 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     def refresh(self):
         clearWidget(self.localOverridesPanel)
         clearWidget(self.inheritedOverridesPanel)
-        for widget in self.shadingWidgets.values():
+
+
+        for widget, checkbox in self.shadingWidgets.values():
             widget.setVisible(False)
+            oldState = checkbox.blockSignals(True)
+            checkbox.setChecked(True)
+            checkbox.blockSignals(oldState)
             widget.node = None
 
         self.resetShadingWidgets()
@@ -614,11 +640,15 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 if override[PARAM] in [SHADER, DISP_MAP]:
                     # set the shader slot
                     node = override[VALUE].replace("'", "").replace('"', "")
-                    self.shadingWidgets[override[PARAM]].setNode(node, False)
-                    self.shadingWidgets[override[PARAM]].setVisible(True)
-                    self.shadingWidgets[override[PARAM]].setInherited(inherited)
-                    self.shadingWidgets[override[PARAM]].data['operator'] = operator
-                    self.shadingWidgets[override[PARAM]].data['index'] = index
+                    widget, checkbox = self.shadingWidgets[override[PARAM]]
+                    oldState = checkbox.blockSignals(True)
+                    checkbox.setChecked(override[ENABLED])
+                    checkbox.blockSignals(oldState)
+                    widget.setNode(node, False)
+                    widget.setVisible(True)
+                    widget.setInherited(inherited)
+                    widget.data['operator'] = operator
+                    widget.data['index'] = index
                 else:
                     widget = self.addOverrideGUI(*override)
                     widget.setInherited(inherited)
