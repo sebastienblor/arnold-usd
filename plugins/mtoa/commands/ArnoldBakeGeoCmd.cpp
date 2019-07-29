@@ -109,7 +109,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    argDB.getFlagArgument("filename", 0, filename);
 
    std::filebuf fb;
-   if (fb.open(filename.asChar(),ios::out) == NULL)
+   if (fb.open(filename.asChar(),std::ios::out) == NULL)
    {
       AiMsgError("[mtoa] Cannot create output file");
       return MS::kFailure;  
