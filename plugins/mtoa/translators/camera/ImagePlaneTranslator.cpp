@@ -319,8 +319,8 @@ void CImagePlaneTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode*  CImagePlaneTranslator::CreateArnoldNodes()
 {  
-   AtNode *image = AddArnoldNode("image");
-   AtNode *uv_transform = AddArnoldNode("uv_transform", "uv");
+   AddArnoldNode("image");
+   AddArnoldNode("uv_transform", "uv");
    return AddArnoldNode("color_correct", "cc");
    
 }

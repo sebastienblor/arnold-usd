@@ -22,6 +22,7 @@
 #include <ai_bbox.h>
 //#include <ai_materialx.h>
 #include <math.h>
+#include <algorithm>
 
 MSyntax CArnoldExportOperatorsCmd::newSyntax()
 {
@@ -147,19 +148,29 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                   MPlug elemPlug;
                   for (unsigned int i = 0; i < nelems; ++i)
                   {
-                     elemPlug = ops[i];       
+                     elemPlug = ops[i];
                      MPlugArray connections;
                      elemPlug.connectedTo(connections, true, false);
                      if (connections.length() > 0)
                      {
-                        CNodeTranslator *tr = arnoldSession->ExportNode(connections[0]);
-                        AtNode *op = (tr) ? tr->GetArnoldNode() : NULL;
+                        MObject opNode = connections[0].node();
+                        MString name = CNodeTranslator::GetArnoldNaming(opNode);
+                        AtNode *op = AiNodeLookUpByName(name.asChar());
+
                         if (op)
-                           procOps.push_back(op); // append the operator node to the list 
+                           procOps.push_back(op);
+                        else
+                        {
+                           CNodeTranslator *tr = arnoldSession->ExportNode(connections[0]);
+                           op = (tr) ? tr->GetArnoldNode() : NULL;
+                           if (op)
+                              procOps.push_back(op); // append the operator node to the list 
+                        }
+
                      }
                   }
                   if (procOps.size() == 1)
-                     targets.push_back(procOps[0]);
+                     targets.insert(targets.begin(), procOps[0]);
                   else if (procOps.size() > 1)
                   {
                      // need to insert a merge op
@@ -170,18 +181,24 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      for (unsigned int i = 0; i < procOps.size(); ++i)
                         AiArraySetPtr(opArray, i, (void*)procOps[i]);
                      AiNodeSetArray(mergeOp, "inputs", opArray);
-                     targets.push_back(mergeOp); // add the merge as target operator
+                     targets.insert(targets.begin(), mergeOp); // add the merge as target operator
                   }
                }
             }
          } else if (selected.getDependNode(i, objNode) == MS::kSuccess)
          {
             // Check if the node is an operator
-            MPlug opPlug = MFnDependencyNode(objNode).findPlug("message", true);
-            CNodeTranslator *tr = arnoldSession->ExportNode(opPlug, false, 0);
-            AtNode *opNode = (tr) ? tr->GetArnoldNode() : NULL;
-            if (opNode && AI_NODE_OPERATOR == AiNodeEntryGetType(AiNodeGetNodeEntry(opNode)))
-               targets.push_back(opNode);
+            MFnDependencyNode fnNode(objNode);
+            MPlug opPlug = fnNode.findPlug("message", true);
+
+            MString name = CNodeTranslator::GetArnoldNaming(objNode);
+            if (!AiNodeLookUpByName(name.asChar()))
+            {
+               CNodeTranslator *tr = arnoldSession->ExportNode(opPlug, false, 0);
+               AtNode *opNode = (tr) ? tr->GetArnoldNode() : NULL;
+               if (opNode && AI_NODE_OPERATOR == AiNodeEntryGetType(AiNodeGetNodeEntry(opNode)))
+                  targets.push_back(opNode);
+            }
          }
       }
    }

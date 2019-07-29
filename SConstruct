@@ -178,7 +178,7 @@ vars.AddVariables(
 )
 
 if system.os == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11')))
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.9', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11', '10.12','10.13', '10.14')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
 if system.os == 'windows':
@@ -202,6 +202,10 @@ if system.os == 'windows':
         msvc_version = '11.0'
     if int(maya_version_base) >= 2018:
         msvc_version = '14.0'
+    '''
+    if int(maya_version_base) >= 2020:
+        msvc_version = '15.9'
+    '''
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
     tmp_env['MSVC_VERSION'] = msvc_version
@@ -502,8 +506,12 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
-        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
+        if False: #int(maya_version_base) >= 2020:
+            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.13'))
+            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.13'))
+        else:
+            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
+            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
 
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
@@ -844,9 +852,13 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.pat
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
-env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), os.path.join(ARNOLD, 'materialx', 'arnold'))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
+if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
+    env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'usd'), os.path.join(ARNOLD, 'usd', 'delegate'))
+if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
+    env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins','usd'), glob.glob(os.path.join(ARNOLD, 'plugins', 'usd', '*')))
 
 # if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
 #     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
@@ -869,7 +881,7 @@ if not env['MTOA_DISABLE_RV']:
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
-scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml', '.qss'])
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml', '.qss', '.txt'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
@@ -1221,8 +1233,30 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
-[os.path.join(ARNOLD, 'materialx', 'arnold', '*'), os.path.join('materialx', 'arnold')],
 ]
+
+materialx_files = find_files_recursive(os.path.join(ARNOLD, 'materialx'), None)
+for p in materialx_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
+    ]
+
+if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
+    usd_delegate_files = find_files_recursive(os.path.join(ARNOLD, 'usd'), None)
+    for p in usd_delegate_files:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [
+            [os.path.join(ARNOLD, 'usd', p), os.path.join('usd', d)]
+        ]
+
+if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
+    usd_resources = find_files_recursive(os.path.join(ARNOLD, 'plugins', 'usd'), None)
+    for p in usd_resources:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [
+            [os.path.join(ARNOLD, 'plugins', 'usd', p), os.path.join('plugins', 'usd', d)]
+        ]
 
 for p in presetfiles:
     (d, f) = os.path.split(p)

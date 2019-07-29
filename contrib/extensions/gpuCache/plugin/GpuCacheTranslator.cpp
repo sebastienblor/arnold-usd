@@ -193,7 +193,8 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    MPlug filenamePlug = FindMayaPlug("cacheFileName");
    if (!filenamePlug.isNull())
    {
-      MString filename = filenamePlug.asString();
+      MString filename = filenamePlug.asString().expandEnvironmentVariablesAndTilde();
+      GetSessionOptions().FormatProceduralPath(filename);
       AiNodeSetStr(shape, "filename", filename.asChar());
    }
 

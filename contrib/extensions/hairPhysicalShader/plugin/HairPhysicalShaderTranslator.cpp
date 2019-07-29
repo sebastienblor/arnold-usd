@@ -54,7 +54,9 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
     // If none of them is linked we can simply to the multiplication here. Otherwise we need to insert a multiply shader
     MPlug intensityD_plug = FindMayaPlug("intensityD");
     intensityD_plug.connectedTo(connections, true, false);
-    AtNode *intensityD_link = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+    //AtNode *intensityD_link = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+    if (connections.length() > 0)
+        ExportConnectedNode(connections[0]);
 
     for (int i = 0; i < 2; ++i)
     {

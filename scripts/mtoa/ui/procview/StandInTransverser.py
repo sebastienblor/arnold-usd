@@ -69,6 +69,27 @@ class StandInTransverser(ProceduralTransverser):
         filenameAttr = self.nodeName + '.dso'
         filename = cmds.getAttr(filenameAttr)
         filename = expandEnvVars(filename)
+
+        if ('#' in filename) and cmds.getAttr(self.nodeName + '.useFrameExtension'):
+            frame = cmds.getAttr(self.nodeName + '.frameNumber')
+            extension_len = 0
+            padding = 0
+            for c in reversed(filename):
+                if c == '#':
+                    padding += 1
+                elif padding > 0:
+                    break # I already found numerical characters and they're finished now
+                else:
+                    # still haven't found a numerical parameter
+                    extension_len += 1
+            
+            frame_str = str(frame)
+            for i in range(1, padding):
+                if frame < pow(10, i):
+                    frame_str = '0' + frame_str
+        
+            filename = filename[:-extension_len - padding] + frame_str + filename[-extension_len:]
+
         self.nodeEntries = {} 
         if not os.path.exists(str(filename)):
             return

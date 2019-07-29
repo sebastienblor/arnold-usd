@@ -2,18 +2,18 @@
 <templates>
     <using package='maya'/>
     <template name='NEaiSetParameter'>
-        <attribute name='outColor' type='maya.message'>
-            <label>Out Color</label>
+        <attribute name='out' type='maya.message'>
+            <label>Out</label>
         </attribute>
         <attribute name='inputs' type='maya.message'>
             <label>Inputs</label>
         </attribute>
     </template>
     <view name='NEDefault' template='NEaiSetParameter'>
-        <property name='outColor'/>
+        <property name='out'/>
         <property name='inputs'/>
     </view>
     <view name='NEDefaultSoloOutput' template='NEaiSetParameter'>
-        <property name='outColor'/>
+        <property name='out'/>
     </view>
 </templates>

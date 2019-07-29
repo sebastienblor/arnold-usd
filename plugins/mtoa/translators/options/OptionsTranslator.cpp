@@ -1266,8 +1266,9 @@ void COptionsTranslator::Export(AtNode *options)
    AiParamIteratorDestroy(nodeParam);
 
    // Setting the reference time properly (used when ignore motion blur is turned on)
-   float referenceTime = 0.f;
    /*
+   float referenceTime = 0.f;
+   
    if (FindMayaPlug("mb_en").asBool())
    {
       // if motion blur is enabled, check the motion's range type 

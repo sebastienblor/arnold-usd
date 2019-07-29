@@ -1,3 +1,12 @@
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <algorithm>
+#endif
+
 
 #include "platform/Platform.h"
 #include "utils/Universe.h"
@@ -957,7 +966,7 @@ void CRenderSession::FillRenderViewCameras()
    MStatus viewStatus;
    view = M3dView::active3dView(&viewStatus);
    MString viewCam;
-   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   //CRenderSession *renderSession = CMayaScene::GetRenderSession();
 
    if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
    {      
