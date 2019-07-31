@@ -4,7 +4,7 @@ from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .treeView import BaseItem
-from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression, STRING_EXP
+from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression, toQtObject, toMayaName, STRING_EXP
 
 from .button import MtoAButton, MtoACheckableButton
 
@@ -233,10 +233,53 @@ class MtoAVec2Control(MtoAMultiFloatControl):
         super(MtoAVec2Control, self).__init__(value, 2, parent)
 
 
-class MtoARGBControl(MtoAMultiFloatControl):
+# class MtoARGBControl(MtoAMultiFloatControl):
+
+#     def __init__(self, value='[0.5 0.5 0.5]', parent=None):
+#         super(MtoARGBControl, self).__init__(value, 3, parent)
+
+
+class MtoARGBControl(QtWidgets.QFrame):
+
+    valueChanged = QtCore.Signal(str)
 
     def __init__(self, value='[0.5 0.5 0.5]', parent=None):
-        super(MtoARGBControl, self).__init__(value, 3, parent)
+        super(MtoARGBControl, self).__init__(parent)
+        self.setObjectName("MtoARGBControl")
+        self.horizLayout = QtWidgets.QHBoxLayout(self)
+        self.horizLayout.setObjectName("MtoARGBControlLayout")
+
+        self.setLayout(self.horizLayout)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        layout = toMayaName(self.layout())
+        cmds.setParent(layout)
+
+        columnLayout = cmds.columnLayout(bgc=[0.2,0.5,0.2])
+        self.columnLayout = toQtObject(columnLayout, QtWidgets.QWidget)
+        self.columnLayout.setContentsMargins(0, 0, 0, 0)
+
+        # maya color widget
+        self.mayaColorWidget = cmds.colorSliderGrp("MtoARGBControlSlider#",
+                                                   changeCommand=self.emitValueChanged,
+                                                   columnWidth=[[1, 0], [3, 0]])  # hide label and slider
+        self.colorWidget = toQtObject(self.mayaColorWidget, QtWidgets.QWidget)
+        self.layout().addWidget(self.columnLayout)
+
+    def emitValueChanged(self, value):
+        self.valueChanged.emit(self.getValue())
+
+    def setValue(self, value):
+        vs = re.findall(r'(\.?\d+(?:\.\d+)?)', value)
+        if len(vs):
+            i = 0
+            cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], e=True, rgb=tuple(float(v) for v in vs))
+
+    def getValue(self):
+
+        values = cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], q=True, rgb=True)
+
+        return '[{}]'.format(' '.join(str(v) for v in values))
 
 
 class MtoARGBAControl(MtoAMultiFloatControl):
@@ -514,7 +557,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             return self.control.getValue()
 
     def setValue(self, value):
-        if self.control and not valueIsExpression(value):
+        if self.control and not valueIsExpression(str(value)):
             self.control.setValue(value)
 
 
@@ -563,7 +606,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             self.overrideButton.setVisible(False)
         self.widgets.append(self.overrideButton)
 
-        self.paramWidget = MtoAParamBox(self, not custom)
+        self.paramWidget = MtoAParamBox(self)
         self.layout().addWidget(self.paramWidget, alignment=QtCore.Qt.AlignTop)
         # self.paramWidget.setVisible(False)
         self.populateParams(self.param_dict)
@@ -681,6 +724,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def emitValueChanged(self, value):
 
         param = self.getParam()
+        print "emitValueChanged", param,self.getOperation(),value,self.param_type,self.user_param,self.index,self.operator,self.enabled
         self.valueChanged[str, str, type(value), int, bool, int, str, bool].emit(
                                    param,
                                    self.getOperation(),
@@ -768,7 +812,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def setValue(self, value):
         self.controlWidget.setValue(value)
         self.expressionEditor.setText(str(value))
-        if valueIsExpression(value):
+        if valueIsExpression(str(value)):
             # show the expression editor
             self.expBtn.setChecked(True)
             self.valueWidget.setCurrentIndex(1)

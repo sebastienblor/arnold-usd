@@ -23,6 +23,7 @@ def dpiScale(value):
     """Scale the value according to the current DPI of the current monitor."""
     return _DPI_SCALE * value
 
+
 def dpiScaledIcon(path):
     """Creates QPixmap and scales it for hi-dpi mode"""
     icon = QtGui.QPixmap(path)
@@ -34,6 +35,7 @@ def dpiScaledIcon(path):
             QtCore.Qt.SmoothTransformation)
 
     return icon
+
 
 def toPyObject(obj):
     """Call QVariant.toPyObject on the case we are in PyQt."""
@@ -60,6 +62,13 @@ def toQtObject(mayaUIName, pySideType=QtCore.QObject):
     if ptr is not None:
         obj = shiboken.wrapInstance(long(ptr), pySideType)
         return obj
+
+
+def toMayaName(qtObject):
+    '''
+    Given a QtWidget get the maya name
+    '''
+    return OpenMayaUI.MQtUtil.fullName(long(shiboken.getCppPointer(qtObject)[0]))
 
 
 def clearWidget(widget):

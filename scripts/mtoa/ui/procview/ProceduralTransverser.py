@@ -490,6 +490,7 @@ class ProceduralTransverser(BaseTransverser):
         if index != -1:
             if self._indexInAssignment(index, operator):
                 cmds.removeMultiInstance('{}.assignment[{}]'.format(operator, index))
+                cmds.removeMultiInstance('{}.enableAssignment[{}]'.format(operator, index))
             else:
                 return False
             # Final check the the index was removed

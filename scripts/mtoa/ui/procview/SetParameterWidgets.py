@@ -75,8 +75,24 @@ class SetParametersPanel(QtWidgets.QFrame):
 
     def addCustomOverride(self):
         operator = self.node
-        self.setOverride("myParam", "=", "1", TYPES_DICT['int'], True, operator=operator)
+        param_name = self.getCustomParamName()
+        self.setOverride(param_name, "=", "1", TYPES_DICT['int'], True, operator=operator)
         self.refresh()
+
+    def getCustomParamName(self):
+        customParam = "myParam"
+        c = 0
+        for a in cmds.getAttr('{}.assignment'.format(self.node), multiIndices=True) or []:
+            attr = cmds.getAttr('{}.assignment[{}]'.format(self.node, a))
+            print attr
+            mat = EXP_REGEX.match(attr)
+            if mat:
+                param_name = mat.group('param')
+                if param_name.startswith(customParam):
+                    c += 1
+        if c > 0:
+            customParam = '{}{}'.format(customParam, c)
+        return customParam
 
     def setNode(self, node):
         changed = False
@@ -133,7 +149,7 @@ class SetParametersPanel(QtWidgets.QFrame):
 
     def addOverrideGUI(self, param_type, param, op, value, index, operator, enabled):
 
-        new_widget = MtoAOperatorOverrideWidget(param_type, param, op, value, self.paramDict, self, enabled)
+        new_widget = MtoAOperatorOverrideWidget(param_type, param, op, value, self.paramDict, self, enabled, True)
 
         new_widget.index = index
         new_widget.operator = operator
