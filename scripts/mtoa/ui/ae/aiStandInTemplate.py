@@ -374,7 +374,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Add Alembic Layer', okc='Load', fm=1, startingDirectory=projectDir)
         if ret is not None and len(ret):
             # get number of layers
-            currentLayers = cmds.getAttr(nodeAttr)
+            currentLayers = cmds.getAttr(nodeAttr) or []
             if len(currentLayers):
                 currentLayers = currentLayers.split(';')
             else:
