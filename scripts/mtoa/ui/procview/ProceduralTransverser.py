@@ -318,9 +318,10 @@ class ProceduralTransverser(BaseTransverser):
     def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True, collections=[]):
 
         sel_mat = False
+        isRoot = False
+        inCollections = False
         if cmds.attributeQuery('selection', node=operator, exists=True) and \
            (operator_type is None or cmds.nodeType(operator) == operator_type):
-
             sel_exp = cmds.getAttr('{}.selection'.format(operator))
             tokens = sel_exp.rsplit()
             for tok in tokens:
@@ -331,10 +332,10 @@ class ProceduralTransverser(BaseTransverser):
                     if mat and mat.group() == path or isRoot or inCollections:
                         sel_mat = True
                         break
-                    if not mat:
+                    elif not mat:
                         sel_mat = (tok == path) or isRoot or inCollections
                 else:
-                    pat = fnmatch.translate(tok.replace('/*', '*'))
+                    pat = fnmatch.translate(tok)
                     reobj = re.compile(pat)
                     mat = reobj.match(path)
                     if mat or inCollections:
