@@ -557,7 +557,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def addCustomOverride(self):
         operator = self.getOverrideOperator()
-        self.setOverride("myParam", "=", "1", TYPES_DICT['int'], custom=True, operator=operator)
+        param_name = self.transverser.getCustomParamName(operator)
+        self.setOverride(param_name, "=", "1", TYPES_DICT['int'], custom=True, operator=operator)
         self.refresh()
 
     def newShadingNode(self, param):

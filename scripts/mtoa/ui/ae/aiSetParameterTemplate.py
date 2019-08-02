@@ -30,7 +30,6 @@ class AEaiSetParameterTemplate(OperatorAETemplate):
 
     def assignmentReplace(self, nodeAttr) :
         nodeName = nodeAttr.split('.')[0]
-        print "assignmentReplace"
         self.currentNode = nodeName
         self.properties_panel.setNode(self.nodeName)
 
@@ -64,4 +63,3 @@ class AEaiSetParameterTemplate(OperatorAETemplate):
         self.addExtraControls()
 
         self.endScrollLayout()
-

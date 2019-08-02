@@ -314,6 +314,22 @@ class ProceduralTransverser(BaseTransverser):
             # connect at the index given
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
+    def getCustomParamName(self, operator):
+        if cmds.nodeType(operator) == OVERRIDE_OP:
+            customParam = "myParam"
+            c = 0
+            for a in cmds.getAttr('{}.assignment'.format(operator), multiIndices=True) or []:
+                attr = cmds.getAttr('{}.assignment[{}]'.format(operator, a))
+                mat = EXP_REGEX.match(attr)
+                if mat:
+                    param_name = mat.group('param')
+                    if param_name.startswith(customParam):
+                        c += 1
+            if c > 0:
+                customParam = '{}{}'.format(customParam, c)
+            return customParam
+        return
+
     @classmethod
     def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True, collections=[]):
 

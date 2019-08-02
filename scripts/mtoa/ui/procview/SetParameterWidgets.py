@@ -80,18 +80,7 @@ class SetParametersPanel(QtWidgets.QFrame):
         self.refresh()
 
     def getCustomParamName(self):
-        customParam = "myParam"
-        c = 0
-        for a in cmds.getAttr('{}.assignment'.format(self.node), multiIndices=True) or []:
-            attr = cmds.getAttr('{}.assignment[{}]'.format(self.node, a))
-            print attr
-            mat = EXP_REGEX.match(attr)
-            if mat:
-                param_name = mat.group('param')
-                if param_name.startswith(customParam):
-                    c += 1
-        if c > 0:
-            customParam = '{}{}'.format(customParam, c)
+        customParam = self.transverser.getCustomParamName(self.node) or "myParam"
         return customParam
 
     def setNode(self, node):
@@ -99,14 +88,11 @@ class SetParametersPanel(QtWidgets.QFrame):
         if self.node != node and node and cmds.objExists(node):
             self.node = node
             changed = True
-            self.refresh()
+        self.refresh()
         return changed
 
     def refresh(self):
         clearWidget(self.overridesPanel)
-        # for widget in self.shadingWidgets.values():
-        #     widget.setVisible(False)
-        #     widget.node = None
 
         if self.node:
             for override in self.getOverrides():

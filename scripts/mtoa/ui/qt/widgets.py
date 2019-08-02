@@ -255,16 +255,22 @@ class MtoARGBControl(QtWidgets.QFrame):
         layout = toMayaName(self.layout())
         cmds.setParent(layout)
 
-        columnLayout = cmds.columnLayout(bgc=[0.2,0.5,0.2])
-        self.columnLayout = toQtObject(columnLayout, QtWidgets.QWidget)
-        self.columnLayout.setContentsMargins(0, 0, 0, 0)
+        # columnLayout = cmds.columnLayout(bgc=[0.2,0.5,0.2])
+        # self.columnLayout = toQtObject(columnLayout, QtWidgets.QWidget)
+        # self.columnLayout.setContentsMargins(0, 0, 0, 0)
 
         # maya color widget
         self.mayaColorWidget = cmds.colorSliderGrp("MtoARGBControlSlider#",
+                                                   label="",
                                                    changeCommand=self.emitValueChanged,
-                                                   columnWidth=[[1, 0], [3, 0]])  # hide label and slider
+                                                   # bgc=[0.2,0.5,0.2],
+                                                   columnWidth=[[1, 0],
+                                                                [2, 30],
+                                                                [3, 0]])  # hide label and slider
+
         self.colorWidget = toQtObject(self.mayaColorWidget, QtWidgets.QWidget)
-        self.layout().addWidget(self.columnLayout)
+        self.colorWidget.setContentsMargins(0, 0, 0, 0)
+        self.layout().addWidget(self.colorWidget)
 
     def emitValueChanged(self, value):
         self.valueChanged.emit(self.getValue())
@@ -724,7 +730,6 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def emitValueChanged(self, value):
 
         param = self.getParam()
-        print "emitValueChanged", param,self.getOperation(),value,self.param_type,self.user_param,self.index,self.operator,self.enabled
         self.valueChanged[str, str, type(value), int, bool, int, str, bool].emit(
                                    param,
                                    self.getOperation(),
