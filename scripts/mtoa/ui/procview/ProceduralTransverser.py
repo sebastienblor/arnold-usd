@@ -326,9 +326,9 @@ class ProceduralTransverser(BaseTransverser):
             tokens = sel_exp.rsplit()
             for tok in tokens:
                 inCollections = tok[1:] in collections
+                isRoot = (tok == "/*" and path == '/')
                 if exact_match:
                     mat = SELECTION_REGEX.match(tok)
-                    isRoot = (tok == "/*" and path == '/')
                     if mat and mat.group() == path or isRoot or inCollections:
                         sel_mat = True
                         break
@@ -338,7 +338,7 @@ class ProceduralTransverser(BaseTransverser):
                     pat = fnmatch.translate(tok)
                     reobj = re.compile(pat)
                     mat = reobj.match(path)
-                    if mat or inCollections:
+                    if mat or inCollections or isRoot:
                         sel_mat = True
                         break
 
