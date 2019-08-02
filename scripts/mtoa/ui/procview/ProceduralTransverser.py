@@ -49,6 +49,8 @@ PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
                    'num_points', 'points', 'orientations',
                    'uvs', 'cvs', 'knots_u', 'knots_v', 'degree_u', 'degree_v']
 
+DISP_MAP = 'disp_map'
+SHADER = 'shader'
 
 def ArnoldUniverseOnlyBegin():
     if not AiUniverseIsActive():

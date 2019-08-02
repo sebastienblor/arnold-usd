@@ -14,7 +14,8 @@ from mtoa.ui.procview.ProceduralTransverser import EXP_REGEX, PROC_PATH, PROC_NA
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
                             NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, \
-                            DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES
+                            DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES,\
+                            DISP_MAP, SHADER
 
 
 class SetParametersPanel(QtWidgets.QFrame):
@@ -33,35 +34,31 @@ class SetParametersPanel(QtWidgets.QFrame):
         self.layout.addWidget(self.toolBar)
 
         self.addOverrideButton = QtWidgets.QPushButton("Add Assignment")
-        # self.overrideMenu = QtWidgets.QMenu()
-        # self.addOverrideButton.setMenu(self.overrideMenu)
+        self.overrideMenu = QtWidgets.QMenu()
+        self.addOverrideButton.setMenu(self.overrideMenu)
         self.rootMenus = []
 
         self.toolBar.layout().addWidget(self.addOverrideButton)
-        self.addOverrideButton.clicked.connect(self.addCustomOverride)
+        self.overrideMenu.triggered.connect(self.setOverrideFromMenu)
 
         self.overridesPanel = QtWidgets.QFrame()
         self.overridesPanel.setLayout(QtWidgets.QVBoxLayout())
         self.layout.addWidget(self.overridesPanel)
 
         self.getParams()
+        self.addOverrideMenu()
 
     def setOverrideFromMenu(self, action):
         param = action.text()
         self.setNewOverride(param)
 
     def setNewOverride(self, param):
-        ops = self.getItemOverrideOperator(True)
-        if not type(ops) == list:
-            ops = [ops]
-        op = ops[-1] # always use the last operator
-        if param == "shader":
-            self.addShader()
-        elif param == "displacement":
-            self.addDisplacement()
-        elif param == "custom":
+        op = self.node
+        if param == "custom":
             self.addCustomOverride()
         else:
+            if param == "displacement":
+                param = "disp_map"
             value = self.getDefaultValue(param)
             self.setOverride(param, "=", value, operator=op)
             self.refresh()
@@ -82,6 +79,37 @@ class SetParametersPanel(QtWidgets.QFrame):
     def getCustomParamName(self):
         customParam = self.transverser.getCustomParamName(self.node) or "myParam"
         return customParam
+
+    def addOverrideMenu(self):
+
+        if not self.overrideMenu.isEmpty():
+            self.overrideMenu.clear()
+            for menu in self.rootMenus:
+                menu.deleteLater()
+            self.rootMenus = []
+
+        self.overrideMenu.addAction("shader")
+        self.overrideMenu.addAction("displacement")
+        self.overrideMenu.addSeparator()
+
+        for node_type, params in sorted(self.paramDict.items()):
+            if node_type == 'hidden':
+                continue
+
+            parent_menu = self.overrideMenu
+            for sub_menu in self.rootMenus:
+                if sub_menu.title() == node_type:
+                    parent_menu = sub_menu
+
+            for param, data in sorted(params.items()):
+                # check if a root item exists
+                if parent_menu == self.overrideMenu:
+                    parent_menu = self.overrideMenu.addMenu(node_type)
+                self.rootMenus.append(parent_menu)
+                if parent_menu:
+                    parent_menu.addAction(param)
+
+        self.overrideMenu.addAction("custom")
 
     def setNode(self, node):
         changed = False
@@ -141,6 +169,9 @@ class SetParametersPanel(QtWidgets.QFrame):
         new_widget.operator = operator
         new_widget.deleteMe.connect(self.removeOverrideWidget)
 
+        if param_type == AI_TYPE_NODE or param in [SHADER, DISP_MAP]:
+            new_widget.controlWidget.control.connectionButtonClicked.connect(lambda: self.newShadingNode(param))
+
         # param, operation, value, param_type, custom, index, operator
         new_widget.valueChanged[str, str, str, int, bool, int, str, bool].connect(self.setOverride)
         new_widget.valueChanged[str, str, int, int, bool, int, str, bool].connect(self.setOverride)
@@ -149,6 +180,15 @@ class SetParametersPanel(QtWidgets.QFrame):
         # add widget
         self.overridesPanel.layout().addWidget(new_widget)
         return new_widget
+
+    def newShadingNode(self, param):
+        callback = "from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser;"
+        callback += "ProceduralTransverser.setOverride(None, None, '{operator}', '{param}', '=', '%node', {param_type})"
+
+        param_data = self.getParamData(param)
+        callback = callback.format(operator=self.node, param_type=AI_TYPE_NODE,
+                                   param=param)
+        mel.eval("createRenderNode -all \"python(\\\"" + callback + "\\\")\" \"\"")
 
     def removeOverrideWidget(self, widget):
         index = widget.index

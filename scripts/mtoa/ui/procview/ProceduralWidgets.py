@@ -15,12 +15,10 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
                             NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, ENABLED,\
-                            DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES
+                            DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES,\
+                            DISP_MAP, SHADER
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
-
-DISP_MAP = 'disp_map'
-SHADER = 'shader'
 
 
 class OperatorTreeView(BaseTreeView):

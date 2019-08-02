@@ -119,7 +119,6 @@ def getVisibilityDict(value):
     return vis_dict
 
 
-
 class MtoAVisibilityCheckBox(QtWidgets.QCheckBox):
     """docstring for MtoAVisibilityCheckBox"""
     def __init__(self, label, parent=None):
@@ -233,12 +232,6 @@ class MtoAVec2Control(MtoAMultiFloatControl):
         super(MtoAVec2Control, self).__init__(value, 2, parent)
 
 
-# class MtoARGBControl(MtoAMultiFloatControl):
-
-#     def __init__(self, value='[0.5 0.5 0.5]', parent=None):
-#         super(MtoARGBControl, self).__init__(value, 3, parent)
-
-
 class MtoARGBControl(QtWidgets.QFrame):
 
     valueChanged = QtCore.Signal(str)
@@ -263,13 +256,14 @@ class MtoARGBControl(QtWidgets.QFrame):
         self.mayaColorWidget = cmds.colorSliderGrp("MtoARGBControlSlider#",
                                                    label="",
                                                    changeCommand=self.emitValueChanged,
-                                                   # bgc=[0.2,0.5,0.2],
                                                    columnWidth=[[1, 0],
                                                                 [2, 30],
                                                                 [3, 0]])  # hide label and slider
 
         self.colorWidget = toQtObject(self.mayaColorWidget, QtWidgets.QWidget)
         self.colorWidget.setContentsMargins(0, 0, 0, 0)
+        self.colorWidget.layout().setContentsMargins(0, 0, 0, 0)
+
         self.layout().addWidget(self.colorWidget)
 
     def emitValueChanged(self, value):
@@ -288,10 +282,32 @@ class MtoARGBControl(QtWidgets.QFrame):
         return '[{}]'.format(' '.join(str(v) for v in values))
 
 
-class MtoARGBAControl(MtoAMultiFloatControl):
+class MtoARGBAControl(MtoARGBControl):
 
     def __init__(self, value='[0.5 0.5 0.5 1.0]', parent=None):
-        super(MtoARGBAControl, self).__init__(value, 4, parent)
+        super(MtoARGBAControl, self).__init__(parent)
+        self.setObjectName("MtoARGBAControl")
+
+        self.colorWidget.layout().itemAt(2).widget().hide()
+
+        self.alphaControl = MtoAFltControl(self)
+        self.layout().addWidget(self.alphaControl)
+
+        self.alphaControl.valueChanged.connect(self.emitValueChanged)
+
+    def setValue(self, value):
+        vs = re.findall(r'(\.?\d+(?:\.\d+)?)', value)
+        if len(vs):
+            i = 0
+            cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], e=True, rgb=tuple(float(v) for v in vs[:3]))
+            self.alphaControl.setValue(vs[3])
+
+    def getValue(self):
+
+        values = cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], q=True, rgb=True)
+        values.append(self.alphaControl.getValue())
+
+        return '[{}]'.format(' '.join(str(v) for v in values))
 
 
 class MtoACheckbox(QtWidgets.QCheckBox):
