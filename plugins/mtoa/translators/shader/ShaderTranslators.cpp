@@ -4308,3 +4308,72 @@ void CRampFloatTranslator::Export(AtNode* shader)
       }
    }  
 }
+
+void CStandardSurfaceTranslator::Export(AtNode* shader)
+{
+   // Base
+   ProcessParameter(shader, "base", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "base_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "diffuse_roughness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "metalness", AI_TYPE_FLOAT);
+
+   // Specular
+   ProcessParameter(shader, "specular", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_IOR", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_rotation", AI_TYPE_FLOAT);
+
+   // Transmission
+   ProcessParameter(shader, "transmission", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "transmission_depth", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_scatter", AI_TYPE_RGB);
+   ProcessParameter(shader, "transmission_scatter_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_dispersion", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_extra_roughness", AI_TYPE_FLOAT);
+
+   // Subsurface
+   ProcessParameter(shader, "subsurface", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "subsurface_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "subsurface_radius", AI_TYPE_RGB);
+   ProcessParameter(shader, "subsurface_scale", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "subsurface_anisotropy", AI_TYPE_FLOAT);
+   // Anrold specific: ENUM          subsurface_type                   randomwalk
+
+   // Coat
+   ProcessParameter(shader, "coat", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "coat_roughness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_IOR", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_rotation", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_normal", AI_TYPE_VECTOR);
+   ProcessParameter(shader, "coat_affect_color", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_affect_roughness", AI_TYPE_FLOAT);
+
+   // Sheen
+   ProcessParameter(shader, "sheen", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "sheen_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "sheen_roughness", AI_TYPE_FLOAT);
+
+   // Emission
+   ProcessParameter(shader, "emission", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB);
+
+   // Thin Film
+   ProcessParameter(shader, "thin_film_thickness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "thin_film_IOR", AI_TYPE_FLOAT);
+
+   // Geometry
+   ProcessParameter(shader, "thin_walled", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "opacity", AI_TYPE_RGB);
+   ProcessParameter(shader, "normal", AI_TYPE_VECTOR, "normalCamera");
+   ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
+}
+
+AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("standard_surface");
+}

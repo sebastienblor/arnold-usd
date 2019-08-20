@@ -60,6 +60,7 @@ SHADER_TRANSLATOR(CUserDataVec2Translator);
 SHADER_TRANSLATOR(CUserDataBoolTranslator);
 SHADER_TRANSLATOR(CUserDataVectorTranslator);
 SHADER_TRANSLATOR(CSetRangeTranslator);
+SHADER_TRANSLATOR(CStandardSurfaceTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {
