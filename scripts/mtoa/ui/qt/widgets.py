@@ -788,6 +788,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             if node_type != 'hidden':
                 for param, data in sorted(params.items()):
                     self.paramWidget.addItem(param, node_type)
+        self.paramWidget.addItem("custom", None)
 
     def getParamData(self, param):
         for node_type, params in self.param_dict.items():
