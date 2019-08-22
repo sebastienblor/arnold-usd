@@ -615,7 +615,11 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
+        cb_containerWidget = QtWidgets.QWidget(self)
+        cb_containerWidget.setLayout(QtWidgets.QHBoxLayout())
+        cb_containerWidget.setContentsMargins(0, 1, 0, 0)
         self.enabledCheckBox = MtoACheckbox(enabled, self)
+        cb_containerWidget.layout().addWidget(self.enabledCheckBox)
         self.layout().insertWidget(0, self.enabledCheckBox, alignment=QtCore.Qt.AlignTop)
         self.widgets.append(self.enabledCheckBox)
 
@@ -744,9 +748,11 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.overrideTriggered.emit(param)
 
     def emitValueChanged(self, value):
-
         param = self.getParam()
-        self.valueChanged[str, str, type(value), int, bool, int, str, bool].emit(
+        value_type = type(value)
+        if value is None:
+            value_type = str
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
                                    param,
                                    self.getOperation(),
                                    value,
@@ -759,7 +765,10 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     def emitExpressionValueChanged(self, value):
         param = self.getParam()
-        self.valueChanged[str, str, type(value), int, bool, int, str, bool].emit(
+        value_type = type(value)
+        if value is None:
+            value_type = str
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
                                    param,
                                    self.getOperation(),
                                    value,
@@ -772,7 +781,10 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def emitOperationChanged(self, operation):
         param = self.getParam()
         value = self.getValue()
-        self.valueChanged[str, str, type(value), int, bool, int, str, bool].emit(
+        value_type = type(value)
+        if value is None:
+            value_type = str
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
                                    param,
                                    operation,
                                    value,
