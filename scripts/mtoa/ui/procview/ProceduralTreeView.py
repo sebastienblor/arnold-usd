@@ -419,6 +419,9 @@ class ProceduralItem(BaseItem):
         if self.dirty:
             self.actions = []
             my_overrides, parent_overrides = self.getOverrides()
+            print "getActions", self.name, self.dirty
+            print " -- ", my_overrides
+            print " -- ", parent_overrides
             params = [p[PARAM] for p in my_overrides]
             attr_params = [x for x in params if x not in [SHADER, DISPLACEMENT]]
 

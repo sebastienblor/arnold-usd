@@ -1,0 +1,5 @@
+shutter_start shutter_end should be set the same as motion_start motion_end from gpuCache
+
+See trac#3952
+
+author: Ashley Handscomb Retallack
