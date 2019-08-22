@@ -67,6 +67,13 @@ def toQtObject(mayaUIName, pySideType=QtCore.QObject):
         return obj
 
 
+def toMayaName(qtObject):
+    '''
+    Given a QtWidget get the maya name
+    '''
+    return OpenMayaUI.MQtUtil.fullName(long(shiboken.getCppPointer(qtObject)[0]))
+
+
 def clearWidget(widget):
     """clear children from given widget"""
     while widget.layout().count():

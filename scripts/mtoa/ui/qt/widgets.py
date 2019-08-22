@@ -4,7 +4,7 @@ from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .treeView import BaseItem
-from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression, STRING_EXP
+from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression, toQtObject, toMayaName, STRING_EXP
 
 from .button import MtoAButton, MtoACheckableButton
 
@@ -117,7 +117,6 @@ def getVisibilityDict(value):
             else:
                 compViz += v
     return vis_dict
-
 
 
 class MtoAVisibilityCheckBox(QtWidgets.QCheckBox):
@@ -233,16 +232,82 @@ class MtoAVec2Control(MtoAMultiFloatControl):
         super(MtoAVec2Control, self).__init__(value, 2, parent)
 
 
-class MtoARGBControl(MtoAMultiFloatControl):
+class MtoARGBControl(QtWidgets.QFrame):
+
+    valueChanged = QtCore.Signal(str)
 
     def __init__(self, value='[0.5 0.5 0.5]', parent=None):
-        super(MtoARGBControl, self).__init__(value, 3, parent)
+        super(MtoARGBControl, self).__init__(parent)
+        self.setObjectName("MtoARGBControl")
+        self.horizLayout = QtWidgets.QHBoxLayout(self)
+        self.horizLayout.setObjectName("MtoARGBControlLayout")
+
+        self.setLayout(self.horizLayout)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        layout = toMayaName(self.layout())
+        cmds.setParent(layout)
+
+        # columnLayout = cmds.columnLayout(bgc=[0.2,0.5,0.2])
+        # self.columnLayout = toQtObject(columnLayout, QtWidgets.QWidget)
+        # self.columnLayout.setContentsMargins(0, 0, 0, 0)
+
+        # maya color widget
+        self.mayaColorWidget = cmds.colorSliderGrp("MtoARGBControlSlider#",
+                                                   label="",
+                                                   changeCommand=self.emitValueChanged,
+                                                   columnWidth=[[1, 0],
+                                                                [2, 30],
+                                                                [3, 0]])  # hide label and slider
+
+        self.colorWidget = toQtObject(self.mayaColorWidget, QtWidgets.QWidget)
+        self.colorWidget.setContentsMargins(0, 0, 0, 0)
+        self.colorWidget.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.layout().addWidget(self.colorWidget)
+
+    def emitValueChanged(self, value):
+        self.valueChanged.emit(self.getValue())
+
+    def setValue(self, value):
+        vs = re.findall(r'(\.?\d+(?:\.\d+)?)', value)
+        if len(vs):
+            i = 0
+            cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], e=True, rgb=tuple(float(v) for v in vs))
+
+    def getValue(self):
+
+        values = cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], q=True, rgb=True)
+
+        return '[{}]'.format(' '.join(str(v) for v in values))
 
 
-class MtoARGBAControl(MtoAMultiFloatControl):
+class MtoARGBAControl(MtoARGBControl):
 
     def __init__(self, value='[0.5 0.5 0.5 1.0]', parent=None):
-        super(MtoARGBAControl, self).__init__(value, 4, parent)
+        super(MtoARGBAControl, self).__init__(parent)
+        self.setObjectName("MtoARGBAControl")
+
+        self.colorWidget.layout().itemAt(2).widget().hide()
+
+        self.alphaControl = MtoAFltControl(self)
+        self.layout().addWidget(self.alphaControl)
+
+        self.alphaControl.valueChanged.connect(self.emitValueChanged)
+
+    def setValue(self, value):
+        vs = re.findall(r'(\.?\d+(?:\.\d+)?)', value)
+        if len(vs):
+            i = 0
+            cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], e=True, rgb=tuple(float(v) for v in vs[:3]))
+            self.alphaControl.setValue(vs[3])
+
+    def getValue(self):
+
+        values = cmds.colorSliderGrp(self.mayaColorWidget.split('|')[-1], q=True, rgb=True)
+        values.append(self.alphaControl.getValue())
+
+        return '[{}]'.format(' '.join(str(v) for v in values))
 
 
 class MtoACheckbox(QtWidgets.QCheckBox):
@@ -294,6 +359,9 @@ class MtoAIntControl(QtWidgets.QSpinBox):
     def setValue(self, value):
         super(MtoAIntControl, self).setValue(int(value))
 
+    def getValue(self):
+        return self.value()
+
 
 class MtoAFltControl(QtWidgets.QDoubleSpinBox):
     def __init__(self, parent=None):
@@ -303,6 +371,9 @@ class MtoAFltControl(QtWidgets.QDoubleSpinBox):
 
     def setValue(self, value):
         super(MtoAFltControl, self).setValue(float(value))
+
+    def getValue(self):
+        return self.value()
 
 
 class MtoAStrControl(QtWidgets.QLineEdit):
@@ -360,7 +431,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
     menuTriggered = QtCore.Signal(object)
     overrideTriggered = QtCore.Signal()
 
-    def __init__(self, label='label', nodeType="shader", parent=None):
+    def __init__(self, label='', nodeType="shader", override=False, parent=None):
         super(MtoANodeConnectionWidget, self).__init__(label, parent)
 
         self.node = None
@@ -368,11 +439,14 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         # attribute for adding custom user data
         self.data = {}
 
-        self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
-        self.overrideButton.setEnabled(False)
-        self.overrideButton.setToolTip("Override Assignment")
-        self.layout().insertWidget(0, self.overrideButton)
-        self.overrideButton.clicked.connect(self.emitOverrideTriggered)
+        self.overrideButton = None
+
+        if override:
+            self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
+            self.overrideButton.setEnabled(False)
+            self.overrideButton.setToolTip("Override Assignment")
+            self.layout().insertWidget(0, self.overrideButton)
+            self.overrideButton.clicked.connect(self.emitOverrideTriggered)
 
         self.conButton = MtoAButton(self, self.UNCONNECTED_ICON, dpiScale(15))
         self.layout().addWidget(self.conButton)
@@ -389,7 +463,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.setMenu(self.menu)
 
         self.setAcceptDrops(True)
-
+        self.lineEdit.setReadOnly(True)
         self.lineEdit.editingFinished.connect(self.manualSet)
 
     def emitOverrideTriggered(self):
@@ -409,6 +483,13 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
     def manualSet(self):
         self.setNode(self.getText())
 
+    def getValue(self):
+        return self.node
+
+    def setValue(self, value):
+        node = value.replace("'", "")
+        self.setNode(node, False)
+
     def setNode(self, node, emit=True):
         if node and node != '':
             self.node = node
@@ -416,11 +497,15 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
             self.conButton.setIcon(self.CONNECTED_ICON)
             self.conButton.clicked.disconnect()
             self.conButton.clicked.connect(self.selectNode)
+        if node == '':
+            self.disconnectNode(emit)
+            return
         if emit:
             self.valueChanged.emit(node)
 
     def setInherited(self, inherited):
-        self.overrideButton.setEnabled(inherited)
+        if self.overrideButton:
+            self.overrideButton.setEnabled(inherited)
 
     def disconnectNode(self, emit=True):
         self.node = None
@@ -430,6 +515,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.conButton.clicked.connect(self.connectionButtonClicked)
         if emit:
             self.nodeDisconnected.emit()
+            self.valueChanged.emit("")
 
     def selectNode(self):
         if self.node:
@@ -493,7 +579,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             return self.control.getValue()
 
     def setValue(self, value):
-        if self.control and not valueIsExpression(value):
+        if self.control and not valueIsExpression(str(value)):
             self.control.setValue(value)
 
 
@@ -506,13 +592,14 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     deleteMe = QtCore.Signal(object)
     paramChanged = QtCore.Signal(str)
     #                             param, operation, value, param_type, custom, index, operator
-    valueChanged = QtCore.Signal((str, str, str, int, bool, int, str),
-                                 (str, str, int, int, bool, int, str),
-                                 (str, str, bool, int, bool, int, str),
-                                 (str, str, float, int, bool, int, str))
+    valueChanged = QtCore.Signal((str, str, str, int, bool, int, str, bool),
+                                 (str, str, int, int, bool, int, str, bool),
+                                 (str, str, bool, int, bool, int, str, bool),
+                                 (str, str, float, int, bool, int, str, bool))
     overrideTriggered = QtCore.Signal(str)
+    connectionTriggered = QtCore.Signal()
 
-    def __init__(self, paramType=None, param=None, op=None, value=None, paramDict={}, parent=None):
+    def __init__(self, paramType=None, param=None, op=None, value=None, paramDict={}, parent=None, enabled=True, custom=False):
         super(MtoAOperatorOverrideWidget, self).__init__(parent)
 
         self.setObjectName("MtoAOperatorOverrideWidget")
@@ -520,32 +607,48 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.param_name = None
         self.param_type = None
         self.user_param = False
+        self.enabled = enabled
         self.param_dict = paramDict
         self.index = -1
         self.operator = ""
+        self.widgets = []
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
+
+        cb_containerWidget = QtWidgets.QWidget(self)
+        cb_containerWidget.setLayout(QtWidgets.QHBoxLayout())
+        cb_containerWidget.setContentsMargins(0, 1, 0, 0)
+        self.enabledCheckBox = MtoACheckbox(enabled, self)
+        cb_containerWidget.layout().addWidget(self.enabledCheckBox)
+        self.layout().insertWidget(0, self.enabledCheckBox, alignment=QtCore.Qt.AlignTop)
+        self.widgets.append(self.enabledCheckBox)
 
         self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
         self.overrideButton.setEnabled(False)
         self.overrideButton.setToolTip("Override Assignment")
-        self.layout().insertWidget(0, self.overrideButton, alignment=QtCore.Qt.AlignTop)
+        self.layout().insertWidget(1, self.overrideButton, alignment=QtCore.Qt.AlignTop)
         self.overrideButton.clicked.connect(self.emitOverrideTriggered)
+        if custom:
+            self.overrideButton.setVisible(False)
+        self.widgets.append(self.overrideButton)
 
         self.paramWidget = MtoAParamBox(self)
         self.layout().addWidget(self.paramWidget, alignment=QtCore.Qt.AlignTop)
         # self.paramWidget.setVisible(False)
         self.populateParams(self.param_dict)
+        self.widgets.append(self.paramWidget)
 
         self.op_menu = QtWidgets.QComboBox()
         self.op_menu.setObjectName("MtoAOperatorChoice")
         self.op_menu.setContentsMargins(0, 10, 0, 0)
         self.op_menu.addItems(OPERATIONS)
         self.layout().addWidget(self.op_menu, alignment=QtCore.Qt.AlignTop)
+        self.widgets.append(self.op_menu)
 
         self.valueWidget = QtWidgets.QStackedWidget()  # set the widget for this control
         self.valueWidget.setContentsMargins(0, 0, 0, 0)
         self.layout().addWidget(self.valueWidget, alignment=QtCore.Qt.AlignTop)
+        self.widgets.append(self.valueWidget)
 
         self.controlWidget = MtoAMutiControlWidget()
         self.valueWidget.addWidget(self.controlWidget)
@@ -572,6 +675,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             self.setParamType(paramType)
             self.user_param = True
             self.paramWidget.setCustom(True)
+        if custom:
+            self.paramWidget.setCustom(True)
         if param:
             self.setParam(param)
             self.setControlWidget(param)
@@ -586,6 +691,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     def setup(self):
         self.delBtn.clicked.connect(self.callDeleteMe)
+        self.enabledCheckBox.toggled.connect(self.emitToggleEnabled)
         self.paramWidget.paramChanged.connect(self.emitParamChanged)
         self.paramWidget.paramTypeChanged.connect(self.emitParamTypeChanged)
         self.expBtn.toggled.connect(self.valueWidget.setCurrentIndex)
@@ -595,8 +701,15 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def setInherited(self, inherited):
         self.overrideButton.setEnabled(inherited)
 
+    def setEnabled(self, enabled):
+        self.enabled = enabled
+
     def callDeleteMe(self):
         self.deleteMe.emit(self)
+
+    def emitToggleEnabled(self, enabled):
+        self.setEnabled(enabled)
+        self.emitValueChanged(self.getValue())
 
     def emitParamChanged(self, param):
         current_param = self.getParam()
@@ -635,40 +748,51 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.overrideTriggered.emit(param)
 
     def emitValueChanged(self, value):
-
         param = self.getParam()
-        self.valueChanged[str, str, type(value), int, bool, int, str].emit(
+        value_type = type(value)
+        if value is None:
+            value_type = str
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
                                    param,
                                    self.getOperation(),
                                    value,
                                    self.param_type,
                                    self.user_param,
                                    self.index,
-                                   self.operator)
+                                   self.operator,
+                                   self.enabled)
         self.expressionEditor.setText(str(value))
 
     def emitExpressionValueChanged(self, value):
         param = self.getParam()
-        self.valueChanged[str, str, type(value), int, bool, int, str].emit(
+        value_type = type(value)
+        if value is None:
+            value_type = str
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
                                    param,
                                    self.getOperation(),
                                    value,
                                    self.param_type,
                                    self.user_param,
                                    self.index,
-                                   self.operator)
+                                   self.operator,
+                                   self.enabled)
 
     def emitOperationChanged(self, operation):
         param = self.getParam()
         value = self.getValue()
-        self.valueChanged[str, str, type(value), int, bool, int, str].emit(
+        value_type = type(value)
+        if value is None:
+            value_type = str
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
                                    param,
                                    operation,
                                    value,
                                    self.param_type,
                                    self.user_param,
                                    self.index,
-                                   self.operator)
+                                   self.operator,
+                                   self.enabled)
 
     def populateParams(self, paramDict):
 
@@ -676,6 +800,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             if node_type != 'hidden':
                 for param, data in sorted(params.items()):
                     self.paramWidget.addItem(param, node_type)
+        self.paramWidget.addItem("custom", None)
 
     def getParamData(self, param):
         for node_type, params in self.param_dict.items():
@@ -721,7 +846,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def setValue(self, value):
         self.controlWidget.setValue(value)
         self.expressionEditor.setText(str(value))
-        if valueIsExpression(value):
+        if valueIsExpression(str(value)):
             # show the expression editor
             self.expBtn.setChecked(True)
             self.valueWidget.setCurrentIndex(1)
@@ -755,6 +880,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             param_data = self.getParamData(param)
             for i in param_data[ENUM_VALUES]:
                     control.addItem(i)
+        elif self.param_type is AI_TYPE_NODE:
+            control = MtoANodeConnectionWidget()
         else:
             control = MtoAStrControl()
 
@@ -776,7 +903,7 @@ class MtoAParamBox(QtWidgets.QFrame):
     paramChanged = QtCore.Signal(str)
     paramTypeChanged = QtCore.Signal(str)
 
-    def __init__(self, parent):
+    def __init__(self, parent, menu=True):
         super(MtoAParamBox, self).__init__(parent)
 
         self.setLayout(QtWidgets.QHBoxLayout())
@@ -790,6 +917,8 @@ class MtoAParamBox(QtWidgets.QFrame):
         self.layout().addWidget(self.menuButton)
 
         self.rootMenus = []
+        if not menu:
+            self.menuButton.setVisible(False)
 
         self.paramTypeBox = QtWidgets.QComboBox()
         self.paramTypeBox.addItems(TYPES)
