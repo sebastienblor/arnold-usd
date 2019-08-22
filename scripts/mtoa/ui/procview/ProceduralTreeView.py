@@ -419,9 +419,6 @@ class ProceduralItem(BaseItem):
         if self.dirty:
             self.actions = []
             my_overrides, parent_overrides = self.getOverrides()
-            print "getActions", self.name, self.dirty
-            print " -- ", my_overrides
-            print " -- ", parent_overrides
             params = [p[PARAM] for p in my_overrides]
             attr_params = [x for x in params if x not in [SHADER, DISPLACEMENT]]
 
@@ -522,7 +519,6 @@ class ProceduralItem(BaseItem):
             if children:
                 for child in children:
                     ProceduralItem(self, self.transverser, self.node, data=child)
-            # print "********* Time to get children of {} : {}".format(self.name, timer.get_time_hhmmss())
 
         self.childrenObtained = True
 
