@@ -343,7 +343,7 @@ class ProceduralTransverser(BaseTransverser):
             tokens = sel_exp.rsplit()
             for tok in tokens:
                 mat = SELECTION_REGEX.match(tok)
-                if mat and mat.group() == path:
+                if mat and mat.group() == path or tok == path:
                     exact_match = True
                     sel_mat = True
                     break
