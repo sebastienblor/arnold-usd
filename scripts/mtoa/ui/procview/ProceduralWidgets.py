@@ -81,10 +81,9 @@ class OperatorTreeModel(BaseModel):
         self.rootItem = OperatorItem(None, "")
         if self.currentItem:
             path = self.currentItem.data[PROC_PATH]
-            collections = self.transverser.getCollections(self.currentNode, path, False)
-            local_collections = self.transverser.getCollections(self.currentNode, path, True)
-            operators = self.transverser.getOperators(self.currentNode, path, exact_match=False, collections=collections, gather_parents=True)
-            for op in operators:
+            collections, local_collections = self.transverser.getCollections(self.currentNode, path)
+            operators = self.transverser.getOperators(self.currentNode, path, collections=collections, gather_parents=True)
+            for op, match in operators:
                 enabled = cmds.getAttr(op+'.enable')
                 local = self.transverser.operatorAffectsPath(path, op, collections=local_collections)
                 OperatorItem(self.rootItem, op, enabled, local)
@@ -580,13 +579,14 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                                    param=param)
         mel.eval("createRenderNode -all \"python(\\\"" + callback + "\\\")\" \"\"")
 
-    def getOverrideOperator(self, create=True, exact_match=True):
-        collections = self.transverser.getCollections(self.node, self.item.data[PROC_PATH], exact_match)
-        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, exact_match, collections)
+    def getOverrideOperator(self, create=True):
+        collections = self.transverser.getCollections(self.node, self.item.data[PROC_PATH])
+        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, collections)
+        ops = [o for o, m in ops if m]
         if not len(ops) and create:
             op = self.transverser.createOperator(self.node, self.item, OVERRIDE_OP)
         else:
-            op = ops[0]
+            op = ops[0][0]
         return op
 
     def getItemOverrideOperator(self, create=False):
@@ -621,6 +621,13 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 return self.getData(item.parent())
 
     def refresh(self):
+
+        def getParmInList(param, param_list):
+            for i, p in enumerate(param_list):
+                if p[PARAM] == param:
+                    return i
+            return -1
+
         clearWidget(self.localOverridesPanel)
         clearWidget(self.inheritedOverridesPanel)
 
@@ -635,7 +642,14 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.resetShadingWidgets()
         if self.item:
             path = self.item.data[PROC_PATH]
-            for override in self.getOverrides():
+            overrides, p_overrides = self.getOverrides()
+            for ov in overrides:
+                idx = getParmInList(ov, p_overrides)
+                if idx != -1:
+                    p_overrides[idx] = ov
+                else:
+                    p_overrides.append(ov)  # split to param, op, VALUE
+            for override in p_overrides:
                 # FIXME what if the user wants to connect a shader from inside the procedural?
                 operator = override[OPERATOR]
                 index = override[INDEX]
@@ -685,9 +699,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         parentPanel = self.inheritedOverridesPanel
         data = self.getData(self.item)
         path = data[PROC_PATH]
-        local_collections = self.transverser.getCollections(self.node,
-                                                            path, True)
-        if self.transverser.operatorAffectsPath(path, operator, collections=local_collections):
+        collections, local_collections = self.transverser.getCollections(self.node,
+                                                            path)
+
+        local_collections = [c for c, m in local_collections if m]
+        sel_match, exact_match = self.transverser.operatorAffectsPath(path, operator, collections=local_collections)
+        if exact_match:
             parentPanel = self.localOverridesPanel
 
         parentPanel.setVisible(True)
@@ -746,4 +763,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             if not param_type:
                 param_type = param_data[DATA_PARAM_TYPE]
 
-        return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, enabled, index)
+        if self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, enabled, index):
+            self.item.setDirty(True)
+            return True
+        return False
