@@ -313,8 +313,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.shadingPanel.layout().addWidget(self.shaderOverrideWidget)
         self.shadingWidgets[SHADER] = [self.shaderOverrideWidget]
 
+        shaderCbContainerWidget = QtWidgets.QWidget(self)
+        shaderCbContainerWidget.setLayout(QtWidgets.QHBoxLayout())
+        shaderCbContainerWidget.setContentsMargins(0, 2, 0, 0)
         self.shaderEnabledCheckBox = MtoACheckbox(True, self)
-        self.shaderOverrideWidget.layout().insertWidget(0, self.shaderEnabledCheckBox, alignment=QtCore.Qt.AlignTop)
+        shaderCbContainerWidget.layout().addWidget(self.shaderEnabledCheckBox)
+        self.shaderOverrideWidget.layout().insertWidget(0, shaderCbContainerWidget, alignment=QtCore.Qt.AlignTop)
         self.shaderEnabledCheckBox.toggled.connect(self.toggleShaderEnabled)
         self.shadingWidgets[SHADER].append(self.shaderEnabledCheckBox)
 
@@ -330,8 +334,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
         self.shadingWidgets[DISP_MAP] = [self.dispOverrideWidget]
 
+        dispCbContainerWidget = QtWidgets.QWidget(self)
+        dispCbContainerWidget.setLayout(QtWidgets.QHBoxLayout())
+        dispCbContainerWidget.setContentsMargins(0, 2, 0, 0)
         self.dispEnabledCheckBox = MtoACheckbox(True, self)
-        self.dispOverrideWidget.layout().insertWidget(0, self.dispEnabledCheckBox, alignment=QtCore.Qt.AlignTop)
+        dispCbContainerWidget.layout().addWidget(self.dispEnabledCheckBox)
+        self.dispOverrideWidget.layout().insertWidget(0, dispCbContainerWidget, alignment=QtCore.Qt.AlignTop)
         self.dispEnabledCheckBox.toggled.connect(self.toggleDisplacementEnabled)
         self.shadingWidgets[DISP_MAP].append(self.dispEnabledCheckBox)
 
