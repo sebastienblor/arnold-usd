@@ -922,7 +922,7 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_batch_render_patch";
    helper.MakeInputString ( data );
 
-   data.defaultValue.BOOL() = true;
+   data.defaultValue.BOOL() = false;
    data.name = "aiMultithreading";
    data.shortName = "ai_multithreading";
    helper.MakeInputBoolean ( data );

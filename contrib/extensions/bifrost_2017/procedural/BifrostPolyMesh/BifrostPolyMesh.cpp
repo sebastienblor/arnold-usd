@@ -288,4 +288,5 @@ node_parameters
 {
     AiParameterInt("tesselation", 2);
     ImplicitNodeDeclareParameters(params, nentry);
+    AiMetaDataSetBool(nentry, AtString(""), AtString("parallel_init"), true);
 }

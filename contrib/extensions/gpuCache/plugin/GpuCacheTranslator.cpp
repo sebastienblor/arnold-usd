@@ -193,7 +193,8 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    MPlug filenamePlug = FindMayaPlug("cacheFileName");
    if (!filenamePlug.isNull())
    {
-      MString filename = filenamePlug.asString();
+      MString filename = filenamePlug.asString().expandEnvironmentVariablesAndTilde();
+      GetSessionOptions().FormatProceduralPath(filename);
       AiNodeSetStr(shape, "filename", filename.asChar());
    }
 
@@ -228,8 +229,6 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    }
 
    AiNodeSetFlt(shape, "fps", fps);
-   AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
-   AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));
 
    AiNodeSetBool(shape, "make_instance", FindMayaPlug( "aiMakeInstance" ).asBool());
    AiNodeSetBool(shape, "exclude_xform", FindMayaPlug("aiExcludeXform").asBool());
@@ -299,6 +298,9 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    }
 
    ExportProcedural(shape);
+
+   AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
+   AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));
 }
 
 

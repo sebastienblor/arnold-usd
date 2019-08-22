@@ -16,6 +16,7 @@ node_parameters
 {
     AiParameterBool  ("enableTest", true);
     AiParameterBool  ("renderCone", false);
+    AiMetaDataSetBool(nentry, AtString(""), AtString("parallel_init"), true);
     
 }
 

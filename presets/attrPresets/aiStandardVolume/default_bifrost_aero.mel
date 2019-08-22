@@ -23,7 +23,7 @@ blendAttr "emissionColorG" 1.0;
 blendAttr "emissionColorB" 1.0; 
 blendAttr "voxel_temperature" 1; 
 blendAttr "blackbodyKelvin" 1; 
-blendAttr "blackbodyIntensity" 0.03; 
+blendAttr "blackbodyIntensity" 0.003; 
 blendAttr "displacementX" 0; 
 blendAttr "displacementY" 0; 
 blendAttr "displacementZ" 0; 

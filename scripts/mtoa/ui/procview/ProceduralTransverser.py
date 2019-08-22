@@ -17,7 +17,7 @@ from arnold import *
  PROC_IOBJECT, 
  PROC_ENTRY_TYPE) = range(8)
 
-(PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR) = range(6)
+(PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, ENABLED) = range(7)
 (DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES) = range(4)
 
 SELECTION_REGEX = re.compile(r'.*(?=/\*)')
@@ -49,6 +49,8 @@ PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
                    'num_points', 'points', 'orientations',
                    'uvs', 'cvs', 'knots_u', 'knots_v', 'degree_u', 'degree_v']
 
+DISP_MAP = 'disp_map'
+SHADER = 'shader'
 
 def ArnoldUniverseOnlyBegin():
     if not AiUniverseIsActive():
@@ -314,47 +316,69 @@ class ProceduralTransverser(BaseTransverser):
             # connect at the index given
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
+    def getCustomParamName(self, operator):
+        if cmds.nodeType(operator) == OVERRIDE_OP:
+            customParam = "myParam"
+            c = 0
+            for a in cmds.getAttr('{}.assignment'.format(operator), multiIndices=True) or []:
+                attr = cmds.getAttr('{}.assignment[{}]'.format(operator, a))
+                mat = EXP_REGEX.match(attr)
+                if mat:
+                    param_name = mat.group('param')
+                    if param_name.startswith(customParam):
+                        c += 1
+            if c > 0:
+                customParam = '{}{}'.format(customParam, c)
+            return customParam
+        return
+
     @classmethod
-    def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True, collections=[]):
+    def operatorAffectsPath(self, path, operator, operator_type=None, collections=[]):
 
         sel_mat = False
+        exact_match = False
         if cmds.attributeQuery('selection', node=operator, exists=True) and \
            (operator_type is None or cmds.nodeType(operator) == operator_type):
-
             sel_exp = cmds.getAttr('{}.selection'.format(operator))
             tokens = sel_exp.rsplit()
             for tok in tokens:
-                inCollections = tok[1:] in collections
-                if exact_match:
-                    mat = SELECTION_REGEX.match(tok)
-                    isRoot = (tok == "/*" and path == '/')
-                    if mat and mat.group() == path or isRoot or inCollections:
-                        sel_mat = True
-                        break
-                    if not mat:
-                        sel_mat = (tok == path) or isRoot or inCollections
-                else:
-                    pat = fnmatch.translate(tok.replace('/*', '*'))
-                    reobj = re.compile(pat)
-                    mat = reobj.match(path)
-                    if mat or inCollections:
-                        sel_mat = True
-                        break
+                mat = SELECTION_REGEX.match(tok)
+                if mat and mat.group() == path or tok == path:
+                    exact_match = True
+                    sel_mat = True
+                    break
 
-        return sel_mat
+                if tok[1:] in collections:
+                    sel_mat = True
+                    break
+                if (tok == "/*" and path == '/') or \
+                   (tok == path):
+                    sel_mat = True
+                    break
+
+                pat = fnmatch.translate(tok)
+                if re.match(pat, path):
+                    sel_mat = True
+                    break
+
+        return sel_mat, exact_match
 
     @classmethod
-    def getCollections(self, node, path, exact_match=True):
+    def getCollections(self, node, path):
 
-        col_ops = self.getOperators(node, path, COLLECTION_OP, exact_match)
+        col_ops = self.getOperators(node, path, COLLECTION_OP)
         collections = []
-        for op in col_ops:
+        local_collections = []
+        for op, match in col_ops:
 
-            collections.append(cmds.getAttr('{}.collection'.format(op)))
-        return collections
+            if match:
+                local_collections.append(cmds.getAttr('{}.collection'.format(op)))
+            else:
+                collections.append(cmds.getAttr('{}.collection'.format(op)))
+        return collections, local_collections
 
     @classmethod
-    def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1, gather_parents=False):
+    def getOperators(self, node, path='', operator_type=None, collections=[], index=-1, gather_parents=False):
 
         def walkInputs(op, path, plug, collections, gather_parents=False, parent_ops=[]):
             """
@@ -363,15 +387,15 @@ class ProceduralTransverser(BaseTransverser):
             """
             ops = []
             op_type = cmds.nodeType(op)
-            sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
+            sel_mat, exact_match = self.operatorAffectsPath(path, op, operator_type, collections)
             if sel_mat and op:
-                for p_op in parent_ops:
+                for p_op, p_exact_match in parent_ops:
                     if p_op not in ops and \
                        (operator_type is None or cmds.nodeType(p_op) == operator_type):
-                        ops.append(p_op)
-                ops.append(op)
+                        ops.append((p_op, p_exact_match))
+                ops.append((op, exact_match))
             if gather_parents:
-                parent_ops.append(op)
+                parent_ops.append((op, exact_match))
             if cmds.attributeQuery('inputs', node=op, exists=True):
 
                 if cmds.nodeType(op) == SWITCH_OP:
@@ -395,16 +419,16 @@ class ProceduralTransverser(BaseTransverser):
             con_operators = cmds.listConnections('{}.operators'.format(node)) or []
             for idx, op in enumerate(con_operators):
                 out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents, [])
-                for op in out_op:
+                for op, match in out_op:
                     if op not in operators:
-                        operators.append(op)
+                        operators.append((op, match))
 
         return operators
 
     def deleteOperator(self, operator):
         return cmds.delete(operator)
 
-    def getOverrides(self, node, path, exact_match=False):
+    def getOverrides(self, node, path):
 
         def getParmInList(param, param_list):
             for i, p in enumerate(param_list):
@@ -412,31 +436,42 @@ class ProceduralTransverser(BaseTransverser):
                     return i
             return -1
 
-        collections = self.getCollections(node, path, exact_match)
-        ops = self.getOperators(node, path, OVERRIDE_OP, exact_match, collections)
+        collections = self.getCollections(node, path)
+        ops = self.getOperators(node, path, OVERRIDE_OP, collections)
 
         overrides = []
+        parent_overrides = []
         if len(ops):
-            for op in ops:
+            for op, match in ops:
                 for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
                     ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+                    enabled = cmds.getAttr("{}.enableAssignment[{}]".format(op, c))
                     mat = EXP_REGEX.match(ass_str)
                     if mat:
                         param = mat.group('param')
                         data = list(mat.groups())
                         data.append(c)
                         data.append(op)
-                        # get if this parameter is already i the list, if so replace it with this one
-                        idx = getParmInList(param, overrides)
-                        if idx != -1:
-                            overrides[idx] = data
+                        data.append(enabled)
+                        if match:  # exact match
+                            # get if this parameter is already in the list, if so replace it with this one
+                            idx = getParmInList(param, overrides)
+                            if idx != -1:
+                                overrides[idx] = data
+                            else:
+                                overrides.append(data)  # split to param, op, VALUE
                         else:
-                            overrides.append(data)  # split to param, op, VALUE
+                            # get if this parameter is already in the list, if so replace it with this one
+                            idx = getParmInList(param, parent_overrides)
+                            if idx != -1:
+                                parent_overrides[idx] = data
+                            else:
+                                parent_overrides.append(data)  # split to param, op, VALUE
 
-        return overrides
+        return overrides, parent_overrides
 
     @classmethod
-    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, array=False, index=-1):
+    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, enable=True, index=-1):
 
         op = operator
         if index == -1:
@@ -466,6 +501,8 @@ class ProceduralTransverser(BaseTransverser):
         cmds.setAttr("{}.assignment[{}]".format(op, index),
                      param_exp,
                      type="string")
+        cmds.setAttr("{}.enableAssignment[{}]".format(op, index),
+                     enable)
         return True
 
     def _getOverrideIndices(self, op):
@@ -486,6 +523,7 @@ class ProceduralTransverser(BaseTransverser):
         if index != -1:
             if self._indexInAssignment(index, operator):
                 cmds.removeMultiInstance('{}.assignment[{}]'.format(operator, index))
+                cmds.removeMultiInstance('{}.enableAssignment[{}]'.format(operator, index))
             else:
                 return False
             # Final check the the index was removed

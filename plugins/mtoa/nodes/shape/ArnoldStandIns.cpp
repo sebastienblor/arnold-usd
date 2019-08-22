@@ -1,3 +1,11 @@
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <algorithm>
+#endif
 
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
@@ -24,6 +32,10 @@
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MPlug.h>
 #include <maya/MPoint.h>
+#include <maya/MSelectInfo.h>
+#include <maya/MDrawInfo.h>
+#include <maya/MDrawRequest.h>
+#include <maya/MDrawRequestQueue.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MDagPath.h>
 #include <maya/MDrawData.h>
@@ -66,6 +78,9 @@ MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
 MObject CArnoldStandInShape::s_ignoreGroupNodes;
+MObject CArnoldStandInShape::s_objectPath;
+MObject CArnoldStandInShape::s_abcLayers;
+MObject CArnoldStandInShape::s_abcFps;
 
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
@@ -424,6 +439,26 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          {
             proc = AiNode("alembic");
             AiNodeSetFlt(proc, "frame", frameStep);
+
+            MPlug fpsPlug(thisMObject(), s_abcFps);
+            AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
+            AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
+            MPlug objectPathPlug(thisMObject(), s_objectPath);
+            AiNodeSetStr(proc, "objectpath", objectPathPlug.asString().asChar());
+            // add the layers
+            MPlug layerPlug(thisMObject(), s_abcLayers);
+            MString layersString =  layerPlug.asString();
+
+            if (layersString.length())
+            {
+              MStringArray layerList;
+              layersString.split(';', layerList);
+              AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
+              for (unsigned int i=0; i < layerList.length(); i++)
+                 AiArraySetStr(layersArray, i, layerList[i].asChar());
+
+              AiNodeSetArray(proc, "layers", layersArray);
+            }
          }
          else if (isUsd)
          {
@@ -1145,6 +1180,73 @@ MStatus CArnoldStandInShape::initialize()
 
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
+   // USD and Alembic have object path parameter
+
+   s_objectPath = tAttr.create("objectPath", "objectpath", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setInternal( true);
+   tAttr.setStorable( true);
+   addAttribute(s_objectPath);
+   // Alembic attributes
+
+   data.defaultValue.STR() = AtString("");
+   data.name = "abcNamePrefix";
+   data.shortName = "abc_nameprefix";
+   s_attributes.MakeInputString(data);
+
+   s_abcLayers = tAttr.create("abcLayers", "abc_layers", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setInternal( true);
+   tAttr.setStorable( true);
+   addAttribute(s_abcLayers);
+
+   s_abcFps = nAttr.create("abcFPS", "abc_fps", MFnNumericData::kFloat, 24.0f);
+   nAttr.setHidden(false);
+   nAttr.setInternal( true);
+   nAttr.setStorable( true);
+   addAttribute(s_abcFps);
+
+   data.defaultValue.STR() = AtString("width");
+   data.name = "abcRadiusAttribute";
+   data.shortName = "abc_radius_attribute";
+   s_attributes.MakeInputString(data);
+
+   data.defaultValue.FLT() = 0.01f;
+   data.name = "abcRadiusDefault";
+   data.shortName = "abc_radius_default";
+   s_attributes.MakeInputFloat(data);
+
+   data.defaultValue.FLT() = 1.0f;
+   data.name = "abcRadiusScale";
+   data.shortName = "abc_radius_scale";
+   s_attributes.MakeInputFloat(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcVelocityIgnore";
+   data.shortName = "abc_velocity_ignore";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.FLT() = 1.0f;
+   data.name = "abcVelocityScale";
+   data.shortName = "abc_velocity_scale";
+   s_attributes.MakeInputFloat(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcVisibilityIgnore";
+   data.shortName = "abc_visibility_ignore";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcMakeInstance";
+   data.shortName = "abc_make_instance";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "abcPullUserParams";
+   data.shortName = "abc_pull_user_params";
+   s_attributes.MakeInputBoolean(data);
+
+
    return MStatus::kSuccess;
 }
 
@@ -1188,6 +1290,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    bool tmpUseFrameExtension = fGeometry.useFrameExtension;
    float tmpFrameStep = fGeometry.frame + fGeometry.frameOffset;
 
+   MString tmpAbcLayers = fGeometry.abcLayers;
+   float tmpAbcFps = fGeometry.abcFps;
+
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_dso);
    plug.getValue(fGeometry.dso);
@@ -1209,6 +1314,15 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry.frameOffset);
+
+   plug.setAttribute(s_objectPath);
+   plug.getValue(fGeometry.objectPath);
+
+   plug.setAttribute(s_abcLayers);
+   plug.getValue(fGeometry.abcLayers);
+
+   plug.setAttribute(s_abcFps);
+   plug.getValue(fGeometry.abcFps);
 
    //plug.setAttribute(s_deferStandinLoad);
    //plug.getValue(fGeometry.deferStandinLoad);
@@ -1329,7 +1443,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    }
    
    // Check if something has changed that requires us to reload the .ass (or at least the bounding box)
-   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride || tmpFrameStep != framestep))
+   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride || tmpFrameStep != framestep || tmpAbcLayers != fGeometry.abcLayers || tmpAbcFps != fGeometry.abcFps))
    {
       // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
       // If we can't, we have to load the .ass file and compute it ourselves

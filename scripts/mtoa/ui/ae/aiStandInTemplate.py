@@ -367,7 +367,128 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.setParent('..') # frameLayout
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
-    
+    def alembicAddLayer(self, nodeAttr):
+        basicFilter = 'Alembic Cache(*.abc)'
+        projectDir = cmds.workspace(query=True, directory=True)
+        projectRootDir = cmds.workspace(query=True, rootDirectory=True)
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Add Alembic Layer', okc='Load', fm=1, startingDirectory=projectDir)
+        if ret is not None and len(ret):
+            # get number of layers
+            currentLayers = cmds.getAttr(nodeAttr) or []
+            if len(currentLayers):
+                currentLayers = currentLayers.split(';')
+            else:
+                currentLayers = []
+            rel_filepath = ret[0].replace(projectRootDir, "")
+            print rel_filepath
+            currentLayers.append(rel_filepath)
+            cmds.setAttr(nodeAttr, ';'.join(currentLayers), type="string")
+            self.alembicLayersReplace(nodeAttr)
+
+    def alembicRemoveLayer(self, nodeAttr):
+        # get the selected layers
+        selectedLayers = cmds.textScrollList(self.abcLayersList, q=True, selectIndexedItem=True)
+        currentLayers = cmds.getAttr(nodeAttr)
+        if len(currentLayers):
+            currentLayers = currentLayers.split(';')
+            print selectedLayers
+            for i in reversed(selectedLayers):
+                print i-1
+                currentLayers.pop(i-1)
+            cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
+            self.alembicLayersReplace(nodeAttr)
+
+    def alembicLayersNew(self, nodeAttr):
+
+        # 2 Columns (Left with label+line edit, Right with list)
+        cmds.rowColumnLayout(numberOfColumns=3,
+                             rowAttach=[(1, "top", 0)],
+                             columnWidth=[(1, 145),(2, 190), (3, 100)],
+                             columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')],
+                             columnAttach=[(1, 'right', 2), (2, 'left', 2)])
+
+        cmds.text(label="Layers")
+        self.abcLayersList = cmds.textScrollList(height=100, width=180, allowMultiSelection=True)
+
+        # add remove buttons
+        cmds.rowColumnLayout(numberOfRows=3, rowHeight=[(1,20),(2,20)], rowSpacing=[(2,2)])
+        self.addLayerBtn = cmds.button(label='Add Layer', height=20, command=lambda *args: self.alembicAddLayer(nodeAttr))
+        self.removeLayerBtn = cmds.button(label='Remove Layer', height=20, command=lambda *args: self.alembicRemoveLayer(nodeAttr))
+
+        cmds.setParent('..') # rowLayout
+        cmds.setParent('..') # columnLayout
+        self.alembicLayersReplace(nodeAttr)
+
+    def alembicLayersReplace(self, nodeAttr):
+
+        cmds.textScrollList(self.abcLayersList, e=True, removeAll=True)
+
+        # add the layers from the new node
+        # numlayers = mu.getAttrNumElements(*nodeAttr.split('.'))
+        layer_str = cmds.getAttr(nodeAttr)
+        if not layer_str:
+            return
+
+        for l in layer_str.split(';'):
+            cmds.textScrollList(self.abcLayersList, e=True, append=os.path.basename(l))
+
+        cmds.button(self.addLayerBtn, e=True, command=lambda *args: self.alembicAddLayer(nodeAttr))
+        cmds.button(self.removeLayerBtn, e=True, command=lambda *args: self.alembicRemoveLayer(nodeAttr))
+
+    def addAlembicParams(self):
+
+        self.beginLayout('Alembic Settings', collapse=True)
+        # fps
+        self.addControl('abc_fps', label='FPS')
+        # layers
+        self.addCustom('abc_layers', self.alembicLayersNew, self.alembicLayersReplace)
+
+        self.beginNoOptimize()
+        # name_prefix
+        self.addControl('abc_nameprefix', label='Name Prefix')
+        # make_instance
+        self.addControl('abc_make_instance', label='Make Instance')
+        # pull_user_params
+        self.addControl('abc_pull_user_params', label='Pull User Params')
+        # visibility_ignore
+        self.addControl('abc_visibility_ignore', label='Ignore Visibility Attributes')
+        # radius_attribute
+        self.addControl('abc_radius_attribute', label='Radius Attrbute Name')
+        # radius_default
+        self.addControl('abc_radius_default', label='Radius Default')
+        # radius_scale
+        self.addControl('abc_radius_scale', label='Radius Scale')
+        # exclude_xform
+        self.addControl('abc_exclude_xform', label='Exclude Xform')
+        # velocity_ignore
+        self.addControl('abc_velocity_ignore', label='Velocity Ignore')
+        # velocity_scale
+        self.addControl('abc_velocity_scale', label='Velocity Scale')
+        self.endNoOptimize()
+        self.endLayout()
+
+    def setUserOptions(self, nodeAttr):
+
+        text = cmds.scrollField(self.userOptionsBox, q=True, text=True)
+        cmds.setAttr(nodeAttr, text, type='string')
+
+    def userOptionsNew(self, nodeAttr):
+
+        cmds.rowColumnLayout(numberOfColumns=2,
+                             rowAttach=[(1, "top", 0)],
+                             columnWidth=[(1, 148)],
+                             adjustableColumn=2,
+                             columnAlign=[(2, 'right')],
+                             columnAttach=[(1, 'right', 2)])
+
+        cmds.text(label="User Options")
+        self.userOptionsBox = cmds.scrollField(height=80)
+
+        self.userOptionsReplace(nodeAttr)
+
+    def userOptionsReplace(self, nodeAttr):
+
+        cmds.scrollField(self.userOptionsBox, e=True, text=cmds.getAttr(nodeAttr), changeCommand=lambda *args: self.setUserOptions(nodeAttr))
 
     def setup(self):
         self.assInfoPath = ''
@@ -387,11 +508,19 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('overrideNodes')
         self.addControl('aiNamespace', label='Namespace')
+
+        self.addSeparator()
+        self.addCustom('aiUserOptions', self.userOptionsNew, self.userOptionsReplace)
+
         self.addSeparator()
         self.addControl('ignoreGroupNodes', label='Ignore Group Nodes')
-        
-
+        # usd and alembic
+        # object_path
+        self.addControl('objectpath', label='Object Path')
         self.endLayout()
+
+        # alembic options
+        self.addAlembicParams()
         
         self.beginNoOptimize()
 
@@ -529,6 +658,19 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.suppress('collisionOffsetVelocityMultiplier')
         self.suppress('collisionDepthVelocityMultiplier')
         self.suppress('collisionDepthVelocityIncrement')
+
+        self.suppress('objectPath')
+        self.suppress('abcLayers')
+        self.suppress('abcFPS')
+        self.suppress('abcNamePrefix')
+        self.suppress('abcRadiusAttribute')
+        self.suppress('abcRadiusDefault')
+        self.suppress('abcRadiusScale')
+        self.suppress('abcVelocityIgnore')
+        self.suppress('abcVelocityScale')
+        self.suppress('abcVisibilityIgnore')
+        self.suppress('abcMakeInstance')
+        self.suppress('abcPullUserParams')
     
         self.addExtraControls()
         self.endScrollLayout()

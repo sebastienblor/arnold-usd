@@ -62,6 +62,7 @@ AI_VOLUME_NODE_EXPORT_METHODS(BifrostAeroVolumeMtd);
 
 node_parameters
 {
+   AiMetaDataSetBool(nentry, AtString(""), AtString("parallel_init"), true);
 }
 
 volume_cleanup

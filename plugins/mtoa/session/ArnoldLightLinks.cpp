@@ -1,6 +1,7 @@
 #include "ArnoldLightLinks.h"
 
 #include "SessionOptions.h"
+#include "translators/DagTranslator.h"
 
 #include <maya/MSelectionList.h>
 #include <maya/MObject.h>
@@ -141,9 +142,10 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                MDagPath childPath;
                status = MDagPath::getAPathTo(childObject, childPath);
                if (!status)
-                  continue;            
-               MFnDependencyNode linkedLight(childPath.node(), &status);            
-               unordered_map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
+                  continue;
+               MFnDependencyNode linkedLight(childPath.node(), &status);
+               MString lightName = CDagTranslator::GetArnoldNaming(childPath);
+               unordered_map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(lightName.asChar());
                if (it2 == m_arnoldLights.end())
                   it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
                if (it2 == m_arnoldLights.end())
@@ -244,7 +246,9 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::ve
    }
    else
    {
-      std::string lightName = targetNode.name().asChar();
+      MDagPath dgPath;
+      MDagPath::getAPathTo(targetNode.object(), dgPath);
+      std::string lightName = CDagTranslator::GetArnoldNaming(dgPath).asChar();
       if(lightName.empty()) return; // can this happen ?
 
       if (std::find(nodeList.begin(), nodeList.end(), lightName) == nodeList.end())
@@ -259,8 +263,6 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::ve
          if (it == m_arnoldLights.end())
          {
             //if the shapeName is not unique we are testing the full path name
-            MDagPath dgPath;
-            MDagPath::getAPathTo(targetNode.object(), dgPath);
             lightName = dgPath.fullPathName().asChar();
             it = m_arnoldLights.find(lightName); 
             if (it == m_arnoldLights.end())

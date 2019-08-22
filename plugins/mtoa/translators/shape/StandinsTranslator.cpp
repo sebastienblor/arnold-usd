@@ -1,3 +1,12 @@
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <algorithm>
+#endif
+
 #include "StandinsTranslator.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
@@ -11,6 +20,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MRenderUtil.h>
+#include <maya/MFnStringArrayData.h>
 
 
 #include <maya/MString.h>
@@ -24,6 +34,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
    // before we test it in ExportUserAttribute #3673
    IsMasterInstance();
+   m_isAlembic = false;
 
    MString dso = FindMayaPlug("dso").asString();
    if (dso.length() == 0)
@@ -36,7 +47,10 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    {
       MString ext = splitStr[splitStr.length() -1].toLowerCase();
       if (ext == "abc")
+      {
+         m_isAlembic = true;
          return AddArnoldNode("alembic");
+      }
 
       if (ext == "usd")
       {
@@ -58,6 +72,8 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
    // First export the generic procedural parameters defined in ProceduralTranslator
    ExportProcedural(anode);
 
+   if ( m_isAlembic )
+      ExportAlembicParameters(anode);
    // Then export the standin filename
    ExportStandInFilename(anode);  
 }
@@ -175,7 +191,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    GetSessionOptions().FormatProceduralPath(resolvedName);
    AiNodeSetStr(node, "filename", resolvedName.asChar());
 
-   if ( strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(node)), "alembic" ) == 0)
+   if ( m_isAlembic )
       AiNodeSetFlt(node, "frame", framestep);
 }
 
@@ -191,7 +207,7 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
       plugName == "standInDrawOverride" || plugName == "mode") return;
 
    // Since the created arnold type depends on the dso, we need to recreate the geometry if it changes
-   if (plugName == "dso")
+   if (plugName == "dso" || m_isAlembic)
       SetUpdateMode(AI_RECREATE_NODE);
 
    if (plugName == "ignoreGroupNodes")
@@ -205,4 +221,56 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
 bool CArnoldStandInsTranslator::ExportDagChildren() const
 {
    return !FindMayaPlug("ignoreGroupNodes").asBool();
+}
+
+void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
+{
+   // # objectpath
+   MString objectpath = m_DagNode.findPlug("objectPath", true).asString();
+   AiNodeSetStr(node, "objectpath", objectpath.asChar());
+
+   // # fps
+   float fps = FindProceduralPlug("abcFPS").asFloat();
+   AiNodeSetFlt(node, "fps", fps);
+   // # exclude_xform
+   bool exclude_xform = FindProceduralPlug("abc_exclude_xform").asBool();
+   AiNodeSetBool(node, "exclude_xform", exclude_xform);
+   // # layers
+
+   // loop through the layers list and append to the string array
+
+   MString layersString =  m_DagNode.findPlug("abcLayers", true).asString();
+
+   if (layersString.length())
+   {
+      MStringArray layerList;
+      layersString.split(';', layerList);
+      AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
+      for (unsigned int i=0; i < layerList.length(); i++)
+         AiArraySetStr(layersArray, i, layerList[i].asChar());
+
+      AiNodeSetArray(node, "layers", layersArray);
+   }
+   // # make_instance
+   bool make_instance = FindProceduralPlug("abc_make_instance").asBool();
+   AiNodeSetBool(node, "make_instance", make_instance);
+   // # pull_user_params
+   bool pull_user_params = FindProceduralPlug("abc_pull_user_params").asBool();
+   AiNodeSetBool(node, "pull_user_params", pull_user_params);
+   // # visibility_ignore
+   bool visibility_ignore = FindProceduralPlug("abc_visibility_ignore").asBool();
+   AiNodeSetBool(node, "visibility_ignore", visibility_ignore);
+   // # radius_attribute
+   // # radius_default
+   float radius_default = FindProceduralPlug("abc_radius_default").asFloat();
+   AiNodeSetFlt(node, "radius_default", radius_default);
+   // # radius_scale
+   float radius_scale = FindProceduralPlug("abc_radius_scale").asFloat();
+   AiNodeSetFlt(node, "radius_scale", radius_scale);
+   // # scene_camera
+   // # flip_v
+   // # velocity_ignore
+   // # velocity_scale
+   float velocity_scale = FindProceduralPlug("abc_velocity_scale").asFloat();
+   AiNodeSetFlt(node, "velocity_scale", velocity_scale);
 }

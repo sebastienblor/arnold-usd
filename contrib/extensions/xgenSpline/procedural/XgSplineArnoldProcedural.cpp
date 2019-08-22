@@ -19,6 +19,7 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(XgSplineProceduralMtd);
 node_parameters
 {
    AiParameterBool  ("face_camera", false);
+   AiMetaDataSetBool(nentry, AtString(""), AtString("parallel_init"), true);
 }
 
 procedural_init

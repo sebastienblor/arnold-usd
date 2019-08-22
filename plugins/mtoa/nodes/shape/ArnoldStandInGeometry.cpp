@@ -4,6 +4,11 @@
 
 #include <maya/MPxSurfaceShape.h>
 #include <maya/MPxSurfaceShapeUI.h>
+#if defined(_DARWIN)
+   #include <OpenGL/gl.h>
+#else
+   #include <GL/gl.h>
+#endif
 
 // memcpy between AtMatrix and MMatrix doesn't work (see #3237)
 // so we need to copy each element of the matrix
