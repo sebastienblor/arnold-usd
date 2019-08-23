@@ -1,13 +1,6 @@
-TODO #1: write a one-line description here
+Export cube as alembic and read it in as aiStandIn with cusotm attibutes
 
-TODO #2: optional, multi-line description here
+See trac#3902
 
-TODO #3: if you create a new maya scene, run the script common/prepare_test.mel. Check the script comments if you need several AOVs
+author: Ashley Handscomb Retallack
 
-TODO #4: add to the testsuite/groups file if needed
-
-See trac#****
-
-author: ****
-
-PARAMS: {} # Remove this line if no custom params are needed

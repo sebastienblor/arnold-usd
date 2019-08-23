@@ -105,8 +105,10 @@ cmds.setAttr("perspShape.renderable".format(camshape), 0)
 cmds.setAttr("defaultArnoldDriver.aiTranslator", "tif", type="string")
 cmds.setAttr("defaultRenderGlobals.imageFilePrefix", os.path.join(curdir,"testrender"), type="string" )
 
+
 cmds.setAttr("defaultResolution.width", 160 )
 cmds.setAttr("defaultResolution.height", 120 )
+cmds.setAttr("defaultResolution.pixelAspect", 1 )
 cmds.setAttr("defaultArnoldRenderOptions.log_verbosity", 3)
 
 cmds.file(force=True, type="mayaAscii", save=True)
