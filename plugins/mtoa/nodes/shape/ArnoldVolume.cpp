@@ -1,3 +1,12 @@
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <algorithm>
+#endif
+
 #include "ArnoldVolume.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "translators/DagTranslator.h"
@@ -20,6 +29,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MSelectInfo.h>
 #include <maya/MPlug.h>
 #include <maya/MPoint.h>
 #include <maya/MFnDagNode.h>
@@ -31,6 +41,7 @@
 #include <maya/MStringArray.h>
 #include <maya/MString.h>
 #include <maya/MDrawRequest.h>
+#include <maya/MDrawRequestQueue.h>
 #include <maya/MSelectionMask.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnNumericData.h>

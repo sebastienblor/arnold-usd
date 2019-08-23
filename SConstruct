@@ -853,13 +853,14 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.pat
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
-env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), os.path.join(ARNOLD, 'materialx', 'arnold'))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
     env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'usd'), os.path.join(ARNOLD, 'usd', 'delegate'))
 if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
     env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins','usd'), glob.glob(os.path.join(ARNOLD, 'plugins', 'usd', '*')))
+
 # if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
 #     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
@@ -881,7 +882,7 @@ if not env['MTOA_DISABLE_RV']:
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
-scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml', '.qss'])
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml', '.qss', '.txt'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
@@ -1226,6 +1227,7 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslc%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
@@ -1233,11 +1235,17 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
-[os.path.join(ARNOLD, 'materialx', 'arnold', '*'), os.path.join('materialx', 'arnold')],
 ]
 
+materialx_files = find_files_recursive(os.path.join(ARNOLD, 'materialx'), None)
+for p in materialx_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
+    ]
+
 if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
-    usd_delegate_files = find_files_recursive(os.path.join(ARNOLD, 'usd'), ['.json', '.dll'])
+    usd_delegate_files = find_files_recursive(os.path.join(ARNOLD, 'usd'), None)
     for p in usd_delegate_files:
         (d, f) = os.path.split(p)
         PACKAGE_FILES += [
@@ -1245,7 +1253,7 @@ if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
         ]
 
 if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
-    usd_resources = find_files_recursive(os.path.join(ARNOLD, 'plugins', 'usd'), ['.json', '.usda', '.glslfx', '.h', '.cpp'])
+    usd_resources = find_files_recursive(os.path.join(ARNOLD, 'plugins', 'usd'), None)
     for p in usd_resources:
         (d, f) = os.path.split(p)
         PACKAGE_FILES += [

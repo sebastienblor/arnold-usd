@@ -1,3 +1,11 @@
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <algorithm>
+#endif
 
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
@@ -24,6 +32,10 @@
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MPlug.h>
 #include <maya/MPoint.h>
+#include <maya/MSelectInfo.h>
+#include <maya/MDrawInfo.h>
+#include <maya/MDrawRequest.h>
+#include <maya/MDrawRequestQueue.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MDagPath.h>
 #include <maya/MDrawData.h>
@@ -66,6 +78,7 @@ MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
 MObject CArnoldStandInShape::s_ignoreGroupNodes;
+MObject CArnoldStandInShape::s_objectPath;
 MObject CArnoldStandInShape::s_abcLayers;
 MObject CArnoldStandInShape::s_abcFps;
 
@@ -430,6 +443,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             MPlug fpsPlug(thisMObject(), s_abcFps);
             AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
             AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
+            MPlug objectPathPlug(thisMObject(), s_objectPath);
+            AiNodeSetStr(proc, "objectpath", objectPathPlug.asString().asChar());
             // add the layers
             MPlug layerPlug(thisMObject(), s_abcLayers);
             MString layersString =  layerPlug.asString();
@@ -1167,11 +1182,11 @@ MStatus CArnoldStandInShape::initialize()
 
    // USD and Alembic have object path parameter
 
-   data.defaultValue.STR() = AtString("/");
-   data.name = "objectPath";
-   data.shortName = "objectpath";
-   s_attributes.MakeInputString(data);
-
+   s_objectPath = tAttr.create("objectPath", "objectpath", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setInternal( true);
+   tAttr.setStorable( true);
+   addAttribute(s_objectPath);
    // Alembic attributes
 
    data.defaultValue.STR() = AtString("");
@@ -1299,6 +1314,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry.frameOffset);
+
+   plug.setAttribute(s_objectPath);
+   plug.getValue(fGeometry.objectPath);
 
    plug.setAttribute(s_abcLayers);
    plug.getValue(fGeometry.abcLayers);

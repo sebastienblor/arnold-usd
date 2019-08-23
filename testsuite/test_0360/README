@@ -1,0 +1,5 @@
+Make sure light linking is still disabled when seperator is "/" and full paths are set
+
+See trac#3931
+
+author: Ashley Handscomb Retallack
