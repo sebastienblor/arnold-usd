@@ -67,23 +67,16 @@ defaultNavigation -connectToExisting -source $shader -destination $shadingGroup;
 sets -e -forceElement $shadingGroup "pCube1";
 sets -e -forceElement $shadingGroup $standIn;
 
-// testSG = cmds.sets( r=True, em=True )
-// testMat = cmds.shadingNode( "aiFlat", asShader=True )
-// cmds.connectAttr( "{}.outColor".format(testMat), "{}.surfaceShader".format(testSG), f=True )
 
 $userData = `shadingNode -asUtility "aiUserDataColor"`;
 setAttr -type "string" ($userData+".attribute") "Cd";
 connectAttr -force ($userData+".outColor") ($shader+".color");
 
-// cmds.sets( cubeShape, e=True, fe=testSG )
-// cmds.sets( standIn, e=True, fe=testSG )
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($rd+"testrender");
 
-// setAttr("{}.renderable".format(camshape), 1)
-// setAttr("perspShape.renderable".format(camshape), 0)
-
-// cmds.setAttr("defaultResolution.width", 160 )
-// cmds.setAttr("defaultResolution.height", 120 )
-setAttr("defaultResolution.pixelAspect", 1 );
+setAttr "defaultResolution.width" 160;
+setAttr "defaultResolution.height" 120;
+setAttr "defaultResolution.pixelAspect" 1;
 setAttr "defaultArnoldRenderOptions.log_verbosity" 3;
 
 file -force -type "mayaAscii" -save;
