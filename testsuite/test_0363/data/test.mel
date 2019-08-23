@@ -1,0 +1,91 @@
+loadPlugin("mtoa");
+
+polyCube;
+
+setAttr "pCubeShape1.aiSubdivType" 1;
+
+
+addAttr -longName "mtoa_constant_int8" -attributeType "byte" "pCubeShape1" ;
+// addAttr "pCubeShape1", longName='mtoa_constant_int16', attributeType='short' )
+// addAttr "pCubeShape1", longName='mtoa_constant_int32', attributeType='long' )
+// addAttr "pCubeShape1", longName='mtoa_constant_float', attributeType='float' )
+// addAttr "pCubeShape1", longName='mtoa_constant_bool', attributeType='bool' )
+
+// addAttr "pCubeShape1", longName='mtoa_constant_string', dataType='string' )
+
+// addAttr "pCubeShape1", longName='mtoa_constant_vec2', attributeType='float2' )
+// addAttr "pCubeShape1",  longName='vec2_a', attributeType='float', parent='mtoa_constant_vec2' )
+// addAttr "pCubeShape1",  longName='vec2_b', attributeType='float', parent='mtoa_constant_vec2' )
+// setAttr('{}.mtoa_constant_vec2'.format("pCubeShape1"), 0.1, 0.2, type='float2')
+
+// addAttr "pCubeShape1", longName='mtoa_constant_vec', attributeType='float3' )
+// addAttr "pCubeShape1",  longName='vec_x', attributeType='float', parent='mtoa_constant_vec' )
+// addAttr "pCubeShape1",  longName='vec_y', attributeType='float', parent='mtoa_constant_vec' )
+// addAttr "pCubeShape1",  longName='vec_z', attributeType='float', parent='mtoa_constant_vec' )
+// setAttr('{}.mtoa_constant_vec'.format("pCubeShape1"), 0.0, 1.0, 0.0, type='float3')
+
+addAttr -longName "mtoa_constant_Cd" -usedAsColor -attributeType "float3" "pCubeShape1";
+addAttr -longName "red" -attributeType "float" -parent "mtoa_constant_Cd" "pCubeShape1";
+addAttr -longName "green" -attributeType "float" -parent "mtoa_constant_Cd" "pCubeShape1";
+addAttr -longName "blue" -attributeType "float" -parent "mtoa_constant_Cd" "pCubeShape1";
+setAttr "pCubeShape1.mtoa_constant_Cd" -type "float3" 0.0 1.0 1.0 ;
+
+// addAttr "pCubeShape1", longName='mtoa_uniform_faceAttr', dataType='doubleArray' )
+// setAttr('{}.mtoa_uniform_faceAttr'.format("pCubeShape1"), [0.1, 0.2, 0.3, 0.4, 0.5, 0.6], type='doubleArray')
+
+// addAttr "pCubeShape1", longName='mtoa_varying_vertexAttr', dataType='doubleArray' )
+// setAttr('{}.mtoa_varying_vertexAttr'.format("pCubeShape1"), [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], type='doubleArray')
+
+setAttr "pCubeShape1.aiSubdivType" 1;
+setAttr "pCubeShape1.aiSubdivIterations" 4;
+
+file -rename "ref.ma";
+file -force -type "mayaAscii" -save;
+
+$rd = `workspace -q -rd`;
+$cube_out = $rd + "test_cube.abc";
+$cmd  = "arnoldExportAlembic -v -j \"-root |pCube1 -attrPrefix mtoa_ -writeColorSets -uvwrite -file " + $cube_out + "\"";
+print "***********************\n";
+print "Running Alembic Export\n";
+print $cmd;
+eval $cmd;
+
+$standIn = `createNode "aiStandIn"`;
+setAttr  -type "string" ($standIn+".dso") $cube_out;
+
+$s_trans = `listRelatives -p $standIn`;
+xform -a -t 1.5 0 0 $s_trans[0];
+
+$cam= `camera -name "renderCam"`;
+xform -a -t 0.8 0 3 $cam[0];
+
+// create a flat shader and assign it to my sphere
+string $shader = `shadingNode -asShader aiFlat`;
+string $shadingGroup = ($shader + "SG");
+sets -renderable true -noSurfaceShader true -empty -name $shadingGroup;
+defaultNavigation -connectToExisting -source $shader -destination $shadingGroup;
+sets -e -forceElement $shadingGroup "pCube1";
+sets -e -forceElement $shadingGroup $standIn;
+
+// testSG = cmds.sets( r=True, em=True )
+// testMat = cmds.shadingNode( "aiFlat", asShader=True )
+// cmds.connectAttr( "{}.outColor".format(testMat), "{}.surfaceShader".format(testSG), f=True )
+
+$userData = `shadingNode -asUtility "aiUserDataColor"`;
+setAttr -type "string" ($userData+".attribute") "Cd";
+connectAttr -force ($userData+".outColor") ($shader+".color");
+
+// cmds.sets( cubeShape, e=True, fe=testSG )
+// cmds.sets( standIn, e=True, fe=testSG )
+
+// setAttr("{}.renderable".format(camshape), 1)
+// setAttr("perspShape.renderable".format(camshape), 0)
+
+// cmds.setAttr("defaultResolution.width", 160 )
+// cmds.setAttr("defaultResolution.height", 120 )
+setAttr("defaultResolution.pixelAspect", 1 );
+setAttr "defaultArnoldRenderOptions.log_verbosity" 3;
+
+file -force -type "mayaAscii" -save;
+
+arnoldRender -b -cam $cam[1];
