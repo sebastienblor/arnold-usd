@@ -10,6 +10,7 @@ import re
 import mtoa.aovs as aovs
 import arnold.ai_ray as ai_ray
 
+
 class ParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
@@ -107,13 +108,14 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.updateSubdiv()
 
     def updateAutobump(self, nodeAttr, *args):
-        enabled = cmds.getAttr(self.nodeAttr('aiDispAutobump'))
-        cmds.checkBox('aiAutobumpCamera', edit=True, enable = enabled)
-        cmds.checkBox('aiAutobumpDiffuseReflection', edit=True, enable = enabled)
-        cmds.checkBox('aiAutobumpDiffuseTransmission', edit=True, enable = enabled)
-        cmds.checkBox('aiAutobumpSpecularReflection', edit=True, enable = enabled)
-        cmds.checkBox('aiAutobumpSpecularTransmission', edit=True, enable = enabled)
-        cmds.checkBox('aiAutobumpVolumeScattering', edit=True, enable = enabled)
+        enabled = cmds.checkBox(self.aiAutobumpCtrl, q=True, value=True)
+        cmds.setAttr(nodeAttr, enabled)
+        cmds.checkBox(self.aiAutobumpCamCtrl, edit=True, enable = enabled)
+        cmds.checkBox(self.aiAutobumpDiffReflCtrl, edit=True, enable = enabled)
+        cmds.checkBox(self.aiAutobumpDiffTransCtrl, edit=True, enable = enabled)
+        cmds.checkBox(self.aiAutobumpSpecReflCtrl, edit=True, enable = enabled)
+        cmds.checkBox(self.aiAutobumpSpecTransCtrl, edit=True, enable = enabled)
+        cmds.checkBox(self.aiAutobumpVolCtrl, edit=True, enable = enabled)
 
     def autobumpVisibilityChanged(self, nodeAttr, *args):
         vis = 0
@@ -135,8 +137,10 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
     def autobumpNew(self, nodeAttr):
 
         cmds.setUITemplate('attributeEditorTemplate', pst=True)
-        self.aiAutobumpCtrl = cmds.attrControlGrp("aiDispAutobump", label="Enable Autobump", 
-            attribute='.'.join([self.nodeName, 'aiDispAutobump']))
+        cmds.rowLayout( numberOfColumns=1, columnAlign=[(1, 'center')] )
+        self.aiAutobumpCtrl = cmds.checkBox("aiDispAutobump", label="Enable Autobump",
+            changeCommand=lambda *args: self.updateAutobump(nodeAttr, *args))
+        cmds.setParent('..')
         
         cmds.rowColumnLayout( numberOfColumns=2, columnAlign=[(1, 'left'),(2, 'left')], columnAttach=[(1, 'left', 0), (2, 'left', 0)], columnWidth=[(1,200),(2,200)] )
         self.aiAutobumpCamCtrl = cmds.checkBox('aiAutobumpCamera', label="Camera (primary)")
@@ -150,9 +154,11 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.autobumpReplace(nodeAttr)
         
     def autobumpReplace(self, nodeAttr):
+        cmds.checkBox(self.aiAutobumpCtrl, edit=True,
+                      changeCommand=lambda *args: self.updateAutobump(nodeAttr, *args))
+        cmds.checkBox(self.aiAutobumpCtrl, edit=True,
+                      value=cmds.getAttr(nodeAttr))
         self.updateAutobump(nodeAttr)
-        cmds.attrControlGrp(self.aiAutobumpCtrl, edit=True, attribute=nodeAttr, changeCommand=lambda *args: self.updateAutobump(nodeAttr, *args))
-        cmds.attrControlGrp(self.aiAutobumpCtrl, edit=True)
         
         visAttr = nodeAttr.replace('aiDispAutobump', 'aiAutobumpVisibility')
         vis = cmds.getAttr(visAttr)
@@ -342,39 +348,35 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addCustom("aiOverrideReceiveShadows", self.overridesNew, self.overridesReplace)
         self.endNoOptimize()
 
-    def overridesChanged(self, nodeAttr, control, *args):
-
-        enabled = bool(cmds.getAttr(nodeAttr))
-        cmds.attrControlGrp(control, edit=True, enable=enabled)
+    def overridesChanged(self, nodeAttr, control, enabled):
+        cmds.setAttr(nodeAttr, enabled)
+        if control:
+            cmds.checkBox(control, edit=True, enable=enabled)
 
     def overridesNew(self, nodeAttr):
 
         cmds.setUITemplate('attributeEditorTemplate', pst=True)
 
-        self.aiOverrideReceiveShadowsCtrl = cmds.attrControlGrp('aiOverrideReceiveShadowsCtrl', label="Override Receive Shadows",
-            attribute='.'.join([self.nodeName, 'aiOverrideReceiveShadows']))
-        self.receiveShadowsCtrl = cmds.attrControlGrp("receiveShadowsCtrl", label=" Receive Shadows", 
-            attribute='.'.join([self.nodeName, 'receiveShadows']))
+        cmds.rowLayout( numberOfColumns=1, columnAlign=[(1, 'center')] )
+        cmds.columnLayout(columnAlign='center')
 
-        self.aiOverrideSelfShadowsCtrl = cmds.attrControlGrp('aiOverrideSelfShadowsCtrl', label="Override Self Shadows",
-            attribute='.'.join([self.nodeName, 'aiOverrideSelfShadows']))
-        self.aiSelfShadowsCtrl = cmds.attrControlGrp("aiSelfShadowsCtrl", label=" Self Shadows",
-            attribute='.'.join([self.nodeName, 'aiSelfShadows']))
+        self.aiOverrideReceiveShadowsCtrl = cmds.checkBox('aiOverrideReceiveShadowsCtrl', label="Override Receive Shadows")
+        self.receiveShadowsCtrl = cmds.checkBox("receiveShadowsCtrl", label=" Receive Shadows")
 
-        self.aiOverrideOpaqueCtrl = cmds.attrControlGrp('aiOverrideOpaqueCtrl', label="Override Opaque",
-            attribute='.'.join([self.nodeName, 'aiOverrideOpaque']))
-        self.aiOpaquesCtrl = cmds.attrControlGrp("aiOpaqueCtrl", label=" Opaque",
-            attribute='.'.join([self.nodeName, 'aiOpaque']))
+        self.aiOverrideSelfShadowsCtrl = cmds.checkBox('aiOverrideSelfShadowsCtrl', label="Override Self Shadows")
+        self.aiSelfShadowsCtrl = cmds.checkBox("aiSelfShadowsCtrl", label=" Self Shadows")
 
-        self.aiOverrideDoubleSidedCtrl = cmds.attrControlGrp('aiOverrideDoubleSidedCtrl', label='Override Double-Sided',
-            attribute='.'.join([self.nodeName, 'aiOverrideDoubleSided']))
-        self.doubleSidedCtrl = cmds.attrControlGrp('doubleSidedCtrl', label='   Double-Sided',
-            attribute='.'.join([self.nodeName, 'doubleSided']))
+        self.aiOverrideOpaqueCtrl = cmds.checkBox('aiOverrideOpaqueCtrl', label="Override Opaque")
+        self.aiOpaquesCtrl = cmds.checkBox("aiOpaqueCtrl", label=" Opaque")
 
-        self.aiOverrideMatteCtrl = cmds.attrControlGrp('aiOverrideMatteCtrl', label='Override Matte',
-            attribute='.'.join([self.nodeName, 'aiOverrideMatte']))
-        self.aiMatteCtrl = cmds.attrControlGrp('aiMatteCtrl', label='   Matte',
-            attribute='.'.join([self.nodeName, 'aiMatte']))
+        self.aiOverrideDoubleSidedCtrl = cmds.checkBox('aiOverrideDoubleSidedCtrl', label='Override Double-Sided')
+        self.doubleSidedCtrl = cmds.checkBox('doubleSidedCtrl', label='   Double-Sided')
+
+        self.aiOverrideMatteCtrl = cmds.checkBox('aiOverrideMatteCtrl', label='Override Matte')
+        self.aiMatteCtrl = cmds.checkBox('aiMatteCtrl', label='   Matte')
+
+        cmds.setParent("..")
+        cmds.setParent("..")
 
         cmds.setUITemplate(ppt=True)
 
@@ -382,36 +384,60 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
 
     def overridesReplace(self, nodeAttr):
 
-        cmds.attrControlGrp(self.aiOverrideReceiveShadowsCtrl, edit=True,
-            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideReceiveShadows']), self.receiveShadowsCtrl, *args),
-            attribute='.'.join([self.nodeName, 'aiOverrideReceiveShadows']))
-        cmds.attrControlGrp(self.receiveShadowsCtrl, edit=True, attribute='.'.join([self.nodeName, 'receiveShadows']),
-            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideReceiveShadows']))))
-        
-        cmds.attrControlGrp(self.aiOverrideSelfShadowsCtrl, edit=True,
-            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideSelfShadows']), self.aiSelfShadowsCtrl, *args),
-            attribute='.'.join([self.nodeName, 'aiOverrideSelfShadows']))
-        cmds.attrControlGrp(self.aiSelfShadowsCtrl, edit=True,
-            attribute='.'.join([self.nodeName, 'aiSelfShadows']),
-            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideSelfShadows']))))
+        checkattra = self.nodeAttr('aiOverrideReceiveShadows')
+        cmds.checkBox(self.aiOverrideReceiveShadowsCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(checkattra, self.receiveShadowsCtrl, x),
+                      value=bool(cmds.getAttr(checkattra)))
 
-        cmds.attrControlGrp(self.aiOverrideOpaqueCtrl, edit=True,
-            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideOpaque']), self.aiOpaquesCtrl, *args),
-            attribute='.'.join([self.nodeName, 'aiOverrideOpaque']))
-        cmds.attrControlGrp(self.aiOpaquesCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiOpaque']),
-            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideOpaque']))))
+        attra = self.nodeAttr('receiveShadows')
+        cmds.checkBox(self.receiveShadowsCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(attra, None, x),
+                      enable=bool(cmds.getAttr(checkattra)),
+                      value=bool(cmds.getAttr(attra)))
 
-        cmds.attrControlGrp(self.aiOverrideDoubleSidedCtrl, edit=True,
-            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideDoubleSided']), self.doubleSidedCtrl, *args),
-            attribute='.'.join([self.nodeName, 'aiOverrideDoubleSided']))
-        cmds.attrControlGrp(self.doubleSidedCtrl, edit=True, attribute='.'.join([self.nodeName, 'doubleSided']),
-            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideDoubleSided']))))
+        checkattrb = self.nodeAttr('aiOverrideSelfShadows')
+        cmds.checkBox(self.aiOverrideSelfShadowsCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(checkattrb, self.aiSelfShadowsCtrl, x),
+                      value=bool(cmds.getAttr(checkattrb)))
 
-        cmds.attrControlGrp(self.aiOverrideMatteCtrl, edit=True,
-            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideMatte']), self.aiMatteCtrl, *args),
-            attribute='.'.join([self.nodeName, 'aiOverrideMatte']))
-        cmds.attrControlGrp(self.aiMatteCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiMatte']),
-            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideMatte']))))
+        attrb = self.nodeAttr('aiSelfShadows')
+        cmds.checkBox(self.aiSelfShadowsCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(attrb, None, x),
+                      enable=bool(cmds.getAttr(checkattrb)),
+                      value=bool(cmds.getAttr(attrb)))
+
+        checkattrc = self.nodeAttr('aiOverrideOpaque')
+        cmds.checkBox(self.aiOverrideOpaqueCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(checkattrc, self.aiOpaquesCtrl, x),
+                      value=bool(cmds.getAttr(checkattrc)))
+
+        attrc = self.nodeAttr('aiOpaque')
+        cmds.checkBox(self.aiOpaquesCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(attrc, None, x),
+                      enable=bool(cmds.getAttr(checkattrc)),
+                      value=bool(cmds.getAttr(attrc)))
+
+        checkattrd = self.nodeAttr('aiOverrideDoubleSided')
+        cmds.checkBox(self.aiOverrideDoubleSidedCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(checkattrd, self.doubleSidedCtrl, x),
+                      value=bool(cmds.getAttr(checkattrd)))
+
+        attrd = self.nodeAttr('doubleSided')
+        cmds.checkBox(self.doubleSidedCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(attrd, None, x),
+                      enable=bool(cmds.getAttr(checkattrd)),
+                      value=bool(cmds.getAttr(attrd)))
+
+        checkattre = self.nodeAttr('aiOverrideMatte')
+        cmds.checkBox(self.aiOverrideMatteCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(checkattre, self.aiMatteCtrl, x),
+                      value=bool(cmds.getAttr(checkattre)))
+
+        attre = self.nodeAttr('aiMatte')
+        cmds.checkBox(self.aiMatteCtrl, edit=True,
+                      changeCommand=lambda x: self.overridesChanged(attre, None, x),
+                      enable=bool(cmds.getAttr(checkattre)),
+                      value=bool(cmds.getAttr(attre)))
   
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")

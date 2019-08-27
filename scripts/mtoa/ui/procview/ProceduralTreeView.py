@@ -7,7 +7,7 @@ import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
-                       BaseItem, BaseWindow, dpiScale
+                       BaseItem, BaseWindow, dpiScale, Timer
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
@@ -79,6 +79,7 @@ class ProceduralTreeView(BaseTreeView):
         if not index.isValid():
             return
 
+        # timer = Timer()
         item = index.internalPointer()
         # Load the objects of the children items
         for i in range(item.childCount()):
@@ -87,6 +88,7 @@ class ProceduralTreeView(BaseTreeView):
 
         # scale the treeView based on number of expanded rows
         self.setFixedHeight(self._calculateHeight())
+        # print "xxxxxxxx Time to expand {} : {}".format(item.name, timer.get_time_hhmmss())
 
     def onCollapse(self, index):
         # scale the treeView based on number of expanded rows
@@ -220,7 +222,7 @@ class ProceduralTreeModel(BaseModel):
         item = index.internalPointer()
 
         if action == ProceduralItem.ACTION_SHADER:
-            ov = item.getOverrides() or []
+            ov, pov = item.getOverrides() or [], []
             if len(ov) == 0:
                 return
             ov = ov[0]
@@ -298,6 +300,9 @@ class ProceduralItem(BaseItem):
         self.overrides_op = None
         self.disable_op = None
 
+        self.actions = []
+        self.dirty = True
+
         name = ""
         if self.data:
             name = data[PROC_NAME]
@@ -338,10 +343,10 @@ class ProceduralItem(BaseItem):
     def setOverridesOp(self):
         ops = []
         if self.data:
-            collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
-            ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, True, collections)
+            # collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
+            ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, [])
         if len(ops):
-            self.overrides_op = ops
+            self.overrides_op = [o for o, m in ops if m]
         else:
             self.overrides_op = None
         return self.overrides_op
@@ -411,95 +416,81 @@ class ProceduralItem(BaseItem):
         return self.COLOR_UNDEFINED
 
     def getActions(self):
-        actions = []
+        if self.dirty:
+            self.actions = []
+            my_overrides, parent_overrides = self.getOverrides()
+            params = [p[PARAM] for p in my_overrides]
+            attr_params = [x for x in params if x not in [SHADER, DISPLACEMENT]]
 
-        my_overrides = self.getOverrides()
-        params = [p[PARAM] for p in my_overrides]
-        attr_params = [x for x in params if x not in [SHADER, DISPLACEMENT]]
+            parent_params = [p[PARAM] for p in parent_overrides]
+            parent_attr_params = [x for x in parent_params if x not in [SHADER, DISPLACEMENT]]
 
-        parent_overrides = self.getOverrides(True)
-        parent_params = [p[PARAM] for p in parent_overrides]
-        parent_attr_params = [x for x in parent_params if x not in [SHADER, DISPLACEMENT]]
+            OVERRIDES = {SHADER: False,
+                         DISPLACEMENT: False,
+                         PARAMETER: False}
 
-        OVERRIDES = {SHADER: False,
-                     DISPLACEMENT: False,
-                     PARAMETER: False}
+            if len(my_overrides):
+                OVERRIDES[SHADER] = SHADER in params
+                OVERRIDES[DISPLACEMENT] = DISPLACEMENT in params
+                OVERRIDES[PARAMETER] = len(attr_params) > 0
+            if len(parent_overrides):
+                OVERRIDES[SHADER] = SHADER in parent_params
+                OVERRIDES[DISPLACEMENT] = DISPLACEMENT in parent_params
+                OVERRIDES[PARAMETER] = len(parent_attr_params) > 0
 
-        if len(my_overrides):
-            OVERRIDES[SHADER] = SHADER in params
-            OVERRIDES[DISPLACEMENT] = DISPLACEMENT in params
-            OVERRIDES[PARAMETER] = len(attr_params) > 0
-        if len(parent_overrides):
-            OVERRIDES[SHADER] = SHADER in parent_params
-            OVERRIDES[DISPLACEMENT] = DISPLACEMENT in parent_params
-            OVERRIDES[PARAMETER] = len(parent_attr_params) > 0
+            inherited_params = list(set(parent_params) - set(params))
+            inherited_attr_params = [x for x in inherited_params if x not in [SHADER, DISPLACEMENT]]
 
-        inherited_params = list(set(parent_params) - set(params))
-        inherited_attr_params = [x for x in inherited_params if x not in [SHADER, DISPLACEMENT]]
+            for override, enabled in OVERRIDES.items():
+                icon = None
+                action = None
+                overlay = None
 
-        for override, enabled in OVERRIDES.items():
-            icon = None
-            action = None
-            overlay = None
+                is_inherited = override in inherited_params or (override == PARAMETER and len(inherited_attr_params) > 0)
 
-            is_inherited = override in inherited_params or (override == PARAMETER and len(inherited_attr_params) > 0)
+                if override in params or (override == PARAMETER and len(attr_params) > 0):
+                    opacity = 1.0
+                elif override in parent_params or (override == PARAMETER and len(parent_attr_params) > 0):
+                    opacity = 0.25
+                else:
+                    opacity = None
 
-            if override in params or (override == PARAMETER and len(attr_params) > 0):
-                opacity = 1.0
-            elif override in parent_params or (override == PARAMETER and len(parent_attr_params) > 0):
-                opacity = 0.25
-            else:
-                opacity = None
+                if opacity:
 
-            if opacity:
+                    if enabled and override == SHADER:
+                        action = self.ACTION_SHADER
+                        icon = self.SHADER_ICON
+                    elif enabled and override == DISPLACEMENT:
+                        action = self.ACTION_DISPACEMENT
+                        icon = self.DISPMAP_ICON
+                    elif enabled and override == PARAMETER:
+                        action = self.ACTION_OPERATOR
+                        icon = self.ATTRIBUTE_ICON
 
-                if enabled and override == SHADER:
-                    action = self.ACTION_SHADER
-                    icon = self.SHADER_ICON
-                elif enabled and override == DISPLACEMENT:
-                    action = self.ACTION_DISPACEMENT
-                    icon = self.DISPMAP_ICON
-                elif enabled and override == PARAMETER:
-                    action = self.ACTION_OPERATOR
-                    icon = self.ATTRIBUTE_ICON
+                    if icon:
+                        icon = BaseItem.dpiScaledIcon(icon)
 
-                if icon:
-                    icon = BaseItem.dpiScaledIcon(icon)
+                # if is_inherited:
+                #     inherited_icon = os.path.join(cmds.getModulePath(moduleName='mtoa'), 'icons', "inherit_100.png")
+                #     overlay = BaseItem.dpiScaledIcon(inherited_icon)
 
-            # if is_inherited:
-            #     inherited_icon = os.path.join(cmds.getModulePath(moduleName='mtoa'), 'icons', "inherit_100.png")
-            #     overlay = BaseItem.dpiScaledIcon(inherited_icon)
+                self.actions.append((icon, opacity, action, False, overlay))
+                self.dirty = False
 
-            actions.append((icon, opacity, action, False, overlay))
-
-        return actions
+        return self.actions
 
     def getIndent(self):
         """The text indent. offset for the icon"""
         return dpiScale(40)
 
     def getOverrides(self, tranverse=False):
-        if not tranverse:
-            # get the overrides just for this node
-            if self.data:
-                return self.transverser.getOverrides(self.getNode(), self.data[PROC_PATH], exact_match=True)
-            return []
-        else:
-            overrides = []
-            currentOverrides = self.getOverrides(False)
-            if currentOverrides:
-                overrides += currentOverrides
-
-            # get the overides for parent nodes as well
-            parent = self.parent()
-            if parent:
-                overrides += self.transverser.getOverrides(parent.node, self.data[PROC_PATH])
-
-            return overrides
+        return self.transverser.getOverrides(self.getNode(), self.data[PROC_PATH])
 
     def obtainChildren(self, delayUpdate=False):
         if self.childrenObtained:
             return
+
+        # timer = Timer()
 
         # delete any nodes under this one
         for ch in range(self.childCount()):
@@ -516,7 +507,6 @@ class ProceduralItem(BaseItem):
             return
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
-
             # For now we don't show the operators in the hierarchy, we need to make it an option
             if self.transverser.showOperatorItems():
                 collections = self.transverser.getCollections(self.getNode(), self.data[PROC_PATH])
@@ -548,3 +538,6 @@ class ProceduralItem(BaseItem):
         # FIXME for now we're not showing the operator in the hierarchy, we need to make it an option
         if self.transverser.showOperatorItems():
             op_item = ProceduralItem(self, self.transverser, self.node, operator=operator, index=0)
+
+    def setDirty(self, dirty):
+        self.dirty = dirty

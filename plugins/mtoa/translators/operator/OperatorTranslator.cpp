@@ -98,6 +98,14 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
          continue;
 
       MString attrName = assignmentSplit[0].substringW(0, 8);
+
+      MStringArray paramSplit;
+      assignmentSplit[0].split(' ', paramSplit);
+      if (paramSplit.length() > 1)
+         attrName = paramSplit[1].substringW(0, 8);
+
+      attrName.substitute(" ", "");
+
       if (attrName != MString("shader") && attrName != MString("disp_map"))
          continue; // here we only care about shader and disp_map assignments
 
