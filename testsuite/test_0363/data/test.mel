@@ -48,6 +48,7 @@ $cmd  = "arnoldExportAlembic -v -j \"-root |pCube1 -attrPrefix mtoa_ -writeColor
 print "***********************\n";
 print "Running Alembic Export\n";
 print $cmd;
+print "\n";
 eval $cmd;
 
 $standIn = `createNode "aiStandIn"`;
@@ -79,6 +80,8 @@ setAttr "defaultResolution.height" 120;
 setAttr "defaultResolution.pixelAspect" 1;
 setAttr "defaultArnoldRenderOptions.log_verbosity" 3;
 
+arnoldRender -b -cam $cam[1];
+
 file -force -type "mayaAscii" -save;
 
-arnoldRender -b -cam $cam[1];
+quit;
