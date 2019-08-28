@@ -984,7 +984,8 @@ namespace // <anonymous>
                                        CSetRangeTranslator::creator);
          shaders->RegisterTranslator("standardSurface",
                                        "",
-                                       CStandardSurfaceTranslator::creator);         
+                                       CStandardSurfaceTranslator::creator,
+                                       CStandardSurfaceTranslator::NodeInitializer);         
 
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");

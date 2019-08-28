@@ -28,6 +28,7 @@
 
 #include <string>
 #include <fstream>
+#include <iostream>
 
 #include <utils/MayaUtils.h>
 
@@ -4376,4 +4377,112 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
 AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("standard_surface");
+}
+
+void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("standardSurface");
+   CAttrData data;
+   {
+      // SSS Attributes 
+      data.name = "aiSubsurfaceType";
+      data.shortName = "ai_subsurface_type";
+      MStringArray strArr;
+      strArr.append("diffusion");
+      strArr.append("randomwalk");
+      strArr.append("randomwalk_v2");
+      data.enums = strArr;
+      data.defaultValue.INT() = 0;
+      helper.MakeInputEnum(data);
+   }
+   // Matte Attributes 
+   {   
+      data.name = "aiEnableMatte";
+      data.shortName = "ai_enable_matte";
+      helper.MakeInputBoolean(data);
+
+      data.name = "aiMatteColor";
+      data.shortName = "ai_matte_color";
+      helper.MakeInputRGB(data);
+
+      data.name = "aiMatteColor";
+      data.shortName = "ai_matte_color";
+      helper.MakeInputRGB(data);
+
+      data.name = "aiMatteColorA";
+      data.shortName = "ai_matte_color_a";
+      data.hasMin = true;
+      data.min.FLT() = 0.f;
+      data.hasMax = true;
+      data.max.FLT() = 1.0;
+      data.defaultValue.FLT() = 0.0f;
+      helper.MakeInputFloat(data);
+   }
+   // AOV Attributes 
+   {
+      data.name = "aovId1";
+      data.shortName = "aov_id1";
+      helper.MakeInputString(data);
+
+      data.name = "id1";
+      data.shortName = "id1";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId2";
+      data.shortName = "aov_id2";
+      helper.MakeInputString(data);
+
+      data.name = "id2";
+      data.shortName = "id2";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId3";
+      data.shortName = "aov_id3";
+      helper.MakeInputString(data);
+
+      data.name = "id3";
+      data.shortName = "id3";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId4";
+      data.shortName = "aov_id4";
+      helper.MakeInputString(data);
+
+      data.name = "id4";
+      data.shortName = "id4";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId5";
+      data.shortName = "aov_id5";
+      helper.MakeInputString(data);
+
+      data.name = "id5";
+      data.shortName = "id5";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId6";
+      data.shortName = "aov_id6";
+      helper.MakeInputString(data);
+
+      data.name = "id6";
+      data.shortName = "id6";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId7";
+      data.shortName = "aov_id7";
+      helper.MakeInputString(data);
+
+      data.name = "id7";
+      data.shortName = "id7";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId8";
+      data.shortName = "aov_id8";
+      helper.MakeInputString(data);
+
+      data.name = "id8";
+      data.shortName = "id8";
+      helper.MakeInputRGB(data);
+   }
+
 }

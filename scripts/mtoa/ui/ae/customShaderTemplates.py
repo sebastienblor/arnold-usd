@@ -4,6 +4,8 @@ import mtoa.ui.ae.shaderTemplate as shaderTemplate
 import mtoa.ui.aoveditor as aoveditor
 from collections import defaultdict
 
+import maya.mel as mel
+
 class DisplacementShaderTemplate(templates.AttributeTemplate):
     def setup(self):
         self.addControl('aiDisplacementPadding', label='Bounds Padding')
@@ -45,3 +47,11 @@ class ImagePlaneTemplate(templates.AttributeTemplate):
 
 
 templates.registerAETemplate(ImagePlaneTemplate, 'imagePlane')
+
+class StandardSurfaceTemplate(templates.AttributeTemplate):
+    def setup(self):
+        mel.eval("source AEstandardSurfaceTemplate;")
+        mel.eval("stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, myCallback);")
+        self.addControl('aiEnableMatte', label='Arnold : Enable Matte')
+
+templates.registerAETemplate(StandardSurfaceTemplate, 'standardSurface')
