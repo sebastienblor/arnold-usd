@@ -461,9 +461,17 @@ if env['COMPILER'] == 'gcc':
         env.Append(CPPDEFINES = Split('NDEBUG')) 
 
     ## Hide all internal symbols (the ones without AI_API decoration)
-    env.Append(CCFLAGS = Split('-fvisibility=hidden'))
-    env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
-    env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+    # On linux, for Maya IO we need to add more build flags so that the 
+    # CLM symbols aren't loaded (see #3786). We should remove this 
+    # once the problem is solved on the CLM side 
+    if system.os == 'linux':
+        env.Append(CCFLAGS = Split('-fvisibility=hidden -Wl,-Bsymbolic'))
+        env.Append(CXXFLAGS = Split('-fvisibility=hidden -Wl,-Bsymbolic'))
+        env.Append(LINKFLAGS = Split('-fvisibility=hidden -Wl,-Bsymbolic'))
+    else:
+        env.Append(CCFLAGS = Split('-fvisibility=hidden'))
+        env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
+        env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
 
     env.Append(CXXFLAGS = Split('-Wno-reorder'))
     env.Append(CCFLAGS = Split('-Wno-reorder'))
