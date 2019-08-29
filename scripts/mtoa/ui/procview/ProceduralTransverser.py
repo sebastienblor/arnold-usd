@@ -353,6 +353,7 @@ class ProceduralTransverser(BaseTransverser):
                     break
                 if (tok == "/*" and path == '/') or \
                    (tok == path):
+                    exact_match = True
                     sel_mat = True
                     break
 
