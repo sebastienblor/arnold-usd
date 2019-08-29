@@ -300,7 +300,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         # shader override - HIDDEN BY DEFAULT
         self.shadingWidgets = {}
-        self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader", override=True)
+        self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader", override=True, parent=self.shadingPanel)
         deleteShaderAction = self.shaderOverrideWidget.menu.addAction("Delete")
         deleteShaderAction.triggered.connect(self.deleteShaderAssignment)
 
@@ -322,7 +322,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.shadingWidgets[SHADER].append(self.shaderEnabledCheckBox)
 
         # displacement override - HIDDEN BY DEFAULT
-        self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement", override=True)
+        self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement", override=True, parent=self.shadingPanel)
         deleteDispAction = self.dispOverrideWidget.menu.addAction("Delete")
         deleteDispAction.triggered.connect(self.deleteDisplacementAssignment)
 
@@ -583,10 +583,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         collections = self.transverser.getCollections(self.node, self.item.data[PROC_PATH])
         ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, collections)
         ops = [o for o, m in ops if m]
+        print "getOverrideOperator", ops
         if not len(ops) and create:
             op = self.transverser.createOperator(self.node, self.item, OVERRIDE_OP)
         else:
-            op = ops[0][0]
+            op = ops[0]
+        print "-"*8, op
         return op
 
     def getItemOverrideOperator(self, create=False):

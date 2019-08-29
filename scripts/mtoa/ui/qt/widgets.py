@@ -650,7 +650,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.layout().addWidget(self.valueWidget, alignment=QtCore.Qt.AlignTop)
         self.widgets.append(self.valueWidget)
 
-        self.controlWidget = MtoAMutiControlWidget()
+        self.controlWidget = MtoAMutiControlWidget(self.valueWidget)
         self.valueWidget.addWidget(self.controlWidget)
 
         self.exp_panel = QtWidgets.QFrame()
@@ -859,31 +859,31 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         clearWidget(self.controlWidget)
         control = None
         if self.param_type in [AI_TYPE_BYTE] and param in VISIBILITY_PARAMS:
-            control = MtoAVisibilityWidget()
+            control = MtoAVisibilityWidget(parent=self.controlWidget)
         elif self.param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:
-            control = MtoAIntControl()
+            control = MtoAIntControl(parent=self.controlWidget)
         elif self.param_type is AI_TYPE_FLOAT:
-            control = MtoAFltControl()
+            control = MtoAFltControl(parent=self.controlWidget)
         elif self.param_type is AI_TYPE_VECTOR:
-            control = MtoAVecControl()
+            control = MtoAVecControl(parent=self.controlWidget)
         elif self.param_type is AI_TYPE_VECTOR2:
-            control = MtoAVec2Control()
+            control = MtoAVec2Control(parent=self.controlWidget)
         elif self.param_type is AI_TYPE_RGB:
-            control = MtoARGBControl()
+            control = MtoARGBControl(parent=self.controlWidget)
         elif self.param_type is AI_TYPE_RGBA:
-            control = MtoARGBAControl()
+            control = MtoARGBAControl(parent=self.controlWidget)
         elif self.param_type is AI_TYPE_BOOLEAN:
-            control = MtoACheckbox()
+            control = MtoACheckbox(parent=self.controlWidget)
         elif self.param_type is AI_TYPE_ENUM:
-            control = MtoAComboBox()
+            control = MtoAComboBox(parent=self.controlWidget)
             # populate the options
             param_data = self.getParamData(param)
             for i in param_data[ENUM_VALUES]:
                     control.addItem(i)
         elif self.param_type is AI_TYPE_NODE:
-            control = MtoANodeConnectionWidget()
+            control = MtoANodeConnectionWidget(parent=self.controlWidget)
         else:
-            control = MtoAStrControl()
+            control = MtoAStrControl(parent=self.controlWidget)
 
         control.valueChanged.connect(self.emitValueChanged)
         self.controlWidget.setWidget(control)
