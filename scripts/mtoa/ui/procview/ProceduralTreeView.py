@@ -429,14 +429,9 @@ class ProceduralItem(BaseItem):
                          DISPLACEMENT: False,
                          PARAMETER: False}
 
-            if len(my_overrides):
-                OVERRIDES[SHADER] = SHADER in params
-                OVERRIDES[DISPLACEMENT] = DISPLACEMENT in params
-                OVERRIDES[PARAMETER] = len(attr_params) > 0
-            if len(parent_overrides):
-                OVERRIDES[SHADER] = SHADER in parent_params
-                OVERRIDES[DISPLACEMENT] = DISPLACEMENT in parent_params
-                OVERRIDES[PARAMETER] = len(parent_attr_params) > 0
+            OVERRIDES[SHADER] = SHADER in params+parent_params
+            OVERRIDES[DISPLACEMENT] = DISPLACEMENT in params+parent_params
+            OVERRIDES[PARAMETER] = len(attr_params) > 0 or len(parent_attr_params) > 0
 
             inherited_params = list(set(parent_params) - set(params))
             inherited_attr_params = [x for x in inherited_params if x not in [SHADER, DISPLACEMENT]]
