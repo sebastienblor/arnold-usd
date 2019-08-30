@@ -465,7 +465,7 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
-// protected:
-//    virtual void NodeChanged(MObject& node, MPlug& plug);
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
 
 };

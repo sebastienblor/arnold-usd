@@ -48,10 +48,10 @@ class ImagePlaneTemplate(templates.AttributeTemplate):
 
 templates.registerAETemplate(ImagePlaneTemplate, 'imagePlane')
 
-class StandardSurfaceTemplate(templates.AttributeTemplate):
-    def setup(self):
-        mel.eval("source AEstandardSurfaceTemplate;")
-        mel.eval("stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, myCallback);")
-        self.addControl('aiEnableMatte', label='Arnold : Enable Matte')
+# class StandardSurfaceTemplate(templates.AttributeTemplate):
+#     def setup(self):
+#         mel.eval("source AEstandardSurfaceTemplate;")
+#         mel.eval("stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, myCallback);")
+#         self.addControl('aiEnableMatte', label='Arnold : Enable Matte')
 
-templates.registerAETemplate(StandardSurfaceTemplate, 'standardSurface')
+# templates.registerAETemplate(StandardSurfaceTemplate, 'standardSurface')

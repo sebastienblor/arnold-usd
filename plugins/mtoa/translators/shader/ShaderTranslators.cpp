@@ -4341,6 +4341,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "subsurface_radius", AI_TYPE_RGB);
    ProcessParameter(shader, "subsurface_scale", AI_TYPE_FLOAT);
    ProcessParameter(shader, "subsurface_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "subsurface_type", AI_TYPE_ENUM);
    // Anrold specific: ENUM          subsurface_type                   randomwalk
 
    // Coat
@@ -4372,6 +4373,41 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "opacity", AI_TYPE_RGB);
    ProcessParameter(shader, "normal", AI_TYPE_VECTOR, "normalCamera");
    ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
+
+   // Matte
+   ProcessAOVOutput(shader);
+
+   // AOV's 
+   ProcessParameter(shader, "aov_id1", AI_TYPE_STRING);
+   ProcessParameter(shader, "id1", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id2", AI_TYPE_STRING);
+   ProcessParameter(shader, "id2", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id3", AI_TYPE_STRING);
+   ProcessParameter(shader, "id3", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id4", AI_TYPE_STRING);
+   ProcessParameter(shader, "id4", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id5", AI_TYPE_STRING);
+   ProcessParameter(shader, "id5", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id6", AI_TYPE_STRING);
+   ProcessParameter(shader, "id6", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id7", AI_TYPE_STRING);
+   ProcessParameter(shader, "id7", AI_TYPE_RGB);
+   
+   ProcessParameter(shader, "aov_id8", AI_TYPE_STRING);
+   ProcessParameter(shader, "id8", AI_TYPE_RGB);
+
+   // Advanced Attributes
+      ProcessParameter(shader, "caustics", AI_TYPE_BOOLEAN);
+      ProcessParameter(shader, "exit_to_background", AI_TYPE_BOOLEAN);
+      ProcessParameter(shader, "internal_reflections", AI_TYPE_BOOLEAN);
+      ProcessParameter(shader, "indirect_diffuse", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "indirect_specular", AI_TYPE_FLOAT);
 }
 
 AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
@@ -4383,10 +4419,10 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper("standardSurface");
    CAttrData data;
-   {
-      // SSS Attributes 
-      data.name = "aiSubsurfaceType";
-      data.shortName = "ai_subsurface_type";
+
+   // SSS Attributes 
+      data.name = "subsurfaceType";
+      data.shortName = "subsurface_type";
       MStringArray strArr;
       strArr.append("diffusion");
       strArr.append("randomwalk");
@@ -4394,16 +4430,11 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       data.enums = strArr;
       data.defaultValue.INT() = 0;
       helper.MakeInputEnum(data);
-   }
+   
    // Matte Attributes 
-   {   
       data.name = "aiEnableMatte";
       data.shortName = "ai_enable_matte";
       helper.MakeInputBoolean(data);
-
-      data.name = "aiMatteColor";
-      data.shortName = "ai_matte_color";
-      helper.MakeInputRGB(data);
 
       data.name = "aiMatteColor";
       data.shortName = "ai_matte_color";
@@ -4417,9 +4448,8 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       data.max.FLT() = 1.0;
       data.defaultValue.FLT() = 0.0f;
       helper.MakeInputFloat(data);
-   }
+
    // AOV Attributes 
-   {
       data.name = "aovId1";
       data.shortName = "aov_id1";
       helper.MakeInputString(data);
@@ -4483,6 +4513,34 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       data.name = "id8";
       data.shortName = "id8";
       helper.MakeInputRGB(data);
-   }
 
+   // Advanced Attributes 
+      
+      data.name = "caustics";
+      data.shortName = "caustics";
+      helper.MakeInputBoolean(data);
+
+      data.name = "exitToBackground";
+      data.shortName = "exit_to_background";
+      helper.MakeInputBoolean(data);
+
+      data.name = "internalReflections";
+      data.shortName = "internal_reflections";
+      data.defaultValue.BOOL() = true;
+      helper.MakeInputBoolean(data);
+
+      data.name = "indirectDiffuse";
+      data.shortName = "indirect_diffuse";
+      helper.MakeInputFloat(data);
+
+      data.name = "indirectSpecular";
+      data.shortName = "indirect_specular";
+      helper.MakeInputFloat(data);
+
+}
+void CStandardSurfaceTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "aiEnableMatte" || plugName == "aiMatteColor" || plugName == "aiMatteColorA" )
+         SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
 }
