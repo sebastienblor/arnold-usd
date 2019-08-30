@@ -209,4 +209,27 @@ if system.os == 'darwin':
 elif system.os == 'linux':
     local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
+if local_env['ENABLE_ALEMBIC']:
+    alembic_version = '1.7.11'
+    alembic_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'alembic-'+alembic_version)
+    ilmbase_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'ilmbase')
+    abc_lib_dir = os.path.join(alembic_extern_path, 'lib', system.os)
+    ilmbase_lib_dir = os.path.join(ilmbase_extern_path, 'lib', system.os)
+    local_env.Append(CPPPATH = [os.path.join(alembic_extern_path, 'include'), os.path.join(ilmbase_extern_path, 'include', 'OpenEXR')])
+    if system.os in ['linux', 'darwin']:
+        local_env.Append(LIBS = [File(os.path.join(abc_lib_dir, 'libAlembic.a')), 
+                                 File(os.path.join(ilmbase_lib_dir, 'libHalf.a')),
+                                 File(os.path.join(ilmbase_lib_dir, 'libIex.a'))])
+        local_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++11')) # hide symbols by default
+    elif system.os == 'windows':
+        if local_env['MODE'] == 'debug':
+            abc_lib_dir = os.path.join(abc_lib_dir, 'debug')
+            ilmbase_lib_dir = os.path.join(ilmbase_lib_dir, 'debug')
+        local_env.Append(LIBS = ['Alembic.lib', 
+                                 'Half.lib',
+                                 'Iex.lib'])
+        local_env.Append(LIBPATH = [abc_lib_dir,
+                                    ilmbase_lib_dir])
+        local_env.Append(CPPDEFINES = ['ALEMBIC_STATIC'])
+
 Return('MTOA')

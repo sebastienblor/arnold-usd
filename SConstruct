@@ -288,6 +288,7 @@ env['ENABLE_LOOKDEVKIT'] = 0
 env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
 env['ENABLE_GPU_CACHE'] = 1
+env['ENABLE_ALEMBIC'] = 1
 
 # Get arnold and maya versions used for this build
 

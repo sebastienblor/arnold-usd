@@ -1,0 +1,371 @@
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\handsca\\AppData\\Local\\Temp\\1', 'ARNOLD_TESTSUITE_COMMON': 'E:\\Dev\\mtoa.win\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\handsca\\AppData\\Local\\Temp\\1', 'ADCLMHUB_LOG_DIR': 'E:\\Dev\\mtoa.win\\build\\windows_x86_64\\20180000\\msvc_opt\\testsuite\\test_0363', 'ADCLMHUB_LOG_LEVEL': 'T', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'E:\\solidangle\\mtoadeploy\\3.3.0.wip-dev\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata;C:\\Program Files (x86)\\Windows Kits\\10\\References;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'LOCALAPPDATA': 'C:\\Users\\handsca\\AppData\\Local', 'PATH': 'E:\\solidangle\\mtoadeploy\\3.3.0.wip-dev\\2018\\bin;C:\\Program Files\\Autodesk\\Maya2018\\bin;E:\\solidangle\\mtoadeploy\\3.3.0.wip-dev\\2018\\lib;E:\\solidangle\\mtoadeploy\\3.3.0.wip-dev\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'E:\\solidangle\\mtoadeploy\\3.3.0.wip-dev\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt', 'ProgramW6432': 'C:\\Program Files'}
+ 
+ ==== Exec cmd ==== 
+ 
+mayapy E:\Dev\mtoa.win\testsuite\test_0363\data\mayapy_test.py "C:\Program Files\Autodesk\Maya2018" "E:\solidangle\mtoadeploy\3.3.0.wip-dev\2018" "E:\Dev\mtoa.win\testsuite\test_0363\data"
+ 
+ Cannot open file ':/expression.svg', because: No such file or directory
+Cannot open file ':/expression.svg', because: No such file or directory
+Cannot open file ':/expression.svg', because: No such file or directory
+Cannot open file ':/expression.svg', because: No such file or directory
+Warning: file: C:\Users\handsca\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\handsca\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\handsca\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+Initialized VP2.0 renderer {
+  Version : 2016.11.40.12. Feature Level 4.
+  Adapter : TITAN V/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 7553
+  Driver : .
+  API : OpenGL V.4.6.
+  Max texture size : 32768 * 32768.
+  Max tex coords : 8
+  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 12288 MB.
+  CPU Memory Limit: 62005.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.1.120.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_nv_create_buffer 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+Warning: Loading plug-in "mtoa" has resulted in changes to the scene that may need to be saved.
+1
+log started Fri Aug 23 16:55:49 2019
+Arnold 5.4.1.0 [092e8f45] windows icc-17.0.2 oiio-2.1.0 osl-1.11.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 optix-6.0.0 2019/08/22 10:59:08
+host application: MtoA 3.3.0.wip 26304468 (FB-3902) Maya 2018
+running on REMS4DC9705, pid=18512
+ 2 x Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz (24 cores, 48 logical) with 65268MB
+ NVIDIA driver version 431.70 (Optix 60102)
+ GPU 0: TITAN V @ 1455MHz (compute 7.0) with 12288MB (8970MB available) (NVLink:0)
+ GPU 1: Quadro M2000 @ 1162MHz (compute 5.2) with 4096MB (4044MB available) (NVLink:0)
+ Windows 8 (version 6.2, build 9200)
+ soft limit for open files raised from 2048 to 2048
+ 
+loading plugins from C:/Golaem/Golaem-6.3-Maya2018/shaders ...
+glmCrowdArnoldShaders.dll: CrowdSwitchShaderArnold uses Arnold 5.0.0.3
+glmCrowdArnoldShaders.dll: CrowdHSLShaderArnold uses Arnold 5.0.0.3
+[metadata] loading metadata file: C:/Golaem/Golaem-6.3-Maya2018/shaders\glmCrowdArnoldShaders.mtd
+loading plugins from E:/solidangle/mtoadeploy/3.3.0.wip-dev/2018/shaders ...
+hairPhysicalShader_shaders.dll: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.4.1.0
+hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.4.1.0
+hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.4.1.0
+hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.4.1.0
+hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkFloatConstant uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkFloatComposite uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkFloatCondition uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkFloatCorrect uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkFloatLogic uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkFloatMask uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkFloatMath uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkColorComposite uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkColorCondition uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkColorConstant uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkColorCorrect uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkColorLogic uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkColorMask uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkColorMath uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkChannels uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkPremultiply uses Arnold 5.4.1.0
+lookdevkit_shaders.dll: ldkSimplexNoise uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaClamp uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaGammaCorrect uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaCondition uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaReverse uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaBlendColors uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSamplerInfo1D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSamplerInfo2D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaRemapColor uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaFile uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaRamp uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaProjection uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaChecker uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaBulge uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaCloth uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaGrid uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaFractal uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaNoise uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaRgbToHsv uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaHsvToRgb uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaLuminance uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaCloud uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaCloudAlpha uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSnow uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaContrast uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaLayeredTexture uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSolidFractal uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaVolumeNoise uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaBrownian uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaStucco uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaRemapHsv uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSetRange uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaImagePlane uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSurfaceShader uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaColorToFloat uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaVectorToFloat uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaPointToFloat uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaPoint2ToFloat uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaWriteColor uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAovWriteColor uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaWriteFloat uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAovWriteFloat uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaEnvSphere uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAnimFloat uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAnimPoint uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAnimVector uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAnimColor uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAnimMatrix uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaUserDataVector uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaUserDataColor uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaShadingEngine uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSamplerInfo3D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAovWriteVector uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaAovWriteVector2 uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaNormalDisplacement uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaVectorDisplacement uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaUserDataBool uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaHair uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaMeshLightMaterial uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaUserDataVec2 uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaBump2D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaFluid uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaMarble uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaMountain uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaWater uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaCrater uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaLeather uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaGranite uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaRock uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSingleShadingSwitch uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaDoubleShadingSwitch uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaTripleShadingSwitch uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaQuadShadingSwitch uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaFluidData uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaFluidTexture2D uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaSurfaceLuminance uses Arnold 5.4.1.0
+mtoa_shaders.dll: MtoaCameraUvMapper uses Arnold 5.4.1.0
+mtoa_shaders.dll: MayaFlatClosure uses Arnold 5.4.1.0
+[metadata] loading metadata file: E:/solidangle/mtoadeploy/3.3.0.wip-dev/2018/shaders\mtoa_shaders.mtd
+renderSetup_shaders.dll: applyAbsFloatOverride uses Arnold 5.4.1.0
+renderSetup_shaders.dll: applyAbs2FloatsOverride uses Arnold 5.4.1.0
+renderSetup_shaders.dll: applyAbs3FloatsOverride uses Arnold 5.4.1.0
+renderSetup_shaders.dll: applyAbsIntOverride uses Arnold 5.4.1.0
+renderSetup_shaders.dll: applyRelFloatOverride uses Arnold 5.4.1.0
+renderSetup_shaders.dll: applyRel2FloatsOverride uses Arnold 5.4.1.0
+renderSetup_shaders.dll: applyRel3FloatsOverride uses Arnold 5.4.1.0
+renderSetup_shaders.dll: applyRelIntOverride uses Arnold 5.4.1.0
+xgenSpline_shaders.dll: XGenHairMapping uses Arnold 5.4.1.0
+loading plugins from E:/solidangle/mtoadeploy/3.3.0.wip-dev/2018/procedurals ...
+mtoa_ParticleInstancer_proc.dll: particleInstancer uses Arnold 5.4.1.0
+mtoa_ParticleVolume_proc.dll: volume_particle uses Arnold 5.4.1.0
+mtoa_ParticleVolume_proc.dll: implicit_particle uses Arnold 5.4.1.0
+xgenSpline_procedural.dll: xgenProcedural uses Arnold 5.4.1.0
+xgen_procedural.dll: xgen_procedural uses Arnold 5.4.1.0
+loaded 123 plugins from 10 lib(s) in 0:00.03
+loading plugins from E:\solidangle\mtoadeploy\3.3.0.wip-dev\2018\bin\..\plugins ...
+alembic_proc.dll: alembic uses Arnold 5.4.1.0
+cryptomatte.dll: cryptomatte uses Arnold 5.4.1.0
+cryptomatte.dll: cryptomatte_filter uses Arnold 5.4.1.0
+cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 5.4.1.0
+synColor_shaders.dll: color_manager_syncolor uses Arnold 5.4.1.0
+loaded 5 plugins from 3 lib(s) in 0:00.00
+[metadata] loading metadata file: E:/solidangle/mtoadeploy/3.3.0.wip-dev/2018/plug-ins/mtoa.mtd
+
+authorizing with default license managers: rlm, clm ...
+[clm-network] authorized for "86985ARNOL_2018_0F" in 0:00.06
+[clm-network] expiration date: 2020/11/20, in use: 1/3000
+
+[color_manager] using color manager of type "color_manager_syncolor"
+[color_manager_syncolor] synColor version 2018.0.80
+[color_manager_syncolor] native catolog directory: C:/Program Files/Autodesk/Maya2018/synColor
+[color_manager_syncolor] optional custom catalog directory: C:/Users/handsca/Documents/maya/synColor/Shared/
+[color_manager] rendering color space is "scene-linear Rec 709/sRGB" with declared chromaticities:
+                r(0.6400, 0.3300) g(0.3000, 0.6000) b(0.1500, 0.0600) and w(0.3127, 0.3290)
+ 
+there are 1 light and 3 objects:
+     1 persp_camera
+     1 skydome_light
+     1 utility
+     1 flat
+     1 user_data_rgba
+     1 driver_tiff
+     1 gaussian_filter
+     1 polymesh
+     1 list_aggregate
+     1 alembic
+     1 color_manager_syncolor
+ 
+rendering image at 160 x 120, 3 AA samples
+AA samples max    <disabled>
+AA sample clamp   <disabled>
+diffuse           samples  2 / depth  1
+specular          samples  2 / depth  1
+transmission      samples  2 / depth  8
+volume indirect   <disabled by depth>
+total                          depth 10
+bssrdf            samples  2
+transparency      depth 10
+initializing 12 nodes ...
+[alembic] Casting alembic property subdiv_type to ENUM on node /pCube1/pCubeShape1
+[alembic] parameter "subdiv_type" is not an array, using first entry from data
+[alembic] Casting alembic property subdiv_iterations to BYTE on node /pCube1/pCubeShape1
+[alembic] Casting alembic property subdiv_adaptive_metric to ENUM on node /pCube1/pCubeShape1
+[alembic] Casting alembic property subdiv_adaptive_space to ENUM on node /pCube1/pCubeShape1
+[alembic] Casting alembic property subdiv_uv_smoothing to ENUM on node /pCube1/pCubeShape1
+[proc] aiStandIn1: loaded 1 nodes (1 objects, 0 shaders)
+creating root object list ...
+node initialization done in 0:00.00 (multithreaded)
+updating 14 nodes ...
+aiSkyDomeLightShape1: skydome_light using 1 sample, 2 volume samples
+scene bounds: (-0.5 -0.5 -0.5) -> (2 0.5 0.5)
+node update done in 0:00.00 (multithreaded)
+[aov] parsing 1 output statements ...
+[aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+[aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+[aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
+starting 48 bucket workers of size 64x64 ...
+[accel] list_aggregate bvh4 done - 0:00.00 (wall time) - 2 prims, 1 key
+[subdiv] pCubeShape1: regular threaded subdivision done - 4 iterations: 6 faces => 1536 quads - 0:00.00
+[subdiv] /pCube1/pCubeShape1: regular threaded subdivision done - 4 iterations: 6 faces => 1536 quads - 0:00.00
+[accel] polymesh bvh4 done - 0:00.00 (wall time) - 1536 prims, 1 key
+[accel] polymesh bvh4 done - 0:00.00 (wall time) - 1536 prims, 1 key
+ 10% done - 83 rays/pixel
+ 20% done - 2 rays/pixel
+ 35% done - 1 rays/pixel
+ 60% done - 0 rays/pixel
+ 75% done - 0 rays/pixel
+100% done - 0 rays/pixel
+render done in 0:00.039
+[driver_tiff] writing file `E:/Dev/mtoa.win/build/windows_x86_64/20180000/msvc_opt/testsuite/test_0363/testrender.tif'
+render done
+ 
+-----------------------------------------------------------------------------------
+scene creation time          0:00.13    machine utilization (0.25%) 
+plugin loading              0:00.04 
+unaccounted                 0:00.09 
+-----------------------------------------------------------------------------------
+frame time                   0:00.32    machine utilization (11.02%) 
+driver init/close           0:00.01 
+rendering                   0:00.03 
+pixel rendering            0:00.03 
+unaccounted                 0:00.26 
+-----------------------------------------------------------------------------------
+top session self-times by category 
+worker waiting                                                     0:00.17 (88.32%) 
+UpdateNodes                                                        0:00.00 ( 2.76%) 
+thread blocked                                                     0:00.00 ( 2.34%) 
+AiMalloc                                                           0:00.00 ( 1.50%) 
+InitializeNodes                                                    0:00.00 ( 1.46%) 
+BVH::build                                                         0:00.00 ( 1.16%) 
+-----------------------------------------------------------------------------------
+top session self-times by node 
+worker waiting                                                     0:00.17 (88.32%) 
+polymesh:/pCube1/pCubeShape1                                       0:00.00 ( 2.89%) 
+thread blocked                                                    0:00.00 ( 1.41%) 
+BVH::build                                                        0:00.00 ( 0.80%) 
+UpdateNodes                                                        0:00.00 ( 2.76%) 
+InitializeNodes                                                    0:00.00 ( 1.46%) 
+polymesh:pCubeShape1                                               0:00.00 ( 1.28%) 
+thread blocked                                                    0:00.00 ( 0.86%) 
+AiMalloc                                                           0:00.00 ( 1.24%) 
+-----------------------------------------------------------------------------------
+peak CPU memory used      418.67MB 
+at startup               369.75MB 
+plugins                    1.50MB 
+AOV samples                5.48MB 
+output buffers             0.45MB 
+framebuffers               0.38MB 
+node overhead              0.01MB 
+message passing            0.09MB 
+memory pools              34.05MB 
+geometry                   0.25MB 
+subdivs                   0.25MB 
+accel structs              0.11MB 
+strings                   12.00MB 
+profiler                   0.03MB 
+unaccounted               -5.42MB 
+-----------------------------------------------------------------------------------
+ray counts                       ( /pixel, /sample) (% total) (avg. hits) (max hits)
+camera                   178252 (   9.28,    1.00) (100.00%) (     0.22) (       1)
+total                    178252 (   9.28,    1.00) (100.00%) (     0.22) (       1)
+by ray depth:              0
+total                   100.0% 
+-----------------------------------------------------------------------------------
+shader calls                     (  /pixel,  /sample) (% total)
+primary                   79640 (    4.15,     0.45) (100.00%)
+total                     79640 (    4.15,     0.45) (100.00%)
+by ray depth:              0
+total                   100.0% 
+-----------------------------------------------------------------------------------
+geometry                         (% hit ) (instances) (  init mem,  final mem)
+lists                         1 (100.0%) (        0) (      0.00,       0.00)
+procs                         1 (100.0%) (        0) (      0.00,       0.00)
+subdivs                       2 (100.0%) (        0) (      0.00,       0.25)
+-----------------------------------------------------------------------------------
+geometric elements               (      min) (       avg.) (      max)
+objects (procs)               1 (        1) (        1.0) (        1)
+subdiv patches               12 (        6) (        6.0) (        6)
+-----------------------------------------------------------------------------------
+triangle tessellation            (      min) (       avg.) (      max) (/ element) (% total)
+subdivs                    6144 (     3072) (     3072.0) (     3072) (   512.00) (100.00%)
+adaptive                  6144 (     3072) (     3072.0) (     3072) (   512.00) (100.00%)
+unique triangles           6144 
+CPU memory use             0.25MB 
+vertices                  0.04MB 
+vertex indices            0.02MB 
+packed normals            0.01MB 
+normal indices            0.00MB 
+smooth derivs             0.14MB 
+uv coords                 0.01MB 
+uv coords idxs            0.02MB 
+uniform indices           0.00MB 
+userdata                  0.01MB 
+largest polymeshes by triangle count 
+     3072 tris -- /pCube1/pCubeShape1
+     3072 tris -- pCubeShape1
+-----------------------------------------------------------------------------------
+acceleration structures:         (% total)
+list                          1 ( 25.00%)
+bvh                           3 ( 75.00%)
+total                         4 (100.00%)
+-----------------------------------------------------------------------------------
+number of warnings, warning type:
+    1:  [alembic] parameter "%s" is not an array, using first entry from data
+-----------------------------------------------------------------------------------
+ 
+releasing resources
+unloading 13 plugins
+closing glmCrowdArnoldShaders.dll ...
+closing hairPhysicalShader_shaders.dll ...
+closing lookdevkit_shaders.dll ...
+closing mtoa_shaders.dll ...
+closing renderSetup_shaders.dll ...
+closing xgenSpline_shaders.dll ...
+closing mtoa_ParticleInstancer_proc.dll ...
+closing mtoa_ParticleVolume_proc.dll ...
+closing xgenSpline_procedural.dll ...
+closing xgen_procedural.dll ...
+closing alembic_proc.dll ...
+closing cryptomatte.dll ...
+closing synColor_shaders.dll ...
+unloading plugins done
+Arnold shutdown
