@@ -977,6 +977,7 @@ apiheaders = [
                 #os.path.join('translators', 'options', 'OptionsTranslator.h'),
                 os.path.join('translators', 'shader', 'ShaderTranslator.h'),
                 os.path.join('translators', 'shape', 'ShapeTranslator.h'),
+                os.path.join('translators', 'shape', 'ProceduralTranslator.h'),
                 os.path.join('utils', 'Version.h'),
                 os.path.join('utils', 'Universe.h'),
                 os.path.join('utils', 'MtoaLog.h'),
