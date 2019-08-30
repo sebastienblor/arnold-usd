@@ -28,6 +28,7 @@
 
 #include <string>
 #include <fstream>
+#include <iostream>
 
 #include <utils/MayaUtils.h>
 
@@ -4307,4 +4308,239 @@ void CRampFloatTranslator::Export(AtNode* shader)
             break;
       }
    }  
+}
+
+void CStandardSurfaceTranslator::Export(AtNode* shader)
+{
+   // Base
+   ProcessParameter(shader, "base", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "base_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "diffuse_roughness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "metalness", AI_TYPE_FLOAT);
+
+   // Specular
+   ProcessParameter(shader, "specular", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_IOR", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "specular_rotation", AI_TYPE_FLOAT);
+
+   // Transmission
+   ProcessParameter(shader, "transmission", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "transmission_depth", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_scatter", AI_TYPE_RGB);
+   ProcessParameter(shader, "transmission_scatter_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_dispersion", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmission_extra_roughness", AI_TYPE_FLOAT);
+
+   // Subsurface
+   ProcessParameter(shader, "subsurface", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "subsurface_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "subsurface_radius", AI_TYPE_RGB);
+   ProcessParameter(shader, "subsurface_scale", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "subsurface_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "subsurface_type", AI_TYPE_ENUM);
+   // Anrold specific: ENUM          subsurface_type                   randomwalk
+
+   // Coat
+   ProcessParameter(shader, "coat", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "coat_roughness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_IOR", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_anisotropy", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_rotation", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_normal", AI_TYPE_VECTOR);
+   ProcessParameter(shader, "coat_affect_color", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "coat_affect_roughness", AI_TYPE_FLOAT);
+
+   // Sheen
+   ProcessParameter(shader, "sheen", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "sheen_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "sheen_roughness", AI_TYPE_FLOAT);
+
+   // Emission
+   ProcessParameter(shader, "emission", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB);
+
+   // Thin Film
+   ProcessParameter(shader, "thin_film_thickness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "thin_film_IOR", AI_TYPE_FLOAT);
+
+   // Geometry
+   ProcessParameter(shader, "thin_walled", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "opacity", AI_TYPE_RGB);
+   ProcessParameter(shader, "normal", AI_TYPE_VECTOR, "normalCamera");
+   ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
+
+   // Matte
+   ProcessAOVOutput(shader);
+
+   // AOV's 
+   ProcessParameter(shader, "aov_id1", AI_TYPE_STRING);
+   ProcessParameter(shader, "id1", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id2", AI_TYPE_STRING);
+   ProcessParameter(shader, "id2", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id3", AI_TYPE_STRING);
+   ProcessParameter(shader, "id3", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id4", AI_TYPE_STRING);
+   ProcessParameter(shader, "id4", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id5", AI_TYPE_STRING);
+   ProcessParameter(shader, "id5", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id6", AI_TYPE_STRING);
+   ProcessParameter(shader, "id6", AI_TYPE_RGB);
+
+   ProcessParameter(shader, "aov_id7", AI_TYPE_STRING);
+   ProcessParameter(shader, "id7", AI_TYPE_RGB);
+   
+   ProcessParameter(shader, "aov_id8", AI_TYPE_STRING);
+   ProcessParameter(shader, "id8", AI_TYPE_RGB);
+
+   // Advanced Attributes
+      ProcessParameter(shader, "caustics", AI_TYPE_BOOLEAN);
+      ProcessParameter(shader, "exit_to_background", AI_TYPE_BOOLEAN);
+      ProcessParameter(shader, "internal_reflections", AI_TYPE_BOOLEAN);
+      ProcessParameter(shader, "indirect_diffuse", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "indirect_specular", AI_TYPE_FLOAT);
+}
+
+AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("standard_surface");
+}
+
+void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("standardSurface");
+   CAttrData data;
+
+   // SSS Attributes 
+      data.name = "subsurfaceType";
+      data.shortName = "subsurface_type";
+      MStringArray strArr;
+      strArr.append("diffusion");
+      strArr.append("randomwalk");
+      strArr.append("randomwalk_v2");
+      data.enums = strArr;
+      data.defaultValue.INT() = 0;
+      helper.MakeInputEnum(data);
+   
+   // Matte Attributes 
+      data.name = "aiEnableMatte";
+      data.shortName = "ai_enable_matte";
+      helper.MakeInputBoolean(data);
+
+      data.name = "aiMatteColor";
+      data.shortName = "ai_matte_color";
+      helper.MakeInputRGB(data);
+
+      data.name = "aiMatteColorA";
+      data.shortName = "ai_matte_color_a";
+      data.hasMin = true;
+      data.min.FLT() = 0.f;
+      data.hasMax = true;
+      data.max.FLT() = 1.0;
+      data.defaultValue.FLT() = 0.0f;
+      helper.MakeInputFloat(data);
+
+   // AOV Attributes 
+      data.name = "aovId1";
+      data.shortName = "aov_id1";
+      helper.MakeInputString(data);
+
+      data.name = "id1";
+      data.shortName = "id1";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId2";
+      data.shortName = "aov_id2";
+      helper.MakeInputString(data);
+
+      data.name = "id2";
+      data.shortName = "id2";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId3";
+      data.shortName = "aov_id3";
+      helper.MakeInputString(data);
+
+      data.name = "id3";
+      data.shortName = "id3";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId4";
+      data.shortName = "aov_id4";
+      helper.MakeInputString(data);
+
+      data.name = "id4";
+      data.shortName = "id4";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId5";
+      data.shortName = "aov_id5";
+      helper.MakeInputString(data);
+
+      data.name = "id5";
+      data.shortName = "id5";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId6";
+      data.shortName = "aov_id6";
+      helper.MakeInputString(data);
+
+      data.name = "id6";
+      data.shortName = "id6";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId7";
+      data.shortName = "aov_id7";
+      helper.MakeInputString(data);
+
+      data.name = "id7";
+      data.shortName = "id7";
+      helper.MakeInputRGB(data);
+
+      data.name = "aovId8";
+      data.shortName = "aov_id8";
+      helper.MakeInputString(data);
+
+      data.name = "id8";
+      data.shortName = "id8";
+      helper.MakeInputRGB(data);
+
+   // Advanced Attributes 
+      
+      data.name = "caustics";
+      data.shortName = "caustics";
+      helper.MakeInputBoolean(data);
+
+      data.name = "exitToBackground";
+      data.shortName = "exit_to_background";
+      helper.MakeInputBoolean(data);
+
+      data.name = "internalReflections";
+      data.shortName = "internal_reflections";
+      data.defaultValue.BOOL() = true;
+      helper.MakeInputBoolean(data);
+
+      data.name = "indirectDiffuse";
+      data.shortName = "indirect_diffuse";
+      helper.MakeInputFloat(data);
+
+      data.name = "indirectSpecular";
+      data.shortName = "indirect_specular";
+      helper.MakeInputFloat(data);
+
+}
+void CStandardSurfaceTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "aiEnableMatte" || plugName == "aiMatteColor" || plugName == "aiMatteColorA" )
+         SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
 }
