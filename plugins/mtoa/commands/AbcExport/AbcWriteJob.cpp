@@ -34,6 +34,8 @@
 //
 //-*****************************************************************************
 
+#ifdef ENABLE_ALEMBIC
+
 #include "AbcWriteJob.h"
 
 #ifdef ALEMBIC_WITH_HDF5
@@ -1122,4 +1124,4 @@ void AbcWriteJob::postCallback(double iFrame)
     processCallback(mArgs.pythonPostCallback, false, iFrame, bbox);
 }
 
-
+#endif

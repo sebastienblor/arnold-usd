@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "MayaMeshWriter.h"
 #include "MayaUtility.h"
@@ -1226,3 +1227,5 @@ void MayaMeshWriter::fillTopology(
         oPointCounts.push_back(faceArray.length());
     }
 }
+
+#endif

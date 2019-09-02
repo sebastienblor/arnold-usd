@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "ArnoldAbcExportCmd.h"
 #include "AbcWriteJob.h"
@@ -1141,3 +1142,5 @@ catch (std::exception & e)
 }
 
 }
+
+#endif
