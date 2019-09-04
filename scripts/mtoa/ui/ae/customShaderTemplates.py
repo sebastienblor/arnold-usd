@@ -48,10 +48,67 @@ class ImagePlaneTemplate(templates.AttributeTemplate):
 
 templates.registerAETemplate(ImagePlaneTemplate, 'imagePlane')
 
-# class StandardSurfaceTemplate(templates.AttributeTemplate):
-#     def setup(self):
-#         mel.eval("source AEstandardSurfaceTemplate;")
-#         mel.eval("stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, myCallback);")
-#         self.addControl('aiEnableMatte', label='Arnold : Enable Matte')
+class StandardSurfaceTemplate(templates.AttributeTemplate):
+   
+    def setup(self):
 
-# templates.registerAETemplate(StandardSurfaceTemplate, 'standardSurface')
+        self.beginLayout("Matte", collapse=True)
+        self.addControl("aiEnableMatte", label="Enable Matte")
+        self.addControl("aiMatteColor", label="Matte Color")
+        self.addControl("aiMatteColorA", label="Matte Opacity")
+        self.endLayout()
+        self.beginLayout("AOVs", collapse=True)
+        self.addControl("aov_id1", label="ID 1 AOV")
+        self.addControl("id1", label="ID 1")
+        self.addSeparator()
+        self.addControl("aov_id2", label="ID 2 AOV")
+        self.addControl("id2", label="ID 2")
+        self.addSeparator()
+        self.addControl("aov_id3", label="ID 3 AOV")
+        self.addControl("id3", label="ID 3")
+        self.addSeparator()
+        self.addControl("aov_id4", label="ID 4 AOV")
+        self.addControl("id4", label="ID 4")
+        self.addSeparator()
+        self.addControl("aov_id5", label="ID 5 AOV")
+        self.addControl("id5", label="ID 5")
+        self.addSeparator()
+        self.addControl("aov_id6", label="ID 6 AOV")
+        self.addControl("id6", label="ID 6")
+        self.addSeparator()
+        self.addControl("aov_id7", label="ID 7 AOV")
+        self.addControl("id7", label="ID 7")
+        self.addSeparator()
+        self.addControl("aov_id8", label="ID 8 AOV")
+        self.addControl("id8", label="ID 8")
+        self.endLayout()
+
+        self.beginLayout("Advanced", collapse=True)
+        self.addControl("caustics", label="Caustics", annotation="Enable Caustics")
+        self.addControl("internalReflections", label="Internal Reflections", annotation="Enable Internal Reflections")
+        self.addControl("exitToBackground", label="Exit To Background *", annotation="When bounce depth is exceeded, use background color instead")
+        self.addSeparator()
+        self.addControl("indirectDiffuse", label="Indirect Diffuse", annotation="Indirect Diffuse")
+        self.addControl("indirectSpecular", label="Indirect Specular", annotation="Indirect Specular")
+        self.endLayout()
+
+templates.registerAETemplate(StandardSurfaceTemplate, "standardSurface")
+
+
+def appendToSSTemplate():
+    mel.eval("source AEstandardSurfaceTemplate;")
+    mel.eval("$notUsed = $gAEstandardSurfaceTemplateCallbacks")
+    mel.eval("""
+    source AEstandardSurfaceTemplate;
+    $notUsed = $gAEstandardSurfaceTemplateCallbacks;
+    global proc myCallback(int $layoutID) {
+        global int $gAEstandardSurfaceLayout_Subsurface;
+        if ($layoutID == $gAEstandardSurfaceLayout_Subsurface) {
+            editorTemplate -addSeparator;
+            editorTemplate -addControl "subsurface_type";
+            }
+    }
+    stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, "myCallback");
+    evalDeferred("refreshAE; refreshEditorTemplates;");
+    """)
+
