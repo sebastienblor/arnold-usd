@@ -4312,6 +4312,7 @@ void CRampFloatTranslator::Export(AtNode* shader)
 
 void CStandardSurfaceTranslator::Export(AtNode* shader)
 {
+   std::cout << " Export is called here " << std::endl;
    // Base
    ProcessParameter(shader, "base", AI_TYPE_FLOAT);
    ProcessParameter(shader, "base_color", AI_TYPE_RGB);
@@ -4372,7 +4373,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "thin_walled", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "opacity", AI_TYPE_RGB);
    ProcessParameter(shader, "normal", AI_TYPE_VECTOR, "normalCamera");
-   ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
+   ProcessParameter(shader, "tangent", AI_TYPE_VECTOR, "tangentUCamera");
 
    // Matte
    ProcessAOVOutput(shader);
@@ -4403,11 +4404,11 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "id8", AI_TYPE_RGB);
 
    // Advanced Attributes
-      ProcessParameter(shader, "caustics", AI_TYPE_BOOLEAN);
-      ProcessParameter(shader, "exit_to_background", AI_TYPE_BOOLEAN);
-      ProcessParameter(shader, "internal_reflections", AI_TYPE_BOOLEAN);
-      ProcessParameter(shader, "indirect_diffuse", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "indirect_specular", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "caustics", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "exit_to_background", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "internal_reflections", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "indirect_diffuse", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "indirect_specular", AI_TYPE_FLOAT);
 }
 
 AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
@@ -4543,4 +4544,6 @@ void CStandardSurfaceTranslator::NodeChanged(MObject& node, MPlug& plug)
    MString plugName = plug.partialName(false, false, false, false, false, true);
    if (plugName == "aiEnableMatte" || plugName == "aiMatteColor" || plugName == "aiMatteColorA" )
          SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
+
+   CShaderTranslator::NodeChanged(node, plug);
 }

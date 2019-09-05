@@ -99,16 +99,16 @@ def appendToSSTemplate():
     mel.eval("source AEstandardSurfaceTemplate;")
     mel.eval("$notUsed = $gAEstandardSurfaceTemplateCallbacks")
     mel.eval("""
-    source AEstandardSurfaceTemplate;
-    $notUsed = $gAEstandardSurfaceTemplateCallbacks;
-    global proc myCallback(int $layoutID) {
+    global proc Arnold_SSmyCallback(int $layoutID) {
         global int $gAEstandardSurfaceLayout_Subsurface;
         if ($layoutID == $gAEstandardSurfaceLayout_Subsurface) {
             editorTemplate -addSeparator;
             editorTemplate -addControl "subsurface_type";
             }
     }
-    stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, "myCallback");
+    stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, "Arnold_SSmyCallback");
     evalDeferred("refreshAE; refreshEditorTemplates;");
     """)
+    mel.eval('refreshAE')
+    mel.eval('refreshEditorTemplates')
 
