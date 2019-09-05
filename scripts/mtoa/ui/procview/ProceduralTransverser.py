@@ -158,10 +158,16 @@ class ProceduralTransverser(BaseTransverser):
         pass
 
     def getOperatorIndices(self, node):
-        return cmds.getAttr('{}.operators'.format(node), multiIndices=True) or []
+        con_attr = 'operators'
+        if cmds.nodeType(node) == MERGE_OP:
+            con_attr = 'inputs'
+        return cmds.getAttr('{}.{}'.format(node, con_attr), multiIndices=True) or []
 
     def getConnectedOperator(self, node, index):
-        return cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
+        con_attr = 'operators'
+        if cmds.nodeType(node) == MERGE_OP:
+            con_attr = 'inputs'
+        return cmds.connectionInfo('{}.{}[{}]'.format(node, con_attr, index), sourceFromDestination=True)
 
     def getInputs(self, operator, transverse=True):
 
@@ -210,8 +216,34 @@ class ProceduralTransverser(BaseTransverser):
 
         return index
 
+    def getVariantNode(self, node):
+        variant_node = False
+        variant_index = cmds.getAttr("{}.variant".format(node)) or -1
+        ops = cmds.listConnections('{}.operators'.format(node), plugs=True)
+        for op in ops or []:
+            op_node, plug = op.split('.')
+            if cmds.nodeType(op_node) == SWITCH_OP:
+                # check for variant attribute
+                if cmds.attributeQuery("variant_op", node=op_node, exists=True) \
+                 and cmds.getAttr("{}.variant_op".format(op_node)) == node:
+                    variant_switch = op_node
+                    # get the merge op conencted to the switch
+                    var_connections = cmds.listConnections("{}.inputs[{}]".format(variant_switch, variant_index)) or []
+                    if len(var_connections):
+                        variant_node = var_connections[0]
+                        break
+
+        return variant_node
+
     def createOperator(self, node, item, operator_type):
         num_ops = mu.getAttrNumElements(node, 'operators')
+
+        # get if we have a variant merge connected
+        variant_node = self.getVariantNode(node)
+        if variant_node:
+            num_ops = mu.getAttrNumElements(variant_node, 'inputs')
+            node = variant_node
+
         # get the index that this operator should come in the list
         data = item.data
         # get parent index
@@ -301,8 +333,12 @@ class ProceduralTransverser(BaseTransverser):
 
     def insertOperator(self, node, op, index):
 
+        con_attr = 'operators'
+        if cmds.nodeType(node) == MERGE_OP:
+            con_attr = 'inputs'
+
         # check if index has connection, if not do a straight connection at given index
-        dest = '{}.operators[{}]'.format(node, index)
+        dest = '{}.{}[{}]'.format(node, con_attr, index)
         src = '{}.out'.format(op)
         if not cmds.connectionInfo(dest, isDestination=True):
             cmds.connectAttr(src, dest)
@@ -311,10 +347,10 @@ class ProceduralTransverser(BaseTransverser):
             for idx in reversed(self.getOperatorIndices(node)):
                 if idx >= index:
                     idx_src = self.getConnectedOperator(node, idx)
-                    cmds.disconnectAttr(idx_src, '{}.operators[{}]'.format(node, idx))
-                    cmds.connectAttr(idx_src, '{}.operators[{}]'.format(node, idx+1))
+                    cmds.disconnectAttr(idx_src, '{}.{}[{}]'.format(node, con_attr, idx))
+                    cmds.connectAttr(idx_src, '{}.{}[{}]'.format(node, con_attr, idx+1))
             # connect at the index given
-            cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
+            cmds.connectAttr(src, '{}.{}[{}]'.format(node, con_attr, index))
 
     def getCustomParamName(self, operator):
         if cmds.nodeType(operator) == OVERRIDE_OP:
