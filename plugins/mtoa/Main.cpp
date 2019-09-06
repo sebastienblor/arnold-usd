@@ -984,11 +984,12 @@ namespace // <anonymous>
          shaders->RegisterTranslator("setRange",
                                        "",
                                        CSetRangeTranslator::creator);
+#if MAYA_API_VERSION >= 202000
          shaders->RegisterTranslator("standardSurface",
                                        "",
                                        CStandardSurfaceTranslator::creator,
                                        CStandardSurfaceTranslator::NodeInitializer);         
-
+#endif
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");
 
