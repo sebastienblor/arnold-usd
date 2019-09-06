@@ -103,16 +103,21 @@ def appendToSSTemplate():
         global int $gAEstandardSurfaceLayout_Subsurface;
         if ($layoutID == $gAEstandardSurfaceLayout_Subsurface) {
             editorTemplate -addSeparator;
-            editorTemplate -addControl "subsurface_type";
+            editorTemplate -l "Arnold Sub-surface Type" -addControl "subsurface_type" ;
             }
+        global int $gAEstandardSurfaceLayout_Transmission;
         if ($layoutID == $gAEstandardSurfaceLayout_Transmission) {
             editorTemplate -addSeparator;
-            editorTemplate -addControl "transmit_aovs";
+            editorTemplate -l "Arnold Transmit AOVS" -addControl "transmit_aovs";
             }
     }
     stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, "Arnold_SSmyCallback");
-    evalDeferred("refreshAE; refreshEditorTemplates;");
+    refreshAE; 
+    refreshEditorTemplates;
     """)
+    mel.eval('refreshAE')
+    mel.eval('refreshEditorTemplates')
+
     mel.eval('refreshAE')
     mel.eval('refreshEditorTemplates')
 
