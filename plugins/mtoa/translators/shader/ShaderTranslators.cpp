@@ -4335,6 +4335,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "transmission_scatter_anisotropy", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmission_dispersion", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmission_extra_roughness", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "transmit_aovs", AI_TYPE_BOOL);
 
    // Subsurface
    ProcessParameter(shader, "subsurface", AI_TYPE_FLOAT);
@@ -4431,7 +4432,13 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       data.enums = strArr;
       data.defaultValue.INT() = 0;
       helper.MakeInputEnum(data);
-   
+      
+   // Transmission Attributes 
+      data.name = "transmitAovs";
+      data.shortName = "transmit_aovs";
+      helper.MakeInputBoolean(data);
+
+
    // Matte Attributes 
       data.name = "aiEnableMatte";
       data.shortName = "ai_enable_matte";

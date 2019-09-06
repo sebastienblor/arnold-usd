@@ -105,6 +105,10 @@ def appendToSSTemplate():
             editorTemplate -addSeparator;
             editorTemplate -addControl "subsurface_type";
             }
+        if ($layoutID == $gAEstandardSurfaceLayout_Transmission) {
+            editorTemplate -addSeparator;
+            editorTemplate -addControl "transmit_aovs";
+            }
     }
     stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, "Arnold_SSmyCallback");
     evalDeferred("refreshAE; refreshEditorTemplates;");
