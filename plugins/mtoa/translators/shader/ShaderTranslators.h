@@ -286,6 +286,7 @@ private:
    void ExportRampKeys(AtNode *shader);
    void ExportRampType(AtNode *rampShader, RampType type);
    void GetUvSet();
+   unsigned int GetInputPlugIndex(const MString &attrName, uint defaultIndex);
 
    int m_type;
    AtNode *m_custom_uvs;

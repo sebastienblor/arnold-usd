@@ -31,6 +31,8 @@
 #include <utils/MayaUtils.h>
 
 
+std::vector<std::string> VECSTR {"x", "y", "z"};
+std::vector<std::string> COLSTR {"r", "g", "b", "a"};
 
 void CRampTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -71,6 +73,29 @@ AtNode*  CRampTranslator::CreateArnoldNodes()
    return shader;
 }
 
+unsigned int CRampTranslator::GetInputPlugIndex(const MString &attrName, uint defaultIndex)
+{
+   // get connection to the v input of the maya ramp
+   MPlug v_plug = FindMayaPlug(attrName.asChar());
+   MPlug vSrc = v_plug.source();
+   uint index = defaultIndex;
+   if (!vSrc.isNull() && vSrc.isChild())
+   {
+      MPlug parent = vSrc.parent();
+      //now get the index of this child
+      for (uint i=0; i<parent.numChildren(); i++)
+      {
+         if (parent.child(i).name() == vSrc.name())
+         {
+            index = i;
+            break;
+         }
+      }
+   }
+
+   return index;
+}
+
 void CRampTranslator::Export(AtNode* shader)
 {              
    GetUvSet();
@@ -92,11 +117,17 @@ void CRampTranslator::Export(AtNode* shader)
             outputType == AI_TYPE_RGB ||outputType == AI_TYPE_RGBA)
          {
             if (m_type == RT_U)
-               AiNodeLinkOutput(m_custom_uvs, (outputType == AI_TYPE_VECTOR2 || outputType == AI_TYPE_VECTOR) ? "x" : "r",
+            {
+               uint u_index = GetInputPlugIndex("uCoord", 0);
+               AiNodeLinkOutput(m_custom_uvs, (outputType == AI_TYPE_VECTOR2 || outputType == AI_TYPE_VECTOR) ? VECSTR[u_index].c_str() : COLSTR[u_index].c_str(),
                   shader, "input");
+            }
             else if (m_type == RT_V)
-               AiNodeLinkOutput(m_custom_uvs, (outputType == AI_TYPE_VECTOR2 || outputType == AI_TYPE_VECTOR) ? "y" : "g",
+            {
+               uint v_index = GetInputPlugIndex("vCoord", 1);
+               AiNodeLinkOutput(m_custom_uvs, (outputType == AI_TYPE_VECTOR2 || outputType == AI_TYPE_VECTOR) ? VECSTR[v_index].c_str() : COLSTR[v_index].c_str(),
                   shader, "input");
+            }
             else
                AiNodeLink(m_custom_uvs, "input", shader);   
          } else
