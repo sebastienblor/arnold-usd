@@ -543,8 +543,6 @@
 				<string>com.solidangle.pkg.MtoAConf2020</string>
 				<key>NAME</key>
 				<string>Configure MtoA Maya 2020</string>
-				<key>LOCATION</key>
-				<string>/Applications/solidangle/mtoa/2020</string>
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>RELOCATABLE</key>
