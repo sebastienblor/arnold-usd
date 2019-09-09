@@ -694,6 +694,8 @@
 				<string>com.solidangle.pkg.MtoAConf2017</string>
 				<key>NAME</key>
 				<string>Configure MtoA Maya 2017</string>
+				<key>LOCATION</key>
+				<string>/Applications/solidangle/mtoa/2017</string>
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>RELOCATABLE</key>
