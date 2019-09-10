@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "MayaPointPrimitiveWriter.h"
 #include "MayaUtility.h"
@@ -198,3 +199,5 @@ bool MayaPointPrimitiveWriter::isAnimated() const
 {
     return  mIsAnimated;
 }
+
+#endif

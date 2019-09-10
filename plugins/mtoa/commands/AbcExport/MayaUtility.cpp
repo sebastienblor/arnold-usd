@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "MayaUtility.h"
 
@@ -674,3 +675,5 @@ MString util::getHelpText()
 
     return ret;
 }
+
+#endif

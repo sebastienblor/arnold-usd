@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "MayaLocatorWriter.h"
 #include "MayaUtility.h"
@@ -149,3 +150,5 @@ bool MayaLocatorWriter::isAnimated() const
 {
     return mIsAnimated;
 }
+
+#endif

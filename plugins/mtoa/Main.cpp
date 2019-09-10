@@ -58,7 +58,9 @@
 #include "commands/ArnoldCopyAsAdminCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
 #include "commands/ArnoldViewportRendererOptionsCmd.h"
+#ifdef ENABLE_ALEMBIC
 #include "commands/AbcExport/ArnoldAbcExportCmd.h"
+#endif
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldAOVNode.h"
@@ -165,8 +167,10 @@ namespace // <anonymous>
       {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
       {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
       {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax},
-      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax},
-      {"arnoldExportAlembic", CArnoldExportAbcCmd::creator, CArnoldExportAbcCmd::createSyntax}
+      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax}
+#ifdef ENABLE_ALEMBIC
+      ,{"arnoldExportAlembic", CArnoldExportAbcCmd::creator, CArnoldExportAbcCmd::createSyntax}
+#endif
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.

@@ -1377,7 +1377,9 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // for the first version we always export them
       // since the user might override the subdiv options
       // from a procedural, node processor etc...
-      if (!fnMesh.findPlug("displaySmoothMesh", true).asBool())
+      if (!fnMesh.findPlug("displaySmoothMesh", true).asBool() ||
+          (fnMesh.findPlug("displaySmoothMesh", true).asBool() &&
+            !fnMesh.findPlug("useSmoothPreviewForRender", false).asBool()))
       {
          MUintArray creaseEdgeIds;
          MDoubleArray creaseEdgeDatas;

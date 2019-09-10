@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "MayaCameraWriter.h"
 
@@ -320,3 +321,5 @@ bool MayaCameraWriter::isAnimated() const
 {
     return  mIsAnimated || (mAttrs != NULL && mAttrs->isAnimated());
 }
+
+#endif

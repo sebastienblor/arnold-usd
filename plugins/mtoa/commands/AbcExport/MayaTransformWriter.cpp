@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "MayaTransformWriter.h"
 #include "MayaUtility.h"
@@ -1066,3 +1067,5 @@ void MayaTransformWriter::pushTransformStack(const MFnIkJoint & iJoint,
         }
     }
 }
+
+#endif

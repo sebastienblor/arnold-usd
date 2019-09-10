@@ -33,6 +33,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //-*****************************************************************************
+#ifdef ENABLE_ALEMBIC
 
 #include "AttributesWriter.h"
 #include "MayaUtility.h"
@@ -2311,4 +2312,4 @@ void AttributesWriter::write()
 
 }
 
-
+#endif
