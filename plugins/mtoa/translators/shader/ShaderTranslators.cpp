@@ -4312,7 +4312,6 @@ void CRampFloatTranslator::Export(AtNode* shader)
 
 void CStandardSurfaceTranslator::Export(AtNode* shader)
 {
-   std::cout << " Export is called here " << std::endl;
    // Base
    ProcessParameter(shader, "base", AI_TYPE_FLOAT);
    ProcessParameter(shader, "base_color", AI_TYPE_RGB);
