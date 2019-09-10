@@ -1,4 +1,5 @@
 import mtoa.aovs as aovs
+import mtoa.utils as utils
 import mtoa.ui.ae.templates as templates
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
 import mtoa.ui.aoveditor as aoveditor
@@ -96,6 +97,10 @@ templates.registerAETemplate(StandardSurfaceTemplate, "standardSurface")
 
 
 def appendToSSTemplate():
+    maya_version = utils.getMayaVersion()
+    if maya_version < 2020:
+        return
+
     mel.eval("source AEstandardSurfaceTemplate;")
     mel.eval("$notUsed = $gAEstandardSurfaceTemplateCallbacks")
     mel.eval("""
