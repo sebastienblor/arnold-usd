@@ -22,6 +22,8 @@
 #include <maya/MFloatVectorArray.h>
 #include <maya/MUintArray.h>
 
+#if MAYA_API_VERSION >= 201700
+
 MString CArnoldProceduralGeometryOverride::s_wireframeItemName = "proceduralBox";
 MString CArnoldProceduralGeometryOverride::s_activeWireframeItemName = "active_proceduralBox";
 
@@ -330,3 +332,5 @@ void CArnoldProceduralGeometryOverride::populateGeometry(const MHWRender::MGeome
 void CArnoldProceduralGeometryOverride::cleanUp() 
 {
 }
+
+#endif

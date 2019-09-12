@@ -65,23 +65,30 @@ MObject CArnoldAreaLightNode::aLightShadowFraction;
 MObject CArnoldAreaLightNode::aPreShadowIntensity;
 MObject CArnoldAreaLightNode::aLightBlindData;
 MObject CArnoldAreaLightNode::aLightData;
+#if MAYA_API_VERSION >= 201700
 // Maya area light attributes
 MObject CArnoldAreaLightNode::aDropOff;
 MObject CArnoldAreaLightNode::aDecayRate;
 MObject CArnoldAreaLightNode::aUseRayTraceShadows;
 MObject CArnoldAreaLightNode::aDepthMapResolution;
 MObject CArnoldAreaLightNode::aShadowColor;
+#endif
 
 CArnoldAreaLightNode::CArnoldAreaLightNode() :
         m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
+#if MAYA_API_VERSION >= 201700
         , m_aiCastShadows(true), m_aiCastVolumetricShadows(true)
+#endif
 { }
 
 CArnoldAreaLightNode::~CArnoldAreaLightNode() 
 {
+#if MAYA_API_VERSION >= 201700
    MMessage::removeCallback( m_attrChangeId );
+#endif
 }
 
+#if MAYA_API_VERSION >= 201700
 void CArnoldAreaLightNode::postConstructor()
 {
    // Make the node not cast nor receive shadows
@@ -160,6 +167,7 @@ void CArnoldAreaLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage ms
       }
    }
 }
+#endif
 
 MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
@@ -455,6 +463,7 @@ MStatus CArnoldAreaLightNode::initialize()
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
    
+#if MAYA_API_VERSION >= 201700
    // Area light attributes for display control
    aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);
    nAttr.setHidden(true);
@@ -482,6 +491,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setHidden(true);
    nAttr.setDefault(0.0f, 0.0f, 0.0f);
    addAttribute(aShadowColor);
+#endif
 
    return MS::kSuccess;
 }

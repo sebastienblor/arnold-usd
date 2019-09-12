@@ -1,5 +1,7 @@
 #include "ArnoldStandInSubSceneOverride.h"
 
+#if MAYA_API_VERSION >= 201650
+
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 
@@ -1055,3 +1057,5 @@ bool CArnoldStandInSubSceneOverride::getInstancedSelectionPath(
     }
     return false;
 }
+
+#endif

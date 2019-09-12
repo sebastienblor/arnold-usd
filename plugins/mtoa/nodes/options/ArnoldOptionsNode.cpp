@@ -442,6 +442,9 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("subdiv_dicing_camera");
 
    // textures
+#if MAYA_API_VERSION < 201600
+   s_attributes.MakeInput("texture_automip");
+#endif
    s_attributes.MakeInput("texture_autotile");
    s_attributes.MakeInput("texture_max_memory_MB");
    s_attributes.MakeInput("texture_max_open_files");
@@ -453,7 +456,10 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotile);
    
-   int defaultAutoTx = 1;
+   int defaultAutoTx = 0;
+#if MAYA_API_VERSION >= 201600
+   defaultAutoTx = 1;
+#endif
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, defaultAutoTx); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);

@@ -80,7 +80,9 @@ node_initialize
       cameraName = AiNodeGetName(cameraNode);
 
    MString layerName = "";
+#if MAYA_API_VERSION >= 201700
    MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
+#endif
 
    InitializeDisplayUpdateQueue(cameraName, layerName, "renderView");
 

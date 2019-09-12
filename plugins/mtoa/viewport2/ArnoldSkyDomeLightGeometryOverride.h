@@ -9,6 +9,8 @@
 #include <maya/MFloatArray.h>
 #include <maya/MUintArray.h>
 
+#if MAYA_API_VERSION >= 201700
+
 class CArnoldSkyDomeLightGeometryOverride : public MHWRender::MPxGeometryOverride{
 public:
    static MHWRender::MPxGeometryOverride* Creator(const MObject& obj);
@@ -89,3 +91,4 @@ private:
    MUintArray m_wireIndexing;
 };
 
+#endif

@@ -23,7 +23,9 @@ public:
    virtual void postConstructor();
    virtual MStatus compute(const MPlug& plug, MDataBlock& data);
 #ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
    virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
+#endif
 #endif
 
    virtual bool isBounded() const;
@@ -34,7 +36,9 @@ public:
    MBoundingBox* geometry();
 
 #ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
    virtual MSelectionMask getShapeSelectionMask() const;
+#endif
 #endif
 
    static MTypeId id;

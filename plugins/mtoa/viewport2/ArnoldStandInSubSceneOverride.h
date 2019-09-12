@@ -8,6 +8,7 @@
 #include <maya/MPointArray.h>
 #include <maya/MMessage.h>
 
+#if MAYA_API_VERSION >= 201650
 #include "common/UnorderedContainer.h"
 #include <ai_vector.h>
 #include <vector>
@@ -117,3 +118,4 @@ private:
 	bool fLastTimeInvisible;
 };
 
+#endif

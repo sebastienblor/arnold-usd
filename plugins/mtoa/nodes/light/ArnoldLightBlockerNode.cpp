@@ -46,6 +46,7 @@ CArnoldLightBlockerNode::~CArnoldLightBlockerNode()
    
 }
 
+#if MAYA_API_VERSION >= 201700
 void CArnoldLightBlockerNode::postConstructor()
 {
    // Always make the node not receive or cast shadows
@@ -56,6 +57,7 @@ void CArnoldLightBlockerNode::postConstructor()
    plug = node.findPlug("castsShadows", true);
    plug.setValue(false);
 }
+#endif
 
 void* CArnoldLightBlockerNode::creator()
 {

@@ -7,6 +7,8 @@
 #include <maya/MDrawContext.h>
 #include <maya/MFloatVectorArray.h>
 
+#if MAYA_API_VERSION >= 201700
+
 class CArnoldProceduralGeometryOverride : public MHWRender::MPxGeometryOverride{
 public:
     static MHWRender::MPxGeometryOverride* Creator(const MObject& obj);
@@ -45,3 +47,4 @@ private:
 	// Associated object
 	MObject m_Node;
 };
+#endif

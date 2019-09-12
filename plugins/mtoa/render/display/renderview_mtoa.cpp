@@ -45,9 +45,13 @@ void CRenderViewMtoA::Resize(int w, int h){}
 
 #else
 
+#if MAYA_API_VERSION >= 201700
 #include "QtWidgets/qmainwindow.h"
 static QWidget *s_arvWorkspaceControl = NULL;
 static QWidget *s_optWorkspaceControl = NULL;
+#else
+#include "QtGui/qmainwindow.h"
+#endif
 
 // Arnold RenderView is defined
 #include "scene/MayaScene.h"
@@ -239,7 +243,9 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
    return size;
 }
 
+#if MAYA_API_VERSION >= 201700
 #define ARV_DOCKED 1
+#endif
 
 #ifndef ARV_DOCKED
    static int s_arvWidth = -1;
@@ -469,10 +475,12 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    }
    UpdateRenderCallbacks();
 
+#if MAYA_API_VERSION >= 201700
    MGlobal::executePythonCommand("import mtoa.utils;mtoa.utils.getActiveRenderLayerName()", s_renderLayer);
    if (s_renderLayer.length() == 0)
       s_renderLayer = "masterLayer";
 
+#endif
 
 #if MAYA_API_VERSION >= 20190000
    if(!m_colorPickingCallback)
@@ -833,6 +841,7 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
 
+#if MAYA_API_VERSION >= 201700
    MString layerName;
    MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
 
@@ -841,6 +850,7 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
       return;
 
    s_renderLayer = layerName;
+#endif
    renderViewMtoA->SetOption("Full IPR Update", "1");
 
 
@@ -1462,6 +1472,8 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 
 void CRenderViewMtoA::UpdateColorManagement()
 {
+#if MAYA_API_VERSION >= 201700
+
    // Maya Color Management (aka SynColor) offers a command to retrieve 
    // its complete status; the command is colorManagementPrefs.
    // At the same time it also offers
@@ -1519,7 +1531,121 @@ void CRenderViewMtoA::UpdateColorManagement()
    SetOption("Color Management.Gamma",          "1"); 
    SetOption("Color Management.Exposure",       "0");
    SetOption("Color Management.Enabled",        cmEnabled==1 ? "true" : "false");
-  
+   
+#else
+
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   
+   // get the maya node contraining the color management options         
+   if(activeList.length() == 0) return;
+   
+   MObject node;
+   activeList.getDependNode(0,node);
+   MFnDependencyNode depNode(node);
+
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   // Note:
+   // For debugging purpose only, 'defaultColorMgtGlobals' attributes are:
+   // cme -> color management enabled
+   // cfe -> ocio mode enabled (false means that native mode is enabled)
+   // cfp -> ocio path, to be used only if cme and cfe are on
+   // vtn -> view transform name
+   // wsn -> working space name (also known as rendering color space)
+   // ote -> output transform enabled 
+   // otn -> output transform name 
+   // ... -> other attributes will not be used by the RenderView for now.
+
+   // Implementation: [Patrick Hodoul & Sebastien Ortega]
+   // The color transformation from the rendering color space to the 
+   // view transform must be managed by SynColor as it could imply
+   // a lot more processing. The code receiving the request should
+   // use SynColor to perform the color transformation.
+
+   MStatus status;
+   MPlug plug;
+   plug = depNode.findPlug("cfe", true, &status);
+   bool ocio = false;
+
+   if (status == MS::kSuccess && plug.asBool())
+   {
+      SetOption("Color Management.OCIO", "1");
+      ocio = true;
+      SetOption("Color Management.Gamma", "1"); 
+      SetOption("Color Management.Exposure", "0");
+
+   }
+   else  SetOption("Color Management.OCIO", "0");
+
+   
+   plug = depNode.findPlug("cfp", true, &status);
+   
+   if (status == MS::kSuccess)
+   {      
+      std::string ocioFile = plug.asString().asChar();
+      if (!ocioFile.empty())
+      {
+         SetOption("Color Management.OCIO File", ocioFile.c_str());
+      }
+
+      if (ocio)
+      {
+         plug = depNode.findPlug("vtn", true, &status);
+         if (status == MS::kSuccess)
+         {
+            const std::string viewTransform = plug.asString().asChar();
+            SetOption("Color Management.View Transform", viewTransform.c_str());
+         }
+      } else
+      {
+         plug = depNode.findPlug("vtn", true, &status);
+         if (status == MS::kSuccess)
+         {            
+            const std::string viewTransform = plug.asString().asChar();
+            if (viewTransform == "1.8 gamma")
+            {
+               SetOption("Color Management.View Transform", "Linear"); 
+               SetOption("Color Management.Gamma", "1.8"); 
+               SetOption("Color Management.Exposure", "0");
+            } else if (viewTransform == "2.2 gamma")
+            {
+               SetOption("Color Management.View Transform", "Linear"); 
+               SetOption("Color Management.Gamma", "2.2"); 
+               SetOption("Color Management.Exposure", "0");
+            } else if (viewTransform == "sRGB gamma")
+            {
+               SetOption("Color Management.View Transform", "sRGB");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
+            } else if (viewTransform == "Rec 709 gamma")
+            {
+               SetOption("Color Management.View Transform", "Rec709");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
+            } else if (viewTransform == "Raw")
+            {
+               SetOption("Color Management.View Transform", "Linear");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
+            } else if (viewTransform == "Log")
+            {
+               SetOption("Color Management.View Transform", "Log");
+               SetOption("Color Management.Gamma", "1");
+               SetOption("Color Management.Exposure", "0");
+            }
+         }
+      }
+   }
+#endif
 }
 
 void CRenderViewMtoA::ColorMgtChangedCallback(void *data)

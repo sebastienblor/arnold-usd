@@ -14,7 +14,9 @@
 #include <maya/MPlug.h>
 #include <maya/MDagPath.h>
 #include <maya/MDataBlock.h>
+//#if MAYA_API_VERSION >= 201700
 #include <maya/MNodeMessage.h>
+//#endif
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
@@ -83,12 +85,14 @@ public:
    static  MObject aLightBlindData;
    static  MObject aLightData;
 
+#if MAYA_API_VERSION >= 201700
    // Maya shadowing inputs
    static  MObject aDropOff;
    static  MObject aDecayRate;
    static  MObject aUseRayTraceShadows;
    static  MObject aDepthMapResolution;
    static  MObject aShadowColor;
+#endif
 
 private:
    void scheduleGeometryUpdate();
@@ -100,6 +104,8 @@ private:
    bool m_vp1GeometryUpdate;
    bool m_vp2GeometryUpdate;
    CMeshPrimitive m_drawPrimitive;
+#if MAYA_API_VERSION >= 201700
    bool  m_aiCastShadows;
    bool  m_aiCastVolumetricShadows;
+#endif
 };  // class CArnoldMeshLightNode

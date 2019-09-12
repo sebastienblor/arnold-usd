@@ -42,7 +42,9 @@ public:
    virtual MBoundingBox boundingBox() const;
    virtual bool setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context);
 #ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
    virtual MSelectionMask getShapeSelectionMask() const;
+#endif
 #endif
 
    static void* creator();
@@ -55,6 +57,7 @@ public:
    unsigned int NumSampleBase();
 
 #ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
    virtual MStatus connectionMade( const MPlug& plug,
 											 const MPlug& otherPlug,
 											 bool asSrc );
@@ -63,6 +66,7 @@ public:
 											 bool asSrc );
 	static void nodeDirtyEventCallback(MObject& node, MPlug& plug, void* clientData);
    MCallbackId m_dirtyCallbackId;
+#endif
 #endif
 
    // Input attributes

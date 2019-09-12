@@ -64,6 +64,7 @@ MObject CArnoldPhotometricLightNode::aLightShadowFraction;
 MObject CArnoldPhotometricLightNode::aPreShadowIntensity;
 MObject CArnoldPhotometricLightNode::aLightBlindData;
 MObject CArnoldPhotometricLightNode::aLightData;
+#if MAYA_API_VERSION >= 201700
 // Maya spotlight inputs
 MObject CArnoldPhotometricLightNode::aConeAngle;
 MObject CArnoldPhotometricLightNode::aPenumbraAngle;
@@ -72,6 +73,7 @@ MObject CArnoldPhotometricLightNode::aDecayRate;
 MObject CArnoldPhotometricLightNode::aUseRayTraceShadows;
 MObject CArnoldPhotometricLightNode::aDepthMapResolution;
 MObject CArnoldPhotometricLightNode::aShadowColor;
+#endif
 
 CArnoldPhotometricLightNode::CArnoldPhotometricLightNode() :
         m_boundingBox(MPoint(1.0, 0.7, 0.7), MPoint(-0.7, -2.0, -0.7))
@@ -79,7 +81,9 @@ CArnoldPhotometricLightNode::CArnoldPhotometricLightNode() :
 
 CArnoldPhotometricLightNode::~CArnoldPhotometricLightNode() 
 {
+#if MAYA_API_VERSION >= 201700
    MMessage::removeCallback( m_attrChangeId );
+#endif
 }
 
 void* CArnoldPhotometricLightNode::creator()
@@ -233,6 +237,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
    
+#if MAYA_API_VERSION >= 201700
    // Spot light attributes for display control
    aConeAngle = nAttr.create("coneAngle", "ca", MFnNumericData::kDouble);
    nAttr.setHidden(true);
@@ -269,10 +274,12 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setHidden(true);
    nAttr.setDefault(0.0f, 0.0f, 0.0f);
    addAttribute(aShadowColor);
+#endif
    return MS::kSuccess;
 
 }
 
+#if MAYA_API_VERSION >= 201700
 void CArnoldPhotometricLightNode::postConstructor()
 {
    // Make the node not cast nor receive shadows
@@ -346,6 +353,7 @@ void CArnoldPhotometricLightNode::attrChangedCallBack(MNodeMessage::AttributeMes
       }
    }
 }
+#endif
 
 MStatus CArnoldPhotometricLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
