@@ -8,9 +8,7 @@
 #include <maya/MFnAttribute.h>
 #include <maya/MString.h>
 #include <maya/MFnDependencyNode.h>
-#if MAYA_API_VERSION >= 201600
 #include <maya/MUuid.h>
-#endif
 #include <common/UnorderedContainer.h>
 
 namespace std {
@@ -182,10 +180,8 @@ public:
       // several nodes might have the same uuid (as per maya devs). So I'm combining both hashCode and
       // uuid, which makes collisions so rare that this should never happen, even after 100 years of SolidAngle
       // reigning over the world. (see #3181)
-#if MAYA_API_VERSION >= 201600
       MUuid uuid = MFnDependencyNode(m_nodeHandle.objectRef()).uuid();
       hashCode += "/"+ uuid.asString();
-#endif
    }
 
 private :

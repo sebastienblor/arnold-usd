@@ -20,10 +20,8 @@ public:
    CArnoldPhotometricLightNode();
    virtual ~CArnoldPhotometricLightNode();
 
-#if MAYA_API_VERSION >= 201700
    virtual void            postConstructor();
    static void             attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
-#endif
    virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
    virtual bool            isBounded() const;
@@ -68,7 +66,6 @@ public:
    static  MObject aPreShadowIntensity;
    static  MObject aLightBlindData;
    static  MObject aLightData;
-#if MAYA_API_VERSION >= 201700
    // Maya spot light inputs
    static  MObject aConeAngle;
    static  MObject aPenumbraAngle;
@@ -82,5 +79,4 @@ private:
    MCallbackId m_attrChangeId;
    bool  m_aiCastShadows;
    bool  m_aiCastVolumetricShadows;
-#endif
 };  // class CArnoldPhotometricLightNode

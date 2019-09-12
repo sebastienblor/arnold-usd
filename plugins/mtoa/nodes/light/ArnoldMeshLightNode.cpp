@@ -68,14 +68,12 @@ MObject CArnoldMeshLightNode::aPreShadowIntensity;
 MObject CArnoldMeshLightNode::aLightBlindData;
 MObject CArnoldMeshLightNode::aLightData;
 
-#if MAYA_API_VERSION >= 201700
 // Maya area light attributes
 MObject CArnoldMeshLightNode::aDropOff;
 MObject CArnoldMeshLightNode::aDecayRate;
 MObject CArnoldMeshLightNode::aUseRayTraceShadows;
 MObject CArnoldMeshLightNode::aDepthMapResolution;
 MObject CArnoldMeshLightNode::aShadowColor;
-#endif
 
 CArnoldMeshLightNode::CArnoldMeshLightNode()
    : m_attrChangeId(0)
@@ -83,10 +81,8 @@ CArnoldMeshLightNode::CArnoldMeshLightNode()
    , m_preDeleteId(0)
    , m_vp1GeometryUpdate(true)
    , m_vp2GeometryUpdate(true)
-#if MAYA_API_VERSION >= 201700
    , m_aiCastShadows(true)
    , m_aiCastVolumetricShadows(true)
-#endif
 {}
 
 CArnoldMeshLightNode::~CArnoldMeshLightNode() 
@@ -105,13 +101,11 @@ void CArnoldMeshLightNode::postConstructor()
    //
    MObject me = thisMObject();
 
-#if MAYA_API_VERSION >= 201700
    MFnDependencyNode node(me);
    MPlug plug = node.findPlug("receiveShadows", true);
    plug.setValue(false);
    plug = node.findPlug("castsShadows", true);
    plug.setValue(false);
-#endif
 
    m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, AttrChangedCallback, this);
 
@@ -128,7 +122,6 @@ void CArnoldMeshLightNode::AttrChangedCallback(MNodeMessage::AttributeMessage ms
    if (!node)
       return; 
 
-#if MAYA_API_VERSION >= 201700
    if (msg & MNodeMessage::kAttributeSet)
    {
       bool updateShadowAttr = false;
@@ -175,7 +168,6 @@ void CArnoldMeshLightNode::AttrChangedCallback(MNodeMessage::AttributeMessage ms
          plug.setValue(node->m_aiCastShadows || node->m_aiCastVolumetricShadows);
       }
    }
-#endif
 
    if (plug == s_inMesh)
    {
@@ -446,7 +438,6 @@ MStatus CArnoldMeshLightNode::initialize()
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
    
-#if MAYA_API_VERSION >= 201700
    // Area light attributes for display control
    aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);
    nAttr.setHidden(true);
@@ -474,7 +465,6 @@ MStatus CArnoldMeshLightNode::initialize()
    nAttr.setHidden(true);
    nAttr.setDefault(0.0f, 0.0f, 0.0f);
    addAttribute(aShadowColor);
-#endif
 
    return MS::kSuccess;
 }

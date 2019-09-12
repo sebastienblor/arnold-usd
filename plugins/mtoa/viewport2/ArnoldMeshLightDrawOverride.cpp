@@ -20,55 +20,13 @@
 #include <maya/M3dView.h>
 #include <maya/MFnMesh.h>
 
-#if MAYA_API_VERSION >= 201700
 #include <maya/MUIDrawManager.h>
 #include <maya/MPointArray.h>
 #include <maya/MUintArray.h>
-#else
-namespace {
-   const char* shaderUniforms = "#version 120\n"
-      "uniform mat4 model;\n"
-      "uniform mat4 viewProj;\n"
-      "uniform vec4 shadeColor;\n";
-
-   const char* vertexShader = 
-      "void main()\n"
-      "{\n"
-      "gl_Position = viewProj * (model * gl_Vertex);\n"
-      "}\n";
-
-   const char* fragmentShader =
-      "void main() { gl_FragColor = shadeColor;}\n";
-
-#ifdef _WIN32
-#pragma pack(1)
-   struct SConstantBuffer{
-      float w[4][4];
-      float vp[4][4];
-      float color[4];
-   };
-#pragma pack()
-#endif
-}
-
-GLuint CArnoldMeshLightDrawOverride::s_vertexShader = 0;
-GLuint CArnoldMeshLightDrawOverride::s_fragmentShader = 0;
-GLuint CArnoldMeshLightDrawOverride::s_program = 0;
-
-GLint CArnoldMeshLightDrawOverride::s_modelLoc = 0;
-GLint CArnoldMeshLightDrawOverride::s_viewProjLoc = 0;
-GLint CArnoldMeshLightDrawOverride::s_shadeColorLoc = 0;
-
-#ifdef _WIN32
-CDXConstantBuffer* CArnoldMeshLightDrawOverride::s_pDXConstantBuffer = 0;
-DXShader* CArnoldMeshLightDrawOverride::s_pDXShader = 0;
-#endif
-#endif
 
 bool CArnoldMeshLightDrawOverride::s_isValid = false;
 bool CArnoldMeshLightDrawOverride::s_isInitialized = false;
 
-#if MAYA_API_VERSION >= 201700
 // TODO check about delete after use, and
 // how to reuse buffers, rather than always
 // recreating them, this might won't cause
@@ -140,95 +98,6 @@ struct CArnoldMeshLightUserData : public MUserData
    {
    }
 };
-
-#else
-
-// TODO check about delete after use, and
-// how to reuse buffers, rather than always
-// recreating them, this might won't cause
-// much performance problems, but cleaner,
-// the better
-struct CArnoldMeshLightUserData : public MUserData
-{
-   CGPUPrimitive* m_primitive;
-   std::vector<float> m_positions;
-   std::vector<unsigned int> m_indices;
-   MMatrix m_modelMatrix;
-   float m_wireframeColor[4];
-
-   CArnoldMeshLightUserData(CGPUPrimitive* primitive)
-      : MUserData(false)
-      , m_primitive(primitive)
-   {
-   }
-
-   void update(const MDagPath& objPath)
-   {
-      // Update the wireframe color
-      if (MHWRender::kDormant == MHWRender::MGeometryUtilities::displayStatus(objPath))
-      {
-         m_wireframeColor[0] = 0.75f;
-         m_wireframeColor[1] = 0.f;
-         m_wireframeColor[2] = 0.f;
-         m_wireframeColor[3] = 0.2f;
-      }
-      else
-      {
-         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
-         m_wireframeColor[0] = color.r;
-         m_wireframeColor[1] = color.g;
-         m_wireframeColor[2] = color.b;
-         m_wireframeColor[3] = color.a;
-      }
-
-      MFnDependencyNode fnNode(objPath.node());
-      MPxNode* userNode = fnNode.userNode();
-      CArnoldMeshLightNode* meshLightNode = static_cast<CArnoldMeshLightNode*>(userNode);
-
-      if (meshLightNode->m_vp2GeometryUpdate)
-      {
-         meshLightNode->m_vp2GeometryUpdate = false;
-
-         MObject meshObj = meshLightNode->GetMeshObject();
-         if (meshObj != MObject::kNullObj)
-         {
-            MStatus status;
-            MFnMesh mesh(meshObj);
-
-            const int numVertices = mesh.numVertices();
-            m_positions.resize(numVertices * 3);
-            float* positionData = &m_positions[0];
-            memcpy(positionData, mesh.getRawPoints(&status), numVertices * 3 * sizeof(float));
-
-            const int numEdges = mesh.numEdges();
-            m_indices.resize(numEdges * 2);
-            int2 edgeVertexIndices;
-            for (int i=0, j=0; i<numEdges; ++i)
-            {
-               mesh.getEdgeVertices(i, edgeVertexIndices);
-               m_indices[j++] = edgeVertexIndices[0];
-               m_indices[j++] = edgeVertexIndices[1];
-            }
-
-            m_primitive->setPrimitiveData(positionData, numVertices*3, &m_indices[0], numEdges*2);
-         }
-         else
-         {
-            m_primitive->setPrimitiveData(NULL, 0, NULL, 0);
-         }
-      }
-
-      MTransformationMatrix modelMatrix(objPath.inclusiveMatrix());
-      m_modelMatrix = modelMatrix.asMatrix();
-   }
-
-   ~CArnoldMeshLightUserData()
-   {
-      delete m_primitive;
-   }
-};
-
-#endif
 
 MHWRender::MPxDrawOverride* CArnoldMeshLightDrawOverride::creator(const MObject& obj)
 {

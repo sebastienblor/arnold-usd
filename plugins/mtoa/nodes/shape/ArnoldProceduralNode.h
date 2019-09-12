@@ -27,10 +27,8 @@ public:
    virtual MBoundingBox boundingBox() const;
    
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201700
    virtual MSelectionMask getShapeSelectionMask() const;
    virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
-#endif
 #endif
 
 
