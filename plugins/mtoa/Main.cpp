@@ -988,7 +988,7 @@ namespace // <anonymous>
          shaders->RegisterTranslator("setRange",
                                        "",
                                        CSetRangeTranslator::creator);
-#if MAYA_API_VERSION >= 202000
+#if MAYA_API_VERSION >= 20200000
          shaders->RegisterTranslator("standardSurface",
                                        "",
                                        CStandardSurfaceTranslator::creator,
