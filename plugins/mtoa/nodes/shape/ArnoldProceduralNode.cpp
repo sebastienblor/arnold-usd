@@ -25,9 +25,7 @@
 #include <maya/MDrawInfo.h>
 #include <maya/MSelectInfo.h>
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201700
 #include <maya/MViewport2Renderer.h>
-#endif
 #endif
 
 #include <ai_node_entry.h>
@@ -260,7 +258,6 @@ MBoundingBox CArnoldProceduralNode::boundingBox() const
 }
 
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201700
 /* override */
 MSelectionMask CArnoldProceduralNode::getShapeSelectionMask() const
 //
@@ -289,7 +286,6 @@ MStatus CArnoldProceduralNode::setDependentsDirty( const MPlug& plug, MPlugArray
 
    return MS::kSuccess;
 }
-#endif
 #endif
 
 MBoundingBox* CArnoldProceduralNode::geometry()

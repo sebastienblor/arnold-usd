@@ -12,7 +12,6 @@
 #include "viewport2/ArnoldLightPortalDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ArnoldMeshLightDrawOverride.h"
-#if MAYA_API_VERSION >= 201700
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include "viewport2/ArnoldVolumeGeometryOverride.h"
@@ -22,12 +21,6 @@
 #include <maya/MViewport2Renderer.h>
 #include "viewport2/ArnoldViewOverride.h"
 #include "viewport2/ArnoldViewRegionManip.h"
-#else
-#include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
-#include "viewport2/ArnoldLightBlockerDrawOverride.h"
-#include "viewport2/ArnoldStandInDrawOverride.h"
-#include "viewport2/ArnoldProceduralDrawOverride.h"
-#endif
 #include <maya/MDrawRegistry.h>
 #endif
 
@@ -178,45 +171,23 @@ namespace // <anonymous>
    // allow it to not participate in shadow map bounding box computations.
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
    const MString AI_LIGHT_PORTAL_CLASSIFICATION = "drawdb/geometry/light/arnold/lightPortal";
-#if MAYA_API_VERSION >= 201700
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION + ":drawdb/light/areaLight:lightShader/aiRectangleAreaLight";
-#else
-   const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
-#endif
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
-#if MAYA_API_VERSION >= 201720
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION + ":drawdb/light/image";
-#else
-   const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
-#endif
    const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/light/arnold/skynode";
-#if MAYA_API_VERSION >= 201700
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
-#else
-   const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
-#endif
    const MString AI_PROCEDURAL_CLASSIFICATION = "drawdb/geometry/arnold/procedural"; // should we also be using "subscene" for versions >= 2017 as the standin do ?
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
    const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
-#if MAYA_API_VERSION >= 201700
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION + ":drawdb/light/spotLight";
 #if MAYA_API_VERSION >= 201800
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION + ":drawdb/light/image/environment"; 
 #else
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION; 
 #endif
-#else
-   const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
-   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
-#endif
    const MString AI_MESH_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/meshLight";
-#if MAYA_API_VERSION >= 201700
    const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION + ":drawdb/light/pointLight";
-#else
-   const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION;
-#endif
-
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
    const MString AI_USER_DATA_NODE_CLASSIFICATION = ":rendernode/arnold/utility/user data";
 
@@ -441,33 +412,6 @@ namespace // <anonymous>
          AI_LIGHT_PORTAL_CLASSIFICATION,
          CArnoldLightPortalDrawOverride::creator
       } , 
-#if MAYA_API_VERSION < 201700
-      {
-         "arnoldSkyDomeLightNodeOverride",
-         AI_SKYDOME_LIGHT_CLASSIFICATION,
-         CArnoldSkyDomeLightDrawOverride::creator
-      } , {
-         "arnoldVolumeNodeOverride",
-         AI_VOLUME_CLASSIFICATION,
-         CArnoldVolumeDrawOverride::creator
-      } ,
-      {
-         "arnoldStandInNodeOverride",
-         AI_STANDIN_CLASSIFICATION,
-         CArnoldStandInDrawOverride::creator
-      } ,
-      {
-         "arnoldProceduralNodeOverride",
-         AI_PROCEDURAL_CLASSIFICATION,
-         CArnoldProceduralDrawOverride::creator
-      } ,
-      {
-          "arnoldLightBlockerNodeOverride",
-          AI_LIGHT_FILTER_CLASSIFICATION,
-          CArnoldLightBlockerDrawOverride::creator
-      } ,
-
-#endif
       {
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
@@ -1373,7 +1317,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
          CHECK_MSTATUS(status);
       }
     
-#if MAYA_API_VERSION >= 201700
       status = MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
           AI_STANDIN_CLASSIFICATION,
           "arnoldStandInNodeOverride",
@@ -1441,7 +1384,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       if (!status) {
           status.perror("registerCommand");
       }
-#endif
 #endif
    }
 #endif
@@ -1550,16 +1492,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
       if (MGlobal::mayaState() == MGlobal::kInteractive)
       {
-#if MAYA_API_VERSION < 201700
-         CArnoldPhotometricLightDrawOverride::clearGPUResources();
-         CArnoldAreaLightDrawOverride::clearGPUResources();
-         CArnoldLightPortalDrawOverride::clearGPUResources();
-         CArnoldStandInDrawOverride::clearGPUResources();
-         CArnoldProceduralDrawOverride::clearGPUResources();
-
-#endif
       }
-#if MAYA_API_VERSION >= 201700
       status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
           AI_STANDIN_CLASSIFICATION,
           "arnoldStandInNodeOverride");
@@ -1617,7 +1550,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
           return status;
       }
 
-#endif
 #endif
    }
 #endif

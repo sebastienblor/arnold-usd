@@ -27,8 +27,6 @@
 
 #include <ai.h>
 
-#if MAYA_API_VERSION >= 201700
-
 // Static depth stencil and rasterizer states
 const MHWRender::MDepthStencilState* s_oldDepthStencilState = 0;
 const MHWRender::MRasterizerState* s_oldRasterizerState = 0;
@@ -547,7 +545,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      // Need v-flip for file textures 
                      m_flipVData = true;
 
-#if MAYA_API_VERSION >= 201700
                      MFnDependencyNode fileNode(connectedObject);
                      // Check for color management. Maya 2017 required
                      MPlug cmEnabledPlug = fileNode.findPlug("colorManagementEnabled", true);
@@ -607,7 +604,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      MPlug alphaIsLuminancePlug = fileNode.findPlug("alphaIsLuminance", true);
                      if (!alphaIsLuminancePlug.isNull())
                         alphaIsLuminancePlug.getValue(alphaIsLuminance);
-#endif
                   }
                   else
                   {
@@ -1032,4 +1028,3 @@ void CArnoldSkyDomeLightGeometryOverride::cleanUp()
 {
 }
 
-#endif

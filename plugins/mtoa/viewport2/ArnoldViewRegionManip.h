@@ -19,7 +19,6 @@
 #include <maya/MPoint.h>
 #include <maya/MGLFunctionTable.h>
 
-#if MAYA_API_VERSION >= 201700
 //
 // Custom manipulator class
 //
@@ -66,4 +65,3 @@ private:
     MFloatPoint mDragRectangle;
 };
 
-#endif

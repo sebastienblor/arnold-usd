@@ -212,7 +212,6 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
 void CArnoldSkyDomeLightNode::postConstructor()
 {
-#if MAYA_API_VERSION >= 201700
    // Always make the node not receive or cast shadows
    //
    MFnDependencyNode node(thisMObject());
@@ -225,7 +224,6 @@ void CArnoldSkyDomeLightNode::postConstructor()
    MStatus stat;
    MPlug plg = node.findPlug("aiExposure", true, &stat);
    node.setAlias("exposure", "aiExposure", plg, true /*add*/, &stat);
-#endif
 
    // Call parent postConstructor as it is not done automatically as the parent constructor
    CSphereLocator::postConstructor();

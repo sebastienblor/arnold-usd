@@ -351,13 +351,11 @@ MayaMeshWriter::MayaMeshWriter(MDagPath & iDag,
         lMesh.getCreaseEdges(edgeIds, edgeCreaseData);
         lMesh.getCreaseVertices(vertexIds, vertexCreaseData);
         hasToWriteSubd = ( (edgeIds.length() > 0) || (vertexIds.length() > 0) );
-#if MAYA_API_VERSION >= 201100
         if (!hasToWriteSubd)
         {
             MUintArray invisibleFaceIds = lMesh.getInvisibleFaces();
             hasToWriteSubd = ( hasToWriteSubd || (invisibleFaceIds.length() > 0) );
         }
-#endif
     }
 
     Alembic::Abc::SparseFlag sf = Alembic::Abc::kFull;
@@ -1127,7 +1125,6 @@ void MayaMeshWriter::writeSubD(
             Alembic::Abc::Int32ArraySample(cornerIndices));
     }
 
-#if MAYA_API_VERSION >= 201100
     MUintArray holes = lMesh.getInvisibleFaces();
     unsigned int numHoles = holes.length();
     std::vector <Alembic::Util::int32_t> holeIndices(numHoles);
@@ -1140,7 +1137,6 @@ void MayaMeshWriter::writeSubD(
     {
         samp.setHoles(holeIndices);
     }
-#endif
 
     samp.setUVs( iUVs );
     mSubDSchema.set(samp);
