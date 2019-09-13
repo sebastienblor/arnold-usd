@@ -4418,12 +4418,16 @@ AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
 
 void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
 {
+
+   // FIXME we need to generate the attributes dynamically, by checking 
+   // their metadata
+
    CExtensionAttrHelper helper("standardSurface");
    CAttrData data;
 
    // SSS Attributes 
-      data.name = "subsurfaceType";
-      data.shortName = "subsurface_type";
+      data.name = "aiSubsurfaceType";
+      data.shortName = "ai_subsurface_type";
       MStringArray strArr;
       strArr.append("diffusion");
       strArr.append("randomwalk");
@@ -4433,10 +4437,9 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       helper.MakeInputEnum(data);
       
    // Transmission Attributes 
-      data.name = "transmitAovs";
-      data.shortName = "transmit_aovs";
+      data.name = "aiTransmitAovs";
+      data.shortName = "ai_transmit_aovs";
       helper.MakeInputBoolean(data);
-
 
    // Matte Attributes 
       data.name = "aiEnableMatte";
@@ -4457,91 +4460,93 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       helper.MakeInputFloat(data);
 
    // AOV Attributes 
-      data.name = "aovId1";
-      data.shortName = "aov_id1";
+      data.name = "aiAovId1";
+      data.shortName = "ai_aov_id1";
       helper.MakeInputString(data);
 
-      data.name = "id1";
-      data.shortName = "id1";
+      data.name = "aiId1";
+      data.shortName = "ai_id1";
       helper.MakeInputRGB(data);
 
-      data.name = "aovId2";
-      data.shortName = "aov_id2";
+      data.name = "aiAovId2";
+      data.shortName = "ai_aov_id2";
       helper.MakeInputString(data);
 
-      data.name = "id2";
-      data.shortName = "id2";
+      data.name = "aiId2";
+      data.shortName = "ai_id2";
       helper.MakeInputRGB(data);
 
-      data.name = "aovId3";
-      data.shortName = "aov_id3";
+      data.name = "aiAovId3";
+      data.shortName = "ai_aov_id3";
       helper.MakeInputString(data);
 
-      data.name = "id3";
-      data.shortName = "id3";
+      data.name = "aiId3";
+      data.shortName = "ai_id3";
       helper.MakeInputRGB(data);
 
-      data.name = "aovId4";
-      data.shortName = "aov_id4";
+      data.name = "aiAovId4";
+      data.shortName = "ai_aov_id4";
       helper.MakeInputString(data);
 
-      data.name = "id4";
-      data.shortName = "id4";
+      data.name = "aiId4";
+      data.shortName = "ai_id4";
       helper.MakeInputRGB(data);
 
-      data.name = "aovId5";
-      data.shortName = "aov_id5";
+      data.name = "aiAovId5";
+      data.shortName = "ai_aov_id5";
       helper.MakeInputString(data);
 
-      data.name = "id5";
-      data.shortName = "id5";
+      data.name = "aiId5";
+      data.shortName = "ai_id5";
       helper.MakeInputRGB(data);
 
-      data.name = "aovId6";
-      data.shortName = "aov_id6";
+      data.name = "aiAovId6";
+      data.shortName = "ai_aov_id6";
       helper.MakeInputString(data);
 
-      data.name = "id6";
-      data.shortName = "id6";
+      data.name = "aiId6";
+      data.shortName = "ai_id6";
       helper.MakeInputRGB(data);
 
-      data.name = "aovId7";
-      data.shortName = "aov_id7";
+      data.name = "aiAovId7";
+      data.shortName = "ai_aov_id7";
       helper.MakeInputString(data);
 
-      data.name = "id7";
-      data.shortName = "id7";
+      data.name = "aiId7";
+      data.shortName = "ai_id7";
       helper.MakeInputRGB(data);
 
-      data.name = "aovId8";
-      data.shortName = "aov_id8";
+      data.name = "aiAovId8";
+      data.shortName = "ai_aov_id8";
       helper.MakeInputString(data);
 
-      data.name = "id8";
-      data.shortName = "id8";
+      data.name = "aiId8";
+      data.shortName = "ai_id8";
       helper.MakeInputRGB(data);
 
    // Advanced Attributes 
       
-      data.name = "caustics";
-      data.shortName = "caustics";
+      data.name = "aiCaustics";
+      data.shortName = "ai_caustics";
       helper.MakeInputBoolean(data);
 
-      data.name = "exitToBackground";
-      data.shortName = "exit_to_background";
+      data.name = "aiExitToBackground";
+      data.shortName = "ai_exit_to_background";
       helper.MakeInputBoolean(data);
 
-      data.name = "internalReflections";
-      data.shortName = "internal_reflections";
+      data.name = "aiInternalReflections";
+      data.shortName = "ai_internal_reflections";
       data.defaultValue.BOOL() = true;
       helper.MakeInputBoolean(data);
 
-      data.name = "indirectDiffuse";
-      data.shortName = "indirect_diffuse";
+      data.name = "aiIndirectDiffuse";
+      data.shortName = "ai_indirect_diffuse";
+      data.defaultValue.FLT() = 1.f;
       helper.MakeInputFloat(data);
 
-      data.name = "indirectSpecular";
-      data.shortName = "indirect_specular";
+      data.name = "aiIndirectSpecular";
+      data.shortName = "ai_indirect_specular";
+      data.defaultValue.FLT() = 1.f;
       helper.MakeInputFloat(data);
 
 }
