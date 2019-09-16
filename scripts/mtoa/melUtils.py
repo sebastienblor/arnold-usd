@@ -44,6 +44,23 @@ def getAttrNumElements(objName, attrName):
         ret = plug.evaluateNumElements()
     return ret
 
+def getChildNumberElements(objName, attrName, index, childPlug):
+    sel = om.MSelectionList()
+    sel.add(objName)
+    obj = sel.getDependNode(0)
+    plug = None
+    ret = None
+    if obj:
+        depNodeFn = om.MFnDependencyNode(obj)
+        attr = depNodeFn.attribute(attrName)
+        plug = om.MPlug(obj, attr)
+        child = plug.elementByPhysicalIndex(index)
+        partObj = child.attribute(childPlug)
+        part = child.child(partObj)
+        if part.isArray():
+            ret = part.evaluateNumElements()
+    return ret
+
 def initVar(varName, type='string'):
     if varName.startswith('$'):
         varName = varName[1:]

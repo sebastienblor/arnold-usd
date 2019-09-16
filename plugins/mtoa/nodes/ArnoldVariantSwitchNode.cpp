@@ -1,6 +1,7 @@
 
 #include "nodes/ArnoldVariantSwitchNode.h"
 #include "nodes/ArnoldNodeIDs.h"
+#include "extension/ExtensionsManager.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -11,12 +12,14 @@
 
 MTypeId CArnoldVariantSwitchNode::id(ARNOLD_NODEID_OPERATOR_VARIANT_SWITCH);
 
-MObject CArnoldVariantSwitchNode::s_enabled;
+MObject CArnoldVariantSwitchNode::s_enable;
 MObject CArnoldVariantSwitchNode::s_index;
 
-MObject CArnoldVariantSwitchNode::s_varients;
+MObject CArnoldVariantSwitchNode::s_variants;
 MObject CArnoldVariantSwitchNode::s_name;
 MObject CArnoldVariantSwitchNode::s_inputs;
+
+MObject CArnoldVariantSwitchNode::s_out;
 
 
 void* CArnoldVariantSwitchNode::creator()
@@ -26,6 +29,8 @@ void* CArnoldVariantSwitchNode::creator()
 
 MStatus CArnoldVariantSwitchNode::initialize()
 {
+   CExtensionsManager::AddOperator("aiVariantSwitch");
+
    MFnTypedAttribute tAttr;
    // MFnEnumAttribute eAttr;
    MFnNumericAttribute nAttr;
@@ -33,14 +38,14 @@ MStatus CArnoldVariantSwitchNode::initialize()
    MFnStringData sData;
    MFnCompoundAttribute cmpAttr;
 
-   s_enabled = nAttr.create("enabled", "swen", MFnNumericData::kBoolean, 1);
+   s_enable = nAttr.create("enable", "swen", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
-   addAttribute(s_enabled);
+   addAttribute(s_enable);
 
    s_index = nAttr.create("index", "idx", MFnNumericData::kInt);
    addAttribute(s_index);
 
-   s_varients = cmpAttr.create("variants", "vars");
+   s_variants = cmpAttr.create("variants", "vars");
    cmpAttr.setArray(true);
    cmpAttr.setIndexMatters(false); // allow -nextAvailable
 
@@ -50,13 +55,27 @@ MStatus CArnoldVariantSwitchNode::initialize()
    cmpAttr.addChild(s_name);
 
    s_inputs = mAttr.create("inputs", "ipts");
-   mAttr.setKeyable(false);
    mAttr.setArray(true);
+   mAttr.setDisconnectBehavior(MFnAttribute::kDelete);
+   mAttr.setKeyable(true);
+   mAttr.setStorable(true);
+   mAttr.setReadable(true);
+   mAttr.setWritable(true);
    cmpAttr.addChild(s_inputs);
 
    cmpAttr.setKeyable(false);
 
-   addAttribute(s_varients);
+   addAttribute(s_variants);
+
+   // out message plug
+
+   s_out = mAttr.create("out", "out");
+   mAttr.setArray(false);
+   mAttr.setKeyable(false);
+   mAttr.setStorable(false);
+   mAttr.setReadable(true);
+   mAttr.setWritable(false);
+   addAttribute(s_out);
 
    return MStatus::kSuccess;
 }

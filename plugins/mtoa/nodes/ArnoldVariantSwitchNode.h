@@ -20,12 +20,14 @@ public:
    static MTypeId id;
 
    // Attributes
-   static MObject s_enabled;
+   static MObject s_enable;
    // enumerator that corresponds to arnold's data type enum
    static MObject s_index;
 
-   static MObject s_varients;
+   static MObject s_variants;
    static MObject s_name;
    static MObject s_inputs;
+
+   static MObject s_out;
 
 };  // class CArnoldVariantSwitchNode

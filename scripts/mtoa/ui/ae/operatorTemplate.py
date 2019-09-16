@@ -17,7 +17,7 @@ def buildOperatorMenu(popup, attrName):
     nodeName = attrName.split('.')[0]
     cmds.popupMenu(popup, edit=True, deleteAllItems=True)
     operators = cmds.arnoldPlugins(listOperators=True) or []
-    print operators
+
     for operator in operators:
         opNodes = cmds.ls(type=operator) or []
         for opNode in opNodes:

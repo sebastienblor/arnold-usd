@@ -23,7 +23,7 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
-from mtoa.ui.procview.ProceduralTransverser import SWITCH_OP, MERGE_OP
+from mtoa.ui.procview.ProceduralTransverser import VARIANTSWITCH_OP, SWITCH_OP, MERGE_OP
 
 from mtoa.callbacks import *
 
@@ -252,7 +252,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.properties_panel.setNode(self.nodeName)
 
     def variantReplace(self, nodeAttr):
-        print nodeAttr
         cmds.deleteUI(self.variantCtrl)
 
         self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
@@ -264,8 +263,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.refreshAssignmentsUI()
 
     def variantNew(self, nodeAttr):
-        print nodeAttr
-
         # get if theres an enum attribute
         if not cmds.attributeQuery("variant", node=self.nodeName, exists=True):
             cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName="default" )
@@ -361,7 +358,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         val = variantDialog.show()
 
-        print variantDialog.variant, variantDialog.duplicateCurrent
+        return variantDialog.variant, variantDialog.duplicateCurrent
 
     def editVariant(self, *args):
         print("edit - {}".format(cmds.getAttr("{}.variant".format(self.nodeName), asString=True)))
@@ -378,24 +375,29 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def newVariant(self, *args):
         # check switch node exists, if not make one
-        variant_node = self.getVariantSwitchNode()
+        self.variant_node = self.getVariantSwitchNode(True)
 
-        print self.newVariantUI()
-
-        if variant_node:
-            new_variant = "newPass"
+        if self.variant_node:
+            print self.newVariantUI()
             # make a new merge Node and connect that to the
             # next available input for the variant switch node
-            next_index = cmds.getAttr('{}.inputs'.format(variant_node), size=True)
-            new_pass = cmds.createNode(MERGE_OP, name="{}_{}#".format(self.nodeName, new_variant), ss=True)
-            cmds.connectAttr("{}.out".format(new_pass), "{}.inputs[{}]".format(variant_node, next_index))
+            next_index = cmds.getAttr('{}.variants'.format(self.variant_node), size=True)
+            new_variant_name = "pass{}".format(next_index)
+            # new_pass = cmds.createNode(MERGE_OP, name="{}_{}#".format(self.nodeName, new_variant), ss=True)
+            cmds.setAttr('{}.variants[{}].name'.format(self.variant_node, next_index), new_variant_name, type="string")
 
-            enumNames = cmds.addAttr("{}.variant".format(self.nodeName), q=True, enumName=True)
-            enumNames = ':'.join([enumNames, new_variant])
+            enumList = []
+            for a in cmds.getAttr('{}.variants'.format(self.variant_node), multiIndices=True) or []:
+                enumList.append("{}={}".format(cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a)), a))
+
+            enumList.append("{}={}".format(new_variant_name, next_index))
+            # enumNames = cmds.addAttr("{}.variant".format(self.nodeName), q=True, enumName=True)
+            enumNames = ':'.join(enumList)
+
             cmds.deleteAttr("{}.variant".format(self.nodeName))
             cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName=enumNames)
+            cmds.connectAttr('{}.variant'.format(self.nodeName), '{}.index'.format(self.variant_node))
             cmds.setAttr("{}.variant".format(self.nodeName), next_index)
-            cmds.connectAttr('{}.variant'.format(self.nodeName), '{}.index'.format(variant_node))
 
             cmds.attrEnumOptionMenu(self.variantCtrl, e=True, attribute="{}.variant".format(self.nodeName))
 
@@ -407,35 +409,34 @@ class AEaiStandInTemplate(ShaderAETemplate):
         print("set", variant, variant_str)
         self.refreshAssignmentsUI()
 
-    def getVariantSwitchNode(self):
+    def getVariantSwitchNode(self, create=False):
         variant_switch = None
         ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True)
         for op in ops or []:
             op_node, plug = op.split('.')
-            if cmds.nodeType(op_node) == SWITCH_OP:
+            if cmds.nodeType(op_node) == VARIANTSWITCH_OP:
                 # check for variant attribute
-                if cmds.attributeQuery("variant_op", node=op_node, exists=True) \
-                 and cmds.getAttr("{}.variant_op".format(op_node)) == self.nodeName:
-                    variant_switch = op_node
-                    break
+                # if cmds.attributeQuery("variant_op", node=op_node, exists=True) \
+                #  and cmds.getAttr("{}.variant_op".format(op_node)) == self.nodeName:
+                variant_switch = op_node
+                break
 
-        if not variant_switch:
+        if not variant_switch and create:
             # create variant switch node
-            variant_switch = cmds.createNode(SWITCH_OP, name="variantSwitch#", ss=True)
-            cmds.addAttr(variant_switch, longName="variant_op", dt="string")
-            cmds.setAttr("{}.variant_op".format(variant_switch), self.nodeName, type="string")
+            variant_switch = cmds.createNode(VARIANTSWITCH_OP, name="variantSwitch#", ss=True)
+            # cmds.addAttr(variant_switch, longName="variant_op", dt="string")
+            # cmds.setAttr("{}.variant_op".format(variant_switch), self.nodeName, type="string")
 
-            # create merge node for current operators
-            variant_merge = cmds.createNode(MERGE_OP, name="{}_variant#".format(self.nodeName), ss=True)
+            # create "default" variant
+            # variant_merge = cmds.createNode(MERGE_OP, name="{}_variant#".format(self.nodeName), ss=True)
+            cmds.setAttr('{}.variants[0].name'.format(variant_switch), "default", type="string")
 
             # now move all the connections from the standIn to the merge node
             c=0
             for op in ops:
                 cmds.disconnectAttr(op, '{}.operators[{}]'.format(self.nodeName, c))
-                cmds.connectAttr(op, '{}.inputs[{}]'.format(variant_merge, c))
+                cmds.connectAttr(op, '{}.variants[0].inputs[{}]'.format(variant_switch, c))
                 c+=1
-
-            cmds.connectAttr('{}.out'.format(variant_merge), '{}.inputs[0]'.format(variant_switch))
 
             for i in cmds.getAttr('{}.operators'.format(self.nodeName), multiIndices=True) or []:
                 cmds.removeMultiInstance('{}.operators[{}]'.format(self.nodeName, i))
@@ -706,6 +707,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def setup(self):
         self.assInfoPath = ''
         self.inspectAssPath = ''
+        self.variant_node = None
         self.assItems = {}
 
         self.beginScrollLayout()
