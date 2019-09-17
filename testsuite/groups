@@ -55,6 +55,7 @@ ignore_2019: test_0139 test_0242 test_0198 test_0202 test_0203_win test_0203_lin
 gui: test_0143 test_0153 test_0154 test_0155 test_0156 test_0157 test_0160 test_0189 test_0199 test_0263
 # ignored because they produce no image
 
+ipr: test_0341 test_0343 test_0344 test_0345 test_0346 test_0347 test_0348 test_0349
 ############################
 # USER-DEFINED TEST GROUPS #
 ############################

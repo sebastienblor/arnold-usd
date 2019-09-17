@@ -31,7 +31,7 @@ arnoldRenderView -option "Save Image" $img;
 
 setAttr "aiCurveCollectorShape1.aiMode" 2;
 setAttr "curveShape3.aiMode" 1;
-pause -sec 1;
+pause -sec 2;
 arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
