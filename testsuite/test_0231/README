@@ -1,3 +1,8 @@
 Test TX conversion using arnoldUpdateTx command
 
 author: sebastien.ortega
+
+PARAMS: {
+   'diff_fail': 0.03,
+   'diff_hardfail': 0.03
+}
