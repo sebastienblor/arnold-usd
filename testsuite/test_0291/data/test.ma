@@ -1,4 +1,4 @@
-//Maya ASCII 2018ff08 scene
+//Maya ASCII 2018ff09 scene
 //Name: test.ma
 //Last modified: Tue, Aug 07, 2018 05:06:10 PM
 //Codeset: 1252
@@ -12,8 +12,8 @@ currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2018";
 fileInfo "version" "2018";
-fileInfo "cutIdentifier" "201803211015-d28037856f";
-fileInfo "osv" "Microsoft Windows 7 Enterprise Edition, 64-bit Windows 7 Service Pack 1 (Build 7601)\n";
+fileInfo "cutIdentifier" "201807191615-2c29512b8a";
+fileInfo "osv" "Mac OS X 10.14.6";
 createNode transform -s -n "persp";
 	rename -uid "7C765BD7-4D02-E3AA-92F0-A5B25D745D01";
 	setAttr ".v" no;
@@ -155,6 +155,7 @@ createNode materialInfo -n "materialInfo1";
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	rename -uid "67AEF751-4887-B40C-71E3-69ABBA1B4C3C";
 	addAttr -ci true -sn "ARV_options" -ln "ARV_options" -dt "string";
+	setAttr ".logv" 2;
 	setAttr ".version" -type "string" "3.1.0.wip";
 	setAttr ".ARV_options" -type "string" "Test Resolution=100%;Camera=perspShape;Color Management.Gamma=1;Color Management.Exposure=0;Background.BG=BG Color;Background.Color=0 0 0;Background.Image=;Background.Scale=1 1;Background.Offset=0 0;Background.Apply Color Management=1;Foreground.Enable FG=0;Foreground.Image=;Foreground.Scale=1 1;Foreground.Offset=0 0;Foreground.Apply Color Management=1;";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";
@@ -322,7 +323,7 @@ select -ne :defaultRenderGlobals;
 	setAttr ".outf" 51;
 	setAttr ".imfkey" -type "string" "tif";
 	setAttr ".ifp" -type "string" "testrender";
-	setAttr ".pram" -type "string" "print \"Export operator graph\";\n\npwd();\nprint \"=================================\";\narnoldExportAss -s -mask 4097  -f \"op.ass\" \"defaultArnoldRenderOptions\" ;\nsetAttr \"aiSwitchOperator1.index\" 0;\narnoldImportAss -f \"data/op.ass\"; \nconnectAttr -f aiMerge2.out defaultArnoldRenderOptions.operator;\n";
+	setAttr ".pram" -type "string" "print \"Export operator graph\";\n\npwd();\nprint \"=================================\";\nstring $out[] = `arnoldExportAss -s -mask 4097  -f \"op.ass\" \"defaultArnoldRenderOptions\"`;\nsetAttr \"aiSwitchOperator1.index\" 0;\narnoldImportAss -f $out; \nconnectAttr -f aiMerge2.out defaultArnoldRenderOptions.operator;\n";
 	setAttr ".poam" -type "string" "";
 select -ne :defaultResolution;
 	setAttr ".w" 160;
