@@ -23,9 +23,7 @@
 #include <maya/MItDependencyGraph.h>
 #include <maya/MStringArray.h>
 
-#ifdef ENABLE_VP2
 #include <maya/MViewport2Renderer.h>
-#endif
 
 MTypeId CSphereLocator::id(ARNOLD_NODEID_SPHERE_LOCATOR);
 
@@ -65,7 +63,6 @@ bool CSphereLocator::isAbstractClass() const
 }
 */
 
-#ifdef ENABLE_VP2
 MStatus CSphereLocator::connectionMade( const MPlug& plug,
 											const MPlug& otherPlug,
 											bool asSrc )
@@ -108,7 +105,6 @@ void CSphereLocator::nodeDirtyEventCallback(MObject& node,
       MHWRender::MRenderer::setGeometryDrawDirty(object);
    }
 }
-#endif
 
 AtVector SphereVertex(float phi, float theta)
 {
@@ -544,12 +540,10 @@ bool CSphereLocator::excludeAsLocator() const
    return false;
 }
 
-#ifdef ENABLE_VP2
 MSelectionMask CSphereLocator::getShapeSelectionMask() const
 {
 	return MSelectionMask("arnoldLightSelection");
 }
-#endif
 
 MStatus CSphereLocator::initialize()
 {

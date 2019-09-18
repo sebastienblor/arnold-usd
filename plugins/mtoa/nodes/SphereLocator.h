@@ -41,9 +41,7 @@ public:
    virtual bool excludeAsLocator() const;
    virtual MBoundingBox boundingBox() const;
    virtual bool setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context);
-#ifdef ENABLE_VP2
    virtual MSelectionMask getShapeSelectionMask() const;
-#endif
 
    static void* creator();
 
@@ -54,7 +52,6 @@ public:
    void DrawSphereFilled(float radius, int divisionsX, int divisionsY);
    unsigned int NumSampleBase();
 
-#ifdef ENABLE_VP2
    virtual MStatus connectionMade( const MPlug& plug,
 											 const MPlug& otherPlug,
 											 bool asSrc );
@@ -63,7 +60,6 @@ public:
 											 bool asSrc );
 	static void nodeDirtyEventCallback(MObject& node, MPlug& plug, void* clientData);
    MCallbackId m_dirtyCallbackId;
-#endif
 
    // Input attributes
    static MObject s_colorR;

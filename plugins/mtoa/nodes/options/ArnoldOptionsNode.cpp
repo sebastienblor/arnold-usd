@@ -341,18 +341,6 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setKeyable(false);
    addAttribute(s_filterType);
 
-#ifdef MTOA_ENABLE_GAMMA
-   s_driver_gamma = nAttr.create("display_gamma", "dgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_driver_gamma);
-
-   
-#endif
-
    s_attributes.MakeInput("GI_diffuse_depth");
    s_attributes.MakeInput("GI_specular_depth");
    s_attributes.MakeInput("GI_transmission_depth");

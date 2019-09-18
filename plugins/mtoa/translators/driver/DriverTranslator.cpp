@@ -67,13 +67,6 @@ void CDriverTranslator::Export(AtNode *shader)
    if (AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) && displayDriver)
    {
       MFnDependencyNode fnOpts(GetArnoldRenderOptions());
-      if (AiNodeEntryLookUpParameter(entry, "gamma") != NULL)
-#ifdef MTOA_ENABLE_GAMMA
-         AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma", true).asFloat());
-#else
-//         AiNodeSetFlt(shader, "gamma", 1.f); 
-#endif
-
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
          AiNodeSetBool(shader, "progressive", m_impl->m_session->IsProgressive());
    } else
@@ -81,7 +74,6 @@ void CDriverTranslator::Export(AtNode *shader)
       // not for display drivers, at least not for now
 
 
-#ifdef ENABLE_COLOR_MANAGEMENT
       int colorSpaceVal = FindMayaPlug("colorManagement").asInt();
 
       int cmEnabled = 0;
@@ -117,7 +109,7 @@ void CDriverTranslator::Export(AtNode *shader)
       {
          AiNodeSetStr(shader, "color_space", "");
       }
-#endif
+
    }
     
 }

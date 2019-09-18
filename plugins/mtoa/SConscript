@@ -17,9 +17,7 @@ GLEW_LIB = local_env.subst(local_env['GLEW_LIB'])
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
-subdirs = ['commands', 'nodes', 'translators']
-if local_env['ENABLE_VP2']:
-    subdirs.append('viewport2')
+subdirs = ['commands', 'nodes', 'translators','viewport2']
 for subdir in subdirs:
     dir = os.path.join(src_base_dir, subdir)
     source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
@@ -162,24 +160,16 @@ if not local_env['MTOA_DISABLE_RV']:
         local_env.Append(LIBS = ['ai_renderview'])
 
 
-
 if system.os == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')
 
-if local_env['ENABLE_VP2']:
-    if system.os == 'windows':
-        local_env.Append(CPPPATH = [GLEW_INCLUDES])
-        if local_env['REQUIRE_DXSDK']:
-            local_env.Append(CPPPATH = [os.path.join(local_env["EXTERNAL_PATH"], 'directx11', 'include')])
-            local_env.Append(LIBPATH = [os.path.join(local_env["EXTERNAL_PATH"], 'directx11', 'lib')])
+if system.os == 'windows':
+    local_env.Append(CPPPATH = [GLEW_INCLUDES])
 
 # LoadableModule doesn't work on windows for now.
 if system.os == 'windows':
-    if local_env['ENABLE_VP2']:
-        local_env.Append(LIBS=['d3d11.lib', 'd3dcompiler.lib'])
-        if local_env['REQUIRE_DXSDK']:
-            local_env.Append(LIBS=['d3dx11.lib'])
-
+    local_env.Append(LIBS=['d3d11.lib', 'd3dcompiler.lib'])
+    
     local_env.Append(LIBS=Split('ws2_32.lib'))
     MTOA = local_env.SharedLibrary('mtoa', source_files, LIBPREFIX='')
 else:
@@ -188,26 +178,22 @@ else:
 local_env.Append(LIBPATH = [os.path.join(Dir('.').abspath, '..', 'api')])
 local_env.Append(LIBS = ['mtoa_api'])
 
-if local_env['ENABLE_VP2']:
-    if system.os == 'linux':
-        local_env.Append(CPPPATH = [GLEW_INCLUDES])
-        local_env.Append(LIBS = [File(GLEW_LIB)])
-    elif system.os == 'windows':
-        local_env.Append(CPPPATH = [GLEW_INCLUDES])
-        local_env.Append(LIBPATH = [os.path.dirname(GLEW_LIB)])
-        local_env.Append(LIBS = [os.path.basename(GLEW_LIB)])
-        local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
-    elif system.os == 'darwin':
-        local_env.Append(CPPPATH = [GLEW_INCLUDES])
-        local_env.Append(LIBS = [File(GLEW_LIB)])
-        local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
-        
-if system.os == 'darwin':
+if system.os == 'linux':
+    local_env.Append(CPPPATH = [GLEW_INCLUDES])
+    local_env.Append(LIBS = [File(GLEW_LIB)])
+    local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
+elif system.os == 'windows':
+    local_env.Append(CPPPATH = [GLEW_INCLUDES])
+    local_env.Append(LIBPATH = [os.path.dirname(GLEW_LIB)])
+    local_env.Append(LIBS = [os.path.basename(GLEW_LIB)])
+    local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
+elif system.os == 'darwin':
+    local_env.Append(CPPPATH = [GLEW_INCLUDES])
+    local_env.Append(LIBS = [File(GLEW_LIB)])
+    local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
     local_env.Append(CPPDEFINES = Split('DARWIN'))
     local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
-elif system.os == 'linux':
-    local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
 if local_env['ENABLE_ALEMBIC']:
     alembic_version = '1.7.11'

@@ -1,4 +1,3 @@
-#ifdef ENABLE_VP2
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
 #include "viewport2/ArnoldStandardSurfaceShaderOverride.h"
@@ -22,7 +21,6 @@
 #include "viewport2/ArnoldViewOverride.h"
 #include "viewport2/ArnoldViewRegionManip.h"
 #include <maya/MDrawRegistry.h>
-#endif
 
 // Must be included to export MapiVersion properly which
 // sets the API version to a valid version versus "unknown"
@@ -266,8 +264,6 @@ namespace // <anonymous>
       }
    };
 
-#ifdef ENABLE_VP2
-
    struct shadingNodeOverride{
       MString classification;
       MString registrant;
@@ -423,7 +419,6 @@ namespace // <anonymous>
          CArnoldMeshLightDrawOverride::creator
       }  
    };
-#endif
 
    //
    // Template command that creates and deletes the manipulator
@@ -737,10 +732,8 @@ namespace // <anonymous>
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
          SetEnv("MTOA_PATH", pluginPath);
-#ifdef ENABLE_VP2
          if (!isBatch)
             SetFragmentSearchPath(pluginPath + MString("vp2"));
-#endif
          MString modulePluginPath = pluginPath + MString("shaders");
          MString proceduralsPath = pluginPath + MString("procedurals");
          MString moduleExtensionPath = pluginPath + MString("extensions");
@@ -1049,10 +1042,8 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
       for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
          plugin.deregisterCommand(mayaCmdList[i].name);
 
-#ifdef ENABLE_MATERIAL_VIEW
    if (initData[MTOA_INIT_MATERIAL_VIEW])
       plugin.deregisterRenderer(CMaterialView::Name());
-#endif
    
    if (initData[MTOA_INIT_REGISTER_SWATCH])
       MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
@@ -1162,7 +1153,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
 
-#ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
    if (!isBatch)
    {
@@ -1181,7 +1171,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
          return MStatus::kFailure;
       }
    }
-#endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
    if (!isBatch)
@@ -1293,7 +1282,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
 
-#ifdef ENABLE_VP2
    if (!isBatch)
    {
 
@@ -1386,7 +1374,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       }
 #endif
    }
-#endif
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
    ArnoldUniverseEnd();
@@ -1469,7 +1456,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                      MString(cmd.name) + MString("'' command."));
       }
    }
-#ifdef ENABLE_VP2
    if (!isBatch)
    {
       for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
@@ -1552,9 +1538,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
 #endif
    }
-#endif
 
-#ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
    if (!isBatch)
    {
@@ -1572,7 +1556,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
          MGlobal::displayError("Failed to deregister Arnold material view renderer");
       }
    }
-#endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
    if (!isBatch)

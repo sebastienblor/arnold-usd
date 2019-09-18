@@ -284,7 +284,6 @@ void CArnoldSkyDomeLightNode::draw(M3dView& view, const MDagPath& DGpath, M3dVie
    CSphereLocator::draw(view, DGpath, style, status);
 }
 
-#ifdef ENABLE_VP2
 /* override */
 MSelectionMask CArnoldSkyDomeLightNode::getShapeSelectionMask() const
 //
@@ -299,4 +298,3 @@ MSelectionMask CArnoldSkyDomeLightNode::getShapeSelectionMask() const
 	//MSelectionMask::SelectionType selType = MSelectionMask::kSelectLights;
     return MSelectionMask("arnoldLightSelection");
 }
-#endif

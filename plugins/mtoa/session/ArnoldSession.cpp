@@ -606,11 +606,6 @@ AtNode* CArnoldSession::ExportOptions()
 
 AtNode *CArnoldSession::ExportColorManager()
 {
-// Color Management is only supported for 2016 and higher   
-#ifndef ENABLE_COLOR_MANAGEMENT
-   return NULL;
-#endif
-
    // get the maya node contraining the color management options         
    MSelectionList activeList;
    activeList.add(MString(":defaultColorMgtGlobals"));

@@ -302,7 +302,6 @@ void CMeshPrimitive::update(const MObject& obj)
 }
 
 
-#ifdef ENABLE_VP2
 
 #include <iostream>
 
@@ -1334,7 +1333,5 @@ bool CDXConstantBuffer::isValid() const
 {
 	return p_buffer != 0;
 }
-
-#endif
 
 #endif

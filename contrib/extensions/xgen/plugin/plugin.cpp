@@ -3,8 +3,6 @@
 
 extern "C"
 {
-#ifdef ENABLE_XGEN
-	
 	DLLEXPORT void initializeExtension ( CExtension& extension )
     {
         MStatus status;
@@ -19,5 +17,4 @@ extern "C"
     DLLEXPORT void deinitializeExtension ( CExtension& extension )
     {
     }
-#endif
 }
