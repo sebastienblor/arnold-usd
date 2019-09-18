@@ -4375,8 +4375,6 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "normal", AI_TYPE_VECTOR, "normalCamera");
    ProcessParameter(shader, "tangent", AI_TYPE_VECTOR, "tangentUCamera");
 
-   // Matte
-   ProcessAOVOutput(shader);
 
    // AOV's 
    ProcessParameter(shader, "aov_id1", AI_TYPE_STRING);
@@ -4413,7 +4411,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
 
 AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("standard_surface");
+   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
 }
 
 void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
@@ -4433,7 +4431,7 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       strArr.append("randomwalk");
       strArr.append("randomwalk_v2");
       data.enums = strArr;
-      data.defaultValue.INT() = 0;
+      data.defaultValue.INT() = 1;
       helper.MakeInputEnum(data);
       
    // Transmission Attributes 
@@ -4445,6 +4443,7 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       data.name = "aiEnableMatte";
       data.shortName = "ai_enable_matte";
       helper.MakeInputBoolean(data);
+      data.defaultValue.BOOL() = false;
 
       data.name = "aiMatteColor";
       data.shortName = "ai_matte_color";
