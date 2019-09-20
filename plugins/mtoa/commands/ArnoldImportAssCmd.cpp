@@ -21,7 +21,7 @@
 #include <maya/MBoundingBox.h>
 
 #include <math.h>
-
+#include "utils/Universe.h"
 // These functions were copied from AttrHelper.cpp
 MString ArnoldToMayaStyle(MString s)
 {
@@ -56,6 +56,11 @@ MString ArnoldToMayaStyle(MString s)
 
 static MString ArnoldToMayaAttrName(const AtNodeEntry *nodeEntry, const char* paramName) 
 {
+
+   bool hidden = false;
+   if (AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hidden) && hidden)
+      return MString("");
+   
    AtString attrName;
    if (AiMetaDataGetStr(nodeEntry, paramName, "maya.name", &attrName))
    {
@@ -72,6 +77,7 @@ MSyntax CArnoldImportAssCmd::newSyntax()
 {
    MSyntax syntax;
    syntax.addFlag("f", "filename", MSyntax::kString);
+   syntax.addFlag("m", "mask", MSyntax::kUnsigned);
    return syntax;
 }
 
@@ -120,15 +126,25 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    if (args.isFlagSet("filename"))
       args.getFlagArgument("filename", 0, filename);
    
+   unsigned int mask = AI_NODE_ALL;
+   // Specific objects mask to load
+   if (args.isFlagSet("mask"))
+      args.getFlagArgument("mask", 0, mask);
+
    bool universeCreated = false;
 
    if (!AiUniverseIsActive())
    {
       universeCreated = true;
-      AiBegin();
+      ArnoldUniverseBegin();
    }  
    AtUniverse *universe = AiUniverse();
-   AiASSLoad(universe, filename.asChar(), AI_NODE_ALL);
+   AiASSLoad(universe, filename.asChar(), mask);
+
+   MString logStr("Importing file ");
+   logStr += filename;
+
+   MGlobal::displayInfo(logStr);
 
    int foundUnsupported = 0;
 
@@ -137,7 +153,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    std::vector<AtNode *> nodesToConvert;
 
    // First Loop to create the imported nodes, and fill the map from arnold to maya nodes
-   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_ALL);
+   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, mask);
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode* node = AiNodeIteratorGetNext(iter);
@@ -149,12 +165,8 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          continue;
 
       const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(node);
-      if (AiNodeEntryGetType(nodeEntry) != AI_NODE_OPERATOR)
-      {
-         foundUnsupported++;
-         continue;
-      }
-      
+      unsigned int nodeType = AiNodeEntryGetType(nodeEntry);
+
       std::string nodeEntryName = AiNodeEntryGetName(nodeEntry);
       MString mayaTypeName = ArnoldToMayaStyle(MString("ai_")+MString(nodeEntryName.c_str()));
 
@@ -163,18 +175,18 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          mayaTypeName = MString(mayaNodeNameMtd.c_str());
 
       MString mayaName;
-      MString createCmd = MString("createNode \"") + mayaTypeName + MString("\" -name \"") + MString(nodeName.c_str()) + MString("\";");
+      MString createCmd;
+      if (nodeType == AI_NODE_SHADER)
+         createCmd += MString("shadingNode \"") + mayaTypeName + MString("\" -name \"") + MString(nodeName.c_str()) + MString("\" -asShader");
+      else
+         createCmd = MString("createNode \"") + mayaTypeName + MString("\" -name \"") + MString(nodeName.c_str()) + MString("\"");
+
       MGlobal::executeCommand(createCmd, mayaName);
       arnoldToMayaNames[nodeName] = std::string(mayaName.asChar());
       nodesToConvert.push_back(node);
    }
    AiNodeIteratorDestroy(iter);
 
-   if (foundUnsupported > 0)
-   {
-      AiMsgError("[mtoa.import] Only operators are currently supported for import");
-   }
-   
    // Now loop over the created nodes to set all attributes
    for (size_t i = 0; i < nodesToConvert.size(); ++i)
    {
@@ -195,6 +207,9 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
             continue;
          
          MString mayaAttrName = ArnoldToMayaAttrName(nodeEntry, paramName);
+         if (mayaAttrName.length() == 0)
+            continue;
+
          MString mayaFullAttr = MString(mayaName.c_str()) + MString(".") + mayaAttrName;
          MString attrValue(" ");
          
@@ -412,6 +427,6 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    AiUniverseDestroy(universe);
 
    if (universeCreated)
-      AiEnd();
+      ArnoldUniverseEnd();
     return status;
 }

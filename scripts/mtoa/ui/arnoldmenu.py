@@ -270,7 +270,18 @@ def arnoldImportOperators():
     ret = cmds.fileDialog2(cap='Import Operator Graph',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
     if len(ret):
         defaultOperatorsFolder = ret[0]
-        cmds.arnoldImportAss(f=ret[0])
+        cmds.arnoldImportAss(f=ret[0],  mask=ai.AI_NODE_OPERATOR)
+
+def arnoldImportShaders():
+    global defaultOperatorsFolder
+    if defaultOperatorsFolder == "":
+        defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
+
+    objFilter = "ASS File (*.ass)"
+    ret = cmds.fileDialog2(cap='Import Arnold Shaders',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
+    if len(ret):
+        defaultOperatorsFolder = ret[0]
+        cmds.arnoldImportAss(f=ret[0], mask=ai.AI_NODE_SHADER)
 
 def arnoldExportMaterialx(selected=False):
     selList = cmds.ls(sl=1)
@@ -409,6 +420,8 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to .ass')
         addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
+        addRuntimeMenuItem('ArnoldImportShaders', label='Import Arnold Shaders', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportShaders()', category="Utilities", annotation='Import a shader library from a .ass file')
         addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportMaterialx(selected=True)', category="Utilities", annotation='Export the selected shading trees to .mtlx files')
         addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
