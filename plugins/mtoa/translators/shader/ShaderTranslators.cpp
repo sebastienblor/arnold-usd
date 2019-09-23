@@ -4442,8 +4442,8 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
    // Matte Attributes 
       data.name = "aiEnableMatte";
       data.shortName = "ai_enable_matte";
-      helper.MakeInputBoolean(data);
       data.defaultValue.BOOL() = false;
+      helper.MakeInputBoolean(data);
 
       data.name = "aiMatteColor";
       data.shortName = "ai_matte_color";
