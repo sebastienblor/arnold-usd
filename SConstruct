@@ -820,6 +820,7 @@ env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*"))
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(clm_utils_path, "*")))
 
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(ARNOLD, 'license', '*')))
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
@@ -1247,6 +1248,14 @@ if clm_version == 2:
     PACKAGE_FILES.append([os.path.join(clm_utils_path, '*'), 'license'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
+
+license_files = find_files_recursive(os.path.join(ARNOLD, 'license'), None)
+for p in license_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'license', p), os.path.join('license', d)]
+    ]
+
 
 vp2shaders = GetViewportShaders(maya_version)
 installedVp2Shaders = []
