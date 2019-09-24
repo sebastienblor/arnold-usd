@@ -186,11 +186,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     ${If} ${FileExists} "$R3"
       ExecWait '$INSTDIR\license\ArnoldLicensing-8.1.0.1084_RC6-win.exe --silent'
     ${EndIf}
-
-    StrCpy $R3 "$INSTDIR\bin\ArnoldLicenseManager.exe"
-    ${If} ${FileExists} "$R3"
-      ExecWait '$INSTDIR\bin\ArnoldLicenseManager.exe --licensecheck'
-    ${EndIf}    
+    
 
     StrCpy $R4 "$INSTDIR\license\pitreg.exe"
     ${If} ${FileExists} "$R4"

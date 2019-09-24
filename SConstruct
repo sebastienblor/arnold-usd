@@ -1432,10 +1432,7 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'lmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'rlmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'noice')])
-
-        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'ArnoldLicenseManager.app', 'Contents', 'MacOS', 'ArnoldLicenseManager')])
-        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'ArnoldLicenseManager.app', 'Contents', 'MacOS', 'libAdskLicensingSDK.2.dylib')])
-
+        
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
         
         if os.path.exists(os.path.join(tempdir, maya_version, 'license', 'pitreg')):
@@ -1466,16 +1463,7 @@ def create_installer(target, source, env):
             pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC6-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.1084_RC6-darwin --silent\n"
             pitregScript.write(pitregCommand)
             pitregCommand = "hdiutil detach /Volumes/ArnoldLicensing"
-            pitregScript.write(pitregCommand)
-            pitregCommand = "LICENSE_MANAGER_FILE=$2/Applications/solidangle/mtoa/%s/bin/ArnoldLicenseManager.app/Contents/MacOS/ArnoldLicenseManager\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('if [ -e $LICENSE_MANAGER_FILE ]; then\n')
-            pitregCommand = "  $2/Applications/solidangle/mtoa/%s/bin/ArnoldLicenseManager.app/Contents/MacOS/ArnoldLicenseManager --licensecheck\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('else\n')
-            pitregCommand = "  $3/Applications/solidangle/mtoa/%s/bin/ArnoldLicenseManager.app/Contents/MacOS/ArnoldLicenseManager --licensecheck\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('fi\n')
+            pitregScript.write(pitregCommand)        
         else:
             pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
@@ -1484,15 +1472,6 @@ def create_installer(target, source, env):
             pitregScript.write(pitregCommand)
             pitregScript.write('else\n')
             pitregCommand = "  $3/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('fi\n')
-            pitregCommand = "LICENSE_MANAGER_FILE=$2/Applications/solidangle/mtoa/%s/bin/ArnoldLicenseManager.app/Contents/MacOS/ArnoldLicenseManager\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('if [ -e $LICENSE_MANAGER_FILE ]; then\n')
-            pitregCommand = "  $2/Applications/solidangle/mtoa/%s/bin/ArnoldLicenseManager.app/Contents/MacOS/ArnoldLicenseManager --licensecheck\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('else\n')
-            pitregCommand = "  $3/Applications/solidangle/mtoa/%s/bin/ArnoldLicenseManager.app/Contents/MacOS/ArnoldLicenseManager --licensecheck\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
 
