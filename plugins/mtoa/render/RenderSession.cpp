@@ -378,7 +378,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       if (s_comp != 0)
       {
          if (s_comp->isInterruptRequested())
-            AiRenderInterrupt();
+            AiRenderInterrupt(AI_BLOCKING);
          // This causes AiRender to break, after which the CMayaScene::End()
          // which clears this callback.      
          // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
@@ -422,17 +422,9 @@ void CRenderSession::InterruptRender(bool waitFinished)
    }
 #endif
 
-   if (IsRendering() && AiRendering()) AiRenderInterrupt();
+   if (IsRendering() && AiRendering())
+      AiRenderInterrupt(waitFinished ? AI_BLOCKING : AI_NON_BLOCKING);
       
-   if (waitFinished)
-   {
-#ifdef _WIN64
-      while(AiRendering()) Sleep(1);
-#else
-      while(AiRendering()) usleep(1000);
-#endif
-
-   }
    // Wait for the thread to clear.
    if (m_render_thread != 0)
    {

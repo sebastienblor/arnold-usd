@@ -1533,10 +1533,13 @@ void CArnoldSession::DoUpdate()
 
    if (mtoa_translation_info)
       MtoaDebugLog("[mtoa.session]    Updating Arnold Scene....");
-
+   
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   
+   /*
    if (renderSession)
       renderSession->SetRenderViewStatusInfo(MString("Updating Arnold Scene..."));
+      */
 
    MStatus status;
    assert(AiUniverseIsActive());
