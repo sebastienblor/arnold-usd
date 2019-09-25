@@ -3,7 +3,7 @@ arnoldRender -cam persp;
 pause -sec 5;
 arnoldRenderView;
 pause -sec 3;
-arnoldRenderView -option "WaitRender"  "1";
+arnoldRenderView -option "Wait Render"  "1";
 
 string $imgOut = `pwd`;
 $imgOut += "/testrender.tif";

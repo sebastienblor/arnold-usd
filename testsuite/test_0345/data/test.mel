@@ -1,14 +1,13 @@
 arnoldRenderView -mode "render_silent";
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 string $img = "";
+arnoldRenderView -option "Wait Render"  "1";
 
 //======== Set the subdivision to catclark
 
 setAttr "pCubeShape1.aiSubdivType" 1;
 setAttr "pCube1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_1.tif";
@@ -19,7 +18,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "pCubeShape1.aiSubdivIterations" 2;
 setAttr "pCube1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_2.tif";
@@ -30,7 +28,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "pCubeShape1.aiSubdivType" 2;
 setAttr "pCube1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_3.tif";

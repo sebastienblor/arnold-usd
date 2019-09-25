@@ -1,13 +1,12 @@
 arnoldRenderView -mode "render_silent";
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 string $img = "";
+arnoldRenderView -option "Wait Render"  "1";
 
 //======== Assign green shader to the cube
 
 sets -e -forceElement aiStandardSurface3SG pCube1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_1.tif";
@@ -16,7 +15,6 @@ arnoldRenderView -option "Save Image" $img;
 //======== Assign blue shader to the sphere
 sets -e -forceElement aiStandardSurface2SG pSphere1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_2.tif";
@@ -25,7 +23,6 @@ arnoldRenderView -option "Save Image" $img;
 //======== Assign red shader to the sphere
 sets -e -forceElement aiStandardSurface1SG pSphere1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_3.tif";
@@ -33,8 +30,9 @@ arnoldRenderView -option "Save Image" $img;
 
 //========= Delete a shading group and a shader
 delete aiStandardSurface1SG aiStandardSurface3;
-pause -sec 2;
+pause -sec 1;
 arnoldRenderView -option "Wait Render"  "1";
+pause -sec 1;
 
 $img = `pwd`;
 $img += "/testrender_4.tif";
@@ -44,7 +42,6 @@ arnoldRenderView -option "Save Image" $img;
 sets -e -forceElement aiStandardSurface2SG pSphere1;
 sets -e -forceElement aiStandardSurface2SG pCube1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_5.tif";

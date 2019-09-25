@@ -9,7 +9,6 @@ arnoldRenderView -option "Wait Render"  "1";
 setAttr "pSphere1.visibility" 0;
 setAttr "pSphere1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 string $img = `pwd`;
 $img += "/testrender_1.tif";
@@ -20,7 +19,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "pCone1.visibility" 0;
 setAttr "pCone1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_2.tif";
@@ -31,7 +29,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "pSphere1.visibility" 1;
 setAttr "pSphere1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_3.tif";
@@ -40,7 +37,6 @@ arnoldRenderView -option "Save Image" $img;
 //======== Delete the torus
 delete pTorusShape1 pTorus1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_4.tif";
@@ -49,7 +45,6 @@ arnoldRenderView -option "Save Image" $img;
 //======== Create a second sphere
 polySphere -r 1 -sx 20 -sy 20 -ax 0 1 0 -cuv 2 -ch 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_5.tif";
@@ -61,7 +56,6 @@ setAttr "pSphere2.inheritsTransform" 1;
 setAttr "pCone1.visibility" 1;
 setAttr "pCone1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_6.tif";
@@ -71,7 +65,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "pCone1.translateX" 0;
 setAttr "pCone1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_7.tif";
@@ -82,7 +75,6 @@ select -r pCone1.vtx[20] ;
 move -r 0 3.238114 0 ;
 
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_8.tif";

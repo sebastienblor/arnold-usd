@@ -3,13 +3,11 @@
 
 arnoldRenderView -mode "render_silent";
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 //======== Hide the area light
 
 setAttr "aiAreaLight1.visibility" 0;
 setAttr "aiAreaLightShape1.intensity" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 string $img = `pwd`;
 $img += "/testrender_1.tif";
@@ -19,7 +17,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "pointLight1.visibility" 0;
 setAttr "pointLightShape1.intensity" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 $img = `pwd`;
 $img += "/testrender_2.tif";
 arnoldRenderView -option "Save Image" $img;
@@ -28,7 +25,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "aiSkyDomeLight1.visibility" 0;
 setAttr "aiSkyDomeLightShape1.intensity" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 $img = `pwd`;
 $img += "/testrender_3.tif";
 arnoldRenderView -option "Save Image" $img;
@@ -37,7 +33,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "pointLight1.visibility" 1;
 setAttr "pointLightShape1.intensity" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 $img = `pwd`;
 $img += "/testrender_4.tif";
 arnoldRenderView -option "Save Image" $img;
@@ -47,7 +42,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "directionalLight1.visibility" 0;
 setAttr "directionalLightShape1.intensity" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 $img = `pwd`;
 $img += "/testrender_5.tif";
 arnoldRenderView -option "Save Image" $img;
@@ -56,7 +50,6 @@ arnoldRenderView -option "Save Image" $img;
 setAttr "aiSkyDomeLight1.visibility" 1;
 setAttr "aiSkyDomeLightShape1.intensity" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 $img = `pwd`;
 $img += "/testrender_6.tif";
 arnoldRenderView -option "Save Image" $img;
