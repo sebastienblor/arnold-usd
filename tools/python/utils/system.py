@@ -6,6 +6,7 @@ import shlex
 import subprocess
 import sys
 import time
+import threading
 
 # Obtain information about the system only once, when loaded
 os = platform.system().lower()
