@@ -566,7 +566,6 @@ createNode aiSkyDomeLight -n "aiSkyDomeLightShape1" -p "aiSkyDomeLight1";
 	setAttr ".rcsh" no;
 	setAttr ".ai_exposure" 4;
 	setAttr ".aal" -type "attributeAlias" {"exposure","aiExposure"} ;
-	setAttr ".camera" 0;
 createNode lightLinker -s -n "lightLinker1";
 	rename -uid "0B9E9774-4128-97E4-439A-7B9B5ED6255D";
 	setAttr -s 3 ".lnk";
@@ -681,8 +680,10 @@ createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".st" 6;
 createNode polyTorus -n "polyTorus1";
 	rename -uid "ACAE37FF-42A7-DAD2-D180-08AD66501E4B";
-createNode aiPhysicalSky -n "aiPhysicalSky1";
+createNode aiFlat -n "aiPhysicalSky1";
 	rename -uid "7A2EC640-4C2A-167D-15FF-7EA11291A089";
+	setAttr ".color" -type "float3" 0.5 0.5 0.5;
+
 createNode nodeGraphEditorInfo -n "hyperShadePrimaryNodeEditorSavedTabsInfo";
 	rename -uid "9B9181F3-4E88-50CD-71BD-4F8F7C469120";
 	setAttr ".tgi[0].tn" -type "string" "Untitled_1";
@@ -756,6 +757,7 @@ connectAttr "colliderProps1.enableMeshBoundaryUI" "colliderProps1.enableBoundary
 connectAttr "colliderProps1.boundaryMeshInvertUI" "colliderProps1.invert";
 connectAttr "colliderProps1.wm" "colliderProps1.transform";
 connectAttr "pTorusShape1.w" "colliderProps1.Meshes[0]";
+connectAttr "aiPhysicalSky1.out" "aiSkyDomeLightShape1.sc";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "bifrostLiquidMaterial1SG.message" ":defaultLightSet.message";
