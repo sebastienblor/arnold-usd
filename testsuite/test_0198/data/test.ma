@@ -566,6 +566,7 @@ createNode aiSkyDomeLight -n "aiSkyDomeLightShape1" -p "aiSkyDomeLight1";
 	setAttr ".rcsh" no;
 	setAttr ".ai_exposure" 4;
 	setAttr ".aal" -type "attributeAlias" {"exposure","aiExposure"} ;
+	setAttr ".camera" 0;
 createNode lightLinker -s -n "lightLinker1";
 	rename -uid "0B9E9774-4128-97E4-439A-7B9B5ED6255D";
 	setAttr -s 3 ".lnk";
@@ -755,7 +756,6 @@ connectAttr "colliderProps1.enableMeshBoundaryUI" "colliderProps1.enableBoundary
 connectAttr "colliderProps1.boundaryMeshInvertUI" "colliderProps1.invert";
 connectAttr "colliderProps1.wm" "colliderProps1.transform";
 connectAttr "pTorusShape1.w" "colliderProps1.Meshes[0]";
-connectAttr "aiPhysicalSky1.out" "aiSkyDomeLightShape1.sc";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "bifrostLiquidMaterial1SG.message" ":defaultLightSet.message";

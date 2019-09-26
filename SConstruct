@@ -222,6 +222,9 @@ env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
 
+# Setting a timelimit for the testsuite (in seconds)
+env['TIMELIMIT'] = 120.0
+
 # Set default amount of threads set to the cpu counts in this machine.
 # This can be overridden through command line by setting e.g. "abuild -j 1"
 SetOption('num_jobs', int(cpu_count()))

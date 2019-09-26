@@ -75,38 +75,44 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda
    # - Split cmd into a list if it is a string
    # - Initialize the output and return codes
    # - Normalize environment to strings
-
-   c = shlex.split(cmd, posix=(not is_windows)) if (type(cmd) == str) and not shell else cmd
-   r, o = 0, []
-   e = {k : str(v) for k, v in env.items()} if env else None
+   split_command = isinstance(cmd, basestring) and not shell
    # Create a dictionary with the arguments for subprocess.Popen()
    popen_args = {
-      'args'    : c,
+      'args'    : shlex.split(cmd, posix=is_unix) if split_command else cmd,
       'stdout'  : subprocess.PIPE,
       'stderr'  : subprocess.STDOUT,
       'cwd'     : cwd,
-      'env'     : e,
+      'env'     : {k : str(v) for k, v in env.items()} if env else None,
       'shell'   : shell,
       'bufsize' : 1,
       'universal_newlines': True,
    }
+   t = time.time()
    try:
-      t = time.time()
-      p = subprocess.Popen(**popen_args)
-      with p.stdout:
-         for line in iter(p.stdout.readline, b''):
+      process = subprocess.Popen(**popen_args)
+   except OSError as e:
+      return e.errno, e.strerror.splitlines()
+   else:
+      if timeout:
+         def kill(p):
+            if p.returncode is None:
+               p.kill()
+         killer = threading.Timer(timeout, kill, [process])
+         killer.start()
+      output = []
+      with process.stdout:
+         for line in iter(process.stdout.readline, b''):
             if not line:
                break
-            elif timeout and (time.time() - t) > timeout:
-               p.kill()
-               break
             line = line.rstrip('\n')
-            o.append(line)
-            callback(line)
+            output.append(line)
             if verbose:
-               print(line)
-      r = p.wait()
-   except OSError as e:
-      o = [e.strerror]
-      r = e.errno
-   return (r, o)
+               print_safe(line)
+            if callback:
+               callback(line)
+      process.wait()
+      if timeout:
+         killer.cancel()
+      return process.returncode, output
+
+
