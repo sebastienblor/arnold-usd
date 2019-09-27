@@ -268,7 +268,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                                    changeCommand=self.setVariant)
 
         scriptAttr = nodeAttr
-        cmds.scriptJob(attributeChange=[scriptAttr, self.setVariant])
         self.refreshAssignmentsUI()
 
     def variantNew(self, nodeAttr):
