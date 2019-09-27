@@ -35,6 +35,7 @@ MERGE_OP = "aiMerge"
 SWITCH_OP = "aiSwitchOperator"
 INCLUDEGRAPH_OP = "aiIncludeGraph"
 MATERIALX_OP = "aiMaterialx"
+VARIANTSWITCH_OP = "aiVariantSwitch"
 
 SELECTION_OPS = [OVERRIDE_OP, DISABLE_OP, COLLECTION_OP]
 
@@ -158,10 +159,22 @@ class ProceduralTransverser(BaseTransverser):
         pass
 
     def getOperatorIndices(self, node):
-        return cmds.getAttr('{}.operators'.format(node), multiIndices=True) or []
+        con_attr = 'operators'
+        if cmds.nodeType(node) == MERGE_OP:
+            con_attr = 'inputs'
+        elif cmds.nodeType(node) == VARIANTSWITCH_OP:
+            var_index = cmds.getAttr('{}.index'.format(node))
+            con_attr = 'variants[{}].inputs'.format(var_index)
+        return cmds.getAttr('{}.{}'.format(node, con_attr), multiIndices=True) or []
 
     def getConnectedOperator(self, node, index):
-        return cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
+        con_attr = 'operators'
+        if cmds.nodeType(node) == MERGE_OP:
+            con_attr = 'inputs'
+        elif cmds.nodeType(node) == VARIANTSWITCH_OP:
+            var_index = cmds.getAttr('{}.index'.format(node))
+            con_attr = 'variants[{}].inputs'.format(var_index)
+        return cmds.connectionInfo('{}.{}[{}]'.format(node, con_attr, index), sourceFromDestination=True)
 
     def getInputs(self, operator, transverse=True):
 
@@ -174,9 +187,13 @@ class ProceduralTransverser(BaseTransverser):
             ops.append(op)
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
-                if cmds.nodeType(op) == SWITCH_OP:
+                node_type = cmds.nodeType(op)
+                if node_type == SWITCH_OP:
                     switch_index = cmds.getAttr("{}.index".format(op))
                     inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
+                elif node_type == VARIANTSWITCH_OP:
+                    switch_index = cmds.getAttr("{}.index".format(op))
+                    inputs_raw = cmds.listConnections("{}.variants[{}].inputs".format(op, switch_index), c=True) or []
                 else:
                     inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
                 it = iter(inputs_raw)
@@ -210,8 +227,25 @@ class ProceduralTransverser(BaseTransverser):
 
         return index
 
+    def getVariantNode(self, node):
+        variant_node = False
+        variant_index = cmds.getAttr("{}.variant".format(node)) or -1
+        ops = cmds.listConnections('{}.operators'.format(node), plugs=True)
+        for op in ops or []:
+            op_node, plug = op.split('.')
+            if cmds.nodeType(op_node) == VARIANTSWITCH_OP:
+                variant_node = op_node
+
+        return variant_node
+
     def createOperator(self, node, item, operator_type):
-        num_ops = mu.getAttrNumElements(node, 'operators')
+
+        # get if we have a variant merge connected
+        variant_node = self.getVariantNode(node)
+        if variant_node:
+            # get current index
+            node = variant_node
+
         # get the index that this operator should come in the list
         data = item.data
         # get parent index
@@ -235,7 +269,7 @@ class ProceduralTransverser(BaseTransverser):
         if parent_index > -1:
             index = parent_index + 1
 
-        op_name = '{}_{}'.format(node, operator_type)
+        op_name = '{}_{}#'.format(data[PROC_NAME], operator_type)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
         if op:
             # if this operator has a selection attribute set it to the
@@ -301,8 +335,14 @@ class ProceduralTransverser(BaseTransverser):
 
     def insertOperator(self, node, op, index):
 
+        con_attr = 'operators'
+        if cmds.nodeType(node) == MERGE_OP:
+            con_attr = 'inputs'
+        elif cmds.nodeType(node) == VARIANTSWITCH_OP:
+            var_index = cmds.getAttr('{}.index'.format(node))
+            con_attr = 'variants[{}].inputs'.format(var_index)
         # check if index has connection, if not do a straight connection at given index
-        dest = '{}.operators[{}]'.format(node, index)
+        dest = '{}.{}[{}]'.format(node, con_attr, index)
         src = '{}.out'.format(op)
         if not cmds.connectionInfo(dest, isDestination=True):
             cmds.connectAttr(src, dest)
@@ -311,10 +351,10 @@ class ProceduralTransverser(BaseTransverser):
             for idx in reversed(self.getOperatorIndices(node)):
                 if idx >= index:
                     idx_src = self.getConnectedOperator(node, idx)
-                    cmds.disconnectAttr(idx_src, '{}.operators[{}]'.format(node, idx))
-                    cmds.connectAttr(idx_src, '{}.operators[{}]'.format(node, idx+1))
+                    cmds.disconnectAttr(idx_src, '{}.{}[{}]'.format(node, con_attr, idx))
+                    cmds.connectAttr(idx_src, '{}.{}[{}]'.format(node, con_attr, idx+1))
             # connect at the index given
-            cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
+            cmds.connectAttr(src, '{}.{}[{}]'.format(node, con_attr, index))
 
     def getCustomParamName(self, operator):
         if cmds.nodeType(operator) == OVERRIDE_OP:
@@ -398,10 +438,14 @@ class ProceduralTransverser(BaseTransverser):
             if gather_parents:
                 parent_ops.append((op, exact_match))
             if cmds.attributeQuery('inputs', node=op, exists=True):
+                node_type = cmds.nodeType(op)
 
-                if cmds.nodeType(op) == SWITCH_OP:
+                if node_type == SWITCH_OP:
                     switch_index = cmds.getAttr("{}.index".format(op))
                     inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
+                elif node_type == VARIANTSWITCH_OP:
+                    switch_index = cmds.getAttr("{}.index".format(op))
+                    inputs_raw = cmds.listConnections("{}.variants[{}].inputs".format(op, switch_index), c=True) or []
                 else:
                     inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
                 it = iter(inputs_raw)
