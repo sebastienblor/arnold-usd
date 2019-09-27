@@ -38,7 +38,7 @@ MStatus CArnoldVariantSwitchNode::initialize()
    MFnStringData sData;
    MFnCompoundAttribute cmpAttr;
 
-   s_enable = nAttr.create("enable", "swen", MFnNumericData::kBoolean, 1);
+   s_enable = nAttr.create("enable", "en", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_enable);
 

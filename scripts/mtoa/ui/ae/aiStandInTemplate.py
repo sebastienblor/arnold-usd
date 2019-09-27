@@ -253,10 +253,19 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def variantReplace(self, nodeAttr):
         cmds.deleteUI(self.variantCtrl)
+        self.variant_node = self.getVariantSwitchNode()
+
+        if self.variant_node:
+
+            self.updateVariantAttr()
+
+            variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
+            cmds.setAttr("{}.variant".format(self.nodeName), variant_idx)
 
         self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
                                                    attribute="{}.variant".format(self.nodeName),
-                                                   parent=self.variantRowLayout)
+                                                   parent=self.variantRowLayout,
+                                                   changeCommand=self.setVariant)
 
         scriptAttr = nodeAttr
         cmds.scriptJob(attributeChange=[scriptAttr, self.setVariant])
@@ -270,12 +279,13 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                          columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
                                          columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
 
-        self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
-                                                   attribute="{}.variant".format(self.nodeName))
-
         self.newVariantCtrl = cmds.symbolButton('standInNewVarientButton', image='newRenderPass.png', command=self.newVariant )
         self.editVariantCtrl = cmds.symbolButton('standInEditVarientButton', image='editRenderPass.png', command=self.editVariant )
         self.removeVariantCtrl = cmds.symbolButton('standInRemoveVarientButton', image='deleteRenderPass.png', command=self.removeVariant )
+
+        self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
+                                                   attribute="{}.variant".format(self.nodeName),
+                                                   changeCommand=self.setVariant)
 
         cmds.text("")
         cmds.setParent('..')
@@ -349,65 +359,128 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         self.fileInfoReplace(nodeAttr)
 
-    def showVariantUI(self):
-        pass
+    def newVariantUI(self, defaultname):
 
-    def newVariantUI(self):
-
-        variantDialog = VariantDialog()
+        variantDialog = VariantDialog(variantName=defaultname)
 
         val = variantDialog.show()
+        if val == "cancel":
+            return False, False
 
         return variantDialog.variant, variantDialog.duplicateCurrent
 
     def editVariant(self, *args):
-        print("edit - {}".format(cmds.getAttr("{}.variant".format(self.nodeName), asString=True)))
-        # show pop up to rename the variant
+        if self.variant_node:
+            variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
+            current_variant_name = cmds.getAttr("{}.variants[{}].name".format(self.variant_node, variant_idx))
+            # show pop up to rename the variant
+            variant_dialog = VariantDialog(edit=True, variantName=current_variant_name)
+            val = variant_dialog.show()
+            if val == "cancel":
+                return False
+            cmds.setAttr("{}.variants[{}].name".format(self.variant_node, variant_idx), variant_dialog.variant, type="string")
+            self.variantReplace("{}.variant".format(self.nodeName))
 
     def removeVariant(self, *args):
-        print("remove - {}".format(cmds.getAttr("{}.variant".format(self.nodeName), asString=True)))
-        # get the index
-        # disconnect the variant enum attr
-        # remove the mergenode and any operators attached to it
-        # shuffle the remaing merge nodes to the previous index
-        # get the current Enums and remove the given variant from it
-        # run self.variantReplace()
+        if self.variant_node:
+            # get the index
+            variant_idxs = cmds.getAttr("{}.variants".format(self.variant_node), multiIndices=True) or []
+            variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
+            # is the index above 0
+            if variant_idx == 0:
+                cmds.error("Cannot remove the default look variant on node {}".format(self.variant_node))
+                return
+
+            conns = cmds.listConnections("{}.variants[{}].inputs".format(self.variant_node, variant_idx), plugs=True) or []
+            for op in conns:
+                op_node, plug = op.split('.')
+                cmds.delete(op_node, inputConnectionsAndNodes=True)
+            cmds.removeMultiInstance("{}.variants[{}]".format(self.variant_node, variant_idx), b=True)
+            # shuffle the remaing merge nodes to the previous index
+            prev_idx = variant_idx
+            for idx in cmds.getAttr("{}.variants".format(self.variant_node), multiIndices=True) or []:
+                if idx > prev_idx:
+                    this_name = cmds.getAttr("{}.variants[{}].name".format(self.variant_node, idx))
+                    cmds.setAttr("{}.variants[{}].name".format(self.variant_node, prev_idx), this_name, type="string")
+                    i=0
+                    for op in cmds.listConnections("{}.variants[{}].inputs".format(self.variant_node, idx), plugs=True) or []:
+                        op_node, plug = op.split('.')
+                        cmds.connectAttr("{}.{}".format(op_node, plug),
+                                         "{}.variants[{}].inputs[{}]".format(self.variant_node, prev_idx, i),
+                                         force=True)
+                        cmds.removeMultiInstance("{}.variants[{}].inputs[{}]".format(self.variant_node, idx, i), b=True)
+                        i += 1
+                    prev_idx = idx
+
+            if prev_idx > variant_idx:
+                cmds.removeMultiInstance("{}.variants[{}]".format(self.variant_node, prev_idx))
+
+            cmds.setAttr("{}.index".format(self.variant_node), variant_idx-1)
+
+            # get the current Enums and remove the given variant from it
+            self.variantReplace("{}.variant".format(self.nodeName))
+
+    def setVariant(self, *args):
+        variant = cmds.getAttr("{}.variant".format(self.nodeName))
+        variant_str = cmds.getAttr("{}.variant".format(self.nodeName), asString=True)
+        if self.variant_node:
+            cmds.setAttr("{}.index".format(self.variant_node), variant)
+        self.refreshAssignmentsUI()
+
+    def copyVariant(self, fromIndex, toIndex):
+
+        if self.variant_node:
+            conns = cmds.listConnections("{}.variants[{}].inputs".format(self.variant_node, fromIndex), plugs=True) or []
+            i = 0
+            for op in conns:
+                op_node, plug = op.split('.')
+                new_op_node = cmds.duplicate(op_node, upstreamNodes=True, returnRootsOnly=False)
+                if len(new_op_node):
+                    cmds.connectAttr("{}.{}".format(new_op_node[0], plug),
+                                     "{}.variants[{}].inputs[{}]".format(self.variant_node, toIndex, i),
+                                     force=True)
+                i += 1
+
+    def updateVariantAttr(self):
+
+        if self.variant_node:
+            enumList = []
+            for a in cmds.getAttr('{}.variants'.format(self.variant_node), multiIndices=True) or []:
+                enumList.append("{}".format(cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a))))
+
+            enumNames = ':'.join(enumList)
+
+            # compare to current attr
+            current_enums = cmds.addAttr("{}.variant".format(self.nodeName), q=True, enumName=True)
+            if current_enums != enumNames:
+                cmds.deleteAttr("{}.variant".format(self.nodeName))
+                cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName=enumNames)
 
     def newVariant(self, *args):
         # check switch node exists, if not make one
         self.variant_node = self.getVariantSwitchNode(True)
 
         if self.variant_node:
-            print self.newVariantUI()
             # make a new merge Node and connect that to the
             # next available input for the variant switch node
+            current_index = cmds.getAttr('{}.index'.format(self.variant_node))
             next_index = cmds.getAttr('{}.variants'.format(self.variant_node), size=True)
-            new_variant_name = "pass{}".format(next_index)
-            # new_pass = cmds.createNode(MERGE_OP, name="{}_{}#".format(self.nodeName, new_variant), ss=True)
-            cmds.setAttr('{}.variants[{}].name'.format(self.variant_node, next_index), new_variant_name, type="string")
 
-            enumList = []
-            for a in cmds.getAttr('{}.variants'.format(self.variant_node), multiIndices=True) or []:
-                enumList.append("{}={}".format(cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a)), a))
+            new_variant_name, duplicate = self.newVariantUI("pass{}".format(next_index))
+            if new_variant_name:
+                cmds.setAttr('{}.variants[{}].name'.format(self.variant_node, next_index), new_variant_name, type="string")
 
-            enumList.append("{}={}".format(new_variant_name, next_index))
-            # enumNames = cmds.addAttr("{}.variant".format(self.nodeName), q=True, enumName=True)
-            enumNames = ':'.join(enumList)
+                if duplicate:
+                    self.copyVariant(current_index, next_index)
 
-            cmds.deleteAttr("{}.variant".format(self.nodeName))
-            cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName=enumNames)
-            cmds.connectAttr('{}.variant'.format(self.nodeName), '{}.index'.format(self.variant_node))
-            cmds.setAttr("{}.variant".format(self.nodeName), next_index)
+                self.updateVariantAttr()
 
-            cmds.attrEnumOptionMenu(self.variantCtrl, e=True, attribute="{}.variant".format(self.nodeName))
+                cmds.setAttr("{}.variant".format(self.nodeName), next_index)
+                cmds.setAttr("{}.index".format(self.variant_node), next_index)
 
-            self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
+                cmds.attrEnumOptionMenu(self.variantCtrl, e=True, attribute="{}.variant".format(self.nodeName))
 
-    def setVariant(self):
-        variant = cmds.getAttr("{}.variant".format(self.nodeName))
-        variant_str = cmds.getAttr("{}.variant".format(self.nodeName), asString=True)
-        print("set", variant, variant_str)
-        self.refreshAssignmentsUI()
+                self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
 
     def getVariantSwitchNode(self, create=False):
         variant_switch = None
@@ -416,19 +489,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
             op_node, plug = op.split('.')
             if cmds.nodeType(op_node) == VARIANTSWITCH_OP:
                 # check for variant attribute
-                # if cmds.attributeQuery("variant_op", node=op_node, exists=True) \
-                #  and cmds.getAttr("{}.variant_op".format(op_node)) == self.nodeName:
                 variant_switch = op_node
                 break
 
         if not variant_switch and create:
             # create variant switch node
             variant_switch = cmds.createNode(VARIANTSWITCH_OP, name="variantSwitch#", ss=True)
-            # cmds.addAttr(variant_switch, longName="variant_op", dt="string")
-            # cmds.setAttr("{}.variant_op".format(variant_switch), self.nodeName, type="string")
-
-            # create "default" variant
-            # variant_merge = cmds.createNode(MERGE_OP, name="{}_variant#".format(self.nodeName), ss=True)
             cmds.setAttr('{}.variants[0].name'.format(variant_switch), "default", type="string")
 
             # now move all the connections from the standIn to the merge node
@@ -474,7 +540,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.treeView(self.assInfoPath, edit=True, addItem=(nodeType, ''))
 
             cmds.treeView(self.assInfoPath, edit=True, addItem=(i[0],nodeType))
-    
+
     def overrideSelection(self):
         selectedItems = cmds.treeView(self.assInfoPath, query=True, selectItem=True) or []
         selectedParents = []
@@ -495,7 +561,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def selectOperators(self):
         return
 
-
     def populateItems(self):
         self.assItems = []
         self.selectedItems = []
@@ -507,7 +572,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         '''
 
     def useSequenceChange(self, nodeName):
-        
+
         resolveFilePathSequence(nodeName,
                                 'useFrameExtension',
                                 'dso',
@@ -515,7 +580,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                 'frameNumber',
                                 'useSubFrame'
                                 )
-    
+
     def operatorsReplace(self, nodeAttr):
         self._setActiveNodeAttr(nodeAttr)
 
@@ -532,14 +597,13 @@ class AEaiStandInTemplate(ShaderAETemplate):
             attrLabel = 'Operators[{}]'.format(i)
             ctrl = cmds.attrNavigationControlGrp(at=attrName,
                                                     label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
-   
+
             self._msgCtrls.append(ctrl) 
 
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
-
     def operatorsNew(self, nodeAttr):
-        
+
         # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
 
@@ -594,7 +658,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
             else:
                 currentLayers = []
             rel_filepath = ret[0].replace(projectRootDir, "")
-            print rel_filepath
             currentLayers.append(rel_filepath)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type="string")
             self.alembicLayersReplace(nodeAttr)
@@ -605,9 +668,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentLayers = cmds.getAttr(nodeAttr)
         if len(currentLayers):
             currentLayers = currentLayers.split(';')
-            print selectedLayers
             for i in reversed(selectedLayers):
-                print i-1
                 currentLayers.pop(i-1)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
             self.alembicLayersReplace(nodeAttr)
