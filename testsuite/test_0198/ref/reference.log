@@ -1,41 +1,40 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0198\test_0198.log', using stdout instead
-
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\201760\\msvc_opt\\testsuite\\test_0198', 'ADCLMHUB_LOG_LEVEL': 'T', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2017', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v3.5;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.0\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\11.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.0\\lib\\win8\\um\\x64', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'PATH': 'C:\\solidangle\\mtoadeploy\\2017\\bin;C:\\Program Files\\Autodesk\\Maya2017\\bin;C:\\solidangle\\mtoadeploy\\2017\\lib;C:\\solidangle\\mtoadeploy\\2017\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v3.5;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.0\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.0\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v8.0A\\bin\\NETFX 4.0 Tools\\x64;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Bin\\x64;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v8.0A\\bin\\NETFX 4.0 Tools;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Bin\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2017', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\8.0\\include\\shared;C:\\Program Files (x86)\\Windows Kits\\8.0\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.0\\include\\winrt', 'ProgramW6432': 'C:\\Program Files'}
+ 
+ ==== Exec cmd ==== 
+ 
+Render -proj "D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0198" -rd "D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0198" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0198\test.ma"
+ 
+ 
 Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
 Initialized VP2.0 renderer {
   Version : 2016.3.78.11. Feature Level 5.
   Adapter : Quadro K620/PCIe/SSE2
   Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:10.18.13.5413.
-  API : OpenGL V.4.5.
+  Driver : nvoglv64.dll:23.21.13.8819.
+  API : OpenGL V.4.6.
   Max texture size : 16384 * 16384.
   Max tex coords : 32
   Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
   Shader compiler profile : (Best card profile)
   Active stereo support available : 0
-  GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
+  GPU Memory Limit : 4095 MB.
+  CPU Memory Limit: 62183.7 MB.
 }
 OpenCL evaluator is attempting to initialize OpenCL.
 Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
- Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.83.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   492MB WARNING |  node "MayaClamp" is already installed
-00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   492MB WARNING |  node "MayaCondition" is already installed
-00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
-
-Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0198/test.ma line 223: The bifrostShape 'liquidShape1' has no '.simWaterLevel' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0198/test.ma line 223: setAttr: No object matches name: .simWaterLevel
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.55 seconds.
-Error: line 1: Error reading file.
-Error: line 1: Error reading file.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+File read in  0.24 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0198/test.ma
+00:00:00   672MB WARNING | liquidShape1.cullDepthAtStartInVoxels: use type FLOAT, not INT
+00:00:00   672MB WARNING | liquidShape1: could not set INT parameter "cullDepthAtStartInVoxels"
+00:00:10   684MB WARNING | rendering with watermarks because of failed authorization:
 		narrowBandThickness can not be smaller than a voxel!
 		This will be reset to default 1.5 voxels!
 
@@ -43,6 +42,8 @@ Error: line 1: Error reading file.
 [BIFROST POLYMESH] START OUTPUT
 ---------------------------------------
 
+00:00:10   704MB WARNING |   [polymesh] pSphereShape1: discarded 1 duplicate deformation keys
+00:00:10   704MB WARNING |   [polymesh] pTorusShape1: discarded 1 duplicate deformation keys
 
 Avaliable channels:
 	airDistance, 1
@@ -168,8 +169,8 @@ Channel Min-Max Values:
 
 
 Creating the mesh...
-	Mesh Merging took 0.009001 seconds to run.
-	Mesh Sampling took 0.015003 seconds to run.
+	Mesh Merging took 0.01 seconds to run.
+	Mesh Sampling took 0.026 seconds to run.
 	83648 polygons and 41826 vertices are received from the mesher!
 	Preparing triangles...
 	Preparing positions...

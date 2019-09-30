@@ -38,7 +38,7 @@ ignore_windows:
 ignore_linux: test_0167_linux test_0248 test_0260
 ignore_darwin: test_0248
 
-ignore_2017: test_0098_Maya2020 test_0123 test_0193 test_0237 test_0242 test_0221_linux test_0221_win test_0221_mac test_0167_win test_0167_mac test_0259 test_0318 test_0363 
+ignore_2017: test_0098_Maya2020 test_0123 test_0193 test_0237 test_0242 test_0221_linux test_0221_win test_0221_mac test_0167_win test_0167_mac test_0259 test_0318 test_0363 test_0261 test_0298
 
 # bifrost tests are temporarily disabled
 ignore_2018: test_0098_Maya2020 test_0139 test_0193_Maya2017 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233 test_0221_linux_Maya2017 test_0221_win_Maya2017 test_0221_mac_Maya2017 test_0167_win_Maya2017 test_0167_mac_Maya2017
