@@ -68,10 +68,56 @@ def print_safe(*args, **kwargs):
    if ffl:
       fhd.flush()
 
+
 def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda line: None, timeout=0):
    '''
    Executes a command and returns a tuple with the exit code and the output
    '''
+   # Things to do before executing the command:
+   # - Split cmd into a list if it is a string
+   # - Initialize the output and return codes
+   # - Normalize environment to strings
+
+   c = shlex.split(cmd, posix=(not is_windows)) if (type(cmd) == str) and not shell else cmd
+   r, o = 0, []
+   e = {k : str(v) for k, v in env.items()} if env else None
+   # Create a dictionary with the arguments for subprocess.Popen()
+   popen_args = {
+      'args'    : c,
+      'stdout'  : subprocess.PIPE,
+      'stderr'  : subprocess.STDOUT,
+      'cwd'     : cwd,
+      'env'     : e,
+      'shell'   : shell,
+      'bufsize' : 1,
+      'universal_newlines': True,
+   }
+   try:
+      t = time.time()
+      p = subprocess.Popen(**popen_args)
+      with p.stdout:
+         for line in iter(p.stdout.readline, b''):
+            if not line:
+               break
+            elif timeout and (time.time() - t) > timeout:
+               p.kill()
+               break
+            line = line.rstrip('\n')
+            o.append(line)
+            callback(line)
+            if verbose:
+               print(line)
+      r = p.wait()
+   except OSError as e:
+      o = [e.strerror]
+      r = e.errno
+   return (r, o)
+
+'''
+### Version from Arnold core
+def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda line: None, timeout=0):
+   
+   #### Executes a command and returns a tuple with the exit code and the output
    # Things to do before executing the command:
    # - Split cmd into a list if it is a string
    # - Initialize the output and return codes
@@ -116,4 +162,4 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda
          killer.cancel()
       return process.returncode, output
 
-
+'''
