@@ -270,7 +270,7 @@ def arnoldImportOperators():
     ret = cmds.fileDialog2(cap='Import Operator Graph',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
     if len(ret):
         defaultOperatorsFolder = ret[0]
-        cmds.arnoldImportAss(f=ret[0],  mask=ai.AI_NODE_OPERATOR)
+        cmds.arnoldImportAss(f=ret[0],  mask=ai.AI_NODE_OPERATOR + ai.AI_NODE_SHADER)
 
 def arnoldImportShaders():
     global defaultOperatorsFolder
