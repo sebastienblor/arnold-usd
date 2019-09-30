@@ -109,13 +109,13 @@ def EnsureDir(d):
         return False
 
 if silent:
-    installDir = os.path.join('/opt', 'solidangle', 'mtoa', mayaVersion)
+    installDir = os.path.join('/usr', 'autodesk', 'arnold', 'maya{}'.format(mayaVersion))
     if not EnsureDir(installDir):
         sys.exit(0)
 else:
     while True:
         InstallerHeader()
-        installDir = os.path.join('/opt', 'solidangle', 'mtoa', mayaVersion)
+        installDir = os.path.join('/usr', 'autodesk', 'arnold', 'maya{}'.format(mayaVersion))
         print('''
         Select the installation directory.
         [%s]
@@ -386,7 +386,7 @@ if installMode == 1: # do the proper installation
             elif int(pitreg_result) == 32:
                 pitreg_msg = "Unable to set write access for all user in Linux and MAC"
             
-            pitreg_msg = "Couldn't register Arnold renderer in Maya PIT file (%s). Please contact support@solidangle.com" % pitreg_msg
+            pitreg_msg = "Couldn't register Arnold renderer in Maya PIT file (%s). Please contact support@arnoldrenderer.com" % pitreg_msg
             os.system('clear')    
             print(pitreg_msg)        
             sys.exit(1)

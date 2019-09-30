@@ -1445,7 +1445,7 @@ def create_installer(target, source, env):
             subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'pitreg')])
 
 
-        installPath = '/Applications/solidangle/mtoa/' + maya_version
+        installPath = '/Applications/Autodesk/Arnold/maya' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
@@ -1457,13 +1457,13 @@ def create_installer(target, source, env):
         pitregScript.write('#!/usr/bin/env bash\n')
 
         if clm_version == 2:
-            pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+            pitregCommand = "PITREG_FILE=$2/Applications/Autodesk/Arnold/maya%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-            pitregCommand = "  hdiutil attach $2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+            pitregCommand = "  hdiutil attach $2/Applications/Autodesk/Arnold/maya%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('else\n')
-            pitregCommand = "  hdiutil attach $3/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+            pitregCommand = "  hdiutil attach $3/Applications/Autodesk/Arnold/maya%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
             pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC6-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.1084_RC6-darwin --silent\n"
@@ -1471,13 +1471,13 @@ def create_installer(target, source, env):
             pitregCommand = "hdiutil detach /Volumes/ArnoldLicensing"
             pitregScript.write(pitregCommand)        
         else:
-            pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregCommand = "PITREG_FILE=$2/Applications/Autodesk/Arnold/maya%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-            pitregCommand = "  $2/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregCommand = "  $2/Applications/Autodesk/Arnold/maya%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('else\n')
-            pitregCommand = "  $3/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregCommand = "  $3/Applications/Autodesk/Arnold/maya%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
 
