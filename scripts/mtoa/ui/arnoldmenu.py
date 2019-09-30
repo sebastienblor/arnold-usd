@@ -272,6 +272,15 @@ def arnoldImportOperators():
         defaultOperatorsFolder = ret[0]
         cmds.arnoldImportAss(f=ret[0],  mask=ai.AI_NODE_OPERATOR + ai.AI_NODE_SHADER)
 
+def arnoldExportShaders():
+    selection = cmds.ls(selection=True)
+    global defaultFolder
+    if defaultFolder == "":
+        defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+    ret = cmds.fileDialog2(cap='Select File',okc='Select',ff="Arnold Shaders File (*.ass)",fm=0,dir=defaultFolder) or []
+    if len(ret) > 0:
+        cmds.arnoldExportAss(filename = ret[0], selected=True, exportAllShadingGroups=True, mask = ai.AI_NODE_SHADER)
+
 def arnoldImportShaders():
     global defaultOperatorsFolder
     if defaultOperatorsFolder == "":
@@ -417,9 +426,11 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
         addRuntimeMenuItem('ArnoldExportOperators', label='Export Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to .ass')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to a .ass file')
         addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
+        addRuntimeMenuItem('ArnoldExportShaders', label='Export Selected Shaders', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportShaders()', category="Utilities", annotation='Export the selected shaders to a .ass file')
         addRuntimeMenuItem('ArnoldImportShaders', label='Import Arnold Shaders', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportShaders()', category="Utilities", annotation='Import a shader library from a .ass file')
         addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
