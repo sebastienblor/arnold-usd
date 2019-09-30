@@ -20,5 +20,5 @@ public:
   protected:
     void ExportAssignedShaders(AtNode *shader);
     MStringArray WalkOutputs(MObject obj);
-   
+    virtual void NodeChanged(MObject& node, MPlug& plug);
 };

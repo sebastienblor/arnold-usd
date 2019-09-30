@@ -31,7 +31,7 @@ void CVariantSwitchTranslator::Export(AtNode *shader)
       MPlug inputs = varPlug.child(1, &status);
       // get connections
 
-      MString mergeName = GetMayaNodeName() + "_" + name_str + i;
+      MString mergeName = GetMayaNodeName() + "_" + i;
 
       AtNode* mergeNode = GetArnoldNode(mergeName.asChar());
       if (mergeNode == NULL)
@@ -60,13 +60,31 @@ void CVariantSwitchTranslator::Export(AtNode *shader)
             }
          }
 
-         AiNodeSetArray(mergeNode, "inputs", array);
+         AtArray *prevArray = AiNodeGetArray(mergeNode, "inputs");
+         bool mergeNeedUpdate = true;
+         if (prevArray)
+         {
+            unsigned prevArrayElems = AiArrayGetNumElements(prevArray);
+            if (prevArrayElems == nelems)
+            {
+               mergeNeedUpdate = false;
+               for (unsigned i = 0; i < nelems; ++i)
+               {
+                  if (AiArrayGetPtr(array, i) != AiArrayGetPtr(prevArray, i))
+                  {
+                     mergeNeedUpdate = true;
+                     break;
+                  }
+               }
+            }
+         }
+         if (mergeNeedUpdate)
+            AiNodeSetArray(mergeNode, "inputs", array);
       }
 
       AiArraySetPtr(varArray, i, (void*)mergeNode);
    }
 
-   // if (needUpdate) // only set the parameter if inputs have actually changed
    AiNodeSetArray(shader, "inputs", varArray);
 }
 
