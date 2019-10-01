@@ -17,9 +17,7 @@ OutFile "MtoA.exe"
 ;Default installation folder
 InstallDir "C:\solidangle\mtoadeploy\$%MAYA_VERSION%"
 
-;WARNING : We have to stop setting InstallDirRegKey, 
-;otherwise we cannot change the default install dir (see 3992)
-;InstallDirRegKey HKCU "Software\MtoA$%MAYA_VERSION%" ""
+InstallDirRegKey HKCU "Software\MtoA$%MAYA_VERSION%" ""
 
 ;Request application privileges for Windows Vista
 RequestExecutionLevel admin
