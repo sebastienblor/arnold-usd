@@ -3,7 +3,10 @@ import mtoa.aovs as aovs
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.ui.ae.utils as aeUtils
+import mtoa.utils as utils
 import sys
+from maya.internal.common.ae.multi import createNonNumericMulti
+import  maya.internal.common.ae.compound as compound
 
 class AEaiAOVTemplate(ShaderAETemplate):
 
@@ -19,13 +22,23 @@ class AEaiAOVTemplate(ShaderAETemplate):
         node, plug = attr.split('.', 1)
         idx_list = cmds.getAttr(attr, mi=True) or []
         idx_listStr = str(idx_list).replace('[', '{').replace(']', '}').replace('L', '')
-        self.frame = maya.mel.eval('AEnewNonNumericMulti(\"{}\",\"{}\",\"AOV Outputs\",\"\", \"AEnewCompound\",{})'.format(node, plug, idx_listStr))
+        
+        maya_version = utils.getMayaVersion()
+        if maya_version >= 2020:
+            self.frame = createNonNumericMulti(node, plug, "AOV Outputs", None, compound.create, idx_list)
+        else:
+            self.frame = maya.mel.eval('AEnewNonNumericMulti(\"{}\",\"{}\",\"AOV Outputs\",\"\", \"AEnewCompound\",{})'.format(node, plug, idx_listStr))
 
     def outputsReplace(self, attr):
         node, plug = attr.split('.', 1)
         idx_list = cmds.getAttr(attr, mi=True) or []
         idx_listStr = str(idx_list).replace('[', '{').replace(']', '}').replace('L', '')
-        maya.mel.eval('AEreplaceNonNumericMulti(\"{}\", \"{}\", \"{}\",  \"\", \"AEreplaceCompound\", {})'.format(self.frame, node, plug, idx_listStr))
+
+        maya_version = utils.getMayaVersion()
+        if maya_version >= 2020:
+            createNonNumericMulti(node, plug, "AOV Outputs", None, compound.create, idx_list)
+        else:
+            maya.mel.eval('AEreplaceNonNumericMulti(\"{}\", \"{}\", \"{}\",  \"\", \"AEreplaceCompound\", {})'.format(self.frame, node, plug, idx_listStr))
     
     def updateLightGroupsVisibility(self, nodeName):
         nameAttr = '%s.%s' % (nodeName, 'name')
