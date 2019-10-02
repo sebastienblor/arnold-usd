@@ -357,31 +357,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else if (ext == "usd" || ext == "usda" || ext == "usdc")
          isUsd = true;      
 
-      // if (isAss)
-      // {
-
-      //    universe = AiUniverse();
-      // }
-      // else
-      // {
-
-      //    if (AiUniverseIsActive())
-      //    {
-      //       m_refreshAvoided = true;
-      //       return MS::kSuccess;
-      //    } 
-
-      //    AiUniverseCreated = true;
-      //    AiBegin(AI_SESSION_INTERACTIVE);
-      //    // no universe is active currently
-      // }
-
       if (!AiUniverseIsActive())
       {
         AiUniverseCreated = true;
         AiBegin();
       }
 
+      AtUniverse *proc_universe = AiUniverse();
       universe = AiUniverse();
 
       AtNode* options = AiUniverseGetOptions(universe);
@@ -420,11 +402,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       AtNode *proc = NULL;
       if (isAss)
       {
-         proc = AiNode("procedural");
+         proc = AiNode(proc_universe, "procedural");
       }
       if (isAbc)
       {
-         proc = AiNode("alembic");
+         proc = AiNode(proc_universe, "alembic");
          AiNodeSetFlt(proc, "frame", frameStep);
 
          MPlug fpsPlug(thisMObject(), s_abcFps);
@@ -450,11 +432,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else if (isUsd)
       {
          if (AiNodeEntryLookUp("usd"))
-            proc = AiNode("usd"); // oh amazing, there's a usd node available ! let's use it
+            proc = AiNode(proc_universe, "usd"); // oh amazing, there's a usd node available ! let's use it
          else
             AiMsgError("[mtoa.standin] USD files not supported");
       } else
-         proc = AiNode("procedural");
+         proc = AiNode(proc_universe, "procedural");
 
       if (proc)
       {
@@ -609,6 +591,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       
       // if (free_render) AiRenderAbort();
       if (universe) AiUniverseDestroy(universe);
+      if (proc_universe) AiUniverseDestroy(proc_universe);
       if (AiUniverseCreated) AiEnd();
    }
    else
