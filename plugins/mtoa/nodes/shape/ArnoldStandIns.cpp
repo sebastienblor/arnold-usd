@@ -357,30 +357,33 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else if (ext == "usd" || ext == "usda" || ext == "usdc")
          isUsd = true;      
 
-      if (isAss)
+      // if (isAss)
+      // {
+
+      //    universe = AiUniverse();
+      // }
+      // else
+      // {
+
+      //    if (AiUniverseIsActive())
+      //    {
+      //       m_refreshAvoided = true;
+      //       return MS::kSuccess;
+      //    } 
+
+      //    AiUniverseCreated = true;
+      //    AiBegin(AI_SESSION_INTERACTIVE);
+      //    // no universe is active currently
+      // }
+
+      if (!AiUniverseIsActive())
       {
-         if (!AiUniverseIsActive())
-         {
-            AiUniverseCreated = true;
-            AiBegin();
-         }      
-
-         universe = AiUniverse();
+        AiUniverseCreated = true;
+        AiBegin();
       }
-      else
-      {
 
-         if (AiUniverseIsActive())
-         {
-            m_refreshAvoided = true;
-            return MS::kSuccess;
-         } 
+      universe = AiUniverse();
 
-         AiUniverseCreated = true;
-         AiBegin(AI_SESSION_INTERACTIVE);
-         // no universe is active currently
-      }
-	   
       AtNode* options = AiUniverseGetOptions(universe);
       AiNodeSetBool(options, "skip_license_check", true);
       AiNodeSetBool(options, "enable_dependency_graph", false);
@@ -414,103 +417,77 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());      
 
       AtNode* procedural = 0;
-      
+      AtNode *proc = NULL;
       if (isAss)
       {
-         if (fGeometry.drawOverride != 3)
+         proc = AiNode("procedural");
+      }
+      if (isAbc)
+      {
+         proc = AiNode("alembic");
+         AiNodeSetFlt(proc, "frame", frameStep);
+
+         MPlug fpsPlug(thisMObject(), s_abcFps);
+         AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
+         // AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
+         MPlug objectPathPlug(thisMObject(), s_objectPath);
+         AiNodeSetStr(proc, "objectpath", objectPathPlug.asString().asChar());
+         // add the layers
+         MPlug layerPlug(thisMObject(), s_abcLayers);
+         MString layersString =  layerPlug.asString();
+
+         if (layersString.length())
          {
-            AiASSLoad(universe, assfile.asChar(), AI_NODE_ALL);
-            processRead = true;
-         }
-         else
-         {
-            geom->IsGeomLoaded = false;
-            
-            if (universe) AiUniverseDestroy(universe);
-            if (AiUniverseCreated) AiEnd();
-            return MS::kSuccess;
+           MStringArray layerList;
+           layersString.split(';', layerList);
+           AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
+           for (unsigned int i=0; i < layerList.length(); i++)
+              AiArraySetStr(layersArray, i, layerList[i].asChar());
+
+           AiNodeSetArray(proc, "layers", layersArray);
          }
       }
-      else
-      {      
-
-         AtNode *proc = NULL;
-         if (isAbc)
-         {
-            proc = AiNode("alembic");
-            AiNodeSetFlt(proc, "frame", frameStep);
-
-            MPlug fpsPlug(thisMObject(), s_abcFps);
-            AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
-            AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
-            MPlug objectPathPlug(thisMObject(), s_objectPath);
-            AiNodeSetStr(proc, "objectpath", objectPathPlug.asString().asChar());
-            // add the layers
-            MPlug layerPlug(thisMObject(), s_abcLayers);
-            MString layersString =  layerPlug.asString();
-
-            if (layersString.length())
-            {
-              MStringArray layerList;
-              layersString.split(';', layerList);
-              AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
-              for (unsigned int i=0; i < layerList.length(); i++)
-                 AiArraySetStr(layersArray, i, layerList[i].asChar());
-
-              AiNodeSetArray(proc, "layers", layersArray);
-            }
-         }
-         else if (isUsd)
-         {
-            if (AiNodeEntryLookUp("usd"))
-               proc = AiNode("usd"); // oh amazing, there's a usd node available ! let's use it
-            else
-               AiMsgError("[mtoa.standin] USD files not supported");
-         } else
-            proc = AiNode("procedural");
-         
-         AiNodeSetStr(proc, "filename", geom->filename.asChar());
-         AiRender(AI_RENDER_MODE_FREE);
-         free_render = true;
-         processRead = true;
-
-         // FIXME: for now we're not trying to display anything for non-ass files
-
-        /*
-         procedural = AiNode(universe, "procedural", AtString(), NULL);
-         AiNodeSetStr(procedural, "filename", assfile.asChar());
-//         AiNodeSetBool(procedural, "load_at_init", true);
-//         if (fGeometry.drawOverride == 3) 
-//            AiNodeSetBool(procedural, "load_at_init", false); 
-
-         AiNodeSetMatrix(procedural, "matrix", AiM4Identity());
-         
-         if (fGeometry.drawOverride != 3)
-         {
-            // If it is a lib file
-            if (isSo)
-            {
-               if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
-                  AiNodeSetBool(procedural, "used_for_maya_display", true);
-               AiNodeSetStr(procedural, "data", dsoData.asChar());
-               CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
-            }
-
-            if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-               processRead = true;
-         }
+      else if (isUsd)
+      {
+         if (AiNodeEntryLookUp("usd"))
+            proc = AiNode("usd"); // oh amazing, there's a usd node available ! let's use it
          else
-         {
-            geom->IsGeomLoaded = false;
-            if (universe) AiUniverseDestroy(universe);
-            if (AiUniverseCreated) AiEnd();            
+            AiMsgError("[mtoa.standin] USD files not supported");
+      } else
+         proc = AiNode("procedural");
 
-            return MS::kSuccess;
-         }*/
+      if (proc)
+      {
+        AiNodeSetStr(proc, "filename", geom->filename.asChar());
+        // AiRender(AI_RENDER_MODE_FREE);
+        // free_render = true;
+        processRead = true;
+
+        AtProcViewportMode viewport_mode = AI_PROC_BOXES;
+
+        switch (geom->mode)
+        {
+          case DM_BOUNDING_BOX:
+          case DM_PER_OBJECT_BOUNDING_BOX:
+             viewport_mode = AI_PROC_BOXES;
+             break;
+          case DM_POLYWIRE: // filled polygon
+          case DM_WIREFRAME: // wireframe
+          case DM_SHADED_POLYWIRE: // shaded polywire
+          case DM_SHADED: // shaded
+             viewport_mode = AI_PROC_POLYGONS;
+             break;
+          case DM_POINT_CLOUD: // points
+             viewport_mode = AI_PROC_POINTS;
+             break;
+        }
+        // get the proc geo in a new universe
+        AiProceduralViewport(proc, universe, viewport_mode);
       }
 
       if (processRead)
       {
+         AiMsgWarning("[mtoa.standin] Reading %s", geom->filename.asChar());
          geom->geomLoaded = geom->filename;
          //clear current geo
          geom->bbox.clear();
@@ -527,6 +504,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          static const AtString box_str("box");
          static const AtString ginstance_str("ginstance");
 
+         // AiASSWrite(universe, "/home/handsca/viewport.ass", AI_NODE_SHAPE);
          AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
          while (!AiNodeIteratorFinished(iter))
@@ -629,7 +607,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          status = MS::kFailure;
       }
       
-      if (free_render) AiRenderAbort();
+      // if (free_render) AiRenderAbort();
       if (universe) AiUniverseDestroy(universe);
       if (AiUniverseCreated) AiEnd();
    }
