@@ -252,28 +252,33 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.properties_panel.setNode(self.nodeName)
 
     def variantReplace(self, nodeAttr):
-        cmds.deleteUI(self.variantCtrl)
+        # check if attribute need updating
+
         self.variant_node = self.getVariantSwitchNode()
 
         if self.variant_node:
+            if self.updateVariantAttr():
 
-            self.updateVariantAttr()
+                variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
+                cmds.setAttr("{}.variant".format(self.nodeName), variant_idx)
 
-            variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
-            cmds.setAttr("{}.variant".format(self.nodeName), variant_idx)
+                if self.variantCtrl:
+                    cmds.deleteUI(self.variantCtrl)
 
-        self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
-                                                   attribute="{}.variant".format(self.nodeName),
-                                                   parent=self.variantRowLayout,
-                                                   changeCommand=self.setVariant)
+                self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
+                                                           attribute="{}.variant".format(self.nodeName),
+                                                           parent=self.variantRowLayout,
+                                                           changeCommand=self.setVariant)
 
-        scriptAttr = nodeAttr
-        self.refreshAssignmentsUI()
+                self.refreshAssignmentsUI()
 
     def variantNew(self, nodeAttr):
         # get if theres an enum attribute
         if not cmds.attributeQuery("variant", node=self.nodeName, exists=True):
             cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName="default" )
+
+        self.variant_node = self.getVariantSwitchNode()
+
         self.variantRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
                                          columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
                                          columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
@@ -445,7 +450,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
         if self.variant_node:
             enumList = []
             for a in cmds.getAttr('{}.variants'.format(self.variant_node), multiIndices=True) or []:
-                enumList.append("{}".format(cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a))))
+                variantName = cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a))
+                if variantName:
+                    enumList.append("{}".format(cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a))))
 
             enumNames = ':'.join(enumList)
 
@@ -454,6 +461,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if current_enums != enumNames:
                 cmds.deleteAttr("{}.variant".format(self.nodeName))
                 cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName=enumNames)
+                return True
+
+        return False
 
     def newVariant(self, *args):
         # check switch node exists, if not make one
