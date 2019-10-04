@@ -251,20 +251,6 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
    return AddArnoldNode("bifrost_graph");
 }
 
-
-void CBifShapeTranslator::GetSerializedData(MDoubleArray& array)
-{
-   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
-   if (!serialisedDataPlug.isNull() )
-   {
-      AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
-      MDataHandle handle;
-      serialisedDataPlug.getValue(handle);
-      MFnDoubleArrayData ArrData(handle.data());
-      array = ArrData.array();
-   }
-}
-
 void CBifShapeTranslator::Export( AtNode *shape )
 {
    unsigned int step = GetMotionStep();
@@ -280,8 +266,12 @@ void CBifShapeTranslator::Export( AtNode *shape )
    MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
    if (!serialisedDataPlug.isNull() && filenamePlug.isDefaultValue())
    {
-      MDoubleArray serialisedData;
-      GetSerializedData(serialisedData);
+      AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
+      MDataHandle serialisedDataHandle;
+      serialisedDataPlug.getValue(serialisedDataHandle);
+      MFnDoubleArrayData arrData(serialisedDataHandle.data());
+      MDoubleArray serialisedData = arrData.array();
+
       unsigned int nEle = serialisedData.length();
       size_t nBytes = static_cast<size_t>(nEle) * sizeof(double);
 
@@ -295,6 +285,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
          AiMsgError("[mtoa.bifrost_graph] %s: this version of arnold_bifrost does not support more than 2GB of data per bif shape, "
                     "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
                     AiNodeGetName(shape));
+         serialisedDataPlug.destructHandle(serialisedDataHandle);
          return;
       }
 
@@ -377,6 +368,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
          AiNodeSetArray(shape, "bifrost:input0", dataArray);
          AiNodeSetArray(shape, "input_interpretations", interpsArray);
       }
+
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
    }
 
    MPlug geomPlug = FindMayaPlug("aiCompound");
@@ -418,6 +411,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
          AiNodeSetArray(shape, "material_references", materialReferences);
          AiNodeSetArray(shape, "shader_references", shaderReferences);
       }
+      materialReferencesPlug.destructHandle(matDataHandle);
    }
 
    MPlug velocityScalePlug = FindMayaPlug("aiVelocityScale");
@@ -516,8 +510,15 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    unsigned int step = GetMotionStep();
 
-   MDoubleArray serialisedData;
-   GetSerializedData(serialisedData);
+   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
+   if (serialisedDataPlug.isNull())
+      return;
+
+   AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
+   MDataHandle serialisedDataHandle;
+   serialisedDataPlug.getValue(serialisedDataHandle);
+   MFnDoubleArrayData arrData(serialisedDataHandle.data());
+   MDoubleArray serialisedData = arrData.array();
    size_t serialisedSize = serialisedData.length() * sizeof(double);
 
    AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
@@ -531,6 +532,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
       AiMsgError("[mtoa.bifrost_graph] %s: this version of arnold_bifrost does not support more than 2GB of data per bif shape, "
                  "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
                  AiNodeGetName(shape));
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
       return;
    }
 
@@ -604,6 +606,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
       fwrite(&serialisedData[0], sizeof(uint8_t), serialisedSize, fp);
       fclose(fp);
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
       return;
    }
 
@@ -614,6 +617,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    if (nKeys <= step)
    {
       AiMsgWarning("[mtoa.bifrost_graph] attempted motion key export when key is not available");
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
       return;
    }
    if (serialisedSize > keySize)
@@ -661,4 +665,5 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    if (serialisedSize < keySize)
       memset(dataList + serialisedSize, 0, keySize - serialisedSize);
    AiArrayUnmap(dataArray);
+   serialisedDataPlug.destructHandle(serialisedDataHandle);
 }
