@@ -402,11 +402,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       AtNode *proc = NULL;
       if (isAss)
       {
-         proc = AiNode(proc_universe, "procedural");
+         proc = AiNode(proc_universe, "procedural",  name().asChar());
       }
       if (isAbc)
       {
-         proc = AiNode(proc_universe, "alembic");
+         proc = AiNode(proc_universe, "alembic", name().asChar());
          AiNodeSetFlt(proc, "frame", frameStep);
 
          MPlug fpsPlug(thisMObject(), s_abcFps);
@@ -432,17 +432,15 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else if (isUsd)
       {
          if (AiNodeEntryLookUp("usd"))
-            proc = AiNode(proc_universe, "usd"); // oh amazing, there's a usd node available ! let's use it
+            proc = AiNode(proc_universe, "usd", name().asChar()); // oh amazing, there's a usd node available ! let's use it
          else
             AiMsgError("[mtoa.standin] USD files not supported");
       } else
-         proc = AiNode(proc_universe, "procedural");
+         proc = AiNode(proc_universe, "procedural", name().asChar());
 
       if (proc)
       {
         AiNodeSetStr(proc, "filename", geom->filename.asChar());
-        // AiRender(AI_RENDER_MODE_FREE);
-        // free_render = true;
         processRead = true;
 
         AtProcViewportMode viewport_mode = AI_PROC_BOXES;
@@ -469,7 +467,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
       if (processRead)
       {
-         AiMsgWarning("[mtoa.standin] Reading %s", geom->filename.asChar());
          geom->geomLoaded = geom->filename;
          //clear current geo
          geom->bbox.clear();
@@ -486,7 +483,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          static const AtString box_str("box");
          static const AtString ginstance_str("ginstance");
 
-         // AiASSWrite(universe, "/home/handsca/viewport.ass", AI_NODE_SHAPE);
+         // AiASSWrite(universe, "/home/handsca/viewport.ass", AI_NODE_SHAPE);  // for debugging
          AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
          while (!AiNodeIteratorFinished(iter))
@@ -567,10 +564,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
                {
                   std::string nodeName(AiNodeGetName(node));
-                  CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(nodeName);
-                  if (iter != geom->m_geometryList.end())
+                  CArnoldStandInGeom::geometryListIterType giter = geom->m_geometryList.find(nodeName);
+                  if (giter != geom->m_geometryList.end())
                   {
-                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(iter->second, total_matrix, inherit_xform);
+                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(giter->second, total_matrix, inherit_xform);
                      geom->m_instanceList.push_back(gi);
                      geom->bbox.expand(gi->GetBBox());
                   }
