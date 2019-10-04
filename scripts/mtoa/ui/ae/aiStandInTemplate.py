@@ -252,27 +252,37 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.properties_panel.setNode(self.nodeName)
 
     def variantReplace(self, nodeAttr):
+        old_variant = self.variant_node
+        old_node = self.current_node
         # check if attribute need updating
+        if not cmds.attributeQuery("variant", node=self.nodeName, exists=True):
+            cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName="default" )
 
         self.variant_node = self.getVariantSwitchNode()
+        self.current_node = self.nodeName
 
-        if self.variant_node:
-            if self.updateVariantAttr():
+        replace_variant = old_variant != self.variant_node
+        replace_node = old_node != self.current_node
+        update = self.updateVariantAttr()
+        if update or replace_variant or replace_node or self._update_var_ui:
 
+            if self.variantCtrl:
+                cmds.deleteUI(self.variantCtrl)
+
+            self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
+                                                       attribute="{}.variant".format(self.nodeName),
+                                                       parent=self.variantRowLayout,
+                                                       changeCommand=self.setVariant)
+
+            self._update_var_ui = False
+            if self.variant_node:
                 variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
                 cmds.setAttr("{}.variant".format(self.nodeName), variant_idx)
 
-                if self.variantCtrl:
-                    cmds.deleteUI(self.variantCtrl)
-
-                self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
-                                                           attribute="{}.variant".format(self.nodeName),
-                                                           parent=self.variantRowLayout,
-                                                           changeCommand=self.setVariant)
-
-                self.refreshAssignmentsUI()
+            self.refreshAssignmentsUI()
 
     def variantNew(self, nodeAttr):
+        self.current_node = self.nodeName
         # get if theres an enum attribute
         if not cmds.attributeQuery("variant", node=self.nodeName, exists=True):
             cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName="default" )
@@ -455,7 +465,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
                     enumList.append("{}".format(cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a))))
 
             enumNames = ':'.join(enumList)
-
             # compare to current attr
             current_enums = cmds.addAttr("{}.variant".format(self.nodeName), q=True, enumName=True)
             if current_enums != enumNames:
@@ -482,7 +491,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 if duplicate:
                     self.copyVariant(current_index, next_index)
 
-                self.updateVariantAttr()
+                self._update_var_ui = self.updateVariantAttr()
 
                 cmds.setAttr("{}.variant".format(self.nodeName), next_index)
                 cmds.setAttr("{}.index".format(self.variant_node), next_index)
@@ -493,8 +502,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def getVariantSwitchNode(self, create=False):
         variant_switch = None
-        ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True)
-        for op in ops or []:
+        ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True) or []
+        for op in ops:
             op_node, plug = op.split('.')
             if cmds.nodeType(op_node) == VARIANTSWITCH_OP:
                 # check for variant attribute
@@ -525,6 +534,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setCurrentNode(None)
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
+        self.current_node = None
+        self.variant_node = None
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
@@ -778,6 +789,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.assInfoPath = ''
         self.inspectAssPath = ''
         self.variant_node = None
+        self._update_var_ui = False
         self.assItems = {}
 
         self.beginScrollLayout()
