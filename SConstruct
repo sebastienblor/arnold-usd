@@ -849,10 +849,6 @@ if not env['MTOA_DISABLE_RV']:
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
 # Temporarily installing the license manager
-LICENSE_MANAGER = None
-if system.os != 'linux':
-    LICENSE_MANAGER = os.path.join(EXTERNAL_PATH, 'license_manager', system.os, '*')
-    env.Install(env['TARGET_BINARIES'], glob.glob(LICENSE_MANAGER))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -1185,6 +1181,7 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
@@ -1360,16 +1357,6 @@ if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
     if OCIO_DYLIBPATH != "":
         PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
-
-
-# temporarily installing the license manager
-if LICENSE_MANAGER:
-    license_manager_files = find_files_recursive(os.path.join(EXTERNAL_PATH, 'license_manager', system.os), None)
-    for p in license_manager_files:
-        (d, f) = os.path.split(p)
-        PACKAGE_FILES += [
-            [os.path.join(EXTERNAL_PATH, 'license_manager', system.os, p), os.path.join('bin', d)]
-        ]
 
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
