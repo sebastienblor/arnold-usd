@@ -867,33 +867,34 @@ arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 
-def GetViewportShaders(maya_version):
 
+def GetViewportShaders(maya_version):
     vp2ShadersList = []
     vp2ShaderExtensions = ['.xml', '.cgfx', '.fx', '.ogsfx']
     
     if system.os == 'windows':
         vp2ShaderExtensions.append('.hlsl')
     vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), vp2ShaderExtensions)
-    old_vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2', '2016'), vp2ShaderExtensions)
 
     for vp2shader in vp2shaders:
-        vpTargetShader = vp2shader
+        # If the version is >= 2020, replace aiRectangleAreaLight.xml from the usual vp2 directory
+        # with the one that's under vp2/2020. 
+        # In this case , we're adding both via find_files_recursive and removing the older file. 
 
-        if vp2shader.find('2016') >= 0:
-            continue
-        
+        if vp2shader.find('2020') >= 0:
+            vp2ShadersList.remove("aiRectangleAreaLight.xml")
+
         vp2ShadersList.append(vp2shader)
 
     return vp2ShadersList
-
-         
 
 vp2Shaders = GetViewportShaders(maya_version)
 
 for vp2Shader in vp2Shaders:
     vpTargetShader = vp2Shader.replace('2016/', '')
     vpTargetShader = vp2Shader.replace('2016\\', '')
+    vpTargetShader = vp2Shader.replace('2020/', '')
+    vpTargetShader = vp2Shader.replace('2020/', '')
     env.InstallAs([os.path.join(TARGET_VP2_PATH, vpTargetShader)], [os.path.join('plugins', 'mtoa', 'viewport2', vp2Shader)])
 
 # install include files
