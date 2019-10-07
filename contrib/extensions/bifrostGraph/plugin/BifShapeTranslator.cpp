@@ -53,7 +53,6 @@ static const size_t MAX_PATH_LENGTH = 4096;
 // If you change this one, don't forget to change the other
 static MString GetArnoldBifrostPath()
 {
-   MString str;
    char archStr[64];
    char majorStr[64];
    char minorStr[64];
@@ -75,62 +74,75 @@ static MString GetArnoldBifrostPath()
    if (bifrostPath.length() == 0)
       return MString(); // didn't find it, Bifrost is probably not loaded
 
+#ifdef _WIN32
+   MString pathSep = "\\";
+#else
+   MString pathSep = "/";
+#endif
+
+   // Initial directory layout: bifrost/arnold-X.X.X.X
+   // Future directory layout: bifrost/arnold/X.X.X.X
+   MString directories[2] = { bifrostPath, bifrostPath + pathSep + "arnold" };
+   MString prefixes[2] = { "arnold-", "" };
+
    DIR *dir;
    struct dirent *ent;
    int topVersionVal = -1;
    MString topVersionPath = "";
 
-   // Loop over all directories in the bifrost module path,
-   // and look for the arnold-xxxxx ones
-   if ((dir = opendir (bifrostPath.asChar())) != NULL)
+   for (int i = 0; i < 2; ++i)
    {
-      while ((ent = readdir (dir)) != NULL)
+      // Loop over all directories in the candidate path, and look for the arnold versioned directories
+      if ((dir = opendir(directories[i].asChar())) != NULL)
       {
-         MString dirName(ent->d_name);
-         // Skip the ones that don't start with "arnold-"
-         if (dirName.length() < 7 || dirName.substringW(0, 6) != MString("arnold-"))
-            continue;
+         while ((ent = readdir(dir)) != NULL)
+         {
+            MString dirName(ent->d_name);
+            // Skip the ones that don't start with the appropriate prefix (if any)
+            if (prefixes[i].length() > 0 && (dirName.length() < prefixes[i].length() + 1 || dirName.substringW(0, prefixes[i].length() - 1) != prefixes[i]))
+               continue;
 
-         // Get the version number this bifrost procedural was built against
-         MString folderVersion = dirName.substringW(7, dirName.length() -1);
+            // Get the version number this bifrost procedural was built against
+            MString folderVersion = prefixes[i].length() > 0 ? dirName.substringW(prefixes[i].length(), dirName.length() - 1) : dirName;
 
-         // We want to get the most recent bifrost procedural that is compatible with
-         // the current arnold version
-         MStringArray splitVersion;
-         folderVersion.split('.', splitVersion);
-         if (splitVersion.length() < 2 || !splitVersion[0].isInt() || !splitVersion[1].isInt())
-            continue; // something wrong with the folder format, we need at least the 2 first integers
+            // We want to get the most recent bifrost procedural that is compatible with
+            // the current arnold version
+            MStringArray splitVersion;
+            folderVersion.split('.', splitVersion);
+            if (splitVersion.length() < 2 || !splitVersion[0].isInt() || !splitVersion[1].isInt())
+               continue; // something wrong with the folder format, we need at least the 2 first integers
 
-         int currentArch = splitVersion[0].asInt();
-         // we need a procedural that matches the current architectural version of arnold
-         if (currentArch < arch)
-            continue;
 
-         int currentMajor = splitVersion[1].asInt();
-         int currentVersionVal = 10000 * currentMajor + 1000000 * currentArch;
+            int currentArch = splitVersion[0].asInt();
+            // we need a procedural that matches the current architectural version of arnold
+            if (currentArch < arch)
+               continue;
 
-         // The following tests are in case we end up stripping the
-         // minor and fix versions from the folders
-         if (splitVersion.length() >= 3 && splitVersion[2].isInt())
-            currentVersionVal += 100 * splitVersion[2].asInt();
+            int currentMajor = splitVersion[1].asInt();
+            int currentVersionVal = 10000 * currentMajor + 1000000 * currentArch;
 
-         if (splitVersion.length() >= 4 && splitVersion[3].isInt())
-            currentVersionVal += splitVersion[3].asInt();
+            // The following tests are in case we end up stripping the
+            // minor and fix versions from the folders
+            if (splitVersion.length() >= 3 && splitVersion[2].isInt())
+               currentVersionVal += 100 * splitVersion[2].asInt();
 
-         if (currentVersionVal > versionVal)
-            continue; // the arnold version is older than the older package, ignore it
+            if (splitVersion.length() >= 4 && splitVersion[3].isInt())
+               currentVersionVal += splitVersion[3].asInt();
 
-         if (currentVersionVal < topVersionVal)
-            continue; // nah, we already have a better candidate;
+            if (currentVersionVal > versionVal)
+               continue; // the arnold version is older than the older package, ignore it
 
-         // this is the best candidate so far
-         topVersionVal = currentVersionVal;
-         topVersionPath = dirName;
+            if (currentVersionVal < topVersionVal)
+               continue; // nah, we already have a better candidate;
+
+            // this is the best candidate so far
+            topVersionVal = currentVersionVal;
+            topVersionPath = directories[i] + pathSep + dirName;
+         }
+         closedir(dir);
       }
-      closedir (dir);
    }
-   str = bifrostPath + MString("/") + topVersionPath;
-   return str;
+   return topVersionPath;
 }
 
 static void GetArnoldBifrostABIRevision(const char* dsoPath, const char* dsoName)
