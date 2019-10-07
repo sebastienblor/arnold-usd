@@ -91,7 +91,9 @@ public:
    static bool IsArnoldPluginLoaded(const MString &path);
    static MStringArray GetAllLoadedArnoldPlugins();
 
-
+   // This function should be invoked explicitely when new translators / nodes are registered
+   // after the extension was loaded and registered in MtoA. This will force the registration over again
+   void RegisterExtension(); 
 
 protected:
    CExtensionImpl *m_impl;
