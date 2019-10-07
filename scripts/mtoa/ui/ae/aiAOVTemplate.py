@@ -5,8 +5,6 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.ui.ae.utils as aeUtils
 import mtoa.utils as utils
 import sys
-from maya.internal.common.ae.multi import createNonNumericMulti
-import  maya.internal.common.ae.compound as compound
 
 class AEaiAOVTemplate(ShaderAETemplate):
 
@@ -25,6 +23,8 @@ class AEaiAOVTemplate(ShaderAETemplate):
         
         maya_version = utils.getMayaVersion()
         if maya_version >= 2020:
+            from maya.internal.common.ae.multi import createNonNumericMulti
+            import  maya.internal.common.ae.compound as compound
             self.frame = createNonNumericMulti(node, plug, "AOV Outputs", None, compound.create, idx_list)
         else:
             self.frame = maya.mel.eval('AEnewNonNumericMulti(\"{}\",\"{}\",\"AOV Outputs\",\"\", \"AEnewCompound\",{})'.format(node, plug, idx_listStr))
@@ -36,6 +36,8 @@ class AEaiAOVTemplate(ShaderAETemplate):
 
         maya_version = utils.getMayaVersion()
         if maya_version >= 2020:
+            from maya.internal.common.ae.multi import createNonNumericMulti
+            import  maya.internal.common.ae.compound as compound
             createNonNumericMulti(node, plug, "AOV Outputs", None, compound.create, idx_list)
         else:
             maya.mel.eval('AEreplaceNonNumericMulti(\"{}\", \"{}\", \"{}\",  \"\", \"AEreplaceCompound\", {})'.format(self.frame, node, plug, idx_listStr))
