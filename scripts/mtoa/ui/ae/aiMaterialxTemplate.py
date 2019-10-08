@@ -20,16 +20,15 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
     ''' 
 
     def updateList(self, lookValue):
-
         cmds.textScrollList(self.looksListField, edit=True, deselectAll=True)
         if not lookValue:
             return
-
         cmds.textScrollList(self.looksListField, edit=True, selectItem=lookValue)            
         
 
     def lookEdit(self, attrName, mPath) :
         self.updateList(mPath)
+        cmds.setAttr(attrName, mPath, type='string')
         
     def looksListEdit(self, attrName) :
         lookValue = ''        
