@@ -2502,7 +2502,17 @@ void CArnoldSession::ExportTxFiles()
          // need to invalidate the TX file from the cache otherwise the conversion to TX will faill on windows
          AiTextureInvalidate(AtString(txFilename.asChar()));
 
-         listArguments.push_back(txArguments);
+         unsigned int bitdepth;
+         AiTextureGetBitDepth(expandedFilenames[t].asChar(), &bitdepth);
+
+         std::string bitdepth_args;
+
+         if (bitdepth <= 8)
+         {
+            bitdepth_args = " --format exr -d half --compression dwaa";
+         }
+
+         listArguments.push_back(txArguments + bitdepth_args);
       }
    }
 
@@ -2517,7 +2527,7 @@ void CArnoldSession::ExportTxFiles()
 
    // We now have the full list of textures, let's loop over them
    for (unsigned int i = 0; i < listTextures.size(); ++i)
-   {      
+   {
       // now call AiMakeTx with the corresponding arguments (including color space)
       AiMakeTx(listTextures[i].c_str(), listArguments[i].c_str());
    }
