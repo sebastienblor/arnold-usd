@@ -1,0 +1,6 @@
+cnvert 8bit non-linear textures using dwaa compress half exr based .tx
+author: Ashley Handscomb Retallack
+
+PARAMS: {
+    'script': 'Render -proj "%proj%" -rd "%dir%" -r arnold -x 640 -y 480 %options% "%file%"'
+}
