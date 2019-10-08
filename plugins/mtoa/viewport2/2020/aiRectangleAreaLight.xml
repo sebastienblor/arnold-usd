@@ -1,4 +1,4 @@
-<fragment  uiName="aiRectangleAreaLight_2020" name="aiRectangleAreaLight_2020" type="lighting" class="ShadeFragment" version="1.0" feature_level="0" >
+<fragment  uiName="aiRectangleAreaLight" name="aiRectangleAreaLight" type="lighting" class="ShadeFragment" version="1.0" feature_level="0" >
     <description>
 <![CDATA[
 Computes irradiance from a rectangle area light, w/ specular]]>
@@ -35,11 +35,11 @@ Computes irradiance from a rectangle area light, w/ specular]]>
 <bool name="normalize" value="false"  />
     </values>
     <outputs>
-        <struct  name="aiRectangleAreaLight_2020" struct_name="irradiance" />
+        <struct  name="aiRectangleAreaLight" struct_name="irradiance" />
     </outputs>
     <implementation  >
     <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
-        <function_name val="aiRectangleAreaLight_2020" />
+        <function_name val="aiRectangleAreaLight" />
         <source>
             <![CDATA[
 // Find the closest point to a rectangular light source in 3D space
@@ -191,7 +191,7 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     return closestW - Pw + ltCenter;
 } 
 
-irradiance aiRectangleAreaLight_2020( float lightOn, bool lightActive, float intensity, float3 color, float emitDiff, float emitSpec, 
+irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensity, float3 color, float emitDiff, float emitSpec, 
                       float3 LP0, float3 LP1, float3 LP2, float3 LP3,  float3 Pw, float3 Nw, float3 Vw,
                       float decayRate, bool useArea)
 { 
@@ -236,7 +236,7 @@ irradiance aiRectangleAreaLight_2020( float lightOn, bool lightActive, float int
         </source>
     </implementation>
     <implementation  render="OGSRenderer" language="HLSL" lang_version="11.000000" >
-        <function_name val="aiRectangleAreaLight_2020" />
+        <function_name val="aiRectangleAreaLight" />
         <source>
             <![CDATA[
 // Find the closest point to a rectangular light source in 3D space
@@ -386,7 +386,7 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     return closestW + ltCenter - Pw;
 } 
 
-irradiance aiRectangleAreaLight_2020( float lightOn, bool lightActive, float intensity, float3 color, float emitDiff, float emitSpec, 
+irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensity, float3 color, float emitDiff, float emitSpec, 
                       float3 LP0, float3 LP1, float3 LP2, float3 LP3,  float3 Pw, float3 Nw, float3 Vw,
                       float decayRate, bool useArea)
 { 
@@ -431,7 +431,7 @@ irradiance aiRectangleAreaLight_2020( float lightOn, bool lightActive, float int
         </source>
     </implementation>
       <implementation  render="OGSRenderer" language="GLSL" lang_version="3.0" >
-        <function_name val="aiRectangleAreaLight_2020" />
+        <function_name val="aiRectangleAreaLight" />
         <source>
           <![CDATA[
 // Find the closest point to a rectangular light source in 3D space
@@ -582,7 +582,7 @@ vec3 aiGetRectangleReflection( vec3 ltPts[4], vec3 ltCenter, vec3 Pw, vec3 Nw, v
     return closestW - Pw + ltCenter;
 } 
 
-irradiance aiRectangleAreaLight_2020( float lightOn, bool lightActive, float intensity, vec3 color, float emitDiff, float emitSpec, 
+irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensity, vec3 color, float emitDiff, float emitSpec, 
                       vec3 LP0, vec3 LP1, vec3 LP2, vec3 LP3,  vec3 Pw, vec3 Nw, vec3 Vw,
                       float decayRate, bool useArea)
 { 
