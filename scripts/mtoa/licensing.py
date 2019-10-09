@@ -20,6 +20,10 @@ _waitingForLicenseStatus = False
 global _waitingForDiagnosticsStatus
 _waitingForDiagnosticsStatus = False
 
+def licenseManager():
+    cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'ArnoldLicenseManager')
+    cmdRes = subprocess.Popen([cmdBinary], close_fds=True)
+
 def getDiagnosticsResult():
 
     diagnosticResults = 'MtoA License Diagnostics '
