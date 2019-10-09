@@ -672,7 +672,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    }
 
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
-   if (renderSession)
+   if (renderSession && exportMode != MTOA_SESSION_ASS)
       renderSession->SetRenderViewStatusInfo(MString("Exporting Arnold Scene..."));
 
    // Are we motion blurred (any type)?
@@ -857,7 +857,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       unsigned int numSteps = GetNumMotionSteps();
       m_isExportingMotion = true;
       
-      if (renderSession)
+      if (renderSession && exportMode != MTOA_SESSION_ASS)
          renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
 
       for (unsigned int step = 0; step < numSteps; ++step)

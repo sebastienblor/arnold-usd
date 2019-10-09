@@ -174,8 +174,6 @@ def makeTx(filename, colorspace='auto', arguments=''):
         # promote 8-bit images to EXR half with DWAA compression to avoid quantization errors (#3919)
         if colorspace != 'linear' and tile_info['bit_depth'] <= 8:
             cmd += ['--format', 'exr', '-d', 'half', '--compression', 'dwaa']
-        else:
-            compression = ''
 
         res = subprocess.Popen(cmd + [tile], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
 
