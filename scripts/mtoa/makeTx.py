@@ -87,12 +87,12 @@ def expandFilename(filename):
     #return filteredList
 
 
-def guessColorspace(filename):
+def guessColorspace(img_info):
     '''Guess the colorspace of the input image filename.
     @return: a string suitable for the --colorconvert option of maketx (linear, sRGB, Rec709)
     '''
     try:
-        if AiTextureGetFormat(filename) == AI_TYPE_UINT and AiTextureGetBitDepth(filename) <= 16:
+        if img_info['bit_depth'] <= 16 and img_info['format'] in (AI_TYPE_BYTE, AI_TYPE_INT, AI_TYPE_UINT):
             return 'sRGB'
         else:
             return 'linear'
@@ -102,6 +102,16 @@ def guessColorspace(filename):
     except:
         print '[maketx] Error: Could not guess colorspace for "%s"' % filename
         return 'linear'
+
+
+def imageInfo(filename):
+    '''Get image information
+    '''
+    img_info = {}
+    img_info['bit_depth'] = AiTextureGetBitDepth(filename)
+    img_info['format'] = AiTextureGetFormat(filename)
+    return img_info
+
 
 ## Compiled regexes for makeTx()
 _maketx_rx_stats = re.compile('maketx run time \(seconds\):\s*(.+)')
@@ -151,11 +161,19 @@ def makeTx(filename, colorspace='auto', arguments=''):
             status[1] += 1
             continue
 
+        tile_info = imageInfo(tile)
+
         if colorspace == 'auto':
-            colorspace = guessColorspace(tile)
-        
+            colorspace = guessColorspace(tile_info)
+
         outputTx = os.path.splitext(tile)[0] + '.tx'
         AiTextureInvalidate(outputTx)
+
+        AiMsgInfo( "[maketx] info : {}".format(','.join(["{}={}".format(k,v) for k, v in tile_info.items()])) )
+
+        # promote 8-bit images to EXR half with DWAA compression to avoid quantization errors (#3919)
+        if colorspace != 'linear' and tile_info['bit_depth'] <= 8:
+            cmd += ['--format', 'exr', '-d', 'half', '--compression', 'dwaa']
 
         res = subprocess.Popen(cmd + [tile], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
 
