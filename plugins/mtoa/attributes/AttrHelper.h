@@ -355,27 +355,3 @@ protected:
 
 };
 
-//---------------------------------------------------------------------
-// CDynamicAttrHelper is LEGACY.
-// I'm keeping its definition here to avoid breaking binary compatibility
-// FIXME : remember to remove it when a breaking-ABI version is released
-class DLLEXPORT CDynamicAttrHelper : public CBaseAttrHelper
-{
-
-public:
-   CDynamicAttrHelper(MObject& obj, const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="ai_") :
-      CBaseAttrHelper(arnoldNodeEntry, prefix),
-      m_instance(obj) {}
-   CDynamicAttrHelper(MObject& obj, const MString& arnoldNodeEntryName, const MString& prefix="ai_") :
-      CBaseAttrHelper(arnoldNodeEntryName, prefix),
-      m_instance(obj) {}
-
-   MString GetMayaNodeTypeName() const {return m_instance.apiTypeStr();}
-   MTypeId GetMayaNodeTypeId() const {return MTypeId(m_instance.apiType());}
-
-protected:
-   MObject m_instance;
-
-protected:
-   virtual MStatus addAttribute(MObject& attrib);
-};
