@@ -4340,6 +4340,7 @@ void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
       SetUpdateMode(AI_RECREATE_NODE);
    if ((plugName == "uvScale"))
       SetUpdateMode(AI_RECREATE_NODE);
+}
    
 
 void CStandardSurfaceTranslator::Export(AtNode* shader)

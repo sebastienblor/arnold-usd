@@ -466,6 +466,10 @@ public:
    AtNode* CreateArnoldNodes();
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
+};
+
+
+
 class CStandardSurfaceTranslator : public CShaderTranslator
 {
 public:
