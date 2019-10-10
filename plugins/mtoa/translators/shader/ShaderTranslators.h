@@ -60,6 +60,7 @@ SHADER_TRANSLATOR(CUserDataVec2Translator);
 SHADER_TRANSLATOR(CUserDataBoolTranslator);
 SHADER_TRANSLATOR(CUserDataVectorTranslator);
 SHADER_TRANSLATOR(CSetRangeTranslator);
+// SHADER_TRANSLATOR(CStandardSurfaceTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {
@@ -465,4 +466,14 @@ public:
    AtNode* CreateArnoldNodes();
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
+class CStandardSurfaceTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CStandardSurfaceTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   static void NodeInitializer(CAbTranslator context);
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+
 };

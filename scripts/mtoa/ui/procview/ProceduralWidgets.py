@@ -14,13 +14,11 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
-                            NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, \
-                            DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES
+                            NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, ENABLED,\
+                            DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES,\
+                            DISP_MAP, SHADER
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
-
-DISP_MAP = 'disp_map'
-SHADER = 'shader'
 
 
 class OperatorTreeView(BaseTreeView):
@@ -83,10 +81,9 @@ class OperatorTreeModel(BaseModel):
         self.rootItem = OperatorItem(None, "")
         if self.currentItem:
             path = self.currentItem.data[PROC_PATH]
-            collections = self.transverser.getCollections(self.currentNode, path, False)
-            local_collections = self.transverser.getCollections(self.currentNode, path, True)
-            operators = self.transverser.getOperators(self.currentNode, path, exact_match=False, collections=collections, gather_parents=True)
-            for op in operators:
+            collections, local_collections = self.transverser.getCollections(self.currentNode, path)
+            operators = self.transverser.getOperators(self.currentNode, path, collections=collections, gather_parents=True)
+            for op, match in operators:
                 enabled = cmds.getAttr(op+'.enable')
                 local = self.transverser.operatorAffectsPath(path, op, collections=local_collections)
                 OperatorItem(self.rootItem, op, enabled, local)
@@ -303,7 +300,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         # shader override - HIDDEN BY DEFAULT
         self.shadingWidgets = {}
-        self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader")
+        self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader", override=True, parent=self.shadingPanel)
         deleteShaderAction = self.shaderOverrideWidget.menu.addAction("Delete")
         deleteShaderAction.triggered.connect(self.deleteShaderAssignment)
 
@@ -313,10 +310,19 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.shaderOverrideWidget.nodeDisconnected.connect(self.disconnectShader)
         self.shaderOverrideWidget.setVisible(False)
         self.shadingPanel.layout().addWidget(self.shaderOverrideWidget)
-        self.shadingWidgets[SHADER] = self.shaderOverrideWidget
+        self.shadingWidgets[SHADER] = [self.shaderOverrideWidget]
+
+        shaderCbContainerWidget = QtWidgets.QWidget(self)
+        shaderCbContainerWidget.setLayout(QtWidgets.QHBoxLayout())
+        shaderCbContainerWidget.setContentsMargins(0, 2, 0, 0)
+        self.shaderEnabledCheckBox = MtoACheckbox(True, self)
+        shaderCbContainerWidget.layout().addWidget(self.shaderEnabledCheckBox)
+        self.shaderOverrideWidget.layout().insertWidget(0, shaderCbContainerWidget, alignment=QtCore.Qt.AlignTop)
+        self.shaderEnabledCheckBox.toggled.connect(self.toggleShaderEnabled)
+        self.shadingWidgets[SHADER].append(self.shaderEnabledCheckBox)
 
         # displacement override - HIDDEN BY DEFAULT
-        self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement")
+        self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement", override=True, parent=self.shadingPanel)
         deleteDispAction = self.dispOverrideWidget.menu.addAction("Delete")
         deleteDispAction.triggered.connect(self.deleteDisplacementAssignment)
 
@@ -325,7 +331,16 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.dispOverrideWidget.connectionButtonClicked.connect(self.newDisplacement)
         self.dispOverrideWidget.setVisible(False)
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
-        self.shadingWidgets[DISP_MAP] = self.dispOverrideWidget
+        self.shadingWidgets[DISP_MAP] = [self.dispOverrideWidget]
+
+        dispCbContainerWidget = QtWidgets.QWidget(self)
+        dispCbContainerWidget.setLayout(QtWidgets.QHBoxLayout())
+        dispCbContainerWidget.setContentsMargins(0, 2, 0, 0)
+        self.dispEnabledCheckBox = MtoACheckbox(True, self)
+        dispCbContainerWidget.layout().addWidget(self.dispEnabledCheckBox)
+        self.dispOverrideWidget.layout().insertWidget(0, dispCbContainerWidget, alignment=QtCore.Qt.AlignTop)
+        self.dispEnabledCheckBox.toggled.connect(self.toggleDisplacementEnabled)
+        self.shadingWidgets[DISP_MAP].append(self.dispEnabledCheckBox)
 
         self.overridesPanel.layout().addWidget(self.shadingPanel)
 
@@ -492,17 +507,18 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     def populateOperatorsList(self):
         self.operators_tree.setCurrentNode(self.node)
 
-    def setShader(self, shader, create=False):
-        self.setNodeParam("shader", shader, create)
+    def setShader(self, shader, create=False, enabled=True):
+        self.setNodeParam("shader", shader, create, enabled)
 
-    def setDisplacement(self, disp, create=False):
-        self.setNodeParam("disp_map", disp, create)
+    def setDisplacement(self, disp, create=False, enabled=True):
+        self.setNodeParam("disp_map", disp, create, enabled)
 
-    def setNodeParam(self, param, node, create=False):
-        operator = self.shadingWidgets[param].data.get('operator', None)
+    def setNodeParam(self, param, node, create=False, enabled=True):
+        widget, checkbox = self.shadingWidgets[param]
+        operator = widget.data.get('operator', None)
         if create:
             operator = self.getOverrideOperator()
-        self.setOverride(param, "=", node, operator=operator)
+        self.setOverride(param, "=", node, operator=operator, enabled=enabled)
         self.refresh()
 
     def addShader(self):
@@ -523,6 +539,14 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if self.item:
             self.setShader(None)
 
+    def toggleShaderEnabled(self, value):
+        shader = self.shaderOverrideWidget.getValue()
+        self.setShader(shader, False, value)
+
+    def toggleDisplacementEnabled(self, value):
+        disp = self.dispOverrideWidget.getValue()
+        self.setDisplacement(disp, False, value)
+
     def deleteShaderAssignment(self):
         self.deleteNodeAssignment(SHADER)
 
@@ -531,18 +555,21 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def deleteNodeAssignment(self, param):
         if self.item:
-            index = self.shadingWidgets[param].data['index']
-            operator = self.shadingWidgets[param].data['operator']
+            widget, checkbox = self.shadingWidgets[param]
+            index = widget.data['index']
+            operator = widget.data['operator']
             self.removeOverride(operator, index)
 
     def addCustomOverride(self):
         operator = self.getOverrideOperator()
-        self.setOverride("myParam", "=", "1", TYPES_DICT['int'], custom=True, operator=operator)
+        param_name = self.transverser.getCustomParamName(operator)
+        self.setOverride(param_name, "=", "1", TYPES_DICT['int'], custom=True, operator=operator)
         self.refresh()
 
     def newShadingNode(self, param):
         # feed the output of the createRedner Node dialog to the setShader method
-        operator = self.shadingWidgets[param].data.get('operator', None)
+        widget, checkbox = self.shadingWidgets[param]
+        operator = widget.data.get('operator', None)
         callback = "from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser;"
         callback += "ProceduralTransverser.setOverride('{node}', '{path}', '{operator}', '{param}', '=', '%node', {param_type})"
 
@@ -552,9 +579,10 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                                    param=param)
         mel.eval("createRenderNode -all \"python(\\\"" + callback + "\\\")\" \"\"")
 
-    def getOverrideOperator(self, create=True, exact_match=True):
-        collections = self.transverser.getCollections(self.node, self.item.data[PROC_PATH], exact_match)
-        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, exact_match, collections)
+    def getOverrideOperator(self, create=True):
+        collections = self.transverser.getCollections(self.node, self.item.data[PROC_PATH])
+        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, collections)
+        ops = [o for o, m in ops if m]
         if not len(ops) and create:
             op = self.transverser.createOperator(self.node, self.item, OVERRIDE_OP)
         else:
@@ -582,7 +610,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.paramDict = self.transverser.getParams([data[PROC_ENTRY]])
 
     def resetShadingWidgets(self):
-        for widget in self.shadingWidgets.values():
+        for widget, checkbox in self.shadingWidgets.values():
             widget.disconnectNode(False)
 
     def getData(self, item):
@@ -593,16 +621,35 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 return self.getData(item.parent())
 
     def refresh(self):
+
+        def getParmInList(param, param_list):
+            for i, p in enumerate(param_list):
+                if p[PARAM] == param:
+                    return i
+            return -1
+
         clearWidget(self.localOverridesPanel)
         clearWidget(self.inheritedOverridesPanel)
-        for widget in self.shadingWidgets.values():
+
+
+        for widget, checkbox in self.shadingWidgets.values():
             widget.setVisible(False)
+            oldState = checkbox.blockSignals(True)
+            checkbox.setChecked(True)
+            checkbox.blockSignals(oldState)
             widget.node = None
 
         self.resetShadingWidgets()
         if self.item:
             path = self.item.data[PROC_PATH]
-            for override in self.getOverrides():
+            overrides, p_overrides = self.getOverrides()
+            for ov in overrides:
+                idx = getParmInList(ov, p_overrides)
+                if idx != -1:
+                    p_overrides[idx] = ov
+                else:
+                    p_overrides.append(ov)  # split to param, op, VALUE
+            for override in p_overrides:
                 # FIXME what if the user wants to connect a shader from inside the procedural?
                 operator = override[OPERATOR]
                 index = override[INDEX]
@@ -614,11 +661,15 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 if override[PARAM] in [SHADER, DISP_MAP]:
                     # set the shader slot
                     node = override[VALUE].replace("'", "").replace('"', "")
-                    self.shadingWidgets[override[PARAM]].setNode(node, False)
-                    self.shadingWidgets[override[PARAM]].setVisible(True)
-                    self.shadingWidgets[override[PARAM]].setInherited(inherited)
-                    self.shadingWidgets[override[PARAM]].data['operator'] = operator
-                    self.shadingWidgets[override[PARAM]].data['index'] = index
+                    widget, checkbox = self.shadingWidgets[override[PARAM]]
+                    oldState = checkbox.blockSignals(True)
+                    checkbox.setChecked(override[ENABLED])
+                    checkbox.blockSignals(oldState)
+                    widget.setNode(node, False)
+                    widget.setVisible(True)
+                    widget.setInherited(inherited)
+                    widget.data['operator'] = operator
+                    widget.data['index'] = index
                 else:
                     widget = self.addOverrideGUI(*override)
                     widget.setInherited(inherited)
@@ -643,29 +694,32 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             return []
         return self.transverser.getOverrides(self.node, data[PROC_PATH])
 
-    def addOverrideGUI(self, param_type, param, op, value, index, operator):
+    def addOverrideGUI(self, param_type, param, op, value, index, operator, enabled):
 
         parentPanel = self.inheritedOverridesPanel
         data = self.getData(self.item)
         path = data[PROC_PATH]
-        local_collections = self.transverser.getCollections(self.node,
-                                                            path, True)
-        if self.transverser.operatorAffectsPath(path, operator, collections=local_collections):
+        collections, local_collections = self.transverser.getCollections(self.node,
+                                                            path)
+
+        local_collections = [c for c, m in local_collections if m]
+        sel_match, exact_match = self.transverser.operatorAffectsPath(path, operator, collections=local_collections)
+        if exact_match:
             parentPanel = self.localOverridesPanel
 
         parentPanel.setVisible(True)
 
-        new_widget = MtoAOperatorOverrideWidget(param_type, param, op, value, self.paramDict, parentPanel)
+        new_widget = MtoAOperatorOverrideWidget(param_type, param, op, value, self.paramDict, parentPanel, enabled)
 
         new_widget.index = index
         new_widget.operator = operator
         new_widget.deleteMe.connect(self.removeOverrideWidget)
 
         # param, operation, value, param_type, custom, index, operator
-        new_widget.valueChanged[str, str, str, int, bool, int, str].connect(self.setOverride)
-        new_widget.valueChanged[str, str, int, int, bool, int, str].connect(self.setOverride)
-        new_widget.valueChanged[str, str, bool, int, bool, int, str].connect(self.setOverride)
-        new_widget.valueChanged[str, str, float, int, bool, int, str].connect(self.setOverride)
+        new_widget.valueChanged[str, str, str, int, bool, int, str, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, int, int, bool, int, str, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, bool, int, bool, int, str, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, float, int, bool, int, str, bool].connect(self.setOverride)
         # add widget
         parentPanel.layout().addWidget(new_widget)
         return new_widget
@@ -689,7 +743,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         return None
 
-    def setOverride(self, param, op, value, param_type=None, custom=False,  index=-1, operator=None):
+    def setOverride(self, param, op, value, param_type=None, custom=False,  index=-1, operator=None, enabled=True):
         if not operator:
             ops = self.getItemOverrideOperator()
             if not type(ops) == list:
@@ -709,4 +763,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             if not param_type:
                 param_type = param_data[DATA_PARAM_TYPE]
 
-        return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, is_array, index)
+        if self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, enabled, index):
+            self.item.setDirty(True)
+            return True
+        return False

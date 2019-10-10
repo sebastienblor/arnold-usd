@@ -9,7 +9,7 @@
 
 #include <maya/MString.h>
 #include <maya/MPxNode.h>
-#ifdef MAYA_MAINLINE
+#if MAYA_API_VERSION >= 20200000
 // MCreatorFunction was moved in this include for Maya 2020
 #include <maya/MPlugin.h>
 #endif

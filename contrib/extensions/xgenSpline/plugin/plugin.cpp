@@ -5,7 +5,6 @@
 
 extern "C"
 {
-#ifdef ENABLE_XGEN
     
     DLLEXPORT void initializeExtension ( CExtension& extension )
     {
@@ -28,5 +27,4 @@ extern "C"
     {
     }
 
-#endif
 }

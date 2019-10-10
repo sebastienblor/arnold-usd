@@ -606,11 +606,6 @@ AtNode* CArnoldSession::ExportOptions()
 
 AtNode *CArnoldSession::ExportColorManager()
 {
-// Color Management is only supported for 2016 and higher   
-#ifndef ENABLE_COLOR_MANAGEMENT
-   return NULL;
-#endif
-
    // get the maya node contraining the color management options         
    MSelectionList activeList;
    activeList.add(MString(":defaultColorMgtGlobals"));
@@ -722,6 +717,21 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          status = ExportCameras(selected);
          status = ExportLights(selected);
          status = ExportDag(selected);
+
+         // Eventually export selected shaders #3991
+         MStringArray shaders;
+         MGlobal::executeCommand("ls -sl -mat", shaders); // get selected shaders
+         for (unsigned int shd = 0; shd < shaders.length(); ++shd)
+         {
+            MSelectionList shdElem;
+            shdElem.add(shaders[shd]);
+            MObject depNode;
+            shdElem.getDependNode(0, depNode);
+            MPlug shaderPlug = (!depNode.isNull()) ? MFnDependencyNode(depNode).findPlug("message", true) : MPlug();
+            if (!shaderPlug.isNull())
+               ExportNode(shaderPlug);
+            
+         }
       }
       else
       {
@@ -1538,10 +1548,13 @@ void CArnoldSession::DoUpdate()
 
    if (mtoa_translation_info)
       MtoaDebugLog("[mtoa.session]    Updating Arnold Scene....");
-
+   
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   
+   /*
    if (renderSession)
       renderSession->SetRenderViewStatusInfo(MString("Updating Arnold Scene..."));
+      */
 
    MStatus status;
    assert(AiUniverseIsActive());

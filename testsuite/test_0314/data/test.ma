@@ -3,14 +3,14 @@
 //Last modified: Wed, Dec 05, 2018 10:34:58 am
 //Codeset: UTF-8
 requires maya "2018ff09";
-requires -nodeType "hairPhysicalShader" "hairPhysicalShader" "1.0";
-requires "stereoCamera" "10.0";
-requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
-		 "mtoa" "3.1.3.wip";
 requires -nodeType "xgmPalette" -nodeType "xgmDescription" -nodeType "xgmSubdPatch"
 		 -dataType "xgmGuideData" -dataType "igmDescriptionData" -dataType "xgmSplineData"
 		 -dataType "xgmMeshData" -dataType "xgmSplineTweakData" -dataType "xgmSplineBoundInfoData"
 		 -dataType "xgmGuideRefData" "xgenToolkit" "1.0";
+requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
+		 "mtoa" "3.1.3.wip";
+requires -nodeType "hairPhysicalShader" "hairPhysicalShader" "1.0";
+requires "stereoCamera" "10.0";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
@@ -362,6 +362,7 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -sn "ARV_options" -ln "ARV_options" -dt "string";
 	setAttr ".version" -type "string" "3.1.1";
 	setAttr ".offset_origin" yes;
+	setAttr ".logv" 3;
 	setAttr ".ARV_options" -type "string" "Test Resolution=100%;Camera=renderCamShape;Color Management.Gamma=1;Color Management.Exposure=0;Background.BG=BG Color;Background.Color=0 0 0;Background.Image=;Background.Scale=1    1;Background.Offset=0    0;Background.Apply Color Management=1;Foreground.Enable FG=0;Foreground.Image=;Foreground.Scale=1    1;Foreground.Offset=0    0;Foreground.Apply Color Management=1;";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";
 	rename -uid "F1BF0940-0000-4443-5C06-5BE20000038D";

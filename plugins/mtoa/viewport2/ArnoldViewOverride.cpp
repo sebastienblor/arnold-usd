@@ -21,8 +21,6 @@
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
 
-#if MAYA_API_VERSION >= 201700
-
 static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
 static MString s_activeViewport(""); // store the name of the last active viewport
 
@@ -615,5 +613,3 @@ const MSelectionList* UIObjectDraw::objectSetOverride()
     MGlobal::getActiveSelectionList(m_selectionList);
     return &m_selectionList;
 }
-
-#endif

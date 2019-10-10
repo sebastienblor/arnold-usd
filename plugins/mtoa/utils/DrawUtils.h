@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef ENABLE_VP2
 #include <GL/glew.h>
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -12,7 +11,6 @@
 #ifndef D3DCOMPILE_ENABLE_STRICTNESS
     #define D3DCOMPILE_ENABLE_STRICTNESS D3D10_SHADER_ENABLE_STRICTNESS
     #define D3DCOMPILE_DEBUG D3D10_SHADER_DEBUG
-#endif
 #endif
 #endif
 
@@ -70,8 +68,6 @@ public:
    virtual void update(const MObject& obj);
 };
 
-
-#ifdef ENABLE_VP2
 
 class CGPUPrimitive {
 protected:
@@ -203,7 +199,5 @@ public:
    
    bool isValid() const;
 };
-
-#endif
 
 #endif

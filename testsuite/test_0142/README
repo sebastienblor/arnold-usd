@@ -1,3 +1,8 @@
 Color Management: Test the input color space processing
 
 author: patrick.hodoul
+
+PARAMS: {
+   'diff_fail': 0.03,
+   'diff_hardfail': 0.03
+}

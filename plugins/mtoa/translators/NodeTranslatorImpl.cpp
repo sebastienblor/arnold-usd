@@ -238,7 +238,6 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
       // process connections
       MPlug srcMayaPlug = connections[0];
       
-#if MAYA_API_VERSION >= 201650
       MPlug directSrcMayaPlug = srcMayaPlug;
       while(srcMayaPlug.isDestination())
       {
@@ -250,7 +249,6 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          if(srcMayaPlug == directSrcMayaPlug)
             break;
       }
-#endif
       
       CNodeTranslator* srcNodeTranslator = NULL;
       AtNode* srcArnoldNode = ExportConnectedNode(srcMayaPlug, true, &srcNodeTranslator);

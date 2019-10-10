@@ -45,11 +45,7 @@
 #include <maya/MSelectionMask.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnNumericData.h>
-#ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201700
 #include <maya/MViewport2Renderer.h>
-#endif
-#endif
 
 #include <cstdio>
 #include <fstream>
@@ -316,8 +312,6 @@ MStatus CArnoldVolumeShape::initialize()
    return MStatus::kSuccess;
 }
 
-#ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201700
 /* override */
 MSelectionMask CArnoldVolumeShape::getShapeSelectionMask() const
 //
@@ -363,8 +357,6 @@ MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& p
 	}
 	return MS::kSuccess;
 }
-#endif
-#endif
 
 MBoundingBox* CArnoldVolumeShape::geometry()
 {

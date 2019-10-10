@@ -21,6 +21,7 @@ try:
     from mtoa.ui.globals.settings import updateBackgroundSettings, updateAtmosphereSettings
     import mtoa.ui.ae.utils as aeUtils
     from mtoa.ui.arnoldmenu import createArnoldMenu
+    from mtoa.ui.ae.customShaderTemplates import appendToSSTemplate
     import mtoa.cmds.arnoldRender as arnoldRender
     from mtoa.cmds.rendererCallbacks import aiRenderSettingsBuiltCallback
 except:
@@ -309,6 +310,9 @@ def registerArnoldRenderer():
                 cmds.evalDeferred(aeUtils.rebuildAE)
                 # create the Arnold menu
                 createArnoldMenu()
+                ### I do not want this here , but in the interest of the PR starting with this 
+                appendToSSTemplate()
+                ###
 
             # FIXME: This doesn't seem to be used anymore
             # version specific overrides or additions

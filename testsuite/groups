@@ -18,7 +18,7 @@
 #######################
 
 # These tests are only executed on Windows
-windows: test_0098 test_0167_win test_0167_win_Maya2017 test_0203_win test_0221_win test_0221_win_Maya2017 
+windows: test_0098 test_0098_Maya2020 test_0167_win test_0167_win_Maya2017 test_0203_win test_0221_win test_0221_win_Maya2017 
 
 # These tests are only executed on Linux
 linux: test_0167_linux test_0167_linux_Maya2017 test_0203_linux test_0221_linux test_0221_linux_Maya2017
@@ -35,26 +35,23 @@ ignore: test_0004 test_0005 test_0006 test_0007 test_0060 test_0066 test_0074 te
 
 ignore_windows:
 
-ignore_linux: test_0167_linux test_0248
+ignore_linux: test_0167_linux test_0248 test_0260
 ignore_darwin: test_0248
 
-# ignore type test + bifrost in older versions of maya 
-ignore_2015: test_0167_win test_0167_linux test_0167_mac test_0180 test_0181 test_0185 test_0188 test_0209 test_0221_win test_0221_linux test_0221_mac test_0139 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0229 test_0237 test_0242
-
-ignore_2016: test_0167_win test_0167_linux test_0167_mac test_0180 test_0181 test_0185 test_0188 test_0209 test_0221_win test_0221_linux test_0221_mac test_0139 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0229 test_0237 test_0242
-
-ignore_2017: test_0237 test_0242 test_0221_linux test_0221_win test_0221_mac test_0167_win test_0167_mac
+ignore_2017: test_0098_Maya2020 test_0123 test_0193 test_0237 test_0242 test_0221_linux test_0221_win test_0221_mac test_0167_win test_0167_mac test_0259 test_0318 test_0363 test_0261 test_0298
 
 # bifrost tests are temporarily disabled
-ignore_2018: test_0139 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233 test_0221_linux_Maya2017 test_0221_win_Maya2017 test_0221_mac_Maya2017 test_0167_win_Maya2017 test_0167_mac_Maya2017
+ignore_2018: test_0098_Maya2020 test_0139 test_0193_Maya2017 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233 test_0221_linux_Maya2017 test_0221_win_Maya2017 test_0221_mac_Maya2017 test_0167_win_Maya2017 test_0167_mac_Maya2017
 
 # bifrost tests are temporarily disabled
-ignore_2019: test_0139 test_0242 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233 test_0221_linux_Maya2017 test_0221_win_Maya2017 test_0221_mac_Maya2017 test_0167_win_Maya2017 test_0167_mac_Maya2017
+ignore_2019: test_0098_Maya2020 test_0139 test_0193_Maya2017 test_0242 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233 test_0221_linux_Maya2017 test_0221_win_Maya2017 test_0221_mac_Maya2017 test_0167_win_Maya2017 test_0167_mac_Maya2017
 
+ignore_2020: test_0098 test_0139 test_0193_Maya2017 test_0242 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233 test_0221_linux_Maya2017 test_0221_win_Maya2017 test_0221_mac_Maya2017 test_0167_win_Maya2017 test_0167_mac_Maya2017
 
 gui: test_0143 test_0153 test_0154 test_0155 test_0156 test_0157 test_0160 test_0189 test_0199 test_0263
 # ignored because they produce no image
 
+ipr: test_0341 test_0343 test_0344 test_0345 test_0346 test_0347 test_0348 test_0349
 ############################
 # USER-DEFINED TEST GROUPS #
 ############################

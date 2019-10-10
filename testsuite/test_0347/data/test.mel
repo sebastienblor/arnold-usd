@@ -9,7 +9,6 @@ setAttr "curve3.inheritsTransform" 1;
 setAttr "aiCurveCollectorShape1.aiCurveWidth" 2;
 setAttr "aiCurveCollector1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_1.tif";
@@ -21,7 +20,6 @@ setAttr "curve3.inheritsTransform" 1;
 setAttr "aiCurveCollectorShape1.aiSampleRate" 1;
 setAttr "aiCurveCollector1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_2.tif";
@@ -31,8 +29,7 @@ arnoldRenderView -option "Save Image" $img;
 
 setAttr "aiCurveCollectorShape1.aiMode" 2;
 setAttr "curveShape3.aiMode" 1;
-pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
+pause -sec 2;
 
 $img = `pwd`;
 $img += "/testrender_3.tif";
@@ -44,7 +41,6 @@ setAttr "curveShape3.aiMode" 0;
 setAttr "curveShape3.aiMinPixelWidth" 10;
 setAttr "curve3.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_4.tif";
@@ -54,7 +50,6 @@ arnoldRenderView -option "Save Image" $img;
 connectAttr -f aiFlat1.outColor curveShape3.aiCurveShader;
 connectAttr -f aiFlat1.outColor aiCurveCollectorShape1.aiCurveShader;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_5.tif";
@@ -66,7 +61,6 @@ createNode "aiSkyDomeLight";
 //======== Delete shaders
 delete aiFlat1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_6.tif";
@@ -78,7 +72,6 @@ setAttr "curve3.inheritsTransform" 1;
 setAttr "aiCurveCollector1.visibility" 0;
 setAttr "aiCurveCollector1.inheritsTransform" 1;
 pause -sec 1;
-arnoldRenderView -option "Wait Render"  "1";
 
 $img = `pwd`;
 $img += "/testrender_7.tif";

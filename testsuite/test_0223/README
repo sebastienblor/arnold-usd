@@ -1,3 +1,8 @@
 Color Management: makeTx test for the input color space processing
 
 author: patrick.hodoul
+
+PARAMS: {
+   'diff_fail': 0.04,
+   'diff_hardfail': 0.04
+}

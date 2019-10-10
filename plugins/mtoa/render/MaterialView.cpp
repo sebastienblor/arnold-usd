@@ -1,7 +1,5 @@
 #include "MaterialView.h"
 
-#ifdef ENABLE_MATERIAL_VIEW
-
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
@@ -912,5 +910,3 @@ void CMaterialView::Abort()
       s_instance->DoAbort();
    }
 }
-
-#endif // ENABLE_MATERIAL_VIEW

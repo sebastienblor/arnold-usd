@@ -1,0 +1,6 @@
+Export cube as alembic and read it in as aiStandIn with custom attibutes
+
+See trac#3902
+
+author: Ashley Handscomb Retallack
+

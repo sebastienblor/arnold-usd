@@ -6,6 +6,7 @@ import shlex
 import subprocess
 import sys
 import time
+import threading
 
 # Obtain information about the system only once, when loaded
 os = platform.system().lower()
@@ -67,6 +68,7 @@ def print_safe(*args, **kwargs):
    if ffl:
       fhd.flush()
 
+
 def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda line: None, timeout=0):
    '''
    Executes a command and returns a tuple with the exit code and the output
@@ -110,3 +112,54 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda
       o = [e.strerror]
       r = e.errno
    return (r, o)
+
+'''
+### Version from Arnold core
+def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda line: None, timeout=0):
+   
+   #### Executes a command and returns a tuple with the exit code and the output
+   # Things to do before executing the command:
+   # - Split cmd into a list if it is a string
+   # - Initialize the output and return codes
+   # - Normalize environment to strings
+   split_command = isinstance(cmd, basestring) and not shell
+   # Create a dictionary with the arguments for subprocess.Popen()
+   popen_args = {
+      'args'    : shlex.split(cmd, posix=is_unix) if split_command else cmd,
+      'stdout'  : subprocess.PIPE,
+      'stderr'  : subprocess.STDOUT,
+      'cwd'     : cwd,
+      'env'     : {k : str(v) for k, v in env.items()} if env else None,
+      'shell'   : shell,
+      'bufsize' : 1,
+      'universal_newlines': True,
+   }
+   t = time.time()
+   try:
+      process = subprocess.Popen(**popen_args)
+   except OSError as e:
+      return e.errno, e.strerror.splitlines()
+   else:
+      if timeout:
+         def kill(p):
+            if p.returncode is None:
+               p.kill()
+         killer = threading.Timer(timeout, kill, [process])
+         killer.start()
+      output = []
+      with process.stdout:
+         for line in iter(process.stdout.readline, b''):
+            if not line:
+               break
+            line = line.rstrip('\n')
+            output.append(line)
+            if verbose:
+               print_safe(line)
+            if callback:
+               callback(line)
+      process.wait()
+      if timeout:
+         killer.cancel()
+      return process.returncode, output
+
+'''

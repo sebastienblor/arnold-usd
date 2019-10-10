@@ -9,6 +9,7 @@ from .Qt import shiboken
 from .Qt import cmds
 
 import re
+import time
 
 _DPI_SCALE = \
     1.0 \
@@ -21,7 +22,11 @@ STRING_EXP = re.compile(r'[\'\"](.*)[\'\"]')
 
 def dpiScale(value):
     """Scale the value according to the current DPI of the current monitor."""
+    if type(value) in [QtCore.QPoint, QtCore.QPointF]:
+        result = tuple([_DPI_SCALE * x for x in value.toTuple()])
+        return type(value)(*result)
     return _DPI_SCALE * value
+
 
 def dpiScaledIcon(path):
     """Creates QPixmap and scales it for hi-dpi mode"""
@@ -34,6 +39,7 @@ def dpiScaledIcon(path):
             QtCore.Qt.SmoothTransformation)
 
     return icon
+
 
 def toPyObject(obj):
     """Call QVariant.toPyObject on the case we are in PyQt."""
@@ -60,6 +66,13 @@ def toQtObject(mayaUIName, pySideType=QtCore.QObject):
     if ptr is not None:
         obj = shiboken.wrapInstance(long(ptr), pySideType)
         return obj
+
+
+def toMayaName(qtObject):
+    '''
+    Given a QtWidget get the maya name
+    '''
+    return OpenMayaUI.MQtUtil.fullName(long(shiboken.getCppPointer(qtObject)[0]))
 
 
 def clearWidget(widget):
@@ -131,3 +144,19 @@ def getMayaWindow():
     ptr = OpenMayaUI.MQtUtil.mainWindow()
     if ptr is not None:
         return shiboken.wrapInstance(long(ptr), QtWidgets.QWidget)
+
+
+class Timer:
+
+    def __init__(self):
+        self.start = time.time()
+
+    def restart(self):
+        self.start = time.time()
+
+    def get_time_hhmmss(self):
+        end = time.time()
+        m, s = divmod(end - self.start, 60)
+        h, m = divmod(m, 60)
+        time_str = "%02d:%02d:%02d" % (h, m, s)
+        return time_str
