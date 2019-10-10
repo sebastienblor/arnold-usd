@@ -64,29 +64,6 @@ def ArnoldStandInTemplateDsoReplace(attrName) :
     cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda arg=None, x=attrName: LoadStandInButtonPush(x))
 
 
-def ArnoldStandInUpdateUI(attrName) :
-    overrideVisAttrs = ['overridePrimaryVisibility', 
-                     'overrideCastsShadows', 
-                     'overrideVisibleInDiffuseReflection',
-                     'overrideVisibleInSpecularReflection',
-                     'overrideVisibleInDiffuseTransmission', 
-                     'overrideVisibleInSpecularTransmission',
-                     'overrideVisibleInVolume']
-    visAttrs =      ['primaryVisibility', 
-                     'castsShadows', 
-                     'aiVisibleInDiffuseReflection',
-                     'aiVisibleInSpecularReflection',
-                     'aiVisibleInDiffuseTransmission', 
-                     'aiVisibleInSpecularTransmission',
-                     'aiVisibleInVolume']
-
-    for i in range(len(overrideVisAttrs)):
-        if cmds.getAttr(attrName + overrideVisAttrs[i]) == 0:
-            cmds.setAttr(attrName + overrideVisAttrs[i], 1)
-            if cmds.getAttr(attrName + visAttrs[i]) == 0:
-                cmds.setAttr(attrName + visAttrs[i], 1)
-
-
 def changeOperator(node, nodeAttr):
     attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
     newItem = '{}[{}]'.format(nodeAttr, attrSize)
@@ -831,12 +808,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         self.beginLayout('Render Stats', collapse=True)
 
-        # FIXME : the line below is just to create a callback that will be invoked when a StandIn UI
-        # appears in the attribute editor. We need to hack the deprecated "override" attribute
-        # (see #2515), and making sure they appear with the right value when the scene is 
-        # inspected will avoid confusion. We can remove this once we no longer care about
-        # pre-2.0.2 compatibility
-        self.addCustom('', ArnoldStandInUpdateUI, ArnoldStandInUpdateUI)
         self.addControl('castsShadows', label='Casts Shadows')
         self.addControl('motionBlur', label='Motion Blur')
         self.addControl('primaryVisibility', label='Primary Visibility')

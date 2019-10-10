@@ -49,87 +49,10 @@ AtNode* CProceduralTranslator::CreateArnoldNodes()
       return AddArnoldNode("ginstance");
 }
 
-// FIXME : please remove all these hacks regarding the "override" attributes 
-// once we no longer case about pre-2.0.2 compatibility
-static void ArnoldStandInVisibilityOverride(AtByte &visibility, MPlug overridePlug, 
-                                                MPlug visPlug, AtByte rayType)
-{
-   if (visPlug.isNull())
-      return; // nothing to do here
-
-   // FIXME to be removed once we get rid of these "override" attributes
-   if (!overridePlug.isNull() && !overridePlug.asBool())
-   {
-      // the deprecated override parameter was left to False
-      // need to set it to True so that we stop caring about it
-      overridePlug.setBool(true);
-
-      // if override was OFF and Visibility was OFF
-      // it actually meant that my Visibility was ON
-      if (!visPlug.asBool())
-         visPlug.setBool(true);
-   }
-
-   // I can only remove visibility as compared to full visibility
-   if (!visPlug.asBool())
-      visibility &= ~rayType;
-}
-/**
-*   Standins visibility override is a bit special  :
-*   The procedural visibility will determine which rays make it to the procedural node. Then, the child node 
-*   keeps its own visibility value (i.e. it doesn't inherit from the procedural parent as for other attributes).
-*   This means that the resulting visibility value for the nested objects is the "intersection" of their own value
-*   and the procedural's one. So the only thing we can do here is to remove bits of the visibility value.
-**/
-AtByte CProceduralTranslator::ComputeOverrideVisibility()
-{
-   // Usually invisible nodes are not exported at all, just making sure here
-   if (!IsRenderable())
-      return AI_RAY_UNDEFINED;
-
-   AtByte visibility = AI_RAY_ALL;
-
-   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideCastsShadows"), 
-                                                FindMayaPlug("castsShadows"), 
-                                                AI_RAY_SHADOW);
-
-   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overridePrimaryVisibility"), 
-                                                FindMayaPlug("primaryVisibility"), 
-                                                AI_RAY_CAMERA);
-
-   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInDiffuseReflection"), 
-                                                FindMayaPlug("aiVisibleInDiffuseReflection"), 
-                                                AI_RAY_DIFFUSE_REFLECT);
-
-   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInSpecularReflection"), 
-                                                FindMayaPlug("aiVisibleInSpecularReflection"), 
-                                                AI_RAY_SPECULAR_REFLECT);
-   
-   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInDiffuseTransmission"), 
-                                                FindMayaPlug("aiVisibleInDiffuseTransmission"), 
-                                                AI_RAY_DIFFUSE_TRANSMIT);
-
-   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInSpecularTransmission"), 
-                                                FindMayaPlug("aiVisibleInSpecularTransmission"), 
-                                                AI_RAY_SPECULAR_TRANSMIT);
-
-   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInVolume"), 
-                                                FindMayaPlug("aiVisibleInVolume"), 
-                                                AI_RAY_VOLUME);
-
-   return visibility;
-}
-
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
 {
-   // Once we can get rid of pre-2.0.2 compatibility, we can simply invoke ComputeVisibility here...
-   // For now we're testing if one of the legacy attributes exists
-   if (FindMayaPlug("overridePrimaryVisibility").isNull())
-      AiNodeSetByte(node, "visibility", ComputeVisibility());   
-   else
-      AiNodeSetByte(node, "visibility", ComputeOverrideVisibility());
-
+   AiNodeSetByte(node, "visibility", ComputeVisibility());   
    MPlug plug;
    
    plug = FindProceduralPlug("overrideSelfShadows");
