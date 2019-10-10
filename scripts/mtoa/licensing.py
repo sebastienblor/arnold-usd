@@ -22,7 +22,7 @@ _waitingForDiagnosticsStatus = False
 
 def licenseManager():
     cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'ArnoldLicenseManager')
-    cmdRes = subprocess.Popen([cmdBinary], close_fds=True)
+    cmdRes = subprocess.Popen([cmdBinary], close_fds=True).communicate()[0]
 
 def getDiagnosticsResult():
 
