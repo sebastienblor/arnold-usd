@@ -876,6 +876,11 @@ def GetViewportShaders(maya_version):
         vp2ShaderExtensions.append('.hlsl')
     vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), vp2ShaderExtensions)
 
+    if  int(maya_version_base) < 2020:
+        indices = [i for i, s in enumerate (vp2shaders) if '2020' in s ]
+        for index in indices:
+            del vp2shaders[index]
+
     for vp2shader in vp2shaders:
         # If the version is >= 2020, replace aiRectangleAreaLight.xml from the usual vp2 directory
         # with the one that's under vp2/2020. 
@@ -883,7 +888,6 @@ def GetViewportShaders(maya_version):
 
         if vp2shader.find('2020') >= 0:
             vp2ShadersList.remove("aiRectangleAreaLight.xml")
-
         vp2ShadersList.append(vp2shader)
 
     return vp2ShadersList
@@ -891,10 +895,8 @@ def GetViewportShaders(maya_version):
 vp2Shaders = GetViewportShaders(maya_version)
 
 for vp2Shader in vp2Shaders:
-    vpTargetShader = vp2Shader.replace('2016/', '')
-    vpTargetShader = vp2Shader.replace('2016\\', '')
     vpTargetShader = vp2Shader.replace('2020/', '')
-    vpTargetShader = vp2Shader.replace('2020/', '')
+    vpTargetShader = vp2Shader.replace('2020\\', '')
     env.InstallAs([os.path.join(TARGET_VP2_PATH, vpTargetShader)], [os.path.join('plugins', 'mtoa', 'viewport2', vp2Shader)])
 
 # install include files
