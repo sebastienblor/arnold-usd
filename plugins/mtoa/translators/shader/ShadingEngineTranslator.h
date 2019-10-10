@@ -20,8 +20,7 @@ protected:
    {}
    virtual ~CShadingEngineTranslator();
    virtual void NodeChanged(MObject& node, MPlug& plug);
-   virtual void Init();
-
+   
    virtual void AddUpdateCallbacks();
 
    static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,

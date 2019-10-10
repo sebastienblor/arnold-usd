@@ -22,7 +22,6 @@ enum ArnoldSessionMode
    MTOA_SESSION_IPR,  ///< IPR Rendering in Maya Render View
    MTOA_SESSION_SWATCH, ///< Simple rendering performed for the swatches (e.g. Attribute Editor)
    MTOA_SESSION_ASS, ///< Exporting the scene to .ASS file
-   MTOA_SESSION_AIR,  ///< Deprecated : FIXME remove in next API breaking version
    MTOA_SESSION_RENDERVIEW, ///< Render with Arnold RenderView
    MTOA_SESSION_MATERIALVIEW, ///< Material Viewer rendering
    MTOA_SESSION_SEQUENCE,  ///< Render a Sequence from Maya interface
