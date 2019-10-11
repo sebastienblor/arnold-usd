@@ -2018,6 +2018,8 @@ UPDATE_BEGIN:
       trImpl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
    }
       
+   AiASSWrite("/home/handsca/mtoa.ass");
+
    m_objectsToUpdate.clear();
    m_requestUpdate = false;
 }

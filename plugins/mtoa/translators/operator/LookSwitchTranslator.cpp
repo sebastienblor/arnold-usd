@@ -1,21 +1,21 @@
-#include "VariantSwitchTranslator.h"
+#include "LookSwitchTranslator.h"
 #include "utils/Universe.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/DagTranslator.h"
 #include <maya/MPlugArray.h>
 
 
-void CVariantSwitchTranslator::Export(AtNode *shader)
+void CLookSwitchTranslator::Export(AtNode *shader)
 {
    MStatus status;
 
-   // loop the variant entries
+   // loop the look entries
    MPlug index = FindMayaPlug("index");
    AiNodeSetInt(shader, "index", index.asInt());
 
-   // loop the variant entries
-   MPlug variants = FindMayaPlug("variants");
-   unsigned nvars = variants.numElements();
+   // loop the look entries
+   MPlug looks = FindMayaPlug("looks");
+   unsigned nvars = looks.numElements();
    MPlug varPlug;
    AtArray* varArray = AiArrayAllocate(nvars, 1, AI_TYPE_NODE);
 
@@ -23,15 +23,15 @@ void CVariantSwitchTranslator::Export(AtNode *shader)
 
    for (unsigned int i = 0; i < nvars; ++i)
    {
-      varPlug = variants[i];
-      // get variant name
+      varPlug = looks[i];
+      // get look name
       MPlug name = varPlug.child(0, &status);
       MString name_str = name.asString();
 
       MPlug inputs = varPlug.child(1, &status);
       // get connections
 
-      MString mergeName = GetMayaNodeName() + "_" + i;
+      MString mergeName = name_str;
 
       AtNode* mergeNode = GetArnoldNode(mergeName.asChar());
       if (mergeNode == NULL)
@@ -62,22 +62,22 @@ void CVariantSwitchTranslator::Export(AtNode *shader)
 
          AtArray *prevArray = AiNodeGetArray(mergeNode, "inputs");
          bool mergeNeedUpdate = true;
-         if (prevArray)
-         {
-            unsigned prevArrayElems = AiArrayGetNumElements(prevArray);
-            if (prevArrayElems == nelems)
-            {
-               mergeNeedUpdate = false;
-               for (unsigned i = 0; i < nelems; ++i)
-               {
-                  if (AiArrayGetPtr(array, i) != AiArrayGetPtr(prevArray, i))
-                  {
-                     mergeNeedUpdate = true;
-                     break;
-                  }
-               }
-            }
-         }
+         // if (prevArray)
+         // {
+         //    unsigned prevArrayElems = AiArrayGetNumElements(prevArray);
+         //    if (prevArrayElems == nelems)
+         //    {
+         //       mergeNeedUpdate = false;
+         //       for (unsigned i = 0; i < nelems; ++i)
+         //       {
+         //          if (AiArrayGetPtr(array, i) != AiArrayGetPtr(prevArray, i))
+         //          {
+         //             mergeNeedUpdate = true;
+         //             break;
+         //          }
+         //       }
+         //    }
+         // }
          if (mergeNeedUpdate)
             AiNodeSetArray(mergeNode, "inputs", array);
       }
@@ -88,6 +88,14 @@ void CVariantSwitchTranslator::Export(AtNode *shader)
    AiNodeSetArray(shader, "inputs", varArray);
 }
 
-void CVariantSwitchTranslator::NodeInitializer(CAbTranslator context)
+void CLookSwitchTranslator::NodeInitializer(CAbTranslator context)
 {
 }
+
+void CLookSwitchTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+
+   CNodeTranslator::NodeChanged(node, plug);
+}
+

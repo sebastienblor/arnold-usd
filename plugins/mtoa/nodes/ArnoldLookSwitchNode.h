@@ -3,7 +3,7 @@
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>
 
-class CArnoldVariantSwitchNode
+class CArnoldLookSwitchNode
    :  public MPxNode
 {
 
@@ -24,10 +24,10 @@ public:
    // enumerator that corresponds to arnold's data type enum
    static MObject s_index;
 
-   static MObject s_variants;
+   static MObject s_looks;
    static MObject s_name;
    static MObject s_inputs;
 
    static MObject s_out;
 
-};  // class CArnoldVariantSwitchNode
+};  // class CArnoldLookSwitchNode
