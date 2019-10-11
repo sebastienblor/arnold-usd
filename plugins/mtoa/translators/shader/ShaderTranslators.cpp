@@ -4322,24 +4322,59 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    MString axf_path = FindMayaPlug("axfFilePath").asString();
    MString tex_path = FindMayaPlug("texturePath").asString();
    float uvScale = FindMayaPlug("uvScale").asFloat();
+   MFnDependencyNode fnNode(GetMayaObject());
+   MString maya_node_name = fnNode.name();
 
-   AtUniverse *universe = AiUniverse();
+   // AxFtoASessionStart();
+   AxFtoASessionClearErrors();
+   AxFtoASessionSetVerbosity(3);
+   AxFtoAFile* axf_file = AxFtoAFileOpen(axf_path.asChar());
+   AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
    
-   AtNode* ss = AxFtoAGetShader(NULL, axf_path.asChar(), tex_path.asChar(), uvScale);
-   if (ss == NULL)
+   AxFtoAMaterialSetTextureFolder(material, tex_path.asChar());
+   AxFtoAMaterialSetUVUnitSize(material, uvScale);
+   AxFtoAMaterialSetColorSpace(material, "Rec709,E");
+   AxFtoAMaterialSetUniverse(material, NULL);
+   AxFtoAMaterialSetTextureNamePrefix(material, "AxFtoA.");
+   AxFtoAMaterialSetNodeNamePrefix(material, "AxFtoA.shader.");
+
+   AtNode* root_node = AxFtoAMaterialGetRootNode(material);
+   
+
+   int num_arnold_nodes = AxFtoAMaterialGetNumNodes(material);
+   for (int i = 0 ; i < num_arnold_nodes ; i++)
+   {
+      AtNode* node = AxFtoAMaterialGetNode(material, i);
+      AddExistingArnoldNode(node);
+   }
+   
+   AxFtoAMaterialWriteTextures(material);
+
+   int num_tex = AxFtoAMaterialGetNumTextures(material);
+   std::cout << " Num of textures is " << num_tex << std::endl;
+   for (int tex_idx = 0; tex_idx < num_tex; tex_idx++)
+   {
+      printf("AxFtoATest: texture path %s\n", AxFtoAMaterialGetTexturePath(material, tex_idx));
+   }
+
+   // AtNode* root_node = AxFtoAGetShader(NULL, axf_path.asChar(), tex_path.asChar(), uvScale);
+   if (root_node == NULL)
    {
       AiMsgError("[mtoa] [translator %s] Unable to perform translation. Axf File is still not supported", GetTranslatorName().asChar());
    }
-   return ss;
+   AxFtoAFileClose(axf_file);
+   
+   return root_node;
+
 }
 
 void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   MString plugName = plug.partialName(false, false, false, false, false, true);
-   if ((plugName == "axfFilePath"))
-      SetUpdateMode(AI_RECREATE_NODE);
-   if ((plugName == "uvScale"))
-      SetUpdateMode(AI_RECREATE_NODE);
+   // MString plugName = plug.partialName(false, false, false, false, false, true);
+   // if ((plugName == "axfFilePath"))
+   //    SetUpdateMode(AI_RECREATE_NODE);
+   // if ((plugName == "uvScale"))
+   SetUpdateMode(AI_RECREATE_NODE);
 }
    
 

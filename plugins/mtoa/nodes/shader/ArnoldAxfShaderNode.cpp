@@ -65,9 +65,7 @@ MStatus CArnoldAxfShaderNode::initialize()
    MFnNumericAttribute nAttr;
    MFnTypedAttribute tAttr;
    
-   std::cout << " I'm starting a new session here " << std::endl;
    AxFtoASessionStart();
-
 
    MAKE_COLOR(s_OUT_color, "outColor", "ocl", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_color);
