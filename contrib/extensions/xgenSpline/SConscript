@@ -31,6 +31,7 @@ common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include
 common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'sggeom')])
 common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'xgsculptcore', 'api')])
 common_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
+common_env.Append(RPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 
 
 common_env.Append(CPPDEFINES = Split('_BOOL'))
@@ -96,6 +97,7 @@ local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include'
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'sggeom')])
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'xgsculptcore', 'api')])
 local_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
+local_env.Append(RPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 
 
 local_env.Append(CPPDEFINES = Split('_BOOL'))
@@ -183,6 +185,7 @@ proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include',
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'sggeom')])
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'xgsculptcore', 'api')])
 proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
+# proc_env.Append(RPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 
 if system.os =='windows':
     proc_env.Append(CPPPATH = ['.'])   
