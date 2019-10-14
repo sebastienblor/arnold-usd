@@ -31,7 +31,8 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
     
     def axfFilePathNew(self, nodeName):
         cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
-        self.axfFilePathText = cmds.textFieldGrp("filenameGrp", label="Axf Filename", changeCommand = self.filenameEdit, text = "")
+        info = cmds.getAttr(nodeName)
+        self.axfFilePathText = cmds.textFieldGrp("filenameGrp", label="Axf Filename", changeCommand = self.filenameEdit, text = info)
         cmds.symbolButton( image='navButtonBrowse.png', command=self.LoadFilenameButtonPush)
 
     def axfFilePathReplace(self, nodeName):
@@ -56,7 +57,8 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
     
     def texturePathNew(self, nodeName):
         cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
-        self.texturePathText = cmds.textFieldGrp("texnameGrp", label="Axf Texture Path", changeCommand = self.texturePathEdit, text = "")
+        info = cmds.getAttr(nodeName)
+        self.texturePathText = cmds.textFieldGrp("texnameGrp", label="Axf Texture Path", changeCommand = self.texturePathEdit, text = info)
         cmds.symbolButton( image='navButtonBrowse.png', command=self.SelectTexturePathButtonPush)
      
     def texturePathReplace(self, nodeName):

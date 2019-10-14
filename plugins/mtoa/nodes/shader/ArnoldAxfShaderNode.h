@@ -16,8 +16,9 @@ private:
 
 public:
 
+   ~CArnoldAxfShaderNode();
    virtual void postConstructor();
-
+   
    virtual MStatus compute(const MPlug& plug, MDataBlock& data);
 
    static void* creator();

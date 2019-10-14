@@ -39,6 +39,12 @@ CAbMayaNode CArnoldAxfShaderNode::s_abstract;
 MObjectArray CArnoldAxfShaderNode::s_PlugsAffecting;
 CStaticAttrHelper* CArnoldAxfShaderNode::s_nodeHelper = NULL;
 
+
+CArnoldAxfShaderNode::~CArnoldAxfShaderNode()
+{
+   AxFtoASessionEnd();
+}
+
 void CArnoldAxfShaderNode::postConstructor()
 {
    setExistWithoutInConnections(true);
@@ -73,7 +79,6 @@ MStatus CArnoldAxfShaderNode::initialize()
    MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_transparency);
    
-  
    s_axfFilePath = tAttr.create("axfFilePath", "axfFP", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);

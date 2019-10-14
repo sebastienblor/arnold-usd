@@ -4370,13 +4370,24 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
 
 void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   // MString plugName = plug.partialName(false, false, false, false, false, true);
-   // if ((plugName == "axfFilePath"))
-   //    SetUpdateMode(AI_RECREATE_NODE);
-   // if ((plugName == "uvScale"))
-   SetUpdateMode(AI_RECREATE_NODE);
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "axfFilePath"))
+   {   
+      SetUpdateMode(AI_RECREATE_NODE);
+   }
+   if ((plugName == "uvScale"))
+   {
+      SetUpdateMode(AI_RECREATE_NODE);
+    }  
+   CShaderTranslator::NodeChanged(node, plug);
 }
    
+
+void CArnoldAxfShaderTranslator::Export(AtNode* shader)
+{
+
+}
+
 
 void CStandardSurfaceTranslator::Export(AtNode* shader)
 {
