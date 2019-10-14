@@ -57,7 +57,6 @@ private:
    bool IsActive();
    void InitOptions();
    void InterruptRender(bool waitFinished = false);
-   bool WaitForRefresh(unsigned int msTimeout);
    void ScheduleRefresh();
 
    void DoSuspend();
