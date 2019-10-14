@@ -4325,9 +4325,14 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    MFnDependencyNode fnNode(GetMayaObject());
    MString maya_node_name = fnNode.name();
 
-   // AxFtoASessionStart();
+   if (axf_path.length()==0)
+   {
+      AiMsgError("[mtoa] [translator %s] No Axf File Provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
+      return NULL;
+   }
+
    AxFtoASessionClearErrors();
-   AxFtoASessionSetVerbosity(3);
+   AxFtoASessionSetVerbosity(0);
    AxFtoAFile* axf_file = AxFtoAFileOpen(axf_path.asChar());
    AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
    
@@ -4335,8 +4340,8 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    AxFtoAMaterialSetUVUnitSize(material, uvScale);
    AxFtoAMaterialSetColorSpace(material, "Rec709,E");
    AxFtoAMaterialSetUniverse(material, NULL);
-   AxFtoAMaterialSetTextureNamePrefix(material, "AxFtoA.");
-   AxFtoAMaterialSetNodeNamePrefix(material, "AxFtoA.shader.");
+   AxFtoAMaterialSetTextureNamePrefix(material, maya_node_name.asChar());
+   AxFtoAMaterialSetNodeNamePrefix(material, maya_node_name.asChar());
 
    AtNode* root_node = AxFtoAMaterialGetRootNode(material);
    
@@ -4350,20 +4355,12 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    
    AxFtoAMaterialWriteTextures(material);
 
-   int num_tex = AxFtoAMaterialGetNumTextures(material);
-   std::cout << " Num of textures is " << num_tex << std::endl;
-   for (int tex_idx = 0; tex_idx < num_tex; tex_idx++)
-   {
-      printf("AxFtoATest: texture path %s\n", AxFtoAMaterialGetTexturePath(material, tex_idx));
-   }
-
-   // AtNode* root_node = AxFtoAGetShader(NULL, axf_path.asChar(), tex_path.asChar(), uvScale);
    if (root_node == NULL)
    {
       AiMsgError("[mtoa] [translator %s] Unable to perform translation. Axf File is still not supported", GetTranslatorName().asChar());
    }
+
    AxFtoAFileClose(axf_file);
-   
    return root_node;
 
 }
@@ -4383,10 +4380,9 @@ void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 }
    
 
-void CArnoldAxfShaderTranslator::Export(AtNode* shader)
-{
-
-}
+// void CArnoldAxfShaderTranslator::Export(AtNode* shader)
+// {
+// }
 
 
 void CStandardSurfaceTranslator::Export(AtNode* shader)

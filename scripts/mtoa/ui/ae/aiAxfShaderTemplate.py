@@ -16,7 +16,7 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
     def filenameEdit(self, mPath) :
             attr = self.nodeAttr('axfFilePath')
             prevPath = cmds.getAttr(attr)
-            if prevPath == mPath:
+            if ( (prevPath == mPath) or (len(prevPath) == 0)):
                 return
             cmds.setAttr(attr,mPath,type="string")
 
@@ -44,7 +44,7 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
     def texturePathEdit(self, mPath) :
             attr = self.nodeAttr('texturePath')
             prevPath = cmds.getAttr(attr)
-            if prevPath == mPath:
+            if ( (prevPath == mPath) or (len(prevPath) == 0) ) :
                 return
             cmds.setAttr(attr,mPath,type="string")
 
