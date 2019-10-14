@@ -677,7 +677,7 @@ if system.os == 'windows':
     maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
-   
+    maya_env.Append(LIBS=Split('AxFtoA'))
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
 
     if env['PREBUILT_MTOA']:       
@@ -717,7 +717,6 @@ else:
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
         maya_env.Append(LIBS=Split('AxFtoA'))
-        #maya_env.Append(LIBS=Split('AxFDecoding'))
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
