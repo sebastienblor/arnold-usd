@@ -1216,7 +1216,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          CExtension *extension = &(*extIt);
          if (extension->m_impl->m_library == nullptr)
          {
-            AiMsgInfo("[mtoa] Delayed loading Extension: %s", extension->GetExtensionFile());
+            AiMsgInfo("[mtoa] Delayed loading Extension: %s", extension->GetExtensionFile().asChar());
             LoadExtensionLibrary(extension);
          }
          
