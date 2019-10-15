@@ -51,6 +51,8 @@ def updateComputeSamples(*args):
         cmds.attrControlGrp('ss_transmission_samples', edit=True, enable=False)
         cmds.attrControlGrp('ss_sss_samples', edit=True, enable=False)
         cmds.attrControlGrp('ss_volume_samples', edit=True, enable=False)
+        cmds.attrControlGrp('ss_progressive_render', edit=True, enable=False)
+
         if cmds.control('gpu_max_texturemax_texture_resolution', exists = True):
             cmds.attrControlGrp('gpu_max_texturemax_texture_resolution', edit = True , enable = True)
             cmds.attrControlGrp('renderDeviceFallback', edit = True , enable = True)
@@ -60,6 +62,8 @@ def updateComputeSamples(*args):
         cmds.attrControlGrp('ss_transmission_samples', edit=True, enable=True)
         cmds.attrControlGrp('ss_sss_samples', edit=True, enable=True)
         cmds.attrControlGrp('ss_volume_samples', edit=True, enable=True)
+        cmds.attrControlGrp('ss_progressive_render', edit=True, enable=True)
+
         if cmds.control('gpu_max_texturemax_texture_resolution', exists = True):
             cmds.attrControlGrp('gpu_max_texturemax_texture_resolution', edit = True , enable = False)
             cmds.attrControlGrp('renderDeviceFallback', edit = True , enable = False)
