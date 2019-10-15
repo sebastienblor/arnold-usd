@@ -167,6 +167,70 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
    return status;
 }
 
+// This function actually dlopens the extension lib
+MStatus CExtensionsManager::LoadExtensionLibrary(CExtension *extension)
+{
+   if (extension->m_impl->m_library != nullptr)
+      return MS::kSuccess; // looks like this library was already loaded...
+
+   void *pluginLib = LibraryLoad(extension->GetExtensionFile().asChar());
+   if (pluginLib == NULL)
+   {
+      MString msg = MString("[mtoa] Error loading extension library: ")+ MString(LibraryLastError());
+      AiMsgWarning(msg.asChar());
+
+      DeleteExtension(extension);
+      return MStatus::kFailure;
+   }
+   extension->m_impl->m_library = pluginLib;
+   void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
+   if (initializer == NULL)
+   {            
+      MString msg = MString("[mtoa] Error initializing extension library: ") + MString(LibraryLastError());
+      AiMsgWarning(msg.asChar());
+
+      LibraryUnload(pluginLib);
+      DeleteExtension(extension);
+      return MStatus::kFailure;
+   }
+   const char* (*apiVersionFunction)() = (const char* (*)())LibrarySymbol(pluginLib, "getAPIVersion");
+   if (apiVersionFunction != NULL)
+      extension->m_impl->m_apiVersion = apiVersionFunction();
+   else
+      extension->m_impl->m_apiVersion = MString("unknown");
+   const ExtensionInitFunction &initFunc = (ExtensionInitFunction)(initializer);
+   // ExtensionInitFunction * initFunc = (ExtensionInitFunction*)(&initializer);
+   // Do the init
+   (initFunc)(*extension);
+   // (*initFunc)(*extension);
+   // TODO MStatus returning initializeExtension?
+   // Info
+   unsigned int newNodes = extension->RegisteredNodesCount();
+   unsigned int trsNodes = extension->TranslatedNodesCount();
+   unsigned int trsCount = extension->TranslatorCount();
+
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] ["+ extension->GetExtensionName()+" declares a total of ";
+      log += newNodes;
+      log += " new Maya nodes.";
+      MtoaDebugLog(log);
+
+      log = "[mtoa] [" + extension->GetExtensionName() + " declares a total of ";
+      log += trsCount;
+      log += " translators for ";
+      log += trsNodes;
+      log += " Maya nodes (";
+      log += newNodes;
+      log += " new and ";
+      log += (trsNodes - newNodes);
+      log += " existing).";
+      MtoaDebugLog(log);
+
+      MtoaDebugLog("[mtoa] Successfully loaded extension library " + extension->GetExtensionName() + "("+extension->GetExtensionFile() +")");
+   }
+   return MS::kSuccess;
+}
 
 /// Load an MtoA extension.
 ///
@@ -196,76 +260,68 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
       while (NULL == extension)
       {
          extension = NewExtension(resolved);
+         MString mtd = file.substringW(0, nchars-next - 1);
+         mtd += ".mtd";
+
+         // Check if there is a .mtd file for the requirements, with the same name as the extension
+         // This way, we can now if some plugins are required to load this extension, without having 
+         // to actually dlopen it. See #3923
+         MFileObject fileObject;
+         fileObject.setRawFullName(mtd);
+         if (fileObject.exists())
+         {
+            AtMetadataStore *metadata = AiMetadataStore();
+            // Load the .mtd file as if it was a .ass file with metadatas, example:
+            // ### requires: "xgenToolkit"
+            if (AiMetadataStoreLoadFromASS(metadata, mtd.asChar()))
+            {
+               AtString requiresStr;
+               // is there an item "requires" in this file
+               AiMetadataStoreGetStr(metadata, AtString("requires"), &requiresStr);
+               if (!requiresStr.empty())
+               {
+                  // there might be several required plugins, comma-separated
+                  MString requiresMStr(requiresStr.c_str());
+                  MStringArray requiresSplit;
+                  requiresMStr.split(',', requiresSplit);
+                  for (unsigned int s = 0; s < requiresSplit.length(); ++s)
+                  {
+                     // add this plugin to the list of required items.
+                     extension->Requires(requiresSplit[s]);
+                  }
+               }
+            }
+         }
+
+         // Now discard all the extensions that require plugins that aren't loaded.
+         // We don't want to dlopen them yet, as they might not load (see #3923)
+         MStringArray requiredPlugins;
+         requiredPlugins = extension->Required();
+         for (unsigned int i=0; i<requiredPlugins.length(); i++)
+         {
+            MString pluginName = requiredPlugins[i];
+            MObject plugin = MFnPlugin::findPlugin(pluginName);
+            if (plugin.isNull())
+            {
+               AiMsgInfo("[mtoa] Extension %s(%s) requires Maya plugin %s, registering will be deferred until plugin is loaded.",
+                     path.asChar(), file.asChar(), pluginName.asChar());
+               extension->m_impl->m_deferred = true;
+               if (NULL != returnStatus) *returnStatus = status;
+               return extension; // return an "empty" extension, it will only be loaded when the required plugins are all loaded
+            }
+         }
+
          if (MtoaTranslationInfo())
             MtoaDebugLog("[mtoa] Loading extension "+ extension->GetExtensionName() +"("+extension->GetExtensionFile()+").");
 
-         void *pluginLib = LibraryLoad(extension->GetExtensionFile().asChar());
-         if (pluginLib == NULL)
-         {
-            MString msg = MString("[mtoa] Error loading extension library: ")+ MString(LibraryLastError());
-            AiMsgWarning(msg.asChar());
-
-            DeleteExtension(extension);
-            status = MStatus::kFailure;
-            break;
-         }
-         extension->m_impl->m_library = pluginLib;
-         void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
-         if (initializer == NULL)
-         {            
-            MString msg = MString("[mtoa] Error initializing extension library: ") + MString(LibraryLastError());
-            AiMsgWarning(msg.asChar());
-
-            LibraryUnload(pluginLib);
-            DeleteExtension(extension);
-            status = MStatus::kFailure;
-            break;
-         }
-         const char* (*apiVersionFunction)() = (const char* (*)())LibrarySymbol(pluginLib, "getAPIVersion");
-         if (apiVersionFunction != NULL)
-            extension->m_impl->m_apiVersion = apiVersionFunction();
-         else
-            extension->m_impl->m_apiVersion = MString("unknown");
-         const ExtensionInitFunction &initFunc = (ExtensionInitFunction)(initializer);
-         // ExtensionInitFunction * initFunc = (ExtensionInitFunction*)(&initializer);
-         // Do the init
-         (initFunc)(*extension);
-         // (*initFunc)(*extension);
-         // TODO MStatus returning initializeExtension?
-         if (MStatus::kSuccess == status)
-         {
-            // Info
-            unsigned int newNodes = extension->RegisteredNodesCount();
-            unsigned int trsNodes = extension->TranslatedNodesCount();
-            unsigned int trsCount = extension->TranslatorCount();
-
-            if (MtoaTranslationInfo())
-            {
-               MString log = "[mtoa] ["+ extension->GetExtensionName()+" declares a total of ";
-               log += newNodes;
-               log += " new Maya nodes.";
-               MtoaDebugLog(log);
-
-               log = "[mtoa] [" + extension->GetExtensionName() + " declares a total of ";
-               log += trsCount;
-               log += " translators for ";
-               log += trsNodes;
-               log += " Maya nodes (";
-               log += newNodes;
-               log += " new and ";
-               log += (trsNodes - newNodes);
-               log += " existing).";
-               MtoaDebugLog(log);
-
-               MtoaDebugLog("[mtoa] Successfully loaded extension library " + extension->GetExtensionName() + "("+extension->GetExtensionFile() +")");
-            }
-         }
-         else
+         status = LoadExtensionLibrary(extension); // now dlopen the library
+         if (status == MS::kFailure)
          {
             AiMsgError("[mtoa] Call to initializeExtension failed on extension library %s(%s).",
-                  extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+            extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
             // TODO : deinitialize and unload ?
          }
+
          // Do not register now to allow to add calls (registerNode, etc) on it before
          // status = RegisterExtension(extension);
       }
@@ -1157,7 +1213,14 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          if (!universeCreated)
             universeCreated = ArnoldUniverseBegin();
 
-         RegisterExtension(&(*extIt));
+         CExtension *extension = &(*extIt);
+         if (extension->m_impl->m_library == nullptr)
+         {
+            AiMsgInfo("[mtoa] Delayed loading Extension: %s", extension->GetExtensionFile());
+            LoadExtensionLibrary(extension);
+         }
+         
+         RegisterExtension(extension);
       }
    }
    if (universeCreated) ArnoldUniverseEnd();
