@@ -42,7 +42,7 @@ CStaticAttrHelper* CArnoldAxfShaderNode::s_nodeHelper = NULL;
 
 CArnoldAxfShaderNode::~CArnoldAxfShaderNode()
 {
-   AxFtoASessionEnd();
+   
 }
 
 void CArnoldAxfShaderNode::postConstructor()
@@ -71,7 +71,6 @@ MStatus CArnoldAxfShaderNode::initialize()
    MFnNumericAttribute nAttr;
    MFnTypedAttribute tAttr;
    
-   AxFtoASessionStart();
 
    MAKE_COLOR(s_OUT_color, "outColor", "ocl", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_color);

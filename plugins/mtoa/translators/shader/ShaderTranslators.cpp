@@ -4311,49 +4311,53 @@ void CRampFloatTranslator::Export(AtNode* shader)
       }
    }  
 }
-// void CArnoldAxfShaderTranslator::NodeInitializer(CAbTranslator context)
-// {
-//    std::cout << " AXF Translating : Node Init" << std::endl;
-// }
 
 AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
 {
-   
    MString axf_path = FindMayaPlug("axfFilePath").asString();
    MString tex_path = FindMayaPlug("texturePath").asString();
    float uvScale = FindMayaPlug("uvScale").asFloat();
    MFnDependencyNode fnNode(GetMayaObject());
    MString maya_node_name = fnNode.name();
 
-   if (axf_path.length()==0)
+
+   if (axf_path.length()==0 || tex_path.length()==0)
    {
-      AiMsgError("[mtoa] [translator %s] No Axf File Provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
+      AiMsgError("[mtoa] [translator %s] No Axf File or Texture Path Provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
       return NULL;
    }
 
+   AxFtoASessionStart();
    AxFtoASessionClearErrors();
-   AxFtoASessionSetVerbosity(0);
+   
+   //TODO : Need to set verbosity based on the verbosity level in Render Setting 
+   AxFtoASessionSetVerbosity(4);
+   
    AxFtoAFile* axf_file = AxFtoAFileOpen(axf_path.asChar());
+   
+   // TODO : Right now we're assuming that we have only 1 material in the axf file 
+   // We need to set the material index based off of user selection
    AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
+   
    
    AxFtoAMaterialSetTextureFolder(material, tex_path.asChar());
    AxFtoAMaterialSetUVUnitSize(material, uvScale);
+   
+   // TODO : We're also setting the namespace to be a default namespace 
+   // This also need to be exposed to the user and set based on user action
    AxFtoAMaterialSetColorSpace(material, "Rec709,E");
+   
    AxFtoAMaterialSetUniverse(material, NULL);
    AxFtoAMaterialSetTextureNamePrefix(material, maya_node_name.asChar());
    AxFtoAMaterialSetNodeNamePrefix(material, maya_node_name.asChar());
-
    AtNode* root_node = AxFtoAMaterialGetRootNode(material);
-   
-
+   AxFtoAMaterialWriteTextures(material);
    int num_arnold_nodes = AxFtoAMaterialGetNumNodes(material);
    for (int i = 0 ; i < num_arnold_nodes ; i++)
    {
       AtNode* node = AxFtoAMaterialGetNode(material, i);
       AddExistingArnoldNode(node);
    }
-   
-   AxFtoAMaterialWriteTextures(material);
 
    if (root_node == NULL)
    {
@@ -4361,29 +4365,20 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    }
 
    AxFtoAFileClose(axf_file);
-   return root_node;
+   AxFtoASessionEnd();
 
+   return root_node;
 }
 
 void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.partialName(false, false, false, false, false, true);
-   if ((plugName == "axfFilePath"))
+   if ((plugName == "axfFilePath") || (plugName == "uvScale") || (plugName == "texturePath"))
    {   
       SetUpdateMode(AI_RECREATE_NODE);
    }
-   if ((plugName == "uvScale"))
-   {
-      SetUpdateMode(AI_RECREATE_NODE);
-    }  
    CShaderTranslator::NodeChanged(node, plug);
 }
-   
-
-// void CArnoldAxfShaderTranslator::Export(AtNode* shader)
-// {
-// }
-
 
 void CStandardSurfaceTranslator::Export(AtNode* shader)
 {
