@@ -18,7 +18,7 @@ float3 standardShaderDiffuse(
 {
     float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return lightingData.diffuse * NDL;
+        return lightingData.diffuse * NDL / 3.14159265358f;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
@@ -34,7 +34,7 @@ float3 standardShaderDiffuse(
 {
     float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return lightingData.diffuse * NDL;
+        return lightingData.diffuse * NDL / 3.14159265358f;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
@@ -50,7 +50,7 @@ vec3 standardShaderDiffuse(
 {
     float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return lightingData.diffuse * NDL;
+        return lightingData.diffuse * NDL / 3.14159265358f;
     else
         return vec3(0.0f, 0.0f, 0.0f);
 }

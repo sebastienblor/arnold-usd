@@ -3,12 +3,12 @@
 //Last modified: Fri, Jan 11, 2019 03:36:13 PM
 //Codeset: 1252
 requires maya "2018ff09";
+requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
+		 "mtoa" "3.1.3.wip";
 requires -nodeType "xgmPalette" -nodeType "xgmDescription" -nodeType "xgmMakeGuide"
 		 -nodeType "xgmSubdPatch" -nodeType "xgmArchiveGuide" -dataType "xgmGuideData" -dataType "igmDescriptionData"
 		 -dataType "xgmSplineData" -dataType "xgmMeshData" -dataType "xgmSplineTweakData"
 		 -dataType "xgmSplineBoundInfoData" -dataType "xgmGuideRefData" "xgenToolkit" "1.0";
-requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
-		 "mtoa" "3.1.3.wip";
 requires "stereoCamera" "10.0";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;

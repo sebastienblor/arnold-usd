@@ -53,7 +53,6 @@ static const size_t MAX_PATH_LENGTH = 4096;
 // If you change this one, don't forget to change the other
 static MString GetArnoldBifrostPath()
 {
-   MString str;
    char archStr[64];
    char majorStr[64];
    char minorStr[64];
@@ -75,62 +74,75 @@ static MString GetArnoldBifrostPath()
    if (bifrostPath.length() == 0)
       return MString(); // didn't find it, Bifrost is probably not loaded
 
+#ifdef _WIN32
+   MString pathSep = "\\";
+#else
+   MString pathSep = "/";
+#endif
+
+   // Initial directory layout: bifrost/arnold-X.X.X.X
+   // Future directory layout: bifrost/arnold/X.X.X.X
+   MString directories[2] = { bifrostPath, bifrostPath + pathSep + "arnold" };
+   MString prefixes[2] = { "arnold-", "" };
+
    DIR *dir;
    struct dirent *ent;
    int topVersionVal = -1;
    MString topVersionPath = "";
 
-   // Loop over all directories in the bifrost module path,
-   // and look for the arnold-xxxxx ones
-   if ((dir = opendir (bifrostPath.asChar())) != NULL)
+   for (int i = 0; i < 2; ++i)
    {
-      while ((ent = readdir (dir)) != NULL)
+      // Loop over all directories in the candidate path, and look for the arnold versioned directories
+      if ((dir = opendir(directories[i].asChar())) != NULL)
       {
-         MString dirName(ent->d_name);
-         // Skip the ones that don't start with "arnold-"
-         if (dirName.length() < 7 || dirName.substringW(0, 6) != MString("arnold-"))
-            continue;
+         while ((ent = readdir(dir)) != NULL)
+         {
+            MString dirName(ent->d_name);
+            // Skip the ones that don't start with the appropriate prefix (if any)
+            if (prefixes[i].length() > 0 && (dirName.length() < prefixes[i].length() + 1 || dirName.substringW(0, prefixes[i].length() - 1) != prefixes[i]))
+               continue;
 
-         // Get the version number this bifrost procedural was built against
-         MString folderVersion = dirName.substringW(7, dirName.length() -1);
+            // Get the version number this bifrost procedural was built against
+            MString folderVersion = prefixes[i].length() > 0 ? dirName.substringW(prefixes[i].length(), dirName.length() - 1) : dirName;
 
-         // We want to get the most recent bifrost procedural that is compatible with
-         // the current arnold version
-         MStringArray splitVersion;
-         folderVersion.split('.', splitVersion);
-         if (splitVersion.length() < 2 || !splitVersion[0].isInt() || !splitVersion[1].isInt())
-            continue; // something wrong with the folder format, we need at least the 2 first integers
+            // We want to get the most recent bifrost procedural that is compatible with
+            // the current arnold version
+            MStringArray splitVersion;
+            folderVersion.split('.', splitVersion);
+            if (splitVersion.length() < 2 || !splitVersion[0].isInt() || !splitVersion[1].isInt())
+               continue; // something wrong with the folder format, we need at least the 2 first integers
 
-         int currentArch = splitVersion[0].asInt();
-         // we need a procedural that matches the current architectural version of arnold
-         if (currentArch < arch)
-            continue;
 
-         int currentMajor = splitVersion[1].asInt();
-         int currentVersionVal = 10000 * currentMajor + 1000000 * currentArch;
+            int currentArch = splitVersion[0].asInt();
+            // we need a procedural that matches the current architectural version of arnold
+            if (currentArch < arch)
+               continue;
 
-         // The following tests are in case we end up stripping the
-         // minor and fix versions from the folders
-         if (splitVersion.length() >= 3 && splitVersion[2].isInt())
-            currentVersionVal += 100 * splitVersion[2].asInt();
+            int currentMajor = splitVersion[1].asInt();
+            int currentVersionVal = 10000 * currentMajor + 1000000 * currentArch;
 
-         if (splitVersion.length() >= 4 && splitVersion[3].isInt())
-            currentVersionVal += splitVersion[3].asInt();
+            // The following tests are in case we end up stripping the
+            // minor and fix versions from the folders
+            if (splitVersion.length() >= 3 && splitVersion[2].isInt())
+               currentVersionVal += 100 * splitVersion[2].asInt();
 
-         if (currentVersionVal > versionVal)
-            continue; // the arnold version is older than the older package, ignore it
+            if (splitVersion.length() >= 4 && splitVersion[3].isInt())
+               currentVersionVal += splitVersion[3].asInt();
 
-         if (currentVersionVal < topVersionVal)
-            continue; // nah, we already have a better candidate;
+            if (currentVersionVal > versionVal)
+               continue; // the arnold version is older than the older package, ignore it
 
-         // this is the best candidate so far
-         topVersionVal = currentVersionVal;
-         topVersionPath = dirName;
+            if (currentVersionVal < topVersionVal)
+               continue; // nah, we already have a better candidate;
+
+            // this is the best candidate so far
+            topVersionVal = currentVersionVal;
+            topVersionPath = directories[i] + pathSep + dirName;
+         }
+         closedir(dir);
       }
-      closedir (dir);
    }
-   str = bifrostPath + MString("/") + topVersionPath;
-   return str;
+   return topVersionPath;
 }
 
 static void GetArnoldBifrostABIRevision(const char* dsoPath, const char* dsoName)
@@ -251,20 +263,6 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
    return AddArnoldNode("bifrost_graph");
 }
 
-
-void CBifShapeTranslator::GetSerializedData(MDoubleArray& array)
-{
-   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
-   if (!serialisedDataPlug.isNull() )
-   {
-      AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
-      MDataHandle handle;
-      serialisedDataPlug.getValue(handle);
-      MFnDoubleArrayData ArrData(handle.data());
-      array = ArrData.array();
-   }
-}
-
 void CBifShapeTranslator::Export( AtNode *shape )
 {
    unsigned int step = GetMotionStep();
@@ -280,8 +278,12 @@ void CBifShapeTranslator::Export( AtNode *shape )
    MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
    if (!serialisedDataPlug.isNull() && filenamePlug.isDefaultValue())
    {
-      MDoubleArray serialisedData;
-      GetSerializedData(serialisedData);
+      AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
+      MDataHandle serialisedDataHandle;
+      serialisedDataPlug.getValue(serialisedDataHandle);
+      MFnDoubleArrayData arrData(serialisedDataHandle.data());
+      MDoubleArray serialisedData = arrData.array();
+
       unsigned int nEle = serialisedData.length();
       size_t nBytes = static_cast<size_t>(nEle) * sizeof(double);
 
@@ -295,6 +297,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
          AiMsgError("[mtoa.bifrost_graph] %s: this version of arnold_bifrost does not support more than 2GB of data per bif shape, "
                     "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
                     AiNodeGetName(shape));
+         serialisedDataPlug.destructHandle(serialisedDataHandle);
          return;
       }
 
@@ -377,6 +380,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
          AiNodeSetArray(shape, "bifrost:input0", dataArray);
          AiNodeSetArray(shape, "input_interpretations", interpsArray);
       }
+
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
    }
 
    MPlug geomPlug = FindMayaPlug("aiCompound");
@@ -418,6 +423,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
          AiNodeSetArray(shape, "material_references", materialReferences);
          AiNodeSetArray(shape, "shader_references", shaderReferences);
       }
+      materialReferencesPlug.destructHandle(matDataHandle);
    }
 
    MPlug velocityScalePlug = FindMayaPlug("aiVelocityScale");
@@ -516,8 +522,15 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    unsigned int step = GetMotionStep();
 
-   MDoubleArray serialisedData;
-   GetSerializedData(serialisedData);
+   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
+   if (serialisedDataPlug.isNull())
+      return;
+
+   AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
+   MDataHandle serialisedDataHandle;
+   serialisedDataPlug.getValue(serialisedDataHandle);
+   MFnDoubleArrayData arrData(serialisedDataHandle.data());
+   MDoubleArray serialisedData = arrData.array();
    size_t serialisedSize = serialisedData.length() * sizeof(double);
 
    AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
@@ -531,6 +544,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
       AiMsgError("[mtoa.bifrost_graph] %s: this version of arnold_bifrost does not support more than 2GB of data per bif shape, "
                  "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
                  AiNodeGetName(shape));
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
       return;
    }
 
@@ -604,6 +618,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
       fwrite(&serialisedData[0], sizeof(uint8_t), serialisedSize, fp);
       fclose(fp);
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
       return;
    }
 
@@ -614,6 +629,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    if (nKeys <= step)
    {
       AiMsgWarning("[mtoa.bifrost_graph] attempted motion key export when key is not available");
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
       return;
    }
    if (serialisedSize > keySize)
@@ -661,4 +677,5 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    if (serialisedSize < keySize)
       memset(dataList + serialisedSize, 0, keySize - serialisedSize);
    AiArrayUnmap(dataArray);
+   serialisedDataPlug.destructHandle(serialisedDataHandle);
 }

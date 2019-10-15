@@ -849,10 +849,6 @@ if not env['MTOA_DISABLE_RV']:
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
 # Temporarily installing the license manager
-LICENSE_MANAGER = None
-if system.os != 'linux':
-    LICENSE_MANAGER = os.path.join(EXTERNAL_PATH, 'license_manager', system.os, '*')
-    env.Install(env['TARGET_BINARIES'], glob.glob(LICENSE_MANAGER))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -871,33 +867,36 @@ arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 
-def GetViewportShaders(maya_version):
 
+def GetViewportShaders(maya_version):
     vp2ShadersList = []
     vp2ShaderExtensions = ['.xml', '.cgfx', '.fx', '.ogsfx']
     
     if system.os == 'windows':
         vp2ShaderExtensions.append('.hlsl')
     vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), vp2ShaderExtensions)
-    old_vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2', '2016'), vp2ShaderExtensions)
+
+    if  int(maya_version_base) < 2020:
+        indices = [i for i, s in enumerate (vp2shaders) if '2020' in s ]
+        for index in indices:
+            del vp2shaders[index]
 
     for vp2shader in vp2shaders:
-        vpTargetShader = vp2shader
+        # If the version is >= 2020, replace aiRectangleAreaLight.xml from the usual vp2 directory
+        # with the one that's under vp2/2020. 
+        # In this case , we're adding both via find_files_recursive and removing the older file. 
 
-        if vp2shader.find('2016') >= 0:
-            continue
-        
+        if vp2shader.find('2020') >= 0:
+            vp2ShadersList.remove("aiRectangleAreaLight.xml")
         vp2ShadersList.append(vp2shader)
 
     return vp2ShadersList
 
-         
-
 vp2Shaders = GetViewportShaders(maya_version)
 
 for vp2Shader in vp2Shaders:
-    vpTargetShader = vp2Shader.replace('2016/', '')
-    vpTargetShader = vp2Shader.replace('2016\\', '')
+    vpTargetShader = vp2Shader.replace('2020/', '')
+    vpTargetShader = vp2Shader.replace('2020\\', '')
     env.InstallAs([os.path.join(TARGET_VP2_PATH, vpTargetShader)], [os.path.join('plugins', 'mtoa', 'viewport2', vp2Shader)])
 
 # install include files
@@ -1103,6 +1102,12 @@ for ext in os.listdir(ext_base_dir):
                 ext_files.append(pyfile)
                 env.Install(TARGET_EXTENSION_PATH, pyfile)
 
+        mtdfiles = glob.glob(pluginDir+"/*.mtd")
+        for mtdfile  in mtdfiles:
+            if os.path.exists(mtdfile):
+                ext_files.append(mtdfile)
+                env.Install(TARGET_EXTENSION_PATH, mtdfile)
+        
         pymodules = glob.glob(pluginDir+"/*/__init__.py")
         for pymodule in pymodules:
             if os.path.exists(pymodule):
@@ -1185,6 +1190,7 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
@@ -1271,11 +1277,13 @@ for vp2shader in installedVp2Shaders:
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
+PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.mtd'), 'extensions'])
   
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSplineTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_shaders%s' % get_library_extension()), 'shaders'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.py'), 'extensions'])
+PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.mtd'), 'extensions'])
     
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShaderTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShader_shaders%s' % get_library_extension()), 'shaders'])
@@ -1360,16 +1368,6 @@ if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
     if OCIO_DYLIBPATH != "":
         PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
-
-
-# temporarily installing the license manager
-if LICENSE_MANAGER:
-    license_manager_files = find_files_recursive(os.path.join(EXTERNAL_PATH, 'license_manager', system.os), None)
-    for p in license_manager_files:
-        (d, f) = os.path.split(p)
-        PACKAGE_FILES += [
-            [os.path.join(EXTERNAL_PATH, 'license_manager', system.os, p), os.path.join('bin', d)]
-        ]
 
 
 env['PACKAGE_FILES'] = PACKAGE_FILES

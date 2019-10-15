@@ -175,7 +175,10 @@ def arnoldAboutDialog():
     cmds.setParent( '..' )
     
     cmds.showWindow(w)
-   
+
+def arnoldLicenseManager():
+    mtoa.licensing.licenseManager()
+
 def arnoldLicensingSignIn():
     ai.ai_license_clm.AiLicenseClmSignIn()
 
@@ -441,6 +444,14 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStop()', category="Utilities", annotation='Terminate the Optix GPU cache creation')
         cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicenseManager())
+        cmds.menuItem('ArnoldLicensingHelp',  label='Licensing Help', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AILIC/Licensing+Home'))
+        cmds.menuItem('ArnoldSuscribe',  label='Purchase Subscription', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+        
+        '''
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
         cmds.menuItem('ArnoldGetDiagnostics', label='Diagnostics', parent='ArnoldLicensingMenu',
@@ -448,8 +459,6 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
         
-        cmds.menuItem('ArnoldSuscribe',  label='Buy Arnold', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
         cmds.menuItem('ArnoldGetMacAddress', label='Get MAC Address', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingGetMacAddress())
 
@@ -468,6 +477,7 @@ def createArnoldMenu():
 
         cmds.menuItem('ArnoldInstallTrialLicense', label='Install Trial License', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingNodeLocked())
+        '''
 
         cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)

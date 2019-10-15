@@ -4,12 +4,12 @@
 //Codeset: UTF-8
 requires maya "20180000";
 requires -nodeType "hairPhysicalShader" "hairPhysicalShader" "1.0";
+requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
+		 "mtoa" "3.2.0.wip";
 requires -nodeType "xgmPalette" -nodeType "xgmDescription" -nodeType "xgmSubdPatch"
 		 -nodeType "igmDescription" -dataType "xgmGuideData" -dataType "igmDescriptionData"
 		 -dataType "xgmSplineData" -dataType "xgmMeshData" -dataType "xgmSplineTweakData"
 		 -dataType "xgmSplineBoundInfoData" -dataType "xgmGuideRefData" "xgenToolkit" "1.0";
-requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
-		 "mtoa" "3.2.0.wip";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";

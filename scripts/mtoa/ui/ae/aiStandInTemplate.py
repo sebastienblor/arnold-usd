@@ -23,7 +23,7 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
-from mtoa.ui.procview.ProceduralTransverser import VARIANTSWITCH_OP, SWITCH_OP, MERGE_OP
+from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, MERGE_OP
 
 from mtoa.callbacks import *
 
@@ -119,15 +119,15 @@ def editLabelCmd(str1, str2):
     return ''
 
 
-class VariantDialog(object):
+class LookDialog(object):
 
-    def __init__(self, title="New Variant", edit=False, variantName=None):
+    def __init__(self, title="New Look", edit=False, lookName=None):
 
         self.title = title
         self.edit = edit
-        self.variant = "newPass"
-        if variantName:
-            self.variant = variantName
+        self.look = "newPass"
+        if lookName:
+            self.look = lookName
         self.duplicateCurrent = False
         self._nameWidget = None
         self._duplicateCurrentWidget = None
@@ -146,10 +146,10 @@ class VariantDialog(object):
         cmds.formLayout(form, e=True, width=300)
 
         self._nameWidget = cmds.textFieldGrp(
-            ad2=2, label="Variant Name",
-            text=self.variant)
+            ad2=2, label="Look Name",
+            text=self.look)
 
-        self._duplicateCurrentWidget = cmds.checkBox(label='Duplicate Current Variant')
+        self._duplicateCurrentWidget = cmds.checkBox(label='Duplicate Current Look')
         if self.edit:
             cmds.checkBox(self._duplicateCurrentWidget, e=True, visible=False)
 
@@ -175,7 +175,7 @@ class VariantDialog(object):
 
     def onDismiss(self, data, msg):
 
-        self.variant = cmds.textFieldGrp(self._nameWidget, query=True, text=True)
+        self.look = cmds.textFieldGrp(self._nameWidget, query=True, text=True)
         self.duplicateCurrent = cmds.checkBox(self._duplicateCurrentWidget, query=True, value=True)
 
         cmds.layoutDialog(dismiss=msg)
@@ -251,45 +251,55 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setCurrentNode(self.nodeName, expand, force=True)
         self.properties_panel.setNode(self.nodeName)
 
-    def variantReplace(self, nodeAttr):
+    def lookReplace(self, nodeAttr):
+        old_look = self.look_node
+        old_node = self.current_node
         # check if attribute need updating
+        if not cmds.attributeQuery("look", node=self.nodeName, exists=True):
+            cmds.addAttr(self.nodeName, longName="look", at="enum", enumName="default" )
 
-        self.variant_node = self.getVariantSwitchNode()
+        self.look_node = self.getLookSwitchNode()
+        self.current_node = self.nodeName
 
-        if self.variant_node:
-            if self.updateVariantAttr():
+        replace_look = old_look != self.look_node
+        replace_node = old_node != self.current_node
+        update = self.updateLookAttr()
+        if update or replace_look or replace_node or self._update_var_ui:
 
-                variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
-                cmds.setAttr("{}.variant".format(self.nodeName), variant_idx)
+            if self.lookCtrl:
+                cmds.deleteUI(self.lookCtrl)
 
-                if self.variantCtrl:
-                    cmds.deleteUI(self.variantCtrl)
+            self.lookCtrl = cmds.attrEnumOptionMenu(label="Look Look",
+                                                       attribute="{}.look".format(self.nodeName),
+                                                       parent=self.lookRowLayout,
+                                                       changeCommand=self.setLook)
 
-                self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
-                                                           attribute="{}.variant".format(self.nodeName),
-                                                           parent=self.variantRowLayout,
-                                                           changeCommand=self.setVariant)
+            self._update_var_ui = False
+            if self.look_node:
+                look_idx = cmds.getAttr("{}.index".format(self.look_node))
+                cmds.setAttr("{}.look".format(self.nodeName), look_idx)
 
-                self.refreshAssignmentsUI()
+            self.refreshAssignmentsUI()
 
-    def variantNew(self, nodeAttr):
+    def lookNew(self, nodeAttr):
+        self.current_node = self.nodeName
         # get if theres an enum attribute
-        if not cmds.attributeQuery("variant", node=self.nodeName, exists=True):
-            cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName="default" )
+        if not cmds.attributeQuery("look", node=self.nodeName, exists=True):
+            cmds.addAttr(self.nodeName, longName="look", at="enum", enumName="default" )
 
-        self.variant_node = self.getVariantSwitchNode()
+        self.look_node = self.getLookSwitchNode()
 
-        self.variantRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
+        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
                                          columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
                                          columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
 
-        self.newVariantCtrl = cmds.symbolButton('standInNewVarientButton', image='newRenderPass.png', command=self.newVariant )
-        self.editVariantCtrl = cmds.symbolButton('standInEditVarientButton', image='editRenderPass.png', command=self.editVariant )
-        self.removeVariantCtrl = cmds.symbolButton('standInRemoveVarientButton', image='deleteRenderPass.png', command=self.removeVariant )
+        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
+        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
+        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
 
-        self.variantCtrl = cmds.attrEnumOptionMenu(label="Look Variant",
-                                                   attribute="{}.variant".format(self.nodeName),
-                                                   changeCommand=self.setVariant)
+        self.lookCtrl = cmds.attrEnumOptionMenu(label="Look Look",
+                                                   attribute="{}.look".format(self.nodeName),
+                                                   changeCommand=self.setLook)
 
         cmds.text("")
         cmds.setParent('..')
@@ -363,168 +373,169 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         self.fileInfoReplace(nodeAttr)
 
-    def newVariantUI(self, defaultname):
+    def newLookUI(self, defaultname):
 
-        variantDialog = VariantDialog(variantName=defaultname)
+        lookDialog = LookDialog(lookName=defaultname)
 
-        val = variantDialog.show()
+        val = lookDialog.show()
         if val == "cancel":
             return False, False
 
-        return variantDialog.variant, variantDialog.duplicateCurrent
+        return lookDialog.look, lookDialog.duplicateCurrent
 
-    def editVariant(self, *args):
-        if self.variant_node:
-            variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
-            current_variant_name = cmds.getAttr("{}.variants[{}].name".format(self.variant_node, variant_idx))
-            # show pop up to rename the variant
-            variant_dialog = VariantDialog(edit=True, variantName=current_variant_name)
-            val = variant_dialog.show()
+    def editLook(self, *args):
+        if self.look_node:
+            look_idx = cmds.getAttr("{}.index".format(self.look_node))
+            current_look_name = cmds.getAttr("{}.looks[{}].name".format(self.look_node, look_idx))
+            # show pop up to rename the look
+            look_dialog = LookDialog(edit=True, lookName=current_look_name)
+            val = look_dialog.show()
             if val == "cancel":
                 return False
-            cmds.setAttr("{}.variants[{}].name".format(self.variant_node, variant_idx), variant_dialog.variant, type="string")
-            self.variantReplace("{}.variant".format(self.nodeName))
+            cmds.setAttr("{}.looks[{}].name".format(self.look_node, look_idx), look_dialog.look, type="string")
+            self.lookReplace("{}.look".format(self.nodeName))
 
-    def removeVariant(self, *args):
-        if self.variant_node:
+    def removeLook(self, *args):
+        if self.look_node:
             # get the index
-            variant_idxs = cmds.getAttr("{}.variants".format(self.variant_node), multiIndices=True) or []
-            variant_idx = cmds.getAttr("{}.index".format(self.variant_node))
+            look_idxs = cmds.getAttr("{}.looks".format(self.look_node), multiIndices=True) or []
+            look_idx = cmds.getAttr("{}.index".format(self.look_node))
             # is the index above 0
-            if variant_idx == 0:
-                cmds.error("Cannot remove the default look variant on node {}".format(self.variant_node))
+            if look_idx == 0:
+                cmds.error("Cannot remove the default look look on node {}".format(self.look_node))
                 return
 
-            conns = cmds.listConnections("{}.variants[{}].inputs".format(self.variant_node, variant_idx), plugs=True) or []
+            conns = cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, look_idx), plugs=True) or []
             for op in conns:
                 op_node, plug = op.split('.')
                 cmds.delete(op_node, inputConnectionsAndNodes=True)
-            cmds.removeMultiInstance("{}.variants[{}]".format(self.variant_node, variant_idx), b=True)
+            cmds.removeMultiInstance("{}.looks[{}]".format(self.look_node, look_idx), b=True)
             # shuffle the remaing merge nodes to the previous index
-            prev_idx = variant_idx
-            for idx in cmds.getAttr("{}.variants".format(self.variant_node), multiIndices=True) or []:
+            prev_idx = look_idx
+            for idx in cmds.getAttr("{}.looks".format(self.look_node), multiIndices=True) or []:
                 if idx > prev_idx:
-                    this_name = cmds.getAttr("{}.variants[{}].name".format(self.variant_node, idx))
-                    cmds.setAttr("{}.variants[{}].name".format(self.variant_node, prev_idx), this_name, type="string")
+                    this_name = cmds.getAttr("{}.looks[{}].name".format(self.look_node, idx))
+                    cmds.setAttr("{}.looks[{}].name".format(self.look_node, prev_idx), this_name, type="string")
                     i=0
-                    for op in cmds.listConnections("{}.variants[{}].inputs".format(self.variant_node, idx), plugs=True) or []:
+                    for op in cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, idx), plugs=True) or []:
                         op_node, plug = op.split('.')
                         cmds.connectAttr("{}.{}".format(op_node, plug),
-                                         "{}.variants[{}].inputs[{}]".format(self.variant_node, prev_idx, i),
+                                         "{}.looks[{}].inputs[{}]".format(self.look_node, prev_idx, i),
                                          force=True)
-                        cmds.removeMultiInstance("{}.variants[{}].inputs[{}]".format(self.variant_node, idx, i), b=True)
+                        cmds.removeMultiInstance("{}.looks[{}].inputs[{}]".format(self.look_node, idx, i), b=True)
                         i += 1
                     prev_idx = idx
 
-            if prev_idx > variant_idx:
-                cmds.removeMultiInstance("{}.variants[{}]".format(self.variant_node, prev_idx))
+            if prev_idx > look_idx:
+                cmds.removeMultiInstance("{}.looks[{}]".format(self.look_node, prev_idx))
 
-            cmds.setAttr("{}.index".format(self.variant_node), variant_idx-1)
+            cmds.setAttr("{}.index".format(self.look_node), look_idx-1)
 
-            # get the current Enums and remove the given variant from it
-            self.variantReplace("{}.variant".format(self.nodeName))
+            # get the current Enums and remove the given look from it
+            self.lookReplace("{}.look".format(self.nodeName))
 
-    def setVariant(self, *args):
-        variant = cmds.getAttr("{}.variant".format(self.nodeName))
-        variant_str = cmds.getAttr("{}.variant".format(self.nodeName), asString=True)
-        if self.variant_node:
-            cmds.setAttr("{}.index".format(self.variant_node), variant)
+    def setLook(self, *args):
+        look = cmds.getAttr("{}.look".format(self.nodeName))
+        look_str = cmds.getAttr("{}.look".format(self.nodeName), asString=True)
+        if self.look_node:
+            cmds.setAttr("{}.index".format(self.look_node), look)
         self.refreshAssignmentsUI()
 
-    def copyVariant(self, fromIndex, toIndex):
+    def copyLook(self, fromIndex, toIndex):
 
-        if self.variant_node:
-            conns = cmds.listConnections("{}.variants[{}].inputs".format(self.variant_node, fromIndex), plugs=True) or []
+        if self.look_node:
+            conns = cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, fromIndex), plugs=True) or []
             i = 0
             for op in conns:
                 op_node, plug = op.split('.')
                 new_op_node = cmds.duplicate(op_node, upstreamNodes=True, returnRootsOnly=False)
                 if len(new_op_node):
                     cmds.connectAttr("{}.{}".format(new_op_node[0], plug),
-                                     "{}.variants[{}].inputs[{}]".format(self.variant_node, toIndex, i),
+                                     "{}.looks[{}].inputs[{}]".format(self.look_node, toIndex, i),
                                      force=True)
                 i += 1
 
-    def updateVariantAttr(self):
+    def updateLookAttr(self):
 
-        if self.variant_node:
+        if self.look_node:
             enumList = []
-            for a in cmds.getAttr('{}.variants'.format(self.variant_node), multiIndices=True) or []:
-                variantName = cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a))
-                if variantName:
-                    enumList.append("{}".format(cmds.getAttr("{}.variants[{}].name".format(self.variant_node, a))))
+            for a in cmds.getAttr('{}.looks'.format(self.look_node), multiIndices=True) or []:
+                lookName = cmds.getAttr("{}.looks[{}].name".format(self.look_node, a))
+                if lookName:
+                    enumList.append("{}".format(cmds.getAttr("{}.looks[{}].name".format(self.look_node, a))))
 
             enumNames = ':'.join(enumList)
-
             # compare to current attr
-            current_enums = cmds.addAttr("{}.variant".format(self.nodeName), q=True, enumName=True)
+            current_enums = cmds.addAttr("{}.look".format(self.nodeName), q=True, enumName=True)
             if current_enums != enumNames:
-                cmds.deleteAttr("{}.variant".format(self.nodeName))
-                cmds.addAttr(self.nodeName, longName="variant", at="enum", enumName=enumNames)
+                cmds.deleteAttr("{}.look".format(self.nodeName))
+                cmds.addAttr(self.nodeName, longName="look", at="enum", enumName=enumNames)
                 return True
 
         return False
 
-    def newVariant(self, *args):
+    def newLook(self, *args):
         # check switch node exists, if not make one
-        self.variant_node = self.getVariantSwitchNode(True)
+        self.look_node = self.getLookSwitchNode(True)
 
-        if self.variant_node:
+        if self.look_node:
             # make a new merge Node and connect that to the
-            # next available input for the variant switch node
-            current_index = cmds.getAttr('{}.index'.format(self.variant_node))
-            next_index = cmds.getAttr('{}.variants'.format(self.variant_node), size=True)
+            # next available input for the look switch node
+            current_index = cmds.getAttr('{}.index'.format(self.look_node))
+            next_index = cmds.getAttr('{}.looks'.format(self.look_node), size=True)
 
-            new_variant_name, duplicate = self.newVariantUI("pass{}".format(next_index))
-            if new_variant_name:
-                cmds.setAttr('{}.variants[{}].name'.format(self.variant_node, next_index), new_variant_name, type="string")
+            new_look_name, duplicate = self.newLookUI("pass{}".format(next_index))
+            if new_look_name:
+                cmds.setAttr('{}.looks[{}].name'.format(self.look_node, next_index), new_look_name, type="string")
 
                 if duplicate:
-                    self.copyVariant(current_index, next_index)
+                    self.copyLook(current_index, next_index)
 
-                self.updateVariantAttr()
+                self._update_var_ui = self.updateLookAttr()
 
-                cmds.setAttr("{}.variant".format(self.nodeName), next_index)
-                cmds.setAttr("{}.index".format(self.variant_node), next_index)
+                cmds.setAttr("{}.look".format(self.nodeName), next_index)
+                cmds.setAttr("{}.index".format(self.look_node), next_index)
 
-                cmds.attrEnumOptionMenu(self.variantCtrl, e=True, attribute="{}.variant".format(self.nodeName))
+                cmds.attrEnumOptionMenu(self.lookCtrl, e=True, attribute="{}.look".format(self.nodeName))
 
                 self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
 
-    def getVariantSwitchNode(self, create=False):
-        variant_switch = None
-        ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True)
-        for op in ops or []:
+    def getLookSwitchNode(self, create=False):
+        look_switch = None
+        ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True) or []
+        for op in ops:
             op_node, plug = op.split('.')
-            if cmds.nodeType(op_node) == VARIANTSWITCH_OP:
-                # check for variant attribute
-                variant_switch = op_node
+            if cmds.nodeType(op_node) == LOOKSWITCH_OP:
+                # check for look attribute
+                look_switch = op_node
                 break
 
-        if not variant_switch and create:
-            # create variant switch node
-            variant_switch = cmds.createNode(VARIANTSWITCH_OP, name="variantSwitch#", ss=True)
-            cmds.setAttr('{}.variants[0].name'.format(variant_switch), "default", type="string")
+        if not look_switch and create:
+            # create look switch node
+            look_switch = cmds.createNode(LOOKSWITCH_OP, name="lookSwitch#", ss=True)
+            cmds.setAttr('{}.looks[0].name'.format(look_switch), "default", type="string")
 
             # now move all the connections from the standIn to the merge node
             c=0
             for op in ops:
                 cmds.disconnectAttr(op, '{}.operators[{}]'.format(self.nodeName, c))
-                cmds.connectAttr(op, '{}.variants[0].inputs[{}]'.format(variant_switch, c))
+                cmds.connectAttr(op, '{}.looks[0].inputs[{}]'.format(look_switch, c))
                 c+=1
 
             for i in cmds.getAttr('{}.operators'.format(self.nodeName), multiIndices=True) or []:
                 cmds.removeMultiInstance('{}.operators[{}]'.format(self.nodeName, i))
 
-            cmds.connectAttr('{}.out'.format(variant_switch), '{}.operators[0]'.format(self.nodeName))
-            cmds.connectAttr('{}.variant'.format(self.nodeName), '{}.index'.format(variant_switch))
+            cmds.connectAttr('{}.out'.format(look_switch), '{}.operators[0]'.format(self.nodeName))
+            cmds.connectAttr('{}.look'.format(self.nodeName), '{}.index'.format(look_switch))
 
-        return variant_switch
+        return look_switch
 
     def newSceneCallback(self):
         self.tree.setCurrentNode(None)
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
+        self.current_node = None
+        self.look_node = None
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
@@ -777,7 +788,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def setup(self):
         self.assInfoPath = ''
         self.inspectAssPath = ''
-        self.variant_node = None
+        self.look_node = None
+        self._update_var_ui = False
         self.assItems = {}
 
         self.beginScrollLayout()
@@ -810,7 +822,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.beginNoOptimize()
 
         self.beginLayout("File Contents", collapse=False)
-        self.addCustom('variant', self.variantNew, self.variantReplace)
+        self.addCustom('look', self.lookNew, self.lookReplace)
         self.addCustom('aiInfo', self.fileInfoNew, self.fileInfoReplace)
         self.endLayout()
         # self.addCustom("operators", self.operatorsNew, self.operatorsReplace)

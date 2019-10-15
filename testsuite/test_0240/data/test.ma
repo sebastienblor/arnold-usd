@@ -3,12 +3,12 @@
 //Last modified: Wed, Oct 25, 2017 09:54:41 PM
 //Codeset: 1252
 requires maya "2017ff05";
+requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
+		 -nodeType "aiStandardSurface" "mtoa" "2.0.3.wip";
 requires -nodeType "xgmPalette" -nodeType "xgmDescription" -nodeType "xgmSubdPatch"
 		 -dataType "xgmGuideData" -dataType "igmDescriptionData" -dataType "xgmSplineData"
 		 -dataType "xgmMeshData" -dataType "xgmSplineTweakData" -dataType "xgmSplineBoundInfoData"
 		 -dataType "xgmGuideRefData" "xgenToolkit" "1.0";
-requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
-		 -nodeType "aiStandardSurface" "mtoa" "2.0.3.wip";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2017";

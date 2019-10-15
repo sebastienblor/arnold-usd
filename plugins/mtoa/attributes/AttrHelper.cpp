@@ -1216,13 +1216,6 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 }
 
 
-// LEGACY
-// We're keeping this to avoid breaking binary compatibility
-MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
-{
-   return MS::kFailure;
-}
-
 // CExtensionAttrHelper
 //
 
