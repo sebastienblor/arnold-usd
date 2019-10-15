@@ -61,6 +61,7 @@ class MakeTxThread (threading.Thread):
         maya_version = mutils.getMayaVersion()
 
         # first we need to make sure the options & color manager node were converted to arnold
+        universe = None
         arnoldUniverseActive = AiUniverseIsActive()
 
         if not arnoldUniverseActive:
@@ -70,6 +71,9 @@ class MakeTxThread (threading.Thread):
 
         cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
 
+        color_config = None
+        ocio = False
+
         textureList = []
 
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'lineEdit']);
@@ -77,8 +81,7 @@ class MakeTxThread (threading.Thread):
 
         for textureLine in self.txManager.selectedItems:
             texture = textureLine[0]
-            print texture
-            
+
             # we could use textureLine[2] for the colorSpace
             # but in case it hasn't been updated correctly
             # it's still better to ask maya again what is the color space
@@ -92,7 +95,7 @@ class MakeTxThread (threading.Thread):
                     nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                     if colorSpace != 'auto' and colorSpace != nodeColorSpace:
                         conflictSpace=True
-                        
+
                     colorSpace = nodeColorSpace
 
                 if colorSpace == 'auto' and textureLine[2] != '':
@@ -128,21 +131,26 @@ class MakeTxThread (threading.Thread):
             # Process all the files that were found previously for this texture (eventually multiple tokens)
             for inputFile in textureLine[4]:
 
+                tile_info = makeTx.imageInfo(inputFile)
+
                 txArguments = arg_options
 
                 if cmEnable == True and colorSpace != render_colorspace:
+
                     txArguments += ' --colorconvert "'
                     txArguments += colorSpace
                     txArguments += '" "'
                     txArguments += render_colorspace
                     txArguments += '"'
 
+                    if tile_info['bit_depth'] <= 8:
+                        txArguments += ' --format exr -d half --compression dwaa'
+
                 # need to invalidate the TX texture from the cache
                 outputTx = os.path.splitext(inputFile)[0] + '.tx'
                 AiTextureInvalidate(outputTx)
 
                 textureList.append([inputFile, txArguments])
-
 
         self.txManager.filesToCreate = len(textureList)
 
@@ -688,7 +696,7 @@ def UpdateAllTx(force):
         arg_options = "-u " + arg_options
 
     maya_version = mutils.getMayaVersion()
-   
+
     if maya.mel.eval("exists \"colorManagementPrefs\""):
     # only do this if command colorManagementPrefs exists
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
@@ -715,12 +723,12 @@ def UpdateAllTx(force):
                 nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                 if colorSpace != 'auto' and colorSpace != nodeColorSpace:
                     conflictSpace=True
-                    
+
                 colorSpace = nodeColorSpace
 
             if colorSpace == 'auto' and textureLine[2] != '':
                 colorSpace = textureLine[2]
-        
+
 
         if not texture:
             continue;
@@ -734,6 +742,8 @@ def UpdateAllTx(force):
             if len(textureLine[4]) > 1:
                 print '  -'+inputFile
 
+            tile_info = makeTx.imageInfo(inputFile)
+
             txArguments = arg_options
 
             if cmEnable == True and colorSpace != render_colorspace:
@@ -742,6 +752,9 @@ def UpdateAllTx(force):
                 txArguments += '" "'
                 txArguments += render_colorspace
                 txArguments += '"'
+
+                if tile_info['bit_depth'] <= 8:
+                    txArguments += ' --format exr -d half --compression dwaa'
 
             # need to invalidate the TX texture from the cache
             outputTx = os.path.splitext(inputFile)[0] + '.tx'
@@ -769,7 +782,7 @@ def UpdateAllTx(force):
                   "Queue should have been cleared!")
 
     for i in range(0, num_submitted.value):
-       
+
         if (status[i] == AiTxUpdated):
             filesCreated += 1
             AiMsgInfo("[mtoa.tx] %d: %s was updated", i, source_files[i])
@@ -788,8 +801,3 @@ def UpdateAllTx(force):
     if not arnoldUniverseActive:
         cmds.arnoldScene(mode='destroy')
 
-         
-            
-
-
-            
