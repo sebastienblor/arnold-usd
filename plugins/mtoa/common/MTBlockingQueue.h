@@ -1,8 +1,5 @@
 #pragma once
 
-// FIXME Arnold5  to be removed and replaced in the whole code once the Arnold-5.0 branch is merged
-typedef unsigned AtUInt32;
-typedef size_t AtUInt64;
 
 #include "platform/Platform.h"
 #include <ai_critsec.h>
@@ -15,7 +12,7 @@ class CMTBlockingQueue
 
 public:
 
-   CMTBlockingQueue(AtUInt32 maxSize = 0)
+   CMTBlockingQueue(unsigned int maxSize = 0)
    : m_maxSize(maxSize)
    , m_notEmpty(true, false)
    , m_notFull(true, true)
@@ -112,7 +109,7 @@ public:
 protected:
 
    std::queue<T> m_queue;
-   AtUInt32      m_maxSize;
+   unsigned int  m_maxSize;
 
    AtCritSec     m_accessCritSec;
    CEvent        m_notEmpty;

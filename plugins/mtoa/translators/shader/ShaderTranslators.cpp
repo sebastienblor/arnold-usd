@@ -2878,7 +2878,7 @@ void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CAiHairTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("hair"));
+   return AddArnoldNode("hair");
 }
 
 void CAiStandardHairTranslator::NodeInitializer(CAbTranslator context)
@@ -2909,7 +2909,7 @@ void CAiStandardHairTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CAiStandardHairTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard_hair"));
+   return AddArnoldNode("standard_hair");
 }
 
 AtNode* CAiImageTranslator::CreateArnoldNodes()
@@ -4411,7 +4411,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
 
 AtNode* CStandardSurfaceTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
+   return AddArnoldNode("standard_surface");
 }
 
 void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)

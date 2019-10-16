@@ -68,7 +68,6 @@ protected:
       It's however important than the main AtNode is created (and returned) here. 
      This function is invoked right after Init .
     \see AddArnoldNode
-    \see ProcessAOVOutput
     \see Init
    */
    virtual AtNode* CreateArnoldNodes() = 0;
@@ -107,7 +106,6 @@ public:
       However, the latest is only called if RequiresMotionData returns true. Otherwise, only Export will be called as MtoA will consider that 
       this node is *not* motion blurred. By deriving this function, one can determine that behaviour.
     \see AddArnoldNode
-    \see ProcessAOVOutput
     \see Init
    */
    virtual bool RequiresMotionData() {return false;}
@@ -163,7 +161,6 @@ protected:
     \param[in] type   Type of the arnold node to create
     \param[in] tag    When multiple nodes are created, a tag can be used as a key to identify a specific node
     \see CreateArnoldNodes
-    \see ProcessAOVOutput
     */
    AtNode* AddArnoldNode(const char* type, const char* tag=NULL);
 

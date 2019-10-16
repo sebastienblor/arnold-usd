@@ -22,38 +22,10 @@ void CShaderTranslator::CreateImplementation()
 // Auto shader translator
 //
 
-// This function should be renamed once we can break binary compatibility
-// We no longer need it to process AOVs, but instead we need it to eventually 
-// insert a matte shader at the root of the shading tree.
-// Maybe we should totally remove this function, and instead derive ShaderTranslatorImpl::DoCreateArnoldNodes()
-// so that the necessary things are always done, otherwise all shaders need to call 
-// ProcessAOVOutput during CreateArnoldNodes()
-AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
-{
-   MStatus status;
-   MPlug mattePlug = FindMayaPlug("aiEnableMatte", &status);
-   if (status != MS::kSuccess || (!mattePlug.asBool()))
-      return shader; // matte is disabled (or parameter doesn't exist)
-
-   MPlug matteColorPlug = FindMayaPlug("aiMatteColor", &status); 
-   if (status != MS::kSuccess ) return shader;
-
-   // Matte is enabled, I need to insert a matte shader at the root of my shading tree
-   AtNode *matteShader = GetArnoldNode("_matte");
-   if (matteShader == NULL)
-      matteShader = AddArnoldNode("matte", "_matte");
-
-   
-   ProcessParameter(matteShader, "color", AI_TYPE_RGBA, "aiMatteColor");
-
-   AiNodeLink(shader, "passthrough", matteShader); 
-
-   return matteShader;
-}
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode(m_impl->m_abstract.arnold.asChar()));
+   return AddArnoldNode(m_impl->m_abstract.arnold.asChar());
 }
 
 void CShaderTranslator::Export(AtNode *shader)
@@ -143,6 +115,46 @@ void CShaderTranslator::ExportBump(AtNode* shader)
          AiNodeLink(bump, "normal", shader);
 
    }
+}
+
+AtNode *CShaderTranslator::GetMatteShader()
+{
+   // Matte is enabled, I need to insert a matte shader at the root of my shading tree
+   AtNode *matteShader = GetArnoldNode("_matte");
+      
+   if (matteShader == NULL)
+      matteShader = AddArnoldNode("matte", "_matte");
+
+   return matteShader;  
+}
+
+void CShaderTranslatorImpl::DoCreateArnoldNodes()
+{
+   // This will create the actual arnold shaders
+   CNodeTranslatorImpl::DoCreateArnoldNodes();
+
+   // Now check if there is a matte attribute enabled if this shader
+   MStatus status;
+   MPlug mattePlug = m_tr.FindMayaPlug("aiEnableMatte", &status);
+   if (status != MS::kSuccess || (!mattePlug.asBool()))
+      return; // matte is disabled (or parameter doesn't exist)
+
+   MPlug matteColorPlug = m_tr.FindMayaPlug("aiMatteColor", &status); 
+   if (status != MS::kSuccess ) 
+      return;
+
+   CShaderTranslator *shaderTr = static_cast<CShaderTranslator*>(&m_tr);
+   AtNode *matteShader = shaderTr->GetMatteShader();
+   
+   m_tr.ProcessParameter(matteShader, "color", AI_TYPE_RGBA, "aiMatteColor");
+
+   AiNodeLink(m_atRoot, "passthrough", matteShader); 
+
+   m_atRoot = matteShader;
+
+   if (m_atNode == NULL)
+      m_atNode = m_atRoot;
+
 }
 
 bool CShaderTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)

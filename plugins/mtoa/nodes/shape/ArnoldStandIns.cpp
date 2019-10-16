@@ -1054,11 +1054,6 @@ MStatus CArnoldStandInShape::initialize()
    // atributes that are used only by translation
    CAttrData data;
    
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideCastsShadows";
-   data.shortName = "overrideCastsShadows";
-   s_attributes.MakeInputBoolean(data);
-   
    //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
    data.defaultValue.BOOL() = false;
@@ -1067,13 +1062,6 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
    
    //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL() = false;
-   data.name = "overridePrimaryVisibility";
-   data.shortName = "overridePrimaryVisibility";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
    data.defaultValue.BOOL() = false;
    data.name = "overrideDoubleSided";
@@ -1093,32 +1081,6 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
 
    //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
-   
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInDiffuseReflection";
-   data.shortName = "overrideVisibleInDiffuseReflection";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInSpecularReflection";
-   data.shortName = "overrideVisibleInSpecularReflection";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInDiffuseTransmission";
-   data.shortName = "overrideVisibleInDiffuseTransmission";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInSpecularTransmission";
-   data.shortName = "overrideVisibleInSpecularTransmission";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInVolume";
-   data.shortName = "overrideVisibleInVolume";
-   s_attributes.MakeInputBoolean(data);
-   
    data.defaultValue.BOOL() = false;
    data.name = "overrideMatte";
    data.shortName = "overrideMatte";
@@ -1502,11 +1464,8 @@ void CArnoldStandInShape::UpdateSelectedItems()
       
    }
 }
-// FIXME : please remove all these hacks regarding the "override" attributes 
-// once we no longer case about pre-2.0.2 compatibility
 void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
 {
-
    CArnoldStandInShape *node = static_cast<CArnoldStandInShape*>(clientData);
    if (!node)
       return; 
@@ -1517,56 +1476,6 @@ void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg
    if (plug == s_selectedItems)
    {
       node->UpdateSelectedItems();
-   }
-
-
-   static MString overridePrefix("override");
-   if (overridePrefix != attrName.substringW(0, 7))
-      return;
-
-   MObject this_object = node->thisMObject();
-   MStatus status;
-   MFnDependencyNode dNode(this_object, &status);
-   if (!status)
-      return;
-
-#define STANDIN_VISIBILITY_ATTR_COUNT 7
-   static const char* overrideVisibilityAttributes[STANDIN_VISIBILITY_ATTR_COUNT] = { "overridePrimaryVisibility", 
-                                                "overrideVisibleInDiffuseReflection", 
-                                                "overrideVisibleInSpecularReflection",
-                                                "overrideVisibleInDiffuseTransmission",
-                                                "overrideVisibleInSpecularTransmission",
-                                                "overrideVisibleInVolume",
-                                                "overrideCastsShadows"};
-
-   static const MStringArray OverrideVisibilityAttributesList(overrideVisibilityAttributes, STANDIN_VISIBILITY_ATTR_COUNT);
-   
-   static const char* visibilityAttributes[STANDIN_VISIBILITY_ATTR_COUNT] = { "primaryVisibility", 
-                                                "aiVisibleInDiffuseReflection", 
-                                                "aiVisibleInSpecularReflection",
-                                                "aiVisibleInDiffuseTransmission",
-                                                "aiVisibleInSpecularTransmission",
-                                                "aiVisibleInVolume",
-                                                "castsShadows"};
-
-   static const MStringArray VisibilityAttributesList(visibilityAttributes, STANDIN_VISIBILITY_ATTR_COUNT);
-
-   for (int i = 0; i < STANDIN_VISIBILITY_ATTR_COUNT; ++i)
-   {
-      if (attrName != OverrideVisibilityAttributesList[i])
-         continue;
-      if (!plug.asBool())
-      {
-         // this will surely invoke this attrChanged callback again, but since the value 
-         // will be OFF there should be any problem
-         plug.setValue(true);
-
-         // need to set the other attribute to true, meaning that nothing will be overridden in the standin
-         MPlug basePlug = dNode.findPlug(VisibilityAttributesList[i], true, &status);
-         if (status)
-            basePlug.setValue(true);
-      }
-      return;
    }
 }
 

@@ -50,6 +50,13 @@ inline unsigned MtoaTime()
 #endif
 }
 
+inline char *NodeUniqueName(const char *nodeType, char *string)
+{
+   sprintf(string, "%s_%08X%08llX",
+      nodeType, MtoaTime(), MtoaTicks());
+   return string;
+}
+
 /*
  * Creates a unique name string with the node type followed
  * by a double time-stamp (current time in milliseconds and
@@ -63,13 +70,9 @@ inline unsigned MtoaTime()
  * \param[out] string  pre-allocated buffer for the new name string
  * \return             the new name string (again)
  *
- * FIXME : this was copied in CNodeTranslatorImpl::MakeArnoldNode, make sure to centralize this
- * in a future ABI-breaking release
  */
 inline char *NodeUniqueName(AtNode *node, char *string)
 {
-   sprintf(string, "%s_%08X%08llX",
-      AiNodeEntryGetName(AiNodeGetNodeEntry(node)), MtoaTime(), MtoaTicks());
-   return string;
+   return NodeUniqueName(AiNodeEntryGetName(AiNodeGetNodeEntry(node)), string);
 }
 

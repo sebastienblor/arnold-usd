@@ -57,10 +57,11 @@ public :
    
    virtual MString MakeArnoldName(const char *nodeType, const char* tag = NULL);
    
+   virtual void DoCreateArnoldNodes();
 
    AtNode* DoExport();
    AtNode* DoUpdate();
-   void DoCreateArnoldNodes();
+   
    AtNode* ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug,
                                                 const char* arnoldParamName,
                                                 int arnoldParamType);
