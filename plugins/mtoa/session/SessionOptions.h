@@ -215,9 +215,9 @@ private:
                         m_progressiveRendering(false),
                         m_absoluteTexturePaths(true),
                         m_absoluteProceduralPaths(true),
-                        m_exportFullPath(false),
+                        m_exportFullPath(true),
                         m_exportAllShadingGroups(false),
-                        m_exportSlashSeparator(false),
+                        m_exportSlashSeparator(true),
                         m_exportNamespace(MTOA_EXPORT_NAMESPACE_ON)
                         
    {
