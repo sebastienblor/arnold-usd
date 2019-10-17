@@ -39,6 +39,24 @@ def stringToStringArray(in_str, sep):
 
 #
 #  Procedure Name:
+#      isUnique
+#
+#  Description:
+#      Determines whether the string array contains the specified string or not.
+#
+#  Input Arguments:
+#      item          - The string item to check in the array.
+#
+#      stringArray   - The array which may contains the string item.
+#
+#  Return Value
+#      True if the stringArray contains the specified item.
+#
+def isUnique(string, stringArray):
+    return string in stringArray
+
+#
+#  Procedure Name:
 #      setOptionVars
 #
 #  Description:
@@ -1189,7 +1207,7 @@ class AlembicOptions(object):
         def exportSetup(self, parent, forceFactorySettings):
             #  Retrieve the option settings
             #
-            cmds.setOptionVars(forceFactorySettings)
+            setOptionVars(forceFactorySettings)
 
             cmds.setParent(parent)
 
@@ -1700,84 +1718,63 @@ class AlembicOptions(object):
         #      None.
         #
         def exportCacheTimeRangeChanged(self, parent, checkOveralpping):
-        {
-            global int   gTmpCacheTimeRangeModes[];
+            global  gTmpCacheTimeRangeModes
 
-            setParent parent;
+            cmds.setParent(parent)
 
-            int mode;
-            if (`radioButtonGrp -q -select rangeRenderSettings`:
-                mode = 1;
-            }
-            else if (`radioButtonGrp -q -select rangeTimeSlider`:
-                mode = 2;
-            }
-            else if (`radioButtonGrp -q -select rangeCurrentFrame`:
-                mode = 4;
-            }
-            else {
-                mode = 3;
-            }
+            mode = 3
+            if cmds.radioButtonGrp(self.rangeRenderSettings, q=True, select=True):
+                mode = 1
+            elif cmds.radioButtonGrp(self.rangeTimeSlider, q=True, select=True ):
+                mode = 2
+            elif cmds.radioButtonGrp(self.rangeCurrentFrame, q=True, select=True)`:
+                mode = 4
 
             # Update start/end float fields.
             #
-            int rangeIndex = self.getActiveTimeRangeIndex();
-            if (mode != 3:
+            rangeIndex = self.getActiveTimeRangeIndex()
+            if mode != 3:
                 # check duplicated mode
                 #
                 preRollEnabled = cmds.checkBoxGrp(self.enablePreRoll, query=True, value1=True)
-                int totalRows = `cmds.scriptTable(self.cacheTimeTable, query=True -rows cacheTimeTable`;
-                int rangeCount = totalRows - prerollEnabled - 2;
-                for (i = 0; i < rangeCount; i++:
-                    if (gTmpCacheTimeRangeModes[i] == mode and
+                totalRows = cmds.scriptTable(self.cacheTimeTable, query=True, rows=True)
+                rangeCount = totalRows - int(prerollEnabled) - 2
+                for i in range(rangecount):
+                    if gTmpCacheTimeRangeModes[i] == mode and
                         i != rangeIndex:
-                        warning _L10N(kDuplicatedMode, "There is a time range with this mode already.");
-                        Alembic_setRangeModeUI (gTmpCacheTimeRangeModes[rangeIndex]);
-                        return;
-                    }
-                }
+                        cmds.warning("There is a time range with this mode already.")
+                        self.setRangeModeUI(gTmpCacheTimeRangeModes[rangeIndex])
+                        return
 
-                float startEnd[] = self.getStartEndFrames(mode);
-                if (checkOveralpping:
-                    if (Alembic_adjustFrameRanges(rangeIndex, startEnd[0], startEnd[1], 1))
-                    {
-                        if (Alembic_getOverlappingSolution() == 0:
+                startEnd = self.getStartEndFrames(mode)
+                if checkOveralpping:
+                    if self.adjustFrameRanges(rangeIndex, startEnd[0], startEnd[1], 1)):
+                        if self.getOverlappingSolution() == 0:
                             # abort the user operation and show the dialog
                             #
-                            float start = `floatFieldGrp -q -value1 startEnd`;
-                            float end = `floatFieldGrp -q -value2 startEnd`;
-                            switch (mode:
-                                case 1:
-                                        setAttr defaultRenderGlobals.startFrame start;
-                                        setAttr defaultRenderGlobals.endFrame end;
-                                        break;
-                                case 2:
-                                        playbackOptions -e -minTime start -maxTime end;
-                                        break;
-                                case 4:
-                                        currentTime -e start;
-                                        break;
-                            }
-                            setFocus parent;
-                            return;
-                        }
-                    }
-                }
+                            start = cmds.floatFieldGrp(self.startEnd, q=True, value1=True)
+                            end = cmds.floatFieldGrp(self.startEnd, q=True, value2=True)
 
-                floatFieldGrp -e -value1 startEnd[0]
-                                -value2 startEnd[1]
-                                -enable 0
-                                startEnd;
+                            if mode == 1:
+                                    cmds.setAttr("defaultRenderGlobals.startFrame", start)
+                                    cmds.setAttr("defaultRenderGlobals.endFrame", end)
+                            elif mode == 2:
+                                    cmds.playbackOptions(e=True, minTime=start, maxTime=end)
+                            elif mode == 4:
+                                    cmds.currentTime(e=start)
+                            cmds.setFocus(parent)
+                            return
+
+                cmds.floatFieldGrp(self.startEnd, e=True, value1=startEnd[0],
+                                value2=startEnd[1],
+                                enable=0)
                 
-                int row = self.getActiveTimeRange();
-                gTmpCacheTimeRangeModes[rangeIndex] = mode;
-                Alembic_updateCacheTimeRangeRow(row);
-            }
-            else {
-                floatFieldGrp -e -enable 1 startEnd;
-                gTmpCacheTimeRangeModes[rangeIndex] = mode;
-            }
-        }
+                row = self.getActiveTimeRange()
+                gTmpCacheTimeRangeModes[rangeIndex] = mode
+                self.updateCacheTimeRangeRow(row)
+            else:
+                cmds.floatFieldGrp(self.startEnd, e=True, enable=1)
+                gTmpCacheTimeRangeModes[rangeIndex] = mode
 
         #
         #  Procedure Name:
@@ -1793,25 +1790,22 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportEnableFrameRelativeSampleChanged(string parent)
-        {
-            setParent parent;
+        def exportEnableFrameRelativeSampleChanged(self, parent):
+
+            cmds.setParent(parent)
 
             # Enable or disable Low/High fields
-            int frameRelativeSampleEnabled = `checkBoxGrp -q -value1 enableFrameRelativeSample`;
-            floatFieldGrp -e -enable frameRelativeSampleEnabled lowFrameRelativeSample;
-            floatFieldGrp -e -enable frameRelativeSampleEnabled highFrameRelativeSample;
+            frameRelativeSampleEnabled = cmds.checkBoxGrp(self.enableFrameRelativeSample, q=True, value1=True)
+            cmds.floatFieldGrp(self.lowFrameRelativeSample, e=True, enable=frameRelativeSampleEnabled)
+            cmds.floatFieldGrp(self.highFrameRelativeSample, e=True, enable=frameRelativeSampleEnabled)
             
-            int activeRow = self.getActiveTimeRange();
+            activeRow = self.getActiveTimeRange()
 
-            if( frameRelativeSampleEnabled:
-                string frameSampleVal = ""+`floatFieldGrp -q -value1 lowFrameRelativeSample` + "; 0; " + `floatFieldGrp -q -value1 highFrameRelativeSample`;
-                cmds.scriptTable(self.cacheTimeTable, edit=True -cellIndex activeRow 4 -cellValue frameSampleVal cacheTimeTable;
-            }
-            else {
-                cmds.scriptTable(self.cacheTimeTable, edit=True -cellIndex activeRow 4 -cellValue "0" cacheTimeTable;
-            }
-        }
+            if frameRelativeSampleEnabled:
+                frameSampleVal = "{}; 0; {}".format(cmds.floatFieldGrp(self.lowFrameRelativeSample, q=True, value1=True), cmds.floatFieldGrp(self.highFrameRelativeSample, q=True, value1=True))
+                cmds.scriptTable(self.cacheTimeTable, edit=True, cellIndex=[activeRow, 4], cellValue=frameSampleVal)
+            else:
+                cmds.scriptTable(self.cacheTimeTable, edit=True, cellIndex=[activeRow, 4], cellValue="0")
 
         #
         #  Procedure Name:
@@ -1827,29 +1821,25 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportEnablePreRollChanged(string parent)
-        {
-            setParent parent;
+        def exportEnablePreRollChanged(self, parent):
+            cmds.setParent(parent)
 
             # enable/disable preRollStartFrame
             #
             preRollEnabled = cmds.checkBoxGrp(self.enablePreRoll, query=True, value1=True)
-            floatFieldGrp -e -enable preRollEnabled preRollStartFrame;
-            floatFieldGrp -e -enable preRollEnabled preRollStep;
+            cmds.floatFieldGrp(self.preRollStartFrame edit=True, enable=preRollEnabled)
+            cmds.floatFieldGrp(self.preRollStep edit=True, enable=preRollEnabled)
             
             if (preRollEnabled:
                 # insert row for preRoll in the beginning of scriptTable
-                cmds.scriptTable(self.cacheTimeTable, edit=True -insertRow 1 cacheTimeTable;
-                Alembic_setupRowForPreRoll(parent);
-            }
-            else {
+                cmds.scriptTable(self.cacheTimeTable, edit=True, insertRow=1)
+                self.setupRowForPreRoll(parent)
+            else:
                 # delete row 1 for preRoll in scriptTable
-                cmds.scriptTable(self.cacheTimeTable, edit=True -deleteRow 1 cacheTimeTable;
+                cmds.scriptTable(self.cacheTimeTable, edit=True, deleteRow=1)
                 # select the first time range again. The default behavior
                 # will select the second row, which is not expected.
-                cmds.scriptTable(self.cacheTimeTable, edit=True -selectedRows 1 cacheTimeTable;
-            }
-        }
+                cmds.scriptTable(self.cacheTimeTable, edit=True, selectedRows=1)
 
         #
         #  Procedure Name:
@@ -1865,22 +1855,20 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def frameRelativeSampleChanged(string parent)
-        {
-            global float gTmpSampleLowFrames[];
-            global float gTmpSampleHighFrames[];
+        def frameRelativeSampleChanged(self, parent):
+            global gTmpSampleLowFrames
+            global gTmpSampleHighFrames
 
-            setParent parent;
+            cmds.setParent(parent)
             
-            int activeRow = self.getActiveTimeRange();
-            int rangeIndex = self.getActiveTimeRangeIndex();
+            activeRow = self.getActiveTimeRange()
+            rangeIndex = self.getActiveTimeRangeIndex()
             
-            gTmpSampleLowFrames[rangeIndex] = `floatFieldGrp -q -value1 lowFrameRelativeSample`;
-            gTmpSampleHighFrames[rangeIndex] = `floatFieldGrp -q -value1 highFrameRelativeSample`;
+            gTmpSampleLowFrames[rangeIndex] = cmds.floatFieldGrp(self.lowFrameRelativeSample, q=True, value1=True)
+            gTmpSampleHighFrames[rangeIndex] = cmds.floatFieldGrp(self.highFrameRelativeSample, q=True, value1=True)
 
-            string frameRelativeSampleVal = "" + gTmpSampleLowFrames[rangeIndex] + "; 0; " + gTmpSampleHighFrames[rangeIndex];
-            cmds.scriptTable(self.cacheTimeTable, edit=True -cellIndex activeRow 4 -cellValue frameRelativeSampleVal cacheTimeTable;
-        }
+            frameRelativeSampleVal = "{}; 0; {}".format(gTmpSampleLowFrames[rangeIndex], gTmpSampleHighFrames[rangeIndex])
+            cmds.scriptTable(self.cacheTimeTable, edit=True, cellIndex=[activeRow, 4], cellValue=frameRelativeSampleVal)
 
         #
         #  Procedure Name:
@@ -1896,50 +1884,19 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportEvaluateEveryChanged(string parent)
-        {
-            setParent parent;
+        def exportEvaluateEveryChanged(self, parent):
+            cmds.setParent(parent)
             
-            float stepVal = `floatFieldGrp -q -value1 evaluateEvery`;
-            int activeRow = self.getActiveTimeRange();
+            stepVal = cmds.floatFieldGrp(self.evaluateEvery, q=True, value1=True)
+            activeRow = self.getActiveTimeRange();
 
-            if (stepVal <= 0:
-                warning _L10N(kStepInvalid, "Step cannot be 0 or negative.");
-                float oldVal = self.getEvaluateEveryOfRange(activeRow);
-                floatFieldGrp -e -value1 oldVal evaluateEvery;
-                return;
-            }
+            if stepVal <= 0:
+                cmds.warning("Step cannot be 0 or negative.")
+                oldVal = self.getEvaluateEveryOfRange(activeRow)
+                floatFieldGrp -e -value1 oldVal evaluateEvery
+                return
 
-            cmds.scriptTable(self.cacheTimeTable, edit=True -cellIndex activeRow 3 -cellValue stepVal cacheTimeTable;
-        }
-
-        #
-        #  Procedure Name:
-        #      isUnique
-        #
-        #  Description:
-        #      Determines whether the string array contains the specified string or not.
-        #
-        #  Input Arguments:
-        #      item          - The string item to check in the array.
-        #
-        #      stringArray   - The array which may contains the string item.
-        #
-        #  Return Value
-        #      True if the stringArray contains the specified item.
-        #
-        proc int isUnique(string item, string stringArray[])
-        {
-            int i, result = 1;
-            for (i = 0; i < size(stringArray); i++:
-                if (item == stringArray[i]:
-                    result = 0;
-                    break;
-                }
-            }
-
-            return result;
-        }
+            cmds.scriptTable(self.cacheTimeTable, edit=True, cellIndex=[activeRow, 3], cellValue=stepVal)
 
         #
         #  Procedure Name:
@@ -1958,34 +1915,25 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportAttrAddRemove(int remove, string parent)
-        {
-            setParent parent;
+        def exportAttrAddRemove(remove, parent):
+            cmds.setParent(parent)
 
             # split the attribute names in the text field
-            string attr = `textField -q -text attrField`;
-            string attrList[];
-            tokenize attr " " attrList;
+            attr = cmds.textField(self.attrField, q=True, text=True)
+            attrList = attr.split()
 
-            string attrArray[] = `textScrollList -q -allItems attrList`;
-            int i;
-            if (remove:
+            attrArray = cmds.textScrollList(self.attrList, q=True, allItems=True)
+
+            if remove:
                 # remove the attribute
-                for (i = 0; i < size(attrList); i++:
-                    if (!isUnique(attrList[i], attrArray):
-                        textScrollList -e -removeItem attrList[i] attrList;
-                    }
-                }
-            }
-            else {
+                for a in attrList:
+                    if a not in  attrArray:
+                        cmds.textScrollList(self.attrList, e=True, removeItem=a)
+            else:
                 # add the attribute
-                for (i = 0; i < size(attrList); i++:
-                    if (size(attrList[i]) > 0 and isUnique(attrList[i], attrArray):
-                        textScrollList -e -append attrList[i] attrList;
-                    }
-                }
-            }
-        }
+                for a in attrList:
+                    if len(a) > 0 and a in attrArray:
+                        cmds.textScrollList(self.attrList, e=True, append=a)
 
         #
         #  Procedure Name:
@@ -2001,63 +1949,49 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportAttrGetChannels(string parent)
-        {
-            setParent parent;
+        def exportAttrGetChannels(self, parent):
+            cmds.setParent(parent)
 
-            if (`channelBox -q -exists mainChannelBox`:
+            if cmds.channelBox("mainChannelBox", q=True, exists=True):
                 # current list of attributes
-                string attrArray[] = `textScrollList -q -allItems attrList`;
+                attrArray = cmds.textScrollList(self.attrList, q=True, allItems=True)
 
                 # the list of new attributes to append
-                string newAttrArray[];
+                newAttrArray = []
 
                 # selected main attributes
-                string mainAttrList[]  = `channelBox -q -selectedMainAttributes mainChannelBox`;
+                mainAttrList  = cmds.channelBox("mainChannelBox", q=True, selectedMainAttributes=True)
 
                 # current selected nodes
-                string selection[] = `ls -sl`;
+                selection = cmds.ls(sl=True)
 
                 # add selected attributes from channel box to the attribute list
-                string attr, node;
-                for (attr in mainAttrList:
-                    for (node in selection:
-                        if (`attributeExists attr node`:
-                            string longName = `attributeName -long (node + "." + attr)`;
-                            if (isUnique(longName, attrArray) and isUnique(longName, newAttrArray):
-                                newAttrArray[size(newAttrArray)] = longName;
-                            }
-                            break;
-                        }
-                    }
-                }
+                for attr in mainAttrList:
+                    for node in selection:
+                        if cmds.attributeExists(attr, node)
+                            longName = cmds.attributeName(".".join([node, attr]), long=True)
+                            if longName in attrArray and longName in newAttrArray:
+                                newAttrArray[len(newAttrArray)] = longName
+                            break
 
                 # selected shape attributes
-                string shapeAttrList[] = `channelBox -q -selectedShapeAttributes mainChannelBox`;
+                shapeAttrList = cmds.channelBox(self.mainChannelBox, q=True, selectedShapeAttributes=True)
 
                 # shapes
-                string shapes[] = `listRelatives -shapes selection`;
+                shapes = cmds.listRelatives(selection, shapes=True)
 
                 # add selected shape attributes from channel box to the attribute list
-                for (attr in shapeAttrList:
-                    for (node in shapes:
-                        if (`attributeExists attr node`:
-                            string longName = `attributeName -long (node + "." + attr)`;
-                            if (isUnique(longName, attrArray) and isUnique(longName, newAttrArray):
-                                newAttrArray[size(newAttrArray)] = longName;
-                            }
-                            break;
-                        }
-                    }
-                }
+                for attr in shapeAttrList:
+                    for node in shapes:
+                        if cmds.attributeExists(attr, node):
+                            longName = cmds.attributeName(".".join([node, attr]), long=True)
+                            if longName in attrArray and longName in newAttrArray:
+                                newAttrArray[len(newAttrArray)] = longName
+                            break
 
                 # append the attribute list to scroll list
-                for (attr in newAttrArray:
-                    textScrollList -e -append attr attrList;
-                }
-            }
-        }
-
+                for attr in newAttrArray:
+                    cmds.textScrollList(self.attrList, e=True, append=attr)
 
         #
         #  Procedure Name:
@@ -2076,22 +2010,16 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportAttrRemove(int removeAll, string parent)
-        {
-            setParent parent;
+        def exportAttrRemove(self, removeAll, parent):
+            cmds.setParent(parent)
 
-            if (removeAll:
-                textScrollList -e -removeAll attrList;
-            }
-            else {
+            if removeAll:
+                cmds.textScrollList(self.attrList, e=True, removeAll=True)
+            else:
                 # remove the selected items
-                string attrList[] = `textScrollList -q -selectItem attrList`;
-                string attrItem;
-                for (attrItem in attrList:
-                    textScrollList -e -removeItem attrItem attrList;
-                }
-            }
-        }
+                attrList = cmds.textScrollList(self.attrList, q=True, selectItem=True)
+                for attrItem in attrList:
+                    cmds.textScrollList(self.attrList, e=True, removeItem=attrItem)
 
         #
         #  Procedure Name:
@@ -2110,34 +2038,24 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportAttrPrefixAddRemove(int remove, string parent)
-        {
-            setParent parent;
+        def exportAttrPrefixAddRemove(self, remove, parent):
+            cmds.setParent(parent)
 
             # split the attribute prefixes in the text field
-            string attrPrefix = `textField -q -text attrPrefixField`;
-            string attrPrefixList[];
-            tokenize attrPrefix " " attrPrefixList;
+            attrPrefix = cmds.textField(self.attrPrefixField, q=True, text=True)
+            attrPrefixList = attrPrefix.split(" ")
 
-            string attrPrefixArray[] = `textScrollList -q -allItems attrPrefixList`;
-            int i;
-            if (remove:
+            attrPrefixArray = cmds.textScrollList(self.attrPrefixList, q=True, allItems=True)
+            if remove:
                 # remove the attribute
-                for (i = 0; i < size(attrPrefixList); i++:
-                    if (!isUnique(attrPrefixList[i], attrPrefixArray):
-                        textScrollList -e -removeItem attrPrefixList[i] attrPrefixList;
-                    }
-                }
-            }
-            else {
+                for a in attrPrefixList:
+                    if a not in attrPrefixArray:
+                        cmds.textScrollList(self.attrPrefixList, e=True, removeItem=a)
+            else:
                 # add the attribute
-                for (i = 0; i < size(attrPrefixList); i++:
-                    if (size(attrPrefixList[i]) > 0 and isUnique(attrPrefixList[i], attrPrefixArray):
-                        textScrollList -e -append attrPrefixList[i] attrPrefixList;
-                    }
-                }
-            }
-        }
+                for a in attrPrefixList:
+                    if len(a) > 0 and a in attrPrefixArray:
+                        cmds.textScrollList(self.attrPrefixList, e=True, append=a)
 
         #
         #  Procedure Name:
@@ -2156,23 +2074,17 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportAttrPrefixRemove(int removeAll, string parent)
-        {
-            setParent parent;
+        def exportAttrPrefixRemove(self, removeAll, parent):
+            cmds.setParent(parent)
 
-            if (removeAll:
+            if removeAll:
                 # remove all items
-                textScrollList -e -removeAll attrPrefixList;
-            }
-            else {
+                cmds.textScrollList(self.attrPrefixList, e=True, removeAll=True)
+            else:
                 # remove the selected items
-                string attrPrefixList[] = `textScrollList -q -selectItem attrPrefixList`;
-                string attrPrefixItem;
-                for (attrPrefixItem in attrPrefixList:
-                    textScrollList -e -removeItem attrPrefixItem attrPrefixList;
-                }
-            }
-        }
+                attrPrefixList = cmds.textScrollList(self.attrPrefixList, q=True, selectItem=True)
+                for attrPrefixItem in attrPrefixList:
+                    cmds.textScrollList(self.attrPrefixList, e=True, removeItem=attrPrefixItem)
 
         #
         #  Procedure Name:
@@ -2188,25 +2100,22 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        proc exportOptions(int exportAll)
-        {
+        def exportOptions(self, exportAll):
             #  Name of the command for this option box.
             #
-            string commandName;
-            string label;
-            if (exportAll:
-                commandName = "AlembicExportAll";
-                label       = _L10N(kExportAll,"Export All");
-            }
-            else {
-                commandName = "AlembicExportSelection";
-                label       = _L10N(kExportSelection,"Export Selection");
-            }
+            commandName = ""
+            label = ""
+            if exportAll:
+                commandName = "ArnoldAlembicExportAll"
+                label       = "Export All"
+            else:
+                commandName = "ArnoldAlembicExportSelection"
+                label       = "Export Selection"
 
             #  Build the option box actions.
             #
-            string callback = "Alembic_exportCallback";
-            string setup    = "Alembic_exportSetup";
+            callback = self.exportCallback
+            setup    = self.exportSetup
 
             #  STEP 1:  Get the option box.
             #  ============================
@@ -2214,7 +2123,7 @@ class AlembicOptions(object):
             #  The value returned is the name of the layout to be used as
             #  the parent for the option box UI.
             #
-            string layout = getOptionBox();
+            layout = mel.eval('getOptionBox()')
 
             #  STEP 2:  Pass the command name to the option box.
             #  =================================================
@@ -2223,12 +2132,12 @@ class AlembicOptions(object):
             #  up with this call. For example, updating the 'Help' menu item with
             #  the name of the command.
             #
-            setOptionBoxCommandName(commandName);
+            mel.eval("setOptionBoxCommandName({})".format(commandName))
 
             #  STEP 3:  Create option box contents.
             #  ====================================
             #
-            string parent = exportOptionsUI(layout);
+            parent = self.exportOptionsUI(layout)
 
             #  STEP 4:  Customize the buttons.
             #  ===============================
@@ -2239,45 +2148,41 @@ class AlembicOptions(object):
 
             # 'Export' button
             #
-            string exportBtn = getOptionBoxApplyBtn();
-            button -e -label label
-                -command (callback + " " + parent + " " + exportAll + " 1")
-                exportBtn;
+            exportBtn = mel.eval('getOptionBoxApplyBtn()')
+            cmds.button(exportBtn, e=True, label=label,
+                command=partial(callback, parent, exportAll, 1))
 
             # 'Save' button
             #
-            string saveBtn = getOptionBoxSaveBtn();
-            button -e
-                -command (callback + " " + parent + " " + exportAll + " 0; hideOptionBox")
-                saveBtn;
+            saveBtn = mel.eval('getOptionBoxSaveBtn()')
+            cmds.button(saveBtn, e=True,
+                command=partial(callback, parent, exportAll, 0))
 
             # 'Reset' button
             #
-            string resetBtn = getOptionBoxResetBtn();
-            button -e
-                -command (setup + " " + parent + " 1")
-                resetBtn;
+            resetBtn = mel.eval('getOptionBoxResetBtn()')
+            cmds.button(resetBtn, e=True,
+                command=partial(setup, parent, 1))
 
             #  STEP 5:  Set the option box title.
             #  ==================================
             #
-            setOptionBoxTitle(_L10N(kAlembicExport,"Alembic Export"));
+            mel.eval('setOptionBoxTitle("Arnold - Alembic Export")');
 
             #  STEP 6:  Customize the 'Help' menu item text.
             #  =============================================
             #
-            setOptionBoxHelpTag(commandName);
+            mel.eval('setOptionBoxHelpTag({})'.format(commandName))
 
             #  Set the current values of the option box.
             #  =========================================
             #
-            eval (setup + " " + parent + " 0");
+            self.setup(parent, 0)
 
             #  Show the option box.
             #  ====================
             #
-            showOptionBox();
-        }
+            mel.eval('showOptionBox()')
 
         #
         #  Procedure Name:
@@ -2292,62 +2197,59 @@ class AlembicOptions(object):
         #  Return Value:
         #      A list of arguments to invoke AbcExport.
         #
-        def string[] captureAlembicExportOptionVars(int version, int exportAll)
-        {
-            setOptionVars(0);
-            int    cacheTimeRanges[]         = `optionVar -q Alembic_exportCacheTimeRanges`;
-            float  startFrames[]             = `optionVar -q Alembic_exportStarts`;
-            float  endFrames[]               = `optionVar -q Alembic_exportEnds`;
-            float  evaluateEvery[]           = `optionVar -q Alembic_exportEvaluateEverys`;
-            int    enableSample[]            = `optionVar -q Alembic_exportEnableFrameRelativeSamples`;
-            float  lowFrameRelativeSamples[] = `optionVar -q Alembic_exportLowFrameRelativeSamples`;
-            float  highFrameRelativeSamples[]= `optionVar -q Alembic_exportHighFrameRelativeSamples`;
-            int    enablePreRoll             = `optionVar -q Alembic_exportEnablePreRoll`;
-            float  preRollStartFrame         = `optionVar -q Alembic_exportPreRollStartFrame`;
-            string attr                      = `optionVar -q Alembic_exportAttr`;
-            string attrPrefix                = `optionVar -q Alembic_exportAttrPrefix`;
-            int    verbose                   = `optionVar -q Alembic_exportVerbose`;
-            int    noNormals                 = `optionVar -q Alembic_exportNoNormals`;
-            int    renderableOnly            = `optionVar -q Alembic_exportRenderableOnly`;
-            int    stripNamespaces           = `optionVar -q Alembic_exportStripNamespaces`;
-            int    uvWrite                   = `optionVar -q Alembic_exportUVWrite`;
-            int    wholeFrameGeo             = `optionVar -q Alembic_exportWholeFrameGeo`;
-            int    worldSpace                = `optionVar -q Alembic_exportWorldSpace`;
-            int    writeVisibility           = `optionVar -q Alembic_exportWriteVisibility`;
-            string perFrameCallbackMel       = `optionVar -q Alembic_exportPerFrameCallbackMel`;
-            string postJobCallbackMel        = `optionVar -q Alembic_exportPostJobCallbackMel`;
-            string perFrameCallbackPython    = `optionVar -q Alembic_exportPerFrameCallbackPython`;
-            string postJobCallbackPython     = `optionVar -q Alembic_exportPostJobCallbackPython`;
+        def captureAlembicExportOptionVars(self, version, exportAll):
+            setOptionVars(False)
+            cacheTimeRanges             = cmds.optionVar(q="MTOA_Alembic_exportCacheTimeRanges")
+            startFrames                 = cmds.optionVar(q="MTOA_Alembic_exportStarts")
+            endFrames                   = cmds.optionVar(q="MTOA_Alembic_exportEnds")
+            evaluateEvery               = cmds.optionVar(q="MTOA_Alembic_exportEvaluateEverys")
+            enableSample                = cmds.optionVar(q="MTOA_Alembic_exportEnableFrameRelativeSamples")
+            lowFrameRelativeSamples     = cmds.optionVar(q="MTOA_Alembic_exportLowFrameRelativeSamples")
+            highFrameRelativeSamples    = cmds.optionVar(q="MTOA_Alembic_exportHighFrameRelativeSamples")
+            enablePreRoll               = cmds.optionVar(q="MTOA_Alembic_exportEnablePreRoll")
+            preRollStartFrame           = cmds.optionVar(q="MTOA_Alembic_exportPreRollStartFrame")
+            attr                        = cmds.optionVar(q="MTOA_Alembic_exportAttr")
+            attrPrefix                  = cmds.optionVar(q="MTOA_Alembic_exportAttrPrefix")
+            verbose                     = cmds.optionVar(q="MTOA_Alembic_exportVerbose")
+            noNormals                   = cmds.optionVar(q="MTOA_Alembic_exportNoNormals")
+            renderableOnly              = cmds.optionVar(q="MTOA_Alembic_exportRenderableOnly")
+            stripNamespaces             = cmds.optionVar(q="MTOA_Alembic_exportStripNamespaces")
+            uvWrite                     = cmds.optionVar(q="MTOA_Alembic_exportUVWrite")
+            wholeFrameGeo               = cmds.optionVar(q="MTOA_Alembic_exportWholeFrameGeo")
+            worldSpace                  = cmds.optionVar(q="MTOA_Alembic_exportWorldSpace")
+            writeVisibility             = cmds.optionVar(q="MTOA_Alembic_exportWriteVisibility")
+            perFrameCallbackMel         = cmds.optionVar(q="MTOA_Alembic_exportPerFrameCallbackMel")
+            postJobCallbackMel          = cmds.optionVar(q="MTOA_Alembic_exportPostJobCallbackMel")
+            perFrameCallbackPython      = cmds.optionVar(q="MTOA_Alembic_exportPerFrameCallbackPython")
+            postJobCallbackPython       = cmds.optionVar(q="MTOA_Alembic_exportPostJobCallbackPython")
             
-            string cacheTimeRangeStr;
-            string startFrameStr;
-            string endFrameStr;
-            string evaluateEveryStr;
-            string enableSampleStr;
-            string lowSampleStr;
-            string highSampleStr;
-            int i;
-            for (i = 0; i < size(cacheTimeRanges); i++:
-                if (i != 0:
-                    cacheTimeRangeStr += ":";
-                    startFrameStr += ":";
-                    endFrameStr += ":";
-                    evaluateEveryStr += ":";
-                    enableSampleStr += ":";
-                    lowSampleStr += ":";
-                    highSampleStr += ":";
-                }
-                cacheTimeRangeStr += cacheTimeRanges[i];
-                startFrameStr += startFrames[i];
-                endFrameStr += endFrames[i];
-                evaluateEveryStr += evaluateEvery[i];
-                enableSampleStr += enableSample[i];
-                lowSampleStr += lowFrameRelativeSamples[i];
-                highSampleStr += highFrameRelativeSamples[i];
-            }
+            cacheTimeRangeStr = ""
+            startFrameStr = ""
+            endFrameStr = ""
+            evaluateEveryStr = ""
+            enableSampleStr = ""
+            lowSampleStr = ""
+            highSampleStr = ""
 
-            string args[] = {
-                "" + exportAll,
+            for i in range(len(cacheTimeRanges)):
+                if i != 0:
+                    cacheTimeRangeStr += ":"
+                    startFrameStr += ":"
+                    endFrameStr += ":"
+                    evaluateEveryStr += ":"
+                    enableSampleStr += ":"
+                    lowSampleStr += ":"
+                    highSampleStr += ":"
+                cacheTimeRangeStr += cacheTimeRanges[i]
+                startFrameStr += startFrames[i]
+                endFrameStr += endFrames[i]
+                evaluateEveryStr += evaluateEvery[i]
+                enableSampleStr += enableSample[i]
+                lowSampleStr += lowFrameRelativeSamples[i]
+                highSampleStr += highFrameRelativeSamples[i]
+
+            args = [
+                exportAll,
                 cacheTimeRangeStr,
                 startFrameStr,
                 endFrameStr,
@@ -2371,69 +2273,49 @@ class AlembicOptions(object):
                 postJobCallbackMel,
                 perFrameCallbackPython,
                 postJobCallbackPython
-            };
+            ]
 
-            if (version >= 2:
-                int    filterEulerRotations    = `optionVar -q Alembic_exportFilterEulerRotations`;
+            if version >= 2:
+                filterEulerRotations = cmds.optionVar(q="MTOA_Alembic_exportFilterEulerRotations")
 
-                string argsVer2[] = {
-                    "" + filterEulerRotations
-                };
+                args += [str(filterEulerRotations)]
 
-                appendStringArray(args, argsVer2, 1);
-            }
+            if version >= 3:
+                writeColorSets      = cmds.optionVar(q="MTOA_Alembic_exportWriteColorSets")
+                writeFaceSets       = cmds.optionVar(q="MTOA_Alembic_exportWriteFaceSets")
 
-            if (version >= 3:
-                int    writeColorSets      = `optionVar -q Alembic_exportWriteColorSets`;
-                int    writeFaceSets       = `optionVar -q Alembic_exportWriteFaceSets`;
-
-                string argsVer3[] = {
-                    "" + writeColorSets,
+                argsVer3 += [
+                    witeColorSets,
                     writeFaceSets
-                };
+                ]
 
-                appendStringArray(args, argsVer3, 2);
-            }
+            if version >= 4:
+                dataFormat = cmds.optionVar(q="MTOA_Alembic_exportDataFormat")
 
-            if (version >= 4:
-                int dataFormat = `optionVar -q Alembic_exportDataFormat`;
+                args += [
+                    dataForma)
+                ]
 
-                string argsVer4[] = {
-                    "" + dataFormat
-                };
+            if version >= 5:
+                preRollStep = cmds.optionVar(q="MTOA_Alembic_exportPreRollStep")
 
-                appendStringArray(args, argsVer4, 1);
-            }
-
-            if (version >= 5:
-                float preRollStep = `optionVar -q Alembic_exportPreRollStep`;
-
-                string argsVer5[] = {
-                    "" + preRollStep
-                };
-
-                appendStringArray(args, argsVer5, 1);
-            }
+                args += [
+                    preRollStep
+                ]
                 
-            if (version >= 6:
-                int    writeCreases = `optionVar -q Alembic_exportWriteCreases`;
-                string argsVer6[] = {
-                    "" + writeCreases
-                };
+            if version >= 6:
+                writeCreases = cmds.optionVar(q="MTOA_Alembic_exportWriteCreases")
+                args += [
+                    writeCreases
+                ]
 
-                appendStringArray(args, argsVer6, 1);
-            }
+            if version >= 7:
+                writeUVSets = cmds.optionVar(q="MTOA_Alembic_exportWriteUVSets")
+                args += [
+                    writeUVSets
+                ]
 
-            if (version >= 7:
-                int    writeUVSets = `optionVar -q Alembic_exportWriteUVSets`;
-                string argsVer7[] = {
-                    "" + writeUVSets
-                };
-
-                appendStringArray(args, argsVer7, 1);
-            }
-            return args;
-        }
+            return args
 
         #
         #  Procedure Name:
@@ -2445,19 +2327,11 @@ class AlembicOptions(object):
         #  Input Arguments:
         #      exportAll - Whether to export the entire scene or only selected objects.
         #
-        proc string assembleCmd(int exportAll)
-        {
+        def assembleCmd(self, exportAll):
             int version = 7;
-            string args[] = captureAlembicExportOptionVars(version, exportAll);
-            string cmd = "doAlembicExportArgList " + version + " {";
-            int i;
-            for (i = 0; i < size(args); i++:
-                if (i > 0) cmd += ",";
-                cmd += ("\"" + encodeString(args[i]) + "\"");
-            }
-            cmd += "};";
-            return cmd;
-        }
+            args = self.captureAlembicExportOptionVars(version, exportAll)
+            cmd = doAlembicExportArgList
+            return cmd, version, args
 
         #
         #  Procedure Name:
@@ -2473,10 +2347,8 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #      
-        def exportFileOptionsUICreate(string parent)
-        {
-            exportOptionsUI(parent);
-        }
+        def exportFileOptionsUICreate(self, parent):
+            self.exportOptionsUI(parent);
 
         #
         #  Procedure Name:
@@ -2494,10 +2366,8 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportFileOptionsUIInit(string parent, string filter)
-        {
-            Alembic_exportSetup parent 0;
-        }
+        def exportFileOptionsUIInit(self, parent, file_type):
+            self.exportSetup(parent, False)
 
         #
         #  Procedure Name:
@@ -2513,10 +2383,8 @@ class AlembicOptions(object):
         #  Return Value:
         #      None.
         #
-        def exportAllFileOptionsUICommit(string parent)
-        {
-            Alembic_exportCallback parent 1 0;
-        }
+        def exportAllFileOptionsUICommit(self, parent):
+            self.exportCallback(parent, 1, 0)
 
 
         #
@@ -2534,7 +2402,7 @@ class AlembicOptions(object):
         #      None.
         #
         def exportSelectionFileOptionsUICommit(parent):
-            Alembic_exportCallback(parent, 0, 0)
+            self.exportCallback(parent, 0, 0)
 
 
 def containsWhiteSpace(string):
@@ -2579,7 +2447,7 @@ def performAlembicExport(action=ABC_ACTION_EXEC, exportAll=True):
     if action == ABC_ACTION_EXEC:
         #  Get the command.
         #
-        cmd = __assembleCmd(exportAll)
+        cmd = assembleCmd(exportAll)
 
         # Execute the command with the option settings.
         #
@@ -2590,16 +2458,459 @@ def performAlembicExport(action=ABC_ACTION_EXEC, exportAll=True):
     elif action == ABC_ACTION_OPTION:
         # Show the option box.
         #
-        __exportOptions(exportAll)
+        exportOptions(exportAll)
 
     # Return the command string.
     #
     elif action == ABC_ACTION_CMD:
         # Get the command.
         #
-        cmd = __assembleCmd(exportAll)
+        cmd = assembleCmd(exportAll)
 
     return cmd;
 
 
+
+# ===========================================================================
+# Copyright 2018 Autodesk, Inc. All rights reserved.
+#
+# Use of this software is subject to the terms of the Autodesk license
+# agreement provided at the time of installation or download, or which
+# otherwise accompanies this software in either electronic or hard copy form.
+# ===========================================================================
+#
+#  Description:
+#      This script exports selected objects or the current scene
+#      to an Alembic file by AbcExport command.
+#
+
+#
+#  Procedure Name:
+#      syncOptionVars
+#
+#  Description:
+#      Synchronize option values with the argument list.
+#
+#  Input Arguments:
+#      version - The version of the argument list.
+#
+#      args    - A list of arguments to invoke AbcExport.
+#
+#  Return Value:
+#      None.
+#
+def syncOptionVars(version=7, args=[]):
+    versionNum                = version
+    cacheTimeRange            = args[1].split( ":")
+    start                     = args[2].split( ":")
+    end                       = args[3].split( ":")
+    evaluateEvery             = args[4].split( ":")
+    enableSample              = args[5].split( ":")
+    lowFrameRelativeSample    = args[6].split( ":")
+    highFrameRelativeSample   = args[7].split( ":")
+    enablePreRoll             = args[8]
+    preRollStartFrame         = args[9]
+    attr                      = args[10]
+    attrPrefix                = args[11]
+    verbose                   = args[12]
+    noNormals                 = args[13]
+    renderableOnly            = args[14]
+    stripNamespaces           = args[15]
+    uvWrite                   = args[16]
+    wholeFrameGeo             = args[17]
+    worldSpace                = args[18]
+    writeVisibility           = args[19]
+    perFrameCallbackMel       = args[20]
+    postJobCallbackMel        = args[21]
+    perFrameCallbackPython    = args[22]
+    postJobCallbackPython     = args[23]
+
+    cmds.optionVar(clearArray="MTOA_Alembic_exportCacheTimeRanges")
+    cmds.optionVar(clearArray="MTOA_Alembic_exportStarts")
+    cmds.optionVar(clearArray="MTOA_Alembic_exportEnds")
+    cmds.optionVar(clearArray="MTOA_Alembic_exportEvaluateEverys")
+    cmds.optionVar(clearArray="MTOA_Alembic_exportEnableFrameRelativeSamples")
+    cmds.optionVar(clearArray="MTOA_Alembic_exportLowFrameRelativeSamples")
+    cmds.optionVar(clearArray="MTOA_Alembic_exportHighFrameRelativeSamples")
+    tmpRangeMode = tmpEnableSample = 0
+    tmpStart = tmpEnd = tmpEvaluateEvery = tmpLowSample = tmpHighSample = 0.0
+
+    for i in len(cacheTimeRange):
+        tmpRangeMode = cacheTimeRange[i]
+        tmpStart = start[i]
+        tmpEnd = end[i]
+        tmpEvaluateEvery = evaluateEvery[i]
+        tmpEnableSample = enableSample[i]
+        tmpLowSample = lowFrameRelativeSample[i]
+        tmpHighSample = highFrameRelativeSample[i]
+
+        cmds.optionVar(intValueAppend=["MTOA_Alembic_exportCacheTimeRanges",tmpRangeMode])
+        cmds.optionVar(floatValueAppend=["MTOA_Alembic_exportStarts",tmpStart])
+        cmds.optionVar(floatValueAppend=["MTOA_Alembic_exportEnds",tmpEnd])
+        cmds.optionVar(floatValueAppend=["MTOA_Alembic_exportEvaluateEverys",tmpEvaluateEvery])
+        cmds.optionVar(intValueAppend=["MTOA_Alembic_exportEnableFrameRelativeSamples",tmpEnableSample])
+        cmds.optionVar(floatValueAppend=["MTOA_Alembic_exportLowFrameRelativeSamples",tmpLowSample])
+        cmds.optionVar(floatValueAppend=["MTOA_Alembic_exportHighFrameRelativeSamples",tmpHighSample])
+
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportEnablePreRoll",             enablePreRoll])
+    cmds.optionVar(floatValue=[     "MTOA_Alembic_exportPreRollStartFrame",         preRollStartFrame])
+    cmds.optionVar(stringValue=[    "MTOA_Alembic_exportAttr",                      attr])
+    cmds.optionVar(stringValue=[    "MTOA_Alembic_exportAttrPrefix",                attrPrefix])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportVerbose",                   verbose])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportNoNormals",                 noNormals])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportRenderableOnly",            renderableOnly])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportStripNamespaces",           stripNamespaces])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportUVWrite",                   uvWrite])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportWholeFrameGeo",             wholeFrameGeo])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportWorldSpace",                worldSpace])
+    cmds.optionVar(intValue=[       "MTOA_Alembic_exportWriteVisibility",           writeVisibility])
+    cmds.optionVar(stringValue=[    "MTOA_Alembic_exportPerFrameCallbackMel",       perFrameCallbackMel])
+    cmds.optionVar(stringValue=[    "MTOA_Alembic_exportPostJobCallbackMel",        postJobCallbackMel])
+    cmds.optionVar(stringValue=[    "MTOA_Alembic_exportPerFrameCallbackPython",    perFrameCallbackPython])
+    cmds.optionVar(stringValue=[    "MTOA_Alembic_exportPostJobCallbackPython",     postJobCallbackPython])
+
+    if versionNum >= 2:
+        filterEulerRotations    = args[24]
+
+        cmds.optionVar(intValue=[    "MTOA_Alembic_exportFilterEulerRotations",    filterEulerRotations])
+
+    if versionNum >= 3:
+        writeColorSets      = args[25]
+        writeFaceSets       = args[26]
+
+        cmds.optionVar(intValue=[    "MTOA_Alembic_exportWriteColorSets",    writeColorSets])
+        cmds.optionVar(intValue=[    "MTOA_Alembic_exportWriteFaceSets",     writeFaceSets])
+
+    if versionNum >= 4:
+        dataFormat = args[27]
+
+        cmds.optionVar(intValue=[ "MTOA_Alembic_exportDataFormat", dataFormat])
+
+    if versionNum >= 5:
+        preRollStep = args[28]
+
+        cmds.optionVar(floatValue=[ "MTOA_Alembic_exportPreRollStep", preRollStep])
+
+    if versionNum >= 6:
+        writeCreases = args[29]
+
+        cmds.optionVar(intValue=[ "MTOA_Alembic_exportWriteCreases", writeCreases])
+
+    if versionNum >= 7:
+        writeUVSets = args[30]
+
+        cmds.optionVar(intValue=[ "MTOA_Alembic_exportWriteUVSets" writeUVSets])
+
+#
+#  Procedure Name:
+#      doAlembicExportArgList
+#
+#  Description:
+#      Execute AbcExport command based on the argument list.
+#
+#  Input Arguments:
+#      version - The version of the argument list.
+#
+#      args    - A list of arguments to invoke AbcExport.
+#
+#  Return Value:
+#      None.
+#
+def doAlembicExportArgList(version, args):
+    if (!`exists captureAlembicExportOptionVars`) {
+        eval("source \"performAlembicExport.mel\"");
+    }
+
+    # back up the current option values so that we can restore
+    # them later if the dialog is cancelled
+    int exportAll = args[0];
+    string optionVarsBackup[] = captureAlembicExportOptionVars(version, exportAll);
+
+    # synchronize the option values with the argument list
+    syncOptionVars(version, args);
+
+    # prepare filter and starting dir for file dialog
+    string filter = (uiRes("m_doAlembicExportArgList.kAlembic")) + " (*.abc);;"
+                        + (uiRes("m_doAlembicExportArgList.kAllFiles")) + " (*.*)";
+    if (size(`workspace -fileRuleEntry alembicCache`) == 0) {
+        workspace -fileRule "alembicCache" "cache/alembic";
+        workspace -saveWorkspace;
+    }
+    string workspace = `workspace -fileRuleEntry alembicCache`;
+    workspace = `workspace -expandName workspace`;
+    sysFile -makeDir workspace;
+
+    global string gAlembicExportLastDirectory;
+    global string gAlembicExportLastWorkspace;
+    string startingDir = gAlembicExportLastDirectory;
+    if (size(startingDir) == 0 || gAlembicExportLastWorkspace != `workspace -q -rootDirectory`) {
+        startingDir = workspace;
+    }
+
+    # choose a file to export
+    string result[];
+    if (exportAll) {
+        result = `fileDialog2
+                    -returnFilter 1
+                    -fileFilter filter
+                    -caption (uiRes("m_doAlembicExportArgList.kExportAll2"))
+                    -startingDirectory startingDir
+                    -fileMode 0
+                    -okCaption (uiRes("m_doAlembicExportArgList.kExportAll3"))
+                    -optionsUICreate "Alembic_exportFileOptionsUICreate"
+                    -optionsUIInit "Alembic_exportFileOptionsUIInit"
+                    -optionsUICommit "Alembic_exportAllFileOptionsUICommit"
+                    `;
+    } else {
+        result = `fileDialog2
+                    -returnFilter 1
+                    -fileFilter filter
+                    -caption (uiRes("m_doAlembicExportArgList.kExportSelection2"))
+                    -startingDirectory startingDir
+                    -fileMode 0
+                    -okCaption (uiRes("m_doAlembicExportArgList.kExportSelection3"))
+                    -optionsUICreate "Alembic_exportFileOptionsUICreate"
+                    -optionsUIInit "Alembic_exportFileOptionsUIInit"
+                    -optionsUICommit "Alembic_exportSelectionFileOptionsUICommit"
+                    `;
+    }
+    if (size(result) == 0 || size(result[0]) == 0) {
+        # cancelled
+        # Restore optionVars to the state before this procedure is called
+        #
+        syncOptionVars(version, optionVarsBackup);
+        return;
+    }
+
+    # Save the last directory
+    gAlembicExportLastDirectory = dirname(result[0]);
+    gAlembicExportLastWorkspace = `workspace -q -rootDirectory`;
+
+    # parameters
+    int    cacheTimeRanges[]         = `optionVar -q Alembic_exportCacheTimeRanges`;
+    float  startFrames[]             = `optionVar -q Alembic_exportStarts`;
+    float  endFrames[]               = `optionVar -q Alembic_exportEnds`;
+    float  evaluateEvery[]           = `optionVar -q Alembic_exportEvaluateEverys`;
+    int    enableSample[]            = `optionVar -q Alembic_exportEnableFrameRelativeSamples`;
+    float  lowFrameRelativeSamples[] = `optionVar -q Alembic_exportLowFrameRelativeSamples`;
+    float  highFrameRelativeSamples[]= `optionVar -q Alembic_exportHighFrameRelativeSamples`;
+
+    int    enablePreRoll             = `optionVar -q Alembic_exportEnablePreRoll`;
+    float  preRollStartFrame         = `optionVar -q Alembic_exportPreRollStartFrame`;
+    float  preRollStep               = `optionVar -q Alembic_exportPreRollStep`;
+    string attr                      = `optionVar -q Alembic_exportAttr`;
+    string attrPrefix                = `optionVar -q Alembic_exportAttrPrefix`;
+    int    verbose                   = `optionVar -q Alembic_exportVerbose`;
+    int    noNormals                 = `optionVar -q Alembic_exportNoNormals`;
+    int    renderableOnly            = `optionVar -q Alembic_exportRenderableOnly`;
+    int    stripNamespaces           = `optionVar -q Alembic_exportStripNamespaces`;
+    int    uvWrite                   = `optionVar -q Alembic_exportUVWrite`;
+    int    writeColorSets            = `optionVar -q Alembic_exportWriteColorSets`;
+    int    writeFaceSets             = `optionVar -q Alembic_exportWriteFaceSets`;
+    int    wholeFrameGeo             = `optionVar -q Alembic_exportWholeFrameGeo`;
+    int    worldSpace                = `optionVar -q Alembic_exportWorldSpace`;
+    int    writeVisibility           = `optionVar -q Alembic_exportWriteVisibility`;
+    int    filterEulerRotations      = `optionVar -q Alembic_exportFilterEulerRotations`;
+    int    writeCreases              = `optionVar -q Alembic_exportWriteCreases`;
+    int    writeUVSets               = `optionVar -q Alembic_exportWriteUVSets`;
+    int    dataFormat                = `optionVar -q Alembic_exportDataFormat`;
+    string perFrameCallbackMel       = `optionVar -q Alembic_exportPerFrameCallbackMel`;
+    string postJobCallbackMel        = `optionVar -q Alembic_exportPostJobCallbackMel`;
+    string perFrameCallbackPython    = `optionVar -q Alembic_exportPerFrameCallbackPython`;
+    string postJobCallbackPython     = `optionVar -q Alembic_exportPostJobCallbackPython`;
+
+    # build AbcExport command
+    string command = "AbcExport ";
+    string job;
+    int i;
+    
+    float firstCacheFrame = 1;
+    for (i = 0; i < size(cacheTimeRanges); i++) {
+        float startEnd[];
+        if (cacheTimeRanges[i] != 3) {
+            startEnd = Alembic_getStartEndFrames(cacheTimeRanges[i]);
+        }
+        else {
+            startEnd[0] = startFrames[i];
+            startEnd[1] = endFrames[i];
+        }
+        
+        if (i == 0) {
+            firstCacheFrame = startEnd[0];
+        }
+        
+        job += ("-frameRange " + startEnd[0] + " " + startEnd[1] + " ");
+
+        if (evaluateEvery[i] != 1) {
+            if (evaluateEvery[i] <= 0) {
+                error (uiRes("m_doAlembicExportArgList.kInvalidEvaluateEvery"));
+                return;
+            }
+            job += ("-step " + evaluateEvery[i] + " ");
+        }
+
+        if (enableSample[i]) {
+            if (lowFrameRelativeSamples[i] > 0 || lowFrameRelativeSamples[i] < -evaluateEvery[i]) {
+                error (uiRes("m_doAlembicExportArgList.kInvalidLowFrameRelativeSample"));
+                return;
+            }
+            if (highFrameRelativeSamples[i] < 0 || highFrameRelativeSamples[i] > evaluateEvery[i]) {
+                error (uiRes("m_doAlembicExportArgList.kInvalidHighFrameRelativeSample"));
+                return;
+            }
+            job += "-frameRelativeSample ";
+            job += lowFrameRelativeSamples[i];
+            job += " -frameRelativeSample 0 -frameRelativeSample ";
+            job += highFrameRelativeSamples[i];
+            job += " ";
+        }
+    }
+
+    if (enablePreRoll) {
+        # Check arguments.
+        if (preRollStep <= 0) {
+            error (uiRes("m_doAlembicExportArgList.kInvalidPreRollStep"));
+            return;
+        }
+
+        if (preRollStartFrame >= firstCacheFrame) {
+            error (uiRes("m_doAlembicExportArgList.kInvalidPreRollStartFrame"));
+            return;
+        }
+
+        # Compute the pre-roll end frame.
+        float preRollEndFrame = Alembic_getPrerollEndFrame(preRollStartFrame, firstCacheFrame, preRollStep);
+
+        string preRollFlags = ("-frameRange " + preRollStartFrame + " "
+            + preRollEndFrame + " -step " + preRollStep + " -preRoll ");
+        job = preRollFlags + job;
+    }
+
+    string attrArray[], attrPrefixArray[];
+    tokenize attr "," attrArray;
+    tokenize attrPrefix "," attrPrefixArray;
+    for (i = 0; i < size(attrArray); i++) {
+        if (size(attrArray[i]) > 0) {
+            job += "-attr ";
+            job += formValidObjectName(attrArray[i]);
+            job += " ";
+        }
+    }
+    for (i = 0; i < size(attrPrefixArray); i++) {
+        if (size(attrPrefixArray[i]) > 0) {
+            job += "-attrPrefix ";
+            job += formValidObjectName(attrPrefixArray[i]);
+            job += " ";
+        }
+    }
+
+    if (verbose) {
+        command += "-verbose ";
+    }
+
+    if (noNormals) {
+        job += "-noNormals ";
+    }
+
+    if (renderableOnly) {
+        job += "-ro ";
+    }
+
+    if (stripNamespaces) {
+        job += "-stripNamespaces ";
+    }
+
+    if (uvWrite) {
+        job += "-uvWrite ";
+    }
+
+    if (writeColorSets) {
+        job += "-writeColorSets ";
+    }
+
+    if (writeFaceSets) {
+        job += "-writeFaceSets ";
+    }
+
+    if (wholeFrameGeo) {
+        job += "-wholeFrameGeo ";
+    }
+
+    if (worldSpace) {
+        job += "-worldSpace ";
+    }
+
+    if (writeVisibility) {
+        job += "-writeVisibility ";
+    }
+
+    if (filterEulerRotations) {
+        job += "-eulerFilter ";
+    }
+
+    if(writeCreases){
+        job += "-autoSubd ";
+    }
+
+    if(writeUVSets){
+        job += "-writeUVSets ";
+    }
+
+    if (dataFormat == 1) {
+        job += "-dataFormat hdf ";
+    }
+    else if (dataFormat == 2) {
+        job += "-dataFormat ogawa ";
+    }
+
+    if (size(perFrameCallbackMel) > 0) {
+        if (containsWhiteSpace(perFrameCallbackMel)) {
+            perFrameCallbackMel = "\"" + encodeString(perFrameCallbackMel) + "\""; 
+        }
+        job += ("-melPerFrameCallback " + encodeString(perFrameCallbackMel) + " ");
+    }
+
+    if (size(postJobCallbackMel) > 0) {
+        if (containsWhiteSpace(postJobCallbackMel)) {
+            postJobCallbackMel = "\"" + encodeString(postJobCallbackMel) + "\""; 
+        }
+        job += ("-melPostJobCallback " + encodeString(postJobCallbackMel) + " ");
+    }
+
+    if (size(perFrameCallbackPython) > 0) {
+        if (containsWhiteSpace(perFrameCallbackPython)) {
+            perFrameCallbackPython = "\"" + encodeString(perFrameCallbackPython) + "\""; 
+        }
+        job += ("-pythonPerFrameCallback " + encodeString(perFrameCallbackPython) + " ");
+    }
+
+    if (size(postJobCallbackPython) > 0) {
+        if (containsWhiteSpace(postJobCallbackPython)) {
+            postJobCallbackPython = "\"" + encodeString(postJobCallbackPython) + "\""; 
+        }
+        job += ("-pythonPostJobCallback " + encodeString(postJobCallbackPython) + " ");
+    }
+
+    if (!exportAll) {
+        string selections[] = `ls -selection -long`;
+        string selection;
+        for (selection in selections) {
+            job += "-root " + selection + " ";
+        }
+    }
+
+    string file = result[0];
+    if (containsWhiteSpace(file)) {
+        file = "\"" + file + "\"";
+    }
+
+    command += ("-j \"" + job + "-file " + encodeString(file) + "\"");
+
+    # execute command
+    if (!`pluginInfo -q -loaded AbcExport`) {
+        error (uiRes("m_doAlembicExportArgList.kAbcExportNotLoaded"));
+        return;
+    }
+    evalEcho(command);
+}
 
