@@ -101,6 +101,7 @@
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/operator/VariantSwitchTranslator.h"
 #include "translators/ObjectSetTranslator.h"
+#include "translators/shader/AxfTranslator.h"
 
 #include "render/MaterialView.h"
 #include "render/RenderSwatch.h"
