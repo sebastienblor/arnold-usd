@@ -279,8 +279,9 @@ void CProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
       plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
       plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2") return;
 
+   // do *not* recreate the node if it's an operators input
    MGlobal::displayWarning(plugName.substringW(0, 9));
-   if (!(IsTransformPlug(plug) || (plugName.length() > 10 && plugName.substringW(0, 9) == MString("operators["))))
+   if (!(IsTransformPlug(plug) && (plugName.length() <= 10 || plugName.substringW(0, 9) != MString("operators["))))
       SetUpdateMode(AI_RECREATE_NODE);
    
    CShapeTranslator::NodeChanged(node, plug);
