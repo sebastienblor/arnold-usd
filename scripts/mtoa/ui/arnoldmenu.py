@@ -366,6 +366,10 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Standin .ass file')
         cmds.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsStandIn()')
+        addRuntimeMenuItem('ArnoldExportAlembic', parent='ArnoldStandIn', label='Export Alembic', image='ExportAlembicShelf.png',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportAlembic()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
+        cmds.menuItem('ArnoldExportOptionsAlembic', parent='ArnoldStandIn', optionBox=True,
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsAlembic()')
 
         cmds.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
