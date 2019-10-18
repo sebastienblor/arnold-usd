@@ -117,6 +117,9 @@ AXFTOA_API int AxFtoAMaterialGetNumNodes(AxFtoAMaterial*);
 AXFTOA_API AtNode *AxFtoAMaterialGetNode(AxFtoAMaterial*, int idx);
 // Get Arnold shading tree root node
 AXFTOA_API AtNode *AxFtoAMaterialGetRootNode(AxFtoAMaterial*);
+// Get Arnold displacement node
+// Applying displacement should be optional, since some AxF materials have displacement seams
+AXFTOA_API AtNode *AxFtoAMaterialGetDisplacementNode(AxFtoAMaterial*);
 
 // Get number of output textures (only includes the ones updated in this conversion)
 AXFTOA_API int AxFtoAMaterialGetNumTextures(AxFtoAMaterial*);

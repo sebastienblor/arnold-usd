@@ -35,6 +35,11 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    // TODO : Right now we're assuming that we have only 1 material in the axf file 
    // We need to set the material index based off of user selection
    AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
+   if (AxFtoASessionHasErrors())
+   {
+      AiMsgError("[mtoa] Unable to perform operation.");
+      return NULL; 
+   }
    
    
    AxFtoAMaterialSetTextureFolder(material, tex_path.asChar());
@@ -61,8 +66,8 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
       AiMsgError("[mtoa] [translator %s] Unable to perform translation. Axf File is still not supported", GetTranslatorName().asChar());
    }
 
-   // AxFtoAFileClose(axf_file);
-   AxFtoASessionStart();
+   AxFtoAFileClose(axf_file);
+   AxFtoASessionEnd();
 
    return root_node;
 }

@@ -114,29 +114,30 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, c
    return false;
 }
 
-bool CArnoldImportAssCmd::writeAssFromAxf(const MString axfFileName, 
-                                          AtUniverse* universe, 
-                                          MString& assFileName)
+MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUniverse* universe)
 {
-   // Make a texture path based on workspace 
-   // Make as assFile by renaming the axf to ass 
-   // A pop up for uv sscale for axf file 
+
    MString cwd;
-   MString tex_path = MGlobal::executeCommand("workspace -q -dir ", cwd) + "axfimages";
-   std::cout << " Texture Path will be " << tex_path.asChar() << std::endl;
+   MGlobal::executeCommand("workspace -q -dir ", cwd) ;
+   MString tex_path =  cwd ; 
    
    unsigned int nchars = axfFileName.numChars();
-   assFileName = axfFileName.substringW(0, nchars-4)+"ass";
-
+  
    AxFtoASessionStart();
    AxFtoASessionClearErrors();
-   AxFtoASessionSetVerbosity(5);
-
+   AxFtoASessionSetVerbosity(0);
    AxFtoAFile* axf_file = AxFtoAFileOpen(axfFileName.asChar());
+   // TODO : Hard coding this to material index 0 in the file 
    AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
+   if ( AxFtoASessionHasErrors()) 
+   {
+      return MStatus::kFailure; 
+   }
    AxFtoAMaterialSetTextureFolder(material, tex_path.asChar());
-   AxFtoAMaterialSetUVUnitSize(material, 1.0f);
    
+   // TODO : Hard coding this to 1.0. Need a better way to expose this 
+   AxFtoAMaterialSetUVUnitSize(material, 1.0f);
+   // TODO : Hard coding this. Need a better way to expose this 
    AxFtoAMaterialSetColorSpace(material, "Rec709,E");
    
    AxFtoAMaterialSetUniverse(material, universe);
@@ -144,8 +145,9 @@ bool CArnoldImportAssCmd::writeAssFromAxf(const MString axfFileName,
    AxFtoAMaterialSetNodeNamePrefix(material, "importAxf_");
    AtNode* root_node = AxFtoAMaterialGetRootNode(material);
    AxFtoAMaterialWriteTextures(material);
-
-   
+   AxFtoAFileClose(axf_file);
+   AxFtoASessionEnd();
+   return MStatus::kSuccess ;
 }
 
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
@@ -176,24 +178,19 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 
    AtUniverse *universe = AiUniverse();
 
-
    unsigned int nchars = filename.numChars();
    if  (nchars > 4 && filename.substringW(nchars-4, nchars) == ".axf")
    {
-      MString tmpAssFilename;
-      writeAssFromAxf(filename, universe,  tmpAssFilename);
-      std::cout << " TMP ASS FILE NAME IS " << tmpAssFilename << std::endl;
-
+      // This is an Axf File 
+      if (convertAxfToArnold(filename, universe) == MStatus::kFailure)
+         {
+            return MStatus::kFailure;
+         }
    }
    else
    {
       AiASSLoad(universe, filename.asChar(), mask);   
    }
-   
-
-
-   
-   
 
    MString logStr("Importing file ");
    logStr += filename;

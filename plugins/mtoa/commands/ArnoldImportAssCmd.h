@@ -22,6 +22,6 @@ public:
 
    static MSyntax newSyntax();
    MStatus doIt(const MArgList& argList);
-   bool writeAssFromAxf(const MString axfFileName, AtUniverse* universe, MString& assFileName);
+   MStatus convertAxfToArnold(const MString axfFileName, AtUniverse* universe);
 
 }; // class CArnoldImportAssCmd
