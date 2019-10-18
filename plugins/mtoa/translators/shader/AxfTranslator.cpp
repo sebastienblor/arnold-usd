@@ -18,9 +18,17 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
 
    AxFtoASessionStart();
    AxFtoASessionClearErrors();
-   
-   //TODO : Need to set verbosity based on the verbosity level in Render Setting 
-   AxFtoASessionSetVerbosity(4);
+   int verbosity = 0;
+   MObject node = GetArnoldRenderOptions();
+   if (node != MObject::kNullObj)
+   {
+      MFnDependencyNode fnArnoldRenderOptions(node);
+      MPlug plug;
+      plug = fnArnoldRenderOptions.findPlug("log_verbosity", true);
+      if (!plug.isNull())
+         verbosity = plug.asInt();
+   }
+   AxFtoASessionSetVerbosity(verbosity);
    
    AxFtoAFile* axf_file = AxFtoAFileOpen(axf_path.asChar());
    
@@ -53,8 +61,8 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
       AiMsgError("[mtoa] [translator %s] Unable to perform translation. Axf File is still not supported", GetTranslatorName().asChar());
    }
 
-   AxFtoAFileClose(axf_file);
-   AxFtoASessionEnd();
+   // AxFtoAFileClose(axf_file);
+   AxFtoASessionStart();
 
    return root_node;
 }
