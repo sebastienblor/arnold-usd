@@ -239,7 +239,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, select=1+settings.get('shadowLinks', 0)) 
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, enable=lightsOn)
         
-        cmds.checkBoxGrp('oa_export_full_path', label1='Full Paths', value1=settings.get('fullPath', False))
+        cmds.checkBoxGrp('oa_export_full_path', label1='Full Paths', value1=settings.get('fullPath', True))
         cmds.textFieldGrp("oa_export_prefix", label="Prefix ", text="")
 
         cmds.setParent('..')      

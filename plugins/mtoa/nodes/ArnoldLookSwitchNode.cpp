@@ -1,5 +1,5 @@
 
-#include "nodes/ArnoldVariantSwitchNode.h"
+#include "nodes/ArnoldLookSwitchNode.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "extension/ExtensionsManager.h"
 
@@ -10,26 +10,26 @@
 #include <maya/MFnCompoundAttribute.h>
 #include <maya/MFnMessageAttribute.h>
 
-MTypeId CArnoldVariantSwitchNode::id(ARNOLD_NODEID_OPERATOR_VARIANT_SWITCH);
+MTypeId CArnoldLookSwitchNode::id(ARNOLD_NODEID_OPERATOR_VARIANT_SWITCH);
 
-MObject CArnoldVariantSwitchNode::s_enable;
-MObject CArnoldVariantSwitchNode::s_index;
+MObject CArnoldLookSwitchNode::s_enable;
+MObject CArnoldLookSwitchNode::s_index;
 
-MObject CArnoldVariantSwitchNode::s_variants;
-MObject CArnoldVariantSwitchNode::s_name;
-MObject CArnoldVariantSwitchNode::s_inputs;
+MObject CArnoldLookSwitchNode::s_looks;
+MObject CArnoldLookSwitchNode::s_name;
+MObject CArnoldLookSwitchNode::s_inputs;
 
-MObject CArnoldVariantSwitchNode::s_out;
+MObject CArnoldLookSwitchNode::s_out;
 
 
-void* CArnoldVariantSwitchNode::creator()
+void* CArnoldLookSwitchNode::creator()
 {
-   return new CArnoldVariantSwitchNode();
+   return new CArnoldLookSwitchNode();
 }
 
-MStatus CArnoldVariantSwitchNode::initialize()
+MStatus CArnoldLookSwitchNode::initialize()
 {
-   CExtensionsManager::AddOperator("aiVariantSwitch");
+   CExtensionsManager::AddOperator("aiLookSwitch");
 
    MFnTypedAttribute tAttr;
    // MFnEnumAttribute eAttr;
@@ -45,7 +45,7 @@ MStatus CArnoldVariantSwitchNode::initialize()
    s_index = nAttr.create("index", "idx", MFnNumericData::kInt);
    addAttribute(s_index);
 
-   s_variants = cmpAttr.create("variants", "vars");
+   s_looks = cmpAttr.create("looks", "looks");
    cmpAttr.setArray(true);
    cmpAttr.setIndexMatters(false); // allow -nextAvailable
 
@@ -65,7 +65,7 @@ MStatus CArnoldVariantSwitchNode::initialize()
 
    cmpAttr.setKeyable(false);
 
-   addAttribute(s_variants);
+   addAttribute(s_looks);
 
    // out message plug
 

@@ -788,8 +788,6 @@ void CRenderSession::DoIPRRender()
 
       MStatus status;
       // TODO : move this to a shared class later
-      // we have to query this here because
-      // we are not allowed to change the API for the next release
       MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
       if (status)
       {

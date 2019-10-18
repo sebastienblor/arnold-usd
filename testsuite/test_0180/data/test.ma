@@ -4,12 +4,12 @@
 //Codeset: 1252
 requires maya "2017ff04";
 requires -nodeType "hairPhysicalShader" "hairPhysicalShader" "1.0";
+requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
+		 -nodeType "aiUserDataColor" "mtoa" "2.0.0.0";
 requires -nodeType "xgmPalette" -nodeType "xgmDescription" -nodeType "xgmSubdPatch"
 		 -dataType "xgmGuideData" -dataType "igmDescriptionData" -dataType "xgmSplineData"
 		 -dataType "xgmMeshData" -dataType "xgmSplineTweakData" -dataType "xgmSplineBoundInfoData"
 		 -dataType "xgmGuideRefData" "xgenToolkit" "1.0";
-requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
-		 -nodeType "aiUserDataColor" "mtoa" "2.0.0.0";
 requires "stereoCamera" "10.0";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;

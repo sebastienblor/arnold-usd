@@ -671,10 +671,10 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_export_full_paths = nAttr.create("exportFullPaths", "export_full_paths", MFnNumericData::kBoolean);
    nAttr.setKeyable(false);
-   nAttr.setDefault(false);
+   nAttr.setDefault(true);
    addAttribute(s_export_full_paths);
 
-   s_export_separator = eAttr.create("exportSeparator", "export_separator", MTOA_EXPORT_SEPARATOR_PIPES);
+   s_export_separator = eAttr.create("exportSeparator", "export_separator", MTOA_EXPORT_SEPARATOR_SLASHES);
    eAttr.setKeyable(false);
    eAttr.addField("|", MTOA_EXPORT_SEPARATOR_PIPES);
    eAttr.addField("/", MTOA_EXPORT_SEPARATOR_SLASHES);

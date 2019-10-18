@@ -2,15 +2,15 @@
 
 #include "translators/NodeTranslator.h"
 
-//--------------- VarientSwitchTranslator ------------------------------------------
+//--------------- LookSwitchTranslator ------------------------------------------
 
-class DLLEXPORT CVariantSwitchTranslator
+class DLLEXPORT CLookSwitchTranslator
    :  public CNodeTranslator
 {
 public:
     static void* creator()
     {
-        return new CVariantSwitchTranslator();
+        return new CLookSwitchTranslator();
     }
 
     static void NodeInitializer(CAbTranslator context);
@@ -21,4 +21,6 @@ public:
     }
 
     void Export(AtNode* atNode);
+  protected:
+    virtual void NodeChanged(MObject& node, MPlug& plug);
 };

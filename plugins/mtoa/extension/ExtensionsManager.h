@@ -44,6 +44,8 @@ public:
                                     MStatus *returnStatus=NULL);
    static MStatus LoadExtensions(const MString &path=EXTENSION_SEARCH);
 
+   static MStatus LoadExtensionLibrary(CExtension *extension);
+
    static MStatus UnloadExtension(CExtension* extension);
    static MStatus UnloadExtensions();
 

@@ -18,6 +18,8 @@
 class DLLEXPORT CShaderTranslator
    :  public CNodeTranslator
 {
+friend class CShaderTranslatorImpl;
+
 public:
    static void* creator()
    {
@@ -34,19 +36,11 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug); 
    //----
 
-   /** Add all AOV outputs for this node
-    This is accomplished by detecting connections from the current node to the aiCustomAOV
-    attribute of a shadingEngine node.  We then create an AOV writing node for each connection.
-    To be used in CreateArnoldNodes(), typically : 
-    return ProcessAOVOutput(AddArnoldNode("shader_type"));
-    \see AddArnoldNode
-    */
-   AtNode* ProcessAOVOutput(AtNode* shader);
-
    /// This function exports the bump for current shader
    void ExportBump(AtNode* shader);
 
 private:
+   AtNode *GetMatteShader();
 
    /// Internal use only. Do Not override it
    virtual void CreateImplementation();

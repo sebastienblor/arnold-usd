@@ -57,7 +57,7 @@
 #include "nodes/ArnoldAOVNode.h"
 #include "nodes/ArnoldDriverNode.h"
 #include "nodes/ArnoldFilterNode.h"
-#include "nodes/ArnoldVariantSwitchNode.h"
+#include "nodes/ArnoldLookSwitchNode.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/SphereLocator.h"
@@ -99,7 +99,7 @@
 #include "translators/shape/VolumeTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/shader/FluidTexture2DTranslator.h"
-#include "translators/operator/VariantSwitchTranslator.h"
+#include "translators/operator/LookSwitchTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 #include "translators/shader/AxfTranslator.h"
 
@@ -273,8 +273,8 @@ namespace // <anonymous>
          CArnoldAxfShaderNode::creator, CArnoldAxfShaderNode::initialize,
          MPxNode::kDependNode, &AI_ANOLD_AXF_SHADER
       } , {
-         "aiVariantSwitch", CArnoldVariantSwitchNode::id,
-         CArnoldVariantSwitchNode::creator, CArnoldVariantSwitchNode::initialize,
+         "aiLookSwitch", CArnoldLookSwitchNode::id,
+         CArnoldLookSwitchNode::creator, CArnoldLookSwitchNode::initialize,
          MPxNode::kDependNode, 0
       }
 
@@ -742,10 +742,10 @@ namespace // <anonymous>
                                     CObjectSetTranslator::creator,
                                     CObjectSetTranslator::NodeInitializer);
 
-      builtin->RegisterTranslator("aiVariantSwitch",
+      builtin->RegisterTranslator("aiLookSwitch",
                                     "",
-                                    CVariantSwitchTranslator::creator,
-                                    CVariantSwitchTranslator::NodeInitializer);
+                                    CLookSwitchTranslator::creator,
+                                    CLookSwitchTranslator::NodeInitializer);
 
       
       // Load all plugins path or only shaders?

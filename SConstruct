@@ -468,16 +468,11 @@ if env['COMPILER'] == 'gcc':
     ## Hardcode '.' directory in RPATH in linux
     if system.os == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
-        if int(maya_version_base) >= 2018:
-            env.Append(CXXFLAGS = Split('-std=c++11'))
-            env.Append(CCFLAGS = Split('-std=c++11'))
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
-    if system.os == 'darwin':
-        if int(maya_version_base) >= 2020:
-            env.Append(CXXFLAGS = Split('-std=c++11'))
-            env.Append(CCFLAGS = Split('-std=c++11'))
-
+    env.Append(CXXFLAGS = Split('-std=c++11'))
+    env.Append(CCFLAGS = Split('-std=c++11'))
+        
     ## warning level
     if env['WARN_LEVEL'] == 'none':
         env.Append(CCFLAGS = Split('-w'))
@@ -1129,6 +1124,12 @@ for ext in os.listdir(ext_base_dir):
                 ext_files.append(pyfile)
                 env.Install(TARGET_EXTENSION_PATH, pyfile)
 
+        mtdfiles = glob.glob(pluginDir+"/*.mtd")
+        for mtdfile  in mtdfiles:
+            if os.path.exists(mtdfile):
+                ext_files.append(mtdfile)
+                env.Install(TARGET_EXTENSION_PATH, mtdfile)
+        
         pymodules = glob.glob(pluginDir+"/*/__init__.py")
         for pymodule in pymodules:
             if os.path.exists(pymodule):
@@ -1298,11 +1299,13 @@ for vp2shader in installedVp2Shaders:
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
+PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.mtd'), 'extensions'])
   
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSplineTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_shaders%s' % get_library_extension()), 'shaders'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.py'), 'extensions'])
+PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.mtd'), 'extensions'])
     
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShaderTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShader_shaders%s' % get_library_extension()), 'shaders'])
@@ -1464,7 +1467,7 @@ def create_installer(target, source, env):
             subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'pitreg')])
 
 
-        installPath = '/Applications/solidangle/mtoa/' + maya_version
+        installPath = '/Applications/Autodesk/Arnold/mtoa/' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
@@ -1474,15 +1477,16 @@ def create_installer(target, source, env):
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
         pitregScript.write('#!/usr/bin/env bash\n')
+        
 
         if clm_version == 2:
-            pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+            pitregCommand = "PITREG_FILE=$2/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-            pitregCommand = "  hdiutil attach $2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+            pitregCommand = "  hdiutil attach $2/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('else\n')
-            pitregCommand = "  hdiutil attach $3/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+            pitregCommand = "  hdiutil attach $3/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
             pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC6-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.1084_RC6-darwin --silent\n"
@@ -1490,15 +1494,16 @@ def create_installer(target, source, env):
             pitregCommand = "hdiutil detach /Volumes/ArnoldLicensing"
             pitregScript.write(pitregCommand)        
         else:
-            pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregCommand = "PITREG_FILE=$2/Applications/Autodesk/Arnold/mtoa/%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-            pitregCommand = "  $2/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregCommand = "  $2/Applications/Autodesk/Arnold/mtoa/%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('else\n')
-            pitregCommand = "  $3/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregCommand = "  $3/Applications/Autodesk/Arnold/mtoa/%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
+        
 
         pitregScript.write('\n')
         pitregScript.close()

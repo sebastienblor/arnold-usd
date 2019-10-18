@@ -1144,13 +1144,8 @@ MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* ta
    // If name is alredy used, create a new one
    if(AiNodeLookUpByName(name.asChar()))
    {
-      // FIXME this was copied from NodeUniqueName in time.h,
-      // remember to change the original function in next ABI-breaking release
       char tmpName[MAX_NAME_SIZE];
-      sprintf(tmpName, "%s_%08X%08llX",
-         nodeType, MtoaTime(), MtoaTicks());
-      
-      name = tmpName;
+      name = NodeUniqueName(nodeType, tmpName);
    }
    return name;
 }

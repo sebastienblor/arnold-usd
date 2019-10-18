@@ -4,12 +4,12 @@
 //Codeset: 1252
 requires maya "2018";
 requires -nodeType "hairPhysicalShader" "hairPhysicalShader" "1.0";
+requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
+		 "mtoa" "2.0.3.wip";
 requires -nodeType "xgmSplineBase" -nodeType "xgmModifierSculpt" -nodeType "xgmModifierScale"
 		 -nodeType "xgmSplineDescription" -dataType "xgmGuideData" -dataType "igmDescriptionData"
 		 -dataType "xgmSplineData" -dataType "xgmMeshData" -dataType "xgmSplineTweakData"
 		 -dataType "xgmSplineBoundInfoData" -dataType "xgmGuideRefData" "xgenToolkit" "1.0";
-requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
-		 "mtoa" "2.0.3.wip";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2018";

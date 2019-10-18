@@ -2502,12 +2502,13 @@ void CArnoldSession::ExportTxFiles()
          // need to invalidate the TX file from the cache otherwise the conversion to TX will faill on windows
          AiTextureInvalidate(AtString(txFilename.asChar()));
 
-         unsigned int bitdepth;
+         unsigned int bitdepth = 32;
          AiTextureGetBitDepth(expandedFilenames[t].asChar(), &bitdepth);
 
          std::string bitdepth_args;
 
-         if (bitdepth <= 8)
+         if (cmEnabled && colorSpace != renderingSpace && 
+            colorSpace.toLowerCase() != MString("raw") && bitdepth <= 8)
          {
             bitdepth_args = " --format exr -d half --compression dwaa";
          }

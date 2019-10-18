@@ -29,7 +29,6 @@ protected:
 
    AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
    AtNode* ExportProcedural(AtNode* procedural);
-   AtByte ComputeOverrideVisibility();
    virtual void RequestUpdate();
    virtual void NodeChanged(MObject& node, MPlug& plug); 
 

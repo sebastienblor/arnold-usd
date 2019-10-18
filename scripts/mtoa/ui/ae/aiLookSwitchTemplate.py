@@ -2,7 +2,7 @@ import maya.mel
 import maya.cmds as cmds
 import mtoa.melUtils as melUtils
 from mtoa.ui.ae.operatorTemplate import *
-from mtoa.ui.ae.aiStandInTemplate import VariantDialog
+from mtoa.ui.ae.aiStandInTemplate import LookDialog
 from mtoa.callbacks import *
 import re
 
@@ -41,7 +41,7 @@ def varBuildOperatorMenu(popup, attrName):
         cmds.menuItem(parent=popup, label=cmdsLbl, command=Callback(varCreateOperator, operator, attrName))
 
 
-class AEaiVariantSwitchTemplate(OperatorAETemplate):
+class AEaiLookSwitchTemplate(OperatorAETemplate):
 
     def addInputOperator(self, *args):
         attrName = '{}.inputs'.format(self.nodeName)
@@ -49,7 +49,7 @@ class AEaiVariantSwitchTemplate(OperatorAETemplate):
         lastAttrName = '{}[{}]'.format(attrName, attrSize)
         cmds.setAttr(lastAttrName, "")
 
-    def variantsReplace(self, nodeAttr):
+    def looksReplace(self, nodeAttr):
         self._setActiveNodeAttr(nodeAttr)
 
         for ctrl in self._msgCtrls:
@@ -58,13 +58,13 @@ class AEaiVariantSwitchTemplate(OperatorAETemplate):
 
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         cmds.setParent(self.otherCol)
-        indices = cmds.getAttr("{}.variants".format(self.nodeName), multiIndices=True) or []
+        indices = cmds.getAttr("{}.looks".format(self.nodeName), multiIndices=True) or []
 
         for i in indices:
             # add widgets for name and inputs list
             attrName = '{}[{}].inputs'.format(nodeAttr, i)
 
-            this_frame = cmds.frameLayout(label="variant {}".format(i),
+            this_frame = cmds.frameLayout(label="look {}".format(i),
                                           collapsable=False,
                                           marginHeight=2,
                                           borderVisible=True,
@@ -80,8 +80,8 @@ class AEaiVariantSwitchTemplate(OperatorAETemplate):
 
             cmds.attrControlGrp(attribute='{}[{}].name'.format(nodeAttr, i), label="Name")
 
-            # inputsSize = melUtils.getChildNumberElements(self.nodeName, 'variants', i, 1)
-            in_indices = cmds.getAttr("{}.variants[{}].inputs".format(self.nodeName, i), multiIndices=True) or []
+            # inputsSize = melUtils.getChildNumberElements(self.nodeName, 'looks', i, 1)
+            in_indices = cmds.getAttr("{}.looks[{}].inputs".format(self.nodeName, i), multiIndices=True) or []
 
             for c in in_indices:
                 inputName = '{}[{}]'.format(attrName,c)
@@ -97,18 +97,18 @@ class AEaiVariantSwitchTemplate(OperatorAETemplate):
 
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
-    def variantsNew(self, nodeAttr):
+    def looksNew(self, nodeAttr):
         self._setActiveNodeAttr(nodeAttr)
         self._msgCtrls = []
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
-        cmds.frameLayout(label='Variants', collapse=True)
+        cmds.frameLayout(label='Looks', collapse=True)
         cmds.columnLayout(adjustableColumn=True)
 
         cmds.rowLayout(nc=2)
         cmds.text(label='')
 
-        addVariantButton = cmds.button(label='Add Variant', command=self.addVariant)
+        addLookButton = cmds.button(label='Add Look', command=self.addLook)
 
         cmds.setParent('..')  # rowLayout
 
@@ -125,27 +125,27 @@ class AEaiVariantSwitchTemplate(OperatorAETemplate):
         cmds.setParent('..')  # frameLayout
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
-        self.variantsReplace(nodeAttr)
+        self.looksReplace(nodeAttr)
 
-    def newVariantUI(self, defaultname):
+    def newLookUI(self, defaultname):
 
-        variantDialog = VariantDialog(edit=True, variantName=defaultname)
+        lookDialog = LookDialog(edit=True, lookName=defaultname)
 
-        val = variantDialog.show()
+        val = lookDialog.show()
         if val == "cancel":
             return False, False
 
-        return variantDialog.variant, variantDialog.duplicateCurrent
+        return lookDialog.look, lookDialog.duplicateCurrent
 
-    def addVariant(self, *args):
+    def addLook(self, *args):
 
         current_index = cmds.getAttr('{}.index'.format(self.nodeName))
-        next_index = melUtils.getAttrNumElements(self.nodeName, "variants")
+        next_index = melUtils.getAttrNumElements(self.nodeName, "looks")
 
-        new_variant_name, duplicate = self.newVariantUI("pass{}".format(next_index))
+        new_look_name, duplicate = self.newLookUI("pass{}".format(next_index))
 
-        if new_variant_name:
-            cmds.setAttr('{}.variants[{}].name'.format(self.nodeName, next_index), new_variant_name, type="string")
+        if new_look_name:
+            cmds.setAttr('{}.looks[{}].name'.format(self.nodeName, next_index), new_look_name, type="string")
 
     def setup(self):
         self.beginScrollLayout()
@@ -156,7 +156,7 @@ class AEaiVariantSwitchTemplate(OperatorAETemplate):
         self.beginLayout('Switch', collapse=False)
         self.addControl("index")
         self.endLayout()
-        self.addCustom("variants", self.variantsNew, self.variantsReplace)
+        self.addCustom("looks", self.looksNew, self.looksReplace)
 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 

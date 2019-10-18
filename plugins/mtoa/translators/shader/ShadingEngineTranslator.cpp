@@ -8,11 +8,6 @@ CShadingEngineTranslator::~CShadingEngineTranslator()
 {
 }
 
-// FIXME to be removed in next ABI-breaking version
-void CShadingEngineTranslator::Init()
-{
-   CNodeTranslator::Init();
-}
 
 static MString GetAOVWriteNodeType(int type)
 {
