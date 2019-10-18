@@ -5,7 +5,6 @@
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_render.h>
-#include <ai_universe.h>
 #include <ai_bbox.h>
 
 #include <maya/M3dView.h>
@@ -19,6 +18,8 @@
 #include <maya/MFnRenderLayer.h>
 #include <maya/MAnimControl.h>
 #include <maya/MBoundingBox.h>
+
+#include <AxFtoA.h>
 
 #include <math.h>
 #include "utils/Universe.h"
@@ -113,6 +114,40 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, c
    return false;
 }
 
+bool CArnoldImportAssCmd::writeAssFromAxf(const MString axfFileName, 
+                                          AtUniverse* universe, 
+                                          MString& assFileName)
+{
+   // Make a texture path based on workspace 
+   // Make as assFile by renaming the axf to ass 
+   // A pop up for uv sscale for axf file 
+   MString cwd;
+   MString tex_path = MGlobal::executeCommand("workspace -q -dir ", cwd) + "axfimages";
+   std::cout << " Texture Path will be " << tex_path.asChar() << std::endl;
+   
+   unsigned int nchars = axfFileName.numChars();
+   assFileName = axfFileName.substringW(0, nchars-4)+"ass";
+
+   AxFtoASessionStart();
+   AxFtoASessionClearErrors();
+   AxFtoASessionSetVerbosity(5);
+
+   AxFtoAFile* axf_file = AxFtoAFileOpen(axfFileName.asChar());
+   AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
+   AxFtoAMaterialSetTextureFolder(material, tex_path.asChar());
+   AxFtoAMaterialSetUVUnitSize(material, 1.0f);
+   
+   AxFtoAMaterialSetColorSpace(material, "Rec709,E");
+   
+   AxFtoAMaterialSetUniverse(material, universe);
+   AxFtoAMaterialSetTextureNamePrefix(material, "importAxf_");
+   AxFtoAMaterialSetNodeNamePrefix(material, "importAxf_");
+   AtNode* root_node = AxFtoAMaterialGetRootNode(material);
+   AxFtoAMaterialWriteTextures(material);
+
+   
+}
+
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -137,9 +172,28 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    {
       universeCreated = true;
       ArnoldUniverseBegin();
-   }  
+   }
+
    AtUniverse *universe = AiUniverse();
-   AiASSLoad(universe, filename.asChar(), mask);
+
+
+   unsigned int nchars = filename.numChars();
+   if  (nchars > 4 && filename.substringW(nchars-4, nchars) == ".axf")
+   {
+      MString tmpAssFilename;
+      writeAssFromAxf(filename, universe,  tmpAssFilename);
+      std::cout << " TMP ASS FILE NAME IS " << tmpAssFilename << std::endl;
+
+   }
+   else
+   {
+      AiASSLoad(universe, filename.asChar(), mask);   
+   }
+   
+
+
+   
+   
 
    MString logStr("Importing file ");
    logStr += filename;

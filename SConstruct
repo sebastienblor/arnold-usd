@@ -264,8 +264,6 @@ ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
 ARNOLD_AXF_INCLUDES = os.path.join(EXTERNAL_PATH, 'axf/include')
 ARNOLD_AXF_LIB = os.path.join(EXTERNAL_PATH, 'axf/lib/', system.os )
 
-print "AXF INCLUDE PATH " , ARNOLD_AXF_INCLUDES 
-print "AXF LIB PATH", ARNOLD_AXF_LIB
 
 
 ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
