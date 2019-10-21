@@ -288,7 +288,7 @@ def arnoldImportShaders():
     if defaultOperatorsFolder == "":
         defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
 
-    objFilter = "ASS File (*.ass);; AXF File (*.axf)"
+    objFilter = "ASS File (*.ass);; AXF File (*.axf);; MaterialX File (*.mtlx)"
     ret = cmds.fileDialog2(cap='Import Arnold Shaders',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
     if len(ret):
         defaultOperatorsFolder = ret[0]
