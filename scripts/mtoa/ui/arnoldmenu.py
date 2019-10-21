@@ -142,7 +142,6 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
-    arnoldAboutText += "\nCLM V"+ cmds.arnoldPlugins(getClmVersion=True) + "\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Blaineau-Ortega, Ashley Handscomb Retallack,\nKrishnan Ramachandran\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant"
 
