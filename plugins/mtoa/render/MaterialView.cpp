@@ -105,9 +105,8 @@ MStatus CMaterialView::startAsync(const JobParams& params)
 
    AiRenderSetHintBool(AtString("progressive"), true);
    AiRenderSetHintBool(AtString("progressive_show_all_outputs"), false);
-   AiRenderSetHintInt(AtString("progressive_min_AA_samples"), -3);
+   AiRenderSetHintInt(AtString("progressive_min_AA_samples"), -2);
 
-   AiASSWrite("D:/arnold/mv.ass");
    AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
 
    ScheduleRefresh();
