@@ -105,7 +105,7 @@ MStatus CMaterialView::startAsync(const JobParams& params)
 
    AiRenderSetHintBool(AtString("progressive"), true);
    AiRenderSetHintBool(AtString("progressive_show_all_outputs"), false);
-   AiRenderSetHintInt(AtString("progressive_min_AA_samples"), -2);
+   AiRenderSetHintInt(AtString("progressive_min_AA_samples"), -3);
 
    AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
 
@@ -637,10 +637,10 @@ void CMaterialView::InitOptions()
          if (autoSelect) // automatically select the GPU devices
             AiDeviceAutoSelect();
       } 
-      AiNodeSetInt(options, "AA_samples", 2);
-      AiNodeSetBool(options, "enable_adaptive_sampling", true);
+      AiNodeSetInt(options, "AA_samples", 5);
+      //AiNodeSetBool(options, "enable_adaptive_sampling", true);
       //AiNodeSetBool(options, "enable_progressive_render", true);
-      AiNodeSetInt(options, "AA_samples_max", 6);
+      //AiNodeSetInt(options, "AA_samples_max", 6);
 
    }
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
