@@ -257,6 +257,15 @@ if env['MAYA_INCLUDE_PATH'] == '.':
 env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
+
+
+## TODO : HORRIBLE HACK TO GET IT TO WORK : MUST FIX 
+
+ARNOLD_AXF_INCLUDES = os.path.join(EXTERNAL_PATH, 'axf/include')
+ARNOLD_AXF_LIB = os.path.join(EXTERNAL_PATH, 'axf/lib/', system.os )
+
+
+
 ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
 ARNOLD_BINARIES = env.subst(env['ARNOLD_BINARIES'])
 ARNOLD_PYTHON = env.subst(env['ARNOLD_PYTHON']) 
@@ -282,6 +291,7 @@ env['ENABLE_BIFROST'] = 0
 env['ENABLE_BIFROST_GRAPH'] = 0
 env['ENABLE_GPU_CACHE'] = 1
 env['ENABLE_ALEMBIC'] = 0
+
 
 # Get arnold and maya versions used for this build
 
@@ -624,7 +634,12 @@ elif system.os == 'linux':
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
-   
+
+env.Append(CPPPATH = [ARNOLD_AXF_INCLUDES,])
+env.Append(LIBPATH = [ARNOLD_AXF_LIB,])
+
+
+
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
@@ -655,7 +670,7 @@ if system.os == 'windows':
     maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
-   
+    maya_env.Append(LIBS=Split('AxFtoA'))
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
 
     if env['PREBUILT_MTOA']:       
@@ -694,10 +709,12 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+        maya_env.Append(LIBS=Split('AxFtoA'))
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
+        maya_env.Append(LIBS=Split('AxFtoA'))
 
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
@@ -732,10 +749,13 @@ else:
     def osx_hardcode_path(target, source, env):
         cmd = None
 
+
         if target[0] == MTOA_API[0]:
             cmd = "install_name_tool -id @rpath/libmtoa_api.dylib"
         elif target[0] == MTOA[0]:
             cmd = " install_name_tool -add_rpath @loader_path/../bin/"
+            print cmd
+            
 
         if cmd:
             p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
@@ -750,6 +770,7 @@ else:
         #env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
 
 Depends(MTOA, MTOA_API[0])
+Depends(MTOA, ARNOLD_API_LIB)
 
 
 SConscriptChdir(0)
@@ -815,6 +836,10 @@ clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'cl
 
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
+
+
+## TODO : HORRIBLE HACK TO GET IT TO WORK : MUST FIX 
+env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(clm_utils_path, "*")))
 
@@ -1358,6 +1383,8 @@ elif system.os == 'darwin':
     PACKAGE_FILES += [
        [MTOA[0], 'plug-ins'],
     ]
+    PACKAGE_FILES.append([ARNOLD_AXF_LIB, 'bin'])
+
 
 if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])

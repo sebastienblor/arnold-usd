@@ -66,6 +66,7 @@
 #include "nodes/shader/ArnoldUserDataVec2Node.h"
 #include "nodes/shader/ArnoldUserDataVectorNode.h"
 #include "nodes/shader/ArnoldUserDataBoolNode.h"
+#include "nodes/shader/ArnoldAxfShaderNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
@@ -100,6 +101,7 @@
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/operator/LookSwitchTranslator.h"
 #include "translators/ObjectSetTranslator.h"
+#include "translators/shader/AxfTranslator.h"
 
 #include "render/MaterialView.h"
 #include "render/RenderSwatch.h"
@@ -190,6 +192,9 @@ namespace // <anonymous>
    const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION + ":drawdb/light/pointLight";
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
    const MString AI_USER_DATA_NODE_CLASSIFICATION = ":rendernode/arnold/utility/user data";
+   const MString AI_ANOLD_AXF_SHADER = "shader/surface:rendernode/arnold/shader/surface:swatch/ArnoldRenderSwatch:drawdb/shader/surface/arnold/axf_shader";
+
+   
 
    struct mayaNode {
       const char* name;
@@ -263,11 +268,16 @@ namespace // <anonymous>
          "aiUserDataBool", CArnoldUserDataBoolNode::id,
          CArnoldUserDataBoolNode::creator, CArnoldUserDataBoolNode::initialize,
          MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
+      }, {
+         "aiAxfShader", CArnoldAxfShaderNode::id,
+         CArnoldAxfShaderNode::creator, CArnoldAxfShaderNode::initialize,
+         MPxNode::kDependNode, &AI_ANOLD_AXF_SHADER
       } , {
          "aiLookSwitch", CArnoldLookSwitchNode::id,
          CArnoldLookSwitchNode::creator, CArnoldLookSwitchNode::initialize,
          MPxNode::kDependNode, 0
       }
+
    };
 
    struct shadingNodeOverride{
@@ -553,8 +563,11 @@ namespace // <anonymous>
                                     "",
                                     CRampFloatTranslator::creator,
                                     CRampFloatTranslator::NodeInitializer);
-      
 
+      builtin->RegisterTranslator("aiAxfShader",
+                                    "",
+                                    CArnoldAxfShaderTranslator::creator,
+                                    CArnoldAxfShaderTranslator::NodeInitializer);      
 
       // Lights
       builtin->RegisterTranslator("directionalLight",

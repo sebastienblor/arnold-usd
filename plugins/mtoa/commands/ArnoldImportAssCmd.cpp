@@ -5,7 +5,6 @@
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_render.h>
-#include <ai_universe.h>
 #include <ai_bbox.h>
 
 #include <maya/M3dView.h>
@@ -19,6 +18,8 @@
 #include <maya/MFnRenderLayer.h>
 #include <maya/MAnimControl.h>
 #include <maya/MBoundingBox.h>
+
+#include <AxFtoA.h>
 
 #include <math.h>
 #include "utils/Universe.h"
@@ -113,6 +114,42 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, c
    return false;
 }
 
+MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUniverse* universe)
+{
+
+   MString cwd;
+   MGlobal::executeCommand("workspace -q -dir ", cwd) ;
+   MString tex_path =  cwd ; 
+   
+   unsigned int nchars = axfFileName.numChars();
+  
+   AxFtoASessionStart();
+   AxFtoASessionClearErrors();
+   AxFtoASessionSetVerbosity(0);
+   AxFtoAFile* axf_file = AxFtoAFileOpen(axfFileName.asChar());
+   // TODO : Hard coding this to material index 0 in the file 
+   AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
+   if ( AxFtoASessionHasErrors()) 
+   {
+      return MStatus::kFailure; 
+   }
+   AxFtoAMaterialSetTextureFolder(material, tex_path.asChar());
+   
+   // TODO : Hard coding this to 1.0. Need a better way to expose this 
+   AxFtoAMaterialSetUVUnitSize(material, 1.0f);
+   // TODO : Hard coding this. Need a better way to expose this 
+   AxFtoAMaterialSetColorSpace(material, "Rec709,E");
+   
+   AxFtoAMaterialSetUniverse(material, universe);
+   AxFtoAMaterialSetTextureNamePrefix(material, "importAxf_");
+   AxFtoAMaterialSetNodeNamePrefix(material, "importAxf_");
+   AtNode* root_node = AxFtoAMaterialGetRootNode(material);
+   AxFtoAMaterialWriteTextures(material);
+   AxFtoAFileClose(axf_file);
+   AxFtoASessionEnd();
+   return MStatus::kSuccess ;
+}
+
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -137,9 +174,23 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    {
       universeCreated = true;
       ArnoldUniverseBegin();
-   }  
+   }
+
    AtUniverse *universe = AiUniverse();
-   AiASSLoad(universe, filename.asChar(), mask);
+
+   unsigned int nchars = filename.numChars();
+   if  (nchars > 4 && filename.substringW(nchars-4, nchars) == ".axf")
+   {
+      // This is an Axf File 
+      if (convertAxfToArnold(filename, universe) == MStatus::kFailure)
+         {
+            return MStatus::kFailure;
+         }
+   }
+   else
+   {
+      AiASSLoad(universe, filename.asChar(), mask);   
+   }
 
    MString logStr("Importing file ");
    logStr += filename;

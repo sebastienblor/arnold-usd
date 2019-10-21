@@ -6,6 +6,8 @@
 #include <ai_nodes.h>
 #include <ai_ray.h>
 
+
+
 #include <maya/MFnBlinnShader.h>
 #include <maya/MFnLambertShader.h>
 #include <maya/MFnPhongShader.h>
@@ -4309,6 +4311,8 @@ void CRampFloatTranslator::Export(AtNode* shader)
       }
    }  
 }
+
+
 
 void CStandardSurfaceTranslator::Export(AtNode* shader)
 {
