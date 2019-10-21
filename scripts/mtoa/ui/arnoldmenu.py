@@ -366,14 +366,13 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Standin .ass file')
         cmds.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsStandIn()')
-        addRuntimeMenuItem('ArnoldAlembicExportSelection', parent='ArnoldStandIn', label='Export Selection to Alembic', image='ExportAlembicShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportAlembic()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
-        addRuntimeMenuItem('ArnoldAlembicExportSelectionOptions', parent='ArnoldStandIn', optionBox=True,
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsAlembic()')
-        addRuntimeMenuItem('ArnoldAlembicExportAll', parent='ArnoldStandIn', label='Export All to Alembic', image='ExportAlembicShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportAlembic()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
-        addRuntimeMenuItem('ArnoldAlembicExportAllOptions', parent='ArnoldStandIn', optionBox=True,
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsAlembic()')
+
+        addRuntimeMenuItem('ArnoldAlembicExportSelection', parent='ArnoldStandIn', label='Export Selection to Alembic ..', image='AlembicShelf.png',
+                    command='import mtoa.ui.exportalembic;mtoa.ui.exportalembic.exportSelected()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
+
+        addRuntimeMenuItem('ArnoldAlembicExportAll', parent='ArnoldStandIn', label='Export All to Alembic ..', image='AlembicShelf.png',
+                    command='import mtoa.ui.exportalembic;mtoa.ui.exportalembic.exportAll()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
+
 
         cmds.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
