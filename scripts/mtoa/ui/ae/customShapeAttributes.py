@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
-from mtoa.ui.ae.utils import aeCallback
+from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
 import mtoa.ui.ae.templates as templates
 import mtoa.callbacks as callbacks
 import mtoa.melUtils as melUtils
@@ -66,45 +66,35 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 
     def updateSubdiv(self, *args):
         enabled = True if (cmds.getAttr(self.nodeAttr('aiSubdivType')) > 0) else False
-            
-        cmds.attrControlGrp(self.aiSubdivIterationsCtrl, edit=True, enable=enabled)
-        cmds.attrControlGrp(self.aiSubdivAdaptiveMetricCtrl, edit=True, enable=enabled)
-        cmds.attrControlGrp(self.aiSubdivPixelErrorCtrl, edit=True, enable=enabled)
-        cmds.attrControlGrp(self.aiSubdivAdaptiveSpaceCtrl, edit=True, enable=enabled)
-        cmds.attrControlGrp(self.aiSubdivUvSmoothingCtrl, edit=True, enable=enabled)
-        cmds.attrControlGrp(self.aiSubdivSmoothDerivsCtrl, edit=True, enable=enabled)
-        cmds.attrControlGrp(self.aiSubdivFrustumIgnoreCtrl, edit=True, enable=enabled)
+        self.aiSubdivIterationsCtrl.edit(enable=enabled)
+        self.aiSubdivAdaptiveMetricCtrl.edit(enable=enabled)
+        self.aiSubdivPixelErrorCtrl.edit(enable=enabled)
+        self.aiSubdivAdaptiveSpaceCtrl.edit(enable=enabled)
+        self.aiSubdivUvSmoothingCtrl.edit(enable=enabled)
+        self.aiSubdivSmoothDerivsCtrl.edit(enable=enabled)
+        self.aiSubdivFrustumIgnoreCtrl.edit(enable=enabled)
 
     def subdivNew(self, nodeAttr):
 
         cmds.setUITemplate('attributeEditorTemplate', pst=True)
-
-        self.aiSubdivIterationsCtrl = cmds.attrControlGrp("aiSubdivIterationsCtrl", label="Iterations", 
-            attribute='.'.join([self.nodeName, 'aiSubdivIterations']))
-        self.aiSubdivAdaptiveMetricCtrl = cmds.attrControlGrp("aiSubdivAdaptiveMetricCtrl", label="Adaptive Metric", 
-            attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveMetric']))
-        self.aiSubdivPixelErrorCtrl = cmds.attrControlGrp("aiSubdivPixelErrorCtrl", label="Adaptive Error", 
-            attribute='.'.join([self.nodeName, 'aiSubdivPixelError']))
-        self.aiSubdivAdaptiveSpaceCtrl = cmds.attrControlGrp("aiSubdivAdaptiveSpaceCtrl", label="Adaptive Space", 
-            attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveSpace']))
-        self.aiSubdivUvSmoothingCtrl = cmds.attrControlGrp("aiSubdivUvSmoothingCtrl", label="UV Smoothing", 
-            attribute='.'.join([self.nodeName, 'aiSubdivUvSmoothing']))
-        self.aiSubdivSmoothDerivsCtrl = cmds.attrControlGrp("aiSubdivSmoothDerivsCtrl", label="Smooth Tangents", 
-            attribute='.'.join([self.nodeName, 'aiSubdivSmoothDerivs']))
-        self.aiSubdivFrustumIgnoreCtrl = cmds.attrControlGrp("aiSubdivFrustumIgnoreCtrl", label="Ignore Frustum Culling", 
-            attribute='.'.join([self.nodeName, 'aiSubdivFrustumIgnore']))
-
+        self.aiSubdivIterationsCtrl = AttrControlGrp(self.nodeAttr("aiSubdivIterations"), label="Iterations")
+        self.aiSubdivAdaptiveMetricCtrl = AttrControlGrp(self.nodeAttr("aiSubdivAdaptiveMetric"), label="Adaptive Metric")
+        self.aiSubdivPixelErrorCtrl = AttrControlGrp(self.nodeAttr("aiSubdivPixelError"), label="Adaptive Error")
+        self.aiSubdivAdaptiveSpaceCtrl = AttrControlGrp(self.nodeAttr("aiSubdivAdaptiveSpace"), label="Adaptive Space")
+        self.aiSubdivUvSmoothingCtrl = AttrControlGrp(self.nodeAttr("aiSubdivUvSmoothing"), label="UV Smoothing")
+        self.aiSubdivSmoothDerivsCtrl = AttrControlGrp(self.nodeAttr("aiSubdivSmoothDerivs"), label="Smooth Tangents")
+        self.aiSubdivFrustumIgnoreCtrl = AttrControlGrp(self.nodeAttr("aiSubdivFrustumIgnore"), label="Ignore Frustum Culling")
         cmds.setUITemplate(ppt=True)
         self.subdivReplace(nodeAttr)
 
     def subdivReplace(self, nodeAttr):
-        cmds.attrControlGrp(self.aiSubdivIterationsCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivIterations']))
-        cmds.attrControlGrp(self.aiSubdivAdaptiveMetricCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveMetric']))
-        cmds.attrControlGrp(self.aiSubdivPixelErrorCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivPixelError']))
-        cmds.attrControlGrp(self.aiSubdivAdaptiveSpaceCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveSpace']))
-        cmds.attrControlGrp(self.aiSubdivUvSmoothingCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivUvSmoothing']))
-        cmds.attrControlGrp(self.aiSubdivSmoothDerivsCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivSmoothDerivs']))
-        cmds.attrControlGrp(self.aiSubdivFrustumIgnoreCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivFrustumIgnore']))
+        self.aiSubdivIterationsCtrl.setAttribute(self.nodeAttr('aiSubdivIterations'))
+        self.aiSubdivAdaptiveMetricCtrl.setAttribute(self.nodeAttr('aiSubdivAdaptiveMetric'))
+        self.aiSubdivPixelErrorCtrl.setAttribute(self.nodeAttr('aiSubdivPixelError'))
+        self.aiSubdivAdaptiveSpaceCtrl.setAttribute(self.nodeAttr('aiSubdivAdaptiveSpace'))
+        self.aiSubdivUvSmoothingCtrl.setAttribute(self.nodeAttr('aiSubdivUvSmoothing'))
+        self.aiSubdivSmoothDerivsCtrl.setAttribute(self.nodeAttr('aiSubdivSmoothDerivs'))
+        self.aiSubdivFrustumIgnoreCtrl.setAttribute(self.nodeAttr('aiSubdivFrustumIgnore'))
         self.updateSubdiv()
 
     def updateAutobump(self, nodeAttr, *args):
