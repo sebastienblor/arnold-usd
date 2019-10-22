@@ -258,12 +258,8 @@ env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
 
-
-## TODO : HORRIBLE HACK TO GET IT TO WORK : MUST FIX 
-
 ARNOLD_AXF_INCLUDES = os.path.join(EXTERNAL_PATH, 'axf/include')
 ARNOLD_AXF_LIB = os.path.join(EXTERNAL_PATH, 'axf/lib/', system.os )
-
 
 
 ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
@@ -637,8 +633,7 @@ env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
 
 env.Append(CPPPATH = [ARNOLD_AXF_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_AXF_LIB,])
-
-
+env.Append(LIBS=Split('AxFtoA'))
 
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
@@ -670,7 +665,6 @@ if system.os == 'windows':
     maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
-    maya_env.Append(LIBS=Split('AxFtoA'))
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
 
     if env['PREBUILT_MTOA']:       
@@ -709,13 +703,11 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
-        maya_env.Append(LIBS=Split('AxFtoA'))
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
-        maya_env.Append(LIBS=Split('AxFtoA'))
-
+        
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
     if env['PREBUILT_MTOA']:       
@@ -837,9 +829,7 @@ clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'cl
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
 
-
-## TODO : HORRIBLE HACK TO GET IT TO WORK : MUST FIX 
-env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
+env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*%s" % get_library_extension())))
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(clm_utils_path, "*")))
 
@@ -1273,6 +1263,8 @@ clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os)
 PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
 PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 
+PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*%s' % get_library_extension()), 'bin'])
+
 if clm_version == 2:
     PACKAGE_FILES.append([os.path.join(clm_utils_path, '*'), 'license'])
 
@@ -1383,7 +1375,6 @@ elif system.os == 'darwin':
     PACKAGE_FILES += [
        [MTOA[0], 'plug-ins'],
     ]
-    PACKAGE_FILES.append([ARNOLD_AXF_LIB, 'bin'])
 
 
 if not env['MTOA_DISABLE_RV']:
