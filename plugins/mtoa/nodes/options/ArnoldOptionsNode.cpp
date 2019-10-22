@@ -453,7 +453,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_gpu = eAttr.create("renderDevice", "rndrdvc");
    eAttr.setKeyable(false);
    eAttr.addField("CPU", 0);
-   eAttr.addField("GPU ( BETA )", 1);
+   eAttr.addField("GPU", 1);
    eAttr.setDefault(0);
    addAttribute(s_gpu);
 

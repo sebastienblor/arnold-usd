@@ -7,6 +7,8 @@ import maya.cmds as cmds
 import maya.mel
 import mtoa.utils as utils
 import sys
+import maya.OpenMaya as OM
+
 
 def updateRenderSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -613,6 +615,10 @@ def createGpuSettings():
     
     gpuDeviceIdsArray = ai.AiDeviceGetIds(ai.AI_DEVICE_TYPE_GPU)
     gpuDeviceCount = ai.AiArrayGetNumElements(gpuDeviceIdsArray)
+    reason = ai.AtString()
+    if (gpuDeviceCount <=0 ):
+        ai.AiDeviceTypeIsSupported(ai.AI_DEVICE_TYPE_GPU, reason)
+        OM.MGlobal.displayWarning("GPU RENDERING NOT SUPPORTED : " + str(reason.value))
     gpuDeviceIds = []
 
     for i in range(gpuDeviceCount):
