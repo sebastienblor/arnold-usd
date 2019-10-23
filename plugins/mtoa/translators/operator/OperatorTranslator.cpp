@@ -80,13 +80,6 @@ void COperatorTranslator::NodeInitializer(CAbTranslator context)
 {   
 }
 
-void COperatorTranslator::NodeChanged(MObject& node, MPlug& plug)
-{
-   SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
-
-   CNodeTranslator::NodeChanged(node, plug);
-}
-
 
 // special case for set_parameter operators, we want to export the nodes which are eventually referenced.
 // We could derive operator translator classes to handle this, but for now it's still quite simple

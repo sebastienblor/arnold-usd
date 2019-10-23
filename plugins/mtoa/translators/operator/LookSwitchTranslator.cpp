@@ -4,6 +4,8 @@
 #include "translators/DagTranslator.h"
 #include <maya/MPlugArray.h>
 
+static const AtString s_inputs("inputs");
+static const AtString s_inputs_enable("inputs_enable");
 
 void CLookSwitchTranslator::Export(AtNode *shader)
 {
@@ -11,7 +13,8 @@ void CLookSwitchTranslator::Export(AtNode *shader)
 
    // loop the look entries
    MPlug index = FindMayaPlug("index");
-   AiNodeSetInt(shader, "index", index.asInt());
+   unsigned int active_input = (unsigned int)index.asInt();
+   AiNodeSetInt(shader, "index", active_input);
 
    // loop the look entries
    MPlug looks = FindMayaPlug("looks");
@@ -60,42 +63,47 @@ void CLookSwitchTranslator::Export(AtNode *shader)
             }
          }
 
-         AtArray *prevArray = AiNodeGetArray(mergeNode, "inputs");
+         AtArray *prevArray = AiNodeGetArray(mergeNode, s_inputs);
          bool mergeNeedUpdate = true;
-         // if (prevArray)
-         // {
-         //    unsigned prevArrayElems = AiArrayGetNumElements(prevArray);
-         //    if (prevArrayElems == nelems)
-         //    {
-         //       mergeNeedUpdate = false;
-         //       for (unsigned i = 0; i < nelems; ++i)
-         //       {
-         //          if (AiArrayGetPtr(array, i) != AiArrayGetPtr(prevArray, i))
-         //          {
-         //             mergeNeedUpdate = true;
-         //             break;
-         //          }
-         //       }
-         //    }
-         // }
+         if (prevArray)
+         {
+            unsigned prevArrayElems = AiArrayGetNumElements(prevArray);
+            if (prevArrayElems == nelems)
+            {
+               mergeNeedUpdate = false;
+               for (unsigned i = 0; i < nelems; ++i)
+               {
+                  if (AiArrayGetPtr(array, i) != AiArrayGetPtr(prevArray, i))
+                  {
+                     mergeNeedUpdate = true;
+                     break;
+                  }
+               }
+            }
+         }
          if (mergeNeedUpdate)
-            AiNodeSetArray(mergeNode, "inputs", array);
+            AiNodeSetArray(mergeNode, s_inputs, array);
       }
 
       AiArraySetPtr(varArray, i, (void*)mergeNode);
    }
 
-   AiNodeSetArray(shader, "inputs", varArray);
+   AiNodeSetArray(shader, s_inputs, varArray);
+
+   AtArray* enable = AiArrayAllocate(nvars, 1, AI_TYPE_BOOLEAN);
+   for (size_t i = 0; i < nvars; ++i)
+      AiArraySetBool(enable, i, false);
+
+   if (nvars > 0)
+      AiArraySetBool(enable, active_input, true);
+
+   // Define and set the user parameter used by the cooker to enable/bypass inputs
+   if (!AiNodeLookUpUserParameter(shader, s_inputs_enable))
+      AiNodeDeclare(shader, s_inputs_enable, "constant ARRAY BOOL");
+
+   AiNodeSetArray(shader, s_inputs_enable, enable);
 }
 
 void CLookSwitchTranslator::NodeInitializer(CAbTranslator context)
 {
 }
-
-void CLookSwitchTranslator::NodeChanged(MObject& node, MPlug& plug)
-{
-   SetUpdateMode(AI_RECREATE_NODE);
-
-   CNodeTranslator::NodeChanged(node, plug);
-}
-
