@@ -186,12 +186,12 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          {
             return MStatus::kFailure;
          }
-   }
+   }/*
    else if  (nchars > 5 && filename.substringW(nchars-5, nchars) == ".mtlx")
    {
       // This is a MaterialX file. Let's read it and convert it to arnold nodes
       AiMaterialxReadMaterials(universe, filename.asChar());
-   }
+   }*/
    else
    {
       AiASSLoad(universe, filename.asChar(), mask);   
