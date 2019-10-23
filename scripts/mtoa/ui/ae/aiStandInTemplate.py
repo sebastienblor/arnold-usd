@@ -246,7 +246,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if self.lookCtrl:
                 cmds.deleteUI(self.lookCtrl)
 
-            self.lookCtrl = cmds.attrEnumOptionMenu(label="Look Look",
+            self.lookCtrl = cmds.attrEnumOptionMenu(label="Look",
                                                        attribute="{}.look".format(self.nodeName),
                                                        parent=self.lookRowLayout,
                                                        changeCommand=self.setLook)
