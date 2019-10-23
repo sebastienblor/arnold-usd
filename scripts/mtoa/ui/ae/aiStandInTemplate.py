@@ -274,7 +274,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
         self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
 
-        self.lookCtrl = cmds.attrEnumOptionMenu(label="Look Look",
+        self.lookCtrl = cmds.attrEnumOptionMenu(label="Look",
                                                    attribute="{}.look".format(self.nodeName),
                                                    changeCommand=self.setLook)
 
@@ -503,7 +503,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.removeMultiInstance('{}.operators[{}]'.format(self.nodeName, i))
 
             cmds.connectAttr('{}.out'.format(look_switch), '{}.operators[0]'.format(self.nodeName))
-            cmds.connectAttr('{}.look'.format(self.nodeName), '{}.index'.format(look_switch))
 
         return look_switch
 
