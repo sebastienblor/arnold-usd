@@ -431,7 +431,8 @@ void CFileTranslator::Export(AtNode* shader)
             resolvedFilename = resolvedFilename.substringW(0, tokenIndex - 1) + frameNumber + filenameExt;
          }
          tokenStr = "<shapeName>";
-         MString tokenOut = "<attr:name>";
+         // If we're using full paths or prefixes, we should use dcc_name and not the node's name
+         MString tokenOut = (options.GetExportFullPath() || options.GetExportPrefix().length() > 0 ) ? "<attr:dcc_name>" : "<attr:name>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<shapePath>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
