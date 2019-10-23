@@ -494,14 +494,22 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    }
    
    MStatus status;
-   const char* camName = AiNodeGetName(AiUniverseGetCamera());
    MDagPath camera;
    MSelectionList list;
-   list.add(camName);
-   if (list.length() > 0)
-      list.getDagPath(0, camera);
-   else if (camName)
-      AiMsgError("[mtoa] display driver could not find render camera \"%s\"", camName);
+      
+   AtNode *cam = AiUniverseGetCamera();
+   if (cam)
+   {
+      AtString camName = (AiNodeLookUpUserParameter(cam, "dcc_name")) ? 
+         AiNodeGetStr(cam, "dcc_name") : AtString(AiNodeGetName(cam));
+      
+      list.add(camName.c_str());
+      if (list.length() > 0)
+         list.getDagPath(0, camera);
+      else
+         AiMsgError("[mtoa] display driver could not find render camera \"%s\"", camName);
+      
+   }
    // An alternate solution:
    //       MDagPath camera = CMayaScene::GetRenderSession()->GetCamera();
    status = MRenderView::setCurrentCamera(camera);
