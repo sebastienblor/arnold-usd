@@ -437,10 +437,10 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          if (arnoldCamera)
          {
             MSelectionList camList;
-            if (GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0 )
-               camList.add(MString(AiNodeGetStr(arnoldCamera, "dcc_name")));
-            else
-               camList.add(MString(AiNodeGetName(arnoldCamera)));
+
+            camList.add(AiNodeLookUpUserParameter(arnoldCamera, "dcc_name") ? 
+                  AiNodeGetStr(arnoldCamera, "dcc_name") : AiNodeGetName(arnoldCamera));
+
             camList.getDagPath(0, camera);
          }
       }
