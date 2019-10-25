@@ -23,7 +23,7 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
-from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, MERGE_OP
+from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, MERGE_OP, OVERRIDE_OP, EXP_REGEX
 
 from mtoa.callbacks import *
 
@@ -31,6 +31,7 @@ from functools import partial
 
 ################################################
 
+defaultFolder = ""
 
 def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
@@ -241,15 +242,20 @@ class AEaiStandInTemplate(ShaderAETemplate):
         replace_look = old_look != self.look_node
         replace_node = old_node != self.current_node
         update = self.updateLookAttr()
+        print "lookReplace", update, replace_look, replace_node, self._update_var_ui
         if update or replace_look or replace_node or self._update_var_ui:
 
             if self.lookCtrl:
                 cmds.deleteUI(self.lookCtrl)
 
+            old_parent = cmds.setParent(q=True)
+            cmds.setParent(self.lookCtrlLayout)
             self.lookCtrl = cmds.attrEnumOptionMenu(label="Look",
-                                                       attribute="{}.look".format(self.nodeName),
-                                                       parent=self.lookRowLayout,
-                                                       changeCommand=self.setLook)
+                                                    attribute="{}.look".format(self.nodeName),
+                                                    changeCommand=self.setLook,
+                                                    parent=self.lookCtrlLayout)
+
+            cmds.setParent(old_parent)
 
             self._update_var_ui = False
             if self.look_node:
@@ -266,17 +272,23 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         self.look_node = self.getLookSwitchNode()
 
-        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
-                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
-                                         columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
+        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=6, adjustableColumn=6,
+                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left'), (5, 'left')],
+                                         columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1), (5, 'left', 1)])
+
+        self.lookCtrlLayout = cmds.rowLayout(rowAttach=(1, 'top', 4),
+                                             columnAttach=(1, 'left', 0))
+        self.lookCtrl = cmds.attrEnumOptionMenu(label="Look",
+                                                attribute="{}.look".format(self.nodeName),
+                                                changeCommand=self.setLook,
+                                                parent=self.lookCtrlLayout)
+        cmds.setParent('..')
 
         self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
         self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
         self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
 
-        self.lookCtrl = cmds.attrEnumOptionMenu(label="Look",
-                                                   attribute="{}.look".format(self.nodeName),
-                                                   changeCommand=self.setLook)
+        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook, annotation="Export looks to .ass or MaterialX file" )
 
         cmds.text("")
         cmds.setParent('..')
@@ -476,6 +488,80 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.attrEnumOptionMenu(self.lookCtrl, e=True, attribute="{}.look".format(self.nodeName))
 
                 self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
+
+    def browseObjFilename(self, fileFormat="Arnold Operator Graph (*.ass)"):
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+        ret = cmds.fileDialog2(cap='Select File',okc='Select',ff=fileFormat,fm=0,dir=defaultFolder) or []
+        if ret is not None and len(ret):
+            defaultFolder = ret[0]
+            return ret[0]
+
+    def exportLook(self, mode="ass", replace=False):
+        # check switch node exists, if not make one
+        self.look_node = self.getLookSwitchNode(True)
+
+        # first check fr and export loks from aiLookSwicth
+        if self.look_node:
+            indices = cmds.getAttr('{}.looks'.format(self.look_node), multiIndices=True) or []
+            if not len(indices):
+                cmds.error("{} has no looks to export".format(self.look_node))
+            # include_graph
+            filename = self.browseObjFilename("Arnold Operator Graph (*.ass);; MaterialX Look file (*.mtlx)")
+            print filename
+            if filename:
+                ext = os.path.splitext(filename)[-1]
+                if ext == ".ass":
+                    cmds.arnoldExportOperators(self.look_node, selection=True, filename=filename, shaders=True)
+                elif ext == ".mtlx":
+                    # get the current index
+                    _base_index = cmds.getAttr("{}.index".format(self.look_node))
+                    # loop over the looks
+                    for idx in indices:
+                        if len(cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, idx), plugs=True) or []):
+                            look_name = cmds.getAttr("{}.looks[{}].name".format(self.look_node, idx))
+                            cmds.setAttr("{}.index".format(self.look_node), idx)
+
+                            properties = self.getLookParams(idx)
+
+                            cmds.arnoldExportToMaterialX(self.nodeName, filename=filename, look=look_name, properties=' '.join(properties), fullPath=True, separator='/')
+
+                    cmds.setAttr("{}.index".format(self.look_node), _base_index)
+        else:
+            # if no look node export the current standin
+            pass
+
+    def getLookParams(self, index):
+
+        def _walkParams(op):
+            params = []
+            # is this an aiSetPArameter node?
+            if cmds.nodeType(op) == OVERRIDE_OP:
+                a_indices = cmds.getAttr("{}.assignment".format(op), mi=True) or []
+                for a in a_indices:
+                    exp = cmds.getAttr("{}.assignment[{}]".format(op, a))
+                    m = EXP_REGEX.match(exp)
+                    param = m.group('param')
+                    if len(param) and param not in params:
+                        params.append(param)
+
+            op_inputs = cmds.listConnections("{}.inputs".format(op)) or []
+            for o in op_inputs:
+                parmas += _walkParams(o)
+
+            return params
+
+        self.look_node = self.getLookSwitchNode(True)
+
+        params = []
+        # first check fr and export loks from aiLookSwicth
+        if self.look_node:
+            inputs = cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, index)) or []
+            for i in inputs:
+                # walk the inputs of this node record the parms if it's a set_parameter operator
+                params += _walkParams(i)
+        return params
 
     def getLookSwitchNode(self, create=False):
         look_switch = None
