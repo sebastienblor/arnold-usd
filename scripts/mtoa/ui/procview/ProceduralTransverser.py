@@ -229,7 +229,6 @@ class ProceduralTransverser(BaseTransverser):
 
     def getVariantNode(self, node):
         look_node = False
-        look_index = cmds.getAttr("{}.look".format(node)) or -1
         ops = cmds.listConnections('{}.operators'.format(node), plugs=True)
         for op in ops or []:
             op_node, plug = op.split('.')
