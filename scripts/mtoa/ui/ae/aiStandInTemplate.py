@@ -32,6 +32,7 @@ from functools import partial
 ################################################
 
 defaultFolder = ""
+DEFAULT_LOOK = 'default'
 
 def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
@@ -232,58 +233,39 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def lookReplace(self, nodeAttr):
         old_look = self.look_node
         old_node = self.current_node
-        # check if attribute need updating
-        if not cmds.attributeQuery("look", node=self.nodeName, exists=True):
-            cmds.addAttr(self.nodeName, longName="look", at="enum", enumName="default" )
 
         self.look_node = self.getLookSwitchNode()
         self.current_node = self.nodeName
 
         replace_look = old_look != self.look_node
         replace_node = old_node != self.current_node
-        update = self.updateLookAttr()
-        print "lookReplace", update, replace_look, replace_node, self._update_var_ui
-        if update or replace_look or replace_node or self._update_var_ui:
+        if replace_look or replace_node:
 
-            if self.lookCtrl:
-                cmds.deleteUI(self.lookCtrl)
+            # clear the look menu
+            for m in cmds.optionMenu(self.lookCtrl, q=True, itemListLong=True) or []:
+                cmds.deleteUI(m)
 
-            old_parent = cmds.setParent(q=True)
-            cmds.setParent(self.lookCtrlLayout)
-            self.lookCtrl = cmds.attrEnumOptionMenu(label="Look",
-                                                    attribute="{}.look".format(self.nodeName),
-                                                    changeCommand=self.setLook,
-                                                    parent=self.lookCtrlLayout)
+            looks = self.getLooks()
 
-            cmds.setParent(old_parent)
+            for idx, look in looks.items():
+                cmds.menuItem(label=look, data=idx, parent=self.lookCtrl)
 
-            self._update_var_ui = False
             if self.look_node:
                 look_idx = cmds.getAttr("{}.index".format(self.look_node))
-                cmds.setAttr("{}.look".format(self.nodeName), look_idx)
+                cmds.optionMenu(self.lookCtrl, edit=True, value=looks[look_idx])
 
-            self.refreshAssignmentsUI()
+            if self.tree:
+                self.refreshAssignmentsUI()
 
     def lookNew(self, nodeAttr):
-        self.current_node = self.nodeName
-        # get if theres an enum attribute
-        if not cmds.attributeQuery("look", node=self.nodeName, exists=True):
-            cmds.addAttr(self.nodeName, longName="look", at="enum", enumName="default" )
 
-        self.look_node = self.getLookSwitchNode()
+        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
+                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
+                                         columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
 
-        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=6, adjustableColumn=6,
-                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left'), (5, 'left')],
-                                         columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1), (5, 'left', 1)])
-
-        self.lookCtrlLayout = cmds.rowLayout(rowAttach=(1, 'top', 4),
-                                             columnAttach=(1, 'left', 0))
-        self.lookCtrl = cmds.attrEnumOptionMenu(label="Look",
-                                                attribute="{}.look".format(self.nodeName),
-                                                changeCommand=self.setLook,
-                                                parent=self.lookCtrlLayout)
+        cmds.rowLayout(numberOfColumns=1, rowAttach=[1, 'top', 4], columnAttach=[1, 'left', 0])
+        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20)
         cmds.setParent('..')
-
         self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
         self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
         self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
@@ -292,6 +274,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         cmds.text("")
         cmds.setParent('..')
+        self.lookReplace(nodeAttr)
 
     def fileInfoReplace(self, nodeAttr):
         nodeName = nodeAttr.split('.')[0]
@@ -424,10 +407,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
             self.lookReplace("{}.look".format(self.nodeName))
 
     def setLook(self, *args):
-        look = cmds.getAttr("{}.look".format(self.nodeName))
-        look_str = cmds.getAttr("{}.look".format(self.nodeName), asString=True)
+        look_name = args[0]
         if self.look_node:
-            cmds.setAttr("{}.index".format(self.look_node), look)
+            looks = {y:x for x,y in self.getLooks().iteritems()}
+            cmds.setAttr("{}.index".format(self.look_node), looks[look_name])
         self.refreshAssignmentsUI()
 
     def copyLook(self, fromIndex, toIndex):
@@ -444,24 +427,19 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                      force=True)
                 i += 1
 
-    def updateLookAttr(self):
+    def getLooks(self):
+        looks = {}
+
+        self.look_node = self.getLookSwitchNode()
 
         if self.look_node:
-            enumList = []
             for a in cmds.getAttr('{}.looks'.format(self.look_node), multiIndices=True) or []:
-                lookName = cmds.getAttr("{}.looks[{}].name".format(self.look_node, a))
-                if lookName:
-                    enumList.append("{}".format(cmds.getAttr("{}.looks[{}].name".format(self.look_node, a))))
+                look_name = cmds.getAttr('{}.looks[{}].name'.format(self.look_node, a))
+                looks[a] = look_name
+        else:
+            looks[0] = DEFAULT_LOOK
 
-            enumNames = ':'.join(enumList)
-            # compare to current attr
-            current_enums = cmds.addAttr("{}.look".format(self.nodeName), q=True, enumName=True)
-            if current_enums != enumNames:
-                cmds.deleteAttr("{}.look".format(self.nodeName))
-                cmds.addAttr(self.nodeName, longName="look", at="enum", enumName=enumNames)
-                return True
-
-        return False
+        return looks
 
     def newLook(self, *args):
         # check switch node exists, if not make one
@@ -480,12 +458,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 if duplicate:
                     self.copyLook(current_index, next_index)
 
-                self._update_var_ui = self.updateLookAttr()
-
-                cmds.setAttr("{}.look".format(self.nodeName), next_index)
                 cmds.setAttr("{}.index".format(self.look_node), next_index)
+                cmds.menuItem(label=new_look_name, data=next_index, parent=self.lookCtrl)
+                cmds.optionMenu(self.lookCtrl, e=True, value=new_look_name)
 
-                cmds.attrEnumOptionMenu(self.lookCtrl, e=True, attribute="{}.look".format(self.nodeName))
 
                 self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
 
@@ -850,7 +826,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def setup(self):
         self.assInfoPath = ''
         self.inspectAssPath = ''
+        self.current_node = None
         self.look_node = None
+        self.tree = None
+        self.properties_panel = None
         self._update_var_ui = False
         self.assItems = {}
 
