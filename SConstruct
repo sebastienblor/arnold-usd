@@ -1203,7 +1203,6 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
-[os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
@@ -1235,6 +1234,18 @@ if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
         PACKAGE_FILES += [
             [os.path.join(ARNOLD, 'plugins', 'usd', p), os.path.join('plugins', 'usd', d)]
         ]
+if system.os == 'darwin':
+    license_manager_app = find_files_recursive(os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager.app'), None)
+    for p in license_manager_app:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [
+            [os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager.app', p), os.path.join('bin', 'ArnoldLicenseManager.app', d)]
+        ]
+else:
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager%s' % get_executable_extension()), 'bin']
+    ]
+
 
 for p in presetfiles:
     (d, f) = os.path.split(p)
