@@ -220,8 +220,22 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
       }
       MtoaDebugLog(log);
    }
+   ExportDccName();
 }
 
+void CNodeTranslatorImpl::ExportDccName()
+{
+   if (m_atRoot == NULL)
+      return;
+
+   const CSessionOptions &options = CNodeTranslator::GetSessionOptions();
+   if (options.GetExportPrefix().length() == 0 && 
+      options.GetExportNamespace() == MTOA_EXPORT_NAMESPACE_ON)
+      return; // No need to export dcc_name in this scenario
+
+   AiNodeDeclare(m_atRoot, "dcc_name", "constant STRING");   
+   AiNodeSetStr(m_atRoot, "dcc_name", AtString(m_tr.GetMayaNodeName().asChar()));
+}
 
 
 /// Calls ExportConnectedNode and AiNodeLink if there are incoming connections to 'plug'

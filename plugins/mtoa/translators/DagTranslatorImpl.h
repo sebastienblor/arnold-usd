@@ -14,6 +14,7 @@ public :
    virtual MString MakeArnoldName(const char *nodeType, const char* tag = NULL);
    virtual void ExportUserAttribute(AtNode *anode);
    virtual MStatus ExportOverrideSets();
+   virtual void ExportDccName();
    
    MDagPath m_masterDag;
    bool m_isMasterDag;

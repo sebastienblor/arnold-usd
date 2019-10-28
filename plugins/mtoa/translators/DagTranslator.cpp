@@ -87,6 +87,16 @@ MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
    return name;
 }
 
+void CDagTranslatorImpl::ExportDccName()
+{
+   if (m_atRoot == NULL)
+      return;
+   // Always export dcc_name now that we export full paths by default
+   AiNodeDeclare(m_atRoot, "dcc_name", "constant STRING");   
+   CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
+   MString name = dagTr->GetMayaDagPath().partialPathName();
+   AiNodeSetStr(m_atRoot, "dcc_name", AtString(name.asChar()));
+}
 
 MString CDagTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
 {

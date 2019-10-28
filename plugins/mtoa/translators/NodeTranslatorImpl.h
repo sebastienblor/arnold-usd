@@ -56,8 +56,8 @@ public :
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    
    virtual MString MakeArnoldName(const char *nodeType, const char* tag = NULL);
-   
    virtual void DoCreateArnoldNodes();
+   virtual void ExportDccName();
 
    AtNode* DoExport();
    AtNode* DoUpdate();
