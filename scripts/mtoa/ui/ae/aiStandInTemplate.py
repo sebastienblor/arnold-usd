@@ -259,9 +259,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def lookNew(self, nodeAttr):
 
-        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
-                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
-                                         columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
+        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=6, adjustableColumn=6,
+                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left'), (5, 'left')],
+                                         columnAttach=[(1, 'left', 10), (2, 'left', 3), (3, 'left', 1), (4, 'left', 1), (5, 'left', 1)])
 
         cmds.rowLayout(numberOfColumns=1, rowAttach=[1, 'top', 4], columnAttach=[1, 'left', 0])
         self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20)
@@ -485,7 +485,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.error("{} has no looks to export".format(self.look_node))
             # include_graph
             filename = self.browseObjFilename("Arnold Operator Graph (*.ass);; MaterialX Look file (*.mtlx)")
-            print filename
+
             if filename:
                 ext = os.path.splitext(filename)[-1]
                 if ext == ".ass":
