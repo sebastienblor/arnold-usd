@@ -145,17 +145,6 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       }
    }   
 
-   // eventually export dcc_name user attribute
-   // FIXME this could be moved to a separate function but this might be temporary
-   if (GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
-   {
-      if (AiNodeLookUpUserParameter(camera, "dcc_name") == NULL)
-         AiNodeDeclare(camera, "dcc_name", "constant STRING");
-   
-      MString partialName = m_dagPath.partialPathName();
-      AiNodeSetStr(camera, "dcc_name", AtString(partialName.asChar()));
-   }
-
    if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
    {
       if (AiNodeLookUpUserParameter(camera, "maya_full_name") == NULL)
