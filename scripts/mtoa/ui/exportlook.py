@@ -15,6 +15,7 @@ def setOperatorOptions(options):
 
 def getOperatorOptions(mergeOptions=False):
     options = {}
+    options['defaultLookExt'] = '.ass'
     options['exportShaders'] = True
 
     options['relativeAssignments'] = True
@@ -25,7 +26,7 @@ def getOperatorOptions(mergeOptions=False):
     options['mtlxReplaceNetwork'] = False
 
     for option, default in options.items():
-        if not cmds.optionVar(exists="arnold_{}".format(option)) or reset:
+        if not cmds.optionVar(exists="arnold_{}".format(option)):
             if type(default) in [bool, int]:
                 cmds.optionVar(intValue=("arnold_{}".format(option), default))
             elif type(default) in [str, unicode]:
@@ -121,8 +122,9 @@ def arnoldOpExportUI_Init(parent, fileFilter):
     cmds.checkBoxGrp("assReplaceNetworkCB", edit=True, value1=options['assReplaceNetwork'])
     cmds.checkBoxGrp("mtlxReplaceNetworkCB", edit=True, value1=options['mtlxReplaceNetwork'])
 
-    arnoldOpExportUI_Change(parent, fileFilter)
+    arnoldOpExportUI_Change(parent, OPERATOR_FILETYPES[options['defaultLookExt']])
 
+# set the correct UI for the current file type
 def arnoldOpExportUI_Change(parent, newType):
     cmds.setParent(parent)
 
@@ -146,11 +148,13 @@ def arnoldOpExportUI_Commit(parent):
     if cmds.frameLayout("arn_operatorOptions", query=True, visible=True):
         options['exportShaders'] = cmds.checkBoxGrp("expShadersCB", query=True, value1=True)
         options['assReplaceNetwork'] = cmds.checkBoxGrp("assReplaceNetworkCB", query=True, value1=True)
+        options['defaultLookExt'] = '.ass'
     elif cmds.frameLayout("arn_materialXOptions", query=True, visible=True):
         options['relativeAssignments'] = cmds.checkBoxGrp("relativeAssignmentsCB", query=True, value1=True)
         options['exportFullPath'] = cmds.checkBoxGrp("exportFullPathCB", query=True, value1=True)
         options['exportSeparator'] = cmds.optionMenuGrp("exportSeparatorCB", query=True, value=True)
         options['mtlxReplaceNetwork'] = cmds.checkBoxGrp("mtlxReplaceNetworkCB", query=True, value1=True)
+        options['defaultLookExt'] = '.mtlx'
 
     setOperatorOptions(options)
 
