@@ -15,6 +15,7 @@ from mtoa.ui.qt.Qt import QtGui
 from mtoa.ui.qt.Qt import QtWidgets
 from mtoa.ui.qt.Qt import shiboken
 from mtoa.ui.qt import toQtObject
+from mtoa.ui import exportlook
 
 CACHE_ATTR = 'ai_asscache'
 
@@ -465,11 +466,17 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
                 self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
 
-    def browseObjFilename(self, fileFormat="Arnold Operator Graph (*.ass)"):
+    def browseObjFilename(self, fileFormat="Arnold Operator Graph (*.ass)", options={}):
         global defaultFolder
         if defaultFolder == "":
-            defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
-        ret = cmds.fileDialog2(cap='Select File',okc='Select',ff=fileFormat,fm=0,dir=defaultFolder) or []
+            defaultFolder = cmds.workspace(q=True, rd=True, fn=True)
+        ret = cmds.fileDialog2(cap='Export Look',
+                               okc='Export Look',
+                               ff=fileFormat,
+                               fm=0,
+                               dir=defaultFolder,
+                               **options
+                               ) or []
         if ret is not None and len(ret):
             defaultFolder = ret[0]
             return ret[0]
@@ -484,12 +491,24 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if not len(indices):
                 cmds.error("{} has no looks to export".format(self.look_node))
             # include_graph
-            filename = self.browseObjFilename("Arnold Operator Graph (*.ass);; MaterialX Look file (*.mtlx)")
+            filename = self.browseObjFilename(
+                "{0[0]} (*{0[1]});; {1[0]} (*{1[1]});;".format(*[(exportlook.OPERATOR_FILETYPES[k], k) for k in sorted(exportlook.OPERATOR_FILETYPES.keys())]),
+                options={"optionsUICreate": "arnoldOpExportUI_Create",
+                         "optionsUIInit": "arnoldOpExportUI_Init",
+                         "optionsUICommit": "arnoldOpExportUI_Commit",
+                         "fileTypeChanged": "arnoldOpExportUI_Change"}
+            )
 
             if filename:
+                options = exportlook.getOperatorOptions()
                 ext = os.path.splitext(filename)[-1]
                 if ext == ".ass":
-                    cmds.arnoldExportOperators(self.look_node, selection=True, filename=filename, shaders=True)
+                    cmds.arnoldExportOperators(self.look_node, selection=True,
+                                               filename=filename,
+                                               shaders=options['exportShaders'])
+                    # check if we want to replace the graph
+                    if options['assReplaceNetwork']:
+                        self.replaceNetwork(filename)
                 elif ext == ".mtlx":
                     # get the current index
                     _base_index = cmds.getAttr("{}.index".format(self.look_node))
@@ -501,7 +520,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
                             properties = self.getLookParams(idx)
 
-                            cmds.arnoldExportToMaterialX(self.nodeName, filename=filename, look=look_name, properties=' '.join(properties), fullPath=True, separator='/')
+                            cmds.arnoldExportToMaterialX(self.nodeName, filename=filename, look=look_name,
+                                                         properties=' '.join(properties),
+                                                         fullPath=options['fullPath'],
+                                                         separator=options['exportSeparator'],
+                                                         relative=options['relativeAssignments'])
 
                     cmds.setAttr("{}.index".format(self.look_node), _base_index)
         else:
@@ -567,6 +590,18 @@ class AEaiStandInTemplate(ShaderAETemplate):
             cmds.connectAttr('{}.out'.format(look_switch), '{}.operators[0]'.format(self.nodeName))
 
         return look_switch
+
+    def replaceNetwork(filename):
+
+        fn, ext = os.path.splitext(filename)
+
+        # delete the operator nodes attached to the current standIn
+        if ext == '.ass':
+            # make a new ai_includeGraph node
+            pass
+        elif ext == '.mtlx':
+            # make new aiMaterialX operaotr
+            pass
 
     def newSceneCallback(self):
         self.tree.setCurrentNode(None)
