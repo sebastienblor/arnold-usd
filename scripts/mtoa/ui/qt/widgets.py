@@ -457,7 +457,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
 
         self.menu = QtWidgets.QMenu()
         disconnectAction = self.menu.addAction("Disconnect")
-        disconnectAction.triggered.connect(self.disconnectNode)
+        disconnectAction.triggered.connect(self.disconnectTrigger)
         selectAction = self.menu.addAction("Select")
         selectAction.triggered.connect(self.selectNode)
         self.setMenu(self.menu)
@@ -506,6 +506,9 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
     def setInherited(self, inherited):
         if self.overrideButton:
             self.overrideButton.setEnabled(inherited)
+
+    def disconnectTrigger(self, *args):
+        self.disconnectNode(True)
 
     def disconnectNode(self, emit=True):
         self.node = None
