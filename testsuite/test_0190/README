@@ -1,3 +1,8 @@
 Oriented Curves on curve collector (#2694)
 
 author: sebastien.ortega
+
+PARAMS: {
+   'diff_fail': 0.02,
+   'diff_hardfail': 0.02
+}
