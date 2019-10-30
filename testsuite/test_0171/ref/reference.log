@@ -9,21 +9,14 @@
  
 Starting "/usr/autodesk/maya2019/bin/maya"
 This plugin does not support createPlatformOpenGLContext!
-Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0171/2019/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0171/2019/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0171/2019/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
-00:00:00   334MB WARNING | [mtoa] [<built-in>] [node aov_write_vector] Assigning temporary node id 1138176 to associated Maya type name aiAovWriteVector.
+00:00:00   335MB WARNING | [mtoa] [<built-in>] [node aov_write_vector] Assigning temporary node id 1138176 to associated Maya type name aiAovWriteVector.
 00:00:00   337MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2019/procedurals/xgen_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
 00:00:00   337MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2019/procedurals/xgenSpline_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
-00:00:00   337MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138177 to associated Maya type name aiMtoaTestShader.
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
 libai.so already loaded
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
 Successfully registered renderer 'arnold'
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  1.5 seconds.
+File read in  1.9 seconds.
 Result: /home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0171/test.ma
 Scene /home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0171/test.ma completed.
