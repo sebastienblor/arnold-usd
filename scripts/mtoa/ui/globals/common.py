@@ -751,10 +751,11 @@ def settingDecorator(f):
 
 @settingDecorator
 def updateArnoldImageFormatControl(*args):
-    core.createOptions()
-    curr = cmds.getAttr('defaultArnoldDriver.aiTranslator')
-    cmds.setAttr('defaultRenderGlobals.imageFormat', 51)
-    cmds.setAttr('defaultRenderGlobals.imfkey', str(curr), type="string")
+    if (utils.currentRenderer() == "arnold"):
+        core.createOptions()
+        curr = cmds.getAttr('defaultArnoldDriver.aiTranslator')
+        cmds.setAttr('defaultRenderGlobals.imageFormat', 51)
+        cmds.setAttr('defaultRenderGlobals.imfkey', str(curr), type="string")
     
 def extendToShape(cam):
     if cam is None:
