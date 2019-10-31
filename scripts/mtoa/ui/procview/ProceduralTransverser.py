@@ -23,7 +23,7 @@ from arnold import *
 SELECTION_REGEX = re.compile(r'.*(?=/\*)')
 
 EXP_REGEX = re.compile(r"""(?P<type>bool|byte|int|uint|float|rgb|rgba|vector|vector2|string|matrix|node)?\s* # parameter
-                         (?P<param>\w+)\s* # parameter
+                         (?P<param>[\w.:\[\]]+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
                          (?P<value>.*) # value
                          """, re.X)
