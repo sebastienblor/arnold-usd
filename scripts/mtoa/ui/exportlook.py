@@ -21,9 +21,9 @@ def getOperatorOptions(mergeOptions=False):
     options['relativeAssignments'] = True
     options['exportFullPath'] = True
     options['exportSeparator'] = '/'
+    options['properties'] = ''
 
-    options['assReplaceNetwork'] = False
-    options['mtlxReplaceNetwork'] = False
+    options['replaceNetwork'] = False
 
     for option, default in options.items():
         if not cmds.optionVar(exists="arnold_{}".format(option)):
@@ -59,21 +59,18 @@ def arnoldOpExportUI_Create(parent):
     optionLayout = cmds.scrollLayout(childResizable=True)
     cmds.columnLayout(adjustableColumn=True)
 
-    cmds.frameLayout("arn_operatorOptions", label="Operator Options", collapse=False, visible=False)
-    cmds.columnLayout()
+    cmds.frameLayout("arn_operatorOptions", label="Operator Options", collapse=False, visible=False, marginHeight=5)
+    cmds.columnLayout(adjustableColumn=True)
 
     cmds.checkBoxGrp("expShadersCB",
                      numberOfCheckBoxes=1,
                      label1="Export Shaders")
-    cmds.checkBoxGrp("assReplaceNetworkCB",
-                     numberOfCheckBoxes=1,
-                     label1="Replace Network")
 
     cmds.setParent("..")
     cmds.setParent("..")
 
-    cmds.frameLayout("arn_materialXOptions", label="MaterialX Options", collapse=False, visible=False)
-    cmds.columnLayout()
+    cmds.frameLayout("arn_materialXOptions", label="MaterialX Options", collapse=False, visible=False, marginHeight=5)
+    cmds.columnLayout(adjustableColumn=True)
 
     cmds.checkBoxGrp("relativeAssignmentsCB",
                      numberOfCheckBoxes=1,
@@ -88,9 +85,15 @@ def arnoldOpExportUI_Create(parent):
     cmds.menuItem("|")
     cmds.setParent("..")
 
-    cmds.checkBoxGrp("mtlxReplaceNetworkCB",
+    cmds.textFieldGrp("matxPropertiesTF", label="Object properties")
+
+    cmds.setParent("..")
+
+    cmds.frameLayout("arn_PostBox", label="Post Export", collapsable=False, marginHeight=5)
+    cmds.checkBoxGrp("arnReplaceNetworkCB",
                      numberOfCheckBoxes=1,
-                     label1="Replace Network")
+                     label1="Replace Network",
+                     annotation="After export replace the current operator network with exported file")
 
     cmds.setParent("..")
     cmds.setParent("..")
@@ -119,8 +122,9 @@ def arnoldOpExportUI_Init(parent, fileFilter):
 
     cmds.optionMenuGrp("exportSeparatorCB", edit=True, value=options['exportSeparator'])
 
-    cmds.checkBoxGrp("assReplaceNetworkCB", edit=True, value1=options['assReplaceNetwork'])
-    cmds.checkBoxGrp("mtlxReplaceNetworkCB", edit=True, value1=options['mtlxReplaceNetwork'])
+    cmds.checkBoxGrp("matxPropertiesTF", edit=True, text=options['properties'])
+
+    cmds.checkBoxGrp("arnReplaceNetworkCB", edit=True, value1=options['replaceNetwork'])
 
     arnoldOpExportUI_Change(parent, OPERATOR_FILETYPES[options['defaultLookExt']])
 
@@ -147,30 +151,32 @@ def arnoldOpExportUI_Commit(parent):
 
     if cmds.frameLayout("arn_operatorOptions", query=True, visible=True):
         options['exportShaders'] = cmds.checkBoxGrp("expShadersCB", query=True, value1=True)
-        options['assReplaceNetwork'] = cmds.checkBoxGrp("assReplaceNetworkCB", query=True, value1=True)
         options['defaultLookExt'] = '.ass'
     elif cmds.frameLayout("arn_materialXOptions", query=True, visible=True):
         options['relativeAssignments'] = cmds.checkBoxGrp("relativeAssignmentsCB", query=True, value1=True)
         options['exportFullPath'] = cmds.checkBoxGrp("exportFullPathCB", query=True, value1=True)
         options['exportSeparator'] = cmds.optionMenuGrp("exportSeparatorCB", query=True, value=True)
-        options['mtlxReplaceNetwork'] = cmds.checkBoxGrp("mtlxReplaceNetworkCB", query=True, value1=True)
+        options['properties'] = cmds.textFieldGrp("matxPropertiesTF", query=True, text=True)
         options['defaultLookExt'] = '.mtlx'
+
+    options['replaceNetwork'] = cmds.checkBoxGrp("arnReplaceNetworkCB", query=True, value1=True)
 
     setOperatorOptions(options)
 
 
+# Export python commands to MEL for Callbacks
 utils.pyToMelProc(arnoldOpExportUI_Create,
                   [('string', 'parent')],
-                   useName=True)
+                  useName=True)
 
 utils.pyToMelProc(arnoldOpExportUI_Init,
                   [('string', 'parent'), ('string', 'fileFilter')],
-                   useName=True)
+                  useName=True)
 
 utils.pyToMelProc(arnoldOpExportUI_Change,
                   [('string', 'parent'), ('string', 'newType')],
-                   useName=True)
+                  useName=True)
 
 utils.pyToMelProc(arnoldOpExportUI_Commit,
                   [('string', 'parent')],
-                   useName=True)
+                  useName=True)
