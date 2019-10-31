@@ -43,6 +43,7 @@
     <sep desc="Frame numbering options"/>
     <mel n="s" p="1" t="float" s="removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.animation; setAttr defaultRenderGlobals.animation 1; removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.startFrame; setAttr defaultRenderGlobals.startFrame %1" h="Starting frame for an animation sequence"/>
     <mel n="e" p="1" t="float" s="removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.animation; setAttr defaultRenderGlobals.animation 1; removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.endFrame; setAttr defaultRenderGlobals.endFrame %1" h="End frame for an animation sequence"/>
+    <mel n="seq" p="1" t="string" s='$opt+=" -seq \\\"%1\\\""' h='Frame number sequence e.g "2 4 6..10"'/>
     <attr n="b" s="defaultRenderGlobals.byFrameStep" t="float" h="By frame (or step) for an animation sequence"/>
     <attr n="skipExistingFrames" s="defaultRenderGlobals.skipExistingFrames" t="boolean" h="Skip frames that are already rendered (if true) or force rendering all frames (if false)"/>
     <attr n="pad" s="defaultRenderGlobals.extensionPadding" t="int" h="Number of digits in the output image frame file name\n\t\t    extension"/>
