@@ -142,7 +142,6 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
-    arnoldAboutText += "\nCLM V"+ cmds.arnoldPlugins(getClmVersion=True) + "\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Blaineau-Ortega, Ashley Handscomb Retallack,\nKrishnan Ramachandran\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant"
 
@@ -175,7 +174,10 @@ def arnoldAboutDialog():
     cmds.setParent( '..' )
     
     cmds.showWindow(w)
-   
+
+def arnoldLicenseManager():
+    mtoa.licensing.licenseManager()
+
 def arnoldLicensingSignIn():
     ai.ai_license_clm.AiLicenseClmSignIn()
 
@@ -270,7 +272,27 @@ def arnoldImportOperators():
     ret = cmds.fileDialog2(cap='Import Operator Graph',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
     if len(ret):
         defaultOperatorsFolder = ret[0]
-        cmds.arnoldImportAss(f=ret[0])
+        cmds.arnoldImportAss(f=ret[0],  mask=ai.AI_NODE_OPERATOR + ai.AI_NODE_SHADER)
+
+def arnoldExportShaders():
+    selection = cmds.ls(selection=True)
+    global defaultFolder
+    if defaultFolder == "":
+        defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+    ret = cmds.fileDialog2(cap='Select File',okc='Select',ff="Arnold Shaders File (*.ass)",fm=0,dir=defaultFolder) or []
+    if len(ret) > 0:
+        cmds.arnoldExportAss(filename = ret[0], selected=True, exportAllShadingGroups=True, mask = ai.AI_NODE_SHADER)
+
+def arnoldImportShaders():
+    global defaultOperatorsFolder
+    if defaultOperatorsFolder == "":
+        defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
+
+    objFilter = "ASS File (*.ass);; AXF File (*.axf);"#; MaterialX File (*.mtlx)"
+    ret = cmds.fileDialog2(cap='Import Arnold Shaders',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
+    if len(ret):
+        defaultOperatorsFolder = ret[0]
+        cmds.arnoldImportAss(f=ret[0], mask=ai.AI_NODE_SHADER)
 
 def arnoldExportMaterialx(selected=False):
     selList = cmds.ls(sl=1)
@@ -344,6 +366,13 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsStandIn()')
 
+        addRuntimeMenuItem('ArnoldAlembicExportSelection', parent='ArnoldStandIn', label='Export Selection to Alembic ..', image='AlembicShelf.png',
+                    command='import mtoa.ui.exportalembic;mtoa.ui.exportalembic.exportSelected()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
+
+        addRuntimeMenuItem('ArnoldAlembicExportAll', parent='ArnoldStandIn', label='Export All to Alembic ..', image='AlembicShelf.png',
+                    command='import mtoa.ui.exportalembic;mtoa.ui.exportalembic.exportAll()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
+
+
         cmds.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
         addRuntimeMenuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",rtcLabel = 'Arnold: Create Area Light', image='AreaLightShelf.png',
@@ -406,9 +435,13 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
         addRuntimeMenuItem('ArnoldExportOperators', label='Export Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to .ass')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to a .ass file')
         addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
+        addRuntimeMenuItem('ArnoldExportShaders', label='Export Selected Shaders', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportShaders()', category="Utilities", annotation='Export the selected shaders to a .ass file')
+        addRuntimeMenuItem('ArnoldImportShaders', label='Import Arnold Shaders', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportShaders()', category="Utilities", annotation='Import a shader library from a .ass file')
         addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportMaterialx(selected=True)', category="Utilities", annotation='Export the selected shading trees to .mtlx files')
         addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
@@ -417,6 +450,14 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStop()', category="Utilities", annotation='Terminate the Optix GPU cache creation')
         cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicenseManager())
+        cmds.menuItem('ArnoldLicensingHelp',  label='Licensing Help', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AILIC/Licensing+Home'))
+        cmds.menuItem('ArnoldSuscribe',  label='Purchase Subscription', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+        
+        '''
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
         cmds.menuItem('ArnoldGetDiagnostics', label='Diagnostics', parent='ArnoldLicensingMenu',
@@ -424,8 +465,6 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
         
-        cmds.menuItem('ArnoldSuscribe',  label='Buy Arnold', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
         cmds.menuItem('ArnoldGetMacAddress', label='Get MAC Address', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingGetMacAddress())
 
@@ -444,6 +483,7 @@ def createArnoldMenu():
 
         cmds.menuItem('ArnoldInstallTrialLicense', label='Install Trial License', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingNodeLocked())
+        '''
 
         cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)

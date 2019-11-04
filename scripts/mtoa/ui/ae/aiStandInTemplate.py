@@ -23,10 +23,15 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
+from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, MERGE_OP
 
 from mtoa.callbacks import *
-    
+
+from functools import partial
+
 ################################################
+
+DEFAULT_LOOK = 'default'
 
 def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
@@ -41,8 +46,10 @@ def LoadStandInButtonPush(attrName):
         cmds.setAttr(attrName.replace('.dso', '.useFrameExtension'), False) # I picked one file, no file sequence
         ArnoldStandInDsoEdit(attrName, ret[0])
 
+
 def ArnoldStandInDsoEdit(attrName, mPath) :
     cmds.setAttr(attrName, mPath, type='string')
+
 
 def ArnoldStandInTemplateDsoNew(attrName) :
     cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')], columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'left', 5)], columnWidth=[(1,145),(2,220),(3,30)] )
@@ -51,43 +58,23 @@ def ArnoldStandInTemplateDsoNew(attrName) :
     cmds.textField( path, edit=True, text=cmds.getAttr(attrName) )
     cmds.symbolButton('standInDsoPathButton', image='navButtonBrowse.png', command=lambda arg=None, x=attrName: LoadStandInButtonPush(x))
 
+
 def ArnoldStandInTemplateDsoReplace(attrName) :
     cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(attrName, *args))
     cmds.textField( 'standInDsoPath', edit=True, text=cmds.getAttr(attrName) )
     cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda arg=None, x=attrName: LoadStandInButtonPush(x))
 
 
-def ArnoldStandInUpdateUI(attrName) :
-    overrideVisAttrs = ['overridePrimaryVisibility', 
-                     'overrideCastsShadows', 
-                     'overrideVisibleInDiffuseReflection',
-                     'overrideVisibleInSpecularReflection',
-                     'overrideVisibleInDiffuseTransmission', 
-                     'overrideVisibleInSpecularTransmission',
-                     'overrideVisibleInVolume']
-    visAttrs =      ['primaryVisibility', 
-                     'castsShadows', 
-                     'aiVisibleInDiffuseReflection',
-                     'aiVisibleInSpecularReflection',
-                     'aiVisibleInDiffuseTransmission', 
-                     'aiVisibleInSpecularTransmission',
-                     'aiVisibleInVolume']
-
-    for i in range(len(overrideVisAttrs)):
-        if cmds.getAttr(attrName + overrideVisAttrs[i]) == 0:
-            cmds.setAttr(attrName + overrideVisAttrs[i], 1)
-            if cmds.getAttr(attrName + visAttrs[i]) == 0:
-                cmds.setAttr(attrName + visAttrs[i], 1)
-    
-        
 def changeOperator(node, nodeAttr):
     attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
     newItem = '{}[{}]'.format(nodeAttr, attrSize)
     cmds.connectAttr("%s.message"%node, newItem, force=True)
-        
+
+
 def createOperator(opType, nodeAttr):
     opNode = cmds.createNode(opType)
     changeOperator(opNode, nodeAttr)
+
 
 def buildOperatorMenu(popup, attrName):
     nodeName = attrName.split('.')[0]
@@ -105,8 +92,72 @@ def buildOperatorMenu(popup, attrName):
         cmdsLbl = 'Create {}'.format(operator)
         cmds.menuItem(parent=popup, label=cmdsLbl, command=Callback(createOperator, operator, attrName))
 
+
 def editLabelCmd(str1, str2):
     return ''
+
+
+class LookDialog(object):
+
+    def __init__(self, title="New Look", edit=False, lookName=None):
+
+        self.title = title
+        self.edit = edit
+        self.look = "newPass"
+        if lookName:
+            self.look = lookName
+        self.duplicateCurrent = False
+        self._nameWidget = None
+        self._duplicateCurrentWidget = None
+
+    def show(self):
+
+        return cmds.layoutDialog(ui=self.buildUI, title=self.title)
+
+    def buildUI(self):
+
+        form = cmds.setParent(q=True)
+
+        # layoutDialog's are not resizable, so hard code a size here,
+        # to make sure all UI elements are visible.
+        #
+        cmds.formLayout(form, e=True, width=300)
+
+        self._nameWidget = cmds.textFieldGrp(
+            ad2=2, label="Look Name",
+            text=self.look)
+
+        self._duplicateCurrentWidget = cmds.checkBox(label='Duplicate Current Look')
+        if self.edit:
+            cmds.checkBox(self._duplicateCurrentWidget, e=True, visible=False)
+
+        confirmBtn = cmds.button(l='OK', c=partial(self.onDismiss, msg='ok'))
+        cancelBtn = cmds.button(l='Cancel', c=partial(self.onDismiss, msg='cancel'))
+
+        spacer = 5
+        top = 5
+        edge = 5
+
+        cmds.formLayout(form, edit=True,
+                        attachForm=[(self._nameWidget, 'top', top),
+                                    (self._nameWidget, 'left', 0),
+                                    (self._duplicateCurrentWidget, 'left', 0),
+                                    (self._duplicateCurrentWidget, 'right', edge),
+                                    (confirmBtn, 'bottom', spacer),
+                                    (cancelBtn, 'bottom', spacer),
+                                    (cancelBtn, 'right', edge)],
+                        attachControl=[(self._duplicateCurrentWidget, 'top',   spacer, self._nameWidget),
+                                       (confirmBtn,                   'top',   spacer, self._duplicateCurrentWidget),
+                                       (cancelBtn,                    'top',   spacer, self._duplicateCurrentWidget),
+                                       (confirmBtn,                   'right', spacer, cancelBtn)])
+
+    def onDismiss(self, data, msg):
+
+        self.look = cmds.textFieldGrp(self._nameWidget, query=True, text=True)
+        self.duplicateCurrent = cmds.checkBox(self._duplicateCurrentWidget, query=True, value=True)
+
+        cmds.layoutDialog(dismiss=msg)
+
 
 class AEaiStandInTemplate(ShaderAETemplate):
 
@@ -162,8 +213,67 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.setAttr(selAttr, attrVal, type='string')
         return True
     '''
+    def refreshAssignmentsUI(self):
+        fileAttr = '{}.dso'.format(self.nodeName)
+        filename = cmds.getAttr(fileAttr)
+        filename = expandEnvVars(filename)
 
-    def fileInfoReplace(self, nodeAttr) :
+        ext_str = ".ass"
+        if filename:
+            ext_str = os.path.splitext(filename)[1].lower()
+
+        expand = False
+        if ext_str == '.abc':
+            expand = True
+
+        self.tree.setCurrentNode(self.nodeName, expand, force=True)
+        self.properties_panel.setNode(self.nodeName)
+
+    def lookReplace(self, nodeAttr):
+        old_look = self.look_node
+        old_node = self.current_node
+
+        self.look_node = self.getLookSwitchNode()
+        self.current_node = self.nodeName
+
+        replace_look = old_look != self.look_node
+        replace_node = old_node != self.current_node
+        if replace_look or replace_node:
+
+            # clear the look menu
+            for m in cmds.optionMenu(self.lookCtrl, q=True, itemListLong=True) or []:
+                cmds.deleteUI(m)
+
+            looks = self.getLooks()
+
+            for idx, look in looks.items():
+                cmds.menuItem(label=look, data=idx, parent=self.lookCtrl)
+
+            if self.look_node:
+                look_idx = cmds.getAttr("{}.index".format(self.look_node))
+                cmds.optionMenu(self.lookCtrl, edit=True, value=looks[look_idx])
+
+            if self.tree:
+                self.refreshAssignmentsUI()
+
+    def lookNew(self, nodeAttr):
+
+        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
+                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
+                                         columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
+
+        cmds.rowLayout(numberOfColumns=1, rowAttach=[1, 'top', 4], columnAttach=[1, 'left', 0])
+        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20)
+        cmds.setParent('..')
+        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
+        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
+        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
+
+        cmds.text("")
+        cmds.setParent('..')
+        self.lookReplace(nodeAttr)
+
+    def fileInfoReplace(self, nodeAttr):
         nodeName = nodeAttr.split('.')[0]
         fileAttr = '{}.dso'.format(nodeName)
         filename = cmds.getAttr(fileAttr)
@@ -203,11 +313,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setCurrentNode(self.nodeName, expand, filename_changed)
         self.properties_panel.setNode(self.nodeName)
 
-        fileAttr = self.nodeName + ".dso"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile])
+        scriptAttr = self.nodeName + ".dso"
+        cmds.scriptJob(attributeChange=[scriptAttr, self.updateAssFile])
 
-        fileAttr = self.nodeName + ".selected_items"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
+        scriptAttr = self.nodeName + ".selected_items"
+        cmds.scriptJob(attributeChange=[scriptAttr, self.updateSelectedItems])
 
     def fileInfoNew(self, nodeAttr):
 
@@ -232,10 +342,161 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         self.fileInfoReplace(nodeAttr)
 
+    def newLookUI(self, defaultname):
+
+        lookDialog = LookDialog(lookName=defaultname)
+
+        val = lookDialog.show()
+        if val == "cancel":
+            return False, False
+
+        return lookDialog.look, lookDialog.duplicateCurrent
+
+    def editLook(self, *args):
+        if self.look_node:
+            look_idx = cmds.getAttr("{}.index".format(self.look_node))
+            current_look_name = cmds.getAttr("{}.looks[{}].name".format(self.look_node, look_idx))
+            # show pop up to rename the look
+            look_dialog = LookDialog(edit=True, lookName=current_look_name)
+            val = look_dialog.show()
+            if val == "cancel":
+                return False
+            cmds.setAttr("{}.looks[{}].name".format(self.look_node, look_idx), look_dialog.look, type="string")
+            self.lookReplace("{}.look".format(self.nodeName))
+
+    def removeLook(self, *args):
+        if self.look_node:
+            # get the index
+            look_idxs = cmds.getAttr("{}.looks".format(self.look_node), multiIndices=True) or []
+            look_idx = cmds.getAttr("{}.index".format(self.look_node))
+            # is the index above 0
+            if look_idx == 0:
+                cmds.error("Cannot remove the default look look on node {}".format(self.look_node))
+                return
+
+            conns = cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, look_idx), plugs=True) or []
+            for op in conns:
+                op_node, plug = op.split('.')
+                cmds.delete(op_node, inputConnectionsAndNodes=True)
+            cmds.removeMultiInstance("{}.looks[{}]".format(self.look_node, look_idx), b=True)
+            # shuffle the remaing merge nodes to the previous index
+            prev_idx = look_idx
+            for idx in cmds.getAttr("{}.looks".format(self.look_node), multiIndices=True) or []:
+                if idx > prev_idx:
+                    this_name = cmds.getAttr("{}.looks[{}].name".format(self.look_node, idx))
+                    cmds.setAttr("{}.looks[{}].name".format(self.look_node, prev_idx), this_name, type="string")
+                    i=0
+                    for op in cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, idx), plugs=True) or []:
+                        op_node, plug = op.split('.')
+                        cmds.connectAttr("{}.{}".format(op_node, plug),
+                                         "{}.looks[{}].inputs[{}]".format(self.look_node, prev_idx, i),
+                                         force=True)
+                        cmds.removeMultiInstance("{}.looks[{}].inputs[{}]".format(self.look_node, idx, i), b=True)
+                        i += 1
+                    prev_idx = idx
+
+            if prev_idx > look_idx:
+                cmds.removeMultiInstance("{}.looks[{}]".format(self.look_node, prev_idx))
+
+            cmds.setAttr("{}.index".format(self.look_node), look_idx-1)
+
+            # get the current Enums and remove the given look from it
+            self.lookReplace("{}.look".format(self.nodeName))
+
+    def setLook(self, *args):
+        look_name = args[0]
+        if self.look_node:
+            looks = {y:x for x,y in self.getLooks().iteritems()}
+            cmds.setAttr("{}.index".format(self.look_node), looks[look_name])
+        self.refreshAssignmentsUI()
+
+    def copyLook(self, fromIndex, toIndex):
+
+        if self.look_node:
+            conns = cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, fromIndex), plugs=True) or []
+            i = 0
+            for op in conns:
+                op_node, plug = op.split('.')
+                new_op_node = cmds.duplicate(op_node, upstreamNodes=True, returnRootsOnly=False)
+                if len(new_op_node):
+                    cmds.connectAttr("{}.{}".format(new_op_node[0], plug),
+                                     "{}.looks[{}].inputs[{}]".format(self.look_node, toIndex, i),
+                                     force=True)
+                i += 1
+
+    def getLooks(self):
+        looks = {}
+
+        self.look_node = self.getLookSwitchNode()
+
+        if self.look_node:
+            for a in cmds.getAttr('{}.looks'.format(self.look_node), multiIndices=True) or []:
+                look_name = cmds.getAttr('{}.looks[{}].name'.format(self.look_node, a))
+                looks[a] = look_name
+        else:
+            looks[0] = DEFAULT_LOOK
+
+        return looks
+
+    def newLook(self, *args):
+        # check switch node exists, if not make one
+        self.look_node = self.getLookSwitchNode(True)
+
+        if self.look_node:
+            # make a new merge Node and connect that to the
+            # next available input for the look switch node
+            current_index = cmds.getAttr('{}.index'.format(self.look_node))
+            next_index = cmds.getAttr('{}.looks'.format(self.look_node), size=True)
+
+            new_look_name, duplicate = self.newLookUI("pass{}".format(next_index))
+            if new_look_name:
+                cmds.setAttr('{}.looks[{}].name'.format(self.look_node, next_index), new_look_name, type="string")
+
+                if duplicate:
+                    self.copyLook(current_index, next_index)
+
+                cmds.setAttr("{}.index".format(self.look_node), next_index)
+                cmds.menuItem(label=new_look_name, data=next_index, parent=self.lookCtrl)
+                cmds.optionMenu(self.lookCtrl, e=True, value=new_look_name)
+
+
+                self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
+
+    def getLookSwitchNode(self, create=False):
+        look_switch = None
+        ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True) or []
+        for op in ops:
+            op_node, plug = op.split('.')
+            if cmds.nodeType(op_node) == LOOKSWITCH_OP:
+                # check for look attribute
+                look_switch = op_node
+                break
+
+        if not look_switch and create:
+            # create look switch node
+            look_switch = cmds.createNode(LOOKSWITCH_OP, name="lookSwitch#", ss=True)
+            cmds.setAttr('{}.looks[0].name'.format(look_switch), "default", type="string")
+
+            # now move all the connections from the standIn to the merge node
+            c=0
+            for op in ops:
+                cmds.disconnectAttr(op, '{}.operators[{}]'.format(self.nodeName, c))
+                cmds.connectAttr(op, '{}.looks[0].inputs[{}]'.format(look_switch, c))
+                c+=1
+
+            for i in cmds.getAttr('{}.operators'.format(self.nodeName), multiIndices=True) or []:
+                cmds.removeMultiInstance('{}.operators[{}]'.format(self.nodeName, i))
+
+            cmds.connectAttr('{}.out'.format(look_switch), '{}.operators[0]'.format(self.nodeName))
+
+        return look_switch
+
     def newSceneCallback(self):
         self.tree.setCurrentNode(None)
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
+        self.current_node = None
+        self.look_node = None
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
@@ -260,7 +521,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.treeView(self.assInfoPath, edit=True, addItem=(nodeType, ''))
 
             cmds.treeView(self.assInfoPath, edit=True, addItem=(i[0],nodeType))
-    
+
     def overrideSelection(self):
         selectedItems = cmds.treeView(self.assInfoPath, query=True, selectItem=True) or []
         selectedParents = []
@@ -281,7 +542,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def selectOperators(self):
         return
 
-
     def populateItems(self):
         self.assItems = []
         self.selectedItems = []
@@ -293,7 +553,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         '''
 
     def useSequenceChange(self, nodeName):
-        
+
         resolveFilePathSequence(nodeName,
                                 'useFrameExtension',
                                 'dso',
@@ -301,7 +561,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                 'frameNumber',
                                 'useSubFrame'
                                 )
-    
+
     def operatorsReplace(self, nodeAttr):
         self._setActiveNodeAttr(nodeAttr)
 
@@ -318,14 +578,13 @@ class AEaiStandInTemplate(ShaderAETemplate):
             attrLabel = 'Operators[{}]'.format(i)
             ctrl = cmds.attrNavigationControlGrp(at=attrName,
                                                     label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
-   
+
             self._msgCtrls.append(ctrl) 
 
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
-
     def operatorsNew(self, nodeAttr):
-        
+
         # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
 
@@ -380,7 +639,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
             else:
                 currentLayers = []
             rel_filepath = ret[0].replace(projectRootDir, "")
-            print rel_filepath
             currentLayers.append(rel_filepath)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type="string")
             self.alembicLayersReplace(nodeAttr)
@@ -391,9 +649,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentLayers = cmds.getAttr(nodeAttr)
         if len(currentLayers):
             currentLayers = currentLayers.split(';')
-            print selectedLayers
             for i in reversed(selectedLayers):
-                print i-1
                 currentLayers.pop(i-1)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
             self.alembicLayersReplace(nodeAttr)
@@ -493,6 +749,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def setup(self):
         self.assInfoPath = ''
         self.inspectAssPath = ''
+        self.current_node = None
+        self.look_node = None
+        self.tree = None
+        self.properties_panel = None
+        self._update_var_ui = False
         self.assItems = {}
 
         self.beginScrollLayout()
@@ -525,6 +786,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.beginNoOptimize()
 
         self.beginLayout("File Contents", collapse=False)
+        self.addCustom('look', self.lookNew, self.lookReplace)
         self.addCustom('aiInfo', self.fileInfoNew, self.fileInfoReplace)
         self.endLayout()
         # self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
@@ -533,12 +795,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         self.beginLayout('Render Stats', collapse=True)
 
-        # FIXME : the line below is just to create a callback that will be invoked when a StandIn UI
-        # appears in the attribute editor. We need to hack the deprecated "override" attribute
-        # (see #2515), and making sure they appear with the right value when the scene is 
-        # inspected will avoid confusion. We can remove this once we no longer care about
-        # pre-2.0.2 compatibility
-        self.addCustom('', ArnoldStandInUpdateUI, ArnoldStandInUpdateUI)
         self.addControl('castsShadows', label='Casts Shadows')
         self.addControl('motionBlur', label='Motion Blur')
         self.addControl('primaryVisibility', label='Primary Visibility')

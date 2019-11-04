@@ -34,11 +34,7 @@ void CHairPhysicalShaderTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CHairPhysicalShaderTranslator::CreateArnoldNodes()
 {
-    // Create the root aiHair shader node
-    AtNode* shader = AddArnoldNode("hair");
-
-    // Other AOV output nodes
-    return ProcessAOVOutput(shader);
+    return AddArnoldNode("hair");
 }
 
 void CHairPhysicalShaderTranslator::Export(AtNode* shader)

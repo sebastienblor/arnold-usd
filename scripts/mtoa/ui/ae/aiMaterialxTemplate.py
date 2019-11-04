@@ -20,16 +20,15 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
     ''' 
 
     def updateList(self, lookValue):
-
         cmds.textScrollList(self.looksListField, edit=True, deselectAll=True)
         if not lookValue:
             return
-
         cmds.textScrollList(self.looksListField, edit=True, selectItem=lookValue)            
         
 
     def lookEdit(self, attrName, mPath) :
         self.updateList(mPath)
+        cmds.setAttr(attrName, mPath, type='string')
         
     def looksListEdit(self, attrName) :
         lookValue = ''        
@@ -53,7 +52,16 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         
         lookAttrName = attrName.replace('.filename', '.look')
         self.lookParamReplace(lookAttrName)
-        
+
+    def assignTypeEdit(self, nodeName) :
+        cmds.textScrollList(self.looksListField, edit=True, removeAll=True)
+        lookAttr = '{}.look'.format(nodeName)
+        self.lookParamReplace(lookAttr)
+        assignTypeAttr = '{}.assignType'.format(nodeName)
+        assignType = cmds.getAttr(assignTypeAttr, asString=True)
+        cmds.editorTemplate(dimControl=(nodeName, 'assignMaterials', (assignType == 'material')))
+        cmds.editorTemplate(dimControl=(nodeName, 'assignProperties', (assignType == 'material')))
+        cmds.editorTemplate(dimControl=(nodeName, 'assignVisibilities', (assignType == 'material')))
 
     def filenameButtonPush(self, attrName):
         basicFilter = 'MaterialX File(*.mtlx)'
@@ -81,7 +89,7 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         labelWidth = 42
         
         # 2 Columns (Left with label+line edit, Right with list)
-        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,320),(2,100)], columnAlign=[(1, 'right'),(2, 'left')], columnAttach=[(1, 'right', 0), (2, 'left', 5)]) 
+        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,220),(2,200)], columnAlign=[(1, 'right'),(2, 'left')], columnAttach=[(1, 'right', 0), (2, 'left', 5)]) 
         # 2 Rows (to get an empty space below the label)
         cmds.rowColumnLayout( numberOfRows=2, rowHeight=[(1,20),(2,20)] )
         # 2 Columns : label and line edit
@@ -94,22 +102,24 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         cmds.setParent('..')
         cmds.setParent('..')
 
-        self.looksListField = cmds.textScrollList(height=50,allowMultiSelection=False)
+        self.looksListField = cmds.textScrollList(height=90,allowMultiSelection=False)
         cmds.setParent('..')
         self.lookParamReplace(attrName)
         
         
     def lookParamReplace(self, attrName) :
         mtlxAttrName = attrName.replace('.look', '.filename')        
+        assignTypeAttr = attrName.replace('.look', '.assignType')
         cmds.textField(self.lookTextField, edit=True, changeCommand=lambda *args: self.lookEdit(attrName, *args))
         cmds.textScrollList(self.looksListField, edit=True, removeAll=True,selectCommand=lambda *args: self.looksListEdit(attrName, *args))
         lookParam = cmds.getAttr(attrName)
         filename = cmds.getAttr(mtlxAttrName)
+        assignType = cmds.getAttr(assignTypeAttr, asString=True)
 
         if filename is not None:
             filename = os.path.expandvars(filename)
             if os.path.isfile(filename):
-                looksArray = ai.AiMaterialxGetLookNames(filename)
+                looksArray = ai.AiMaterialxGetMaterialNames(filename) if assignType == 'material' else  ai.AiMaterialxGetLookNames(filename)
                 numLooks = ai.AiArrayGetNumElements(looksArray)
                 for i in range(numLooks):
                     look = ai.AiArrayGetStr(looksArray, i)
@@ -129,16 +139,16 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         self.endLayout()
         self.beginLayout('MaterialX', collapse=False)
         self.addCustom('filename', self.filenameNew, self.filenameReplace)
-        
+        self.addControl("assignType", changeCommand=self.assignTypeEdit)
         self.looksListPath = ''
         self.lookPath = ''
         
         self.addCustom('look', self.lookParamNew, self.lookParamReplace)
 
         self.addSeparator()
-        self.addControl("assign_materials")
-        self.addControl("assign_properties")
-        self.addControl("assign_visibilities")
+        self.addControl("assignMaterials")
+        self.addControl("assignProperties")
+        self.addControl("assignVisibilities")
         self.addSeparator()
         self.addControl("search_path")
         self.endLayout()

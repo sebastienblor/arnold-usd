@@ -64,7 +64,7 @@
 #include "display/renderview_mtoa.h"
 static CRenderViewMtoA  *s_renderView = NULL;
 
-static bool s_closeRenderViewWithSession = true;
+static bool s_closeRenderViewWithSession = false;
 bool is_playblasting = false;
 
 
@@ -154,7 +154,7 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
       AiMsgError("[mtoa] Could not initialize the Arnold universe in CRenderSession.Begin(CRenderOptions* options)");
       return MStatus::kFailure;
    }
-   s_closeRenderViewWithSession = true;
+   s_closeRenderViewWithSession = false;
 }
 
 void CRenderSession::SetRendering(bool renderState)
@@ -378,7 +378,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       if (s_comp != 0)
       {
          if (s_comp->isInterruptRequested())
-            AiRenderInterrupt();
+            AiRenderInterrupt(AI_BLOCKING);
          // This causes AiRender to break, after which the CMayaScene::End()
          // which clears this callback.      
          // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
@@ -422,17 +422,9 @@ void CRenderSession::InterruptRender(bool waitFinished)
    }
 #endif
 
-   if (IsRendering() && AiRendering()) AiRenderInterrupt();
+   if (IsRendering() && AiRendering())
+      AiRenderInterrupt(waitFinished ? AI_BLOCKING : AI_NON_BLOCKING);
       
-   if (waitFinished)
-   {
-#ifdef _WIN64
-      while(AiRendering()) Sleep(1);
-#else
-      while(AiRendering()) usleep(1000);
-#endif
-
-   }
    // Wait for the thread to clear.
    if (m_render_thread != 0)
    {
@@ -796,8 +788,6 @@ void CRenderSession::DoIPRRender()
 
       MStatus status;
       // TODO : move this to a shared class later
-      // we have to query this here because
-      // we are not allowed to change the API for the next release
       MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
       if (status)
       {
@@ -1126,12 +1116,6 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    AiNodeSetPtr(render_view, "swatch", image.floatPixels());
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
-#ifdef MTOA_ENABLE_GAMMA
-   float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma", true).asFloat() : 2.2f;
-   AiNodeSetFlt(render_view, "gamma", gamma);
-#endif
-
-   
 
    AtNode* filter = AiNode("gaussian_filter");
    AiNodeSetStr(filter, "name", "swatch_renderview_filter");

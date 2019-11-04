@@ -606,11 +606,6 @@ AtNode* CArnoldSession::ExportOptions()
 
 AtNode *CArnoldSession::ExportColorManager()
 {
-// Color Management is only supported for 2016 and higher   
-#ifndef ENABLE_COLOR_MANAGEMENT
-   return NULL;
-#endif
-
    // get the maya node contraining the color management options         
    MSelectionList activeList;
    activeList.add(MString(":defaultColorMgtGlobals"));
@@ -677,7 +672,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    }
 
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
-   if (renderSession)
+   if (renderSession && exportMode != MTOA_SESSION_ASS)
       renderSession->SetRenderViewStatusInfo(MString("Exporting Arnold Scene..."));
 
    // Are we motion blurred (any type)?
@@ -722,6 +717,21 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          status = ExportCameras(selected);
          status = ExportLights(selected);
          status = ExportDag(selected);
+
+         // Eventually export selected shaders #3991
+         MStringArray shaders;
+         MGlobal::executeCommand("ls -sl -mat", shaders); // get selected shaders
+         for (unsigned int shd = 0; shd < shaders.length(); ++shd)
+         {
+            MSelectionList shdElem;
+            shdElem.add(shaders[shd]);
+            MObject depNode;
+            shdElem.getDependNode(0, depNode);
+            MPlug shaderPlug = (!depNode.isNull()) ? MFnDependencyNode(depNode).findPlug("message", true) : MPlug();
+            if (!shaderPlug.isNull())
+               ExportNode(shaderPlug);
+            
+         }
       }
       else
       {
@@ -847,7 +857,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       unsigned int numSteps = GetNumMotionSteps();
       m_isExportingMotion = true;
       
-      if (renderSession)
+      if (renderSession && exportMode != MTOA_SESSION_ASS)
          renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
 
       for (unsigned int step = 0; step < numSteps; ++step)
@@ -1538,10 +1548,13 @@ void CArnoldSession::DoUpdate()
 
    if (mtoa_translation_info)
       MtoaDebugLog("[mtoa.session]    Updating Arnold Scene....");
-
+   
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   
+   /*
    if (renderSession)
       renderSession->SetRenderViewStatusInfo(MString("Updating Arnold Scene..."));
+      */
 
    MStatus status;
    assert(AiUniverseIsActive());
@@ -2489,7 +2502,18 @@ void CArnoldSession::ExportTxFiles()
          // need to invalidate the TX file from the cache otherwise the conversion to TX will faill on windows
          AiTextureInvalidate(AtString(txFilename.asChar()));
 
-         listArguments.push_back(txArguments);
+         unsigned int bitdepth = 32;
+         AiTextureGetBitDepth(expandedFilenames[t].asChar(), &bitdepth);
+
+         std::string bitdepth_args;
+
+         if (cmEnabled && colorSpace != renderingSpace && 
+            colorSpace.toLowerCase() != MString("raw") && bitdepth <= 8)
+         {
+            bitdepth_args = " --format exr -d half --compression dwaa";
+         }
+
+         listArguments.push_back(txArguments + bitdepth_args);
       }
    }
 
@@ -2504,7 +2528,7 @@ void CArnoldSession::ExportTxFiles()
 
    // We now have the full list of textures, let's loop over them
    for (unsigned int i = 0; i < listTextures.size(); ++i)
-   {      
+   {
       // now call AiMakeTx with the corresponding arguments (including color space)
       AiMakeTx(listTextures[i].c_str(), listArguments[i].c_str());
    }

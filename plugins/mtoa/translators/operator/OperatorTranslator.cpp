@@ -4,6 +4,8 @@
 #include "translators/DagTranslator.h"
 #include <maya/MPlugArray.h>
 
+static AtString set_parameter_str("set_parameter");
+
 AtNode* COperatorTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode(m_impl->m_abstract.arnold.asChar());   
@@ -70,7 +72,6 @@ void COperatorTranslator::Export(AtNode *shader)
    if (needUpdate) // only set the parameter if inputs have actually changed
       AiNodeSetArray(shader, "inputs", array);
 
-   static AtString set_parameter_str("set_parameter");
    if (AiNodeIs(shader, set_parameter_str ))
       ExportAssignedShaders(shader);      
 
@@ -98,6 +99,12 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
          continue;
 
       MString attrName = assignmentSplit[0].substringW(0, 8);
+
+      MStringArray paramSplit;
+      assignmentSplit[0].split(' ', paramSplit);
+      if (paramSplit.length() > 1)
+         attrName = paramSplit[1].substringW(0, 8);
+
       attrName.substitute(" ", "");
 
       if (attrName != MString("shader") && attrName != MString("disp_map"))

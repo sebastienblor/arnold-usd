@@ -647,7 +647,11 @@
 				<key>RELOCATABLE</key>
 				<false/>
 				<key>VERSION</key>
+<<<<<<< HEAD
 				<string>3.3.0.2</string>
+=======
+				<string>4.0.0</string>
+>>>>>>> RB-4.0.0
 			</dict>
 			<key>UUID</key>
 			<string>68FF7CCF-3B50-4D51-9970-29665CCB299B</string>
@@ -676,7 +680,7 @@
 													<key>GID</key>
 													<integer>80</integer>
 													<key>PATH</key>
-													<string>2016</string>
+													<string>maya2016</string>
 													<key>PATH_TYPE</key>
 													<integer>1</integer>
 													<key>PERMISSIONS</key>
@@ -690,7 +694,7 @@
 											<key>GID</key>
 											<integer>80</integer>
 											<key>PATH</key>
-											<string>mtoa</string>
+											<string>Arnold</string>
 											<key>PATH_TYPE</key>
 											<integer>0</integer>
 											<key>PERMISSIONS</key>
@@ -704,7 +708,7 @@
 									<key>GID</key>
 									<integer>80</integer>
 									<key>PATH</key>
-									<string>solidangle</string>
+									<string>Autodesk</string>
 									<key>PATH_TYPE</key>
 									<integer>0</integer>
 									<key>PERMISSIONS</key>
@@ -1194,7 +1198,11 @@
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
+<<<<<<< HEAD
 				<string>3.3.0.2</string>
+=======
+				<string>4.0.0</string>
+>>>>>>> RB-4.0.0
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1406,7 +1414,11 @@
 						<key>LANGUAGE</key>
 						<string>English</string>
 						<key>VALUE</key>
+<<<<<<< HEAD
 						<string>MtoA 3.3.0.2 Maya 2016</string>
+=======
+						<string>MtoA 4.0.0 Maya 2016</string>
+>>>>>>> RB-4.0.0
 					</dict>
 				</array>
 			</dict>

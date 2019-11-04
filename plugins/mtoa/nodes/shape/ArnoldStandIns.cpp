@@ -78,6 +78,7 @@ MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
 MObject CArnoldStandInShape::s_ignoreGroupNodes;
+MObject CArnoldStandInShape::s_objectPath;
 MObject CArnoldStandInShape::s_abcLayers;
 MObject CArnoldStandInShape::s_abcFps;
 
@@ -356,30 +357,15 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else if (ext == "usd" || ext == "usda" || ext == "usdc")
          isUsd = true;      
 
-      if (isAss)
+      if (!AiUniverseIsActive())
       {
-         if (!AiUniverseIsActive())
-         {
-            AiUniverseCreated = true;
-            AiBegin();
-         }      
-
-         universe = AiUniverse();
+        AiUniverseCreated = true;
+        AiBegin();
       }
-      else
-      {
 
-         if (AiUniverseIsActive())
-         {
-            m_refreshAvoided = true;
-            return MS::kSuccess;
-         } 
+      AtUniverse *proc_universe = AiUniverse();
+      universe = AiUniverse();
 
-         AiUniverseCreated = true;
-         AiBegin(AI_SESSION_INTERACTIVE);
-         // no universe is active currently
-      }
-	   
       AtNode* options = AiUniverseGetOptions(universe);
       AiNodeSetBool(options, "skip_license_check", true);
       AiNodeSetBool(options, "enable_dependency_graph", false);
@@ -413,97 +399,70 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());      
 
       AtNode* procedural = 0;
-      
+      AtNode *proc = NULL;
       if (isAss)
       {
-         if (fGeometry.drawOverride != 3)
+         proc = AiNode(proc_universe, "procedural",  name().asChar());
+      }
+      if (isAbc)
+      {
+         proc = AiNode(proc_universe, "alembic", name().asChar());
+         AiNodeSetFlt(proc, "frame", frameStep);
+
+         MPlug fpsPlug(thisMObject(), s_abcFps);
+         AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
+         // AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
+         MPlug objectPathPlug(thisMObject(), s_objectPath);
+         AiNodeSetStr(proc, "objectpath", objectPathPlug.asString().asChar());
+         // add the layers
+         MPlug layerPlug(thisMObject(), s_abcLayers);
+         MString layersString =  layerPlug.asString();
+
+         if (layersString.length())
          {
-            AiASSLoad(universe, assfile.asChar(), AI_NODE_ALL);
-            processRead = true;
-         }
-         else
-         {
-            geom->IsGeomLoaded = false;
-            
-            if (universe) AiUniverseDestroy(universe);
-            if (AiUniverseCreated) AiEnd();
-            return MS::kSuccess;
+           MStringArray layerList;
+           layersString.split(';', layerList);
+           AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
+           for (unsigned int i=0; i < layerList.length(); i++)
+              AiArraySetStr(layersArray, i, layerList[i].asChar());
+
+           AiNodeSetArray(proc, "layers", layersArray);
          }
       }
-      else
-      {      
-
-         AtNode *proc = NULL;
-         if (isAbc)
-         {
-            proc = AiNode("alembic");
-            AiNodeSetFlt(proc, "frame", frameStep);
-
-            MPlug fpsPlug(thisMObject(), s_abcFps);
-            AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
-            AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
-            // add the layers
-            MPlug layerPlug(thisMObject(), s_abcLayers);
-            MString layersString =  layerPlug.asString();
-
-            if (layersString.length())
-            {
-              MStringArray layerList;
-              layersString.split(';', layerList);
-              AtArray* layersArray = AiArrayAllocate(layerList.length(), 1, AI_TYPE_STRING);
-              for (unsigned int i=0; i < layerList.length(); i++)
-                 AiArraySetStr(layersArray, i, layerList[i].asChar());
-
-              AiNodeSetArray(proc, "layers", layersArray);
-            }
-         }
-         else if (isUsd)
-         {
-            if (AiNodeEntryLookUp("usd"))
-               proc = AiNode("usd"); // oh amazing, there's a usd node available ! let's use it
-            else
-               AiMsgError("[mtoa.standin] USD files not supported");
-         } else
-            proc = AiNode("procedural");
-         
-         AiNodeSetStr(proc, "filename", geom->filename.asChar());
-         AiRender(AI_RENDER_MODE_FREE);
-         free_render = true;
-         processRead = true;
-
-         // FIXME: for now we're not trying to display anything for non-ass files
-
-        /*
-         procedural = AiNode(universe, "procedural", AtString(), NULL);
-         AiNodeSetStr(procedural, "filename", assfile.asChar());
-//         AiNodeSetBool(procedural, "load_at_init", true);
-//         if (fGeometry.drawOverride == 3) 
-//            AiNodeSetBool(procedural, "load_at_init", false); 
-
-         AiNodeSetMatrix(procedural, "matrix", AiM4Identity());
-         
-         if (fGeometry.drawOverride != 3)
-         {
-            // If it is a lib file
-            if (isSo)
-            {
-               if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
-                  AiNodeSetBool(procedural, "used_for_maya_display", true);
-               AiNodeSetStr(procedural, "data", dsoData.asChar());
-               CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
-            }
-
-            if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-               processRead = true;
-         }
+      else if (isUsd)
+      {
+         if (AiNodeEntryLookUp("usd"))
+            proc = AiNode(proc_universe, "usd", name().asChar()); // oh amazing, there's a usd node available ! let's use it
          else
-         {
-            geom->IsGeomLoaded = false;
-            if (universe) AiUniverseDestroy(universe);
-            if (AiUniverseCreated) AiEnd();            
+            AiMsgError("[mtoa.standin] USD files not supported");
+      } else
+         proc = AiNode(proc_universe, "procedural", name().asChar());
 
-            return MS::kSuccess;
-         }*/
+      if (proc)
+      {
+        AiNodeSetStr(proc, "filename", geom->filename.asChar());
+        processRead = true;
+
+        AtProcViewportMode viewport_mode = AI_PROC_BOXES;
+
+        switch (geom->mode)
+        {
+          case DM_BOUNDING_BOX:
+          case DM_PER_OBJECT_BOUNDING_BOX:
+             viewport_mode = AI_PROC_BOXES;
+             break;
+          case DM_POLYWIRE: // filled polygon
+          case DM_WIREFRAME: // wireframe
+          case DM_SHADED_POLYWIRE: // shaded polywire
+          case DM_SHADED: // shaded
+             viewport_mode = AI_PROC_POLYGONS;
+             break;
+          case DM_POINT_CLOUD: // points
+             viewport_mode = AI_PROC_POINTS;
+             break;
+        }
+        // get the proc geo in a new universe
+        AiProceduralViewport(proc, universe, viewport_mode);
       }
 
       if (processRead)
@@ -524,6 +483,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          static const AtString box_str("box");
          static const AtString ginstance_str("ginstance");
 
+         // AiASSWrite(universe, "/home/handsca/viewport.ass", AI_NODE_SHAPE);  // for debugging
          AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
          while (!AiNodeIteratorFinished(iter))
@@ -604,10 +564,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
                {
                   std::string nodeName(AiNodeGetName(node));
-                  CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(nodeName);
-                  if (iter != geom->m_geometryList.end())
+                  CArnoldStandInGeom::geometryListIterType giter = geom->m_geometryList.find(nodeName);
+                  if (giter != geom->m_geometryList.end())
                   {
-                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(iter->second, total_matrix, inherit_xform);
+                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(giter->second, total_matrix, inherit_xform);
                      geom->m_instanceList.push_back(gi);
                      geom->bbox.expand(gi->GetBBox());
                   }
@@ -626,8 +586,9 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          status = MS::kFailure;
       }
       
-      if (free_render) AiRenderAbort();
+      // if (free_render) AiRenderAbort();
       if (universe) AiUniverseDestroy(universe);
+      if (proc_universe) AiUniverseDestroy(proc_universe);
       if (AiUniverseCreated) AiEnd();
    }
    else
@@ -1093,11 +1054,6 @@ MStatus CArnoldStandInShape::initialize()
    // atributes that are used only by translation
    CAttrData data;
    
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideCastsShadows";
-   data.shortName = "overrideCastsShadows";
-   s_attributes.MakeInputBoolean(data);
-   
    //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
    data.defaultValue.BOOL() = false;
@@ -1106,13 +1062,6 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
    
    //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL() = false;
-   data.name = "overridePrimaryVisibility";
-   data.shortName = "overridePrimaryVisibility";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
    data.defaultValue.BOOL() = false;
    data.name = "overrideDoubleSided";
@@ -1132,32 +1081,6 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
 
    //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
-   
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInDiffuseReflection";
-   data.shortName = "overrideVisibleInDiffuseReflection";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInSpecularReflection";
-   data.shortName = "overrideVisibleInSpecularReflection";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInDiffuseTransmission";
-   data.shortName = "overrideVisibleInDiffuseTransmission";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInSpecularTransmission";
-   data.shortName = "overrideVisibleInSpecularTransmission";
-   s_attributes.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInVolume";
-   data.shortName = "overrideVisibleInVolume";
-   s_attributes.MakeInputBoolean(data);
-   
    data.defaultValue.BOOL() = false;
    data.name = "overrideMatte";
    data.shortName = "overrideMatte";
@@ -1179,11 +1102,11 @@ MStatus CArnoldStandInShape::initialize()
 
    // USD and Alembic have object path parameter
 
-   data.defaultValue.STR() = AtString("/");
-   data.name = "objectPath";
-   data.shortName = "objectpath";
-   s_attributes.MakeInputString(data);
-
+   s_objectPath = tAttr.create("objectPath", "objectpath", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setInternal( true);
+   tAttr.setStorable( true);
+   addAttribute(s_objectPath);
    // Alembic attributes
 
    data.defaultValue.STR() = AtString("");
@@ -1311,6 +1234,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry.frameOffset);
+
+   plug.setAttribute(s_objectPath);
+   plug.getValue(fGeometry.objectPath);
 
    plug.setAttribute(s_abcLayers);
    plug.getValue(fGeometry.abcLayers);
@@ -1538,11 +1464,8 @@ void CArnoldStandInShape::UpdateSelectedItems()
       
    }
 }
-// FIXME : please remove all these hacks regarding the "override" attributes 
-// once we no longer case about pre-2.0.2 compatibility
 void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
 {
-
    CArnoldStandInShape *node = static_cast<CArnoldStandInShape*>(clientData);
    if (!node)
       return; 
@@ -1553,56 +1476,6 @@ void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg
    if (plug == s_selectedItems)
    {
       node->UpdateSelectedItems();
-   }
-
-
-   static MString overridePrefix("override");
-   if (overridePrefix != attrName.substringW(0, 7))
-      return;
-
-   MObject this_object = node->thisMObject();
-   MStatus status;
-   MFnDependencyNode dNode(this_object, &status);
-   if (!status)
-      return;
-
-#define STANDIN_VISIBILITY_ATTR_COUNT 7
-   static const char* overrideVisibilityAttributes[STANDIN_VISIBILITY_ATTR_COUNT] = { "overridePrimaryVisibility", 
-                                                "overrideVisibleInDiffuseReflection", 
-                                                "overrideVisibleInSpecularReflection",
-                                                "overrideVisibleInDiffuseTransmission",
-                                                "overrideVisibleInSpecularTransmission",
-                                                "overrideVisibleInVolume",
-                                                "overrideCastsShadows"};
-
-   static const MStringArray OverrideVisibilityAttributesList(overrideVisibilityAttributes, STANDIN_VISIBILITY_ATTR_COUNT);
-   
-   static const char* visibilityAttributes[STANDIN_VISIBILITY_ATTR_COUNT] = { "primaryVisibility", 
-                                                "aiVisibleInDiffuseReflection", 
-                                                "aiVisibleInSpecularReflection",
-                                                "aiVisibleInDiffuseTransmission",
-                                                "aiVisibleInSpecularTransmission",
-                                                "aiVisibleInVolume",
-                                                "castsShadows"};
-
-   static const MStringArray VisibilityAttributesList(visibilityAttributes, STANDIN_VISIBILITY_ATTR_COUNT);
-
-   for (int i = 0; i < STANDIN_VISIBILITY_ATTR_COUNT; ++i)
-   {
-      if (attrName != OverrideVisibilityAttributesList[i])
-         continue;
-      if (!plug.asBool())
-      {
-         // this will surely invoke this attrChanged callback again, but since the value 
-         // will be OFF there should be any problem
-         plug.setValue(true);
-
-         // need to set the other attribute to true, meaning that nothing will be overridden in the standin
-         MPlug basePlug = dNode.findPlug(VisibilityAttributesList[i], true, &status);
-         if (status)
-            basePlug.setValue(true);
-      }
-      return;
    }
 }
 

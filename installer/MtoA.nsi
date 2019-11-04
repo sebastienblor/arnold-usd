@@ -15,9 +15,8 @@ Name "MtoA $%MTOA_VERSION_NAME% Maya $%MAYA_VERSION%"
 OutFile "MtoA.exe"
 
 ;Default installation folder
-InstallDir "C:\solidangle\mtoadeploy\$%MAYA_VERSION%"
+InstallDir "C:\Program Files\Autodesk\Arnold\maya$%MAYA_VERSION%"
 
-;Get installation folder from registry if available
 InstallDirRegKey HKCU "Software\MtoA$%MAYA_VERSION%" ""
 
 ;Request application privileges for Windows Vista

@@ -220,8 +220,22 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
       }
       MtoaDebugLog(log);
    }
+   ExportDccName();
 }
 
+void CNodeTranslatorImpl::ExportDccName()
+{
+   if (m_atRoot == NULL)
+      return;
+
+   const CSessionOptions &options = CNodeTranslator::GetSessionOptions();
+   if (options.GetExportPrefix().length() == 0 && 
+      options.GetExportNamespace() == MTOA_EXPORT_NAMESPACE_ON)
+      return; // No need to export dcc_name in this scenario
+
+   AiNodeDeclare(m_atRoot, "dcc_name", "constant STRING");   
+   AiNodeSetStr(m_atRoot, "dcc_name", AtString(m_tr.GetMayaNodeName().asChar()));
+}
 
 
 /// Calls ExportConnectedNode and AiNodeLink if there are incoming connections to 'plug'
@@ -238,7 +252,6 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
       // process connections
       MPlug srcMayaPlug = connections[0];
       
-#if MAYA_API_VERSION >= 201650
       MPlug directSrcMayaPlug = srcMayaPlug;
       while(srcMayaPlug.isDestination())
       {
@@ -250,7 +263,6 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          if(srcMayaPlug == directSrcMayaPlug)
             break;
       }
-#endif
       
       CNodeTranslator* srcNodeTranslator = NULL;
       AtNode* srcArnoldNode = ExportConnectedNode(srcMayaPlug, true, &srcNodeTranslator);
@@ -1146,13 +1158,8 @@ MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* ta
    // If name is alredy used, create a new one
    if(AiNodeLookUpByName(name.asChar()))
    {
-      // FIXME this was copied from NodeUniqueName in time.h,
-      // remember to change the original function in next ABI-breaking release
       char tmpName[MAX_NAME_SIZE];
-      sprintf(tmpName, "%s_%08X%08llX",
-         nodeType, MtoaTime(), MtoaTicks());
-      
-      name = tmpName;
+      name = NodeUniqueName(nodeType, tmpName);
    }
    return name;
 }

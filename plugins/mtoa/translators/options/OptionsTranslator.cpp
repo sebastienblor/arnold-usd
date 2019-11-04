@@ -1134,9 +1134,7 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeSetBool(options, "texture_per_file_stats", true);
 
 // for maya 2017 and above, autoTX replaced automip, so we're forcing it to be false
-#if MAYA_API_VERSION >= 201600
    AiNodeSetBool(options, "texture_automip", false);
-#endif
 
    // set the camera
    SetCamera(options);

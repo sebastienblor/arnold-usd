@@ -1,0 +1,5 @@
+//Maya 2019 Project Definition
+
+workspace -fr "depth" "images";
+workspace -fr "images" "images";
+workspace -fr "particles" "particles";

@@ -341,18 +341,6 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setKeyable(false);
    addAttribute(s_filterType);
 
-#ifdef MTOA_ENABLE_GAMMA
-   s_driver_gamma = nAttr.create("display_gamma", "dgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_driver_gamma);
-
-   
-#endif
-
    s_attributes.MakeInput("GI_diffuse_depth");
    s_attributes.MakeInput("GI_specular_depth");
    s_attributes.MakeInput("GI_transmission_depth");
@@ -442,9 +430,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("subdiv_dicing_camera");
 
    // textures
-#if MAYA_API_VERSION < 201600
-   s_attributes.MakeInput("texture_automip");
-#endif
    s_attributes.MakeInput("texture_autotile");
    s_attributes.MakeInput("texture_max_memory_MB");
    s_attributes.MakeInput("texture_max_open_files");
@@ -456,10 +441,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotile);
    
-   int defaultAutoTx = 0;
-#if MAYA_API_VERSION >= 201600
-   defaultAutoTx = 1;
-#endif
+   int defaultAutoTx = 1;
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, defaultAutoTx); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);
@@ -471,7 +453,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_gpu = eAttr.create("renderDevice", "rndrdvc");
    eAttr.setKeyable(false);
    eAttr.addField("CPU", 0);
-   eAttr.addField("GPU ( BETA )", 1);
+   eAttr.addField("GPU", 1);
    eAttr.setDefault(0);
    addAttribute(s_gpu);
 
@@ -689,10 +671,10 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_export_full_paths = nAttr.create("exportFullPaths", "export_full_paths", MFnNumericData::kBoolean);
    nAttr.setKeyable(false);
-   nAttr.setDefault(false);
+   nAttr.setDefault(true);
    addAttribute(s_export_full_paths);
 
-   s_export_separator = eAttr.create("exportSeparator", "export_separator", MTOA_EXPORT_SEPARATOR_PIPES);
+   s_export_separator = eAttr.create("exportSeparator", "export_separator", MTOA_EXPORT_SEPARATOR_SLASHES);
    eAttr.setKeyable(false);
    eAttr.addField("|", MTOA_EXPORT_SEPARATOR_PIPES);
    eAttr.addField("/", MTOA_EXPORT_SEPARATOR_SLASHES);

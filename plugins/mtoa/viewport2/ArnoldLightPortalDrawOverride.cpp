@@ -18,56 +18,13 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/M3dView.h>
 
-
-#if MAYA_API_VERSION >= 201700
 #include <maya/MUIDrawManager.h>
 #include <maya/MPointArray.h>
 #include <maya/MUintArray.h>
-#else
-namespace {
-   const char* shaderUniforms = "#version 120\n"
-      "uniform mat4 model;\n"
-      "uniform mat4 viewProj;\n"
-      "uniform vec4 shadeColor;\n";
-
-   const char* vertexShader = 
-      "void main()\n"
-      "{\n"
-      "gl_Position = viewProj * (model * gl_Vertex);\n"
-      "}\n";
-
-   const char* fragmentShader =
-      "void main() { gl_FragColor = shadeColor;}\n";
-
-#ifdef _WIN32
-#pragma pack(1)
-   struct SConstantBuffer{
-      float w[4][4];
-      float vp[4][4];
-      float color[4];
-   };
-#pragma pack()
-#endif
-}
-
-GLuint CArnoldLightPortalDrawOverride::s_vertexShader = 0;
-GLuint CArnoldLightPortalDrawOverride::s_fragmentShader = 0;
-GLuint CArnoldLightPortalDrawOverride::s_program = 0;
-
-GLint CArnoldLightPortalDrawOverride::s_modelLoc = 0;
-GLint CArnoldLightPortalDrawOverride::s_viewProjLoc = 0;
-GLint CArnoldLightPortalDrawOverride::s_shadeColorLoc = 0;
-
-#ifdef _WIN32
-CDXConstantBuffer* CArnoldLightPortalDrawOverride::s_pDXConstantBuffer = 0;
-DXShader* CArnoldLightPortalDrawOverride::s_pDXShader = 0;
-#endif
-#endif
 
 bool CArnoldLightPortalDrawOverride::s_isValid = false;
 bool CArnoldLightPortalDrawOverride::s_isInitialized = false;
 
-#if MAYA_API_VERSION >= 201700
 // TODO check about delete after use, and
 // how to reuse buffers, rather than always
 // recreating them, this might won't cause
@@ -128,47 +85,6 @@ struct CArnoldLightPortalUserData : public MUserData{
    }
 };
 
-#else
-// TODO check about delete after use, and
-// how to reuse buffers, rather than always
-// recreating them, this might won't cause
-// much performance problems, but cleaner,
-// the better
-struct CArnoldLightPortalUserData : public MUserData{
-   static CGPUPrimitive* s_primitives[3];
-   CGPUPrimitive* p_primitive;
-   MMatrix m_modelMatrix;
-   float m_color[4];
-   float m_wireframeColor[4];
-
-   CArnoldLightPortalUserData() : MUserData(false) { }
-
-   void update(const MDagPath& objPath)
-   {
-      MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
-      m_wireframeColor[0] = color.r;
-      m_wireframeColor[1] = color.g;
-      m_wireframeColor[2] = color.b;
-      m_wireframeColor[3] = color.a;
-
-      MFnDependencyNode depNode(objPath.node());
-
-      MStatus status;
-      
-      MTransformationMatrix modelMatrix(objPath.inclusiveMatrix());
-      
-      p_primitive = s_primitives[0];
-      
-      m_modelMatrix = modelMatrix.asMatrix();
-   }
-
-   ~CArnoldLightPortalUserData()
-   {
-   }
-};
-
-CGPUPrimitive* CArnoldLightPortalUserData::s_primitives[3] = {0, 0, 0};
-#endif
 
 MHWRender::MPxDrawOverride* CArnoldLightPortalDrawOverride::creator(const MObject& obj)
 {

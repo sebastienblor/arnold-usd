@@ -16,7 +16,6 @@
 
 #include <map>
 
-#if MAYA_API_VERSION >= 201700
 //
 // Simple override class derived from MRenderOverride
 //
@@ -130,7 +129,5 @@ public:
 protected:
     MSelectionList m_selectionList;
 };
-
-#endif 
 
 #endif

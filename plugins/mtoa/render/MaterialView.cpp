@@ -1,7 +1,5 @@
 #include "MaterialView.h"
 
-#ifdef ENABLE_MATERIAL_VIEW
-
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
@@ -46,7 +44,6 @@ CMaterialView::CMaterialView()
 , m_dummyShader(NULL)
 , m_environmentLight(NULL)
 , m_environmentImage(NULL)
-, m_renderThread(NULL)
 , m_active(false)
 , m_running(false)
 , m_suspended(false)
@@ -62,6 +59,22 @@ CMaterialView::CMaterialView()
 CMaterialView::~CMaterialView()
 {
 }
+
+AtRenderStatus MaterialViewUpdateCallback(void *private_data, AtRenderUpdateType update_type, const AtRenderUpdateInfo *update_info)
+{
+   CMaterialView *material_view = (CMaterialView *)private_data;
+
+   AtRenderStatus status = AI_RENDER_STATUS_RENDERING;
+   if (update_type == AI_RENDER_UPDATE_FINISHED)
+      status = AI_RENDER_STATUS_FINISHED;
+   else if (update_type == AI_RENDER_UPDATE_INTERRUPT)
+      status = AI_RENDER_STATUS_PAUSED;
+   else if (update_type == AI_RENDER_UPDATE_ERROR)
+      status = AI_RENDER_STATUS_FAILED;
+
+   return status;
+}
+
 
 MStatus CMaterialView::startAsync(const JobParams& params)
 {
@@ -81,7 +94,20 @@ MStatus CMaterialView::startAsync(const JobParams& params)
    m_job = params;
    m_terminationRequested = false;
    m_running = true;
-   m_renderThread = AiThreadCreate(CMaterialView::RenderThread, this, AI_PRIORITY_LOW);
+   
+   InitOptions();
+    
+   if (AiRenderGetStatus() != AI_RENDER_STATUS_NOT_STARTED)
+   {
+      AiRenderInterrupt(AI_BLOCKING);
+      AiRenderEnd();
+   }
+
+   AiRenderSetHintBool(AtString("progressive"), true);
+   AiRenderSetHintBool(AtString("progressive_show_all_outputs"), false);
+   AiRenderSetHintInt(AtString("progressive_min_AA_samples"), -3);
+
+   AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
 
    ScheduleRefresh();
 
@@ -95,13 +121,8 @@ MStatus CMaterialView::stopAsync()
    m_terminationRequested = true;
    InterruptRender(true);
 
-   // Wait for the thread to finish
-   if (m_renderThread)
-   {
-      AiThreadWait(m_renderThread);
-      AiThreadClose(m_renderThread);
-      m_renderThread = 0;
-   }
+   AiRenderInterrupt(AI_BLOCKING);
+   AiRenderEnd();
 
    m_running = false;
 
@@ -130,6 +151,7 @@ MStatus CMaterialView::beginSceneUpdate()
    return BeginSession() ? MStatus::kSuccess : MStatus::kFailure;
 }
 
+
 MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
 {
    CCritSec::CScopedLock sc(m_sceneLock);
@@ -145,8 +167,6 @@ MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
    {
       return MStatus::kFailure;
    }
-
-   AiNodeSetBool(geometryNode, "opaque", false);
 
    if (m_activeShader)
    {
@@ -269,8 +289,12 @@ MStatus CMaterialView::translateShader(const MUuid& id, const MObject& node)
    if (!IsActive())
       return MStatus::kFailure;
 
-   // Make sure the renderer is stopped
-   InterruptRender(true);
+   // Make sure the renderer is stopped 
+   if (AiRenderGetStatus() == AI_RENDER_STATUS_RENDERING)
+   {
+      AiRenderInterrupt(AI_BLOCKING);
+   }
+//   InterruptRender(true);
 
    if (!TranslateNode(id, node))
    {
@@ -389,8 +413,10 @@ MStatus CMaterialView::setResolution(unsigned int width, unsigned int height)
 
 MStatus CMaterialView::endSceneUpdate()
 {
-   ScheduleRefresh();
-
+   if (AiRenderGetStatus() == AI_RENDER_STATUS_NOT_STARTED)
+      AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
+   else
+      AiRenderRestart();
    return MStatus::kSuccess;
 }
 
@@ -610,9 +636,11 @@ void CMaterialView::InitOptions()
 
          if (autoSelect) // automatically select the GPU devices
             AiDeviceAutoSelect();
-      }
-
-
+      } 
+      AiNodeSetInt(options, "AA_samples", 5);
+      //AiNodeSetBool(options, "enable_adaptive_sampling", true);
+      //AiNodeSetBool(options, "enable_progressive_render", true);
+      //AiNodeSetInt(options, "AA_samples_max", 6);
 
    }
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
@@ -633,35 +661,10 @@ void CMaterialView::InterruptRender(bool waitFinished)
       m_interrupted = true;
    }
 
-   if (AiRendering())
+   if (AiRenderGetStatus() != AI_RENDER_STATUS_NOT_STARTED)
    {
-      AiRenderInterrupt();
-      if (waitFinished)
-      {
-         while(AiRendering())
-         {
-            SleepMS(1);
-         }
-      }
+      AiRenderInterrupt((waitFinished) ? AI_BLOCKING : AI_NON_BLOCKING);
    }
-}
-
-bool CMaterialView::WaitForRefresh(unsigned int msTimeout)
-{
-   const bool result = m_refreshEvent.wait(msTimeout);
-
-   CCritSec::CScopedLock sc(m_refreshLock);
-   if (result && m_refreshAllowed)
-   {
-      // A refresh has been requested.
-      // Clear interrupt state and refresh event,
-      // then return true to trigger the refresh.
-      m_interrupted = false;
-      m_refreshEvent.unset();
-      return true;
-   }
-   // No refresh requested yet
-   return false;
 }
 
 void CMaterialView::ScheduleRefresh()
@@ -822,61 +825,6 @@ void CMaterialView::SendProgress(float progress)
    this->progress(params);
 }
 
-unsigned int CMaterialView::RenderThread(void* data)
-{
-   CMaterialView* view = static_cast<CMaterialView*>(data);
-   AtNode* options = AiUniverseGetOptions();
-
-   const int oldSampleRate = AiNodeGetInt(options, "AA_samples");
-   const int numIterations = 6;
-   const int sampleRate[numIterations] = {-3,-1, 1, 3, 6, 10};
-
-   // Initialize options for rendering
-   view->InitOptions();
-
-   int status = AI_SUCCESS;
-   while (view->m_terminationRequested == false)
-   {
-      if (view->WaitForRefresh(50))
-      {
-         // Notify rendering is in progress
-         view->SendProgress(0);
-
-         status = AI_SUCCESS;
-         for (int i = 0; i < numIterations; ++i)
-         {
-            AiNodeSetInt(options, "AA_samples", sampleRate[i]);
-
-            if (MtoaTranslationInfo())
-            {
-               MString log = "[mtoa] Beginning progressive sampling at ";
-               log += sampleRate[i];
-               log += " AA of ";
-               log += sampleRate[numIterations-1];
-               MtoaDebugLog(log);
-            }
-
-            // Start the render if not interrupted already
-            status = view->m_interrupted ? AI_INTERRUPT : AiRender(AI_RENDER_MODE_CAMERA);
-            if (status != AI_SUCCESS)
-            {
-               break;
-            }
-         }
-         if (status == AI_SUCCESS)
-         {
-            // Notify rendering completed and thread idle
-            view->SendProgress(1);
-         }
-      }
-   }
-
-   // Restore sample rate
-   AiNodeSetInt(options, "AA_samples", oldSampleRate);
-
-   return status;
-}
-
 void* CMaterialView::Creator()
 {
    s_instance = new CMaterialView();
@@ -890,7 +838,7 @@ const MString& CMaterialView::Name()
 }
 
 void CMaterialView::Suspend()
-{
+{   
    if (s_instance)
    {
       s_instance->DoSuspend();
@@ -912,5 +860,3 @@ void CMaterialView::Abort()
       s_instance->DoAbort();
    }
 }
-
-#endif // ENABLE_MATERIAL_VIEW

@@ -699,7 +699,7 @@
 				<key>RELOCATABLE</key>
 				<false/>
 				<key>VERSION</key>
-				<string>3.3.0.2</string>
+				<string>4.0.0</string>
 			</dict>
 			<key>UUID</key>
 			<string>68FF7CCF-3B50-4D51-9970-29665CCB299B</string>
@@ -722,27 +722,44 @@
 										<dict>
 											<key>CHILDREN</key>
 											<array>
-												<dict>
-													<key>CHILDREN</key>
-													<array/>
-													<key>GID</key>
-													<integer>80</integer>
-													<key>PATH</key>
-													<string>2017</string>
-													<key>PATH_TYPE</key>
-													<integer>1</integer>
-													<key>PERMISSIONS</key>
-													<integer>493</integer>
-													<key>TYPE</key>
-													<integer>3</integer>
-													<key>UID</key>
-													<integer>0</integer>
-												</dict>
+											<dict>
+												<key>CHILDREN</key>
+												<array>
+													<dict>
+														<key>CHILDREN</key>
+														<array/>
+														<key>GID</key>
+														<integer>80</integer>
+														<key>PATH</key>
+														<string>2017</string>
+														<key>PATH_TYPE</key>
+														<integer>1</integer>
+														<key>PERMISSIONS</key>
+														<integer>493</integer>
+														<key>TYPE</key>
+														<integer>3</integer>
+														<key>UID</key>
+														<integer>0</integer>
+													</dict>
+												</array>
+												<key>GID</key>
+												<integer>80</integer>
+												<key>PATH</key>
+												<string>mtoa</string>
+												<key>PATH_TYPE</key>
+												<integer>0</integer>
+												<key>PERMISSIONS</key>
+												<integer>509</integer>
+												<key>TYPE</key>
+												<integer>2</integer>
+												<key>UID</key>
+												<integer>0</integer>
+											</dict>
 											</array>
 											<key>GID</key>
 											<integer>80</integer>
 											<key>PATH</key>
-											<string>mtoa</string>
+											<string>Arnold</string>
 											<key>PATH_TYPE</key>
 											<integer>0</integer>
 											<key>PERMISSIONS</key>
@@ -756,7 +773,7 @@
 									<key>GID</key>
 									<integer>80</integer>
 									<key>PATH</key>
-									<string>solidangle</string>
+									<string>Autodesk</string>
 									<key>PATH_TYPE</key>
 									<integer>0</integer>
 									<key>PERMISSIONS</key>
@@ -1246,7 +1263,7 @@
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
-				<string>3.3.0.2</string>
+				<string>4.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1458,7 +1475,7 @@
 						<key>LANGUAGE</key>
 						<string>English</string>
 						<key>VALUE</key>
-						<string>MtoA 3.3.0.2 Maya 2017</string>
+						<string>MtoA 4.0.0 Maya 2017</string>
 					</dict>
 				</array>
 			</dict>

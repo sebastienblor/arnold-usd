@@ -207,7 +207,7 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
       plugName == "standInDrawOverride" || plugName == "mode") return;
 
    // Since the created arnold type depends on the dso, we need to recreate the geometry if it changes
-   if (plugName == "dso" || m_isAlembic)
+   if (plugName == "dso")
       SetUpdateMode(AI_RECREATE_NODE);
 
    if (plugName == "ignoreGroupNodes")

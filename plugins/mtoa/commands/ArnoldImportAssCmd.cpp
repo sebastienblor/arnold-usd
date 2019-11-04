@@ -5,7 +5,6 @@
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_render.h>
-#include <ai_universe.h>
 #include <ai_bbox.h>
 
 #include <maya/M3dView.h>
@@ -20,8 +19,10 @@
 #include <maya/MAnimControl.h>
 #include <maya/MBoundingBox.h>
 
-#include <math.h>
+#include <AxFtoA.h>
 
+#include <math.h>
+#include "utils/Universe.h"
 // These functions were copied from AttrHelper.cpp
 MString ArnoldToMayaStyle(MString s)
 {
@@ -56,6 +57,11 @@ MString ArnoldToMayaStyle(MString s)
 
 static MString ArnoldToMayaAttrName(const AtNodeEntry *nodeEntry, const char* paramName) 
 {
+
+   bool hidden = false;
+   if (AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hidden) && hidden)
+      return MString("");
+   
    AtString attrName;
    if (AiMetaDataGetStr(nodeEntry, paramName, "maya.name", &attrName))
    {
@@ -72,6 +78,7 @@ MSyntax CArnoldImportAssCmd::newSyntax()
 {
    MSyntax syntax;
    syntax.addFlag("f", "filename", MSyntax::kString);
+   syntax.addFlag("m", "mask", MSyntax::kUnsigned);
    return syntax;
 }
 
@@ -107,6 +114,42 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, c
    return false;
 }
 
+MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUniverse* universe)
+{
+
+   MString cwd;
+   MGlobal::executeCommand("workspace -q -dir ", cwd) ;
+   MString tex_path =  cwd ; 
+   
+   unsigned int nchars = axfFileName.numChars();
+  
+   AxFtoASessionStart();
+   AxFtoASessionClearErrors();
+   AxFtoASessionSetVerbosity(0);
+   AxFtoAFile* axf_file = AxFtoAFileOpen(axfFileName.asChar());
+   // TODO : Hard coding this to material index 0 in the file 
+   AxFtoAMaterial *material = AxFtoAFileGetMaterial(axf_file, 0);
+   if ( AxFtoASessionHasErrors()) 
+   {
+      return MStatus::kFailure; 
+   }
+   AxFtoAMaterialSetTextureFolder(material, tex_path.asChar());
+   
+   // TODO : Hard coding this to 1.0. Need a better way to expose this 
+   AxFtoAMaterialSetUVUnitSize(material, 1.0f);
+   // TODO : Hard coding this. Need a better way to expose this 
+   AxFtoAMaterialSetColorSpace(material, "Rec709,E");
+   
+   AxFtoAMaterialSetUniverse(material, universe);
+   AxFtoAMaterialSetTextureNamePrefix(material, "importAxf_");
+   AxFtoAMaterialSetNodeNamePrefix(material, "importAxf_");
+   AtNode* root_node = AxFtoAMaterialGetRootNode(material);
+   AxFtoAMaterialWriteTextures(material);
+   AxFtoAFileClose(axf_file);
+   AxFtoASessionEnd();
+   return MStatus::kSuccess ;
+}
+
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -120,15 +163,44 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    if (args.isFlagSet("filename"))
       args.getFlagArgument("filename", 0, filename);
    
+   unsigned int mask = AI_NODE_ALL;
+   // Specific objects mask to load
+   if (args.isFlagSet("mask"))
+      args.getFlagArgument("mask", 0, mask);
+
    bool universeCreated = false;
 
    if (!AiUniverseIsActive())
    {
       universeCreated = true;
-      AiBegin();
-   }  
+      ArnoldUniverseBegin();
+   }
+
    AtUniverse *universe = AiUniverse();
-   AiASSLoad(universe, filename.asChar(), AI_NODE_ALL);
+
+   unsigned int nchars = filename.numChars();
+   if  (nchars > 4 && filename.substringW(nchars-4, nchars) == ".axf")
+   {
+      // This is an Axf File 
+      if (convertAxfToArnold(filename, universe) == MStatus::kFailure)
+         {
+            return MStatus::kFailure;
+         }
+   }/*
+   else if  (nchars > 5 && filename.substringW(nchars-5, nchars) == ".mtlx")
+   {
+      // This is a MaterialX file. Let's read it and convert it to arnold nodes
+      AiMaterialxReadMaterials(universe, filename.asChar());
+   }*/
+   else
+   {
+      AiASSLoad(universe, filename.asChar(), mask);   
+   }
+
+   MString logStr("Importing file ");
+   logStr += filename;
+
+   MGlobal::displayInfo(logStr);
 
    int foundUnsupported = 0;
 
@@ -137,7 +209,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    std::vector<AtNode *> nodesToConvert;
 
    // First Loop to create the imported nodes, and fill the map from arnold to maya nodes
-   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_ALL);
+   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, mask);
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode* node = AiNodeIteratorGetNext(iter);
@@ -149,12 +221,8 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          continue;
 
       const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(node);
-      if (AiNodeEntryGetType(nodeEntry) != AI_NODE_OPERATOR)
-      {
-         foundUnsupported++;
-         continue;
-      }
-      
+      unsigned int nodeType = AiNodeEntryGetType(nodeEntry);
+
       std::string nodeEntryName = AiNodeEntryGetName(nodeEntry);
       MString mayaTypeName = ArnoldToMayaStyle(MString("ai_")+MString(nodeEntryName.c_str()));
 
@@ -163,18 +231,18 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          mayaTypeName = MString(mayaNodeNameMtd.c_str());
 
       MString mayaName;
-      MString createCmd = MString("createNode \"") + mayaTypeName + MString("\" -name \"") + MString(nodeName.c_str()) + MString("\";");
+      MString createCmd;
+      if (nodeType == AI_NODE_SHADER)
+         createCmd += MString("shadingNode \"") + mayaTypeName + MString("\" -name \"") + MString(nodeName.c_str()) + MString("\" -asShader");
+      else
+         createCmd = MString("createNode \"") + mayaTypeName + MString("\" -name \"") + MString(nodeName.c_str()) + MString("\"");
+
       MGlobal::executeCommand(createCmd, mayaName);
       arnoldToMayaNames[nodeName] = std::string(mayaName.asChar());
       nodesToConvert.push_back(node);
    }
    AiNodeIteratorDestroy(iter);
 
-   if (foundUnsupported > 0)
-   {
-      AiMsgError("[mtoa.import] Only operators are currently supported for import");
-   }
-   
    // Now loop over the created nodes to set all attributes
    for (size_t i = 0; i < nodesToConvert.size(); ++i)
    {
@@ -195,6 +263,9 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
             continue;
          
          MString mayaAttrName = ArnoldToMayaAttrName(nodeEntry, paramName);
+         if (mayaAttrName.length() == 0)
+            continue;
+
          MString mayaFullAttr = MString(mayaName.c_str()) + MString(".") + mayaAttrName;
          MString attrValue(" ");
          
@@ -412,6 +483,6 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    AiUniverseDestroy(universe);
 
    if (universeCreated)
-      AiEnd();
+      ArnoldUniverseEnd();
     return status;
 }

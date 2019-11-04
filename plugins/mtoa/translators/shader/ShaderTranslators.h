@@ -60,6 +60,7 @@ SHADER_TRANSLATOR(CUserDataVec2Translator);
 SHADER_TRANSLATOR(CUserDataBoolTranslator);
 SHADER_TRANSLATOR(CUserDataVectorTranslator);
 SHADER_TRANSLATOR(CSetRangeTranslator);
+// SHADER_TRANSLATOR(CStandardSurfaceTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {
@@ -285,6 +286,7 @@ private:
    void ExportRampKeys(AtNode *shader);
    void ExportRampType(AtNode *rampShader, RampType type);
    void GetUvSet();
+   unsigned int GetInputPlugIndex(const MString &attrName, uint defaultIndex);
 
    int m_type;
    AtNode *m_custom_uvs;
@@ -455,4 +457,27 @@ enum MathOperation
   // bool DependsOnOutputPlug() { return true; } 
 protected:
    int m_inputSize;
+};
+
+// class CArnoldAxfShaderTranslator : public CShaderTranslator{
+// public:
+//    static void* creator(){return new CArnoldAxfShaderTranslator();}
+//    virtual void Export(AtNode* shader) {};
+//    AtNode* CreateArnoldNodes();
+// protected:
+//    virtual void NodeChanged(MObject& node, MPlug& plug);
+// };
+
+
+
+class CStandardSurfaceTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CStandardSurfaceTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   static void NodeInitializer(CAbTranslator context);
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+
 };

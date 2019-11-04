@@ -1,546 +1,666 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0168\test_0168.log', using stdout instead
-
-Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20190200\\msvc_opt\\testsuite\\test_0168', 'ADCLMHUB_LOG_LEVEL': 'T', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2019', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'PATH': 'C:\\solidangle\\mtoadeploy\\2019\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2019\\bin;C:\\solidangle\\mtoadeploy\\2019\\lib;C:\\solidangle\\mtoadeploy\\2019\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2019', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt', 'ProgramW6432': 'C:\\Program Files'}
+ 
+ ==== Exec cmd ==== 
+ 
+D:\arnold\Maya-runtimes\windows\Maya2019\bin\Render -proj "D:\arnold\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0168" -rd "D:\arnold\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0168" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0168\test.ma"
+ 
+ 
+Starting "D:\arnold\Maya-runtimes\windows\Maya2019\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 2016.3.18.11. Feature Level 5.
-  Adapter : Quadro K620/PCIe/SSE2
+
+  Version : 2016.11.44.12. Feature Level 5.
+
+  Adapter : GeForce RTX 2080 Ti/PCIe/SSE2
+
   Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:10.18.13.5413.
-  API : OpenGL V.4.5.
+
+  Driver : nvoglv64.dll:26.21.14.3648.
+
+  API : OpenGL V.4.6.
+
   Max texture size : 16384 * 16384.
+
   Max tex coords : 32
+
   Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+
   Shader compiler profile : (Best card profile)
+
   Active stereo support available : 0
-  GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
+
+  GPU Memory Limit : 11264 MB.
+
+  CPU Memory Limit: 62183.7 MB.
+
+  MultiDraw consolidation: enabled
+
 }
+
 OpenCL evaluator is attempting to initialize OpenCL.
+
 Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
- Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.1.0.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_nv_create_buffer 
+
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   521MB         | log started Fri Mar 10 13:51:10 2017
-00:00:00   521MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   521MB         | running on REM8WCK8D2, pid=8372
-00:00:00   521MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   521MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   521MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   521MB         |  
-00:00:00   521MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   522MB ERROR   | [mtoa.attr] Arnold parameter "skydome_light.time_samples" does not exist.
-00:00:00   525MB WARNING | [mtoa] [syncolor_shaders] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
-00:00:00   527MB WARNING | [mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type "aiSwitchShader"
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .aiUserOptions
 
-API error detected in00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .index
- plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .input0
+00:00:00   418MB WARNING | [mtoa] [<built-in>] [node aov_write_vector] Assigning temporary node id 1138176 to associated Maya type name aiAovWriteVector.
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .input0A
+###############################################################################
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .input1
+Begin attempted read of a shade fragment XML file.
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Errors loading XML:
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+-------------------------------------------------------------------------------
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Could not find file: aiRectangleAreaLight.xml
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+-------------------------------------------------------------------------------
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+End attempted read of fragment XML.
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+###############################################################################
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+00:00:00   427MB ERROR   | [mtoa] [bifrostTranslator] Could not find arnold_bifrost in search path C:/Program Files/Autodesk/Bifrost/Maya2019/1.9.5.38/bifrost/
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Error: file: C:/Allegorithmic/SubstanceMaya/2019/scripts/userSetup.mel line 54: UI commands can't be run in batch mode.
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .radius
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .vertex_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .radius
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .vertex_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .radius
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .vertex_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .radius
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .vertex_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .radius
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .vertex_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .radius
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .vertex_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .radius
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .vertex_index
 
-API error detected in plugins\mtoa\attributes\At00:00:00   527MB WARNING | [mtoa.attr] CBaseAttrHelper passed unknown Arnold node type "volume_openvdb"
-trHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
+Warning: Skipping oddly named property: .xsiNodeType
 
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-00:00:00   527MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "self_shadows"
-00:00:00   527MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "opaque"
-00:00:00   527MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "matte"
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
 
-00:00:00   531MB ERROR   | [mtoa.attr] Arnold parameter "hair.uparam" does not exist.
-00:00:00   531MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
-00:00:00   531MB ERROR   | [mtoa.attr] Arnold parameter "hair.vparam" does not exist.
-00:00:00   531MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
-00:00:00   531MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_diffuse" does not exist.
-00:00:00   531MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_specular" does not exist.
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
-Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-00:00:00   536MB         | log started Fri Mar 10 13:51:11 2017
-00:00:00   536MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   536MB         | running on REM8WCK8D2, pid=8372
-00:00:00   536MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   536MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   536MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   536MB         |  
-00:00:00   536MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   536MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
-00:00:00   536MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00 WARNING |  node "MayaClamp" is already installed
-00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00 WARNING |  node "MayaCondition" is already installed
-00:00:00 WARNING |  node "MayaReverse" is already installed
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0168/test.ma line 11: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-00:00:00   548MB         | log started Fri Mar 10 13:51:11 2017
-00:00:00   548MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   548MB         | running on REM8WCK8D2, pid=8372
-00:00:00   548MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   548MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   548MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   548MB         |  
-00:00:00   548MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   548MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
-00:00:00   548MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00 WARNING |  node "MayaClamp" is already installed
-00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00 WARNING |  node "MayaCondition" is already installed
-00:00:00 WARNING |  node "MayaReverse" is already installed
+Warning: Skipping oddly named property: .radius
+
+Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
+Warning: Skipping oddly named property: .color
+
+Warning: Skipping oddly named property: .face_index
+
+Warning: Skipping oddly named property: .radius
+
+Warning: Skipping oddly named property: .vertex_index
+
+Warning: Skipping oddly named property: .xsiNodeType
+
+Warning: Skipping oddly named property: .color
+
+Warning: Skipping oddly named property: .face_index
+
+Warning: Skipping oddly named property: .radius
+
+Warning: Skipping oddly named property: .vertex_index
+
+Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
+Warning: Skipping oddly named property: .color
+
+Warning: Skipping oddly named property: .face_index
+
+Warning: Skipping oddly named property: .radius
+
+Warning: Skipping oddly named property: .vertex_index
+
+Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
+Warning: Skipping oddly named property: .color
+
+Warning: Skipping oddly named property: .face_index
+
+Warning: Skipping oddly named property: .radius
+
+Warning: Skipping oddly named property: .vertex_index
+
+Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
+Warning: Skipping oddly named property: .color
+
+Warning: Skipping oddly named property: .face_index
+
+Warning: Skipping oddly named property: .radius
+
+Warning: Skipping oddly named property: .vertex_index
+
+Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
+
 Warning: Skipping oddly named property: .xsiNodeType
+
 Warning: Skipping oddly named property: .color
 Warning: Skipping oddly named property: .face_index
+
 Warning: Skipping oddly named property: .radius
+
 Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Warning: Skipping oddly named property: .xsiNodeType
-Warning: Skipping oddly named property: .color
-Warning: Skipping oddly named property: .face_index
-Warning: Skipping oddly named property: .radius
-Warning: Skipping oddly named property: .vertex_index
-Read 2 files in  1.5 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0168/test.ma
-00:00:00   574MB         | log started Fri Mar 10 13:51:11 2017
-00:00:00   574MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   574MB         | running on REM8WCK8D2, pid=8372
-00:00:00   574MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   574MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   574MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   574MB         |  
-00:00:00   574MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   574MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
-00:00:00   574MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00 WARNING |  node "MayaClamp" is already installed
-00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00 WARNING |  node "MayaCondition" is already installed
-00:00:00 WARNING |  node "MayaReverse" is already installed
-Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0168\test.ma completed.
+
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+
+Read 2 files in  0.81 seconds.
+
+Result: D:/arnold/mtoa/build/windows_x86_64/20190200/msvc_opt/testsuite/test_0168/test.ma
+
+00:00:00   562MB WARNING | [mtoa] No light in scene
+
+00:00:00   562MB WARNING | [mtoa.translator]  <built-in>: Maya node aiCurveCollectorShape1(aiCurveCollector) does not have attribute aiMatte to match parameter matte on Arnold node /aiCurveCollector1/aiCurveCollectorShape1(curves).
+
+00:00:00   566MB WARNING | [mtoa.translator]  <built-in>: Maya node simple_curve:aiCurveCollectorShape1(aiCurveCollector) does not have attribute aiMatte to match parameter matte on Arnold node /simple_curve:aiCurveCollector1/simple_curve:aiCurveCollectorShape1(curves).
+
+00:00:00   572MB WARNING | ARNOLD_LICENSE_MANAGER is deprecated, use ARNOLD_LICENSE_ORDER instead
+
+00:00:00   572MB WARNING | rendering with watermarks because ARNOLD_LICENSE_MANAGER = none
+
+Scene D:\arnold\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0168\test.ma completed.
+

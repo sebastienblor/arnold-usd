@@ -3,13 +3,11 @@
 
 extern "C"
 {
-#ifdef ENABLE_XGEN
-	
 	DLLEXPORT void initializeExtension ( CExtension& extension )
     {
         MStatus status;
 
-        extension.Requires ( "xgenToolkit" );
+        //extension.Requires ( "xgenToolkit" ); -> this is now handled in the mtd file #3923
         status = extension.RegisterTranslator ( "xgmDescription",
                                                 "",
                                                 CXgDescriptionTranslator::creator,
@@ -19,5 +17,4 @@ extern "C"
     DLLEXPORT void deinitializeExtension ( CExtension& extension )
     {
     }
-#endif
 }

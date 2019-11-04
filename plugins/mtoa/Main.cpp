@@ -1,4 +1,3 @@
-#ifdef ENABLE_VP2
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
 #include "viewport2/ArnoldStandardSurfaceShaderOverride.h"
@@ -12,7 +11,6 @@
 #include "viewport2/ArnoldLightPortalDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ArnoldMeshLightDrawOverride.h"
-#if MAYA_API_VERSION >= 201700
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include "viewport2/ArnoldVolumeGeometryOverride.h"
@@ -22,14 +20,7 @@
 #include <maya/MViewport2Renderer.h>
 #include "viewport2/ArnoldViewOverride.h"
 #include "viewport2/ArnoldViewRegionManip.h"
-#else
-#include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
-#include "viewport2/ArnoldLightBlockerDrawOverride.h"
-#include "viewport2/ArnoldStandInDrawOverride.h"
-#include "viewport2/ArnoldProceduralDrawOverride.h"
-#endif
 #include <maya/MDrawRegistry.h>
-#endif
 
 // Must be included to export MapiVersion properly which
 // sets the API version to a valid version versus "unknown"
@@ -58,11 +49,15 @@
 #include "commands/ArnoldCopyAsAdminCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
 #include "commands/ArnoldViewportRendererOptionsCmd.h"
+#ifdef ENABLE_ALEMBIC
+#include "commands/AbcExport/ArnoldAbcExportCmd.h"
+#endif
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldAOVNode.h"
 #include "nodes/ArnoldDriverNode.h"
 #include "nodes/ArnoldFilterNode.h"
+#include "nodes/ArnoldLookSwitchNode.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/SphereLocator.h"
@@ -71,6 +66,7 @@
 #include "nodes/shader/ArnoldUserDataVec2Node.h"
 #include "nodes/shader/ArnoldUserDataVectorNode.h"
 #include "nodes/shader/ArnoldUserDataBoolNode.h"
+#include "nodes/shader/ArnoldAxfShaderNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
@@ -103,7 +99,9 @@
 #include "translators/shape/VolumeTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/shader/FluidTexture2DTranslator.h"
+#include "translators/operator/LookSwitchTranslator.h"
 #include "translators/ObjectSetTranslator.h"
+#include "translators/shader/AxfTranslator.h"
 
 #include "render/MaterialView.h"
 #include "render/RenderSwatch.h"
@@ -165,6 +163,9 @@ namespace // <anonymous>
       {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
       {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax},
       {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax}
+#ifdef ENABLE_ALEMBIC
+      ,{"arnoldExportAlembic", CArnoldExportAbcCmd::creator, CArnoldExportAbcCmd::createSyntax}
+#endif
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
@@ -172,47 +173,28 @@ namespace // <anonymous>
    // allow it to not participate in shadow map bounding box computations.
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
    const MString AI_LIGHT_PORTAL_CLASSIFICATION = "drawdb/geometry/light/arnold/lightPortal";
-#if MAYA_API_VERSION >= 201700
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION + ":drawdb/light/areaLight:lightShader/aiRectangleAreaLight";
-#else
-   const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
-#endif
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
-#if MAYA_API_VERSION >= 201720
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION + ":drawdb/light/image";
-#else
-   const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
-#endif
    const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/light/arnold/skynode";
-#if MAYA_API_VERSION >= 201700
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
-#else
-   const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
-#endif
    const MString AI_PROCEDURAL_CLASSIFICATION = "drawdb/geometry/arnold/procedural"; // should we also be using "subscene" for versions >= 2017 as the standin do ?
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
    const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
-#if MAYA_API_VERSION >= 201700
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION + ":drawdb/light/spotLight";
 #if MAYA_API_VERSION >= 201800
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION + ":drawdb/light/image/environment"; 
 #else
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION; 
 #endif
-#else
-   const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
-   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
-#endif
    const MString AI_MESH_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/meshLight";
-#if MAYA_API_VERSION >= 201700
    const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION + ":drawdb/light/pointLight";
-#else
-   const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION;
-#endif
-
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
    const MString AI_USER_DATA_NODE_CLASSIFICATION = ":rendernode/arnold/utility/user data";
+   const MString AI_ANOLD_AXF_SHADER = "shader/surface:rendernode/arnold/shader/surface:swatch/ArnoldRenderSwatch:drawdb/shader/surface/arnold/axf_shader";
+
+   
 
    struct mayaNode {
       const char* name;
@@ -286,10 +268,17 @@ namespace // <anonymous>
          "aiUserDataBool", CArnoldUserDataBoolNode::id,
          CArnoldUserDataBoolNode::creator, CArnoldUserDataBoolNode::initialize,
          MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
+      }, {
+         "aiAxfShader", CArnoldAxfShaderNode::id,
+         CArnoldAxfShaderNode::creator, CArnoldAxfShaderNode::initialize,
+         MPxNode::kDependNode, &AI_ANOLD_AXF_SHADER
+      } , {
+         "aiLookSwitch", CArnoldLookSwitchNode::id,
+         CArnoldLookSwitchNode::creator, CArnoldLookSwitchNode::initialize,
+         MPxNode::kDependNode, 0
       }
-   };
 
-#ifdef ENABLE_VP2
+   };
 
    struct shadingNodeOverride{
       MString classification;
@@ -435,33 +424,6 @@ namespace // <anonymous>
          AI_LIGHT_PORTAL_CLASSIFICATION,
          CArnoldLightPortalDrawOverride::creator
       } , 
-#if MAYA_API_VERSION < 201700
-      {
-         "arnoldSkyDomeLightNodeOverride",
-         AI_SKYDOME_LIGHT_CLASSIFICATION,
-         CArnoldSkyDomeLightDrawOverride::creator
-      } , {
-         "arnoldVolumeNodeOverride",
-         AI_VOLUME_CLASSIFICATION,
-         CArnoldVolumeDrawOverride::creator
-      } ,
-      {
-         "arnoldStandInNodeOverride",
-         AI_STANDIN_CLASSIFICATION,
-         CArnoldStandInDrawOverride::creator
-      } ,
-      {
-         "arnoldProceduralNodeOverride",
-         AI_PROCEDURAL_CLASSIFICATION,
-         CArnoldProceduralDrawOverride::creator
-      } ,
-      {
-          "arnoldLightBlockerNodeOverride",
-          AI_LIGHT_FILTER_CLASSIFICATION,
-          CArnoldLightBlockerDrawOverride::creator
-      } ,
-
-#endif
       {
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
@@ -473,7 +435,6 @@ namespace // <anonymous>
          CArnoldMeshLightDrawOverride::creator
       }  
    };
-#endif
 
    //
    // Template command that creates and deletes the manipulator
@@ -602,8 +563,11 @@ namespace // <anonymous>
                                     "",
                                     CRampFloatTranslator::creator,
                                     CRampFloatTranslator::NodeInitializer);
-      
 
+      builtin->RegisterTranslator("aiAxfShader",
+                                    "",
+                                    CArnoldAxfShaderTranslator::creator,
+                                    CArnoldAxfShaderTranslator::NodeInitializer);      
 
       // Lights
       builtin->RegisterTranslator("directionalLight",
@@ -778,6 +742,11 @@ namespace // <anonymous>
                                     CObjectSetTranslator::creator,
                                     CObjectSetTranslator::NodeInitializer);
 
+      builtin->RegisterTranslator("aiLookSwitch",
+                                    "",
+                                    CLookSwitchTranslator::creator,
+                                    CLookSwitchTranslator::NodeInitializer);
+
       
       // Load all plugins path or only shaders?
       CExtension* shaders;
@@ -787,10 +756,8 @@ namespace // <anonymous>
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
          SetEnv("MTOA_PATH", pluginPath);
-#ifdef ENABLE_VP2
          if (!isBatch)
             SetFragmentSearchPath(pluginPath + MString("vp2"));
-#endif
          MString modulePluginPath = pluginPath + MString("shaders");
          MString proceduralsPath = pluginPath + MString("procedurals");
          MString moduleExtensionPath = pluginPath + MString("extensions");
@@ -982,7 +949,12 @@ namespace // <anonymous>
          shaders->RegisterTranslator("setRange",
                                        "",
                                        CSetRangeTranslator::creator);
-
+#if MAYA_API_VERSION >= 20200000
+         shaders->RegisterTranslator("standardSurface",
+                                       "",
+                                       CStandardSurfaceTranslator::creator,
+                                       CStandardSurfaceTranslator::NodeInitializer);         
+#endif
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");
 
@@ -1094,10 +1066,8 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
       for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
          plugin.deregisterCommand(mayaCmdList[i].name);
 
-#ifdef ENABLE_MATERIAL_VIEW
    if (initData[MTOA_INIT_MATERIAL_VIEW])
       plugin.deregisterRenderer(CMaterialView::Name());
-#endif
    
    if (initData[MTOA_INIT_REGISTER_SWATCH])
       MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
@@ -1207,7 +1177,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
 
-#ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
    if (!isBatch)
    {
@@ -1226,7 +1195,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
          return MStatus::kFailure;
       }
    }
-#endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
    if (!isBatch)
@@ -1338,7 +1306,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
 
-#ifdef ENABLE_VP2
    if (!isBatch)
    {
 
@@ -1362,7 +1329,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
          CHECK_MSTATUS(status);
       }
     
-#if MAYA_API_VERSION >= 201700
       status = MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
           AI_STANDIN_CLASSIFICATION,
           "arnoldStandInNodeOverride",
@@ -1431,9 +1397,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
           status.perror("registerCommand");
       }
 #endif
-#endif
    }
-#endif
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
    ArnoldUniverseEnd();
@@ -1516,7 +1480,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                      MString(cmd.name) + MString("'' command."));
       }
    }
-#ifdef ENABLE_VP2
    if (!isBatch)
    {
       for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
@@ -1539,16 +1502,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
       if (MGlobal::mayaState() == MGlobal::kInteractive)
       {
-#if MAYA_API_VERSION < 201700
-         CArnoldPhotometricLightDrawOverride::clearGPUResources();
-         CArnoldAreaLightDrawOverride::clearGPUResources();
-         CArnoldLightPortalDrawOverride::clearGPUResources();
-         CArnoldStandInDrawOverride::clearGPUResources();
-         CArnoldProceduralDrawOverride::clearGPUResources();
-
-#endif
       }
-#if MAYA_API_VERSION >= 201700
       status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
           AI_STANDIN_CLASSIFICATION,
           "arnoldStandInNodeOverride");
@@ -1607,11 +1561,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       }
 
 #endif
-#endif
    }
-#endif
 
-#ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
    if (!isBatch)
    {
@@ -1629,7 +1580,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
          MGlobal::displayError("Failed to deregister Arnold material view renderer");
       }
    }
-#endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
    if (!isBatch)

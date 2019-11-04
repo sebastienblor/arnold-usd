@@ -20,5 +20,4 @@ public:
   protected:
     void ExportAssignedShaders(AtNode *shader);
     MStringArray WalkOutputs(MObject obj);
-   
 };

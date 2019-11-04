@@ -109,7 +109,7 @@ void ArnoldUniverseEnd()
    if (AiUniverseIsActive())
    {
       if (AiRendering())
-         AiRenderInterrupt();
+         AiRenderInterrupt(AI_BLOCKING);
       if (AiRendering())
          AiRenderAbort();
       AiEnd();
@@ -123,7 +123,7 @@ void ArnoldUniverseEndAndFlush(int cache_flags)
    if (AiUniverseIsActive())
    {
       if (AiRendering())
-         AiRenderInterrupt();
+         AiRenderInterrupt(AI_BLOCKING);
       if (AiRendering())
          AiRenderAbort();
       AiUniverseCacheFlush(cache_flags);
