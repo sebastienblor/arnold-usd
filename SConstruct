@@ -1470,7 +1470,9 @@ def create_installer(target, source, env):
         if os.path.exists(os.path.join(tempdir, maya_version, 'license', 'pitreg')):
             subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'pitreg')])
 
-        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'installer', '*')])
+        installerFiles = glob.glob(os.path.join(tempdir, maya_version, 'license', 'installer', '*'))
+        for installerFile in installerFiles:
+            subprocess.call(['chmod', 'a+x', installerFile])
 
         installPath = '/Applications/Autodesk/Arnold/mtoa/' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
