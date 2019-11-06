@@ -308,6 +308,8 @@ for ex in exList:
                 print('Error adding +x to executable %s' % ex)
             sys.exit(0)
 
+subprocess.call(['chmod', '+x', os.path.join(installDir, 'license', 'installer', '*')])
+
 # stop relying on pitreg
 #subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
 
