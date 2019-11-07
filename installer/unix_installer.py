@@ -299,7 +299,7 @@ mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
-exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil'), os.path.join('license', 'pitreg'), os.path.join('license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run')]
+exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'), os.path.join('bin', 'rlmutil'), os.path.join('bin', 'ArnoldLicenseManager'), os.path.join('license', 'pitreg'), os.path.join('license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run')]
 for ex in exList:
     if os.path.exists(os.path.join(installDir, ex)):
         try:
