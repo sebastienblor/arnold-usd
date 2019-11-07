@@ -22,7 +22,14 @@ _waitingForDiagnosticsStatus = False
 
 def licenseManager():
     cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'ArnoldLicenseManager')
-    cmdRes = subprocess.Popen([cmdBinary], close_fds=True).communicate()[0]
+    platformName = sys.platform
+    if platformName.startswith('darwin'):
+        cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'ArnoldLicenseManager.app', 'Contents', 'MacOS', 'ArnoldLicenseManager' )
+
+    if (os.path.exists(cmdBinary)):
+        cmdRes = subprocess.Popen([cmdBinary], close_fds=True).communicate()[0]
+    else:
+        cmds.error("Arnold License Manager not found")
 
 def getDiagnosticsResult():
 
