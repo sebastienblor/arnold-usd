@@ -142,8 +142,8 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
-    arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Blaineau-Ortega, Ashley Handscomb Retallack,\nKrishnan Ramachandran\n\n"
-    arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant"
+    arnoldAboutText += u"\nDeveloped by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez, Pál Mezei,\nMichael Farnsworth, Adam Felt, Bernard Kwok, Niklas Harrysson,\nJonathan Feldstein, Cynthia Beauchemin, Patrick Hodoul,\nSebastien Blaineau-Ortega, Ashley Handscomb Retallack, \nKrishnan Ramachandran\n\n"
+    arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant, Ryan Harvey, Yvonne Yeung,\nMichael Wile, Nicholas Verschelde, Nikola Milosevic, Orn Gunnarsson"
 
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
