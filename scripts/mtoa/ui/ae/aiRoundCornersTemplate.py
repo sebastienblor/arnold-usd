@@ -7,8 +7,8 @@ class AEaiRoundCornersTemplate(ShaderAETemplate):
         
         self.addControl('samples')
         self.addControl('radius')
-        self.addControl('traceSet')
-        self.addControl('inclusive')
+        self.addControl('traceSet', label='Trace Set *') # Not supported in GPU
+        self.addControl('inclusive', label='Inclusive *') # Not supported in GPU
         self.addControl('selfOnly')
         self.addControl('normal', label='Normal')
         
