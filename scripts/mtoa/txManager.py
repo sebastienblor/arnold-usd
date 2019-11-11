@@ -144,7 +144,7 @@ class MakeTxThread (threading.Thread):
                     txArguments += '"'
 
                     if tile_info['bit_depth'] <= 8:
-                        txArguments += ' --format exr -d half --compression dwaa'
+                        txArguments += ' --format exr -d half --compression dwa'
 
                 # need to invalidate the TX texture from the cache
                 outputTx = os.path.splitext(inputFile)[0] + '.tx'
