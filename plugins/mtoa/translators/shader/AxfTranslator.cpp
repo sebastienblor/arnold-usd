@@ -10,10 +10,16 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    MString maya_node_name = fnNode.name();
 
 
-   if (axf_path.length()==0 || tex_path.length()==0)
+   if (axf_path.length()==0 )
    {
-      AiMsgError("[mtoa] [translator %s] No Axf File or Texture Path Provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
-      return NULL;
+      AiMsgWarning("[mtoa] [translator %s] No Axf File Path Provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
+      return AddArnoldNode("lambert");
+   }
+   
+   if (tex_path.length()==0)
+   {
+      AiMsgError("[mtoa] [translator %s] No texture path provided to Node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
+      return AddArnoldNode("lambert");
    }
 
    AxFtoASessionStart();

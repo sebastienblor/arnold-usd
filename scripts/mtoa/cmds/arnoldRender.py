@@ -43,18 +43,26 @@ def arnoldBatchRender(option):
             if i >= n:
                 break
             kwargs["width"] = int(options[i])
-
         elif options[i] in ["-h", "-height"]:
             i += 1
             if i >= n:
                 break
             kwargs["height"] = int(options[i])
-
         elif options[i] in ["-cam", "-camera"]:
             i += 1
             if i >= n:
                 break
             kwargs["camera"] = options[i]
+        elif options[i] in ["-seq"]:
+            i += 1
+            seqoption = options[i]
+            if seqoption and seqoption[0] in["\"", "'"]:
+                while options[i][-1] not in ["\"", "'"]:
+                    i += 1
+                    seqoption += " {}".format(options[i])
+            if i >= n:
+                break
+            kwargs["seq"] = seqoption.strip("\"'")
         i += 1
     try:
         cmds.arnoldRender(batch=True, **kwargs)

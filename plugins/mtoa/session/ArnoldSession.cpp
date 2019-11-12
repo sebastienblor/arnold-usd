@@ -2505,12 +2505,12 @@ void CArnoldSession::ExportTxFiles()
          unsigned int bitdepth = 32;
          AiTextureGetBitDepth(expandedFilenames[t].asChar(), &bitdepth);
 
-         std::string bitdepth_args;
+         std::string bitdepth_args = "";
 
-         if (cmEnabled && colorSpace != renderingSpace && 
+         if (cmEnabled && colorSpace != renderingSpace &&
             colorSpace.toLowerCase() != MString("raw") && bitdepth <= 8)
          {
-            bitdepth_args = " --format exr -d half --compression dwaa";
+            bitdepth_args += " --format exr -d half --compression dwa";
          }
 
          listArguments.push_back(txArguments + bitdepth_args);

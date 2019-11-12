@@ -150,6 +150,23 @@ MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUni
    return MStatus::kSuccess ;
 }
 
+std::string GetShadingGroup(std::string name, unordered_map<std::string, std::string> &arnoldToMayaShadingEngines)
+{
+   unordered_map<std::string, std::string>::iterator it = arnoldToMayaShadingEngines.find(name);
+   std::string sgName;
+   if (it != arnoldToMayaShadingEngines.end())
+      sgName = it->second;
+   else
+   {
+      MString mayaName;
+      MString createCmd = MString("createNode \"shadingEngine\" -name \"") + MString(name.c_str()) + MString("\"");
+      MGlobal::executeCommand(createCmd, mayaName);
+      sgName = mayaName.asChar();
+      arnoldToMayaShadingEngines[name] = sgName;
+   }
+   return sgName;
+}
+
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -186,12 +203,12 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          {
             return MStatus::kFailure;
          }
-   }/*
+   }
    else if  (nchars > 5 && filename.substringW(nchars-5, nchars) == ".mtlx")
    {
       // This is a MaterialX file. Let's read it and convert it to arnold nodes
       AiMaterialxReadMaterials(universe, filename.asChar());
-   }*/
+   }
    else
    {
       AiASSLoad(universe, filename.asChar(), mask);   
@@ -206,6 +223,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 
    MStringArray connectCmds;
    unordered_map<std::string, std::string>  arnoldToMayaNames;
+   unordered_map<std::string, std::string>  arnoldToMayaShadingEngines;
    std::vector<AtNode *> nodesToConvert;
 
    // First Loop to create the imported nodes, and fill the map from arnold to maya nodes
@@ -478,11 +496,24 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          }
       }
       AiParamIteratorDestroy(nodeParam);
+      if (AiNodeLookUpUserParameter(node, "material_surface"))
+      {
+         AtString shadingGroup = AiNodeGetStr(node, "material_surface");
+         std::string shg = GetShadingGroup(shadingGroup.c_str(), arnoldToMayaShadingEngines);
+         MString connectCmd = MString("connectAttr -f ") + MString(mayaName.c_str()) + MString(".outColor ") + MString(shg.c_str()) + MString(".surfaceShader");
+         MGlobal::executeCommand(connectCmd);
+      }
+      if (AiNodeLookUpUserParameter(node, "material_displacement"))
+      {
+         AtString shadingGroup = AiNodeGetStr(node, "material_displacement");
+         std::string shg = GetShadingGroup(shadingGroup.c_str(), arnoldToMayaShadingEngines);
+         MString connectCmd = MString("connectAttr -f ") + MString(mayaName.c_str()) + MString(".outColor ") + MString(shg.c_str()) + MString(".displacementShader");
+         MGlobal::executeCommand(connectCmd);
+      }
    }
-
    AiUniverseDestroy(universe);
-
    if (universeCreated)
       ArnoldUniverseEnd();
-    return status;
+
+   return status;
 }
