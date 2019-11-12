@@ -33,6 +33,7 @@ from mtoa.callbacks import *
 from functools import partial
 
 defaultFolder = ""
+DEFAULT_LOOK = 'default'
 CACHE_ATTR = 'ai_asscache'
 
 ################################################
