@@ -196,19 +196,49 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
             {
                CNodeTranslator *tr = arnoldSession->ExportNode(opPlug, false, 0);
                AtNode *opNode = (tr) ? tr->GetArnoldNode() : NULL;
-               if (opNode && AI_NODE_OPERATOR == AiNodeEntryGetType(AiNodeGetNodeEntry(opNode)))
+
+               // Get if this maya node is a aiLookSwitch node,
+               // if it is we should not export the switch_operator
+               // but just the merge nodes, renaming to the look string
+               if (fnNode.typeName() == MString("aiLookSwitch"))
+               {
+                  // get the looks for this node
+                  MPlug looks =  fnNode.findPlug("looks", true);
+                  unsigned nvars = looks.numElements();
+                  MPlug varPlug;
+
+                  for (unsigned int i = 0; i < nvars; ++i)
+                  {
+                     varPlug = looks[i];
+                     // get look name
+                     MPlug look = varPlug.child(0, &status);
+                     MString look_str = look.asString();
+
+                     MString mergNodeName = name;
+                     mergNodeName += "@";
+                     mergNodeName += look_str;
+                     AtNode *mergeNode = AiNodeLookUpByName(mergNodeName.asChar());
+                     if (mergeNode)
+                     {
+                        AiNodeSetStr(mergeNode, "name", look_str.asChar());
+                        targets.push_back(mergeNode);
+                     }
+                  }
+                  // remove this node from the export
+                  AiNodeDestroy(opNode);
+               }
+               else if (opNode && AI_NODE_OPERATOR == AiNodeEntryGetType(AiNodeGetNodeEntry(opNode)))
                   targets.push_back(opNode);
             }
          }
       }
    }
-   // Now, if I have multiple targets, we need to choose one. 
+   // Now, if I have multiple targets, we need to choose one.
    // Let's pick the first for now
    if (!targets.empty())
    {
       if (AiNodeDeclare(targets[0], "is_target", "constant BOOL"))
-         AiNodeSetBool(targets[0], "is_target", true);  
-    
+         AiNodeSetBool(targets[0], "is_target", true);
    }
    AiASSWrite(NULL, filename.asChar(), (exportShaders) ? AI_NODE_OPERATOR | AI_NODE_SHADER : AI_NODE_OPERATOR);
 

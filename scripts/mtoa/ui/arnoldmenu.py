@@ -330,7 +330,8 @@ def addRuntimeMenuItem(name, parent, command, label = '', rtcLabel = '', tearOff
     if _maya_version < 2019:
         cmds.menuItem(name, label=label, parent=parent, c=command, tearOff=tearOff, optionBox=optionBox, image=image)
     else:
-        cmds.runTimeCommand('cmd{}'.format(name), d=True, label=rtcLabel, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
+        if not cmds.runTimeCommand('cmd{}'.format(name), exists=True):
+            cmds.runTimeCommand('cmd{}'.format(name), d=True, label=rtcLabel, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
         cmds.menuItem(name, parent=parent, rtc='cmd{}'.format(name), label = label, sourceType= 'mel', optionBox=optionBox, tearOff=tearOff)
 
 def GPUCacheStart():

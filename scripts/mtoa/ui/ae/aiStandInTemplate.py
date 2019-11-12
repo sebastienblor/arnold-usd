@@ -15,23 +15,29 @@ from mtoa.ui.qt.Qt import QtGui
 from mtoa.ui.qt.Qt import QtWidgets
 from mtoa.ui.qt.Qt import shiboken
 from mtoa.ui.qt import toQtObject
+from mtoa.ui import exportlook
 
-CACHE_ATTR = 'ai_asscache'
 
 from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
-from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, MERGE_OP
+from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, \
+                                                   MERGE_OP, OVERRIDE_OP, \
+                                                   INCLUDEGRAPH_OP, MATERIALX_OP, \
+                                                   EXP_REGEX
 
 from mtoa.callbacks import *
 
 from functools import partial
 
+defaultFolder = ""
+CACHE_ATTR = 'ai_asscache'
+
 ################################################
 
-DEFAULT_LOOK = 'default'
+
 
 def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
@@ -258,9 +264,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def lookNew(self, nodeAttr):
 
-        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=5, adjustableColumn=5,
-                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left')],
-                                         columnAttach=[(1, 'left', 10), (2, 'left', 1), (3, 'left', 1), (4, 'left', 1)])
+        self.lookRowLayout = cmds.rowColumnLayout(numberOfColumns=6, adjustableColumn=6,
+                                         columnAlign=[(1, 'left'), (2, 'left'), (3, 'left'), (4, 'left'), (5, 'left')],
+                                         columnAttach=[(1, 'left', 10), (2, 'left', 3), (3, 'left', 1), (4, 'left', 1), (5, 'left', 1)])
 
         cmds.rowLayout(numberOfColumns=1, rowAttach=[1, 'top', 4], columnAttach=[1, 'left', 0])
         self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20)
@@ -268,6 +274,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
         self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
         self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
+
+        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook, annotation="Export looks to .ass or MaterialX file" )
 
         cmds.text("")
         cmds.setParent('..')
@@ -459,12 +467,143 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.menuItem(label=new_look_name, data=next_index, parent=self.lookCtrl)
                 cmds.optionMenu(self.lookCtrl, e=True, value=new_look_name)
 
-
                 self.fileInfoReplace('{}.aiInfo'.format(self.nodeName))
+
+    def browseObjFilename(self, fileFormat="Arnold Operator Graph (*.ass)", options={}):
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = cmds.workspace(q=True, rd=True, fn=True)
+        ret = cmds.fileDialog2(cap='Export Look',
+                               okc='Export Look',
+                               ff=fileFormat,
+                               fm=0,
+                               dir=defaultFolder,
+                               **options
+                               ) or []
+        if ret is not None and len(ret):
+            defaultFolder = ret[0]
+            return ret[0]
+
+    def exportLook(self, mode="ass"):
+        # check switch node exists
+        self.look_node = self.getLookSwitchNode()
+
+        # get the current export options
+        d_options = exportlook.getOperatorOptions()
+        # first check for and export looks from aiLookSwicth
+        if self.look_node:
+            indices = cmds.getAttr('{}.looks'.format(self.look_node), multiIndices=True) or []
+            if not len(indices):
+                cmds.error("{} has no looks to export".format(self.look_node))
+            # include_graph
+            filename = self.browseObjFilename(
+                "{0[0]} (*{0[1]});; {1[0]} (*{1[1]});;".format(*[(exportlook.OPERATOR_FILETYPES[k], k) for k in sorted(exportlook.OPERATOR_FILETYPES.keys())]),
+                options={"selectFileFilter": exportlook.OPERATOR_FILETYPES[d_options['defaultLookExt']],
+                         "optionsUICreate": "arnoldOpExportUI_Create",
+                         "optionsUIInit": "arnoldOpExportUI_Init",
+                         "optionsUICommit": "arnoldOpExportUI_Commit",
+                         "fileTypeChanged": "arnoldOpExportUI_Change"}
+            )
+
+            if filename:
+                options = exportlook.getOperatorOptions()
+                ext = os.path.splitext(filename)[-1]
+                if ext == ".ass":
+                    cmds.arnoldExportOperators(self.look_node, selection=True,
+                                               filename=filename,
+                                               shaders=options['exportShaders'])
+                    # check if we want to replace the graph
+                    if options['replaceNetwork']:
+                        self.replaceNetwork(filename)
+                elif ext == ".mtlx":
+                    # get the current index
+                    _base_index = cmds.getAttr("{}.index".format(self.look_node))
+                    # loop over the looks
+                    for idx in indices:
+                        if len(cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, idx), plugs=True) or []):
+                            look_name = cmds.getAttr("{}.looks[{}].name".format(self.look_node, idx))
+                            cmds.setAttr("{}.index".format(self.look_node), idx)
+
+                            properties = self.getLookParams(idx)
+
+                            cmds.arnoldExportToMaterialX(self.nodeName, filename=filename, look=look_name,
+                                                         properties=' '.join(properties),
+                                                         fullPath=options['exportFullPath'],
+                                                         separator=options['exportSeparator'],
+                                                         relative=options['relativeAssignments'])
+
+                    cmds.setAttr("{}.index".format(self.look_node), _base_index)
+                    if options['replaceNetwork']:
+                        self.replaceNetwork(filename)
+        else:                    # check if we want to replace the graph
+            # if no look node export the current standin
+            filename = self.browseObjFilename(
+                "{0[0]} (*{0[1]});; {1[0]} (*{1[1]});;".format(*[(exportlook.OPERATOR_FILETYPES[k], k) for k in sorted(exportlook.OPERATOR_FILETYPES.keys())]),
+                options={"selectFileFilter": exportlook.OPERATOR_FILETYPES[d_options['defaultLookExt']],
+                         "optionsUICreate": "arnoldOpExportUI_Create",
+                         "optionsUIInit": "arnoldOpExportUI_Init",
+                         "optionsUICommit": "arnoldOpExportUI_Commit",
+                         "fileTypeChanged": "arnoldOpExportUI_Change"}
+            )
+            if filename:
+                options = exportlook.getOperatorOptions()
+                ext = os.path.splitext(filename)[-1]
+                if ext == ".ass":
+                    cmds.arnoldExportOperators(self.nodeName, selection=True,
+                                               filename=filename,
+                                               shaders=options['exportShaders'])
+                    if options['replaceNetwork']:
+                        self.replaceNetwork(filename)
+                elif ext == ".mtlx":
+
+                    properties = []
+                    inputs = cmds.listConnections("{}.operators".format(self.nodeName)) or []
+                    for o in inputs:
+                        # walk the inputs of this node record the parms if it's a set_parameter operator
+                        properties += self.getParams(o)
+
+                    cmds.arnoldExportToMaterialX(self.nodeName, filename=filename, look="default",
+                                                 properties=' '.join(properties),
+                                                 fullPath=options['exportFullPath'],
+                                                 separator=options['exportSeparator'],
+                                                 relative=options['relativeAssignments'])
+                    if options['replaceNetwork']:
+                        self.replaceNetwork(filename)
+
+    def getParams(self, op):
+        params = []
+        # is this an aiSetPArameter node?
+        if cmds.nodeType(op) == OVERRIDE_OP:
+            a_indices = cmds.getAttr("{}.assignment".format(op), mi=True) or []
+            for a in a_indices:
+                exp = cmds.getAttr("{}.assignment[{}]".format(op, a))
+                m = EXP_REGEX.match(exp)
+                param = m.group('param')
+                if len(param) and param not in params:
+                    params.append(param)
+
+        op_inputs = cmds.listConnections("{}.inputs".format(op)) or []
+        for o in op_inputs:
+            parmas += _walkParams(o)
+
+        return params
+
+    def getLookParams(self, index):
+
+        self.look_node = self.getLookSwitchNode(True)
+
+        params = []
+        # first check fr and export loks from aiLookSwicth
+        if self.look_node:
+            inputs = cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, index)) or []
+            for i in inputs:
+                # walk the inputs of this node record the parms if it's a set_parameter operator
+                params += self.getParams(i)
+        return params
 
     def getLookSwitchNode(self, create=False):
         look_switch = None
-        ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True) or []
+        ops = cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True, type=LOOKSWITCH_OP) or []
         for op in ops:
             op_node, plug = op.split('.')
             if cmds.nodeType(op_node) == LOOKSWITCH_OP:
@@ -490,6 +629,84 @@ class AEaiStandInTemplate(ShaderAETemplate):
             cmds.connectAttr('{}.out'.format(look_switch), '{}.operators[0]'.format(self.nodeName))
 
         return look_switch
+
+    def replaceNetwork(self, filename):
+
+        def _getUniqueConnections(op, ops):
+            all_ops = []
+            all_ops += ops
+            op_inputs = cmds.listConnections("{}.inputs".format(op)) or []
+            for o in op_inputs:
+                skip = False
+                # get if this node has connections to nodes outside of the network
+                out_connections = cmds.listConnections("{}.out".format(op), source=False) or []
+                for oc in out_connections:
+                    if oc not in all_ops:
+                        skip = True
+                if not skip:
+                    all_ops += _getUniqueConnections(o, all_ops)
+
+            return all_ops
+
+        fn, ext = os.path.splitext(filename)
+
+        target_connection = ''
+        current_look = ''
+        # check switch node exists
+        self.look_node = self.getLookSwitchNode()
+
+        # first check for and export looks from aiLookSwicth
+        if self.look_node:
+
+            look_out_conns = cmds.listConnections("{}.out".format(self.look_node), plugs=True) or []
+            target_connection = look_out_conns[0]
+            current_look = cmds.getAttr('{}.looks[{}].name'.format(self.look_node, cmds.getAttr('{}.index'.format(self.look_node))))
+
+            indices = cmds.getAttr('{}.looks'.format(self.look_node), multiIndices=True) or []
+
+            op_list = [self.look_node]
+            for i in indices:
+                connections = cmds.listConnections("{}.looks[{}].inputs".format(self.look_node, i)) or []
+                for op in connections:
+                    if op not in op_list:
+                        op_list.append(op)
+                    op_list += _getUniqueConnections(op, op_list)
+
+            for op_node in op_list:
+                if cmds.objExists(op_node):
+                    cmds.delete(op_node)
+
+        else:
+            connections = cmds.listConnections("{}.operators".format(self.nodeName)) or []
+            op_list = []
+            for op in connections:
+                if op not in op_list:
+                    op_list.append(op)
+                op_list += _getUniqueConnections(op, op_list)
+
+            target_connection = "{}.operators[0]".format(self.nodeName)
+
+        # delete the operator nodes attached to the current standIn
+        for op_node in op_list:
+            if cmds.objExists(op_node):
+                cmds.delete(op_node)
+
+        if target_connection:
+            node = None
+            if ext == '.ass':
+                # make a new ai_includeGraph node
+                node = cmds.createNode(INCLUDEGRAPH_OP)
+                if current_look:
+                    cmds.setAttr("{}.target".format(node), current_look, type="string")
+            elif ext == '.mtlx':
+                # make new aiMaterialX operator
+                node = cmds.createNode(MATERIALX_OP)
+                cmds.setAttr("{}.selection".format(node), "*", type="string")
+                if current_look:
+                    cmds.setAttr("{}.look".format(node), current_look, type="string")
+            if node:
+                cmds.setAttr("{}.filename".format(node), filename, type="string")
+                cmds.connectAttr("{}.out".format(node), target_connection)
 
     def newSceneCallback(self):
         self.tree.setCurrentNode(None)
