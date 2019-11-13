@@ -8,5 +8,5 @@ public:
    virtual void Export(AtNode* shader) {};
    AtNode* CreateArnoldNodes();
 protected:
-   virtual void NodeChanged(MObject& node, MPlug& plug);
+   // virtual void NodeChanged(MObject& node, MPlug& plug);
 };

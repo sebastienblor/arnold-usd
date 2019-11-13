@@ -33,6 +33,7 @@ public:
    // Input attributes
    
    static MObject s_mtlxFilePath;
+   static MObject s_materialName;
 
    static MObject s_OUT_color;
    static  MObject s_OUT_colorR;

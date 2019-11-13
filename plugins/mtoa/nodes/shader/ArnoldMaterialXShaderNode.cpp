@@ -31,6 +31,7 @@ MObject CArnoldMaterialXShaderNode::s_OUT_transparency;
 MObject CArnoldMaterialXShaderNode::s_normal_camera;
 
 MObject CArnoldMaterialXShaderNode::s_mtlxFilePath;
+MObject CArnoldMaterialXShaderNode::s_materialName;
 
 
 CAbMayaNode CArnoldMaterialXShaderNode::s_abstract;
@@ -83,18 +84,12 @@ MStatus CArnoldMaterialXShaderNode::initialize()
    tAttr.setUsedAsFilename(true);
    addAttribute(s_mtlxFilePath);
 
-//    s_texturePath = tAttr.create("texturePath", "texPth", MFnData::kString);
-//    tAttr.setHidden(false);
-//    tAttr.setStorable(true);
-//    tAttr.setUsedAsFilename(true);
-//    addAttribute(s_texturePath);
 
-//    s_uvScale = nAttr.create("uvScale", "uvscl", MFnNumericData::kFloat);
-//    nAttr.setStorable(true);
-//    nAttr.setHidden(false);
-//    nAttr.setReadable(true);
-//    nAttr.setDefault(1.0f);
-//    addAttribute(s_uvScale);
- 
+   s_materialName = tAttr.create("materialName", "mtlname", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setStorable(true);
+   tAttr.setUsedAsFilename(true);
+   addAttribute(s_materialName);
+
    return MS::kSuccess;
 }
