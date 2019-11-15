@@ -919,7 +919,10 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
       if (pickedObject == NULL)
          continue;
 
-      MString selectedPath = AiNodeGetName(pickedObject);
+      AtString selName = (AiNodeLookUpUserParameter(pickedObject, "dcc_name")) ? 
+         AiNodeGetStr(pickedObject, "dcc_name") : AtString(AiNodeGetName(pickedObject));
+
+      MString selectedPath = MString(selName.c_str());
 
       // get the root parent node
       AtNode *parentNode = AiNodeGetParent(pickedObject);
@@ -928,7 +931,11 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
          pickedObject = parentNode;
          parentNode = AiNodeGetParent(pickedObject);
          if (parentNode)
-            selectedPath = MString(AiNodeGetName(pickedObject)) + MString("/") + selectedPath;
+         {
+            AtString childSelName = (AiNodeLookUpUserParameter(pickedObject, "dcc_name")) ? 
+               AiNodeGetStr(pickedObject, "dcc_name") : AtString(AiNodeGetName(pickedObject));
+            selectedPath = MString(childSelName.c_str()) + MString("/") + selectedPath;
+         }
          else
             break;      
       }
@@ -1178,7 +1185,10 @@ CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
    if (arnold_camera == NULL) return;
    
    MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
+      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+
+   camList.add(MString(camName.c_str()));
 
    camList.getDagPath(0, m_cameraPath);
 
@@ -1226,7 +1236,10 @@ CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
    if (arnold_camera == NULL) return;
    
    MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
+      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+
+   camList.add(MString(camName.c_str()));
 
    camList.getDagPath(0, m_cameraPath);
 
@@ -1275,7 +1288,10 @@ void CRenderViewMtoAZoom::WheelDelta(float delta)
    if (arnold_camera == NULL) return;
    
    MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
+      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+
+   camList.add(MString(camName.c_str()));
 
    MDagPath camDag;
    camList.getDagPath(0, camDag);
@@ -1329,7 +1345,10 @@ void CRenderViewMtoAZoom::FrameSelection()
    if (arnoldCamera == NULL) return;
    
    MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnoldCamera, "name")));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
+      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
+
+   camList.add(MString(camName.c_str()));
 
    MDagPath camDag;
    camList.getDagPath(0, camDag);
@@ -1395,9 +1414,12 @@ CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator()
 {
    AtNode *arnold_camera = AiUniverseGetCamera();
    if (arnold_camera == NULL) return;
-   
+
+   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
+      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+
    MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+   camList.add(MString(camName.c_str()));
 
    camList.getDagPath(0, m_cameraPath);
 
