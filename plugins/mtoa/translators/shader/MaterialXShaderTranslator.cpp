@@ -8,9 +8,6 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
    MFnDependencyNode fnNode(GetMayaObject());
    MString maya_node_name = fnNode.name();
 
-
-
-
    if (mtlx_path.length()==0 )
    {
       AiMsgError("[mtoa] [translator %s] No materialX file  Provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
@@ -75,15 +72,14 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
    }
 
    return root_node;
-   // return AddArnoldNode("lambert");
 }
 
-// void CArnoldMaterialXShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
-// {
-//    MString plugName = plug.partialName(false, false, false, false, false, true);
-//    if (plugName == "materialXFilePath")
-//    {   
-//       SetUpdateMode(AI_RECREATE_NODE);
-//    }
-//    CShaderTranslator::NodeChanged(node, plug);
-// }
+void CArnoldMaterialXShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "materialXFilePath" || plugName == "materialName")
+   {   
+      SetUpdateMode(AI_RECREATE_NODE);
+   }
+   CShaderTranslator::NodeChanged(node, plug);
+}

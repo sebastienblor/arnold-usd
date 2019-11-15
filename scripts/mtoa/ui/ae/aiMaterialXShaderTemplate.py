@@ -2,27 +2,19 @@ import maya.mel
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import os
+import arnold as ai
+from mtoa.callbacks import *
 
 
-# window = cmds.window()
-# cmds.columnLayout()
-# cmds.optionMenu( label='Colors', changeCommand=printNewMenuItem )
-# cmds.menuItem( label='Yellow' )
-# cmds.menuItem( label='Purple' )
-# cmds.menuItem( label='Orange' )
-# cmds.showWindow( window )
 
 
 class AEaiMaterialXShaderTemplate(ShaderAETemplate):
     
     def setup(self):
         self.beginScrollLayout()
-        self.axfDirectory = os.path.join(cmds.workspace( q=True, directory=True), "sourceimages", "axf")
-        if (not os.path.exists(self.axfDirectory)) :
-            os.mkdir(self.axfDirectory)
 
         self.addCustom('materialXFilePath', self.mtlxFilePathNew, self.mtlxFilePathReplace)
-        # self.addCustom('texturePath', self.texturePathNew, self.texturePathReplace)
+        self.addCustom('materialName', self.listMaterialsNew, self.listMaterialsReplace)
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
         self.endScrollLayout()
@@ -33,6 +25,7 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
             if prevPath == mPath:
                 return
             cmds.setAttr(attr,mPath,type="string")
+            self.populateMaterials(mPath)
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'Axf Files (*.mtlx);;All Files (*.*)'
@@ -69,19 +62,26 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
     #         self.texturePathEdit(ret[0])
     #         cmds.textFieldGrp("texnameGrp", edit=True, text=ret[0])
     
-    # def texturePathNew(self, nodeName):
-    #     cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
-    #     info = cmds.getAttr(nodeName)
-    #     if (not info):
-    #         info = "sourceimages/axf"
-    #         cmds.setAttr(self.nodeAttr('texturePath'), info , type="string")
-        
-    #     self.texturePathText = cmds.textFieldGrp("texnameGrp", label="Axf Texture Path", changeCommand = self.texturePathEdit, text = info)
-    #     cmds.symbolButton( image='navButtonBrowse.png', command=self.SelectTexturePathButtonPush)
-     
-    # def texturePathReplace(self, nodeName):
-    #     if cmds.getAttr(nodeName):
-    #         cmds.textFieldGrp("texnameGrp", edit=True,text=cmds.getAttr(nodeName) )
-    #     else:
-    #         cmds.textFieldGrp("texnameGrp", edit=True, text="")
+    
+    def populateMaterials(self, mPath):
+        looksArray = ai.AiMaterialxGetMaterialNames(mPath)
+        numLooks = ai.AiArrayGetNumElements(looksArray)
+        for i in range(numLooks):
+            look = ai.AiArrayGetStr(looksArray, i)
+            cmds.menuItem(parent = self.materials, label=str(look))
+
+    def setMaterialName(self, nodeName):
+        cmds.setAttr(nodeName, cmds.optionMenu(self.materials, q = True , value = True), type = "string")
+    
+    
+    def listMaterialsNew(self, nodeName):
+        cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
+        self.materials = cmds.optionMenu( label='Materials', changeCommand = Callback(self.setMaterialName, nodeName))
+
+    def listMaterialsReplace(self, nodeName):
+        print "Goyyale"
+        # if cmds.getAttr(nodeName):
+        #     cmds.textFieldGrp("texnameGrp", edit=True,text=cmds.getAttr(nodeName) )
+        # else:
+        #     cmds.textFieldGrp("texnameGrp", edit=True, text="")
 
