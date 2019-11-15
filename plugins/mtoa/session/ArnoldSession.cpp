@@ -2510,7 +2510,7 @@ void CArnoldSession::ExportTxFiles()
          if (cmEnabled && colorSpace != renderingSpace &&
             colorSpace.toLowerCase() != MString("raw") && bitdepth <= 8)
          {
-            bitdepth_args += " --format exr -d half --compression dwa";
+            bitdepth_args += " --format exr -d half --compression dwaa";
          }
 
          listArguments.push_back(txArguments + bitdepth_args);
