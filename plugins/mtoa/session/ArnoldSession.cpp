@@ -766,6 +766,11 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       else
          MGlobal::executeCommand("ls -typ shadingEngine", shadingGroups); // get all shading groups in the scene and export them
       
+
+      CRenderOptions* renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
+      unsigned int mask = (renderOptions) ? renderOptions->outputAssMask() : AI_NODE_ALL;
+      bool exportShadingGroupData = (GetSessionMode() == MTOA_SESSION_ASS) && (mask & AI_NODE_SHADER && !(mask & AI_NODE_SHAPE));
+
       for (unsigned int shg = 0; shg < shadingGroups.length(); ++shg)
       {
          MSelectionList shgElem;
@@ -792,7 +797,28 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
                shaderPlug.connectedTo(connections, true, false);
                if (connections.length() > 0)
                {
-                  ExportNode(connections[0]);
+                  CNodeTranslator* shaderTr = ExportNode(connections[0]);
+                  AtNode* shaderNode = (shaderTr) ? shaderTr->m_impl->m_atRoot : nullptr;
+                  // When exporting to .ass, if shaders are exported but not shapes,
+                  // we want to keep track of the shading engine assignments (surface, volume, displacement)
+                  // so that we can eventually restore them later on when importing them (#4033)
+                  if (exportShadingGroupData && shaderNode)
+                  {                     
+                     // Set the user data material_surface / material_volume on the root shader, 
+                     // so that it returns the name of the shading engine
+                     std::string user_data;
+                     if (shaderAttrs[a] == MString("aiVolumeShader") || shaderAttrs[a] == MString("volumeShader"))
+                        user_data = "material_volume";
+                     else if (shaderAttrs[a] == MString("aiSurfaceShader") || shaderAttrs[a] == MString("surfaceShader"))
+                        user_data = "material_surface";
+                     else if (shaderAttrs[a] == MString("displacementShader"))
+                        user_data = "material_displacement";
+                     
+                     if (AiNodeLookUpUserParameter(shaderNode, user_data.c_str()) == NULL)
+                        AiNodeDeclare(shaderNode, user_data.c_str(), "constant STRING");   
+                     AiNodeSetStr(shaderNode, user_data.c_str(), AtString(shEngineNode.name().asChar()));
+                  }
+
                   if (shaderAttrs[a] == MString("aiSurfaceShader") ||
                      shaderAttrs[a] == MString("aiVolumeShader"))
                      a++; // if an "ai" connection was found, skip the maya native one
