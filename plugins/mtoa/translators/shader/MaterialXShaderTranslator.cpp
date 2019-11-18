@@ -10,16 +10,23 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
 
    if (mtlx_path.length()==0 )
    {
-      AiMsgError("[mtoa] [translator %s] No materialX file  Provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
-      return NULL;
+      AiMsgWarning("[mtoa] [translator %s] No materialX file provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
+      return AddArnoldNode("lambert");
    }
+
+   if (material_name.length()==0 )
+   {
+      AiMsgWarning("[mtoa] [translator %s] No material name provided to node : %s", GetTranslatorName().asChar(), maya_node_name.asChar());
+      return AddArnoldNode("lambert");
+   }
+
    AtParamValueMap* hints = AiParamValueMap();
 
    AiParamValueMapSetStr(hints, AtString("material"), AtString(material_name.asChar()));
    AiParamValueMapSetStr(hints, AtString("shader_prefix"), AtString(maya_node_name.asChar()));
    AtArray* nodes = AiArrayAllocate(0, 0, AI_TYPE_NODE);
 
-   AtNode* root_node;
+   AtNode* root_node = NULL;
    if ( AiMaterialxReadMaterials(NULL, mtlx_path.asChar(), hints, nodes) == AI_MATX_SUCCESS )
    {
       unsigned int arrElems = AiArrayGetNumElements(nodes);
@@ -33,42 +40,9 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
          }
       }
    }
-
-   // unsigned int arrElems = AiArrayGetNumElements(nodes);
-   // std::cout << "Array Type is " << AiArrayGetType(nodes) << std::endl;
-   // std::cout << " Num elemenets " << arrElems << std::endl;
-   
-
-   
-   
-
-    
-    
-   
-
-   //  AtNodeIterator* iter = AiUniverseGetNodeIterator(NULL, mask);
-   //  while (!AiNodeIteratorFinished(iter))
-   //  {
-   //      AtNode* node = AiNodeIteratorGetNext(iter);
-   //      if (node == NULL)
-   //          continue;
-
-   //      std::string nodeName = AiNodeGetName(node);
-   //      AtString result;
-   //      std::cout << " NodeName " << nodeName << std::endl;
-   //      // AtShaderGlobals *sg;
-   //      // std::cout << " User Data" << AiUDataGetStr(AtString("material_surface"),result) << std::endl;
-   //  }
-
-//    for (int i = 0 ; i < num_arnold_nodes ; i++)
-//    {
-//       AtNode* node = AxFtoAMaterialGetNode(material, i);
-//       AddExistingArnoldNode(node);
-//    }
-
    if (root_node == NULL)
    {
-      AiMsgError("[mtoa] [translator %s] Unable to perform translation. Axf File is still not supported", GetTranslatorName().asChar());
+      AiMsgError("[mtoa] [translator %s] Unable to perform translation", GetTranslatorName().asChar());
    }
 
    return root_node;

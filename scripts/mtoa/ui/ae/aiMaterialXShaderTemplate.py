@@ -6,8 +6,6 @@ import arnold as ai
 from mtoa.callbacks import *
 
 
-
-
 class AEaiMaterialXShaderTemplate(ShaderAETemplate):
     
     def setup(self):
@@ -28,7 +26,7 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
             self.populateMaterials(mPath)
 
     def LoadFilenameButtonPush(self, *args):
-        basicFilter = 'Axf Files (*.mtlx);;All Files (*.*)'
+        basicFilter = 'MaterialX Files (*.mtlx);;All Files (*.*)'
         projectDir = cmds.workspace(query=True, directory=True)
         ret = cmds.fileDialog2(fileFilter=basicFilter,
                                 cap='Load MaterialX File',okc='Load',fm=4, startingDirectory=projectDir)
@@ -48,40 +46,48 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
         else:
             cmds.textFieldGrp("filenameGrp", edit=True, text= "" )
 
-    # def texturePathEdit(self, mPath) :
-    #         attr = self.nodeAttr('texturePath')
-    #         prevPath = cmds.getAttr(attr)
-    #         if prevPath == mPath:
-    #             return
-    #         cmds.setAttr(attr,mPath,type="string")
-
-    # def SelectTexturePathButtonPush(self, *args):
-    #     projectDir = cmds.workspace(query=True, directory=True)
-    #     ret = cmds.fileDialog2(cap='Select Texture Path',okc='Ok',fm=3, startingDirectory=projectDir)
-    #     if ret is not None and len(ret):
-    #         self.texturePathEdit(ret[0])
-    #         cmds.textFieldGrp("texnameGrp", edit=True, text=ret[0])
-    
-    
     def populateMaterials(self, mPath):
         looksArray = ai.AiMaterialxGetMaterialNames(mPath)
         numLooks = ai.AiArrayGetNumElements(looksArray)
+        cmds.menuItem(parent = self.materials, label="")
         for i in range(numLooks):
             look = ai.AiArrayGetStr(looksArray, i)
             cmds.menuItem(parent = self.materials, label=str(look))
-
+        
+        cmds.optionMenu(self.materials, e = True , sl = 1)
+    
     def setMaterialName(self, nodeName):
         cmds.setAttr(nodeName, cmds.optionMenu(self.materials, q = True , value = True), type = "string")
     
     
     def listMaterialsNew(self, nodeName):
-        cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
+        cmds.rowLayout(nc=2, cw2=(300,30), cl2=('center', 'center'), adjustableColumn=1, columnAttach=[(1, 'left', 0), (2, 'left', 0)])
         self.materials = cmds.optionMenu( label='Materials', changeCommand = Callback(self.setMaterialName, nodeName))
 
     def listMaterialsReplace(self, nodeName):
-        print "Goyyale"
-        # if cmds.getAttr(nodeName):
-        #     cmds.textFieldGrp("texnameGrp", edit=True,text=cmds.getAttr(nodeName) )
-        # else:
-        #     cmds.textFieldGrp("texnameGrp", edit=True, text="")
+        material_value = cmds.getAttr(nodeName)
+        for m in cmds.optionMenu(self.materials, q=True, itemListLong=True) or []:
+            cmds.deleteUI(m)
+        
+        node = nodeName.split('.')[0]
+        mPath = cmds.getAttr(node+'.materialXFilePath')
+
+        if (mPath):
+            looksArray = ai.AiMaterialxGetMaterialNames(mPath)
+            numLooks = ai.AiArrayGetNumElements(looksArray)
+            found = False
+            cmds.menuItem(parent = self.materials, label="")
+            for i in range(numLooks):
+                look = ai.AiArrayGetStr(looksArray, i)
+                cmds.menuItem(parent = self.materials, label=str(look))
+                print i , look , material_value
+                if (str(look) == str(material_value)):
+                    cmds.optionMenu(self.materials, e = True , sl = i+2)
+                    found = True
+            if (not found):
+                cmds.optionMenu(self.materials, e = True , sl = 1)
+        cmds.optionMenu(self.materials, e = True , changeCommand = Callback(self.setMaterialName, nodeName))
+            
+
+            
 
