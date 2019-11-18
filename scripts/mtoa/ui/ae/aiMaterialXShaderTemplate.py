@@ -80,7 +80,6 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
             for i in range(numLooks):
                 look = ai.AiArrayGetStr(looksArray, i)
                 cmds.menuItem(parent = self.materials, label=str(look))
-                print i , look , material_value
                 if (str(look) == str(material_value)):
                     cmds.optionMenu(self.materials, e = True , sl = i+2)
                     found = True

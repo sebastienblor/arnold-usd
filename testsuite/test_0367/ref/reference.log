@@ -1,0 +1,22 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_TESTSUITE_COMMON': '/home/krishnan/dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/usr/autodesk/arnold/maya2019', 'ADCLMHUB_LOG_DIR': '/home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0367', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': '/usr/autodesk/arnold/maya2019', 'PATH': '/usr/autodesk/arnold/maya2019/bin;/usr/autodesk/maya2019/bin;/usr/autodesk/arnold/maya2019/lib;/usr/autodesk/arnold/maya2019/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.'}
+ 
+ ==== Exec cmd ==== 
+ 
+/usr/autodesk/maya2019/bin/Render -proj "/home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0367" -rd "/home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0367" -r arnold -x 160 -y 120  "/home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0367/test.ma"
+ 
+ 
+Starting "/usr/autodesk/maya2019/bin/maya"
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   326MB WARNING | [mtoa] [<built-in>] [node aov_write_vector] Assigning temporary node id 1138176 to associated Maya type name aiAovWriteVector.
+00:00:00   326MB WARNING | [mtoa] [<built-in>] [node string_replace] Assigning temporary node id 1138177 to associated Maya type name aiStringReplace.
+00:00:00   328MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2019/procedurals/xgenSpline_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
+00:00:00   328MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2019/procedurals/xgen_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
+libai.so already loaded
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+File read in  1.7 seconds.
+Result: /home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0367/test.ma
+Scene /home/krishnan/dev/mtoa/build/linux_x86_64/20190200/gcc_debug/testsuite/test_0367/test.ma completed.
