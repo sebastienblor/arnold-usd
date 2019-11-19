@@ -745,9 +745,14 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
 }
 unsigned int CRenderViewMtoA::GetSelectionCount()
 {
-   std::vector<AtNode *>selection;
-   GetSelectionVector(selection);
-   return (unsigned int)selection.size();
+   if (AiUniverseIsActive())
+   {
+      std::vector<AtNode *>selection;
+      GetSelectionVector(selection);
+      return (unsigned int)selection.size();
+   }
+   
+   return 0;
 }
 void CRenderViewMtoA::GetSelection(AtNode **selection)
 {
