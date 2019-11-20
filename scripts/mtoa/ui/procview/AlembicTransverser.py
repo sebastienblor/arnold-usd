@@ -97,8 +97,9 @@ class AlembicTransverser(ProceduralTransverser):
         instancedPath = iobject.instanceSourcePath()
         nodeEntry = abcToArnType(iobject)
         visibility = VISIBILITY[int(AbcGeom.GetVisibility(iobject))+1]
-        nodeEntryType = 'shape' if (nodeEntry == 'points' or nodeEntry == 'polymesh' or nodeEntry == 'curves') else None
-        return [path, name, parent, visibility, instancedPath, nodeEntry, iobject, nodeEntryType]
+        nodeEntryType = 'shape' if nodeEntry in ['points', 'polymesh', 'curves'] else None
+        numchildren = iobject.getNumChildren()
+        return [path, name, parent, visibility, instancedPath, nodeEntry, iobject, nodeEntryType, numchildren]
 
     def getRootObjectInfo(self, node):
         abc_file = self.getArchive(node)
@@ -108,6 +109,7 @@ class AlembicTransverser(ProceduralTransverser):
 
     def dir(self, iobject):
         children = []
+        print "AlembicTransverser.dir",iobject
         if iobject == 'NULL':
             return children
 

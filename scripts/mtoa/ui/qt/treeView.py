@@ -65,16 +65,22 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def mousePressEvent(self, event):
         """Receive mouse press events for the widget."""
-
+        print "tree.mousePressEvent"
         index = self.indexAt(event.pos())
-
+        print "index.isValid()", index.isValid()
+        if not index.isValid():
+            return
         super(BaseTreeView, self).mousePressEvent(event)
+        # self.clicked.emit(index)
+        # action = self.itemDelegate(index).getLastAction()
+        # self.model().executeAction(action, index)
 
         # Redraw the item
         self.redraw(index)
 
     def mouseReleaseEvent(self, event):
         """Trigger actions based on mouse presses."""
+        print "tree.mouseReleaseEvent"
         super(BaseTreeView, self).mouseReleaseEvent(event)
         index = self.indexAt(event.pos())
 
@@ -122,6 +128,8 @@ class BaseTreeView(QtWidgets.QTreeView):
             self.setExpandedChildren(child, expanded)
 
     def executeAction(self, index):
+        print "tree.executeAction"
+
         action = self.itemDelegate(index).getLastAction()
         self.model().executeAction(action, index)
 
@@ -190,6 +198,7 @@ class BaseModel(QtCore.QAbstractItemModel):
         Return the data stored under the given role for the item referred to by
         the index.
         """
+        # print "model.data", index, role
         if not index.isValid():
             return
         item = index.internalPointer()
@@ -212,6 +221,7 @@ class BaseModel(QtCore.QAbstractItemModel):
             return item.getIndent()
         elif role == NODE_ENABLED:
             return item.isEnabled()
+        print "data has no valid role", role
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """Set the role data for the item at index to value."""
@@ -231,6 +241,7 @@ class BaseModel(QtCore.QAbstractItemModel):
 
     def indexFromItem(self, node):
         """Create the index that represents the given item in the model."""
+        print "indexFromItem"
         if not node or not node.parent():
             return QtCore.QModelIndex()
 
@@ -240,7 +251,7 @@ class BaseModel(QtCore.QAbstractItemModel):
 
         return QtCore.QModelIndex()
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=QtCore.QModelIndex()):
         """
         The index of the item in the model specified by the given row, column
         and parent index.
@@ -457,12 +468,14 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         # Text font
         painter.setFont(QtWidgets.QApplication.font())
 
+        text_indent = index.data(TEXT_INDENT) or dpiScale(40)
+
         # Draw the text for the node
         textRect = deepcopy(rect)
         textRect.setBottom(textRect.bottom() + dpiScale(2))
         textRect.setLeft(
             textRect.left() +
-            toPyObject(index.data(TEXT_INDENT)) +
+            text_indent +
             self.ICON_PADDING)
 
         right = textRect.right() - dpiScale(11)
@@ -484,14 +497,18 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         """Draw the icons and buttons on the right side of the item."""
         painter.save()
 
-        actions = toPyObject(index.data(ACTIONS))
+        actions = toPyObject(index.data(ACTIONS)) or []
 
         buttonPressed = \
             QtWidgets.QApplication.mouseButtons() == QtCore.Qt.LeftButton or \
             QtWidgets.QApplication.mouseButtons() == QtCore.Qt.RightButton
 
         # Position
-        center = toPyObject(index.data(QtCore.Qt.SizeHintRole)).height() / 2
+        sizeHint = index.data(QtCore.Qt.SizeHintRole) or  QtCore.QSize(250, ITEM_HEIGHT)
+        # if not idata:
+        #     return
+
+        center = toPyObject(sizeHint).height() / 2
         start = self.ACTION_BORDER
 
         self.drawToolbarFrame(painter, rect, len([a for a in actions if a[0]]))

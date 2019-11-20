@@ -336,6 +336,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser, because we'll set it later or 
         # in fileInfoReplace
+        self.filter_box = QtWidgets.QLineEdit(currentWidget)
+        self.filter_box.setPlaceholderText("filter ..")
+        currentWidget.layout().addWidget(self.filter_box)
         self.tree = ProceduralTreeView(None, currentWidget)
         self.tree.setObjectName("standinTreeWidget")
         currentWidget.layout().addWidget(self.tree)
@@ -345,6 +348,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidget.layout().addWidget(self.properties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
+        # self.filter_box.textChanged.connect(self.tree.model().setFilterWildcard)
 
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])

@@ -23,6 +23,7 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           PROC_NUM_CHILDREN, \
                            OVERRIDE_OP, DISABLE_OP
 
 from mtoa.callbacks import *
@@ -51,27 +52,53 @@ class StandInTransverser(ProceduralTransverser):
 
     def getObjectInfo(self, iObj):
         if iObj == None:
-            return ['/', '/', '', 'visible', '', None, None, None]
+            return ['/', '/', '', 'visible', '', None, None, None, ]
 
         name = iObj
         nodeEntry = self.nodeEntries[iObj]
         nodeEntryType = self.nodeEntryTypes[iObj]
         return [name, name, '', 'visible', name, nodeEntry, name, nodeEntryType]
 
+    def getNumNodes(self, filename):
+
+        universeCreated = False
+        if not ai.AiUniverseIsActive():
+            universeCreated = True
+            ai.AiBegin()
+
+        universe = ai.AiUniverse()
+        ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
+
+        iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL)
+        count = 0
+        while not ai.AiNodeIteratorFinished(iter):
+            node = ai.AiNodeIteratorGetNext(iter)
+            count += 1
+
+        ai.AiNodeIteratorDestroy(iter)
+        ai.AiUniverseDestroy(universe)
+
+        if universeCreated:
+            ai.AiEnd()
+
+        return count
+
     def getRootObjectInfo(self, node):
         self.nodeName = node
-        return ["/", "/", '', 'visible', '', None, None, None]
+        filename = self.getFileName(node)
+        numNodes = 0
+        if filename:
+            numNodes = self.getNumNodes(filename)
+        return ["/", "/", '', 'visible', '', None, None, None, numNodes]
 
-    def dir(self, iobject):
-        if iobject != None:
-            return []
+    def getFileName(self, node):
 
-        filenameAttr = self.nodeName + '.dso'
+        filenameAttr = node + '.dso'
         filename = cmds.getAttr(filenameAttr)
         filename = expandEnvVars(filename)
 
-        if ('#' in filename) and cmds.getAttr(self.nodeName + '.useFrameExtension'):
-            frame = cmds.getAttr(self.nodeName + '.frameNumber')
+        if ('#' in filename) and cmds.getAttr(node + '.useFrameExtension'):
+            frame = cmds.getAttr(node + '.frameNumber')
             extension_len = 0
             padding = 0
             for c in reversed(filename):
@@ -82,15 +109,23 @@ class StandInTransverser(ProceduralTransverser):
                 else:
                     # still haven't found a numerical parameter
                     extension_len += 1
-            
+
             frame_str = str(frame)
             for i in range(1, padding):
                 if frame < pow(10, i):
                     frame_str = '0' + frame_str
-        
+
             filename = filename[:-extension_len - padding] + frame_str + filename[-extension_len:]
 
-        self.nodeEntries = {} 
+        return filename
+
+    def dir(self, iobject):
+        if iobject != None:
+            return []
+
+        filename = self.getFileName(self.nodeName)
+
+        self.nodeEntries = {}
         if not os.path.exists(str(filename)):
             return
 
@@ -125,8 +160,8 @@ class StandInTransverser(ProceduralTransverser):
                     nodeEntryType = 'procedural'
                 elif derivedType == ai.AI_NODE_SHAPE_VOLUME:
                     nodeEntryType = 'volume'
-                    
-            ass_nodes.append([name, name, '', 'visible', name, nodeEntry, name, nodeEntryType])
+
+            ass_nodes.append([name, name, '', 'visible', name, nodeEntry, name, nodeEntryType, 0])
             self.nodeEntries[name] = nodeEntry
             self.nodeEntryTypes[name] = nodeEntryType
 

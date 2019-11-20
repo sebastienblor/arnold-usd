@@ -10,14 +10,18 @@ from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale, Timer
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, \
+                           PROC_IOBJECT, PROC_NUM_CHILDREN, \
                            OVERRIDE_OP, DISABLE_OP, \
                            PARAM
+
+from mtoa.ui.qt.utils import busy_cursor
 
 SHADER = "shader"
 DISPLACEMENT = "disp_map"
 PARAMETER = "other"
 
+use_proxy = False
 
 class ProceduralTreeView(BaseTreeView):
     """docstring for ProceduralTree"""
@@ -31,16 +35,21 @@ class ProceduralTreeView(BaseTreeView):
         super(ProceduralTreeView, self).__init__(parent)
         self.transverser = transverser
 
-        model = ProceduralTreeModel(self, self.transverser)
-        self.setModel(model)
+        self.baseModel = ProceduralTreeModel(self, self.transverser)
+        if use_proxy:
+            self.filterModel = ProceduralTreeFilterModel(self)
+            self.filterModel.setSourceModel(self.baseModel)
+            self.setModel(self.filterModel)
+        else:
+            self.setModel(self.baseModel)
 
         # Custom style
         delegate = ProceduralTreeViewDelegate(self)
         self.setItemDelegate(delegate)
 
-        self.pressed.connect(self.onPressed)
-        self.expanded.connect(self.onExpanded)
-        self.collapsed.connect(self.onCollapse)
+        # self.pressed.connect(self.onPressed)
+        # self.expanded.connect(self.onExpanded)
+        # self.collapsed.connect(self.onCollapse)
 
         self.INITIAL_HEIGHT = self.sizeHintForRow(0) * self.MIN_VISIBLE_ENTRIES + 2 * self.frameWidth()
         self.MAX_HEIGHT = self.sizeHintForRow(0) * self.MAX_VISIBLE_ENTRIES + 2 * self.frameWidth()
@@ -55,9 +64,9 @@ class ProceduralTreeView(BaseTreeView):
         if model.setCurrentNode(node, force):
             # refresh the model, pass if we need to delay the update
             # of the child node to the actual expand
-            model.refresh(not expand)
-            if expand:
-                self.expandToDepth(0)
+            model.refresh()
+            # if expand:
+            #     self.expandToDepth(0)
             self.clearSelection()
 
     def onPressed(self, index):
@@ -76,19 +85,8 @@ class ProceduralTreeView(BaseTreeView):
 
     def onExpanded(self, index):
         """It is called when the item specified by index is expanded."""
-        if not index.isValid():
-            return
-
-        # timer = Timer()
-        item = index.internalPointer()
-        # Load the objects of the children items
-        for i in range(item.childCount()):
-            child = item.child(i)
-            child.obtainChildren()
-
         # scale the treeView based on number of expanded rows
         self.setFixedHeight(self._calculateHeight())
-        # print "xxxxxxxx Time to expand {} : {}".format(item.name, timer.get_time_hhmmss())
 
     def onCollapse(self, index):
         # scale the treeView based on number of expanded rows
@@ -157,12 +155,14 @@ class ProceduralTreeModel(BaseModel):
         super(ProceduralTreeModel, self).__init__(treeView, parent)
 
     def setTransverser(self, transverser, refresh=True):
+        print "setTransverser", transverser, refresh
         self.transverser = transverser
         self.iarch = None
         if refresh:
             self.refresh()
 
     def refresh(self, delayUpdate=False):
+        print "refresh", delayUpdate, self.currentNode, self.transverser
         if not self.currentNode or not cmds.objExists(self.currentNode) or not self.transverser:
             return
 
@@ -171,6 +171,33 @@ class ProceduralTreeModel(BaseModel):
         self.rootItem.obtainChildren(delayUpdate)
 
         self.endResetModel()
+
+    def canFetchMore(self, parent):
+        if not parent.isValid():
+            return False
+        item = parent.internalPointer()
+        print "ProceduralTreeModel.canFetchMore", item.getName()
+        return item.canFetchMore()
+
+    # @busy_cursor
+    def fetchMore(self, parent):
+        if not parent.isValid():
+            return False
+        item = parent.internalPointer()
+        print "ProceduralTreeModel.fetchMore", item.getName()
+        if item:
+            s = parent.row() + 1
+            e = parent.row() + item.childCount()
+            self.beginInsertRows(parent, s, e)
+            # self.beginInsertRows(parent, s, s + item.childCount())
+            # Load the objects of the children items
+            print "- item", item.getName, item.childCount()
+            for i in range(item.childCount()):
+                child = item.child(i)
+                child.obtainChildren()
+            self.endInsertRows()
+            return True
+        return False
 
     def setCurrentNode(self, node, force=False):
         if self.currentNode != node or force:
@@ -194,8 +221,6 @@ class ProceduralTreeModel(BaseModel):
 
         elif role == OVERRIDE:
             item = index.internalPointer()
-            # item.setOverride(
-            #     value, self.treeView().getLayer(), OVERRIDE_ATTRIBUTE)
             self.dataChanged.emit(index, QtCore.QModelIndex())
             return True
 
@@ -220,6 +245,8 @@ class ProceduralTreeModel(BaseModel):
     def executeAction(self, action, index):
         """User pressed by one of the actions."""
         item = index.internalPointer()
+        treeView = self.treeView()
+        print "executeAction", action, index, item
 
         if action == ProceduralItem.ACTION_SHADER:
             ov, pov = item.getOverrides() or [], []
@@ -230,8 +257,9 @@ class ProceduralTreeModel(BaseModel):
                 ov = str(ov[2]).replace("'", "")
                 self.transverser.selectNode(ov)
         elif action == ProceduralItem.ACTION_EXPAND:
-            self.treeView().setExpanded(
-                index, not self.treeView().isExpanded(index))
+            print "Expanding", not treeView.isExpanded(index)
+            treeView.setExpanded(
+                index, not treeView.isExpanded(index))
 
 
 class ProceduralTreeViewDelegate(BaseDelegate):
@@ -257,9 +285,6 @@ class ProceduralItem(BaseItem):
     OPERATOR_ICON = QtGui.QPixmap(":/gear.png")
     UNKNOWN_SHAPE_ICON = QtGui.QPixmap(":/cube.png")
     TEXTURE_ICON = QtGui.QPixmap(":/menuIconImages")
-
-
-
 
     COLOR_OBJECT = QtGui.QColor(113, 142, 164)
     COLOR_OPERATOR = QtGui.QColor(18, 54, 82)
@@ -339,6 +364,15 @@ class ProceduralItem(BaseItem):
             return self.model
 
         return self.parent().getModel()
+
+    def canFetchMore(self):
+        print "ProceduralItem.canFetchMore", self.childCount() >= 1
+        return self.childCount() >= 1
+
+    def numChildren(self):
+        if PROC_NUM_CHILDREN > len(self.data) - 1:
+            return 0
+        return self.data[PROC_NUM_CHILDREN]
 
     def setOverridesOp(self):
         ops = []
@@ -484,7 +518,7 @@ class ProceduralItem(BaseItem):
     def obtainChildren(self, delayUpdate=False):
         if self.childrenObtained:
             return
-
+        print "obtainChildren", self.getName()
         # timer = Timer()
 
         # delete any nodes under this one
@@ -498,7 +532,7 @@ class ProceduralItem(BaseItem):
                 item.obtainChildren(delayUpdate)
         elif delayUpdate:
             # delay the update by creating a tempory node that will be deleted on the expand
-            ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL"])
+            ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL", 0])
             return
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
@@ -513,9 +547,11 @@ class ProceduralItem(BaseItem):
             children = self.transverser.dir(self.data[PROC_IOBJECT])
             if children:
                 for child in children:
-                    ProceduralItem(self, self.transverser, self.node, data=child)
+                    childItem = ProceduralItem(self, self.transverser, self.node, data=child)
+                    print "- child", childItem.getName()
 
         self.childrenObtained = True
+        return True
 
     def find(self, path):
         self.obtainChildren()
@@ -536,3 +572,148 @@ class ProceduralItem(BaseItem):
 
     def setDirty(self, dirty):
         self.dirty = dirty
+
+
+class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
+    """docstring for ClassName"""
+    def __init__(self, parent=None):
+        super(ProceduralTreeFilterModel, self).__init__(parent)
+
+        self.setFilterRegExp(".*")
+        # self.setRecursiveFilteringEnabled(True) # qt 5.10 +
+
+    @property
+    def currentNode(self):
+        return self.sourceModel().currentNode
+
+    def treeView(self):
+        return self.sourceModel().treeView()
+
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        print "filterAcceptsRow", sourceRow, sourceParent
+        return True
+        if self.filterAcceptsRowItself(sourceRow, sourceParent):
+            return True
+        parent = sourceParent
+        while parent.isValid():
+            if self.filterAcceptsRowItself(parent.row(), parent.parent()):
+                return True
+            parent = parent.parent()
+
+        if self.hasAcceptedChildren(source_row, source_parent):
+            return True
+
+        return False
+
+    # def showThis(self, index):
+    #     retVal = False
+    #     # item = index.internalPointer()
+    #     # refresh the children of this item if needed
+    #     # item.obtainChildren()
+    #     if self.sourceModel().rowCount(index) > 0:
+    #         for nChild in range(self.sourceModel().rowCount(index)):
+    #             childIndex = self.sourceModel().index(nChild, 0, index)
+    #             if not childIndex.isValid():
+    #                 break
+    #             retVal = self.showThis(childIndex)
+    #             if retVal:
+    #                 break
+    #     else:
+    #         regex = self.filterRegExp()
+    #         useIndex = self.sourceModel().index(index.row(), 0, index.parent())
+    #         data = useIndex.data(QtCore.Qt.DisplayRole)
+    #         print "showThis", data, regex
+    #         if not regex.indexIn(data) != -1:
+    #             retVal = False
+    #         else:
+    #             retVal = True
+    #         print "showThis", retVal
+    #     return retVal
+
+    def filterAcceptsRowItself(self, source_row, source_parent):
+        return super(ProceduralTreeFilterModel, self).filterAcceptsRow(source_row, source_parent)
+
+    def hasAcceptedChildren(self, source_row, source_parent):
+        index = self.sourceModel().index(sourceRow, 0, sourceParent)
+        if not index.isValid():
+            return False
+
+        childCount = index.model().rowCount(index)
+        if childCount == 0:
+            return False
+
+        for nChild in range(childCount):
+            if self.filterAcceptsRowItself(nChild, index):
+                return True
+            if self.hasAcceptedChildren(nChild, index):
+                return True
+
+        return False
+
+    def setTransverser(self, *args, **kwargs):
+        return self.sourceModel().setTransverser(*args, **kwargs)
+
+    def indexFromItem(self, *args, **kwargs):
+        return self.sourceModel().indexFromItem(*args, **kwargs)
+
+    # def mapToSource(self, proxyIndex):
+    #     return
+
+    # def flags(self, *args, **kwargs):
+    #     return self.sourceModel().flags(*args)
+
+    # def rowCount(self, *args, **kwargs):
+    #     return self.sourceModel().rowCount(*args, **kwargs)
+
+    # def columnCount(self, *args, **kwargs ):
+    #     return self.sourceModel().columnCount(*args, **kwargs)
+
+    def refresh(self, *args, **kwargs):
+        return self.sourceModel().refresh(*args, **kwargs)
+
+    def canFetchMore(self, parent):
+        print "proxy.canFetchMore", parent, parent.isValid()
+        if not parent.isValid():
+            return True
+        else:
+            sourceIndex = self.mapToSource(parent)
+            return self.sourceModel().canFetchMore(sourceIndex)
+
+    def fetchMore(self, parent):
+        sourceIndex = self.mapToSource(parent)
+        print "proxy.fetchMore", parent, parent.isValid()
+        if parent.isValid():
+            row = parent.row()
+            startRow = row + 1
+            sourceIndex = self.mapToSource(parent)
+            self.sourceModel().fetchMore(sourceIndex)
+            # item = sourceIndex.internalPointer()
+            # print " - item", item
+            # if not item.childrenObtained:
+            #     self.beginInsertRows(parent, startRow, startRow + item.childCount())
+            #     item.obtainChildren()
+            #     self.endInsertRows()
+
+    # def index(self, *args, **kwargs):
+    #     return self.sourceModel().index(*args, **kwargs)
+
+    # def parent(self, *args, **kwargs):
+    #     return self.sourceModel().parent(*args, **kwargs)
+
+    def setCurrentNode(self, *args, **kwargs):
+        return self.sourceModel().setCurrentNode(*args, **kwargs)
+
+    # def data(self, index, role=QtCore.Qt.DisplayRole):
+    #     print "data", role
+    #     return self.sourceModel().data(index, role)
+
+    def setData(self, *args, **kwargs):
+        return self.sourceModel().setData(*args, **kwargs)
+
+    def expandedCount(self):
+        return self.sourceModel().expandedCount()
+
+    def executeAction(self, action, index):
+        modelIndex = self.mapToSource(index)
+        print "proxy.executeAction", modelIndex
+        return self.sourceModel().executeAction(action, modelIndex)
