@@ -1,6 +1,6 @@
 //Maya ASCII 2019 scene
 //Name: test.ma
-//Last modified: Thu, Nov 21, 2019 02:21:58 pm
+//Last modified: Thu, Nov 21, 2019 03:32:01 pm
 //Codeset: UTF-8
 requires maya "2019";
 requires -nodeType "hairPhysicalShader" "hairPhysicalShader" "1.0";
@@ -252,30 +252,29 @@ createNode aiAreaLight -n "aiAreaLightShape2" -p "aiAreaLight2";
 	setAttr ".aal" -type "attributeAlias" {"exposure","aiExposure","normalize","aiNormalize"
 		} ;
 createNode lightLinker -s -n "lightLinker1";
-	rename -uid "B8EED9C0-0000-BFC0-5DD6-9D59000002EC";
+	rename -uid "B8EED9C0-0000-BFC0-5DD6-AD840000033B";
 	setAttr -s 3 ".lnk";
 	setAttr -s 3 ".ign";
 	setAttr -s 3 ".slnk";
 createNode shapeEditorManager -n "shapeEditorManager";
-	rename -uid "B8EED9C0-0000-BFC0-5DD6-9D59000002ED";
+	rename -uid "B8EED9C0-0000-BFC0-5DD6-AD840000033C";
 createNode poseInterpolatorManager -n "poseInterpolatorManager";
-	rename -uid "B8EED9C0-0000-BFC0-5DD6-9D59000002EE";
+	rename -uid "B8EED9C0-0000-BFC0-5DD6-AD840000033D";
 createNode displayLayerManager -n "layerManager";
-	rename -uid "B8EED9C0-0000-BFC0-5DD6-9D59000002EF";
+	rename -uid "B8EED9C0-0000-BFC0-5DD6-AD840000033E";
 createNode displayLayer -n "defaultLayer";
 	rename -uid "F50F09C0-0000-9940-5DD3-C4A500000253";
 createNode renderLayerManager -n "renderLayerManager";
-	rename -uid "B8EED9C0-0000-BFC0-5DD6-9D59000002F1";
+	rename -uid "B8EED9C0-0000-BFC0-5DD6-AD8400000340";
 createNode renderLayer -n "defaultRenderLayer";
 	rename -uid "F50F09C0-0000-9940-5DD3-C4A500000255";
 	setAttr ".g" yes;
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	rename -uid "F50F09C0-0000-9940-5DD3-C4A800000256";
 	addAttr -ci true -sn "ARV_options" -ln "ARV_options" -dt "string";
-	setAttr ".arnrt" 2;
 	setAttr ".mtrinf" yes;
 	setAttr ".version" -type "string" "3.3.0.1";
-	setAttr ".ARV_options" -type "string" "Test Resolution=100%;Camera=perspShape;Color Management.Gamma=1;Color Management.Exposure=0;Background.BG=BG Color;Background.Color=0 0 0;Background.Image=;Background.Scale=1    1;Background.Offset=0    0;Background.Apply Color Management=1;Foreground.Enable FG=0;Foreground.Image=;Foreground.Scale=1    1;Foreground.Offset=0    0;Foreground.Apply Color Management=1;";
+	setAttr ".ARV_options" -type "string" "Test Resolution=100%;Camera=perspShape;Color Management.Gamma=1;Color Management.Exposure=0;Background.BG=BG Color;Background.Color=0 0 0;Background.Image=;Background.Scale=1     1;Background.Offset=0     0;Background.Apply Color Management=1;Foreground.Enable FG=0;Foreground.Image=;Foreground.Scale=1     1;Foreground.Offset=0     0;Foreground.Apply Color Management=1;";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";
 	rename -uid "F50F09C0-0000-9940-5DD3-C4A800000257";
 	setAttr ".ai_translator" -type "string" "gaussian";
@@ -310,7 +309,7 @@ createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".b" -type "string" "playbackOptions -min 1 -max 120 -ast 1 -aet 200 ";
 	setAttr ".st" 6;
 createNode script -n "xgenGlobals";
-	rename -uid "B8EED9C0-0000-BFC0-5DD6-9D86000002FF";
+	rename -uid "B8EED9C0-0000-BFC0-5DD6-ADF10000034D";
 	setAttr ".a" -type "string" "import maya.cmds as cmds\nif cmds.about(batch=True):\n\txgg.Playblast=False\nelse:\n\txgui.createDescriptionEditor(False).setGlobals( previewSel=0, previewMode=0, clearSel=0, clearMode=0, playblast=1, clearCache=0, autoCreateMR=1 )";
 	setAttr ".stp" 1;
 	setAttr ".ire" 1;
