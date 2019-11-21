@@ -1,0 +1,376 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_TESTSUITE_COMMON': '/home/handsca/Dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/opt/solidangle/mtoa/4.0.1-dev/2019', 'ADCLMHUB_LOG_DIR': '/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368', 'ADCLMHUB_LOG_LEVEL': 'T', 'HOME': '/home/handsca', 'MAYA_RENDER_DESC_PATH': '/opt/solidangle/mtoa/4.0.1-dev/2019', 'PATH': '/opt/solidangle/mtoa/4.0.1-dev/2019/bin;/usr/autodesk/maya2019/bin;/opt/solidangle/mtoa/4.0.1-dev/2019/lib;/opt/solidangle/mtoa/4.0.1-dev/2019/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.'}
+ 
+ ==== Exec cmd ==== 
+ 
+/usr/autodesk/maya2019/bin/Render -proj "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368" -rd "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368" -r arnold -x 160 -y 120  "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/test.ma"
+ 
+ 
+Starting "/home/software/maya/2019/bin/maya"
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   388MB WARNING | [mtoa] [<built-in>] [node aov_write_vector] Assigning temporary node id 1138176 to associated Maya type name aiAovWriteVector.
+00:00:00   388MB WARNING | [mtoa] [<built-in>] [node string_replace] Assigning temporary node id 1138177 to associated Maya type name aiStringReplace.
+sh: deadlinecommand: command not found
+libai.so already loaded
+Running submission script ""
+Warning: file: /home/handsca/maya/scripts/DeadlineMayaClient.mel line 132: The SubmitMayaToDeadline.mel script could not be found in the Deadline Repository. Please make sure that the Deadline Client has been installed on this machine, that the Deadline Client bin folder is set in the DEADLINE_PATH environment variable, and that the Deadline Client has been configured to point to a valid Repository.
+File read in  0.099 seconds.
+Importing XGen Collections...
+Error: XGen:  Failed to create a snapshot for collection collection13. Delta file saving will not function. 
+Done.
+Result: /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/test.ma
+[mtoa] Executing Maya command arnoldExportAss -b -fp
+[mtoa] Exporting scene
+[mtoa] Exporting scene
+[mtoa.session]     Initializing at frame 1
+[mtoa.session]     Initializing at frame 1
+[mtoa] Exporting Arnold options defaultArnoldRenderOptions
+[mtoa] Exporting Arnold options defaultArnoldRenderOptions
+[mtoa.ext]  aiOptions Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.ext]  aiOptions Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.session]     defaultArnoldRenderOptions | Exporting plug defaultArnoldRenderOptions.message for type aiOptions
+[mtoa.session]     defaultArnoldRenderOptions | Exporting plug defaultArnoldRenderOptions.message for type aiOptions
+[mtoa.translator]  defaultArnoldRenderOptions | <built-in>: Exported 0 override sets.
+[mtoa.translator]  defaultArnoldRenderOptions | <built-in>: Exported 0 override sets.
+[mtoa.translator]  defaultArnoldRenderOptions (aiOptions): Translator <built-in> created arnold node options
+[mtoa.translator]  defaultArnoldRenderOptions (aiOptions): Translator <built-in> created arnold node options
+[mtoa.translator]  defaultArnoldRenderOptions | Exporting on plug message (<built-in>)
+[mtoa.translator]  defaultArnoldRenderOptions | Exporting on plug message (<built-in>)
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.translator]  defaultArnoldFilter | gaussian: Exported 0 override sets.
+[mtoa.translator]  defaultArnoldFilter | gaussian: Exported 0 override sets.
+[mtoa.translator]  defaultArnoldFilter (aiAOVFilter): Translator gaussian created arnold node defaultArnoldFilter@gaussian_filter
+[mtoa.translator]  defaultArnoldFilter (aiAOVFilter): Translator gaussian created arnold node defaultArnoldFilter@gaussian_filter
+[mtoa.translator]  defaultArnoldFilter | Exporting on plug message (gaussian)
+[mtoa.translator]  defaultArnoldFilter | Exporting on plug message (gaussian)
+[mtoa.session]     defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+[mtoa.session]     defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+[mtoa] [aov beauty] Setting AOV output: filter and driver.
+[mtoa] [aov beauty] Setting AOV output: filter and driver.
+[mtoa.session]     defaultArnoldDriver | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+[mtoa.session]     defaultArnoldDriver | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+[mtoa.translator]  defaultArnoldDriver | tif: Exported 0 override sets.
+[mtoa.translator]  defaultArnoldDriver | tif: Exported 0 override sets.
+[mtoa.translator]  defaultArnoldDriver (aiAOVDriver): Translator tif created arnold node defaultArnoldDriver@driver_tiff
+[mtoa.translator]  defaultArnoldDriver (aiAOVDriver): Translator tif created arnold node defaultArnoldDriver@driver_tiff
+[mtoa.translator]  defaultArnoldDriver | Exporting on plug message (tif)
+[mtoa.translator]  defaultArnoldDriver | Exporting on plug message (tif)
+[mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.translator]  tif: Parameter color_space is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.translator]  tif: Parameter color_space is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.ext]  colorManagementGlobals Using translator synColorTranslator, provided by synColorTranslator(/opt/solidangle/mtoa/4.0.1-dev/2019/extensions/synColorTranslator.so).
+[mtoa.ext]  colorManagementGlobals Using translator synColorTranslator, provided by synColorTranslator(/opt/solidangle/mtoa/4.0.1-dev/2019/extensions/synColorTranslator.so).
+[mtoa.session]     defaultColorMgtGlobals | Exporting plug defaultColorMgtGlobals.message for type colorManagementGlobals
+[mtoa.session]     defaultColorMgtGlobals | Exporting plug defaultColorMgtGlobals.message for type colorManagementGlobals
+[mtoa.translator]  defaultColorMgtGlobals | synColorTranslator: Exported 0 override sets.
+[mtoa.translator]  defaultColorMgtGlobals | synColorTranslator: Exported 0 override sets.
+[mtoa.translator]  defaultColorMgtGlobals (colorManagementGlobals): Translator synColorTranslator created arnold node defaultColorMgtGlobals
+[mtoa.translator]  defaultColorMgtGlobals (colorManagementGlobals): Translator synColorTranslator created arnold node defaultColorMgtGlobals
+[mtoa.translator]  defaultColorMgtGlobals | Exporting on plug message (synColorTranslator)
+[mtoa.translator]  defaultColorMgtGlobals | Exporting on plug message (synColorTranslator)
+[mtoa.session]     /persp/perspShape | Exporting DAG node of type camera
+[mtoa.session]     /persp/perspShape | Exporting DAG node of type camera
+[mtoa.translator]  perspShape (camera): Translator perspective created arnold node /persp/perspShape
+[mtoa.translator]  perspShape (camera): Translator perspective created arnold node /persp/perspShape
+[mtoa.session]     /aiAreaLight1/aiAreaLightShape1 | Exporting DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight1/aiAreaLightShape1 | Exporting DAG node of type aiAreaLight
+[mtoa.ext]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.ext]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.session]     defaultLightSet | Exporting plug defaultLightSet.message for type objectSet
+[mtoa.session]     defaultLightSet | Exporting plug defaultLightSet.message for type objectSet
+[mtoa.translator]  defaultLightSet | <built-in>: Exported 0 override sets.
+[mtoa.translator]  defaultLightSet | <built-in>: Exported 0 override sets.
+[mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> didn't create any node
+[mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> didn't create any node
+[mtoa.translator]  defaultLightSet | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  defaultLightSet | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  aiAreaLightShape1 (aiAreaLight): Translator quad created arnold node /aiAreaLight1/aiAreaLightShape1
+[mtoa.translator]  aiAreaLightShape1 (aiAreaLight): Translator quad created arnold node /aiAreaLight1/aiAreaLightShape1
+[mtoa.session]     /aiAreaLight2/aiAreaLightShape2 | Exporting DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight2/aiAreaLightShape2 | Exporting DAG node of type aiAreaLight
+[mtoa.ext]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.ext]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.session]     defaultLightSet | Exporting plug defaultLightSet.message for type objectSet
+[mtoa.session]     defaultLightSet | Exporting plug defaultLightSet.message for type objectSet
+[mtoa.session]     defaultLightSet | Reusing previous export of node of type objectSet
+[mtoa.session]     defaultLightSet | Reusing previous export of node of type objectSet
+[mtoa.translator]  defaultLightSet | <built-in>: Exported 0 override sets.
+[mtoa.translator]  defaultLightSet | <built-in>: Exported 0 override sets.
+[mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> didn't create any node
+[mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> didn't create any node
+[mtoa.translator]  defaultLightSet | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  defaultLightSet | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  aiAreaLightShape2 (aiAreaLight): Translator quad created arnold node /aiAreaLight2/aiAreaLightShape2
+[mtoa.translator]  aiAreaLightShape2 (aiAreaLight): Translator quad created arnold node /aiAreaLight2/aiAreaLightShape2
+[mtoa.ext]  lightLinker Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.ext]  lightLinker Using translator <built-in>, provided by <built-in>(<built-in>).
+[mtoa.session]     lightLinker1 | Exporting plug lightLinker1.message for type lightLinker
+[mtoa.session]     lightLinker1 | Exporting plug lightLinker1.message for type lightLinker
+[mtoa.translator]  lightLinker1 | <built-in>: Exported 0 override sets.
+[mtoa.translator]  lightLinker1 | <built-in>: Exported 0 override sets.
+[mtoa.translator]  lightLinker1 (lightLinker): Translator <built-in> didn't create any node
+[mtoa.translator]  lightLinker1 (lightLinker): Translator <built-in> didn't create any node
+[mtoa.translator]  lightLinker1 | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  lightLinker1 | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.sesion]    Updating Light-linking information
+[mtoa.sesion]    Updating Light-linking information
+[mtoa.session]     /pPlane1 | Ignoring DAG node of type transform
+[mtoa.session]     /pPlane1 | Ignoring DAG node of type transform
+[mtoa.session]     /pPlane1/pPlaneShape1 | Exporting DAG node of type mesh
+[mtoa.session]     /pPlane1/pPlaneShape1 | Exporting DAG node of type mesh
+[mtoa.translator]  pPlaneShape1 (mesh): Translator polymesh created arnold node /pPlane1/pPlaneShape1
+[mtoa.translator]  pPlaneShape1 (mesh): Translator polymesh created arnold node /pPlane1/pPlaneShape1
+[mtoa.session]     /collection13 | Ignoring DAG node of type xgmPalette
+[mtoa.session]     /collection13 | Ignoring DAG node of type xgmPalette
+[mtoa.session]     /collection13/description13 | Ignoring DAG node of type transform
+[mtoa.session]     /collection13/description13 | Ignoring DAG node of type transform
+[mtoa.ext]  xgmDescription Using translator xgenTranslator, provided by xgenTranslator(/opt/solidangle/mtoa/4.0.1-dev/2019/extensions/xgenTranslator.so).
+[mtoa.ext]  xgmDescription Using translator xgenTranslator, provided by xgenTranslator(/opt/solidangle/mtoa/4.0.1-dev/2019/extensions/xgenTranslator.so).
+[mtoa.session]     /collection13/description13/description13Shape | Exporting DAG node of type xgmDescription
+[mtoa.session]     /collection13/description13/description13Shape | Exporting DAG node of type xgmDescription
+[mtoa.translator]  description13Shape (xgmDescription): Translator xgenTranslator created arnold node /collection13/description13/description13Shape
+[mtoa.translator]  description13Shape (xgmDescription): Translator xgenTranslator created arnold node /collection13/description13/description13Shape
+[mtoa.session]     /collection13/description13/pPlane1_description13 | Ignoring DAG node of type transform
+[mtoa.session]     /collection13/description13/pPlane1_description13 | Ignoring DAG node of type transform
+[mtoa.session]     /collection13/description13/pPlane1_description13/pPlane1_description13Shape | Ignoring DAG node of type xgmSubdPatch
+[mtoa.session]     /collection13/description13/pPlane1_description13/pPlane1_description13Shape | Ignoring DAG node of type xgmSubdPatch
+[mtoa.session]     /aiAreaLight1 | Ignoring DAG node of type transform
+[mtoa.session]     /aiAreaLight1 | Ignoring DAG node of type transform
+[mtoa.session]     /aiAreaLight1/aiAreaLightShape1 | Exporting DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight1/aiAreaLightShape1 | Exporting DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight1/aiAreaLightShape1 | Reusing previous export of DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight1/aiAreaLightShape1 | Reusing previous export of DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight2 | Ignoring DAG node of type transform
+[mtoa.session]     /aiAreaLight2 | Ignoring DAG node of type transform
+[mtoa.session]     /aiAreaLight2/aiAreaLightShape2 | Exporting DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight2/aiAreaLightShape2 | Exporting DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight2/aiAreaLightShape2 | Reusing previous export of DAG node of type aiAreaLight
+[mtoa.session]     /aiAreaLight2/aiAreaLightShape2 | Reusing previous export of DAG node of type aiAreaLight
+[mtoa.translator]  description13Shape | Exporting (xgenTranslator)
+[mtoa.translator]  description13Shape | Exporting (xgenTranslator)
+[mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/opt/solidangle/mtoa/4.0.1-dev/2019/shaders/mtoa_shaders.so).
+[mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/opt/solidangle/mtoa/4.0.1-dev/2019/shaders/mtoa_shaders.so).
+[mtoa.session]     hairPhysicalShader1SG | Exporting plug hairPhysicalShader1SG.dagSetMembers[0] for type shadingEngine
+[mtoa.session]     hairPhysicalShader1SG | Exporting plug hairPhysicalShader1SG.dagSetMembers[0] for type shadingEngine
+[mtoa.translator]  hairPhysicalShader1SG | mtoa_shaders: Exported 0 override sets.
+[mtoa.translator]  hairPhysicalShader1SG | mtoa_shaders: Exported 0 override sets.
+[mtoa.translator]  hairPhysicalShader1SG (shadingEngine): Translator mtoa_shaders didn't create any node
+[mtoa.translator]  hairPhysicalShader1SG (shadingEngine): Translator mtoa_shaders didn't create any node
+[mtoa.translator]  hairPhysicalShader1SG | Export requested but no Arnold node was created by this translator (mtoa_shaders)
+[mtoa.translator]  hairPhysicalShader1SG | Export requested but no Arnold node was created by this translator (mtoa_shaders)
+[mtoa.ext]  hairPhysicalShader Using translator hairPhysicalShaderTranslator, provided by hairPhysicalShaderTranslator(/opt/solidangle/mtoa/4.0.1-dev/2019/extensions/hairPhysicalShaderTranslator.so).
+[mtoa.ext]  hairPhysicalShader Using translator hairPhysicalShaderTranslator, provided by hairPhysicalShaderTranslator(/opt/solidangle/mtoa/4.0.1-dev/2019/extensions/hairPhysicalShaderTranslator.so).
+[mtoa.session]     hairPhysicalShader1 | Exporting plug hairPhysicalShader1.outColor for type hairPhysicalShader
+[mtoa.session]     hairPhysicalShader1 | Exporting plug hairPhysicalShader1.outColor for type hairPhysicalShader
+[mtoa.translator]  hairPhysicalShader1 | hairPhysicalShaderTranslator: Exported 0 override sets.
+[mtoa.translator]  hairPhysicalShader1 | hairPhysicalShaderTranslator: Exported 0 override sets.
+00:00:00   510MB WARNING |  node entry "hair" is deprecated, and may be removed in the future
+[mtoa.translator]  hairPhysicalShader1 (hairPhysicalShader): Translator hairPhysicalShaderTranslator created arnold node hairPhysicalShader1
+[mtoa.translator]  hairPhysicalShader1 (hairPhysicalShader): Translator hairPhysicalShaderTranslator created arnold node hairPhysicalShader1
+[mtoa.translator]  hairPhysicalShader1 | Exporting on plug outColor (hairPhysicalShaderTranslator)
+[mtoa.translator]  hairPhysicalShader1 | Exporting on plug outColor (hairPhysicalShaderTranslator)
+00:00:00   510MB WARNING |  [hairPhysicalShader] Glint (.intensityG) is not supported.
+[mtoa.translator]  defaultArnoldRenderOptions | Exporting on plug message (<built-in>)
+[mtoa.translator]  defaultArnoldRenderOptions | Exporting on plug message (<built-in>)
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.session]     defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+[mtoa.session]     defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+[mtoa] [aov beauty] Setting AOV output: filter and driver.
+[mtoa] [aov beauty] Setting AOV output: filter and driver.
+[mtoa.session]     defaultArnoldDriver | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+[mtoa.session]     defaultArnoldDriver | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+[mtoa.session]     defaultArnoldDriver | Reusing previous export of node of type aiAOVDriver
+[mtoa.session]     defaultArnoldDriver | Reusing previous export of node of type aiAOVDriver
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.translator]  lightLinker1 | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  lightLinker1 | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  defaultArnoldFilter | Exporting on plug message (gaussian)
+[mtoa.translator]  defaultArnoldFilter | Exporting on plug message (gaussian)
+[mtoa.translator]  aiAreaLightShape2 | Exporting (quad)
+[mtoa.translator]  aiAreaLightShape2 | Exporting (quad)
+[mtoa.translator]  defaultArnoldDriver | Exporting on plug message (tif)
+[mtoa.translator]  defaultArnoldDriver | Exporting on plug message (tif)
+[mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.translator]  tif: Parameter color_space is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.translator]  tif: Parameter color_space is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+[mtoa.translator]  defaultColorMgtGlobals | Exporting on plug message (synColorTranslator)
+[mtoa.translator]  defaultColorMgtGlobals | Exporting on plug message (synColorTranslator)
+[mtoa.translator]  perspShape | Exporting (perspective)
+[mtoa.translator]  perspShape | Exporting (perspective)
+[mtoa.translator]  defaultLightSet | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  defaultLightSet | Export requested but no Arnold node was created by this translator (<built-in>)
+[mtoa.translator]  aiAreaLightShape1 | Exporting (quad)
+[mtoa.translator]  aiAreaLightShape1 | Exporting (quad)
+[mtoa.translator]  pPlaneShape1 | Exporting (polymesh)
+[mtoa.translator]  pPlaneShape1 | Exporting (polymesh)
+[mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/opt/solidangle/mtoa/4.0.1-dev/2019/shaders/mtoa_shaders.so).
+[mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/opt/solidangle/mtoa/4.0.1-dev/2019/shaders/mtoa_shaders.so).
+[mtoa.session]     initialShadingGroup | Exporting plug initialShadingGroup.dagSetMembers[0] for type shadingEngine
+[mtoa.session]     initialShadingGroup | Exporting plug initialShadingGroup.dagSetMembers[0] for type shadingEngine
+[mtoa.translator]  initialShadingGroup | mtoa_shaders: Exported 0 override sets.
+[mtoa.translator]  initialShadingGroup | mtoa_shaders: Exported 0 override sets.
+[mtoa.translator]  initialShadingGroup (shadingEngine): Translator mtoa_shaders didn't create any node
+[mtoa.translator]  initialShadingGroup (shadingEngine): Translator mtoa_shaders didn't create any node
+[mtoa.translator]  initialShadingGroup | Export requested but no Arnold node was created by this translator (mtoa_shaders)
+[mtoa.translator]  initialShadingGroup | Export requested but no Arnold node was created by this translator (mtoa_shaders)
+[mtoa.ext]  lambert Using translator mtoa_shaders, provided by mtoa_shaders(/opt/solidangle/mtoa/4.0.1-dev/2019/shaders/mtoa_shaders.so).
+[mtoa.ext]  lambert Using translator mtoa_shaders, provided by mtoa_shaders(/opt/solidangle/mtoa/4.0.1-dev/2019/shaders/mtoa_shaders.so).
+[mtoa.session]     lambert1 | Exporting plug lambert1.outColor for type lambert
+[mtoa.session]     lambert1 | Exporting plug lambert1.outColor for type lambert
+[mtoa.translator]  lambert1 | mtoa_shaders: Exported 0 override sets.
+[mtoa.translator]  lambert1 | mtoa_shaders: Exported 0 override sets.
+[mtoa.translator]  lambert1 (lambert): Translator mtoa_shaders created arnold node lambert1
+[mtoa.translator]  lambert1 (lambert): Translator mtoa_shaders created arnold node lambert1
+[mtoa.translator]  lambert1 | Exporting on plug outColor (mtoa_shaders)
+[mtoa.translator]  lambert1 | Exporting on plug outColor (mtoa_shaders)
+[mtoa.session]    Updating TX files
+[mtoa.session]    Updating TX files
+[mtoa.session] Setting export camera to "perspShape"
+[mtoa.session] Setting export camera to "perspShape"
+[mtoa.session]     /persp/perspShape | Exporting DAG node of type camera
+[mtoa.session]     /persp/perspShape | Exporting DAG node of type camera
+[mtoa.session]     /persp/perspShape | Reusing previous export of DAG node of type camera
+[mtoa.session]     /persp/perspShape | Reusing previous export of DAG node of type camera
+[mtoa.session]    Queuing defaultArnoldRenderOptions for  Update
+[mtoa.session]    Queuing defaultArnoldRenderOptions for  Update
+[mtoa.session]    Updating Arnold Scene....
+[mtoa.session]    Updating Arnold Scene....
+[mtoa.ipr]   Updating arnold node for defaultArnoldRenderOptions
+[mtoa.ipr]   Updating arnold node for defaultArnoldRenderOptions
+[mtoa.session]    Updating 1 nodes at current frame
+[mtoa.session]    Updating 1 nodes at current frame
+[mtoa.translator]  defaultArnoldRenderOptions | Exporting on plug message (<built-in>)
+[mtoa.translator]  defaultArnoldRenderOptions | Exporting on plug message (<built-in>)
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.session]     defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+[mtoa.session]     defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+[mtoa] [aov beauty] Setting AOV output: filter and driver.
+[mtoa] [aov beauty] Setting AOV output: filter and driver.
+[mtoa.session]     defaultArnoldDriver | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+[mtoa.session]     defaultArnoldDriver | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+[mtoa.session]     defaultArnoldDriver | Reusing previous export of node of type aiAOVDriver
+[mtoa.session]     defaultArnoldDriver | Reusing previous export of node of type aiAOVDriver
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa.session]     defaultArnoldFilter | Reusing previous export of node of type aiAOVFilter
+[mtoa] [aov RGBA] output line: RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA
+[mtoa] [aov RGBA] output line: RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA
+[mtoa] Exporting Maya scene to file "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/data/test.ass"
+[mtoa] Exporting Maya scene to file "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/data/test.ass"
+[mtoa] Exported scene to file /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/data/test.ass
+[mtoa] Calling external command kick -dw -dp "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/data/test.ass";
+00:00:00   104MB         | log started Thu Nov 21 14:24:06 2019
+00:00:00   104MB         | Arnold 6.0.1.0 [df4197ef] linux clang-5.0.0 oiio-2.1.4 osl-1.11.0 vdb-4.0.0 clm-1.1.1.118 rlm-12.4.2 optix-6.5.0 2019/11/20 12:39:22
+00:00:00   104MB         | running on rems4dc9705.ads.autodesk.com, pid=2961
+00:00:00   104MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz (24 cores, 48 logical) with 63994MB
+00:00:00   104MB         |  NVIDIA driver version 435.21 (Optix 60500)
+00:00:00   104MB         |  GPU 0: TITAN V @ 1455MHz (compute 7.0) with 12033MB (7682MB available) (NVLink:0)
+00:00:00   104MB         |  GPU 1: Quadro M2000 @ 1162MHz (compute 5.2) with 4043MB (4031MB available) (NVLink:0)
+00:00:00   104MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-957.21.3.el7.x86_64
+00:00:00   104MB         |  soft limit for open files raised from 4094 to 4094
+00:00:00   104MB         |  
+00:00:00   104MB         | loading plugins from /opt/solidangle/mtoa/4.0.1-dev/2019/shaders ...
+00:00:00   104MB         | loading plugins from /opt/solidangle/mtoa/4.0.1-dev/2019/procedurals ...
+00:00:00   104MB         | loaded 121 plugins from 9 lib(s) in 0:00.02
+00:00:00   104MB         | loading plugins from /home/software/solidangle/mtoa/4.0.1-dev/2019/bin/../plugins ...
+00:00:00   104MB         | loaded 5 plugins from 3 lib(s) in 0:00.00
+00:00:00   104MB         | [kick] command: kick -dw -dp /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/data/test.ass
+00:00:00   104MB         | loading plugins from . ...
+00:00:00   104MB         | no plugins loaded
+00:00:00   105MB         | [ass] loading /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/data/test.ass ...
+00:00:00   105MB WARNING |  node entry "hair" is deprecated, and may be removed in the future
+00:00:00   105MB         | [ass] read 10743 bytes, 11 nodes in 0:00.00
+00:00:00   105MB         | 
+00:00:00   105MB         | authorizing with license managers: network, rlm ...
+00:00:01   110MB         | [network] authorized for "87287ARNOL_2020_0F" in 0:01.42
+00:00:01   110MB         | [network] expiration date: permanent, in use: 1/500
+00:00:01   110MB         | 
+00:00:01   110MB         | [color_manager] using color manager of type "color_manager_syncolor"
+00:00:01   114MB         | [color_manager_syncolor] synColor version 2018.0.80
+00:00:01   114MB         | [color_manager_syncolor] native catolog directory: /usr/autodesk/maya2019/synColor
+00:00:01   114MB         | [color_manager_syncolor] optional custom catalog directory: /home/handsca/maya/synColor/Shared/
+00:00:01   115MB         | [color_manager] rendering color space is "scene-linear Rec 709/sRGB" with declared chromaticities:
+00:00:01   115MB         |                 r(0.6400, 0.3300) g(0.3000, 0.6000) b(0.1500, 0.0600) and w(0.3127, 0.3290)
+00:00:01   126MB         |  
+00:00:01   126MB         | there are 2 lights and 3 objects:
+00:00:01   126MB         |       1 persp_camera
+00:00:01   126MB         |       2 quad_light
+00:00:01   126MB         |       1 utility
+00:00:01   126MB         |       1 lambert
+00:00:01   126MB         |       1 hair
+00:00:01   126MB         |       1 driver_tiff
+00:00:01   126MB         |       1 gaussian_filter
+00:00:01   126MB         |       1 polymesh
+00:00:01   126MB         |       1 list_aggregate
+00:00:01   126MB         |       1 xgen_procedural
+00:00:01   126MB         |       1 color_manager_syncolor
+00:00:01   126MB         |  
+00:00:01   126MB         | rendering image at 160 x 120, 3 AA samples
+00:00:01   126MB         |   AA samples max    <disabled>
+00:00:01   126MB         |   AA sample clamp   <disabled>
+00:00:01   126MB         |   diffuse           samples  2 / depth  1
+00:00:01   126MB         |   specular          samples  2 / depth  1
+00:00:01   126MB         |   transmission      samples  2 / depth  8
+00:00:01   126MB         |   volume indirect   <disabled by depth>
+00:00:01   126MB         |   total                          depth 10
+00:00:01   126MB         |   bssrdf            samples  2
+00:00:01   126MB         |   transparency      depth 10
+00:00:01   126MB         |  initializing 13 nodes ...
+
+XGen Version: /home/software/maya/2019/plug-ins/xgen/  Build Date: Jul  2 2019  17:00:53
+
+00:00:01   126MB WARNING |   /collection13/description13/description13Shape: could not read ARRAY parameter "time_samples"
+00:00:01   126MB WARNING |   /collection13/description13/description13Shape: could not read ARRAY parameter "time_samples"
+[32m14:24:08 XGen Debug(1):    Importing 1 samples for XG_RENDER_:collection13  [0m
+[32m14:24:08 XGen Debug(1):    Importing[0]: /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/test__collection13.xgen  [0m
+[32m14:24:08 XGen Debug(1):    File Version: 18  [0m
+[32m14:24:08 XGen Debug(1):    Importing collection  [0m
+[32m14:24:08 XGen Debug(1):    Name set to: XG_RENDER_:collection13  [0m
+[32m14:24:08 XGen Debug(1):    Importing description  [0m
+[32m14:24:08 XGen Debug(1):    Name set to: XG_RENDER_:description13  [0m
+[32m14:24:08 XGen Debug(1):    Done importing description: XG_RENDER_:description13  [0m
+[32m14:24:08 XGen Debug(1):    SplinePrimitive made active.  [0m
+[32m14:24:08 XGen Debug(1):    RandomGenerator made active.  [0m
+[32m14:24:08 XGen Debug(1):    RendermanRenderer made active.  [0m
+[32m14:24:08 XGen Debug(1):    GLRenderer made active previewer.  [0m
+[32m14:24:08 XGen Debug(1):    Done Importing collection file.  [0m
+[34m14:24:08 XGen Stats(1):    Preprocessing of /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/test__collection13.xgen took 0.003 seconds.  [0m
+[32m14:24:08 XGen Debug(1):    Setting up XG_RENDER_:collection13|XG_RENDER_:description13  [0m
+[32m14:24:08 XGen Debug(1):    Initialize XG_RENDER_:description13 description   [0m
+[34m14:24:08 XGen Stats(1):    Setup for XG_RENDER_:collection13|XG_RENDER_:description13 took 0.000 seconds.  [0m
+00:00:01   128MB WARNING |   [curves] /collection13/description13/description13Shape_curves: invalid radius specification: found 100, expected 1, 400 or 2000 (constant, uniform or varying); just using the first
+00:00:01   128MB         |   creating root object list ...
+00:00:01   128MB         |  node initialization done in 0:00.01 (multithreaded)
+00:00:01   128MB         |  updating 15 nodes ...
+00:00:01   128MB         |   scene bounds: (-10 -0.0500000007 -10) -> (10 1.04999995 10)
+00:00:01   128MB         |  node update done in 0:00.00 (multithreaded)
+00:00:01   128MB         |  [aov] parsing 1 output statements ...
+00:00:01   128MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:01   128MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:01   128MB         |  [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
+00:00:01   130MB         |  starting 48 bucket workers of size 64x64 ...
+00:00:01   137MB         |  render done in 0:00.075
+00:00:01   137MB         |  [driver_tiff] writing file `/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/testrender.tif'
+00:00:01   137MB         | render done
+00:00:01   138MB         |  
+00:00:01   138MB         | releasing resources
+00:00:01   129MB         | Arnold shutdown
+Scene /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0368/test.ma completed.
