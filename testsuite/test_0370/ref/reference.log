@@ -1,0 +1,24 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_TESTSUITE_COMMON': '/home/handsca/Dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/opt/solidangle/mtoa/4.0.1-dev/2019', 'ADCLMHUB_LOG_DIR': '/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370', 'ADCLMHUB_LOG_LEVEL': 'T', 'HOME': '/home/handsca', 'MAYA_RENDER_DESC_PATH': '/opt/solidangle/mtoa/4.0.1-dev/2019', 'PATH': '/opt/solidangle/mtoa/4.0.1-dev/2019/bin;/usr/autodesk/maya2019/bin;/opt/solidangle/mtoa/4.0.1-dev/2019/lib;/opt/solidangle/mtoa/4.0.1-dev/2019/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.'}
+ 
+ ==== Exec cmd ==== 
+ 
+/usr/autodesk/maya2019/bin/Render -proj "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370" -rd "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370" -r arnold -x 160 -y 120  "/home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370/test.ma"
+ 
+ 
+Starting "/home/software/maya/2019/bin/maya"
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   390MB WARNING | [mtoa] [<built-in>] [node aov_write_vector] Assigning temporary node id 1138176 to associated Maya type name aiAovWriteVector.
+00:00:00   390MB WARNING | [mtoa] [<built-in>] [node string_replace] Assigning temporary node id 1138177 to associated Maya type name aiStringReplace.
+sh: deadlinecommand: command not found
+libai.so already loaded
+Running submission script ""
+Warning: file: /home/handsca/maya/scripts/DeadlineMayaClient.mel line 132: The SubmitMayaToDeadline.mel script could not be found in the Deadline Repository. Please make sure that the Deadline Client has been installed on this machine, that the Deadline Client bin folder is set in the DEADLINE_PATH environment variable, and that the Deadline Client has been configured to point to a valid Repository.
+Warning: file: /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370/test.ma line 796: 'defaultColorMgtGlobals.cmEnabled' is already connected to 'aiImage2.colorManagementEnabled'.
+Warning: file: /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370/test.ma line 797: 'defaultColorMgtGlobals.configFileEnabled' is already connected to 'aiImage2.colorManagementConfigFileEnabled'.
+Warning: file: /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370/test.ma line 798: 'defaultColorMgtGlobals.configFilePath' is already connected to 'aiImage2.colorManagementConfigFilePath'.
+Warning: file: /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370/test.ma line 799: 'defaultColorMgtGlobals.workingSpaceName' is already connected to 'aiImage2.workingSpace'.
+File read in  0.083 seconds.
+Result: /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370/test.ma
+Scene /home/handsca/Dev/mtoa/build/linux_x86_64/20190200/gcc_opt/testsuite/test_0370/test.ma completed.
