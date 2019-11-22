@@ -1842,8 +1842,7 @@ void CProjectionTranslator::Export(AtNode* shader)
       AiNodeLink(uv_transform, "input", shader);
       */
       ProcessParameter(shader, "input", AI_TYPE_RGB, "image");
-      
-      ProcessParameter(shader, "matrix", AI_TYPE_MATRIX, "placementMatrix");
+
       if (FindMayaPlug("local").asBool())
          AiNodeSetStr(shader, "coord_space", "object");
       else if (FindMayaPlug("aiUseReferenceObject").asBool())
@@ -1851,8 +1850,26 @@ void CProjectionTranslator::Export(AtNode* shader)
       else
          AiNodeSetStr(shader, "coord_space", "world");
 
-      AiNodeSetVec(shader, "scale", 0.5f, 0.5f, 0.5f);
-      //AiNodeSetBool(uv_transform, "flip_v", true);
+      // get the matrix
+
+      MPlug matrixPlug = FindMayaPlug("placementMatrix");
+
+      MObject matObj = matrixPlug.asMObject();
+      MFnMatrixData matData(matObj);
+      MMatrix mm = matData.matrix();
+
+      MTransformationMatrix m(mm.inverse());
+      double scale[3] = {1.0f, 1.0f, 1.0f};
+      m.getScale(scale,    MSpace::kTransform);
+      MEulerRotation rot = m.eulerRotation();
+      MVector trans = m.getTranslation(MSpace::kTransform);
+
+      AiMsgWarning("[projection] %s, scale(%f,%f,%f), trans(%f,%f,%f), rot(%f,%f,%f)", AiNodeGetName(shader),
+         0.5f/scale[0], 0.5f/scale[1], -0.5f/scale[2], trans.x, trans.y, trans.z, rot.x, rot.y, rot.z);
+
+      AiNodeSetVec(shader, "scale", 0.5f/scale[0], 0.5f/scale[1], -0.5f/scale[2]);
+      AiNodeSetVec(shader, "offset", trans.x, trans.y, trans.z);
+      AiNodeSetVec(shader, "rotate", rot.x, rot.y, rot.z);
 
    } else if (AiNodeIs(shader, AtString("camera_projection")))
    {
