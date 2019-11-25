@@ -10,6 +10,9 @@ import os.path
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.melUtils as mu
 
+defaultFolder = ""
+
+
 def ArnoldVolumeAutoStepChange(nodeName):
     autoStep = cmds.getAttr(nodeName+'.autoStepSize')
     dimStepSize = autoStep
@@ -67,9 +70,14 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
     def filenameButtonPush(self, nodeName):
         basicFilter = 'OpenVDB File(*.vdb)'
-        projectDir = cmds.workspace(query=True, directory=True)     
-        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load OpenVDB File',okc='Load',fm=1, startingDirectory=projectDir)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="data")
+                                           )
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load OpenVDB File',okc='Load',fm=1, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             self.filenameEdit(nodeName, ret[0])
             cmds.textField('arnoldVolumeFilenamePath', edit=True, text=ret[0])
 

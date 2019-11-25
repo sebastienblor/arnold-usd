@@ -5,6 +5,7 @@ import os
 import arnold as ai
 from mtoa.callbacks import *
 
+defaultFolder = ""
 
 class AEaiMaterialXShaderTemplate(ShaderAETemplate):
     
@@ -27,10 +28,15 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'MaterialX Files (*.mtlx);;All Files (*.*)'
-        projectDir = cmds.workspace(query=True, directory=True)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="materialx")
+                                           )
         ret = cmds.fileDialog2(fileFilter=basicFilter,
-                                cap='Load MaterialX File',okc='Load',fm=4, startingDirectory=projectDir)
+                                cap='Load MaterialX File',okc='Load',fm=4, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
     
