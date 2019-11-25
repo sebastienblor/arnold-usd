@@ -6,6 +6,9 @@ import os
 import os.path
 import arnold as ai
 
+defaultFolder = ""
+
+
 class AEaiMaterialxTemplate(OperatorAETemplate):
 
     '''
@@ -65,9 +68,14 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
 
     def filenameButtonPush(self, attrName):
         basicFilter = 'MaterialX File(*.mtlx)'
-        projectDir = cmds.workspace(query=True, directory=True)     
-        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load MaterialX File',okc='Load',fm=1, startingDirectory=projectDir)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="materialx")
+                                           )
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load MaterialX File',okc='Load',fm=1, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             self.filenameEdit(attrName, ret[0])
             cmds.textField('arnoldMaterialxFilenamePath', edit=True, text=ret[0])
 

@@ -3,6 +3,9 @@ import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import os
 
+defaultFolder = ""
+
+
 class AEaiAxfShaderTemplate(ShaderAETemplate):
     
     def setup(self):
@@ -27,10 +30,15 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'Axf Files (*.axf);;All Files (*.*)'
-        projectDir = cmds.workspace(query=True, directory=True)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="AXF")
+                                           )
         ret = cmds.fileDialog2(fileFilter=basicFilter,
-                                cap='Load Axf File',okc='Load',fm=4, startingDirectory=projectDir)
+                                cap='Load Axf File',okc='Load',fm=4, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
     
