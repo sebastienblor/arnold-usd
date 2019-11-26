@@ -2162,6 +2162,19 @@
     [attr blend_opacity]
         maya.name           STRING  "blend"
 
+[node aov_write_vector]
+    maya.name               STRING  "aiWriteVector"
+    maya.id                 INT     0x00115DBB
+    maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
+
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    [attr blend_opacity]
+        maya.name           STRING  "blend"
+
 [node aov_read_int]
     maya.name               STRING  "aiReadInt"
     maya.id                 INT     0x00115DAA
