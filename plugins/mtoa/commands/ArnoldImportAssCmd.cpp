@@ -59,22 +59,21 @@ MString ArnoldToMayaStyle(MString s)
 }
 
 static MString ArnoldToMayaAttrName(const AtNodeEntry *nodeEntry, const char* paramName) 
-{
-
-   bool hidden = false;
-   if (AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hidden) && hidden)
-      return MString("");
-   
+{   
    AtString attrName;
    if (AiMetaDataGetStr(nodeEntry, paramName, "maya.name", &attrName))
    {
       MString attrNameStr(attrName.c_str());
       return attrNameStr;
    }
-   else
-   {
-      return ArnoldToMayaStyle(MString(paramName));
-   }
+
+   // Note that we're first testing if maya.name is explicitely defined. In some case, the attribute can 
+   // be hidden because we don't want it to be created in the maya node definition (eg standard_surface.normal)
+   bool hidden = false;
+   if (AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hidden) && hidden)
+      return MString("");
+   
+   return ArnoldToMayaStyle(MString(paramName));
 }
 
 MSyntax CArnoldImportAssCmd::newSyntax()
