@@ -148,27 +148,12 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
         {
             const AtParamEntry* param_entry = AiParamIteratorGetNext(param_it);
             string param_name(AiParamGetName(param_entry));
-            std::cout << " Param Name is " << AiNodeGetName(node) << " .  " << param_name << std::endl;
             AtNode* input_node = AiNodeGetLink(node, param_name.c_str(), &output_component);
-            std::cout << " Input Node Name is " << AiNodeGetName(input_node) << std::endl;
 
             if (!input_node || AiParamGetType(param_entry) != AI_TYPE_FLOAT )
             {
                 continue;
             }
-            // if (input_node && output_component == -1 )
-            // {
-            //     // This means it's a component'ed connection.
-                
-            //     if (AiParamGetType(param_entry) == AI_TYPE_FLOAT)
-            //     {
-            //         output_component = 4;
-            //     }
-            //     string node_name(AiNodeGetName(node));
-            //     fprintf(stderr, "%s: %s.%s is linked by %s (component = %d)\n", __func__, node_name.c_str(), param_name.c_str(), AiNodeGetName(input_node), output_component);
-            //     // fprintf (stderr, "\n \n \n >>>>  " , AiParamGetTypeName(AiParamGetType(param_entry)) , " <<<<<<< \n \n \n " )  ;
-            // }
-
             // we have an input component toward node.param_name
 #if LOG_ME
             string node_name(AiNodeGetName(node));

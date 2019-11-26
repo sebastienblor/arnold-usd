@@ -163,7 +163,9 @@ std::string GetShadingGroup(std::string name, unordered_map<std::string, std::st
    else
    {
       MString mayaName;
-      MString createCmd = MString("createNode \"shadingEngine\" -name \"") + MString(name.c_str()) + MString("\"");
+      // MString createCmd = MString("createNode \"shadingEngine\" -name \"") + MString(name.c_str()) + MString("\"");
+      MString createCmd = MString("sets -name \"") + MString(name.c_str()) + MString("\" -renderable true -noSurfaceShader true -empty");
+      
       MGlobal::executeCommand(createCmd, mayaName);
       sgName = mayaName.asChar();
       arnoldToMayaShadingEngines[name] = sgName;
@@ -208,8 +210,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       {
          return MStatus::kFailure;
       }
-      CShaderLinkSanitizer sanitizer(universe, "importAxf_");
-      sanitizer.SanitizeOutputComponents();
+      
    }
    else if  (nchars > 5 && filename.substringW(nchars-5, nchars) == ".mtlx")
    {
@@ -220,6 +221,9 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    {
       AiASSLoad(universe, filename.asChar(), mask);   
    }
+
+   CShaderLinkSanitizer sanitizer(universe, "importAxf_");
+   sanitizer.SanitizeOutputComponents();
 
    MString logStr("Importing file ");
    logStr += filename;
