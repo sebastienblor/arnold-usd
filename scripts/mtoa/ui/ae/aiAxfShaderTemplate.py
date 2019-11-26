@@ -10,9 +10,9 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
     
     def setup(self):
         self.beginScrollLayout()
-        self.axfDirectory = os.path.join(cmds.workspace( q=True, directory=True), "sourceimages", "axf")
+        self.axfDirectory = os.path.join(cmds.workspace( q=True, fullName=True), "sourceimages", "axf")
         if (not os.path.exists(self.axfDirectory)) :
-            os.mkdir(self.axfDirectory)
+            os.makedirs(self.axfDirectory)
 
         self.addCustom('axfFilePath', self.axfFilePathNew, self.axfFilePathReplace)
         self.addCustom('texturePath', self.texturePathNew, self.texturePathReplace)
