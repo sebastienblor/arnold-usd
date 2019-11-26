@@ -38,7 +38,7 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
         ret = cmds.fileDialog2(fileFilter=basicFilter,
                                 cap='Load Axf File',okc='Load',fm=4, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
-            defaultFolder = ret[]
+            defaultFolder = ret[0]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
     
