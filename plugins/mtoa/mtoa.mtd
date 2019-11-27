@@ -1372,7 +1372,7 @@
         softmax         FLOAT   1.0
     [attr normal]
         maya.hide       BOOL    true
-        softmax         FLOAT   1.0
+        maya.name       STRING  "normalCamera"
     [attr thin_film_thickness]
         min             FLOAT   0.0
         softmax         FLOAT   2000.0
@@ -2152,6 +2152,19 @@
 [node aov_write_rgba]
     maya.name               STRING  "aiWriteRgba"
     maya.id                 INT     0x00115D98
+    maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
+
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    [attr blend_opacity]
+        maya.name           STRING  "blend"
+
+[node aov_write_vector]
+    maya.name               STRING  "aiWriteVector"
+    maya.id                 INT     0x00115DBB
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
 
@@ -3517,6 +3530,13 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115DA3
+
+[node string_replace]
+    desc                    STRING  "String Replace Operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115DBC
 
 
 # Cryptomatte

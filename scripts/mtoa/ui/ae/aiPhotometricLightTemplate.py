@@ -4,6 +4,9 @@ import mtoa.ui.ae.lightTemplate as lightTemplate
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
 
+defaultFolder = ""
+
+
 class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
     def addSwatch(self):
         self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
@@ -26,10 +29,15 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
         
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'IES Photometry File (*.ies);;All Files (*.*)'
-        projectDir = cmds.workspace(query=True, directory=True)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="IES")
+                                           )
         ret = cmds.fileDialog2(fileFilter=basicFilter,
-                                cap='Load Photometry File',okc='Load',fm=4, startingDirectory=projectDir)
+                                cap='Load Photometry File',okc='Load',fm=4, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
             

@@ -3,6 +3,7 @@ import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
 import maya.cmds as cmds
 import re
+from mtoa.ui.ae.utils import AttrControlGrp
 
 class AttributeListWindow(object):
     
@@ -99,18 +100,23 @@ class AttributeListWindow(object):
 class ObjectSetTemplate(templates.AttributeTemplate):
         
     def setup(self):
+        self.baseAttrs = cmds.listAttr(self.nodeName)
+        self._controls = []
         self.addControl("aiOverride")
         self.addCustom("aiOverride", self.createAttributesButtons, self.updateAttributesButtons)
         self.addSeparator()
         # FIXME: need a proper listing of override attributes
-        self.addExtraControls()
+        self.beginLayout('Override Attributes', collapse=False)
+        self.addCustom('addlnAttribute', self.addExtraAttributes, self.updateExtraAttributes)
+        self.endLayout()
+
                 
     def update(self):
         pass
         pass
             
     def createAttributesButtons(self, attr):
-        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        # cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         cmds.rowLayout(numberOfColumns=3,
                        columnWidth3=(140, 80, 80),
                        columnAttach3=("both", "both", "both"),
@@ -120,11 +126,35 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         cmds.button('attr_add_button', label="Add", c=lambda *args: AttributeListWindow(self, mode='add'))
         cmds.button('attr_remove_button', label="Remove", c=lambda *args: AttributeListWindow(self, mode='remove'))
         # cmds.button('attr_remove_button', label="Remove", c=Callback(self.removeAttrWin))
-        cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
+        # cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
         
     def updateAttributesButtons(self, attr):
         pass
+                
+    def addExtraAttributes(self, attr):
+        self.overrideAttributeLayout = cmds.columnLayout(adjustableColumn=True)
 
+    def updateExtraAttributes(self, attr):
+
+        for ctrl in self._controls:
+            cmds.deleteUI(ctrl)
+        del self._controls[:]
+        
+        arnoldAttrs = cmds.listAttr(self.nodeName, userDefined=True, write=True, ct="arnold")
+        if not arnoldAttrs:
+            return 
+
+        for attr in arnoldAttrs:
+            if attr not in self.baseAttrs:
+                cmds.setParent(self.overrideAttributeLayout)
+                shortName = cmds.attributeQuery(attr, node=self.nodeName, sn=True)
+                kwargs = {}
+                kwargs['label'] = attr
+                kwargs['attribute'] = self.nodeName + '.' + shortName
+                control = AttrControlGrp(**kwargs)
+                self._controls.append(control.control)
+                cmds.setParent('..')
+    
     def getCandidateAttributes(self):
         attributeList = cmds.arnoldListAttributes(self.nodeName)
         candidates = {}

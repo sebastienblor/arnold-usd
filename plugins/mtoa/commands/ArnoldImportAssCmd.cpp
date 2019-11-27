@@ -1,6 +1,9 @@
 #include "utils/Version.h"
 #include "ArnoldImportAssCmd.h"
 #include "../common/UnorderedContainer.h"
+#include "ArnoldNodeLinkSanitizer.h"
+
+
 #include "scene/MayaScene.h"
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -56,22 +59,21 @@ MString ArnoldToMayaStyle(MString s)
 }
 
 static MString ArnoldToMayaAttrName(const AtNodeEntry *nodeEntry, const char* paramName) 
-{
-
-   bool hidden = false;
-   if (AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hidden) && hidden)
-      return MString("");
-   
+{   
    AtString attrName;
    if (AiMetaDataGetStr(nodeEntry, paramName, "maya.name", &attrName))
    {
       MString attrNameStr(attrName.c_str());
       return attrNameStr;
    }
-   else
-   {
-      return ArnoldToMayaStyle(MString(paramName));
-   }
+
+   // Note that we're first testing if maya.name is explicitely defined. In some case, the attribute can 
+   // be hidden because we don't want it to be created in the maya node definition (eg standard_surface.normal)
+   bool hidden = false;
+   if (AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hidden) && hidden)
+      return MString("");
+   
+   return ArnoldToMayaStyle(MString(paramName));
 }
 
 MSyntax CArnoldImportAssCmd::newSyntax()
@@ -105,7 +107,8 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, c
       MGlobal::executeCommand(cmd, exists);  
       if (exists)
       {
-         MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + MString(" ") + mayaFullAttr;                     
+         MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + MString(" ") + mayaFullAttr;
+         MGlobal::displayInfo(connectCmd);
          MGlobal::executeCommand(connectCmd);
          return true;
       }
@@ -121,7 +124,7 @@ MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUni
    MGlobal::executeCommand("workspace -q -dir ", cwd) ;
    MString tex_path =  cwd ; 
    
-   unsigned int nchars = axfFileName.numChars();
+   // unsigned int nchars = axfFileName.numChars();
   
    AxFtoASessionStart();
    AxFtoASessionClearErrors();
@@ -159,7 +162,9 @@ std::string GetShadingGroup(std::string name, unordered_map<std::string, std::st
    else
    {
       MString mayaName;
-      MString createCmd = MString("createNode \"shadingEngine\" -name \"") + MString(name.c_str()) + MString("\"");
+      // MString createCmd = MString("createNode \"shadingEngine\" -name \"") + MString(name.c_str()) + MString("\"");
+      MString createCmd = MString("sets -name \"") + MString(name.c_str()) + MString("\" -renderable true -noSurfaceShader true -empty");
+      
       MGlobal::executeCommand(createCmd, mayaName);
       sgName = mayaName.asChar();
       arnoldToMayaShadingEngines[name] = sgName;
@@ -195,14 +200,16 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 
    AtUniverse *universe = AiUniverse();
 
+
    unsigned int nchars = filename.numChars();
    if  (nchars > 4 && filename.substringW(nchars-4, nchars) == ".axf")
    {
       // This is an Axf File 
       if (convertAxfToArnold(filename, universe) == MStatus::kFailure)
-         {
-            return MStatus::kFailure;
-         }
+      {
+         return MStatus::kFailure;
+      }
+      
    }
    else if  (nchars > 5 && filename.substringW(nchars-5, nchars) == ".mtlx")
    {
@@ -214,12 +221,13 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       AiASSLoad(universe, filename.asChar(), mask);   
    }
 
+   CShaderLinkSanitizer sanitizer(universe, "importAxf_");
+   sanitizer.SanitizeOutputComponents();
+
    MString logStr("Importing file ");
    logStr += filename;
 
    MGlobal::displayInfo(logStr);
-
-   int foundUnsupported = 0;
 
    MStringArray connectCmds;
    unordered_map<std::string, std::string>  arnoldToMayaNames;
@@ -501,6 +509,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          AtString shadingGroup = AiNodeGetStr(node, "material_surface");
          std::string shg = GetShadingGroup(shadingGroup.c_str(), arnoldToMayaShadingEngines);
          MString connectCmd = MString("connectAttr -f ") + MString(mayaName.c_str()) + MString(".outColor ") + MString(shg.c_str()) + MString(".surfaceShader");
+         // MGlobal::displayInfo(connectCmd);
          MGlobal::executeCommand(connectCmd);
       }
       if (AiNodeLookUpUserParameter(node, "material_displacement"))
@@ -508,6 +517,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          AtString shadingGroup = AiNodeGetStr(node, "material_displacement");
          std::string shg = GetShadingGroup(shadingGroup.c_str(), arnoldToMayaShadingEngines);
          MString connectCmd = MString("connectAttr -f ") + MString(mayaName.c_str()) + MString(".outColor ") + MString(shg.c_str()) + MString(".displacementShader");
+         // MGlobal::displayInfo(connectCmd);
          MGlobal::executeCommand(connectCmd);
       }
    }

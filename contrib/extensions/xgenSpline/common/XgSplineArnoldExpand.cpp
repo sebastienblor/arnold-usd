@@ -128,7 +128,7 @@ void XgSplineProcedural::CreateCurves(AtNode* procedural, bool procParent)
    AiNodeSetFlt(_curves, "motion_start", AiNodeGetFlt(procedural, "motion_start"));
    AiNodeSetFlt(_curves, "motion_end", AiNodeGetFlt(procedural, "motion_end"));
 
-   if (procParent == NULL)
+   if (!procParent)
    {
       // Transmitting parent node parameters to child nodes (#2752)
       // ... but only do it when there's no parent procedural (#3606)
@@ -138,6 +138,18 @@ void XgSplineProcedural::CreateCurves(AtNode* procedural, bool procParent)
       AiNodeSetBool(_curves, "receive_shadows", AiNodeGetBool(procedural, "receive_shadows"));
       AiNodeSetBool(_curves, "matte", AiNodeGetBool(procedural, "matte"));
       AiNodeSetArray(_curves, "matrix", AiArrayCopy(AiNodeGetArray(procedural, "matrix")));
+      bool use_light_group = AiNodeGetBool(procedural, "use_light_group");
+      if (use_light_group)
+      {
+         AiNodeSetBool(_curves, "use_light_group", use_light_group);
+         AiNodeSetArray(_curves, "light_group",  AiArrayCopy(AiNodeGetArray(procedural, "light_group")));
+      }
+      bool use_shadow_group = AiNodeGetBool(procedural, "use_shadow_group");
+      if (use_shadow_group)
+      {
+         AiNodeSetBool(_curves, "use_shadow_group", use_shadow_group);
+         AiNodeSetArray(_curves, "shadow_group",  AiArrayCopy(AiNodeGetArray(procedural, "shadow_group")));
+      }
    }
 
 }

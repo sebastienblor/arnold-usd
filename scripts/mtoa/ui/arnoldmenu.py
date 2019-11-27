@@ -506,7 +506,7 @@ def createArnoldMenu():
 
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
-        cmds.menuItem('ArnoldSolidAngle', label='Solid Angle', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldSolidAngle', label='Arnold Renderer Website', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://www.solidangle.com'))
 
         cmds.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',
