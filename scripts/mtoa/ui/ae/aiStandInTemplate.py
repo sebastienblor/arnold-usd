@@ -23,6 +23,7 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
+from mtoa.ui.procview.UsdTransverser import UsdTransverser
 from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, \
                                                    MERGE_OP, OVERRIDE_OP, \
                                                    INCLUDEGRAPH_OP, MATERIALX_OP, \
@@ -310,7 +311,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         elif ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
             # need to find out which procedural to use with it
             procName = 'usd'
-            transverser = CustomProceduralTransverser(procName, 'filename', filename)
+            transverser = UsdTransverser('filename', filename)
         else:
             transverser = StandInTransverser()
 
