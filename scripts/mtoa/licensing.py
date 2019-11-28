@@ -26,8 +26,8 @@ def licenseManager():
     if platformName.startswith('darwin'):
         cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'ArnoldLicenseManager.app', 'Contents', 'MacOS', 'ArnoldLicenseManager' )
 
-    cmdRes = subprocess.Popen([cmdBinary], close_fds=True).communicate()[0]
-    
+    ret = subprocess.Popen([cmdBinary])
+
 def getDiagnosticsResult():
 
     diagnosticResults = 'MtoA License Diagnostics '
