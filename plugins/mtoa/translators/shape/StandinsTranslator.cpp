@@ -261,6 +261,8 @@ void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
    bool visibility_ignore = FindProceduralPlug("abc_visibility_ignore").asBool();
    AiNodeSetBool(node, "visibility_ignore", visibility_ignore);
    // # radius_attribute
+   MString radius_attribute = FindProceduralPlug("abc_radius_attribute").asString();
+   AiNodeSetStr(node, "radius_attribute", radius_attribute.asChar());
    // # radius_default
    float radius_default = FindProceduralPlug("abc_radius_default").asFloat();
    AiNodeSetFlt(node, "radius_default", radius_default);
