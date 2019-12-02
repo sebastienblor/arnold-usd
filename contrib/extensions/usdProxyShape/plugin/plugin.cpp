@@ -8,18 +8,10 @@ extern "C"
         MStatus status;
 
         extension.Requires ( "mayaUsdPlugin" );
-        
         extension.RegisterTranslator("mayaUsdProxyShapeBase",
                                     "usd",
                                     CUsdProxyShapeTranslator::creator,
                                     CUsdProxyShapeTranslator::NodeInitializer);
-
-        extension.RegisterTranslator("AL_usdmaya_ProxyShape",
-                                    "usd",
-                                    CUsdProxyShapeTranslator::creator,
-                                    CUsdProxyShapeTranslator::NodeInitializer);
-            
-
       
     }
 
