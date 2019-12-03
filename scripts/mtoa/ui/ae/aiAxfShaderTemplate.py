@@ -82,5 +82,5 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
         if cmds.getAttr(nodeName):
             cmds.textFieldGrp("texnameGrp", edit=True,text=cmds.getAttr(nodeName) )
         else:
-            cmds.textFieldGrp("texnameGrp", edit=True, text="")
+            cmds.textFieldGrp("texnameGrp", edit=True, text=self.axfDirectory)
 
