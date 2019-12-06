@@ -67,6 +67,7 @@
 #include "nodes/shader/ArnoldUserDataVectorNode.h"
 #include "nodes/shader/ArnoldUserDataBoolNode.h"
 #include "nodes/shader/ArnoldAxfShaderNode.h"
+#include "nodes/shader/ArnoldMaterialXShaderNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
@@ -102,6 +103,7 @@
 #include "translators/operator/LookSwitchTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 #include "translators/shader/AxfTranslator.h"
+#include "translators/shader/MaterialXShaderTranslator.h"
 
 #include "render/MaterialView.h"
 #include "render/RenderSwatch.h"
@@ -193,6 +195,7 @@ namespace // <anonymous>
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
    const MString AI_USER_DATA_NODE_CLASSIFICATION = ":rendernode/arnold/utility/user data";
    const MString AI_ANOLD_AXF_SHADER = "shader/surface:rendernode/arnold/shader/surface:swatch/ArnoldRenderSwatch:drawdb/shader/surface/arnold/axf_shader";
+   const MString AI_ANOLD_MTLX_SHADER = "shader/surface:rendernode/arnold/shader/surface:swatch/ArnoldRenderSwatch:drawdb/shader/surface/arnold/mtlx_shader";
 
    
 
@@ -276,6 +279,10 @@ namespace // <anonymous>
          "aiLookSwitch", CArnoldLookSwitchNode::id,
          CArnoldLookSwitchNode::creator, CArnoldLookSwitchNode::initialize,
          MPxNode::kDependNode, 0
+      }, {
+         "aiMaterialXShader", CArnoldMaterialXShaderNode::id,
+         CArnoldMaterialXShaderNode::creator, CArnoldMaterialXShaderNode::initialize,
+         MPxNode::kDependNode, &AI_ANOLD_AXF_SHADER
       }
 
    };
@@ -567,7 +574,12 @@ namespace // <anonymous>
       builtin->RegisterTranslator("aiAxfShader",
                                     "",
                                     CArnoldAxfShaderTranslator::creator,
-                                    CArnoldAxfShaderTranslator::NodeInitializer);      
+                                    CArnoldAxfShaderTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiMaterialXShader",
+                                    "",
+                                    CArnoldMaterialXShaderTranslator::creator,
+                                    CArnoldMaterialXShaderTranslator::NodeInitializer);
 
       // Lights
       builtin->RegisterTranslator("directionalLight",

@@ -1040,7 +1040,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          // In that case, to avoid breaking API compatibility for 3rd party extensions, 
          // I'm doing a passthrough and returning the connected shader here
          
-         // FIXME when compatibility can be broken, we should refactor this,
+         // FIXME when ABI compatibility can be broken, we should refactor this,
          // I shouldn't have to do guesses based on the attribute name.
          MFnDependencyNode sgNode(outputPlug.node());
          
@@ -1120,8 +1120,48 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          }
 
          if (!shaderPlug.node().hasFn(MFn::kShadingEngine)) // ensuring we're not entering a possible infinite loop
-            return ExportConnectedNode(shaderPlug);
-         
+         {
+            AtNode *node = ExportConnectedNode(shaderPlug);
+
+            // When exporting to .ass, if shaders are exported but not shapes,
+            // we want to keep track of the shading engine assignments (surface, volume, displacement)
+            // so that we can eventually restore them later on when importing them (#4033)
+            if (node && m_session->GetSessionMode() == MTOA_SESSION_ASS)
+            {
+               CRenderOptions* renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
+               unsigned int mask = (renderOptions) ? renderOptions->outputAssMask() : AI_NODE_ALL;
+               if (mask & AI_NODE_SHADER && !(mask & AI_NODE_SHAPE))
+               {
+                  // Set the user data material_surface / material_volume on the root shader, 
+                  // so that it returns the name of the shading engine
+                  std::string user_data = (isVolume) ? "material_volume" : "material_surface";
+                  if (AiNodeLookUpUserParameter(node, user_data.c_str()) == NULL)
+                     AiNodeDeclare(node, user_data.c_str(), "constant STRING");   
+                  AiNodeSetStr(node, user_data.c_str(), AtString(sgNode.name().asChar()));
+
+                  // Check if there's displacement assigned to our shading engine
+                  MPlug plug = sgNode.findPlug("displacementShader", true);
+                  if (!plug.isNull())
+                  {
+                     connections.clear();
+                     plug.connectedTo(connections, true, false);
+                     if (connections.length() > 0)
+                     {
+                        // We have displacement ! Ensure it's exported to arnold and set 
+                        // it a user data "material_displacement", pointing at the shading engine node
+                        AtNode *dispNode = ExportConnectedNode(connections[0]);
+                        if (dispNode)
+                        {
+                           if (AiNodeLookUpUserParameter(dispNode, "material_displacement") == NULL)
+                              AiNodeDeclare(dispNode, "material_displacement", "constant STRING");   
+                           AiNodeSetStr(dispNode, "material_displacement", AtString(sgNode.name().asChar()));
+                        }
+                     }
+                  }
+               }
+            }
+            return node;
+         }
       }
 
       return translator->m_impl->m_atRoot; // return the node that is at the root of this translator

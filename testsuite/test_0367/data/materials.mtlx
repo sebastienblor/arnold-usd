@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<materialx version="1.36">
+  <material name="car_paint_yellow">
+    <shaderref name="Car_Paint_Yellow" node="standard_surface">
+      <bindinput name="base_color" type="color3" value="0.688312, 0.428061, 0.035104" />
+      <bindinput name="specular_roughness" type="float" value="0" />
+      <bindinput name="specular_IOR" type="float" value="1.52" />
+      <bindinput name="subsurface" type="float" value="0.2" />
+      <bindinput name="subsurface_color" type="color3" value="1, 0.3345, 0" />
+      <bindinput name="subsurface_radius" type="color3" value="0.0324675, 0.0324675, 0.0324675" />
+      <bindinput name="subsurface_scale" type="float" value="0.1" />
+      <bindinput name="subsurface_type" type="string" value="diffusion" />
+      <bindinput name="coat_roughness" type="float" value="0" />
+      <bindinput name="coat_IOR" type="float" value="1.55" />
+    </shaderref>
+  </material>
+  <material name="glass">
+    <shaderref name="Glass" node="standard_surface">
+      <bindinput name="base" type="float" value="0" />
+      <bindinput name="specular_roughness" type="float" value="0" />
+      <bindinput name="specular_IOR" type="float" value="1.52" />
+      <bindinput name="specular_anisotropy" type="float" value="0.5" />
+      <bindinput name="transmission" type="float" value="1" />
+      <bindinput name="subsurface_type" type="string" value="diffusion" />
+      <bindinput name="coat_roughness" type="float" value="0" />
+      <bindinput name="coat_IOR" type="float" value="1" />
+      <bindinput name="caustics" type="boolean" value="true" />
+    </shaderref>
+  </material>
+  <material name="rims">
+    <shaderref name="Rims" node="standard_surface">
+      <bindinput name="base" type="float" value="1" />
+      <bindinput name="base_color" type="color3" value="0.5, 0.5, 0.5" />
+      <bindinput name="specular_color" type="color3" value="0.837662, 0.837662, 0.837662" />
+      <bindinput name="specular_IOR" type="float" value="1.52" />
+      <bindinput name="specular_anisotropy" type="float" value="0.5" />
+      <bindinput name="specular_rotation" type="float" value="0.5" />
+      <bindinput name="metalness" type="float" value="0.8" />
+      <bindinput name="subsurface_type" type="string" value="diffusion" />
+      <bindinput name="coat_color" type="color3" value="0, 0, 0" />
+      <bindinput name="coat_roughness" type="float" value="0" />
+      <bindinput name="coat_IOR" type="float" value="1" />
+      <bindinput name="caustics" type="boolean" value="true" />
+    </shaderref>
+  </material>
+  <material name="license_plate_rear">
+    <shaderref name="License_Plate_Rear" node="standard_surface">
+      <bindinput name="base_color" type="color3" nodegraph="NG_License_Plate_Rear_base_color" output="out" />
+      <bindinput name="specular_roughness" type="float" value="0.1" />
+      <bindinput name="specular_IOR" type="float" value="1.52" />
+      <bindinput name="subsurface_type" type="string" value="diffusion" />
+      <bindinput name="normal" type="color3" nodegraph="NG_License_Plate_Rear_normal" output="out" />
+    </shaderref>
+  </material>
+</materialx>

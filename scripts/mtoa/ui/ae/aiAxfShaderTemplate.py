@@ -1,11 +1,19 @@
 import maya.mel
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import os
+
+defaultFolder = ""
+
 
 class AEaiAxfShaderTemplate(ShaderAETemplate):
     
     def setup(self):
         self.beginScrollLayout()
+        self.axfDirectory = os.path.join(cmds.workspace( q=True, fullName=True), "sourceimages", "axf")
+        if (not os.path.exists(self.axfDirectory)) :
+            os.makedirs(self.axfDirectory)
+
         self.addCustom('axfFilePath', self.axfFilePathNew, self.axfFilePathReplace)
         self.addCustom('texturePath', self.texturePathNew, self.texturePathReplace)
         self.addControl('uvScale', label='UV Scale')
@@ -22,10 +30,15 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'Axf Files (*.axf);;All Files (*.*)'
-        projectDir = cmds.workspace(query=True, directory=True)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="AXF")
+                                           )
         ret = cmds.fileDialog2(fileFilter=basicFilter,
-                                cap='Load Axf File',okc='Load',fm=4, startingDirectory=projectDir)
+                                cap='Load Axf File',okc='Load',fm=4, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
     
@@ -58,6 +71,10 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
     def texturePathNew(self, nodeName):
         cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
         info = cmds.getAttr(nodeName)
+        if (not info):
+            info = "sourceimages/axf"
+            cmds.setAttr(self.nodeAttr('texturePath'), info , type="string")
+        
         self.texturePathText = cmds.textFieldGrp("texnameGrp", label="Axf Texture Path", changeCommand = self.texturePathEdit, text = info)
         cmds.symbolButton( image='navButtonBrowse.png', command=self.SelectTexturePathButtonPush)
      
@@ -65,5 +82,5 @@ class AEaiAxfShaderTemplate(ShaderAETemplate):
         if cmds.getAttr(nodeName):
             cmds.textFieldGrp("texnameGrp", edit=True,text=cmds.getAttr(nodeName) )
         else:
-            cmds.textFieldGrp("texnameGrp", edit=True, text="")
+            cmds.textFieldGrp("texnameGrp", edit=True, text=self.axfDirectory)
 

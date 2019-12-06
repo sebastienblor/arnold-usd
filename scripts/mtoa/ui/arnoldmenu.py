@@ -288,7 +288,7 @@ def arnoldImportShaders():
     if defaultOperatorsFolder == "":
         defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
 
-    objFilter = "ASS File (*.ass);; AXF File (*.axf);"#; MaterialX File (*.mtlx)"
+    objFilter = "ASS File (*.ass);; AXF File (*.axf);; MaterialX File (*.mtlx)"
     ret = cmds.fileDialog2(cap='Import Arnold Shaders',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
     if len(ret):
         defaultOperatorsFolder = ret[0]
@@ -330,7 +330,8 @@ def addRuntimeMenuItem(name, parent, command, label = '', rtcLabel = '', tearOff
     if _maya_version < 2019:
         cmds.menuItem(name, label=label, parent=parent, c=command, tearOff=tearOff, optionBox=optionBox, image=image)
     else:
-        cmds.runTimeCommand('cmd{}'.format(name), d=True, label=rtcLabel, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
+        if not cmds.runTimeCommand('cmd{}'.format(name), exists=True):
+            cmds.runTimeCommand('cmd{}'.format(name), d=True, label=rtcLabel, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
         cmds.menuItem(name, parent=parent, rtc='cmd{}'.format(name), label = label, sourceType= 'mel', optionBox=optionBox, tearOff=tearOff)
 
 def GPUCacheStart():
@@ -453,9 +454,9 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicenseManager())
         cmds.menuItem('ArnoldLicensingHelp',  label='Licensing Help', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AILIC/Licensing+Home'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/x/TYcfBg'))
         cmds.menuItem('ArnoldSuscribe',  label='Purchase Subscription', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+                    c=lambda *args: cmds.launch(webPage='https://www.autodesk.com/products/arnold/subscribe/'))
         
         '''
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
@@ -505,7 +506,7 @@ def createArnoldMenu():
 
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
-        cmds.menuItem('ArnoldSolidAngle', label='Solid Angle', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldSolidAngle', label='Arnold Renderer Website', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://www.solidangle.com'))
 
         cmds.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',

@@ -910,9 +910,22 @@ bool Procedural::createMergedCurves()
       AiNodeSetBool(m_mergedCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
       AiNodeSetBool(m_mergedCurves, "matte", AiNodeGetBool(m_node, "matte"));
       AiNodeSetArray(m_mergedCurves, "matrix", AiArrayCopy(AiNodeGetArray(m_node, "matrix")));
+      bool use_light_group = AiNodeGetBool(m_node, "use_light_group");
+      if (use_light_group)
+      {
+         AiNodeSetBool(m_mergedCurves, "use_light_group", use_light_group);
+         AiNodeSetArray(m_mergedCurves, "light_group",  AiArrayCopy(AiNodeGetArray(m_node, "light_group")));
+      }
+      bool use_shadow_group = AiNodeGetBool(m_node, "use_shadow_group");
+      if (use_shadow_group)
+      {
+         AiNodeSetBool(m_mergedCurves, "use_shadow_group", use_shadow_group);
+         AiNodeSetArray(m_mergedCurves, "shadow_group",  AiArrayCopy(AiNodeGetArray(m_node, "shadow_group")));
+      }
    }
    return true;
 }
+
 void Procedural::createBaseSphere()
 {
    string strParentName = AiNodeGetName( m_node );
@@ -1119,6 +1132,18 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
          AiNodeSetFlt(nodeInstance, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
          AiNodeSetFlt(nodeInstance, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+         bool use_light_group = AiNodeGetBool(m_node, "use_light_group");
+         if (use_light_group)
+         {
+             AiNodeSetBool(nodeInstance, "use_light_group", use_light_group);
+             AiNodeSetArray(nodeInstance, "light_group",  AiArrayCopy(AiNodeGetArray(m_node, "light_group")));
+         }
+         bool use_shadow_group = AiNodeGetBool(m_node, "use_shadow_group");
+         if (use_shadow_group)
+         {
+             AiNodeSetBool(nodeInstance, "use_shadow_group", use_shadow_group);
+             AiNodeSetArray(nodeInstance, "shadow_group",  AiArrayCopy(AiNodeGetArray(m_node, "shadow_group")));
+         }
       }
       
       // Add custom renderer parameters.
@@ -1211,6 +1236,18 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
          AiNodeSetBool(nodeCard, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
          AiNodeSetBool(nodeCard, "matte", AiNodeGetBool(m_node, "matte"));
          AiNodeSetArray(nodeCard, "matrix", AiArrayCopy( AiNodeGetArray(m_node, "matrix")));
+         bool use_light_group = AiNodeGetBool(m_node, "use_light_group");
+         if (use_light_group)
+         {
+             AiNodeSetBool(nodeCard, "use_light_group", use_light_group);
+             AiNodeSetArray(nodeCard, "light_group",  AiArrayCopy(AiNodeGetArray(m_node, "light_group")));
+         }
+         bool use_shadow_group = AiNodeGetBool(m_node, "use_shadow_group");
+         if (use_shadow_group)
+         {
+             AiNodeSetBool(nodeCard, "use_shadow_group", use_shadow_group);
+             AiNodeSetArray(nodeCard, "shadow_group",  AiArrayCopy(AiNodeGetArray(m_node, "shadow_group")));
+         }
       }
       
       // Add custom renderer parameters.
@@ -1721,6 +1758,18 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                AiNodeSetBool(archive_procedural, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
                AiNodeSetBool(archive_procedural, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
                AiNodeSetBool(archive_procedural, "matte", AiNodeGetBool(m_node, "matte"));
+               bool use_light_group = AiNodeGetBool(m_node, "use_light_group");
+               if (use_light_group)
+               {
+                   AiNodeSetBool(archive_procedural, "use_light_group", use_light_group);
+                   AiNodeSetArray(archive_procedural, "light_group",  AiArrayCopy(AiNodeGetArray(m_node, "light_group")));
+               }
+               bool use_shadow_group = AiNodeGetBool(m_node, "use_shadow_group");
+               if (use_shadow_group)
+               {
+                   AiNodeSetBool(archive_procedural, "use_shadow_group", use_shadow_group);
+                   AiNodeSetArray(archive_procedural, "shadow_group",  AiArrayCopy(AiNodeGetArray(m_node, "shadow_group")));
+               }
             }
             // Add custom renderer parameters.
             pushCustomParams( archive_procedural, pc ,j);

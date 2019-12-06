@@ -8,6 +8,8 @@ import os
 from arnold import *
 from maya import OpenMaya as om
 
+defaultFolder = ""
+
 
 def to_camelcase(s):
     return re.sub(r'(?!^)_([a-zA-Z])', lambda m: m.group(1).upper(), s)
@@ -311,9 +313,14 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
     def importOSL(self, attrName):
         nodeName = attrName.split('.')[0]
         basicFilter = 'OSL Files (*.osl)'
-        defaultDir = cmds.workspace(query=True, directory=True)
-        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Impot OSL', okc='Load', fm=1, startingDirectory=defaultDir)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="OSL")
+                                           )
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Impot OSL', okc='Load', fm=1, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             code_string = ''
             with open(ret[0], 'r') as myfile:
                 code_string = myfile.read()

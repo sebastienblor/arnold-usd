@@ -5,6 +5,9 @@ import maya.cmds as cmds
 import arnold as ai
 import os.path
 
+defaultFolder = ""
+
+
 class AEaiIncludeGraphTemplate(OperatorAETemplate):
 
     def filenameEdit(self, mPath) :
@@ -21,13 +24,17 @@ class AEaiIncludeGraphTemplate(OperatorAETemplate):
         attrName = self.nodeAttr('target')
         self.targetParamReplace(attrName)
 
-        
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'Arnold Scenes (*.ass);;All Files (*.*)'
-        projectDir = cmds.workspace(query=True, directory=True)
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="ASS")
+                                           )
         ret = cmds.fileDialog2(fileFilter=basicFilter,
-                                cap='Load Operator Graph',okc='Load',fm=4, startingDirectory=projectDir)
+                                cap='Load Operator Graph',okc='Load',fm=4, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
             
