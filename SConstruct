@@ -851,13 +851,9 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 # if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
 #     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
-OCIO_DYLIBPATH =""
-
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-#    arv_lib = maya_version_base
-    arv_lib = "2017"
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', arv_lib, RENDERVIEW_DYLIB)
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
@@ -1395,9 +1391,6 @@ elif system.os == 'darwin':
 
 if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
-    if OCIO_DYLIBPATH != "":
-        PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
-
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
