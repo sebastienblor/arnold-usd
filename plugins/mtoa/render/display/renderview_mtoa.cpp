@@ -585,13 +585,20 @@ void CRenderViewMtoA::RenderChanged()
 
 void CRenderViewMtoA::UpdateSceneChanges()
 {
-   if (AiUniverseIsActive())
+   if (!AiUniverseIsActive())
+      UpdateFullScene();
+   else
    {
       CMayaScene::UpdateSceneChanges();
       SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
-      return;
    }
+}
 
+/** When this funtion is invoked, it means that the whole scene needs to 
+ * be re-exported from scratch.
+ **/
+void CRenderViewMtoA::UpdateFullScene()
+{
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
@@ -674,7 +681,6 @@ void CRenderViewMtoA::UpdateSceneChanges()
    renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
       renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
-   
 }
 void CRenderViewMtoA::SetCameraName(const MString &name)
 {

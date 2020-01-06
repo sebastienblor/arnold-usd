@@ -141,6 +141,9 @@ public:
    // the optional vectors may be filled with the list of modified nodes
    virtual void UpdateSceneChanges() = 0;
 
+   // The RenderView will invoke this function when it expects the whole 
+   // Arnold scene to be re-exported from scratch. 
+   virtual void UpdateFullScene() {UpdateSceneChanges();}
 
    // this function returns the amount of Arnold selected nodes in the Host side
    virtual unsigned int GetSelectionCount() = 0;

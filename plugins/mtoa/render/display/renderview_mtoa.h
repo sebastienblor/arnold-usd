@@ -61,6 +61,7 @@ public:
 
     
    virtual void UpdateSceneChanges();
+   virtual void UpdateFullScene();
    virtual void RenderChanged();
 
    virtual unsigned int GetSelectionCount();
