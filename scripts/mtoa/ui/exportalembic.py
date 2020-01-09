@@ -3,6 +3,7 @@ BulletBaking - Python module containing bullet baking commands
     for use with MayaBullet.
 
 """
+from __future__ import print_function
 # Python
 import os
 import re
@@ -341,7 +342,7 @@ def syncOptionVars(versionNum, args):
 def getObjectsToExport(*args, **kw):
     result = set([])
 
-    sl = kw['sl'] if kw.has_key('sl') else False
+    sl = kw['sl'] if 'sl' in kw else False
     slist = cmds.ls( sl=sl, long=True )
 
     result = result.union(set(slist))
@@ -352,8 +353,8 @@ def getObjectsToExport(*args, **kw):
 def doExportArgList(*args, **kw):
     # back up the current option values so that we can restore
     # them later if the dialog is cancelled
-    exportAll = kw['exportAll'] if kw.has_key('exportAll') else False
-    version = kw['version'] if kw.has_key('version') else 1
+    exportAll = kw['exportAll'] if 'exportAll' in kw else False
+    version = kw['version'] if 'version' in kw else 1
 
     optionVarsBackup = captureAlembicExportOptionVars(version, exportAll)
 
@@ -601,7 +602,7 @@ def doExportArgList(*args, **kw):
     command += ("-j \"{} -file {} \"".format(job, cmds.encodeString(file)))
 
     # execute command
-    print command
+    print(command)
     result = mel.eval(command)
 
     return

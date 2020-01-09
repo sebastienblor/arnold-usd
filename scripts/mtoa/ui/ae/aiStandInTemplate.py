@@ -1,4 +1,5 @@
 import re
+import importlib
 import maya.cmds as cmds
 import maya.mel as mel
 import os.path
@@ -21,7 +22,10 @@ from mtoa.ui import exportlook
 from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
-from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
+if importlib.find_loader('alembic'):
+    from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
+else:
+    AlembicTransverser = None
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, \
                                                    MERGE_OP, OVERRIDE_OP, \
@@ -304,8 +308,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         expand = False
         if ext_str == '.abc':
-            transverser = AlembicTransverser()
-            transverser.filenameAttr = 'dso'
+            if AlembicTransverser:
+                transverser = AlembicTransverser()
+                transverser.filenameAttr = 'dso'
+            else:
+                transverser = CustomProceduralTransverser('alembic', 'filename', filename)
             expand = True
         elif ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
             # need to find out which procedural to use with it

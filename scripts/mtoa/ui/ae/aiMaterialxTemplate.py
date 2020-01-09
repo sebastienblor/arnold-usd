@@ -137,7 +137,7 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         
 
     def setup(self):
-    	self.beginScrollLayout()
+        self.beginScrollLayout()
         
         self.beginLayout('Operator', collapse=False)
         self.addControl("enable")

@@ -1067,8 +1067,8 @@ ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
     if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or
-            (ext == 'xgen') or
-            (ext == 'xgenSpline') or
+            # (ext == 'xgen') or
+            # (ext == 'xgenSpline') or
             (ext == 'hairPhysicalShader') or
             (env['ENABLE_BIFROST'] == 1 and ext == bifrost_ext) or
             (ext == 'lookdevkit') or

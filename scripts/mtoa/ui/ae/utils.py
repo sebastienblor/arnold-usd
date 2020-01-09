@@ -1,7 +1,9 @@
+from __future__ import print_function
 import mtoa.utils as utils
 import maya.mel as mel
 import mtoa.ui.ae
 import maya.cmds
+import importlib
 import os
 import pkgutil
 import re
@@ -50,13 +52,13 @@ def loadAETemplates():
         sys.path += customTemplatePaths
         
     pathsList = mtoa.ui.ae.__path__ + customTemplatePaths
-    
+    print(pathsList)
     for importer, modname, ispkg in pkgutil.iter_modules(pathsList):
         # module name must end in "Template"
         if modname.endswith('Template') and modname not in templates:
             # TODO: use importer?
             try:
-                mod = __import__(modname, globals(), locals(), [], -1)
+                mod = importer.find_module(modname).load_module(modname)
             
                 procName = 'AE%s' % modname
                 if hasattr(mod, modname):
@@ -68,9 +70,9 @@ def loadAETemplates():
                     templates.append(modname)
                     _makeAEProc(modname, procName, procName)
             except:
-                print '[MtoA] Error parsing AETemplate file %s' % str(modname)
+                print('[MtoA] Error parsing AETemplate file %s' % str(modname))
                 import traceback
-                print traceback.format_exc()
+                print(traceback.format_exc())
 
 def expandEnvVars(filePath):
 
@@ -113,9 +115,9 @@ def _aeLoader(modname, objname, nodename):
             inst = f(cmds.nodeType(nodename))
             inst._doSetup(nodename)
         else:
-            print "AE object %s has invalid type %s" % (f, type(f))
+            print("AE object %s has invalid type %s" % (f, type(f)))
     except Exception:
-        print "failed to load python attribute editor template '%s.%s'" % (modname, objname)
+        print("failed to load python attribute editor template '%s.%s'" % (modname, objname))
         import traceback
         traceback.print_exc()
 
@@ -269,7 +271,7 @@ class AttrControlGrp(object):
         try:
             self.control = cmd(*args, **kwargs)
         except RuntimeError:
-            print "Error creating %s:" % cmd.__name__
+            print("Error creating %s:" % cmd.__name__)
             raise
         if self.callback:
             cmds.scriptJob(attributeChange=[self.attribute, self.callback],

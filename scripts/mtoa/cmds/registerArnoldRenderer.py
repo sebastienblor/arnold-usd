@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 import glob
 import os
 import sys
 import inspect
 import mtoa.utils
-import arnoldShelf
+from . import arnoldShelf
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.melUtils as mu
@@ -301,7 +302,7 @@ def registerArnoldRenderer():
             # AE Templates
             # the following must occur even in batch mode because they contain calls to registerDefaultTranslator
             cmds.evalDeferred(aeUtils.loadAETemplates)
-            import rendererCallbacks
+            from . import rendererCallbacks
             rendererCallbacks.registerCallbacks()
             import mtoa.ui.ae.customShapeAttributes
             import mtoa.ui.ae.customShaderTemplates

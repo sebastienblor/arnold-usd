@@ -1,3 +1,4 @@
+from __future__ import print_function
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.core as core
@@ -66,8 +67,8 @@ def arnoldBatchRender(option):
         i += 1
     try:
         cmds.arnoldRender(batch=True, **kwargs)
-    except RuntimeError, err:
-        print err
+    except RuntimeError as err:
+        print(err)
 
         # need to raise the error otherwise it's not caught by maya (#3405)
         if _maya_version >= 2019: # doing it only on mainline for testing

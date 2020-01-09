@@ -3,7 +3,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiFacingRatioTemplate(ShaderAETemplate):
     def setup(self):
-    	self.addSwatch()
+        self.addSwatch()
         self.beginScrollLayout()
         
         self.addControl('bias')

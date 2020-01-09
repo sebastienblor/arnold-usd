@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import maya.cmds as cmds
 import maya.utils as utils
 import maya.mel
@@ -7,7 +9,7 @@ import re
 import sys, os
 import subprocess
 import threading
-import makeTx
+from . import makeTx
 import platform
 import mtoa.utils as mutils
 from arnold import *
@@ -517,7 +519,7 @@ class MtoATxManager(object):
         cmds.select(clear=True)
 
         print (selectedItem[0] + '('+selectedItem[2]+')')
-        print 'Used by file node(s) : '
+        print('Used by file node(s) : ')
 
         for node in nodes:
             if node:
@@ -688,7 +690,7 @@ def UpdateAllTx(force):
     totalFiles = filesCount[0]
     missingFiles = filesCount[1]
 
-    print 'Updating TX textures :'
+    print('Updating TX textures :')
     filesCreated = 0
     createdErrors = 0
     arg_options = "-v --unpremult --oiio" 
@@ -709,7 +711,7 @@ def UpdateAllTx(force):
 
     for textureLine in txItems:
         texture = textureLine[0]
-        print '-filename ' + texture
+        print('-filename ' + texture)
         # we could use textureLine[2] for the colorSpace
         # but in case it hasn't been updated correctly
         # it's still better to ask maya again what is the color space
@@ -733,14 +735,14 @@ def UpdateAllTx(force):
         if not texture:
             continue;
         if conflictSpace:
-            print ' Error : Conflicting color spaces'
+            print(' Error : Conflicting color spaces')
 
         # Process all the files that were found previously for this texture (eventually multiple tokens)
         for inputFile in textureLine[4]:
             # here inputFile is already expanded, and only corresponds to existing files
 
             if len(textureLine[4]) > 1:
-                print '  -'+inputFile
+                print('  -'+inputFile)
 
             tile_info = makeTx.imageInfo(inputFile)
 

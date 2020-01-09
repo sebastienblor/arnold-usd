@@ -1,3 +1,4 @@
+from __future__ import print_function
 import glob
 import os
 import platform
@@ -100,7 +101,7 @@ def guessColorspace(img_info):
         # now discard the image file as AiTextureGetFormat has loaded it
         AiTextureInvalidate(filename)
     except:
-        print '[maketx] Error: Could not guess colorspace for "%s"' % filename
+        print('[maketx] Error: Could not guess colorspace for "%s"' % filename)
         return 'linear'
 
 
@@ -153,11 +154,11 @@ def makeTx(filename, colorspace='auto', arguments=''):
             else:
                 # FIXME what should we do in auto mode ?
                 if colorspace != 'auto':
-                    print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
+                    print('[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename))
 
     for tile in expandFilename(filename):
         if os.path.splitext(tile)[1] == '.tx':
-            print '[maketx] Skipping native TX texture: %s' % tile
+            print('[maketx] Skipping native TX texture: %s' % tile)
             status[1] += 1
             continue
 
@@ -188,12 +189,12 @@ def makeTx(filename, colorspace='auto', arguments=''):
         else:
             mo = re.search(_maketx_rx_stats, res)
             if mo:
-                print '[maketx] Generated TX for "%s" (%s) in %s seconds' % (tile, colorspace, mo.group(1))
+                print('[maketx] Generated TX for "%s" (%s) in %s seconds' % (tile, colorspace, mo.group(1)))
                 AiTextureInvalidate(outputTx) 
                 status[0] += 1
             else:
-                print '[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace)
-                print res
+                print('[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace))
+                print(res)
                 status[2] += 1
        
     return status

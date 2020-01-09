@@ -1,3 +1,4 @@
+from __future__ import print_function
 from mtoa.callbacks import *
 import mtoa.aovs as aovs
 import mtoa.utils as utils
@@ -720,7 +721,7 @@ class ArnoldAOVEditor(object):
             try:
                 callbacks.removeAttributeChangedCallbacks('aiAOV', attr)
             except KeyError:
-                print "AOV callback no longer exists", attr
+                print("AOV callback no longer exists", attr)
 
     def addRows(self):
         for aovName, aovList in self.renderOptions.getAOVs(group=True):
@@ -808,7 +809,7 @@ def arnoldAOVEditor(*args):
     import time
     s = time.time()
     ed = ArnoldAOVEditor()
-    print time.time() - s
+    print(time.time() - s)
     cmds.showWindow()
     cmds.evalDeferred(ed.fixOptionMenus)
     return win

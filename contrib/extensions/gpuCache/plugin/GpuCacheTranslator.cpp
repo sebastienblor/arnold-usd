@@ -148,7 +148,10 @@ AtNode* CGpuCacheTranslator::CreateArnoldNodes()
 {
    if (!s_alembicSupported) return NULL;
 
-   return AddArnoldNode("alembic");
+   if (IsMasterInstance())
+      return AddArnoldNode("alembic");
+   else
+      return AddArnoldNode("ginstance");
 }
 
 // Callback is called whenever a gpuCache node is created
@@ -181,7 +184,7 @@ void CGpuCacheTranslator::AddUpdateCallbacks()
    CShapeTranslator::AddUpdateCallbacks();
 }
 
-void CGpuCacheTranslator::Export( AtNode *shape )
+void CGpuCacheTranslator::ExportProcedural( AtNode *shape )
 {
    if (s_alembicSupported == false || shape == NULL)
       return;

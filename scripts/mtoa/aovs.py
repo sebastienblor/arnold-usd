@@ -1,3 +1,4 @@
+from __future__ import print_function
 import mtoa.utils as utils
 import mtoa.melUtils as melUtils
 import mtoa.callbacks as callbacks
@@ -155,7 +156,7 @@ def removeAliases(aovs):
         for aov in aovs:
             try:
                 cmds.removeMultiInstance(sg + '.ai_aov_' + aov.name)
-            except RuntimeError, err:
+            except RuntimeError as err:
                 pass #print err
 
 def addAliases(aovs):
@@ -295,13 +296,13 @@ class SceneAOV(object):
         for sg in cmds.ls(type='shadingEngine'):
             try:
                 cmds.aliasAttr(sg + '.ai_aov_' + oldName, remove=True)
-            except RuntimeError, err:
+            except RuntimeError as err:
                 pass #print err
 
             sgAttr = '{}.aiCustomAOVs'.format(sg)
             try:
                 cmds.aliasAttr('ai_aov_' + newName, '{}[{}]'.format(sgAttr,self.index))
-            except RuntimeError, err:
+            except RuntimeError as err:
                 pass #print err
 
     def update(self):
@@ -486,7 +487,7 @@ class AOVInterface(object):
         for input in inputs:
             # callback may have deleted it
             if cmds.objExists(input) and not cmds.listConnections('{}.message'.format(input), source=False, destination=True):
-                print "deleting", input
+                print("deleting", input)
 
     def renameAOVs(self, oldName, newName):
         '''
@@ -600,7 +601,7 @@ def createAliases(sg):
     if cmds.attributeQuery('attributeAliasList', node=sg, exists=True):
         alias_list = '{}.attributeAliasList'.format(sg)
         if cmds.objExists(alias_list) and not cmds.aliasAttr(sg, q=True) :
-            print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg
+            print("Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg)
             cmds.deleteAttr(alias_list)
 
     aovList = getAOVNodes(True)

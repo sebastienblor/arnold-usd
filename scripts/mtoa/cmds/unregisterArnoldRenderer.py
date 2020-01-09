@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 import maya.cmds as cmds
-import arnoldShelf
-import rendererCallbacks
+from . import arnoldShelf
+from . import rendererCallbacks
 
 def unregisterArnoldRenderer():
 

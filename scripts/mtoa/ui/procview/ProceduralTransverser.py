@@ -5,7 +5,6 @@ import maya.cmds as cmds
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser, valueIsExpression
 from mtoa.ui.qt.widgets import TYPES_DICT_STRINGS
-from alembic import Abc, AbcGeom
 from arnold import *
 
 (PROC_PATH,

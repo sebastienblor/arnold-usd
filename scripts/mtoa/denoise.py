@@ -1,3 +1,4 @@
+from __future__ import print_function
 import maya.cmds as cmds
 import maya.utils as utils
 import maya.mel as mel
@@ -61,14 +62,14 @@ def denoiseImage(inFile, outFile, f, temporal_frames, pixel_search_radius, pixel
         for light_group in light_group_split:
             cmd += ['-l', light_group]
     
-    print 'Denoising image {} '.format(inFile)
+    print('Denoising image {} '.format(inFile))
     cmd_str = ''
     for cmd_elem in cmd:
         cmd_str += cmd_elem + ' '
-    print cmd_str
+    print(cmd_str)
 
     res = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
-    print res
+    print(res)
 
 def noiceExecuteMel(progress_cmd):
     mel.eval(progress_cmd)
@@ -98,7 +99,7 @@ class NoiceThread (threading.Thread):
         for f in range(self.start_frame, self.end_frame + 1):
             if not self.win.running:
                 break
-            print  '------------------------ ({}/{})'.format(f - self.start_frame + 1, self.end_frame - self.start_frame + 1)
+            print('------------------------ ({}/{})'.format(f - self.start_frame + 1, self.end_frame - self.start_frame + 1))
             denoiseImage(self.inFile, self.outFile, f, self.temporal_frames, self.pixel_search_radius, self.pixel_patch_radius, self.variance, self.light_group_aovs)
             progress_cmd = 'global string $gMainProgressBar;'
             progress_cmd += 'progressBar -edit -progress '

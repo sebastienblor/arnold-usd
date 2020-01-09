@@ -1,3 +1,4 @@
+from __future__ import print_function
 import maya.cmds as cmds
 import math
 
@@ -118,7 +119,7 @@ def assignToNewShader(oldShd, newShd):
 
         newShd = oldShd
         oldShd = aiName
-    except RuntimeError, err:
+    except RuntimeError as err:
         return
 
     if output_conns:
@@ -242,7 +243,7 @@ def convertAiStandard(inShd):
     # exit_to_background => reflection_exit_use_environment || refraction_exit_use_environment
 
     convertAttr(inShd, 'normalCamera', outNode, 'normalCamera') # not multiplying by transmittance
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode
 
 
@@ -262,7 +263,7 @@ def convertAiHair(inShd):
 
     cmds.setAttr(outNode + '.melanin', 0)
 
-    print "Converted %s to aiStandardHair" % inShd
+    print("Converted %s to aiStandardHair" % inShd)
     return outNode
 
 
@@ -303,7 +304,7 @@ def convertLambert(inShd):
     transparencyToOpacity(inShd, outNode)
     
     # not converting translucence since we don't have a direct equivalent
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode
 
 def convertBlinn(inShd):
@@ -328,7 +329,7 @@ def convertBlinn(inShd):
     transparencyToOpacity(inShd, outNode)
     
     # not converting translucence since we don't have a direct equivalent
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode
 
 def convertPhong(inShd):
@@ -356,7 +357,7 @@ def convertPhong(inShd):
     transparencyToOpacity(inShd, outNode)
     
     # not converting translucence since we don't have a direct equivalent
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode
 
 def convertAlSurface(inShd):
@@ -391,7 +392,7 @@ def convertAlSurface(inShd):
     convertAttr(inShd, 'opacity', outNode, 'opacity')
     convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
 
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode
 
 
@@ -405,7 +406,7 @@ def convertAlHair(inShd):
     convertAttr(inShd, 'diffuseStrength', outNode, 'diffuse')
     convertAttr(inShd, 'diffuseColor', outNode, 'diffuseColor')
     
-    print "Converted %s to aiStandardHair" % inShd
+    print("Converted %s to aiStandardHair" % inShd)
     return outNode
 
 def convertAlRemapColor(inShd):
@@ -425,7 +426,7 @@ def convertAlRemapColor(inShd):
     convertAttr(inShd, 'exposure', outNode, 'exposure')
     convertAttr(inShd, 'mask', outNode, 'mask')    
     
-    print "Converted %s to aiColorCorrect" % inShd
+    print("Converted %s to aiColorCorrect" % inShd)
     return outNode
 
 def convertAlRemapFloat(inShd):
@@ -459,7 +460,7 @@ def convertAlRemapFloat(inShd):
             cmds.connectAttr('{}.outColor'.format(outNode), '{}.input'.format(outThreshold), force=True)
             outNode = outThreshold
 
-    print "Converted %s to aiRange" % inShd
+    print("Converted %s to aiRange" % inShd)
     return outNode
 
 def convertAlFractal(inShd):
@@ -482,7 +483,7 @@ def convertAlFractal(inShd):
     convertAttr(inShd, 'color2', outNode, 'color2')
     convertAttr(inShd, 'P', outNode, 'P')
 
-    print "Converted %s to aiNoise" % inShd
+    print("Converted %s to aiNoise" % inShd)
     return outNode
 
 def convertAlFlake(inShd):
@@ -492,7 +493,7 @@ def convertAlFlake(inShd):
     convertAttr(inShd, 'size', outNode, 'scale') 
     convertAttr(inShd, 'amount', outNode, 'density') 
 
-    print "Converted %s to aiFlakes" % inShd
+    print("Converted %s to aiFlakes" % inShd)
     return outNode
 
 
@@ -570,7 +571,7 @@ def convertAlLayerColor(inShd):
     convertAttr(inShd, 'layer8a', outNode, 'mix8')
 
     if closureInputs:
-        print "Converted %s to aiLayerShader" % inShd
+        print("Converted %s to aiLayerShader" % inShd)
         return outNode
 
     convertAttr(inShd, 'clampResult', outNode, 'clamp')
@@ -587,7 +588,7 @@ def convertAlLayerColor(inShd):
         enableAttrName = '{}.enable{}'.format(outNode, ind)
         cmds.setAttr(enableAttrName, 1)
     
-    print "Converted %s to aiLayerRgba" % inShd
+    print("Converted %s to aiLayerRgba" % inShd)
     return outNode
 
 def convertAlLayer(inShd):
@@ -603,7 +604,7 @@ def convertAlLayer(inShd):
     convertAttr(inShd, 'layer2', outNode, 'shader2')
     convertAttr(inShd, 'mix', outNode, 'mix')
 
-    print "Converted %s to aiMixShader" % inShd
+    print("Converted %s to aiMixShader" % inShd)
     return outNode
 
 def convertVRayMtl(inShd):
@@ -626,7 +627,7 @@ def convertVRayMtl(inShd):
     convertAttr(inShd, 'refractionColor', outNode, 'transmissionColor')
     
     # not converting translucence since we don't have a direct equivalent
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode
 
 def convertMiaMaterialX(inShd):
@@ -714,7 +715,7 @@ def convertMiaMaterialX(inShd):
         setValue(outShd +'.Kb', cmds.getAttr(inShd + '.refr_trans_weight'))     
 
     '''
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode
 
 def convertDielectricMaterial(inShd):
@@ -740,7 +741,7 @@ def convertDielectricMaterial(inShd):
     setValue(outNode + '.coatRoughness', 0.0)
     setValue(outNode + '.transmission', 1.0)
 
-    print "Converted %s to aiStandardSurface" % inShd
+    print("Converted %s to aiStandardSurface" % inShd)
     return outNode    
 
 def anisotropyRemap(val):
@@ -840,14 +841,14 @@ def setValue(attr, value):
                 aType = 'string'
                 try:
                     cmds.setAttr(attr, value, type=aType)
-                except RuntimeError, err:
+                except RuntimeError as err:
                     pass
                     
             elif attrType in ['long', 'short', 'float', 'byte', 'double', 'doubleAngle', 'doubleLinear', 'bool']:
                 aType = None
                 try:
                     cmds.setAttr(attr, value)
-                except RuntimeError, err:
+                except RuntimeError as err:
                     pass    
                 
             elif attrType in ['long2', 'short2', 'float2',  'double2', 'long3', 'short3', 'float3',  'double3']:
@@ -858,7 +859,7 @@ def setValue(attr, value):
                         value = [(value, value, value)]
                 try:
                     cmds.setAttr(attr, *value[0], type=attrType)
-                except RuntimeError, err:
+                except RuntimeError as err:
                     pass    
 
         if isLocked:

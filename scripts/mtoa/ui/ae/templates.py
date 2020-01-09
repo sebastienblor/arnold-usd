@@ -4,6 +4,7 @@ in python.  The core class for writing templates is `AttributeTemplate`, which a
 using `registerAETemplate` or `registerTranslatorUI` depending on whether the template is for a node
 or for an mtoa translator.
 """
+from __future__ import print_function
 
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp

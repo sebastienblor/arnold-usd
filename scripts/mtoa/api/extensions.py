@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os.path
 import imp
 import sys
@@ -27,8 +28,8 @@ def loadExtensionUI(sharedLibraryPath):
         description = ('.py', 'U', 1)
         try:
             return imp.load_module(name, fp, pathname, description)
-        except RuntimeError, err:
-            print "Error loading Extension UI %s" % pathname
+        except RuntimeError as err:
+            print("Error loading Extension UI %s" % pathname)
             traceback.print_exc()
         finally:
             # Since we may exit via an exception, close fp explicitly.

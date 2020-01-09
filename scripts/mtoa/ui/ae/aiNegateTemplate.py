@@ -3,7 +3,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiNegateTemplate(ShaderAETemplate):
     def setup(self):
-    	self.addSwatch()
+        self.addSwatch()
         self.beginScrollLayout()
 
         self.addControl('input')

@@ -338,7 +338,7 @@ class Callback(object):
         try:
             try:
                 return self.func(*self.args, **self.kwargs)
-            except Exception, e:
+            except Exception as e:
                 raise CallbackError('Error during callback: %s' % e)
         finally:
             cmds.undoInfo(closeChunk=1)
