@@ -224,7 +224,7 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
             const char* arnoldName = arnoldSession->GetArnoldObjectName(volume_shader.name());
             volume = AiNodeLookUpByName(arnoldName);
          }
-         AiMaterialxWriteMaterial(filename.asChar(), it->first.c_str() , surface , disp , volume);
+         AiMaterialxWriteMaterial(filename.asChar(), it->first.c_str() , surface , volume, disp);
       }
    }
 
