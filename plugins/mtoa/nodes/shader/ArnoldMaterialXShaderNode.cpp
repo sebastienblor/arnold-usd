@@ -6,6 +6,7 @@
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnLightDataAttribute.h>
+#include <maya/MFnMessageAttribute.h>
 #include <maya/MFloatVector.h>
 #include <maya/MRenderUtil.h>
 
@@ -28,7 +29,7 @@ MObject CArnoldMaterialXShaderNode::s_OUT_transparencyG;
 MObject CArnoldMaterialXShaderNode::s_OUT_transparencyB;
 MObject CArnoldMaterialXShaderNode::s_OUT_transparency;
 
-MObject CArnoldMaterialXShaderNode::s_normal_camera;
+MObject CArnoldMaterialXShaderNode::s_displacement;
 
 MObject CArnoldMaterialXShaderNode::s_mtlxFilePath;
 MObject CArnoldMaterialXShaderNode::s_materialName;
@@ -70,6 +71,7 @@ MStatus CArnoldMaterialXShaderNode::initialize()
    MFnAttribute fnAttr;
    MFnNumericAttribute nAttr;
    MFnTypedAttribute tAttr;
+   MFnMessageAttribute mAttr;
    
 
    MAKE_COLOR(s_OUT_color, "outColor", "ocl", 0, 0, 0);
@@ -90,6 +92,9 @@ MStatus CArnoldMaterialXShaderNode::initialize()
    tAttr.setStorable(true);
    tAttr.setUsedAsFilename(true);
    addAttribute(s_materialName);
+
+   s_displacement = mAttr.create("displacement", "disp");
+   addAttribute(s_displacement);
 
    return MS::kSuccess;
 }

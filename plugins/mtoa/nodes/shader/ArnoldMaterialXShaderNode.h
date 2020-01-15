@@ -43,6 +43,8 @@ public:
    static MObject s_OUT_transparencyR;
    static MObject s_OUT_transparencyG;
    static MObject s_OUT_transparencyB;
-   static MObject s_normal_camera;
+   
+
+   static MObject s_displacement;
    
 };  // class CArnoldMaterialXShaderNode

@@ -38,6 +38,27 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
          {
             root_node = node;
          }
+         else if (AiNodeLookUpUserParameter(node, "material_displacement"))
+         {
+            // std::cout << " Displacement found "  << AiNodeGetStr(node, "material_displacement") <<std::endl;
+            std::cout << " Displacment Found Node Name " << AiNodeGetName(node) << std::endl;
+            AtString shadingGroup = AiNodeGetStr(node, "material_displacement");
+            MStatus stat;
+            MPlug plug = fnNode.findPlug("outColor", true, &stat);
+            if (stat == MStatus::kSuccess && plug.isConnected())
+            {
+               MPlugArray filtermapPlug;
+               plug.connectedTo(filtermapPlug, false, true);
+               if (filtermapPlug.length() > 0)
+               {
+                  std::cout << "Connected Plug is " <<filtermapPlug[0].name().asChar() << std::endl;
+                  MFnDependencyNode shadingEngine(filtermapPlug[0].node());
+                  // MString connectCmd = MString("connectAttr -f ") + maya_node_name + MString(".displacement ") + MString(shadingEngine.name()) + MString(".displacementShader");
+                  // std::cout << " Connect command is " <<connectCmd.asChar() << std::endl;
+               }
+            // MGlobal::executeCommand(connectCmd);
+            }
+         }
       }
    }
    if (root_node == NULL)
@@ -56,4 +77,9 @@ void CArnoldMaterialXShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
       SetUpdateMode(AI_RECREATE_NODE);
    }
    CShaderTranslator::NodeChanged(node, plug);
+}
+
+void CArnoldMaterialXShaderTranslator::Export(AtNode* shader)
+{
+   std::cout << " Export is being called" << std::endl;
 }
