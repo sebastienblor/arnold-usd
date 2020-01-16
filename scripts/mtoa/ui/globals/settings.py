@@ -423,14 +423,14 @@ def buildAtmosphereMenu(popup, field, select):
 
     cmds.popupMenu(popup, edit=True, deleteAllItems=True)
 
-    for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
+    for typ in cmds.listNodeTypes(['rendernode/arnold/shader/volume']) or []:
         shaders = cmds.ls(type=typ)
         for item in shaders:
             cmds.menuItem(parent=popup, label=item, command=Callback(changeAtmosphere, item, field, select))
     
     cmds.menuItem(parent=popup, divider=True)
     
-    for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
+    for typ in cmds.listNodeTypes(['rendernode/arnold/shader/volume']) or []:
         menuLabel = "Create "+typ
         cmds.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
 

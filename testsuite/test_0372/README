@@ -1,5 +1,8 @@
-string_replace operator changing texture name
+Test uv transform attributes in the maya ramp
 
-See trac#4057
+Some uv controls in the Maya ramp should trigger the generation of a uv_transform shader when converted to arnold.
 
-author: Ashley Handscomb Retallack
+See trac#4081
+
+author: sebastien.ortega
+

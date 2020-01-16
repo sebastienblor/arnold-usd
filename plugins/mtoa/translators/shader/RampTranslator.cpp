@@ -750,6 +750,7 @@ bool CRampTranslator::RequiresUvTransform() const
             IsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("repeatUV", true), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("offset", true), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) );
 
 }
