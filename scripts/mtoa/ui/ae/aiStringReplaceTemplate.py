@@ -1,6 +1,7 @@
 import maya.mel
 import maya.cmds as cmds
 import mtoa.melUtils as melUtils
+from mtoa.ui.ae.utils import AttrControlGrp
 from mtoa.ui.ae.operatorTemplate import OperatorAETemplate
 
 
@@ -43,14 +44,8 @@ class AEaiStringReplaceTemplate(OperatorAETemplate):
 
         self._matchCtrls = []
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-        cmds.frameLayout(label='Expressions', collapse=False)
+        cmds.frameLayout(label='Expressions', collapsable=False)
         cmds.columnLayout(adjustableColumn=True)
-
-        cmds.rowLayout(nc=2)
-        cmds.text(label='')
-
-        self.newExpButton = cmds.button(label='Add Expression', command=self.createExpression)
-        cmds.setParent('..')  # rowLayout
 
         cmds.rowLayout(nc=2)
         cmds.text(label="")
@@ -65,6 +60,13 @@ class AEaiStringReplaceTemplate(OperatorAETemplate):
         cmds.frameLayout(labelVisible=False, collapsable=False)
         self.matchCol = cmds.columnLayout(adjustableColumn=True)
 
+        cmds.rowLayout(nc=2, columnAlign=(1, 'left'), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
+        # self.matchCtrl = AttrControlGrp(self.nodeAttr("match"), label="")
+        # self.replaceCtrl = AttrControlGrp(self.nodeAttr("replace"), label="")
+        # self.addControl("match")
+        # self.addControl("replace")
+        cmds.setParent("..")  # rowLayout
+
         cmds.setParent('..')  # columnLayout
         cmds.setParent('..')  # frameLayout
 
@@ -78,33 +80,8 @@ class AEaiStringReplaceTemplate(OperatorAETemplate):
     def expressionReplace(self, nodeAttr):
         self._setActiveNodeAttr(nodeAttr)
 
-        for ctrl in self._matchCtrls:
-            cmds.deleteUI(ctrl)
-        self._matchCtrls = []
-
-        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-        cmds.setParent(self.matchCol)
-        attrSize = melUtils.getAttrNumElements(*nodeAttr.split('.', 1))
-
-        for i in range(attrSize):
-            matchAttrName = '{}.match[{}]'.format(self.nodeName, i)
-            replaceAttrName = '{}.replace[{}]'.format(self.nodeName, i)
-            attrLabel = 'Expression[{}]'.format(i)
-            layout = cmds.rowLayout(nc=3,
-                                    columnWidth=[(3, 25)],
-                                    adjustableColumn=2,
-                                    parent=self.matchCol)
-            cmds.text(label=attrLabel)
-
-            cmds.rowLayout(nc=2, columnAlign=(1, 'left'), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
-            cmds.textField(text=cmds.getAttr(matchAttrName), tcc=lambda x, z=i: self.setExpression(z, x, "match"))
-            cmds.textField(text=cmds.getAttr(replaceAttrName), tcc=lambda x, z=i: self.setExpression(z, x, "replace"))
-            cmds.setParent("..")
-
-            cmds.symbolButton(image='SP_TrashIcon.png', command=lambda x, z=i: self.deleteExpression(z))
-
-            self._matchCtrls.append(layout)
-            cmds.setParent("..")
+        self.matchCtrl.setAttribute(self.nodeAttr('match'))
+        self.replaceCtrl.setAttribute(self.nodeAttr('replace'))
 
     def setup(self):
 
@@ -114,8 +91,12 @@ class AEaiStringReplaceTemplate(OperatorAETemplate):
         self.addControl("enable")
         self.addControl("inputs")
         self.addControl("selection")
+        self.addControl("os", label="OS")
+        self.addSeparator()
+        self.addControl("match")
+        self.addControl("replace")
         self.endLayout()
-        self.addCustom("match", self.expressionNew, self.expressionReplace)
+        # self.addCustom("match", self.expressionNew, self.expressionReplace)
 
         self.addOperatorInputs()
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
