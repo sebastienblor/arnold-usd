@@ -348,7 +348,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidget.layout().addWidget(self.properties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
-        # self.filter_box.textChanged.connect(self.tree.model().setFilterWildcard)
+        self.filter_box.textChanged.connect(self.tree.model().setFilterWildcard)
 
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])

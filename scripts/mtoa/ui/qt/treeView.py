@@ -149,6 +149,10 @@ class BaseTreeView(QtWidgets.QTreeView):
     def sizeHintForRow(self, row):
         return ITEM_HEIGHT
 
+    def setSelection(self, rect, command):
+        print "setSelection", rect, command
+        # super(BaseTreeView, self).setSelection(rect, command)
+
 
 class BaseModel(QtCore.QAbstractItemModel):
     """Data model for our QTreeView."""
