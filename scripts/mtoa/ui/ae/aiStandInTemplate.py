@@ -623,7 +623,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
             # now move all the connections from the standIn to the merge node
             c=0
-            for op in ops:
+            for op in cmds.listConnections('{}.operators'.format(self.nodeName), plugs=True) or []:
                 cmds.disconnectAttr(op, '{}.operators[{}]'.format(self.nodeName, c))
                 cmds.connectAttr(op, '{}.looks[0].inputs[{}]'.format(look_switch, c))
                 c+=1

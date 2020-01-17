@@ -171,7 +171,7 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2020', False),
+    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
@@ -312,7 +312,7 @@ else:
 if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
-    maya_version = '202000'
+    maya_version = '202100'
     env.Append(CPPDEFINES = Split('MAYA_MAINLINE')) 
 
 maya_version_base = maya_version[0:4]
@@ -822,12 +822,7 @@ else:
 
 
 # Install the licensing tools
-rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os)
-nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os)
 clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'clm', system.os)
-
-env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
-env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
 
 if (system.os == 'linux'):
     env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
@@ -851,13 +846,9 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 # if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
 #     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
-OCIO_DYLIBPATH =""
-
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-#    arv_lib = maya_version_base
-    arv_lib = "2017"
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', arv_lib, RENDERVIEW_DYLIB)
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
@@ -1271,11 +1262,7 @@ for syncolor_file in syncolor_files:
 PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 # package the licensing tools
-rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os)
-nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os)
 clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os)
-PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
-PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 if (system.os == 'linux'):
     PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
 else:
@@ -1395,9 +1382,6 @@ elif system.os == 'darwin':
 
 if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
-    if OCIO_DYLIBPATH != "":
-        PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
-
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''

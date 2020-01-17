@@ -269,6 +269,7 @@ void CRenderOptions::SetupLog() const
       // The reason why we don't always enable it is that it should also 
       // handle the "log to file" and we prefer letting arnold do it.
 
+      AiMsgResetCallback();
       AiMsgSetCallback(MtoaLogCallback);
    } else
       AiMsgResetCallback();

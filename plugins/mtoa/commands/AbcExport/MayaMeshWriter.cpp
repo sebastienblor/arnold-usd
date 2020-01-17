@@ -833,6 +833,9 @@ void MayaMeshWriter::writeArnoldSubDivAttrs()
     if (subdivision!=0)
     {
         Alembic::Abc::OCompoundProperty cp = mSubDSchema.getArbGeomParams();
+        if (cp.getPropertyHeader("subdiv_type") != nullptr)
+            return;
+
         Alembic::Abc::OStringProperty subdiv_type(cp, "subdiv_type");
 
         if (subdivision==1)

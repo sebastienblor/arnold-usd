@@ -151,12 +151,7 @@ else:
 
 if not local_env['MTOA_DISABLE_RV']:
     renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')
-
-    arv_lib = maya_version_base
-    if int(arv_lib) > 2017:
-        arv_lib = "2017"
-
-    renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', arv_lib)
+    renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib')
 
     local_env.Append(LIBPATH = [renderViewLibFolder])
     local_env.Append(CPPPATH = [renderViewIncludeFolder])

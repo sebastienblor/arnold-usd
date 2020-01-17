@@ -5,6 +5,9 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import maya.mel as mel
 from mtoa.ui.ae.utils import resolveFilePathSequence
 
+defaultFolder = ""
+
+
 class AEaiImageTemplate(ShaderAETemplate):
     def filenameEdit(self, newFilename) :
         attr = self.nodeAttr('filename')
@@ -17,9 +20,18 @@ class AEaiImageTemplate(ShaderAETemplate):
             cmds.setAttr(attr, cmds.colorManagementFileRules(evaluate=newFilename), type="string")
 
     def LoadFilenameButtonPush(self, *args):
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
+                                           cmds.workspace(fre="sourceImages")
+                                           )
         basicFilter = 'All Files (*.*)'
-        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load Image File',okc='Load',fm=4)
+        ret = cmds.fileDialog2(fileFilter=basicFilter,
+                               cap='Load Image File',
+                               okc='Load', fm=4,
+                               dir=defaultFolder)
         if ret is not None and len(ret):
+            defaultFolder = ret[0]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameImageGrp", edit=True, text=ret[0])
 

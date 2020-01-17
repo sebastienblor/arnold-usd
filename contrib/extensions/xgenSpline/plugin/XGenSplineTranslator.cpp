@@ -90,13 +90,6 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
       }
    }
 
-   // Set procedural parameters
-   {
-      AiNodeSetBool(procedural, "load_at_init", true);
-      AiNodeSetVec(procedural, "min", -1.0f, -1.0f, -1.0f);
-      AiNodeSetVec(procedural, "max",  1.0f,  1.0f,  1.0f);
-   }
-
    // Export the sample frames
    AiNodeDeclare(procedural, "sampleTimes", "constant ARRAY FLOAT");
    if (IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))

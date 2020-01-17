@@ -627,8 +627,10 @@ def terminate_GPUCache():
 
     OpenMaya.MGlobal.displayWarning("GPU cache creation terminated")
     ai.AiGPUCachePopulateTerminate()
-    dialog.cancel()
-    OpenMaya.MMessage.removeCallback(cb_id)
+    if dialog:
+        dialog.cancel()
+    if cb_id:
+        OpenMaya.MMessage.removeCallback(cb_id)
     
 def GPU_optixCacheCallBack(*args):
 

@@ -454,9 +454,9 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicenseManager())
         cmds.menuItem('ArnoldLicensingHelp',  label='Licensing Help', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AILIC/Licensing+Home'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/x/TYcfBg'))
         cmds.menuItem('ArnoldSuscribe',  label='Purchase Subscription', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+                    c=lambda *args: cmds.launch(webPage='https://www.autodesk.com/products/arnold/subscribe/'))
         
         '''
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
@@ -506,7 +506,7 @@ def createArnoldMenu():
 
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
-        cmds.menuItem('ArnoldSolidAngle', label='Solid Angle', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldSolidAngle', label='Arnold Renderer Website', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://www.solidangle.com'))
 
         cmds.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',

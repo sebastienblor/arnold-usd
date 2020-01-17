@@ -104,7 +104,6 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {
 
-        
     if (CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsExportingMotion())
 		return MStatus::kFailure;
 
@@ -385,11 +384,12 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         // now restart the render and early out. We'll be called here again in the next refresh.
         if (!newCamName.empty())
             CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
-        else
-            CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
+
+        CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
 
         if (restoreIPR)
             CRenderSession::SetRenderViewOption(MString("Run IPR"), "1");
+
         return MS::kSuccess;
     }
 
