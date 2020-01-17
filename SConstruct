@@ -178,7 +178,7 @@ vars.AddVariables(
 )
 
 if system.os == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.9', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11', '10.12','10.13', '10.14')))
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.11', allowed_values=('10.11', '10.12','10.13', '10.14')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
 if system.os == 'windows':
@@ -495,12 +495,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        if False: #int(maya_version_base) >= 2020:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.13'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.13'))
-        else:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.11'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.11'))
 
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
