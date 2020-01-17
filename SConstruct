@@ -465,7 +465,10 @@ if env['COMPILER'] == 'gcc':
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
     env.Append(CXXFLAGS = Split('-std=c++11'))
-    env.Append(CCFLAGS = Split('-std=c++11'))
+    if system.os == 'darwin':
+        env.Append(CXXFLAGS = Split('-stdlib=libc++'))
+        env.Append(LINKFLAGS = Split('-stdlib=libc++'))
+    
         
     ## warning level
     if env['WARN_LEVEL'] == 'none':
