@@ -3,6 +3,7 @@
 #
 
 import os
+import weakref
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
@@ -90,9 +91,9 @@ class ProceduralTreeView(BaseTreeView):
     def onPressed(self, index):
         if not index.isValid():
             return
-        item = index.internalPointer()
+        # item = index.internalPointer()
         # refresh the children of this item if needed
-        item.obtainChildren()
+        # item.obtainChildren()
 
     def _calculateHeight(self):
 
@@ -137,6 +138,7 @@ class ProceduralTreeView(BaseTreeView):
             index, QtCore.QItemSelectionModel.Select)
 
     def selectionChanged(self, selected, deselected):
+        print("tree.selectionChanged")
         """
         Called when the selection is changed. The previous selection (which
         may be empty), is specified by deselected, and the new selection by
@@ -145,15 +147,18 @@ class ProceduralTreeView(BaseTreeView):
         # This will redraw selected items in the tree view.
         super(ProceduralTreeView, self).selectionChanged(selected, deselected)
         indices = self.selectedIndexes()
+        print " - indices", indices
         if indices:
             objects = []
 
             for i in indices:
-                if not i.isValid():
+                modIndex = self.model().mapToSource(i)
+                if not modIndex.isValid():
                     continue
 
-                item = i.internalPointer()
+                item = modIndex.internalPointer()
 
+                print " - check", item
                 if item:
                     objects.append(item)
 
@@ -210,7 +215,7 @@ class ProceduralTreeModel(BaseModel):
             self.beginInsertRows(parent, s, e)
             # self.beginInsertRows(parent, s, s + item.childCount())
             # Load the objects of the children items
-            print "- item", item.getName, item.childCount()
+            print "- item", item.getName(), item.childCount()
             for i in range(item.childCount()):
                 child = item.child(i)
                 child.obtainChildren()
@@ -323,7 +328,7 @@ class ProceduralItem(BaseItem):
      ASSIGNMENT_TYPE) = range(4)
 
     def __init__(self, parentItem, transverser,
-                 node=None, model=None, data=None, operator=None, index=-1):
+                 node=None, model=None, data=[], operator=None, index=-1):
 
         self.ATTRIBUTE_ICON = ":/out_list.png"
         self.SHADER_ICON = ":/out_blinn.png"
@@ -386,8 +391,11 @@ class ProceduralItem(BaseItem):
         return self.parent().getModel()
 
     def canFetchMore(self):
-        print "ProceduralItem.canFetchMore", self.childCount() >= 1
-        return self.childCount() >= 1
+        print "item.canFetchMore", self.getName(), self.numChildren(), not self.childrenObtained
+        return self.numChildren() >= 1 and not self.childrenObtained
+
+    # def childCount(self):
+    #     return self.numChildren()
 
     def numChildren(self):
         if PROC_NUM_CHILDREN > len(self.data) - 1:
@@ -533,13 +541,13 @@ class ProceduralItem(BaseItem):
         return dpiScale(40)
 
     def getOverrides(self, tranverse=False):
-        print "getOverrides", self.getNode()
+        print "item.getOverrides", self.getNode()
         return self.transverser.getOverrides(self.getNode(), self.data[PROC_PATH])
 
     def obtainChildren(self, delayUpdate=False):
+        print "item.obtainChildren", self.getName(), self.childrenObtained
         if self.childrenObtained:
             return
-        print "obtainChildren", self.getName()
         # timer = Timer()
 
         # delete any nodes under this one
@@ -569,7 +577,7 @@ class ProceduralItem(BaseItem):
             if children:
                 for child in children:
                     childItem = ProceduralItem(self, self.transverser, self.node, data=child)
-                    print "- child", childItem.getName()
+                    print "- child", childItem.getName(), childItem.data
 
         self.childrenObtained = True
         return True
@@ -597,9 +605,10 @@ class ProceduralItem(BaseItem):
 
 class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
     """docstring for ClassName"""
-    def __init__(self, parent=None):
+    def __init__(self, treeView, parent=None):
         super(ProceduralTreeFilterModel, self).__init__(parent)
 
+        self.treeView = weakref.ref(treeView)
         self.setFilterWildcard("*")
         # self.setRecursiveFilteringEnabled(True) # qt 5.10 +
 
@@ -608,9 +617,9 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
         print "proxy.currentNode"
         return self.sourceModel().currentNode
 
-    def treeView(self):
-        print "proxy.treeView"
-        return self.sourceModel().treeView()
+    # def treeView(self):
+    #     print "proxy.treeView"
+    #     return self.sourceModel().treeView()
 
     def filterAcceptsRow(self, sourceRow, sourceParent):
         print "filterAcceptsRow", sourceRow, sourceParent
@@ -663,7 +672,9 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
         if not index.isValid():
             return False
 
-        childCount = index.model().rowCount(index)
+        # childCount = index.model().rowCount(index)
+        item = index.internalPointer()
+        childCount = item.numChildren()
         if childCount == 0:
             return False
 
@@ -716,13 +727,14 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
             row = parent.row()
             startRow = row + 1
             sourceIndex = self.mapToSource(parent)
-            self.sourceModel().fetchMore(sourceIndex)
-            # item = sourceIndex.internalPointer()
-            # print " - item", item
+            # self.sourceModel().fetchMore(sourceIndex)
+            item = sourceIndex.internalPointer()
+            print " - item", item.getName()
             # if not item.childrenObtained:
-            #     self.beginInsertRows(parent, startRow, startRow + item.childCount())
-            #     item.obtainChildren()
-            #     self.endInsertRows()
+            print " - inserting new rows at:", startRow, "ending at:", startRow + item.numChildren()
+            self.beginInsertRows(parent, startRow, startRow + item.numChildren())
+            item.obtainChildren()
+            self.endInsertRows()
             return True
         return False
 
@@ -745,7 +757,7 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
         return self.sourceModel().setData(*args, **kwargs)
 
     def expandedCount(self):
-        print "proxy.expandedCount"
+        print "proxy.expandedCount", self.sourceModel().expandedCount()
         return self.sourceModel().expandedCount()
 
     def executeAction(self, action, index):

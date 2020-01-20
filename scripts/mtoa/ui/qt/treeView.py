@@ -73,20 +73,31 @@ class BaseTreeView(QtWidgets.QTreeView):
         super(BaseTreeView, self).mousePressEvent(event)
         # self.clicked.emit(index)
         # action = self.itemDelegate(index).getLastAction()
-        # self.model().executeAction(action, index)
-
+        # if action == BaseItem.ACTION_EXPAND:
+        #     print " -- Expanding", not selfr.isExpanded(index)
+        #     self.setExpanded(
+        #         index, not self.isExpanded(index))
+        # else:
+        #     self.model().executeAction(action, index)
         # Redraw the item
         self.redraw(index)
 
     def mouseReleaseEvent(self, event):
         """Trigger actions based on mouse presses."""
         print "tree.mouseReleaseEvent"
-        super(BaseTreeView, self).mouseReleaseEvent(event)
+        # super(BaseTreeView, self).mouseReleaseEvent(event)
         index = self.indexAt(event.pos())
 
         if not index.isValid():
             return
 
+        action = self.itemDelegate(index).getLastAction()
+        if action == BaseItem.ACTION_EXPAND:
+            print " -- Expanding", not self.isExpanded(index)
+            self.setExpanded(
+                index, not self.isExpanded(index))
+        else:
+            self.model().executeAction(action, index)
         # Redraw the item
         self.redraw(index)
 
@@ -151,7 +162,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def setSelection(self, rect, command):
         print "setSelection", rect, command
-        # super(BaseTreeView, self).setSelection(rect, command)
+        super(BaseTreeView, self).setSelection(rect, command)
 
 
 class BaseModel(QtCore.QAbstractItemModel):
@@ -216,7 +227,7 @@ class BaseModel(QtCore.QAbstractItemModel):
         elif role == NODE_BAR_COLOUR:
             return item.getLabelColor()
         elif role == CHILD_COUNT:
-            return item.childCount()
+            return item.numChildren()
         elif role == ACTIONS:
             return item.getActions()
         elif role == ICON:
@@ -245,7 +256,6 @@ class BaseModel(QtCore.QAbstractItemModel):
 
     def indexFromItem(self, node):
         """Create the index that represents the given item in the model."""
-        print "indexFromItem"
         if not node or not node.parent():
             return QtCore.QModelIndex()
 
@@ -653,6 +663,7 @@ class BaseItem(object):
 
     def __init__(self, parentItem, name, index=-1):
         """Called after the instance has been created."""
+        print "creating item", name
         self.name = name
         self.childItems = []
         if index >= 0:
@@ -675,6 +686,9 @@ class BaseItem(object):
         self.childItems.insert(rowNumber, child)
 
     def removeChild(self, child):
+        if not child:
+            return
+
         for child_ in child.childItems:
             child.removeChild(child_)
         child.parentItem = None
