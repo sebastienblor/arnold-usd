@@ -29,7 +29,9 @@ MObject CArnoldMaterialXShaderNode::s_OUT_transparencyG;
 MObject CArnoldMaterialXShaderNode::s_OUT_transparencyB;
 MObject CArnoldMaterialXShaderNode::s_OUT_transparency;
 
-MObject CArnoldMaterialXShaderNode::s_displacement;
+MObject CArnoldMaterialXShaderNode::s_OUT_displacement;
+MObject CArnoldMaterialXShaderNode::s_OUT_volume;
+
 
 MObject CArnoldMaterialXShaderNode::s_mtlxFilePath;
 MObject CArnoldMaterialXShaderNode::s_materialName;
@@ -93,8 +95,11 @@ MStatus CArnoldMaterialXShaderNode::initialize()
    tAttr.setUsedAsFilename(true);
    addAttribute(s_materialName);
 
-   s_displacement = mAttr.create("displacement", "disp");
-   addAttribute(s_displacement);
+   s_OUT_displacement = mAttr.create("outDisplacement", "disp");
+   addAttribute(s_OUT_displacement);
+
+   s_OUT_volume = mAttr.create("outVolume", "volm");
+   addAttribute(s_OUT_volume);
 
    return MS::kSuccess;
 }

@@ -45,6 +45,7 @@ public:
    static MObject s_OUT_transparencyB;
    
 
-   static MObject s_displacement;
+   static MObject s_OUT_displacement;
+   static MObject s_OUT_volume;
    
 };  // class CArnoldMaterialXShaderNode
