@@ -2,6 +2,9 @@
 
 AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
 {
+  
+   MString outputAttr = GetMayaOutputAttributeName();
+
    MString mtlx_path = FindMayaPlug("materialXFilePath").asString();
    MString material_name = FindMayaPlug("materialName").asString();
 
@@ -27,6 +30,9 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
    AtArray* nodes = AiArrayAllocate(0, 0, AI_TYPE_NODE);
 
    AtNode* root_node = NULL;
+   AtNode* displ_node = NULL;
+   AtNode* volume_node = NULL;
+
    if ( AiMaterialxReadMaterials(NULL, mtlx_path.asChar(), hints, nodes) == AI_MATX_SUCCESS )
    {
       unsigned int arrElems = AiArrayGetNumElements(nodes);
@@ -38,12 +44,31 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
          {
             root_node = node;
          }
+         else if (AiNodeLookUpUserParameter(node, "material_displacement"))
+         {
+            displ_node = node;
+         }
+         else if(AiNodeLookUpUserParameter(node, "material_volume"))
+         {
+            volume_node = node;
+         }
+         
       }
    }
-   if (root_node == NULL)
+   if (root_node == NULL )
    {
       AiMsgError("[mtoa] [translator %s] Unable to perform translation", GetTranslatorName().asChar());
    }
+
+   if (outputAttr == "outDisplacement")
+   {
+      return displ_node;
+   }
+   else if (outputAttr == "outVolume" || outputAttr == "aiVolumeShader")
+   {
+      return volume_node;
+   }
+
 
    return root_node;
 }
