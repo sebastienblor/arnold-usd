@@ -279,9 +279,14 @@ def arnoldExportShaders():
     global defaultFolder
     if defaultFolder == "":
         defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
-    ret = cmds.fileDialog2(cap='Select File',okc='Select',ff="Arnold Shaders File (*.ass)",fm=0,dir=defaultFolder) or []
+    objFilter = "ASS File (*.ass);; MaterialX File (*.mtlx)"
+    ret = cmds.fileDialog2(cap='Select File',okc='Select',ff=objFilter,fm=0,dir=defaultFolder) or []
+    print "return item is " , ret
     if len(ret) > 0:
-        cmds.arnoldExportAss(filename = ret[0], selected=True, exportAllShadingGroups=True, mask = ai.AI_NODE_SHADER)
+        if ret[0].split('.')[-1] == "mtlx":
+            cmds.arnoldExportToMaterialX(filename=ret[0], mtl=True)
+        else:    
+            cmds.arnoldExportAss(filename = ret[0], selected=True, exportAllShadingGroups=True, mask = ai.AI_NODE_SHADER)
 
 def arnoldImportShaders():
     global defaultOperatorsFolder
