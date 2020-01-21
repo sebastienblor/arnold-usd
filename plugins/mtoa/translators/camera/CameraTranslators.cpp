@@ -36,11 +36,23 @@ void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
    MakeDOFAttributes(helper);
    helper.MakeInput("uv_remap");
    helper.MakeInput("radial_distortion");
+
+   CAttrData data;
+   data.name = "aiLensTiltAngle";
+   data.shortName = "ai_lens_tilt_angle";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputVector2(data);
+
+   data.name = "aiLensShift";
+   data.shortName = "ai_lens_shift";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputVector2(data);
    
    CExtensionAttrHelper helper2(context.maya, "ortho_camera");
    MakeDefaultAttributes(helper2);
 
-   CAttrData data;
    data.name = "motionBlurOverride";
    data.shortName = "motion_blur_override";
    data.enums.append("Use Global Settings");
@@ -117,10 +129,22 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, GetMotionStep(), fov);
       AiNodeSetArray(camera, "fov", fovs);
+
+      AtArray* lensTiltAngles = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
+      AtVector2 lensTiltAngle(FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
+      AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
+      AiNodeSetArray(camera, "lens_tilt_angle", lensTiltAngles);
+
+      AtArray* lensShifts = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
+      AtVector2 lensShift(FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
+      AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
+      AiNodeSetArray(camera, "lens_shift", lensShifts);
    }
    else
    {
       AiNodeSetFlt(camera, "fov", fov);
+      AiNodeSetVec2(camera, "lens_tilt_angle", FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
+      AiNodeSetVec2(camera, "lens_shift", FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
    }
    ProcessParameter(camera, "radial_distortion", AI_TYPE_FLOAT, "aiRadialDistortion");
 }
@@ -177,6 +201,14 @@ void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera)
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
    AiArraySetFlt(fovs, GetMotionStep(), fov);
+
+   AtArray* lensTiltAngles = AiNodeGetArray(camera, "lens_tilt_angle");
+   AtVector2 lensTiltAngle(FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
+   AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
+
+   AtArray* lensShifts = AiNodeGetArray(camera, "lens_shift");
+   AtVector2 lensShift(FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
+   AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
 }
 
 float CStandardCameraTranslator::ExportFilmbackPersp(AtNode* camera)

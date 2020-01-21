@@ -899,6 +899,8 @@ class PerspCameraTemplate(CameraTemplate):
         self.addShutterAttributes()
         self.addSeparator()
         self.addControl('aiRadialDistortion', label="Radial Distortion")
+        self.addControl('aiLensTiltAngle', label="Lens Tilt Angle")
+        self.addControl('aiLensShift', label="Lens Shift")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
