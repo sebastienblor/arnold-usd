@@ -455,7 +455,6 @@ class ProceduralTransverser(BaseTransverser):
 
             return ops
 
-        print "getOperators", node, path
         if not cmds.objExists(node):
             return []
 

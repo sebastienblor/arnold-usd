@@ -65,26 +65,20 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def mousePressEvent(self, event):
         """Receive mouse press events for the widget."""
-        print "tree.mousePressEvent"
         index = self.indexAt(event.pos())
-        print "index.isValid()", index.isValid()
         if not index.isValid():
             return
         super(BaseTreeView, self).mousePressEvent(event)
-        # self.clicked.emit(index)
-        # action = self.itemDelegate(index).getLastAction()
-        # if action == BaseItem.ACTION_EXPAND:
-        #     print " -- Expanding", not selfr.isExpanded(index)
-        #     self.setExpanded(
-        #         index, not self.isExpanded(index))
-        # else:
-        #     self.model().executeAction(action, index)
+        # force selection
+        flags = self.selectionCommand(index)
+        rect = self.visualRect(index)
+        self.setSelection(rect, flags)
+
         # Redraw the item
         self.redraw(index)
 
     def mouseReleaseEvent(self, event):
         """Trigger actions based on mouse presses."""
-        print "tree.mouseReleaseEvent"
         # super(BaseTreeView, self).mouseReleaseEvent(event)
         index = self.indexAt(event.pos())
 
@@ -93,7 +87,6 @@ class BaseTreeView(QtWidgets.QTreeView):
 
         action = self.itemDelegate(index).getLastAction()
         if action == BaseItem.ACTION_EXPAND:
-            print " -- Expanding", not self.isExpanded(index)
             self.setExpanded(
                 index, not self.isExpanded(index))
         else:
@@ -139,8 +132,6 @@ class BaseTreeView(QtWidgets.QTreeView):
             self.setExpandedChildren(child, expanded)
 
     def executeAction(self, index):
-        print "tree.executeAction"
-
         action = self.itemDelegate(index).getLastAction()
         self.model().executeAction(action, index)
 
@@ -161,7 +152,6 @@ class BaseTreeView(QtWidgets.QTreeView):
         return ITEM_HEIGHT
 
     def setSelection(self, rect, command):
-        print "setSelection", rect, command
         super(BaseTreeView, self).setSelection(rect, command)
 
 
@@ -213,7 +203,6 @@ class BaseModel(QtCore.QAbstractItemModel):
         Return the data stored under the given role for the item referred to by
         the index.
         """
-        # print "model.data", index, role
         if not index.isValid():
             return
         item = index.internalPointer()
@@ -224,6 +213,8 @@ class BaseModel(QtCore.QAbstractItemModel):
             return QtCore.QSize(250, ITEM_HEIGHT)
         elif role == QtCore.Qt.BackgroundRole:
             return item.getBackgroundColor()
+        elif role == QtCore.Qt.StatusTipRole:
+            return item.getName()
         elif role == NODE_BAR_COLOUR:
             return item.getLabelColor()
         elif role == CHILD_COUNT:
@@ -663,13 +654,19 @@ class BaseItem(object):
 
     def __init__(self, parentItem, name, index=-1):
         """Called after the instance has been created."""
-        print "creating item", name
         self.name = name
         self.childItems = []
+        self.expanded = False
         if index >= 0:
             self.setParent(parentItem, index)
         else:
             self.setParent(parentItem)
+
+    def getExpanded(self):
+        return self.expanded
+
+    def setExpanded(self, expanded):
+        self.expanded = expanded
 
     def getName(self):
         """The label of the item."""

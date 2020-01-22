@@ -48,7 +48,7 @@ def abcToArnType(iObj):
     elif AbcGeom.IXform.matches(md):
         return 'xform'
     else:
-        return None
+        return 'alembic'
 
 
 class AlembicTransverser(ProceduralTransverser):
@@ -109,7 +109,6 @@ class AlembicTransverser(ProceduralTransverser):
 
     def dir(self, iobject):
         children = []
-        print "AlembicTransverser.dir",iobject
         if iobject == 'NULL':
             return children
 
