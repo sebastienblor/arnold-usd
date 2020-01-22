@@ -1403,7 +1403,7 @@ def create_installer(target, source, env):
 
     if system.os == "windows":
         import zipfile
-        shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
+        shutil.copyfile(os.path.abspath('installer/arnold.ico'), os.path.join(tempdir, 'arnold.ico'))
         shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
