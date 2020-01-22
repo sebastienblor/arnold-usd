@@ -36,6 +36,7 @@ void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
    MakeDOFAttributes(helper);
    helper.MakeInput("uv_remap");
    helper.MakeInput("radial_distortion");
+   helper.MakeInput("radial_distortion_type");
 
    CAttrData data;
    data.name = "aiLensTiltAngle";
@@ -147,6 +148,7 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
       AiNodeSetVec2(camera, "lens_shift", FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
    }
    ProcessParameter(camera, "radial_distortion", AI_TYPE_FLOAT, "aiRadialDistortion");
+   ProcessParameter(camera, "radial_distortion_type", AI_TYPE_ENUM, "aiRadialDistortionType");
 }
 
 void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)
