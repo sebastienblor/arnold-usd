@@ -220,21 +220,17 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.setAttr(selAttr, attrVal, type='string')
         return True
     '''
+
+    def getExpandFileType(self):
+        ext_str = os.path.splitext(self.current_filename)[1].lower()
+        if ext_str in ['.abc']:
+            return True
+        return False
+
     def refreshAssignmentsUI(self):
-        fileAttr = '{}.dso'.format(self.nodeName)
-        filename = cmds.getAttr(fileAttr)
-        filename = expandEnvVars(filename)
-
-        ext_str = ".ass"
-        if filename:
-            ext_str = os.path.splitext(filename)[1].lower()
-
-        expand = False
-        if ext_str == '.abc':
-            expand = True
-
-        self.tree.setCurrentNode(self.nodeName, expand, force=True)
-        self.properties_panel.setNode(self.nodeName)
+        if self.refreshTransverser():
+            self.tree.setCurrentNode(self.nodeName, self.getExpandFileType(), force=True)
+            self.properties_panel.setNode(self.nodeName)
 
     def lookReplace(self, nodeAttr):
         old_look = self.look_node
@@ -260,8 +256,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 look_idx = cmds.getAttr("{}.index".format(self.look_node))
                 cmds.optionMenu(self.lookCtrl, edit=True, value=looks[look_idx])
 
-            if self.tree:
-                self.refreshAssignmentsUI()
+            # if self.tree:
+            #     self.refreshAssignmentsUI()
 
     def lookNew(self, nodeAttr):
 
@@ -282,21 +278,22 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.setParent('..')
         self.lookReplace(nodeAttr)
 
-    def fileInfoReplace(self, nodeAttr):
-        nodeName = nodeAttr.split('.')[0]
-        fileAttr = '{}.dso'.format(nodeName)
+    def refreshTransverser(self):
+        old_node = self.current_node
+        fileAttr = '{}.dso'.format(self.nodeName)
         filename = cmds.getAttr(fileAttr)
         filename = expandEnvVars(filename)
-        if nodeName == self.currentNode and filename == self.currentFilename:
+        if old_node == self.current_node and filename == self.current_filename:
             self.properties_panel.setItem(self.nodeName, None)
-            return  # nothing to do here...
+            return False  # nothing to do here...
 
         filename_changed = False
-        if nodeName == self.currentNode and filename != self.currentFilename:
+        if old_node == self.current_node and filename != self.current_filename:
             filename_changed = True
+        else:
+            return False  # nothing to do here...
 
-        self.currentNode = nodeName
-        self.currentFilename = filename
+        self.current_filename = filename
 
         ext_str = ".ass"
         if filename:
@@ -318,24 +315,30 @@ class AEaiStandInTemplate(ShaderAETemplate):
         # setting refresh to False forces the tranverser not to refresh the tree
         self.tree.setTransverser(transverser, refresh=False)
         self.properties_panel.setTransverser(transverser)
-        # setting node triggers the refresh
-        self.tree.setCurrentNode(self.nodeName, expand, filename_changed)
-        self.properties_panel.setNode(self.nodeName)
 
-        scriptAttr = self.nodeName + ".dso"
-        cmds.scriptJob(attributeChange=[scriptAttr, self.updateAssFile])
+        return True
 
-        scriptAttr = self.nodeName + ".selected_items"
-        cmds.scriptJob(attributeChange=[scriptAttr, self.updateSelectedItems])
+    def fileInfoReplace(self, nodeAttr):
+        if self.refreshTransverser():
+            # setting node triggers the refresh
+            self.tree.setCurrentNode(self.nodeName, self.getExpandFileType(), force=True)
+            self.properties_panel.setNode(self.nodeName)
+
+            scriptAttr = self.nodeName + ".dso"
+            cmds.scriptJob(attributeChange=[scriptAttr, self.updateAssFile])
+
+            scriptAttr = self.nodeName + ".selected_items"
+            cmds.scriptJob(attributeChange=[scriptAttr, self.updateSelectedItems])
 
     def fileInfoNew(self, nodeAttr):
 
         currentWidget = self.__currentWidget()
-        self.currentNode = ''
-        self.currentFilename = ''
 
         # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser, because we'll set it later or 
         # in fileInfoReplace
+        self.filter_box = QtWidgets.QLineEdit(currentWidget)
+        self.filter_box.setPlaceholderText("filter ..")
+        currentWidget.layout().addWidget(self.filter_box)
         self.tree = ProceduralTreeView(None, currentWidget)
         self.tree.setObjectName("standinTreeWidget")
         currentWidget.layout().addWidget(self.tree)
@@ -345,6 +348,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidget.layout().addWidget(self.properties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
+        self.filter_box.textChanged.connect(self.tree.model().setFilterWildcard)
 
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
@@ -714,6 +718,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
         self.current_node = None
+        self.current_filename = ''
         self.look_node = None
 
     @QtCore.Slot(str, object)
@@ -969,6 +974,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.inspectAssPath = ''
         self.current_node = None
         self.look_node = None
+        self.current_filename = ''
         self.tree = None
         self.properties_panel = None
         self._update_var_ui = False
