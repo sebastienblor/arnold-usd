@@ -1828,7 +1828,7 @@
     desc                    STRING  "Volume fog atmosphere shader."
     maya.name               STRING  "aiFog"
     maya.id                 INT     0x00115D0A  
-    maya.classification     STRING  "light/volume"
+    maya.classification     STRING  "shader/volume"
     [attr distance]
         desc                STRING  "Fog full opacity distance."
         min                 FLOAT   0.0
@@ -1850,7 +1850,7 @@
     desc                    STRING  "Volume scattering atmosphere shader."
     maya.name               STRING  "aiAtmosphereVolume"
     maya.id                 INT     0x00115D0B  
-    maya.classification     STRING  "light/volume"
+    maya.classification     STRING  "shader/volume"
     [attr affect_camera]
         desc                STRING  "Scattering effect on camera rays."
         min                 FLOAT   0.0
@@ -3530,6 +3530,13 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115DA3
+
+[node string_replace]
+    desc                    STRING  "String Replace Operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115DBC
 
 
 # Cryptomatte

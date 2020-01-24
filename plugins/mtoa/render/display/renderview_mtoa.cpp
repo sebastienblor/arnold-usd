@@ -517,12 +517,12 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    double scaleFactor = 1.0;
    scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
 
-   std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
+   std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection;Test Resolution";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
    CRenderViewInterface::OpenOptionsWindow(250, 50,scaleFactor, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
-
+   
    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
 
    if (firstCreation)

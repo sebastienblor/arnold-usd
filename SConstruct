@@ -178,7 +178,7 @@ vars.AddVariables(
 )
 
 if system.os == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.9', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11', '10.12','10.13', '10.14')))
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.11', allowed_values=('10.11', '10.12','10.13', '10.14')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
 if system.os == 'windows':
@@ -465,7 +465,10 @@ if env['COMPILER'] == 'gcc':
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
     env.Append(CXXFLAGS = Split('-std=c++11'))
-    env.Append(CCFLAGS = Split('-std=c++11'))
+    if system.os == 'darwin':
+        env.Append(CXXFLAGS = Split('-stdlib=libc++'))
+        env.Append(LINKFLAGS = Split('-stdlib=libc++'))
+    
         
     ## warning level
     if env['WARN_LEVEL'] == 'none':
@@ -492,12 +495,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        if False: #int(maya_version_base) >= 2020:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.13'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.13'))
-        else:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.11'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.11'))
 
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
@@ -822,12 +821,7 @@ else:
 
 
 # Install the licensing tools
-rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os)
-nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os)
 clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'clm', system.os)
-
-env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
-env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
 
 if (system.os == 'linux'):
     env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
@@ -1267,11 +1261,7 @@ for syncolor_file in syncolor_files:
 PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 # package the licensing tools
-rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os)
-nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os)
 clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os)
-PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
-PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 if (system.os == 'linux'):
     PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
 else:
@@ -1413,7 +1403,7 @@ def create_installer(target, source, env):
 
     if system.os == "windows":
         import zipfile
-        shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
+        shutil.copyfile(os.path.abspath('installer/arnold.ico'), os.path.join(tempdir, 'arnold.ico'))
         shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))

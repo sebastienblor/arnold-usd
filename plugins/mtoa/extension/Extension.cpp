@@ -119,7 +119,6 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
       status = m_impl->NewArnoldPlugin(resolved);
       if (MStatus::kSuccess == status)
       {
-         // TODO: add error handling when solid angle adds a status result
          AiLoadPlugins(resolved.asChar());
          // Register plugin nodes and translators
          status = RegisterPluginNodesAndTranslators(resolved);

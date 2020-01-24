@@ -211,9 +211,7 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
    double filmTranslateX = m_fnCamera.filmTranslateH();
    double filmTranslateY = m_fnCamera.filmTranslateV();
    double filmRollValue = m_fnCamera.filmRollValue();
-   //TODO: We need a roll attribute from the guys at SolidAngle
-   //double filmRollPivotX = m_fnCamera.verticalRollPivot();
-   //double filmRollPivotY = m_fnCamera.horizontalRollPivot();
+
    MFnCamera::RollOrder filmRollOrder = m_fnCamera.filmRollOrder();
    double postScale = m_fnCamera.postScale();
 
