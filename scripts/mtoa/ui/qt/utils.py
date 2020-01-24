@@ -19,6 +19,22 @@ _DPI_SCALE = \
 
 STRING_EXP = re.compile(r'[\'\"](.*)[\'\"]')
 
+def busy_cursor(func):
+    """ Decorator to change the mouse cursor to 'busy' while a function is processed.
+
+    Args:
+        func: Decorated function.
+    """
+
+    def busy(*args, **kwargs):
+        # noinspection PyTypeChecker, PyArgumentList, PyCallByClass
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        try:
+            return func(*args, **kwargs)
+        finally:
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+    return busy
 
 def dpiScale(value):
     """Scale the value according to the current DPI of the current monitor."""

@@ -18,13 +18,13 @@
 #######################
 
 # These tests are only executed on Windows
-windows: test_0098 test_0098_Maya2020 test_0167_win test_0167_win_Maya2017 test_0203_win test_0221_win test_0221_win_Maya2017 
+windows: test_0098 test_0098_Maya2020 test_0167_win test_0167_win_Maya2017 test_0203_win test_0221_win test_0221_win_Maya2017 test_0372_win
 
 # These tests are only executed on Linux
-linux: test_0167_linux test_0167_linux_Maya2017 test_0203_linux test_0221_linux test_0221_linux_Maya2017
+linux: test_0167_linux test_0167_linux_Maya2017 test_0203_linux test_0221_linux test_0221_linux_Maya2017 test_0372_linux
 
 # These tests are only executed on Darwin
-darwin: test_0167_mac test_0167_mac_Maya2017 test_0203_mac test_0221_mac test_0221_mac_Maya2017
+darwin: test_0167_mac test_0167_mac_Maya2017 test_0203_mac test_0221_mac test_0221_mac_Maya2017 test_0372_mac
 
 # Tests in this group will never be executed (you can use it to temporarily disable some tests and/or groups)
 # FIXME : motion blurred particles are not working properly (seems to be maya ?), temporarily disabling tests 60, 66, 74, 79 until solved

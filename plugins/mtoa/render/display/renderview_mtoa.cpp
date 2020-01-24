@@ -517,12 +517,12 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    double scaleFactor = 1.0;
    scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
 
-   std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
+   std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection;Test Resolution";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
    CRenderViewInterface::OpenOptionsWindow(250, 50,scaleFactor, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
-
+   
    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
 
    if (firstCreation)
@@ -585,13 +585,20 @@ void CRenderViewMtoA::RenderChanged()
 
 void CRenderViewMtoA::UpdateSceneChanges()
 {
-   if (AiUniverseIsActive())
+   if (!AiUniverseIsActive())
+      UpdateFullScene();
+   else
    {
       CMayaScene::UpdateSceneChanges();
       SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
-      return;
    }
+}
 
+/** When this funtion is invoked, it means that the whole scene needs to 
+ * be re-exported from scratch.
+ **/
+void CRenderViewMtoA::UpdateFullScene()
+{
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
@@ -674,7 +681,6 @@ void CRenderViewMtoA::UpdateSceneChanges()
    renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
       renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
-   
 }
 void CRenderViewMtoA::SetCameraName(const MString &name)
 {

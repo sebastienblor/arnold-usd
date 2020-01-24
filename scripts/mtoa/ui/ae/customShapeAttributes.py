@@ -18,7 +18,7 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiMinParticleRadius", label="Min Particle Radius")
         self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
         self.addControl("aiMaxParticleRadius", label="Max Particle Radius")
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width *") # Not supported in GPU
+        self.addControl("aiMinPixelWidth", label="Min Pixel Width") # Not supported in GPU
         self.addSeparator()   
         self.addControl("aiFalloffExponent", label="Falloff Exponent")
         self.addControl("aiSmoothStepFalloff", label="Smoothstep Falloff")
@@ -42,7 +42,7 @@ class NParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiMinParticleRadius", label="Min Particle Radius")
         self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
         self.addControl("aiMaxParticleRadius", label="Max Particle Radius")
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width *") # Not supported in GPU
+        self.addControl("aiMinPixelWidth", label="Min Pixel Width") # Not supported in GPU
         self.addSeparator()   
         self.addControl("aiFalloffExponent", label="Falloff Exponent")
         self.addControl("aiSmoothStepFalloff", label="Smoothstep Falloff")
@@ -899,6 +899,9 @@ class PerspCameraTemplate(CameraTemplate):
         self.addShutterAttributes()
         self.addSeparator()
         self.addControl('aiRadialDistortion', label="Radial Distortion")
+        self.addControl('aiRadialDistortionType', label="Radial Distortion Type")
+        self.addControl('aiLensTiltAngle', label="Lens Tilt Angle")
+        self.addControl('aiLensShift', label="Lens Shift")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 

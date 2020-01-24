@@ -8,7 +8,7 @@ from mtoa.callbacks import *
 defaultFolder = ""
 
 class AEaiMaterialXShaderTemplate(ShaderAETemplate):
-    
+
     def setup(self):
         self.beginScrollLayout()
 
@@ -24,7 +24,7 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
             if prevPath == mPath:
                 return
             cmds.setAttr(attr,mPath,type="string")
-            self.populateMaterials(mPath)
+            self.listMaterialsReplace(self.nodeAttr('materialName'))
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'MaterialX Files (*.mtlx);;All Files (*.*)'
@@ -39,7 +39,7 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
             defaultFolder = ret[0]
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
-    
+
     def mtlxFilePathNew(self, nodeName):
         cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
         info = cmds.getAttr(nodeName)
@@ -52,20 +52,9 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
         else:
             cmds.textFieldGrp("filenameGrp", edit=True, text= "" )
 
-    def populateMaterials(self, mPath):
-        looksArray = ai.AiMaterialxGetMaterialNames(mPath)
-        numLooks = ai.AiArrayGetNumElements(looksArray)
-        cmds.menuItem(parent = self.materials, label="")
-        for i in range(numLooks):
-            look = ai.AiArrayGetStr(looksArray, i)
-            cmds.menuItem(parent = self.materials, label=str(look))
-        
-        cmds.optionMenu(self.materials, e = True , sl = 1)
-    
     def setMaterialName(self, nodeName):
         cmds.setAttr(nodeName, cmds.optionMenu(self.materials, q = True , value = True), type = "string")
-    
-    
+
     def listMaterialsNew(self, nodeName):
         cmds.rowLayout(nc=2, cw2=(300,30), cl2=('center', 'center'), adjustableColumn=1, columnAttach=[(1, 'left', 0), (2, 'left', 0)])
         self.materials = cmds.optionMenu( label='Materials', changeCommand = Callback(self.setMaterialName, nodeName))
@@ -74,7 +63,7 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
         material_value = cmds.getAttr(nodeName)
         for m in cmds.optionMenu(self.materials, q=True, itemListLong=True) or []:
             cmds.deleteUI(m)
-        
+
         node = nodeName.split('.')[0]
         mPath = cmds.getAttr(node+'.materialXFilePath')
 
@@ -82,17 +71,19 @@ class AEaiMaterialXShaderTemplate(ShaderAETemplate):
             looksArray = ai.AiMaterialxGetMaterialNames(mPath)
             numLooks = ai.AiArrayGetNumElements(looksArray)
             found = False
-            cmds.menuItem(parent = self.materials, label="")
             for i in range(numLooks):
                 look = ai.AiArrayGetStr(looksArray, i)
-                cmds.menuItem(parent = self.materials, label=str(look))
+                cmds.menuItem(parent=self.materials, label=str(look))
                 if (str(look) == str(material_value)):
-                    cmds.optionMenu(self.materials, e = True , sl = i+2)
+                    cmds.optionMenu(self.materials, e=True, sl=i+1)
                     found = True
-            if (not found):
-                cmds.optionMenu(self.materials, e = True , sl = 1)
+
+            # set the attribute to the first item in the option menu
+            if not found and numLooks >= 1:
+                cmds.optionMenu(self.materials, e=True, sl=1)
+                cmds.setAttr(nodeName, cmds.optionMenu(self.materials, q=True, value=True), type="string")
+
+            # set materialName blank if no materials are found
+            elif not numLooks:
+                cmds.setAttr(nodeName, "", type="string")
         cmds.optionMenu(self.materials, e = True , changeCommand = Callback(self.setMaterialName, nodeName))
-            
-
-            
-

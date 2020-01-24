@@ -279,9 +279,14 @@ def arnoldExportShaders():
     global defaultFolder
     if defaultFolder == "":
         defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
-    ret = cmds.fileDialog2(cap='Select File',okc='Select',ff="Arnold Shaders File (*.ass)",fm=0,dir=defaultFolder) or []
+    objFilter = "ASS File (*.ass);; MaterialX File (*.mtlx)"
+    ret = cmds.fileDialog2(cap='Select File',okc='Select',ff=objFilter,fm=0,dir=defaultFolder) or []
+    print "return item is " , ret
     if len(ret) > 0:
-        cmds.arnoldExportAss(filename = ret[0], selected=True, exportAllShadingGroups=True, mask = ai.AI_NODE_SHADER)
+        if ret[0].split('.')[-1] == "mtlx":
+            cmds.arnoldExportToMaterialX(filename=ret[0], mtl=True)
+        else:    
+            cmds.arnoldExportAss(filename = ret[0], selected=True, exportAllShadingGroups=True, mask = ai.AI_NODE_SHADER)
 
 def arnoldImportShaders():
     global defaultOperatorsFolder
@@ -454,69 +459,37 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicenseManager())
         cmds.menuItem('ArnoldLicensingHelp',  label='Licensing Help', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AILIC/Licensing+Home'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/x/TYcfBg'))
         cmds.menuItem('ArnoldSuscribe',  label='Purchase Subscription', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+                    c=lambda *args: cmds.launch(webPage='https://www.autodesk.com/products/arnold/subscribe/'))
         
-        '''
-        cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingConnectLicenseServer())
-        cmds.menuItem('ArnoldGetDiagnostics', label='Diagnostics', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingGetDiagnostics())
-        cmds.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
-        
-        cmds.menuItem('ArnoldGetMacAddress', label='Get MAC Address', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingGetMacAddress())
-
-        setupServerLink = 'https://support.solidangle.com/display/A5AILIC/Setting+up+a+License+Server'
-        platformName = sys.platform
-
-        if platformName.startswith('win'):
-            setupServerLink = 'https://support.solidangle.com/x/IQAzAg'
-        elif platformName.startswith('linux'):
-            setupServerLink = 'https://support.solidangle.com/x/JwAzAg'
-        elif platformName.startswith('darwin'):
-            setupServerLink = 'https://support.solidangle.com/x/EQAzAg'
-
-        cmds.menuItem('ArnoldSetupLicenseServer', label='Setup License Server', parent='ArnoldLicensingMenu', 
-                    c=lambda *args: cmds.launch(webPage=setupServerLink))
-
-        cmds.menuItem('ArnoldInstallTrialLicense', label='Install Trial License', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingNodeLocked())
-        '''
 
         cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
 
         cmds.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/a5AFMUG/Arnold+for+Maya+User+Guide'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/a5AFMUG/Arnold+for+Maya+User+Guide'))
 
         cmds.menuItem('ArnoldTutorials', label='Tutorials', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5AFMUG/Tutorials'))
-
-#        cmds.menuItem('ArnoldVideos', label='Videos', parent='ArnoldHelpMenu',
-#                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Video+Tutorials'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AFMUG/Tutorials'))
 
         cmds.menuItem('ArnoldAnswers', label='Arnold Answers', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://answers.arnoldrenderer.com/index.html'))
 
         cmds.menuItem('ArnoldLearningScenes', label='Learning Scenes', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5AFMUG/Learning+Scenes'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AFMUG/Learning+Scenes'))
 
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
         cmds.menuItem('ArnoldSolidAngle', label='Arnold Renderer Website', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com'))
+                    c=lambda *args: cmds.launch(webPage='https://www.arnoldrenderer.com/'))
 
         cmds.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://subscribe.solidangle.com'))
         
-#        cmds.menuItem('ArnoldAsk', label='Knowledge Base', parent='ArnoldHelpMenu',
-#                    c=lambda *args: cmds.launch(webPage='https://ask.solidangle.com'))
 
         cmds.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/blog/arnsupp'))
 
 #        cmds.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
 #                    c=lambda *args: arnoldLicenseDialog())
@@ -524,10 +497,10 @@ def createArnoldMenu():
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
         cmds.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5ARP/Arnoldpedia'))
+                    c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5ARP/Arnoldpedia'))
         
         cmds.menuItem('MtoAReleaseNotes', label='Release Notes', parent='ArnoldHelpMenu',
-        c=lambda *args: cmds.launch(webPage= 'https://docs.arnoldrenderer.com/display/A5AFMUG/' + str(cmds.pluginInfo( 'mtoa', query=True, version=True))))
+        c=lambda *args: cmds.launch(webPage= 'https://docs.arnoldrenderer.com/display/A5AFMUG' + str(cmds.pluginInfo( 'mtoa', query=True, version=True))))
                     
         cmds.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())

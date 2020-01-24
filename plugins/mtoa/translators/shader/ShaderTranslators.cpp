@@ -1864,7 +1864,7 @@ void CProjectionTranslator::Export(AtNode* shader)
       MEulerRotation rot = m.eulerRotation();
       MVector trans = m.getTranslation(MSpace::kTransform);
 
-      AiNodeSetVec(shader, "scale", 0.5f/scale[0], 0.5f/scale[1], -0.5f/scale[2]);
+      AiNodeSetVec(shader, "scale", 0.5f/scale[0], 0.5f/scale[1], 0.5f/scale[2]);
       AiNodeSetVec(shader, "offset", trans.x, trans.y, trans.z);
       AiNodeSetVec(shader, "rotate", rot.x, rot.y, rot.z);
 

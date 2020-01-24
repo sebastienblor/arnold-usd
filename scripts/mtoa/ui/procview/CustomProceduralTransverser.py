@@ -22,6 +22,7 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           PROC_NUM_CHILDREN, \
                            OVERRIDE_OP, DISABLE_OP
 
 from mtoa.callbacks import *
@@ -87,7 +88,8 @@ class CustomProceduralTransverser(ProceduralTransverser):
                 entry = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
                 entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
             self.items[parentIndex].children.append(childIndex)
-            self.items.append(CustomProcTreeItem([path, name, parentPath, 'visible', path, entry, childIndex, entryType]))
+            self.items[parentIndex][PROC_NUM_CHILDREN] += 1
+            self.items.append(CustomProcTreeItem([path, name, parentPath, 'visible', path, entry, childIndex, entryType, 0]))
             
         # now call buildTree recursively
         self.buildTree(childIndex, nameSplit, nameSplitIndex+1)

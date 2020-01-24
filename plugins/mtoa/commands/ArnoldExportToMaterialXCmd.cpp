@@ -12,6 +12,7 @@
 #include <maya/MStringArray.h>
 #include <maya/MGlobal.h>
 #include <maya/MArgDatabase.h>
+#include <maya/MFnMesh.h>
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -30,6 +31,7 @@ MSyntax CArnoldExportToMaterialXCmd::newSyntax()
    syntax.addFlag("r", "relative",  MSyntax::kBoolean);
    syntax.addFlag("fp", "fullPath",  MSyntax::kBoolean);
    syntax.addFlag("s", "separator",  MSyntax::kString);
+   syntax.addFlag("mtl", "materialExport",  MSyntax::kBoolean);
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
@@ -86,6 +88,12 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    MString filename = "";
    argDB.getFlagArgument("filename", 0, filename);
 
+   bool materialExport = false;
+   if (argDB.isFlagSet("materialExport")) 
+   {
+      argDB.getFlagArgument("materialExport", 0, materialExport);
+   }
+
    MString lookName = "default";
    if (argDB.isFlagSet("look"))
       argDB.getFlagArgument("look", 0, lookName);
@@ -131,7 +139,7 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
          cmdStr += separatorVal;
          MGlobal::executeCommand(cmdStr);
       }
-   }
+   }     
    
    CMayaScene::Begin(MTOA_SESSION_ASS);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
@@ -140,21 +148,85 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    arnoldSession->SetExportFilterMask(AI_NODE_ALL);
    
    CMayaScene::Export(&selected);
-/*
-   MString txt("Running Export to MaterialX with filename=");
-   txt += filename;
-   txt += MString(", lookName=");
-   txt += lookName;
-   txt += MString(", properties=");
-   txt += properties;
-   
-   MGlobal::displayWarning(txt);
-*/
 
    AiRender(AI_RENDER_MODE_FREE);
    AiRenderAbort();
    
-   AiMaterialxWrite(NULL, filename.asChar(), lookName.asChar(), properties.asChar(), relative);
+   // The default mode of export for this command is look export as the look export has to 
+   // deal with more information than just the material. 
+   // The material Export flag when set write out just information about the material
+   // ignore any assignments. 
+
+   if (!materialExport)
+   {
+
+      AiMaterialxWrite(NULL, filename.asChar(), lookName.asChar(), properties.asChar(), relative);
+   }
+   else
+   {
+      // For items in the selection, find their shading Engines 
+      // Export each shaingEngine along with it's connected material 
+      // displacement and volume shaders 
+      std::map < std::string , MObject > shadingEngines;
+      for (uint i = 0 ; i < selected.length(); i++)
+      {
+         MObject item;
+         selected.getDependNode(i, item);
+         MFnDependencyNode node(item);
+         MDagPath path;
+         selected.getDagPath(i, path);
+         if (path.apiType() == MFn::kMesh ) // If selected items are shapes 
+         {
+            MFnMesh mesh(path);
+            MObjectArray sets, comps;
+            unsigned int instanceNumber = path.instanceNumber();
+            mesh.getConnectedSetsAndMembers( instanceNumber, sets, comps, 1 );
+            MStringArray SGNames;
+            for ( unsigned int i = 0; i < sets.length() ; i++ )
+            {
+               MFnSet setFn ( sets[i] );
+               if ( sets[i].apiType() == MFn::kShadingEngine)
+               {
+                  shadingEngines[setFn.name().asChar()] = sets[i];
+               }
+            }
+         }
+      }
+
+      auto it = shadingEngines.begin();
+      for (; it != shadingEngines.end() ; it++ )
+      {
+         MFnSet setFn ( it->second );
+         AtNode* surface = NULL;
+         AtNode* disp = NULL ;
+         AtNode* volume = NULL;
+
+         MStatus stat;
+         MPlug plug;
+         plug = setFn.findPlug("surfaceShader", true, &stat);
+         if (stat == MStatus::kSuccess && plug.isConnected())
+         {
+            MFnDependencyNode surface_shader ( plug.source().node());
+            const char* arnoldName = arnoldSession->GetArnoldObjectName(surface_shader.name());
+            surface = AiNodeLookUpByName(arnoldName);
+         }
+         plug = setFn.findPlug("displacementShader", true, &stat);
+         if (stat == MStatus::kSuccess && plug.isConnected() )
+         {
+            MFnDependencyNode displacement_shader (plug.source().node());
+            const char* arnoldName = arnoldSession->GetArnoldObjectName(displacement_shader.name());
+            disp = AiNodeLookUpByName(arnoldName);
+         }
+         plug = setFn.findPlug("volumeShader", true, &stat);
+         if (stat == MStatus::kSuccess && plug.isConnected())
+         {
+            MFnDependencyNode volume_shader ( plug.source().node());
+            const char* arnoldName = arnoldSession->GetArnoldObjectName(volume_shader.name());
+            volume = AiNodeLookUpByName(arnoldName);
+         }
+         AiMaterialxWriteMaterial(filename.asChar(), it->first.c_str() , surface , volume, disp);
+      }
+   }
 
    CMayaScene::End();
 
