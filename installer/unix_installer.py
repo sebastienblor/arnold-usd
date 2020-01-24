@@ -110,13 +110,13 @@ def EnsureDir(d):
         return False
 
 if silent:
-    installDir = os.path.join('/usr', 'autodesk', 'arnold', 'maya{}'.format(mayaVersion))
+    installDir = os.path.join('/usr', 'autodesk', 'arnold', 'maya{0}'.format(mayaVersion))
     if not EnsureDir(installDir):
         sys.exit(0)
 else:
     while True:
         InstallerHeader()
-        installDir = os.path.join('/usr', 'autodesk', 'arnold', 'maya{}'.format(mayaVersion))
+        installDir = os.path.join('/usr', 'autodesk', 'arnold', 'maya{0}'.format(mayaVersion))
         print('''
         Select the installation directory.
         [%s]
