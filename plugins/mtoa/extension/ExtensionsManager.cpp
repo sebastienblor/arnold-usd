@@ -314,16 +314,14 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          if (MtoaTranslationInfo())
             MtoaDebugLog("[mtoa] Loading extension "+ extension->GetExtensionName() +"("+extension->GetExtensionFile()+").");
 
+         MString extensionName = extension->GetExtensionName();
+         MString extensionFile = extension->GetExtensionFile();
          status = LoadExtensionLibrary(extension); // now dlopen the library
          if (status == MS::kFailure)
          {
             AiMsgError("[mtoa] Call to initializeExtension failed on extension library %s(%s).",
-            extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
-            // TODO : deinitialize and unload ?
+            extensionName.asChar(), extensionFile.asChar());
          }
-
-         // Do not register now to allow to add calls (registerNode, etc) on it before
-         // status = RegisterExtension(extension);
       }
    }
    else
