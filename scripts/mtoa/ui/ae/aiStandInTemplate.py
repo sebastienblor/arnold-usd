@@ -222,7 +222,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     '''
 
     def getExpandFileType(self):
-        ext_str = os.path.splitext(self.current_filename)[1].lower()
+        ext_str = os.path.splitext(self.current_filename.split(';')[0])[1].lower()
         if ext_str in ['.abc']:
             return True
         return False
@@ -279,10 +279,19 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.lookReplace(nodeAttr)
 
     def refreshTransverser(self):
+        projectRootDir = cmds.workspace(query=True, rootDirectory=True)
         old_node = self.current_node
         fileAttr = '{}.dso'.format(self.nodeName)
         filename = cmds.getAttr(fileAttr)
         filename = expandEnvVars(filename)
+        layersAttr = '{}.abc_layers'.format(self.nodeName)
+        layers = cmds.getAttr(layersAttr) or ''
+        if len(layers):
+            for lay in layers.split(';'):
+                if not os.path.isfile(lay):
+                    lay = os.path.join(projectRootDir, lay)
+                filename += ';' + lay
+
         if old_node == self.current_node and filename == self.current_filename:
             self.properties_panel.setItem(self.nodeName, None)
             return False  # nothing to do here...
@@ -294,10 +303,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
             return False  # nothing to do here...
 
         self.current_filename = filename
-
         ext_str = ".ass"
         if filename:
-            ext_str = os.path.splitext(filename)[1].lower()
+            ext_str = os.path.splitext(filename.split(';')[0])[1].lower()
 
         expand = False
         if ext_str == '.abc':
@@ -865,6 +873,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             currentLayers.append(rel_filepath)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type="string")
             self.alembicLayersReplace(nodeAttr)
+            self.updateAssFile()
 
     def alembicRemoveLayer(self, nodeAttr):
         # get the selected layers
@@ -876,6 +885,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 currentLayers.pop(i-1)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
             self.alembicLayersReplace(nodeAttr)
+            self.updateAssFile()
 
     def alembicLayersNew(self, nodeAttr):
 

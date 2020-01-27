@@ -65,20 +65,38 @@ class AlembicTransverser(ProceduralTransverser):
     def __init__(self):
         super(AlembicTransverser, self).__init__()
         self.filenameAttr = "filename"
+        self.layersAttr = "abc_layers"
 
-    def getArchivePath(self, node):
-        filename = cmds.getAttr("{}.{}".format(node, self.filenameAttr))
-        filename = expandEnvVars(filename)
+    def getArchivePath(self, path):
+        old_cwd = os.getcwd()
+        projectRootDir = cmds.workspace(query=True, rootDirectory=True)
+        os.chdir(projectRootDir)
+        filename = expandEnvVars(path)
         if len(filename) == 0:
             return ''
-        return os.path.abspath(filename)
+        filename = os.path.abspath(filename)
+        os.chdir(old_cwd)
+        return filename
 
     def getArchive(self, node):
-        abc_file = self.getArchivePath(node) or ''
+        projectRootDir = cmds.workspace(query=True, rootDirectory=True)
+
+        filename = cmds.getAttr("{}.{}".format(node, self.filenameAttr))
+        abc_file = self.getArchivePath(filename) or ''
         if len(abc_file) == 0:
             return None
+        abc_files = [str(abc_file)]
+        if cmds.attributeQuery(self.layersAttr, node=node, exists=True):
+            layers = cmds.getAttr('.'.join([node, self.layersAttr])) or ''
+            for abc in layers.split(';') or []:
+                abc_path = self.getArchivePath(abc)
+                if not os.path.isfile(abc_path):
+                    abc_path = os.path.join(projectRootDir, abc_path)
 
-        iarch = Abc.IArchive(str(abc_file))
+                if os.path.isfile(abc_path):
+                    abc_files.append(str(abc_path))
+
+        iarch = Abc.IArchive(abc_files)
         return iarch
 
     def visitObject(self, iObj, parent="", visibility="visible"):
