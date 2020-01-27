@@ -60,7 +60,7 @@ class CustomProceduralTransverser(ProceduralTransverser):
         return self.items[iObj].data
 
 
-    def buildTree(self, parentIndex, nameSplit, nameSplitIndex):
+    def buildTree(self, parentIndex, nameSplit, nameSplitIndex, entry=None, entryType=None):
         if nameSplitIndex >= len(nameSplit):
             return
 
@@ -81,18 +81,25 @@ class CustomProceduralTransverser(ProceduralTransverser):
             else:
                 path = name
             
-            entry = 'xform'
-            entryType = None
+            if path != '/'.join(nameSplit):
+                this_entry = 'xform'
+                this_entryType = None
+            else:
+                this_entry = entry
+                this_entryType = entryType
+
             node = ai.AiNodeLookUpByName(path)
             if node:
                 entry = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
                 entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
             self.items[parentIndex].children.append(childIndex)
+            if PROC_NUM_CHILDREN >= len(self.items[parentIndex].data):
+                self.items[parentIndex].data.append(0)
             self.items[parentIndex][PROC_NUM_CHILDREN] += 1
-            self.items.append(CustomProcTreeItem([path, name, parentPath, 'visible', path, entry, childIndex, entryType, 0]))
+            self.items.append(CustomProcTreeItem([path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]))
             
         # now call buildTree recursively
-        self.buildTree(childIndex, nameSplit, nameSplitIndex+1)
+        self.buildTree(childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
         return 
 
 
@@ -117,13 +124,13 @@ class CustomProceduralTransverser(ProceduralTransverser):
             if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader':
                 continue
 
-            nodeEntry = ai.AiNodeGetNodeEntry(node)
-            entryName = ai.AiNodeEntryGetName(nodeEntry)
+            entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
+            entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
             nameSplit = nodeName.split('/')
             startIndex = 0
             if len(nameSplit[0]) == 0:
                 startIndex = 1
-            self.buildTree(0, nameSplit, startIndex)
+            self.buildTree(0, nameSplit, startIndex, entryName, entryType)
 
         ai.AiNodeIteratorDestroy(iter)
 
