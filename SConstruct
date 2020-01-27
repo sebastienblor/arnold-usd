@@ -851,11 +851,6 @@ if not env['MTOA_DISABLE_RV']:
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
-# Install USD procedural and usd resources
-usd_procedural_path = os.path.join(env['ROOT_DIR'], 'external', 'arnold_usd', system.os)
-env.Install(env['TARGET_PLUGINS_PATH'], glob.glob(os.path.join(usd_procedural_path, "*")))
-usd_resources_path = os.path.join(env['ROOT_DIR'], 'external', 'arnold_usd', 'usd')
-env.Install(os.path.join(env['TARGET_PLUGINS_PATH'], 'usd'), glob.glob(os.path.join(usd_resources_path, "*")))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -1282,14 +1277,6 @@ for p in license_files:
     (d, f) = os.path.split(p)
     PACKAGE_FILES += [
         [os.path.join(ARNOLD, 'license', p), os.path.join('license', d)]
-    ]
-# Install usd procedural and usd resources
-PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'arnold_usd', system.os, '*' ), 'plugins'])
-usd_resource_files = find_files_recursive(os.path.join(EXTERNAL_PATH, 'arnold_usd', 'usd'), None)
-for p in usd_resource_files:
-    (d, f) = os.path.split(p)
-    PACKAGE_FILES += [
-        [os.path.join(EXTERNAL_PATH, 'arnold_usd', 'usd', p), os.path.join('plugins', 'usd', d)]
     ]
 
 vp2shaders = GetViewportShaders(maya_version)
