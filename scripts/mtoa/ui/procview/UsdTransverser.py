@@ -121,7 +121,7 @@ class UsdTransverser(ProceduralTransverser):
                 continue
 
             nodeName = ai.AiNodeGetName(node)
-            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader' or nodeName == '':
+            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader' or nodeName == '_default_arnold_shader' or nodeName == '_default_arnold_shader_color' or nodeName == '':
                 continue
 
             entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
