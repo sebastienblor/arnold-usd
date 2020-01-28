@@ -1761,7 +1761,7 @@ def createArnoldRendererDiagnosticsTab():
     parentForm = cmds.setParent(query=True)
     
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    cmds.scrollLayout('arnoldDiagnosticsScrollLayout', horizontalScrollBarThickness=0)
+    cmds.scrollLayout('arnoldDiagnosticsScrollLayout', horizontalScrollBarThickness=0, childResizable = True)
     cmds.columnLayout('arnoldDiagnosticsColumn', adjustableColumn=True)
 
     # Log
@@ -1809,7 +1809,7 @@ def createArnoldRendererSystemTab():
     parentForm = cmds.setParent(query=True)
     
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
+    cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0, childResizable = True)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
     platformName = sys.platform
@@ -1867,7 +1867,7 @@ def createArnoldRendererGlobalsTab():
     parentForm = cmds.setParent(query=True)
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    cmds.scrollLayout('arnoldGlobalsScrollLayout', horizontalScrollBarThickness=0)
+    cmds.scrollLayout('arnoldGlobalsScrollLayout', horizontalScrollBarThickness=0, childResizable = True)
     cmds.columnLayout('arnoldTabColumn', adjustableColumn=True)
 
     # Sampling
