@@ -1815,7 +1815,7 @@ def createArnoldRendererSystemTab():
     platformName = sys.platform
 
     if not platformName.startswith('darwin'):
-        cmds.frameLayout('arnoldGpuSettings', label="GPU Settings", cll=True, cl=0)
+        cmds.frameLayout('arnoldGpuSettings', label="Device Selection", cll=True, cl=0)
         createGpuSettings()
         cmds.setParent('..')
 
