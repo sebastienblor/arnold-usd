@@ -401,6 +401,9 @@ class ProceduralTransverser(BaseTransverser):
                 if re.match(pat, path):
                     sel_mat = True
                     break
+        elif (operator_type is None or cmds.nodeType(operator) == operator_type):
+            sel_mat = True
+            exact_match = False
 
         return sel_mat, exact_match
 
