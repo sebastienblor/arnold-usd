@@ -109,13 +109,13 @@ class AlembicTransverser(ProceduralTransverser):
         return abc_items
 
     def getObjectInfo(self, iobject):
-        path = iobject.getFullName()
-        name = iobject.getName()
+        path = iobject.getFullName() or '/'
+        name = iobject.getName() or 'root'
         parent = iobject.getParent().getFullName()
         instancedPath = iobject.instanceSourcePath()
         nodeEntry = abcToArnType(iobject)
         visibility = VISIBILITY[int(AbcGeom.GetVisibility(iobject))+1]
-        nodeEntryType = 'shape' if nodeEntry in ['points', 'polymesh', 'curves'] else None
+        nodeEntryType = 'shape' if nodeEntry in ['points', 'polymesh', 'curves', 'alembic'] else None
         numchildren = iobject.getNumChildren()
         return [path, name, parent, visibility, instancedPath, nodeEntry, iobject, nodeEntryType, numchildren]
 
