@@ -507,6 +507,7 @@ class ProceduralItem(BaseItem):
     def getOverrides(self, tranverse=False):
         return self.transverser.getOverrides(self.getNode(), self.data[PROC_PATH])
 
+    @busy_cursor
     def obtainChildren(self, delayUpdate=False):
         if self.childrenObtained:
             return
@@ -635,6 +636,7 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
         sourceIndex = self.mapToSource(parent)
         return self.sourceModel().canFetchMore(sourceIndex)
 
+    @busy_cursor
     def fetchMore(self, parent):
         if not parent.isValid():
             return False

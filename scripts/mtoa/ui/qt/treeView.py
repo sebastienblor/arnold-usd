@@ -4,7 +4,7 @@ from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
 from .treeStyle import TreeStyle
-from .utils import dpiScale, dpiScaledIcon
+from .utils import dpiScale, dpiScaledIcon, busy_cursor
 from .color import Color
 from .style import MtoAStyle
 import weakref
@@ -114,6 +114,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 
         self.setExpandedChildren(index, not self.isExpanded(index))
 
+    @busy_cursor
     def setExpandedChildren(self, index, expanded):
         """
         Set the item referred to by index and all the children to either
