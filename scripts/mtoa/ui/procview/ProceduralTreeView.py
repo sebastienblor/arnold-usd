@@ -635,6 +635,7 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
         sourceIndex = self.mapToSource(parent)
         return self.sourceModel().canFetchMore(sourceIndex)
 
+    @busy_cursor
     def fetchMore(self, parent):
         if not parent.isValid():
             return False
