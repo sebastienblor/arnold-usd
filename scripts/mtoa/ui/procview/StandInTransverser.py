@@ -89,7 +89,7 @@ class StandInTransverser(ProceduralTransverser):
         numNodes = 0
         if filename:
             numNodes = self.getNumNodes(filename)
-        return ["/", "/", '', 'visible', '', 'procedural', None, 'procedural', numNodes]
+        return ["/", "root", '', 'visible', '', 'procedural', None, 'shape', numNodes]
 
     def getFileName(self, node):
 
