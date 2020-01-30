@@ -567,6 +567,7 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
 
         self.treeView = weakref.ref(treeView)
         # self.setRecursiveFilteringEnabled(True) # qt 5.10 +
+        self.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
     @property
     def currentNode(self):
