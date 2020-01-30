@@ -52,7 +52,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
          return AddArnoldNode("alembic");
       }
 
-      if (ext == "usd")
+      if (ext == "usd" || ext == "usda" || ext == "usdc")
       {
          if (AiNodeEntryLookUp("usd"))
          {

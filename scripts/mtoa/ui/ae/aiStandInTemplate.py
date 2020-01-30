@@ -42,7 +42,7 @@ CACHE_ATTR = 'ai_asscache'
 
 
 def LoadStandInButtonPush(attrName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd *.usda *.usdc)'
     defaultDir = cmds.workspace(query=True, directory=True)
     currentDir = cmds.getAttr(attrName) or ''
     currentDir = os.path.dirname(currentDir)
