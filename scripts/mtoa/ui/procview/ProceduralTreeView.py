@@ -507,6 +507,7 @@ class ProceduralItem(BaseItem):
     def getOverrides(self, tranverse=False):
         return self.transverser.getOverrides(self.getNode(), self.data[PROC_PATH])
 
+    @busy_cursor
     def obtainChildren(self, delayUpdate=False):
         if self.childrenObtained:
             return
