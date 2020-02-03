@@ -465,9 +465,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             itemchanged = True
         return itemchanged
 
-    def setNode(self, node):
+    def setNode(self, node, force=False):
         changed = False
-        if self.node != node and node and cmds.objExists(node):
+        if self.node != node and node and cmds.objExists(node) or force:
             self.node = node
             changed = True
         self.populateOperatorsList()

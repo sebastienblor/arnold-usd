@@ -175,12 +175,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidgetName = cmds.setParent(query=True)
         return toQtObject(currentWidgetName, pySideType)
 
-    def updateSelectedItems(self):
+    def updateSelectedItems(self, force=False):
         if not self.tree or not self.tree.transverser:
             return
         selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items'))
         
-        if selection == self.tree.transverser.selectionStr:
+        if selection == self.tree.transverser.selectionStr and not force:
             return
         #self.tree.transverser.selectionStr = selection
         selectionSplit = selection.split(',')
@@ -188,7 +188,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if selected:
                 # Prevent firing signals in Qt to avoid infinite loop.
                 #oldState = self.tree.blockSignals(True)
-                self.tree.select(selected)
+                self.tree.select(selected, force)
                 #self.tree.blockSignals(oldState)
                 return
                 
@@ -223,6 +223,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
     '''
 
     def getExpandFileType(self):
+        '''
+        Get if this file type should start off expanded
+        '''
         ext_str = os.path.splitext(self.current_filename.split(';')[0])[1].lower()
         if ext_str in ['.abc']:
             return True
@@ -267,13 +270,18 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                          columnAttach=[(1, 'left', 10), (2, 'left', 3), (3, 'left', 1), (4, 'left', 1), (5, 'left', 1)])
 
         cmds.rowLayout(numberOfColumns=1, rowAttach=[1, 'top', 4], columnAttach=[1, 'left', 0])
-        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20)
+        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20,
+                                        annotation="Set current look")
         cmds.setParent('..')
-        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
-        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
-        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
+        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook,
+                                             annotation="Create new look")
+        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook,
+                                              annotation="Edit current look")
+        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook,
+                                                annotation="Remove current look")
 
-        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook, annotation="Export looks to .ass or MaterialX file" )
+        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook,
+                                                annotation="Export looks to .ass or MaterialX file" )
 
         cmds.text("")
         cmds.setParent('..')
@@ -338,6 +346,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
             scriptAttr = self.nodeName + ".selected_items"
             cmds.scriptJob(attributeChange=[scriptAttr, self.updateSelectedItems])
+
+        # now get the selection and set it if the selction is not empty
+        selection = cmds.getAttr(self.nodeName + ".selected_items")
+        if selection:
+            self.updateSelectedItems(True)
 
     def fileInfoNew(self, nodeAttr):
 
