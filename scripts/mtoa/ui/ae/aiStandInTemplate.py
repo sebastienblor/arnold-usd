@@ -289,7 +289,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def refreshTransverser(self):
         projectRootDir = cmds.workspace(query=True, rootDirectory=True)
-        old_node = self.current_node
         fileAttr = '{}.dso'.format(self.nodeName)
         filename = cmds.getAttr(fileAttr)
         filename = expandEnvVars(filename)
@@ -301,16 +300,15 @@ class AEaiStandInTemplate(ShaderAETemplate):
                     lay = os.path.join(projectRootDir, lay)
                 filename += ';' + lay
 
-        if old_node == self.current_node and filename == self.current_filename:
+        if self.nodeName == self.transverser_node and filename == self.current_filename:
             self.properties_panel.setItem(self.nodeName, None)
             return False  # nothing to do here...
 
         filename_changed = False
-        if old_node == self.current_node and filename != self.current_filename:
+        if self.nodeName == self.transverser_node and filename != self.current_filename:
             filename_changed = True
-        else:
-            return False  # nothing to do here...
 
+        self.transverser_node = self.nodeName
         self.current_filename = filename
         ext_str = ".ass"
         if filename:
@@ -351,6 +349,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         selection = cmds.getAttr(self.nodeName + ".selected_items")
         if selection:
             self.updateSelectedItems(True)
+        else:
+            self.tree.clearSelection()
 
     def fileInfoNew(self, nodeAttr):
 
@@ -744,6 +744,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
         self.current_node = None
+        self.transverser_node = None
         self.current_filename = ''
         self.look_node = None
 
@@ -1001,6 +1002,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.assInfoPath = ''
         self.inspectAssPath = ''
         self.current_node = None
+        self.transverser_node = None
         self.look_node = None
         self.current_filename = ''
         self.tree = None
