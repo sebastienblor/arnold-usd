@@ -77,6 +77,7 @@ MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
 MObject CArnoldStandInShape::s_namespaceName;
+MObject CArnoldStandInShape::s_useAutoInstancing;
 MObject CArnoldStandInShape::s_ignoreGroupNodes;
 MObject CArnoldStandInShape::s_objectPath;
 MObject CArnoldStandInShape::s_abcLayers;
@@ -1038,6 +1039,12 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    addAttribute(s_overrideNodes);
+
+   s_useAutoInstancing = nAttr.create("useAutoInstancing", "auto_instancing",
+         MFnNumericData::kBoolean, 1);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_useAutoInstancing);
 
    s_namespaceName = tAttr.create("aiNamespace", "ai_namespace", MFnData::kString);
    tAttr.setHidden(false);
