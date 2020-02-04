@@ -1071,10 +1071,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('doubleSided', label='   Double-Sided')
         self.addControl('overrideMatte', changeCommand=self.updateOverridesVisibility, label='Override Matte')
         self.addControl('aiMatte', label='   Matte')
+        self.addSeparator()
+        self.addControl('useAutoInstancing', label='Auto Instancing', annotation="Disable to prevent automatic instancing of the same .ass file")
         self.endLayout()
 
-        self.endNoOptimize();
-        
+        self.endNoOptimize()
+
         self.beginLayout('Object Display', collapse=True)
         self.addControl('visibility')
         self.addControl('template')

@@ -35,6 +35,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    // before we test it in ExportUserAttribute #3673
    IsMasterInstance();
    m_isAlembic = false;
+   m_isAss = false;
 
    MString dso = FindMayaPlug("dso").asString();
    if (dso.length() == 0)
@@ -62,7 +63,8 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
          AiMsgError("[mtoa.standin] USD files not supported : %s", GetMayaNodeName().asChar());         
       }
    }
-       
+
+   m_isAss = true;
    return AddArnoldNode("procedural");
 }
 
@@ -190,6 +192,12 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    
    GetSessionOptions().FormatProceduralPath(resolvedName);
    AiNodeSetStr(node, "filename", resolvedName.asChar());
+
+   if (m_isAss)
+   {
+      bool useAutoInstancing = FindProceduralPlug("useAutoInstancing").asBool();
+      AiNodeSetBool(node, "auto_instancing", useAutoInstancing);
+   }
 
    if ( m_isAlembic )
       AiNodeSetFlt(node, "frame", framestep);
