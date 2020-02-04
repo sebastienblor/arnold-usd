@@ -83,14 +83,14 @@ class ProceduralTreeView(BaseTreeView):
         # scale the treeView based on number of expanded rows
         self.setFixedHeight(self._calculateHeight())
 
-    def select(self, path):
+    def select(self, path, force=False):
         root = self.model().rootItem()
         item = root.find(path)
         if not item:
             return
 
         if self.transverser:
-            if path == self.transverser.selectionStr:
+            if path == self.transverser.selectionStr and not force:
                 return # nothing changed, we can leave
             self.transverser.selectionStr = path
 
