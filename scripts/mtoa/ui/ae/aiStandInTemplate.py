@@ -178,7 +178,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def updateSelectedItems(self, force=False):
         if not self.tree or not self.tree.transverser:
             return
-        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items'))
+        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items')) or ""
         
         if selection == self.tree.transverser.selectionStr and not force:
             return
