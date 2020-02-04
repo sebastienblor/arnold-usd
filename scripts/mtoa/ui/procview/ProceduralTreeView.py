@@ -188,7 +188,6 @@ class ProceduralTreeModel(BaseModel):
         return False
 
     def setCurrentNode(self, node, force=False):
-        print "ProceduralTreeModel", node, force
         if self.currentNode != node or force:
             self.currentNode = node
             return True
