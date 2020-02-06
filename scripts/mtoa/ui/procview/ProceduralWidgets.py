@@ -613,14 +613,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         nodeEntry = data[PROC_ENTRY]
         group_nodes = [None, '', 'xform'] + PROCEDURAL_NODES
         isGroup = (nodeEntry in group_nodes)
-        print "group_nodes", group_nodes, isGroup, [nodeEntry] + NODE_TYPES
         # For groups, let's append the default node types (for alembic shapes)
         if isGroup:
             self.paramDict = self.transverser.getParams([nodeEntry] + NODE_TYPES)
         else:
             # for specific node types, let's just use this node type attributes
             self.paramDict = self.transverser.getParams([data[PROC_ENTRY]])
-        print self.paramDict.keys()
 
     def resetShadingWidgets(self):
         for widget, checkbox in self.shadingWidgets.values():
