@@ -76,7 +76,7 @@ class UsdTransverser(ProceduralTransverser):
             childIndex = len(self.items) # this will be my child index
             parentPath = self.items[parentIndex].data[PROC_PATH]
             if len(parentPath) or nameSplitIndex > 0:
-                path = '{}/{}'.format(parentPath, name)
+                path = '/'.join(nameSplit[:nameSplitIndex+1])
             else:
                 path = name
 
@@ -107,7 +107,7 @@ class UsdTransverser(ProceduralTransverser):
         universe = ai.AiUniverse()
         self.nodeName = node
         
-        self.items.append(UsdProcTreeItem(['', '', '', 'visible', '', '', 0, None]))
+        self.items.append(UsdProcTreeItem(['/', 'root', '', 'visible', '', 'usd', 0, 'shape']))
         proc = ai.AiNode(universe, 'usd')
         ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
         paramMap = ai.AiParamValueMap()
