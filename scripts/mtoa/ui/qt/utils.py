@@ -93,12 +93,10 @@ def toMayaName(qtObject):
 
 def clearWidget(widget):
     """clear children from given widget"""
-    while widget.layout().count():
+    item = widget.layout().takeAt(0)
+    while item:
+        del item
         item = widget.layout().takeAt(0)
-        if isinstance(item, QtWidgets.QWidgetItem):
-            item.widget().close()
-        elif isinstance(item, QtWidgets.QSpacerItem):
-            widget.layout().removeItem(item)
 
 
 def setStaticSize(widget, width=0, height=0, posx=0, posy=0):
