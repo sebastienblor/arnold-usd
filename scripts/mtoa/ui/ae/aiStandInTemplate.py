@@ -1034,6 +1034,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('objectpath', label='Object Path')
         self.endLayout()
 
+
+        self.beginLayout('Arnold Procedural Settings', collapse=True)
+        self.addControl('useAutoInstancing', label='Auto Instancing', annotation="Disable to prevent automatic instancing of the same .ass file")
+        self.endLayout()
+
         # alembic options
         self.addAlembicParams()
         
@@ -1073,8 +1078,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('doubleSided', label='   Double-Sided')
         self.addControl('overrideMatte', changeCommand=self.updateOverridesVisibility, label='Override Matte')
         self.addControl('aiMatte', label='   Matte')
-        self.addSeparator()
-        self.addControl('useAutoInstancing', label='Auto Instancing', annotation="Disable to prevent automatic instancing of the same .ass file")
         self.endLayout()
 
         self.endNoOptimize()
