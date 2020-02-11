@@ -198,8 +198,6 @@ class SetParametersPanel(QtWidgets.QFrame):
     def removeOverride(self, operator, index):
         removed = self.transverser.deleteOverride(operator, index)
         if removed:
-            if len(self.getOverrides()) == 0:
-                self.transverser.deleteOperator(operator)
             self.refresh()
 
     def getParamData(self, param):
