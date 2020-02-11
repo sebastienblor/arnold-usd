@@ -1,4 +1,5 @@
-﻿import mtoa.core as core
+﻿from __future__ import print_function
+import mtoa.core as core
 from mtoa.core import createStandIn, createVolume
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
@@ -281,7 +282,7 @@ def arnoldExportShaders():
         defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
     objFilter = "ASS File (*.ass);; MaterialX File (*.mtlx)"
     ret = cmds.fileDialog2(cap='Select File',okc='Select',ff=objFilter,fm=0,dir=defaultFolder) or []
-    print "return item is " , ret
+    print("return item is " , ret)
     if len(ret) > 0:
         if ret[0].split('.')[-1] == "mtlx":
             cmds.arnoldExportToMaterialX(filename=ret[0], mtl=True)
