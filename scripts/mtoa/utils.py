@@ -615,8 +615,8 @@ def getActiveRenderLayerName():
     return ''
 
 def getMayaVersion():
-    version = cmds.about(f=True)
-    return int(float(version[:4]))
+    version = cmds.about(api=True)
+    return int(str(version)[:4])
 
 
 

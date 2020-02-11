@@ -8,7 +8,7 @@ from __future__ import print_function
 
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
-from mtoa.utils import prettify, toMayaStyle
+from mtoa.utils import prettify, toMayaStyle, getMayaVersion
 import mtoa.core as core
 import maya.cmds as cmds
 import maya.mel
@@ -469,10 +469,15 @@ class AERootMode(BaseMode):
                 cmds.editorTemplate(suppress=attr)
             except RuntimeError:
                 pass
-        cmds.editorTemplate(aeCallback(template._doSetup),
-                          aeCallback(template._doUpdate),
-                          attr,
-                          callCustom=True)
+        if getMayaVersion() <= 2020:
+            cmds.editorTemplate(aeCallback(template._doSetup),
+                                aeCallback(template._doUpdate),
+                                attr,
+                                callCustom=True)
+        else:
+            cmds.editorTemplate(attr,
+                                callCustom=[template._doSetup,
+                                            template._doUpdate])
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
                    preventOverride=False, dynamic=False, enumeratedItem=None):
@@ -502,12 +507,15 @@ class AERootMode(BaseMode):
 
     def addCustom(self, attr, newFunc, replaceFunc):
         # TODO: support multiple attributes passed
-        if hasattr(newFunc, '__call__'):
-            newFunc = aeCallback(newFunc)
-        if hasattr(replaceFunc, '__call__'):
-            replaceFunc = aeCallback(replaceFunc)
-        args = (newFunc, replaceFunc, attr) 
-        cmds.editorTemplate(callCustom=1, *args)
+        if getMayaVersion() <= 2020:
+            if hasattr(newFunc, '__call__'):
+                newFunc = aeCallback(newFunc)
+            if hasattr(replaceFunc, '__call__'):
+                replaceFunc = aeCallback(replaceFunc)
+            args = (newFunc, replaceFunc, attr)
+            cmds.editorTemplate(callCustom=True, *args)
+        else:
+            cmds.editorTemplate(attr, callCustom=[newFunc, replaceFunc])
 
     def addSeparator(self):
         cmds.editorTemplate(addSeparator=True)

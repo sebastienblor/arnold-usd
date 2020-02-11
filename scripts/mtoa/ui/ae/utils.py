@@ -105,7 +105,7 @@ def _makeAEProc(modname, objname, procname):
     mel.eval( contents % d )
 
 def _aeLoader(modname, objname, nodename):
-    mod = __import__(modname, globals(), locals(), [objname], -1)
+    mod = __import__(modname, globals(), locals(), [objname], 0)
     try:
         f = getattr(mod, objname)
         if inspect.isfunction(f):
