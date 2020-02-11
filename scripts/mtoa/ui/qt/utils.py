@@ -80,7 +80,7 @@ def toQtObject(mayaUIName, pySideType=QtCore.QObject):
             ptr = OpenMayaUI.MQtUtil.findMenuItem(mayaUIName)
 
     if ptr is not None:
-        obj = shiboken.wrapInstance(long(ptr), pySideType)
+        obj = shiboken.wrapInstance(int(ptr), pySideType)
         return obj
 
 
@@ -88,7 +88,7 @@ def toMayaName(qtObject):
     '''
     Given a QtWidget get the maya name
     '''
-    return OpenMayaUI.MQtUtil.fullName(long(shiboken.getCppPointer(qtObject)[0]))
+    return OpenMayaUI.MQtUtil.fullName(int(shiboken.getCppPointer(qtObject)[0]))
 
 
 def clearWidget(widget):
@@ -159,7 +159,7 @@ def getMayaWindow():
     """
     ptr = OpenMayaUI.MQtUtil.mainWindow()
     if ptr is not None:
-        return shiboken.wrapInstance(long(ptr), QtWidgets.QWidget)
+        return shiboken.wrapInstance(int(ptr), QtWidgets.QWidget)
 
 
 class Timer:

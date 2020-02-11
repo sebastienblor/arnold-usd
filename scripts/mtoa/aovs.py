@@ -209,13 +209,13 @@ class SceneAOV(object):
         return '%s(%r, %d)' % (self.__class__.__name__, self.node, self.index)
 
     def __eq__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             return self.name == other
         else:
             return self.name == other.name
 
     def __lt__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             if other == "beauty":
                 return False
             if self.name == "beauty":
@@ -231,7 +231,7 @@ class SceneAOV(object):
                 return self.name < other.name
 
     def __gt__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             if self.name == "beauty":
                 return False
             if other == "beauty":
@@ -452,7 +452,7 @@ class AOVInterface(object):
         raises an error if there is more than one match
         returns True if the node was found and removed, False otherwise
         '''
-        if isinstance(aov, basestring):
+        if isinstance(aov, str):
             matches = self.getAOVs(include=[aov])
             if not matches:
                 return False

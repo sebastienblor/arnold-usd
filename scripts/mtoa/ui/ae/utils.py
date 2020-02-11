@@ -52,7 +52,6 @@ def loadAETemplates():
         sys.path += customTemplatePaths
         
     pathsList = mtoa.ui.ae.__path__ + customTemplatePaths
-    print(pathsList)
     for importer, modname, ispkg in pkgutil.iter_modules(pathsList):
         # module name must end in "Template"
         if modname.endswith('Template') and modname not in templates:

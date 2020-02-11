@@ -266,7 +266,7 @@ def expandFileTokens(path, tokens, leaveUnmatchedTokens=False):
         >>> expandFileTokens('filename[_<RenderPass>].jpg', {})
         'filename.jpg'
     """
-    if isinstance(tokens, basestring):
+    if isinstance(tokens, str):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
     grp_reg = re.compile('\[([^\]]+)\]')
@@ -345,7 +345,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
     """
     # convert tokens to dictionary
-    if isinstance(tokens, basestring):
+    if isinstance(tokens, str):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
     kwargs.update(dict(frame=frame,

@@ -117,7 +117,7 @@ class BaseTemplate(object):
 
 def modeAttrMethod(func):
     def wrapped(self, attr, *args, **kwargs):
-        assert isinstance(attr, basestring), "%r.%s: attr argument must be a string, got %s" % (self, func.__name__, type(attr).__name__)
+        assert isinstance(attr, str), "%r.%s: attr argument must be a string, got %s" % (self, func.__name__, type(attr).__name__)
         modefunc = getattr(self._mode, func.__name__)
         if self.convertToMayaStyle:
             attr = toMayaStyle(attr)

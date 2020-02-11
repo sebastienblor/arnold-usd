@@ -343,7 +343,7 @@ def registerDefaultTranslator(nodeType, default):
                                    applyToExisting=False, apiArgs=True)
 
 def getDefaultTranslator(obj):
-    if isinstance(obj, basestring):
+    if isinstance(obj, str):
         selList = om.MSelectionList()
         selList.add(obj)
         obj = om.MObject()
