@@ -27,6 +27,7 @@ if importlib.find_loader('alembic'):
 else:
     AlembicTransverser = None
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
+from mtoa.ui.procview.UsdTransverser import UsdTransverser
 from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, \
                                                    MERGE_OP, OVERRIDE_OP, \
                                                    INCLUDEGRAPH_OP, MATERIALX_OP, \
@@ -45,7 +46,7 @@ CACHE_ATTR = 'ai_asscache'
 
 
 def LoadStandInButtonPush(attrName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd *.usda *.usdc)'
     defaultDir = cmds.workspace(query=True, directory=True)
     currentDir = cmds.getAttr(attrName) or ''
     currentDir = os.path.dirname(currentDir)
@@ -178,12 +179,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidgetName = cmds.setParent(query=True)
         return toQtObject(currentWidgetName, pySideType)
 
-    def updateSelectedItems(self):
+    def updateSelectedItems(self, force=False):
         if not self.tree or not self.tree.transverser:
             return
-        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items'))
+        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items')) or ""
         
-        if selection == self.tree.transverser.selectionStr:
+        if selection == self.tree.transverser.selectionStr and not force:
             return
         #self.tree.transverser.selectionStr = selection
         selectionSplit = selection.split(',')
@@ -191,7 +192,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if selected:
                 # Prevent firing signals in Qt to avoid infinite loop.
                 #oldState = self.tree.blockSignals(True)
-                self.tree.select(selected)
+                self.tree.select(selected, force)
                 #self.tree.blockSignals(oldState)
                 return
                 
@@ -226,7 +227,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
     '''
 
     def getExpandFileType(self):
-        ext_str = os.path.splitext(self.current_filename)[1].lower()
+        '''
+        Get if this file type should start off expanded
+        '''
+        ext_str = os.path.splitext(self.current_filename.split(';')[0])[1].lower()
         if ext_str in ['.abc']:
             return True
         return False
@@ -270,38 +274,49 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                          columnAttach=[(1, 'left', 10), (2, 'left', 3), (3, 'left', 1), (4, 'left', 1), (5, 'left', 1)])
 
         cmds.rowLayout(numberOfColumns=1, rowAttach=[1, 'top', 4], columnAttach=[1, 'left', 0])
-        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20)
+        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20,
+                                        annotation="Set current look")
         cmds.setParent('..')
-        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
-        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
-        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
+        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook,
+                                             annotation="Create new look")
+        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook,
+                                              annotation="Edit current look")
+        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook,
+                                                annotation="Remove current look")
 
-        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook, annotation="Export looks to .ass or MaterialX file" )
+        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook,
+                                                annotation="Export looks to .ass or MaterialX file" )
 
         cmds.text("")
         cmds.setParent('..')
         self.lookReplace(nodeAttr)
 
     def refreshTransverser(self):
-        old_node = self.current_node
+        projectRootDir = cmds.workspace(query=True, rootDirectory=True)
         fileAttr = '{}.dso'.format(self.nodeName)
         filename = cmds.getAttr(fileAttr)
         filename = expandEnvVars(filename)
-        if old_node == self.current_node and filename == self.current_filename:
+        layersAttr = '{}.abc_layers'.format(self.nodeName)
+        layers = cmds.getAttr(layersAttr) or ''
+        if len(layers):
+            for lay in layers.split(';'):
+                if not os.path.isfile(lay):
+                    lay = os.path.join(projectRootDir, lay)
+                filename += ';' + lay
+
+        if self.nodeName == self.transverser_node and filename == self.current_filename:
             self.properties_panel.setItem(self.nodeName, None)
             return False  # nothing to do here...
 
         filename_changed = False
-        if old_node == self.current_node and filename != self.current_filename:
+        if self.nodeName == self.transverser_node and filename != self.current_filename:
             filename_changed = True
-        else:
-            return False  # nothing to do here...
 
+        self.transverser_node = self.nodeName
         self.current_filename = filename
-
         ext_str = ".ass"
         if filename:
-            ext_str = os.path.splitext(filename)[1].lower()
+            ext_str = os.path.splitext(filename.split(';')[0])[1].lower()
 
         expand = False
         if ext_str == '.abc':
@@ -314,7 +329,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         elif ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
             # need to find out which procedural to use with it
             procName = 'usd'
-            transverser = CustomProceduralTransverser(procName, 'filename', filename)
+            transverser = UsdTransverser('filename', filename)
         else:
             transverser = StandInTransverser()
 
@@ -337,23 +352,34 @@ class AEaiStandInTemplate(ShaderAETemplate):
             scriptAttr = self.nodeName + ".selected_items"
             cmds.scriptJob(attributeChange=[scriptAttr, self.updateSelectedItems])
 
+        # now get the selection and set it if the selction is not empty
+        selection = cmds.getAttr(self.nodeName + ".selected_items")
+        if selection:
+            self.updateSelectedItems(True)
+        else:
+            self.tree.clearSelection()
+
     def fileInfoNew(self, nodeAttr):
 
         currentWidget = self.__currentWidget()
 
-        # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser, because we'll set it later or 
-        # in fileInfoReplace
-        self.filter_box = QtWidgets.QLineEdit(currentWidget)
+        # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser,
+        # because we'll set it later or in fileInfoReplace
+
+        self.fileContents = QtWidgets.QFrame(currentWidget)
+        self.fileContents.setLayout(QtWidgets.QVBoxLayout(self.fileContents))
+        currentWidget.layout().addWidget(self.fileContents)
+
+        self.filter_box = QtWidgets.QLineEdit(self.fileContents)
         self.filter_box.setPlaceholderText("filter ..")
-        currentWidget.layout().addWidget(self.filter_box)
+        self.fileContents.layout().addWidget(self.filter_box)
         self.tree = ProceduralTreeView(None, currentWidget)
         self.tree.setObjectName("standinTreeWidget")
-        currentWidget.layout().addWidget(self.tree)
+        self.fileContents.layout().addWidget(self.tree)
 
         # now add the preperties panel
         self.properties_panel = ProceduralPropertiesPanel(None, currentWidget)
-        currentWidget.layout().addWidget(self.properties_panel)
-
+        self.fileContents.layout().addWidget(self.properties_panel)
         self.tree.itemSelected.connect(self.showItemProperties)
         self.filter_box.textChanged.connect(self.tree.model().setFilterWildcard)
 
@@ -725,6 +751,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
         self.current_node = None
+        self.transverser_node = None
         self.current_filename = ''
         self.look_node = None
 
@@ -872,6 +899,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             currentLayers.append(rel_filepath)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type="string")
             self.alembicLayersReplace(nodeAttr)
+            self.updateAssFile()
 
     def alembicRemoveLayer(self, nodeAttr):
         # get the selected layers
@@ -883,6 +911,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 currentLayers.pop(i-1)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
             self.alembicLayersReplace(nodeAttr)
+            self.updateAssFile()
 
     def alembicLayersNew(self, nodeAttr):
 
@@ -980,6 +1009,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.assInfoPath = ''
         self.inspectAssPath = ''
         self.current_node = None
+        self.transverser_node = None
         self.look_node = None
         self.current_filename = ''
         self.tree = None
@@ -1009,6 +1039,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         # usd and alembic
         # object_path
         self.addControl('objectpath', label='Object Path')
+        self.endLayout()
+
+
+        self.beginLayout('Arnold Procedural Settings', collapse=True)
+        self.addControl('useAutoInstancing', label='Auto Instancing', annotation="Disable to prevent automatic instancing of the same .ass file")
         self.endLayout()
 
         # alembic options
@@ -1052,8 +1087,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('aiMatte', label='   Matte')
         self.endLayout()
 
-        self.endNoOptimize();
-        
+        self.endNoOptimize()
+
         self.beginLayout('Object Display', collapse=True)
         self.addControl('visibility')
         self.addControl('template')

@@ -37,6 +37,8 @@ INCLUDEGRAPH_OP = "aiIncludeGraph"
 MATERIALX_OP = "aiMaterialx"
 LOOKSWITCH_OP = "aiLookSwitch"
 
+PROCEDURAL_NODES = ["procedural", "alembic", "usd"]
+
 SELECTION_OPS = [OVERRIDE_OP, DISABLE_OP, COLLECTION_OP]
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
@@ -277,8 +279,8 @@ class ProceduralTransverser(BaseTransverser):
                 path = data[PROC_PATH]
                 if data[PROC_ENTRY] == "xform":
                     path += "/*"
-                elif data[PROC_ENTRY] == None:
-                    path += "*"
+                elif data[PROC_ENTRY] in PROCEDURAL_NODES:
+                    path = data[PROC_PARENT] + "*"
                 cmds.setAttr(op + ".selection",
                              path,
                              type="string")
@@ -390,7 +392,7 @@ class ProceduralTransverser(BaseTransverser):
                 if tok[1:] in collections:
                     sel_mat = True
                     break
-                if (tok == "/*" and path == '/') or \
+                if (tok == "*" and path == '/') or \
                    (tok == path):
                     exact_match = True
                     sel_mat = True
@@ -400,6 +402,9 @@ class ProceduralTransverser(BaseTransverser):
                 if re.match(pat, path):
                     sel_mat = True
                     break
+        elif (operator_type is None or cmds.nodeType(operator) == operator_type):
+            sel_mat = True
+            exact_match = False
 
         return sel_mat, exact_match
 

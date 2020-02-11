@@ -851,7 +851,6 @@ if not env['MTOA_DISABLE_RV']:
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
-# Temporarily installing the license manager
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -1068,6 +1067,7 @@ for ext in os.listdir(ext_base_dir):
             (ext == 'lookdevkit') or
             (ext == 'renderSetup') or 
             (ext == 'synColor') or
+            (ext == 'usdProxyShape') or
             (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache') or
             (env['ENABLE_BIFROST_GRAPH'] == 1 and ext == 'bifrostGraph')):
         continue
@@ -1279,7 +1279,6 @@ for p in license_files:
         [os.path.join(ARNOLD, 'license', p), os.path.join('license', d)]
     ]
 
-
 vp2shaders = GetViewportShaders(maya_version)
 installedVp2Shaders = []
 for vp2shader in vp2shaders:
@@ -1303,6 +1302,7 @@ PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPh
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShader_shaders%s' % get_library_extension()), 'shaders'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
+PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdProxyShape', 'usdProxyShapeTranslator%s' % get_library_extension()), 'extensions'])
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])

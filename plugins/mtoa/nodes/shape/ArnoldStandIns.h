@@ -46,6 +46,7 @@ public:
    int updateView;
    int updateBBox;
    int drawOverride;
+   bool useAutoInstancing;
    bool hasSelection;
    MString objectPath;
    MString abcLayers;
@@ -116,6 +117,7 @@ private:
    static MObject s_scale;
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
+   static MObject s_useAutoInstancing;
    static MObject s_drawOverride;
    static MObject s_selectedItems;
    static MObject s_ignoreGroupNodes;

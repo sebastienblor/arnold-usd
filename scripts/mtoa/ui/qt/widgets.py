@@ -6,11 +6,15 @@ from .itemStyle import ItemStyle
 from .treeView import BaseItem
 from .utils import dpiScale, setStaticSize, clearWidget, valueIsExpression, toQtObject, toMayaName, STRING_EXP
 
+import mtoa.callbacks as callbacks
+
 from .button import MtoAButton, MtoACheckableButton
 
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 import maya.cmds as cmds
 import maya.mel as mel
+import maya.OpenMaya as om
+
 import re
 
 from arnold import *
@@ -497,11 +501,21 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
             self.conButton.setIcon(self.CONNECTED_ICON)
             self.conButton.clicked.disconnect()
             self.conButton.clicked.connect(self.selectNode)
+            # make a callback for if the connected node is renamed
+            node_type = cmds.objectType(node)
+            callbacks.addNameChangedCallback(callbacks.CallbackWithArgs(self.renameNode), node_type, applyToExisting=True)
+
         if node == '':
             self.disconnectNode(emit)
             return
         if emit:
             self.valueChanged.emit(node)
+
+    def renameNode(self, mobj, old_name, *args):
+        mfn = om.MFnDependencyNode(mobj)
+        new_name = mfn.name()
+        if old_name == self.node:
+            self.setNode(new_name)
 
     def setInherited(self, inherited):
         if self.overrideButton:

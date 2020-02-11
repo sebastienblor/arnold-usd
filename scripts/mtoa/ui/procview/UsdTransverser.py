@@ -27,32 +27,31 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
 
 from mtoa.callbacks import *
 
-class CustomProcTreeItem():
+class UsdProcTreeItem():
     def __init__(self, data):
-        self.children = [] # array of CustomProcItemTree children indices
+        self.children = [] # array of UsdProcItemTree children indices
         self.data = data  # tranverser data for this item
 
 ###### UI to create a procedural operator
 
-class CustomProceduralTransverser(ProceduralTransverser):
+class UsdTransverser(ProceduralTransverser):
     """ StandIn  Transverser class """
     __instance = None
     
     def __new__(cls, *args, **kwargs):
 
         if not cls.__instance:
-            instance = super(CustomProceduralTransverser, cls).__new__(cls, *args, **kwargs)
+            instance = super(UsdTransverser, cls).__new__(cls, *args, **kwargs)
             cls.__instance = instance
 
         return cls.__instance
 
-    def __init__(self, procedural, filenameAttr, filename):
+    def __init__(self, filenameAttr, filename):
         self.nodeName = ''
-        self.procedural = procedural
         self.proceduralFilename = filename
         self.proceduralFilenameAttr = filenameAttr
         self.items = []
-        super(CustomProceduralTransverser, self).__init__()
+        super(UsdTransverser, self).__init__()
 
 
     def getObjectInfo(self, iObj):
@@ -77,10 +76,10 @@ class CustomProceduralTransverser(ProceduralTransverser):
             childIndex = len(self.items) # this will be my child index
             parentPath = self.items[parentIndex].data[PROC_PATH]
             if len(parentPath) or nameSplitIndex > 0:
-                path = '{}/{}'.format(parentPath, name)
+                path = '/'.join(nameSplit[:nameSplitIndex+1])
             else:
                 path = name
-            
+
             if path != '/'.join(nameSplit):
                 this_entry = 'xform'
                 this_entryType = None
@@ -89,31 +88,32 @@ class CustomProceduralTransverser(ProceduralTransverser):
                 this_entryType = entryType
 
             node = ai.AiNodeLookUpByName(path)
-            if node:
-                entry = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
-                entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
             self.items[parentIndex].children.append(childIndex)
             if PROC_NUM_CHILDREN >= len(self.items[parentIndex].data):
                 self.items[parentIndex].data.append(0)
-            self.items[parentIndex][PROC_NUM_CHILDREN] += 1
-            self.items.append(CustomProcTreeItem([path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]))
-            
+            self.items[parentIndex].data[PROC_NUM_CHILDREN] += 1
+            self.items.append(UsdProcTreeItem([path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]))
+
         # now call buildTree recursively
         self.buildTree(childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
         return 
 
 
     def getRootObjectInfo(self, node):
-        if ai.AiUniverseIsActive():
-            cmds.error("Cannot populate procedurals while a render is in progress")
-            return
+        beginSession = (not ai.AiUniverseIsActive())
+        if beginSession:
+            ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
+
+        universe = ai.AiUniverse()
         self.nodeName = node
-        ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
-        self.items.append(CustomProcTreeItem(['', '', '', 'visible', '', '', 0, None]))
-        proc = ai.AiNode(self.procedural)
+        
+        self.items.append(UsdProcTreeItem(['/', 'root', '', 'visible', '', 'usd', 0, 'shape']))
+        proc = ai.AiNode(universe, 'usd')
         ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
-        ai.AiRender(ai.AI_RENDER_MODE_FREE)
-        iter = ai.AiUniverseGetNodeIterator(None, ai.AI_NODE_ALL);
+        paramMap = ai.AiParamValueMap()
+        ai.AiParamValueMapSetBool(paramMap, 'list', True)
+        ai.AiProceduralViewport(proc, universe, ai.AI_PROC_BOXES, paramMap);
+        iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
         
         while not ai.AiNodeIteratorFinished(iter):
             node = ai.AiNodeIteratorGetNext(iter)
@@ -121,7 +121,7 @@ class CustomProceduralTransverser(ProceduralTransverser):
                 continue
 
             nodeName = ai.AiNodeGetName(node)
-            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader':
+            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader' or nodeName == '_default_arnold_shader' or nodeName == '_default_arnold_shader_color' or nodeName == '':
                 continue
 
             entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
@@ -132,10 +132,12 @@ class CustomProceduralTransverser(ProceduralTransverser):
                 startIndex = 1
             self.buildTree(0, nameSplit, startIndex, entryName, entryType)
 
-        ai.AiNodeIteratorDestroy(iter)
 
-        ai.AiRenderAbort()
-        ai.AiEnd()
+        ai.AiParamValueMapDestroy(paramMap)
+        ai.AiNodeIteratorDestroy(iter)
+        ai.AiUniverseDestroy(universe)
+        if beginSession:
+            ai.AiEnd()
         return self.items[0].data
         
     def dir(self, iobject):

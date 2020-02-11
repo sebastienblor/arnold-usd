@@ -1,0 +1,132 @@
+### exported: Fri Jan 24 09:44:37 2020
+### from:     Arnold 6.0.1.0 [aee812b8] linux clang-5.0.0 oiio-2.1.4 osl-1.11.0 vdb-4.0.0 clm-1.1.1.118 rlm-12.4.2 optix-6.5.0 2019/12/02 11:48:29
+### host app: MtoA 4.0.1 9846c079 (develop) Maya 2019
+### bounds: -0.5 -0.5 -0.5 0.5 0.5 0.5
+### user: handsca
+### render_layer: defaultRenderLayer
+
+
+
+options
+{
+ AA_samples 3
+ outputs "RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_exr.RGBA"
+ xres 960
+ yres 540
+ texture_per_file_stats on
+ texture_searchpath "/home/handsca/maya/projects/default/sourceimages"
+ texture_automip off
+ camera "/persp/perspShape"
+ frame 1
+ procedural_searchpath "/home/handsca/maya/projects/default/"
+ GI_diffuse_depth 1
+ GI_specular_depth 1
+ GI_transmission_depth 8
+ declare render_layer constant STRING
+ render_layer "defaultRenderLayer"
+}
+
+gaussian_filter
+{
+ name defaultArnoldFilter@gaussian_filter
+}
+
+driver_exr
+{
+ name defaultArnoldDriver@driver_exr.RGBA
+ filename "/home/handsca/maya/projects/default/images/untitled.exr"
+ color_space ""
+}
+
+polymesh
+{
+ name /testCube/testCubeShape
+ visibility 255
+ sidedness 255
+ matrix
+ 1 0 0 0
+ 0 1 0 0
+ 0 0 1 0
+ 0 0 0 1
+ shader "lambert1"
+ id 1922884701
+ nsides 6 1 UINT
+4 4 4 4 4 4
+ vidxs 24 1 b85UINT
+B$ZuK*%<ho2%s\>:$$-?2$vMr4%<MT0
+ nidxs 24 1 b85UINT
+B$v2N*&9nA:'RU4J(k<'Z*.woj+G^c%
+ uvidxs 24 1 b85UINT
+B$ZuK*%<ho2%s\>:&UObB$w/J=(3BP?
+ vlist 8 1 b85VECTOR
+aDq99aDq9989+]c89+]caDq9989+]caDq99!89+]c$$$$)aDq9989+]caDq9989+]c89+]c!aDq99$$$$(89+]caDq99aDq99
+ nlist 24 1 b85VECTOR
+zzyzzyzzyzzyzyzzyzzyzzy!$$$$$$$$$'aRT=dzzaRT=dzzaRT=dzzaRT=dzaRT=dzzaRT=dzzaRT=dzzaRT=dzyzzyzzyzzyzzaRT=dzzaRT=dzzaRT=dzzaRT=dzz
+ uvlist 14 1 b85VECTOR2
+8/h1oz8=Ru?z8/h1o8+HY88=Ru?8+HY88/h1o89+]c8=Ru?89+]c8/h1o8?r5N8=Ru?8?r5N8/h1oy8=Ru?yyzy8+HY8!$$$$$$$$$'8+HY8
+ smoothing on
+ step_size 0
+ volume_padding 0
+ declare dcc_name constant STRING
+ dcc_name "testCubeShape"
+ declare int8 constant BYTE
+ int8 0
+ declare int16 constant INT
+ int16 0
+ declare int32 constant INT
+ int32 0
+ declare float constant FLOAT
+ float 0
+ declare bool constant BOOL
+ bool off
+ declare string constant STRING
+ string ""
+ declare vec2 constant VECTOR2
+ vec2 0.100000001 0.200000003
+ declare vec constant VECTOR
+ vec 0 1 0
+ declare Cd constant RGB
+ Cd 0 1 1
+ declare faceAttr uniform FLOAT
+ faceAttr 6 1 FLOAT
+0.100000001 0.200000003 0.300000012 0.400000006 0.5 0.600000024
+ declare vertexAttr varying FLOAT
+ vertexAttr 8 1 FLOAT
+0.100000001 0.200000003 0.300000012 0.400000006 0.5 0.600000024 0.699999988 0.800000012
+ declare CdFaces uniform RGB
+ CdFaces 6 1 b85RGB
+8A<>Jz8%v5I8%v5I8A<>J83Y9t8%v5I8A<>J83Y9t83Y9tz8;io[83Y9ty8A<>Jzz8%v5I
+}
+
+lambert
+{
+ name lambert1
+ Kd 0.800000012
+ Kd_color 0.5 0.5 0.8
+ opacity 1 1 1
+}
+
+persp_camera
+{
+ name /persp/perspShape
+ matrix
+ 0.707106769 0 -0.707106769 0
+ -0.331294566 0.883452237 -0.331294566 0
+ 0.624695063 0.468521297 0.624695063 0
+ 28 21 28 1
+ near_clip 0.100000001
+ far_clip 10000
+ shutter_start 0
+ shutter_end 0
+ shutter_type "box"
+ rolling_shutter "off"
+ rolling_shutter_duration 0
+ motion_start 0
+ motion_end 0
+ exposure 0
+ fov 54.4322243
+ uv_remap 0 0 0 1
+ declare dcc_name constant STRING
+ dcc_name "perspShape"
+}
+
