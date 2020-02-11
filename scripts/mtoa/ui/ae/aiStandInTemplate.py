@@ -22,9 +22,9 @@ from mtoa.ui import exportlook
 from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
-if importlib.find_loader('alembic'):
+try:
     from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
-else:
+except ImportError as e:
     AlembicTransverser = None
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 from mtoa.ui.procview.UsdTransverser import UsdTransverser
