@@ -1189,6 +1189,7 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, '*.png'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.pit'), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*.txt'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslc%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
@@ -1259,6 +1260,8 @@ for syncolor_file in syncolor_files:
         
 
 PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
+
+PACKAGE_FILES.append([os.path.join(ARNOLD, '*.txt'), 'bin'])
 
 # package the licensing tools
 clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os)
@@ -1400,6 +1403,7 @@ def create_installer(target, source, env):
     import shutil
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+    shutil.copyfile(os.path.join(ARNOLD, 'EULA.txt'), os.path.join(tempdir, 'EULA.txt'))
 
     if system.os == "windows":
         import zipfile
