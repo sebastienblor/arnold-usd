@@ -1,3 +1,4 @@
+from __future__ import print_function
 from . import toPyObject
 from .Qt import OpenMayaUI
 from .Qt import QtCore
@@ -228,7 +229,7 @@ class BaseModel(QtCore.QAbstractItemModel):
             return item.getIndent()
         elif role == NODE_ENABLED:
             return item.isEnabled()
-        print "data has no valid role", role
+        print("data has no valid role", role)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """Set the role data for the item at index to value."""
