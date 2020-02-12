@@ -27,4 +27,5 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug); 
    bool m_isAlembic;
    bool m_isAss;
+   bool m_isUsd;
 };
