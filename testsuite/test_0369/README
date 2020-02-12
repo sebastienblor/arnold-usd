@@ -3,3 +3,8 @@ xgen interactive splines with lightlinking
 See trac#3122
 
 author: Ashley Handscomb Retallack
+
+PARAMS: {
+   'diff_fail': 0.02,
+   'diff_hardfail': 0.02
+}
