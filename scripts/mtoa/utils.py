@@ -438,19 +438,20 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         imageDir = imageDir if imageDir else 'data'
         imageDir = cmds.workspace(expandName=imageDir);
 
-    codecs = ['utf-8', 'latin-1']
-    for i in codecs:
-        try:
-            partialPath = partialPath.decode(i)
-            break
-        except UnicodeDecodeError:
-            pass
-    for i in codecs:
-        try:
-            imageDir = imageDir.decode(i)
-            break
-        except UnicodeDecodeError:
-            pass   
+    if sys.version_info[0] == 2:
+        codecs = ['utf-8', 'latin-1']
+        for i in codecs:
+            try:
+                partialPath = partialPath.decode(i)
+                break
+            except UnicodeDecodeError:
+                pass
+        for i in codecs:
+            try:
+                imageDir = imageDir.decode(i)
+                break
+            except UnicodeDecodeError:
+                pass
 
     if cmds.optionVar(exists="OverrideFileOutputDirectory"):
         result = os.path.join(imageDir, partialPath)
@@ -484,10 +485,11 @@ registerFileToken(fileTokenVersion, 'Version')
 registerFileToken(fileTokenVersion, 'Eye')
 
 def convertToUnicode(s):
-    try:
-        s = s.encode('utf-8')
-    except UnicodeDecodeError:
-        pass
+    if sys.version_info[0] == 2:
+        try:
+            s = s.encode('utf-8')
+        except UnicodeDecodeError:
+            pass
     return s
 
 def getEnvironmentVariable(name):
@@ -615,9 +617,13 @@ def getActiveRenderLayerName():
     return ''
 
 def getMayaVersion():
+    version = cmds.about(f=True)
+    return int(float(version[:4]))
+
+
+def getMayaAPIVersion():
     version = cmds.about(api=True)
     return int(str(version)[:4])
-
 
 
 cb_id = None

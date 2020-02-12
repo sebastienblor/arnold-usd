@@ -124,11 +124,11 @@ def listAvailableIndices(logIdxList, nreq):
             rem = min(nreq-len(free), idx-(last+1))
             if rem <= 0:
                 return free
-            for i in xrange(0, rem):
+            for i in range(0, rem):
                 free.append(last+1+i)
         last = idx
     rem = nreq-len(free)
-    for i in xrange(0, rem):
+    for i in range(0, rem):
         free.append(last+1+i)
     return free
 

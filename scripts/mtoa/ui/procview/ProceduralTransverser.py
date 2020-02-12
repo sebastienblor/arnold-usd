@@ -125,15 +125,19 @@ class ProceduralTransverser(BaseTransverser):
                         enumParam = AiParamGetEnum(param)
                         i = 0
                         t = True
-                        while t is not None:
-                            t = AiEnumGetString(enumParam, i)
-                            if t:
-                                enum_values.append(t)
+                        while t:
+                            try:
+                                t = AiEnumGetString(enumParam, i)
+                                if t:
+                                    enum_values.append(t)
+                            except UnicodeDecodeError as e:
+                                print("{}.{}[{}] '{}'".format(nodeType, paramName, i, t))
+                                raise e
                             i += 1
 
                     default_value = self._getDefaultValue(param, param_type)
-                    
-                    if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys(): 
+
+                    if paramName not in list(self.paramDict[nodeType].keys()) + list(self.paramDict['common'].keys()):
                         is_array = param_type == AI_TYPE_ARRAY
                         self.paramDict[nodeType][paramName] = (param_type,
                                                                default_value,

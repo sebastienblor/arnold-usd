@@ -72,7 +72,7 @@ try:
                     # No guarantee that the default node exist
                     OpenMaya.MGlobal.displayWarning(kDefaultNodeMissing % name)
                 else:
-                    for attrIdx in xrange(nodeFn.attributeCount()):
+                    for attrIdx in range(nodeFn.attributeCount()):
                         plg = plug.Plug(node, nodeFn.attribute(attrIdx))
                         if self._isAOVDefaultValue(name, plg):
                             connectedPlgs = plg.plug.connectedTo(True, False)

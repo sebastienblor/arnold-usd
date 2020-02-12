@@ -38,7 +38,7 @@ class UsdTransverser(ProceduralTransverser):
     """ StandIn  Transverser class """
     __instance = None
     
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, filenameAttr, filename, *args, **kwargs):
 
         if not cls.__instance:
             instance = super(UsdTransverser, cls).__new__(cls, *args, **kwargs)

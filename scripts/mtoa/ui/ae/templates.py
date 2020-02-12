@@ -8,7 +8,7 @@ from __future__ import print_function
 
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
-from mtoa.utils import prettify, toMayaStyle, getMayaVersion
+from mtoa.utils import prettify, toMayaStyle, getMayaAPIVersion
 import mtoa.core as core
 import maya.cmds as cmds
 import maya.mel
@@ -469,7 +469,7 @@ class AERootMode(BaseMode):
                 cmds.editorTemplate(suppress=attr)
             except RuntimeError:
                 pass
-        if getMayaVersion() <= 2020:
+        if getMayaAPIVersion() <= 2020:
             cmds.editorTemplate(aeCallback(template._doSetup),
                                 aeCallback(template._doUpdate),
                                 attr,
@@ -507,7 +507,7 @@ class AERootMode(BaseMode):
 
     def addCustom(self, attr, newFunc, replaceFunc):
         # TODO: support multiple attributes passed
-        if getMayaVersion() <= 2020:
+        if getMayaAPIVersion() <= 2020:
             if hasattr(newFunc, '__call__'):
                 newFunc = aeCallback(newFunc)
             if hasattr(replaceFunc, '__call__'):
