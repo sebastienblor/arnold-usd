@@ -432,10 +432,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       }
       else if (isUsd)
       {
-         if (AiNodeEntryLookUp("usd"))
-            proc = AiNode(proc_universe, "usd", name().asChar()); // oh amazing, there's a usd node available ! let's use it
-         else
-            AiMsgError("[mtoa.standin] USD files not supported");
+         proc = AiNode(proc_universe, "usd", name().asChar());
+         AiNodeSetFlt(proc, "frame", frameStep);
+         MPlug objectPathPlug(thisMObject(), s_objectPath);
+         AiNodeSetStr(proc, "object_path", objectPathPlug.asString().asChar());
+         
       } else
          proc = AiNode(proc_universe, "procedural", name().asChar());
 
