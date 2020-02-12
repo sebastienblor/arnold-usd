@@ -23,6 +23,7 @@ from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
+from mtoa.ui.procview.UsdTransverser import UsdTransverser
 from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, \
                                                    MERGE_OP, OVERRIDE_OP, \
                                                    INCLUDEGRAPH_OP, MATERIALX_OP, \
@@ -41,7 +42,7 @@ CACHE_ATTR = 'ai_asscache'
 
 
 def LoadStandInButtonPush(attrName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd *.usda *.usdc)'
     defaultDir = cmds.workspace(query=True, directory=True)
     currentDir = cmds.getAttr(attrName) or ''
     currentDir = os.path.dirname(currentDir)
@@ -174,12 +175,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidgetName = cmds.setParent(query=True)
         return toQtObject(currentWidgetName, pySideType)
 
-    def updateSelectedItems(self):
+    def updateSelectedItems(self, force=False):
         if not self.tree or not self.tree.transverser:
             return
-        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items'))
+        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items')) or ""
         
-        if selection == self.tree.transverser.selectionStr:
+        if selection == self.tree.transverser.selectionStr and not force:
             return
         #self.tree.transverser.selectionStr = selection
         selectionSplit = selection.split(',')
@@ -187,7 +188,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if selected:
                 # Prevent firing signals in Qt to avoid infinite loop.
                 #oldState = self.tree.blockSignals(True)
-                self.tree.select(selected)
+                self.tree.select(selected, force)
                 #self.tree.blockSignals(oldState)
                 return
                 
@@ -220,21 +221,20 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.setAttr(selAttr, attrVal, type='string')
         return True
     '''
+
+    def getExpandFileType(self):
+        '''
+        Get if this file type should start off expanded
+        '''
+        ext_str = os.path.splitext(self.current_filename.split(';')[0])[1].lower()
+        if ext_str in ['.abc']:
+            return True
+        return False
+
     def refreshAssignmentsUI(self):
-        fileAttr = '{}.dso'.format(self.nodeName)
-        filename = cmds.getAttr(fileAttr)
-        filename = expandEnvVars(filename)
-
-        ext_str = ".ass"
-        if filename:
-            ext_str = os.path.splitext(filename)[1].lower()
-
-        expand = False
-        if ext_str == '.abc':
-            expand = True
-
-        self.tree.setCurrentNode(self.nodeName, expand, force=True)
-        self.properties_panel.setNode(self.nodeName)
+        if self.refreshTransverser():
+            self.tree.setCurrentNode(self.nodeName, self.getExpandFileType(), force=True)
+            self.properties_panel.setNode(self.nodeName)
 
     def lookReplace(self, nodeAttr):
         old_look = self.look_node
@@ -260,8 +260,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 look_idx = cmds.getAttr("{}.index".format(self.look_node))
                 cmds.optionMenu(self.lookCtrl, edit=True, value=looks[look_idx])
 
-            if self.tree:
-                self.refreshAssignmentsUI()
+            # if self.tree:
+            #     self.refreshAssignmentsUI()
 
     def lookNew(self, nodeAttr):
 
@@ -270,37 +270,49 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                          columnAttach=[(1, 'left', 10), (2, 'left', 3), (3, 'left', 1), (4, 'left', 1), (5, 'left', 1)])
 
         cmds.rowLayout(numberOfColumns=1, rowAttach=[1, 'top', 4], columnAttach=[1, 'left', 0])
-        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20)
+        self.lookCtrl = cmds.optionMenu(label="look",changeCommand=self.setLook, height=20,
+                                        annotation="Set current look")
         cmds.setParent('..')
-        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook )
-        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook )
-        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook )
+        self.newLookCtrl = cmds.symbolButton('standInNewLookButton', image='newRenderPass.png', command=self.newLook,
+                                             annotation="Create new look")
+        self.editLookCtrl = cmds.symbolButton('standInEditLookButton', image='editRenderPass.png', command=self.editLook,
+                                              annotation="Edit current look")
+        self.removeLookCtrl = cmds.symbolButton('standInRemoveLookButton', image='deleteRenderPass.png', command=self.removeLook,
+                                                annotation="Remove current look")
 
-        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook, annotation="Export looks to .ass or MaterialX file" )
+        self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook,
+                                                annotation="Export looks to .ass or MaterialX file" )
 
         cmds.text("")
         cmds.setParent('..')
         self.lookReplace(nodeAttr)
 
-    def fileInfoReplace(self, nodeAttr):
-        nodeName = nodeAttr.split('.')[0]
-        fileAttr = '{}.dso'.format(nodeName)
+    def refreshTransverser(self):
+        projectRootDir = cmds.workspace(query=True, rootDirectory=True)
+        fileAttr = '{}.dso'.format(self.nodeName)
         filename = cmds.getAttr(fileAttr)
         filename = expandEnvVars(filename)
-        if nodeName == self.currentNode and filename == self.currentFilename:
+        layersAttr = '{}.abc_layers'.format(self.nodeName)
+        layers = cmds.getAttr(layersAttr) or ''
+        if len(layers):
+            for lay in layers.split(';'):
+                if not os.path.isfile(lay):
+                    lay = os.path.join(projectRootDir, lay)
+                filename += ';' + lay
+
+        if self.nodeName == self.transverser_node and filename == self.current_filename:
             self.properties_panel.setItem(self.nodeName, None)
-            return  # nothing to do here...
+            return False  # nothing to do here...
 
         filename_changed = False
-        if nodeName == self.currentNode and filename != self.currentFilename:
+        if self.nodeName == self.transverser_node and filename != self.current_filename:
             filename_changed = True
 
-        self.currentNode = nodeName
-        self.currentFilename = filename
-
+        self.transverser_node = self.nodeName
+        self.current_filename = filename
         ext_str = ".ass"
         if filename:
-            ext_str = os.path.splitext(filename)[1].lower()
+            ext_str = os.path.splitext(filename.split(';')[0])[1].lower()
 
         expand = False
         if ext_str == '.abc':
@@ -310,7 +322,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         elif ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
             # need to find out which procedural to use with it
             procName = 'usd'
-            transverser = CustomProceduralTransverser(procName, 'filename', filename)
+            transverser = UsdTransverser('filename', filename)
         else:
             transverser = StandInTransverser()
 
@@ -318,33 +330,51 @@ class AEaiStandInTemplate(ShaderAETemplate):
         # setting refresh to False forces the tranverser not to refresh the tree
         self.tree.setTransverser(transverser, refresh=False)
         self.properties_panel.setTransverser(transverser)
-        # setting node triggers the refresh
-        self.tree.setCurrentNode(self.nodeName, expand, filename_changed)
-        self.properties_panel.setNode(self.nodeName)
 
-        scriptAttr = self.nodeName + ".dso"
-        cmds.scriptJob(attributeChange=[scriptAttr, self.updateAssFile])
+        return True
 
-        scriptAttr = self.nodeName + ".selected_items"
-        cmds.scriptJob(attributeChange=[scriptAttr, self.updateSelectedItems])
+    def fileInfoReplace(self, nodeAttr):
+        if self.refreshTransverser():
+            # setting node triggers the refresh
+            self.tree.setCurrentNode(self.nodeName, self.getExpandFileType(), force=True)
+            self.properties_panel.setNode(self.nodeName)
+
+            scriptAttr = self.nodeName + ".dso"
+            cmds.scriptJob(attributeChange=[scriptAttr, self.updateAssFile])
+
+            scriptAttr = self.nodeName + ".selected_items"
+            cmds.scriptJob(attributeChange=[scriptAttr, self.updateSelectedItems])
+
+        # now get the selection and set it if the selction is not empty
+        selection = cmds.getAttr(self.nodeName + ".selected_items")
+        if selection:
+            self.updateSelectedItems(True)
+        else:
+            self.tree.clearSelection()
 
     def fileInfoNew(self, nodeAttr):
 
         currentWidget = self.__currentWidget()
-        self.currentNode = ''
-        self.currentFilename = ''
 
-        # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser, because we'll set it later or 
-        # in fileInfoReplace
+        # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser,
+        # because we'll set it later or in fileInfoReplace
+
+        self.fileContents = QtWidgets.QFrame(currentWidget)
+        self.fileContents.setLayout(QtWidgets.QVBoxLayout(self.fileContents))
+        currentWidget.layout().addWidget(self.fileContents)
+
+        self.filter_box = QtWidgets.QLineEdit(self.fileContents)
+        self.filter_box.setPlaceholderText("filter ..")
+        self.fileContents.layout().addWidget(self.filter_box)
         self.tree = ProceduralTreeView(None, currentWidget)
         self.tree.setObjectName("standinTreeWidget")
-        currentWidget.layout().addWidget(self.tree)
+        self.fileContents.layout().addWidget(self.tree)
 
         # now add the preperties panel
         self.properties_panel = ProceduralPropertiesPanel(None, currentWidget)
-        currentWidget.layout().addWidget(self.properties_panel)
-
+        self.fileContents.layout().addWidget(self.properties_panel)
         self.tree.itemSelected.connect(self.showItemProperties)
+        self.filter_box.textChanged.connect(self.tree.model().setFilterWildcard)
 
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
@@ -714,6 +744,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
         self.current_node = None
+        self.transverser_node = None
+        self.current_filename = ''
         self.look_node = None
 
     @QtCore.Slot(str, object)
@@ -860,6 +892,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             currentLayers.append(rel_filepath)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type="string")
             self.alembicLayersReplace(nodeAttr)
+            self.updateAssFile()
 
     def alembicRemoveLayer(self, nodeAttr):
         # get the selected layers
@@ -871,6 +904,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 currentLayers.pop(i-1)
             cmds.setAttr(nodeAttr, ';'.join(currentLayers), type='string')
             self.alembicLayersReplace(nodeAttr)
+            self.updateAssFile()
 
     def alembicLayersNew(self, nodeAttr):
 
@@ -968,7 +1002,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.assInfoPath = ''
         self.inspectAssPath = ''
         self.current_node = None
+        self.transverser_node = None
         self.look_node = None
+        self.current_filename = ''
         self.tree = None
         self.properties_panel = None
         self._update_var_ui = False
@@ -996,6 +1032,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         # usd and alembic
         # object_path
         self.addControl('objectpath', label='Object Path')
+        self.endLayout()
+
+
+        self.beginLayout('Arnold Procedural Settings', collapse=True)
+        self.addControl('useAutoInstancing', label='Auto Instancing', annotation="Disable to prevent automatic instancing of the same .ass file")
         self.endLayout()
 
         # alembic options
@@ -1039,8 +1080,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('aiMatte', label='   Matte')
         self.endLayout()
 
-        self.endNoOptimize();
-        
+        self.endNoOptimize()
+
         self.beginLayout('Object Display', collapse=True)
         self.addControl('visibility')
         self.addControl('template')

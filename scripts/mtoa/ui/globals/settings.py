@@ -423,14 +423,14 @@ def buildAtmosphereMenu(popup, field, select):
 
     cmds.popupMenu(popup, edit=True, deleteAllItems=True)
 
-    for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
+    for typ in cmds.listNodeTypes(['rendernode/arnold/shader/volume']) or []:
         shaders = cmds.ls(type=typ)
         for item in shaders:
             cmds.menuItem(parent=popup, label=item, command=Callback(changeAtmosphere, item, field, select))
     
     cmds.menuItem(parent=popup, divider=True)
     
-    for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
+    for typ in cmds.listNodeTypes(['rendernode/arnold/shader/volume']) or []:
         menuLabel = "Create "+typ
         cmds.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
 
@@ -1761,7 +1761,7 @@ def createArnoldRendererDiagnosticsTab():
     parentForm = cmds.setParent(query=True)
     
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    cmds.scrollLayout('arnoldDiagnosticsScrollLayout', horizontalScrollBarThickness=0)
+    cmds.scrollLayout('arnoldDiagnosticsScrollLayout', horizontalScrollBarThickness=0, childResizable = True)
     cmds.columnLayout('arnoldDiagnosticsColumn', adjustableColumn=True)
 
     # Log
@@ -1809,13 +1809,13 @@ def createArnoldRendererSystemTab():
     parentForm = cmds.setParent(query=True)
     
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
+    cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0, childResizable = True)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
     platformName = sys.platform
 
     if not platformName.startswith('darwin'):
-        cmds.frameLayout('arnoldGpuSettings', label="GPU Settings", cll=True, cl=0)
+        cmds.frameLayout('arnoldGpuSettings', label="Device Selection", cll=True, cl=0)
         createGpuSettings()
         cmds.setParent('..')
 
@@ -1867,7 +1867,7 @@ def createArnoldRendererGlobalsTab():
     parentForm = cmds.setParent(query=True)
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    cmds.scrollLayout('arnoldGlobalsScrollLayout', horizontalScrollBarThickness=0)
+    cmds.scrollLayout('arnoldGlobalsScrollLayout', horizontalScrollBarThickness=0, childResizable = True)
     cmds.columnLayout('arnoldTabColumn', adjustableColumn=True)
 
     # Sampling

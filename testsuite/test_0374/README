@@ -1,0 +1,7 @@
+Tilt properties in perspective cameras
+
+This scene tests the attributes aiLensTiltAngle and aiLensShift in persp_camera
+
+See trac#4094
+
+author: sebastien.ortega

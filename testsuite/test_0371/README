@@ -1,0 +1,8 @@
+Test uv transform attributes in the maya ramp
+
+Some uv controls in the Maya ramp should trigger the generation of a uv_transform shader when converted to arnold.
+
+See trac#4081
+
+author: sebastien.ortega
+

@@ -22,8 +22,8 @@ InstallDirRegKey HKCU "Software\MtoA$%MAYA_VERSION%" ""
 ;Request application privileges for Windows Vista
 RequestExecutionLevel admin
 
-!define MUI_ICON "SA.ico"
-!define MUI_UNICON "SA.ico"
+!define MUI_ICON "arnold.ico"
+!define MUI_UNICON "arnold.ico"
 
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "top.bmp"
@@ -142,7 +142,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
                  "DisplayIcon" "$INSTDIR\uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
-                 "Publisher" "Solid Angle"
+                 "Publisher" "Autodesk"
 
 SectionEnd
 

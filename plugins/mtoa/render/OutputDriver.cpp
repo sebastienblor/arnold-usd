@@ -18,6 +18,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MImage.h>
 #include <maya/MAnimControl.h>
+#include <maya/MFnRenderLayer.h>
 
 #include <time.h>
 time_t s_start_time;
@@ -79,8 +80,20 @@ node_initialize
    if (cameraNode != 0)
       cameraName = AiNodeGetName(cameraNode);
 
-   MString layerName = "";
-   MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
+   MString layerName ("");
+   MStatus status;
+
+   MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
+   if (status)
+      {
+         MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
+         if (status)
+         {
+            layerName = currentRenderLayer.name();
+         }
+      }
+
+   // MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
 
    InitializeDisplayUpdateQueue(cameraName, layerName, "renderView");
 

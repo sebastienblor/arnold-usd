@@ -3,6 +3,6 @@ Per-face shading assignments with polygon holes (#3022)
 author: sebastien.ortega
 
 PARAMS: {
-   'diff_fail': 0.06,
-   'diff_hardfail': 0.06
+   'diff_fail': 0.1,
+   'diff_hardfail': 0.1
 }

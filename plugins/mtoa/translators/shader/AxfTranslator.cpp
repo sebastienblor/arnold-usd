@@ -3,8 +3,8 @@
 
 AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
 {
-   MString axf_path = FindMayaPlug("axfFilePath").asString();
-   MString tex_path = FindMayaPlug("texturePath").asString();
+   MString axf_path = FindMayaPlug("axfFilePath").asString().expandEnvironmentVariablesAndTilde();
+   MString tex_path = FindMayaPlug("texturePath").asString().expandEnvironmentVariablesAndTilde();
    float uvScale = FindMayaPlug("uvScale").asFloat();
    MFnDependencyNode fnNode(GetMayaObject());
    MString maya_node_name = fnNode.name();

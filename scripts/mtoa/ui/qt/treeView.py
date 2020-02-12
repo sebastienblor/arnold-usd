@@ -4,7 +4,7 @@ from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
 from .treeStyle import TreeStyle
-from .utils import dpiScale, dpiScaledIcon
+from .utils import dpiScale, dpiScaledIcon, busy_cursor
 from .color import Color
 from .style import MtoAStyle
 import weakref
@@ -65,22 +65,32 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def mousePressEvent(self, event):
         """Receive mouse press events for the widget."""
-
         index = self.indexAt(event.pos())
-
+        if not index.isValid():
+            return
         super(BaseTreeView, self).mousePressEvent(event)
+        # force selection
+        flags = self.selectionCommand(index)
+        rect = self.visualRect(index)
+        self.setSelection(rect, flags)
 
         # Redraw the item
         self.redraw(index)
 
     def mouseReleaseEvent(self, event):
         """Trigger actions based on mouse presses."""
-        super(BaseTreeView, self).mouseReleaseEvent(event)
+        # super(BaseTreeView, self).mouseReleaseEvent(event)
         index = self.indexAt(event.pos())
 
         if not index.isValid():
             return
 
+        action = self.itemDelegate(index).getLastAction()
+        if action == BaseItem.ACTION_EXPAND:
+            self.setExpanded(
+                index, not self.isExpanded(index))
+        else:
+            self.model().executeAction(action, index)
         # Redraw the item
         self.redraw(index)
 
@@ -104,6 +114,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 
         self.setExpandedChildren(index, not self.isExpanded(index))
 
+    @busy_cursor
     def setExpandedChildren(self, index, expanded):
         """
         Set the item referred to by index and all the children to either
@@ -140,6 +151,9 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def sizeHintForRow(self, row):
         return ITEM_HEIGHT
+
+    def setSelection(self, rect, command):
+        super(BaseTreeView, self).setSelection(rect, command)
 
 
 class BaseModel(QtCore.QAbstractItemModel):
@@ -200,10 +214,12 @@ class BaseModel(QtCore.QAbstractItemModel):
             return QtCore.QSize(250, ITEM_HEIGHT)
         elif role == QtCore.Qt.BackgroundRole:
             return item.getBackgroundColor()
+        elif role == QtCore.Qt.StatusTipRole:
+            return item.getName()
         elif role == NODE_BAR_COLOUR:
             return item.getLabelColor()
         elif role == CHILD_COUNT:
-            return item.childCount()
+            return item.numChildren()
         elif role == ACTIONS:
             return item.getActions()
         elif role == ICON:
@@ -212,6 +228,7 @@ class BaseModel(QtCore.QAbstractItemModel):
             return item.getIndent()
         elif role == NODE_ENABLED:
             return item.isEnabled()
+        print "data has no valid role", role
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """Set the role data for the item at index to value."""
@@ -240,7 +257,7 @@ class BaseModel(QtCore.QAbstractItemModel):
 
         return QtCore.QModelIndex()
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=QtCore.QModelIndex()):
         """
         The index of the item in the model specified by the given row, column
         and parent index.
@@ -457,12 +474,14 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         # Text font
         painter.setFont(QtWidgets.QApplication.font())
 
+        text_indent = index.data(TEXT_INDENT) or dpiScale(40)
+
         # Draw the text for the node
         textRect = deepcopy(rect)
         textRect.setBottom(textRect.bottom() + dpiScale(2))
         textRect.setLeft(
             textRect.left() +
-            toPyObject(index.data(TEXT_INDENT)) +
+            text_indent +
             self.ICON_PADDING)
 
         right = textRect.right() - dpiScale(11)
@@ -484,14 +503,18 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         """Draw the icons and buttons on the right side of the item."""
         painter.save()
 
-        actions = toPyObject(index.data(ACTIONS))
+        actions = toPyObject(index.data(ACTIONS)) or []
 
         buttonPressed = \
             QtWidgets.QApplication.mouseButtons() == QtCore.Qt.LeftButton or \
             QtWidgets.QApplication.mouseButtons() == QtCore.Qt.RightButton
 
         # Position
-        center = toPyObject(index.data(QtCore.Qt.SizeHintRole)).height() / 2
+        sizeHint = index.data(QtCore.Qt.SizeHintRole) or  QtCore.QSize(250, ITEM_HEIGHT)
+        # if not idata:
+        #     return
+
+        center = toPyObject(sizeHint).height() / 2
         start = self.ACTION_BORDER
 
         self.drawToolbarFrame(painter, rect, len([a for a in actions if a[0]]))
@@ -634,10 +657,17 @@ class BaseItem(object):
         """Called after the instance has been created."""
         self.name = name
         self.childItems = []
+        self.expanded = False
         if index >= 0:
             self.setParent(parentItem, index)
         else:
             self.setParent(parentItem)
+
+    def getExpanded(self):
+        return self.expanded
+
+    def setExpanded(self, expanded):
+        self.expanded = expanded
 
     def getName(self):
         """The label of the item."""
@@ -654,6 +684,9 @@ class BaseItem(object):
         self.childItems.insert(rowNumber, child)
 
     def removeChild(self, child):
+        if not child:
+            return
+
         for child_ in child.childItems:
             child.removeChild(child_)
         child.parentItem = None

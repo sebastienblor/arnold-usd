@@ -16,7 +16,7 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
                             NODE_TYPES, PARAM_TYPE, PARAM, OP, VALUE, INDEX, OPERATOR, ENABLED,\
                             DATA_PARAM_TYPE, DATA_DEFAULT_VALUE, DATA_IS_ARRAY, DATA_ENUM_VALUES,\
-                            DISP_MAP, SHADER
+                            DISP_MAP, SHADER, PROCEDURAL_NODES
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
 
@@ -383,34 +383,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def addOverrideMenu(self):
 
-        if not self.overrideMenu.isEmpty():
-            self.overrideMenu.clear()
-            for menu in self.rootMenus:
-                menu.deleteLater()
-            self.rootMenus = []
-
-        nodeEntry = self.object[PROC_ENTRY]
-        nodeEntryType = self.object[PROC_ENTRY_TYPE]
-
-        isShape = (nodeEntryType == 'shape')
-        isGroup = (nodeEntry == None or nodeEntry == '' or nodeEntry == 'xform')
-
-        if isShape or isGroup:
-            self.overrideMenu.addAction("shader")
-            self.overrideMenu.addAction("displacement")
-            self.overrideMenu.addSeparator()
-        
-        for node_type, params in sorted(self.paramDict.items()):
-            if node_type == 'hidden':
-                continue
-
-            showMenu = isGroup or (node_type == self.object[PROC_ENTRY])
-            if isShape and node_type == 'common':
-                showMenu = True
-
-            if not showMenu:
-                continue
-
+        def _addMenus(node_type, params):
             parent_menu = self.overrideMenu
             for sub_menu in self.rootMenus:
                 if sub_menu.title() == node_type:
@@ -423,6 +396,43 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 self.rootMenus.append(parent_menu)
                 if parent_menu:
                     parent_menu.addAction(param)
+
+        if not self.overrideMenu.isEmpty():
+            self.overrideMenu.clear()
+            for menu in self.rootMenus:
+                menu.deleteLater()
+            self.rootMenus = []
+
+        nodeEntry = self.object[PROC_ENTRY]
+        nodeEntryType = self.object[PROC_ENTRY_TYPE]
+
+        isShape = (nodeEntryType == 'shape')
+        group_nodes = [None, '', 'xform'] + PROCEDURAL_NODES
+        isGroup = (nodeEntry in group_nodes)
+
+        if isShape or isGroup:
+            self.overrideMenu.addAction("shader")
+            self.overrideMenu.addAction("displacement")
+            self.overrideMenu.addSeparator()
+
+        common = None
+
+        for node_type, params in sorted(self.paramDict.items()):
+            if node_type == 'hidden':
+                continue
+
+            showMenu = isGroup or (node_type == self.object[PROC_ENTRY])
+            if isShape and node_type == 'common':
+                common = params
+                showMenu = False
+
+            if not showMenu:
+                continue
+
+            _addMenus(node_type, params)
+
+        if isShape and common:
+            _addMenus("common", common)
 
         self.overrideMenu.addAction("custom")
 
@@ -465,9 +475,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             itemchanged = True
         return itemchanged
 
-    def setNode(self, node):
+    def setNode(self, node, force=False):
         changed = False
-        if self.node != node and node and cmds.objExists(node):
+        if self.node != node and node and cmds.objExists(node) or force:
             self.node = node
             changed = True
         self.populateOperatorsList()
@@ -601,11 +611,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             return
 
         nodeEntry = data[PROC_ENTRY]
-        isGroup = (nodeEntry == None or nodeEntry == '' or nodeEntry == 'xform')
+        group_nodes = [None, '', 'xform'] + PROCEDURAL_NODES
+        isGroup = (nodeEntry in group_nodes)
         # For groups, let's append the default node types (for alembic shapes)
-        if isGroup: 
-            self.paramDict = self.transverser.getParams(NODE_TYPES)
-        else: 
+        if isGroup:
+            self.paramDict = self.transverser.getParams([nodeEntry] + NODE_TYPES)
+        else:
             # for specific node types, let's just use this node type attributes
             self.paramDict = self.transverser.getParams([data[PROC_ENTRY]])
 

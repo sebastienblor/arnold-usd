@@ -2310,7 +2310,7 @@ def createArnoldRendererCommonGlobalsTab():
 
     cmds.setParent(parentForm)
 
-    cmds.scrollLayout('scrollLayout',horizontalScrollBarThickness=0)
+    cmds.scrollLayout('scrollLayout',horizontalScrollBarThickness=0, childResizable = True)
 
     commonTabColumn = cmds.columnLayout('commonTabColumn', adjustableColumn=True)
 

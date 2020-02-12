@@ -1,36 +1,57 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0221\test_0221.log', using stdout instead
+==== Setting Path ===== 
+ 
+ {'ARNOLD_TESTSUITE_COMMON': '/Users/chunank/dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/Applications/Autodesk/Arnold/mtoa/2019', 'ADCLMHUB_LOG_DIR': '/Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac', 'PATHOSX': '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': '/Applications/Autodesk/Arnold/mtoa/2019', 'PATH': '/Applications/Autodesk/Arnold/mtoa/2019/bin;/Applications/Autodesk/maya2019/Maya.app/Contents/bin;/Applications/Autodesk/Arnold/mtoa/2019/lib;/Applications/Autodesk/Arnold/mtoa/2019/plug-ins;/opt/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:.'}
+ 
+ ==== Exec cmd ==== 
+ 
+/Applications/Autodesk/maya2019/Maya.app/Contents/bin/Render -proj "/Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac" -rd "/Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac" -r arnold -x 160 -y 120  "/Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac/test.ma"
+ 
+ /Applications/Autodesk/maya2019/Maya.app/Contents/MacOS /Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac
 
-Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Starting "/Applications/Autodesk/maya2019/Maya.app/Contents/MacOS/maya"
+This plugin does not support createPlatformOpenGLContext!
 Initialized VP2.0 renderer {
-  Version : 2016.3.78.11. Feature Level 5.
-  Adapter : Quadro K620/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:10.18.13.5413.
-  API : OpenGL V.4.5.
+  Version : 2016.11.44.12. Feature Level 5.
+  Adapter : AMD Radeon Pro 450 OpenGL Engine
+  Vendor ID: 4098. Device ID : 0x67EF
+  Driver : 4.1 ATI-1.68.21.
+  API : OpenGL V.4.1.
   Max texture size : 16384 * 16384.
   Max tex coords : 32
   Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
   Shader compiler profile : (Best card profile)
   Active stereo support available : 0
   GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
+  CPU Memory Limit: 15564.8 MB.
 }
 OpenCL evaluator is attempting to initialize OpenCL.
 Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
- Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
-OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
-OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   492MB WARNING |  node "MayaClamp" is already installed
-00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   492MB WARNING |  node "MayaCondition" is already installed
-00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
+ 0: Apple. Apple. OpenCL 1.2 (May 24 2018 22:33:53).
+ Supported extensions: cl_APPLE_SetMemObjectDestructor cl_APPLE_ContextLoggingFunctions cl_APPLE_clut cl_APPLE_query_kernel_names cl_APPLE_gl_sharing cl_khr_gl_event 
+OpenCL evaluator choosing OpenCL platform Apple.
+Choosing OpenCL Device AMD Radeon Pro 450 Compute Engine.  Device Type: GPU  Device is available.
 
-Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.8 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0221/test.ma
-Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0221\test.ma completed.
+objc[30815]: Class ADPSDKPathClass_AdpSDKWrapper is implemented in both /Applications/Autodesk/maya2019/Maya.app/Contents/MacOS/libAdpSDKWrapper.dylib (0x11288a618) and /Applications/Autodesk/Arnold/mtoa/2019/bin/./libAdpSDKWrapper-arnold.dylib (0x14130c720). One of the two will be used. Which one is undefined.
+objc[30815]: Class ADPSDKPathClass_AdpSDKCore is implemented in both /Applications/Autodesk/maya2019/Maya.app/Contents/Frameworks/AdpSDKCore.bundle/Contents/MacOS/AdpSDKCore (0x12833b8c0) and /Applications/Autodesk/Arnold/mtoa/2019/bin/./AdpSDKCore.bundle/Contents/MacOS/AdpSDKCore (0x141f70378). One of the two will be used. Which one is undefined.
+objc[30815]: Class ADPSDK_NotificationSystem_AdpSDKCore is implemented in both /Applications/Autodesk/maya2019/Maya.app/Contents/Frameworks/AdpSDKCore.bundle/Contents/MacOS/AdpSDKCore (0x12833b8e8) and /Applications/Autodesk/Arnold/mtoa/2019/bin/./AdpSDKCore.bundle/Contents/MacOS/AdpSDKCore (0x141f703a0). One of the two will be used. Which one is undefined.
+###############################################################################
+Begin attempted read of a shade fragment XML file.
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+Errors loading XML:
+-------------------------------------------------------------------------------
+Could not find file: aiRectangleAreaLight.xml
+-------------------------------------------------------------------------------
+End attempted read of fragment XML.
+###############################################################################
+00:00:00   417MB ERROR   | [mtoa.attr] Arnold parameter "persp_camera.radial_distortion_type" does not exist.
+00:00:00   417MB ERROR   | [mtoa.attr] Arnold parameter "persp_camera.radial_distortion_type" does not exist.
+00:00:00   418MB ERROR   | [mtoa.attr] Arnold parameter "persp_camera.radial_distortion_type" does not exist.
+00:00:00   418MB ERROR   | [mtoa.attr] Arnold parameter "persp_camera.radial_distortion_type" does not exist.
+File read in  0.094 seconds.
+Result: /Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac/test.ma
+00:00:00   530MB WARNING | /persp/perspShape: could not set VECTOR2 parameter "lens_tilt_angle"
+00:00:00   530MB WARNING | /persp/perspShape: could not set VECTOR2 parameter "lens_shift"
+00:00:00   530MB WARNING | [mtoa.translator]  perspective: Maya node perspShape(camera) does not have attribute aiRadialDistortionType to match parameter radial_distortion_type on Arnold node /persp/perspShape(persp_camera).
+00:00:10   536MB WARNING | rendering with watermarks because of failed authorization:
+Scene /Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac/test.ma completed.
+/Users/chunank/dev/mtoa/build/darwin_x86_64/20190200/gcc_opt/testsuite/test_0221_mac

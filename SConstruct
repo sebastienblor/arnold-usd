@@ -171,14 +171,14 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2020', False),
+    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
 if system.os == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.9', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11', '10.12','10.13', '10.14')))
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.11', allowed_values=('10.11', '10.12','10.13', '10.14')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
 if system.os == 'windows':
@@ -312,7 +312,7 @@ else:
 if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
-    maya_version = '202000'
+    maya_version = '202100'
     env.Append(CPPDEFINES = Split('MAYA_MAINLINE')) 
 
 maya_version_base = maya_version[0:4]
@@ -465,7 +465,10 @@ if env['COMPILER'] == 'gcc':
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
     env.Append(CXXFLAGS = Split('-std=c++11'))
-    env.Append(CCFLAGS = Split('-std=c++11'))
+    if system.os == 'darwin':
+        env.Append(CXXFLAGS = Split('-stdlib=libc++'))
+        env.Append(LINKFLAGS = Split('-stdlib=libc++'))
+    
         
     ## warning level
     if env['WARN_LEVEL'] == 'none':
@@ -492,12 +495,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        if False: #int(maya_version_base) >= 2020:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.13'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.13'))
-        else:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.11'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.11'))
 
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
@@ -822,12 +821,7 @@ else:
 
 
 # Install the licensing tools
-rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os)
-nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os)
 clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'clm', system.os)
-
-env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
-env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
 
 if (system.os == 'linux'):
     env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
@@ -851,17 +845,12 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 # if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
 #     env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
-OCIO_DYLIBPATH =""
-
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-#    arv_lib = maya_version_base
-    arv_lib = "2017"
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', arv_lib, RENDERVIEW_DYLIB)
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
-# Temporarily installing the license manager
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -1078,6 +1067,7 @@ for ext in os.listdir(ext_base_dir):
             (ext == 'lookdevkit') or
             (ext == 'renderSetup') or 
             (ext == 'synColor') or
+            (ext == 'usdProxyShape') or
             (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache') or
             (env['ENABLE_BIFROST_GRAPH'] == 1 and ext == 'bifrostGraph')):
         continue
@@ -1199,6 +1189,7 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, '*.png'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.pit'), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*.txt'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslc%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
@@ -1270,12 +1261,10 @@ for syncolor_file in syncolor_files:
 
 PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
+PACKAGE_FILES.append([os.path.join(ARNOLD, '*.txt'), 'bin'])
+
 # package the licensing tools
-rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os)
-nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os)
 clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os)
-PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
-PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 if (system.os == 'linux'):
     PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
 else:
@@ -1292,7 +1281,6 @@ for p in license_files:
     PACKAGE_FILES += [
         [os.path.join(ARNOLD, 'license', p), os.path.join('license', d)]
     ]
-
 
 vp2shaders = GetViewportShaders(maya_version)
 installedVp2Shaders = []
@@ -1317,6 +1305,7 @@ PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPh
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShader_shaders%s' % get_library_extension()), 'shaders'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
+PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdProxyShape', 'usdProxyShapeTranslator%s' % get_library_extension()), 'extensions'])
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
@@ -1395,9 +1384,6 @@ elif system.os == 'darwin':
 
 if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
-    if OCIO_DYLIBPATH != "":
-        PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
-
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
@@ -1417,10 +1403,11 @@ def create_installer(target, source, env):
     import shutil
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+    shutil.copyfile(os.path.join(ARNOLD, 'EULA.txt'), os.path.join(tempdir, 'EULA.txt'))
 
     if system.os == "windows":
         import zipfile
-        shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
+        shutil.copyfile(os.path.abspath('installer/arnold.ico'), os.path.join(tempdir, 'arnold.ico'))
         shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
