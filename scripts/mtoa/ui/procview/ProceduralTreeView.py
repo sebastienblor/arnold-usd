@@ -5,6 +5,7 @@
 import os
 import weakref
 import maya.cmds as cmds
+import mtoa.utils as mu
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
@@ -257,7 +258,7 @@ class ProceduralTreeViewDelegate(BaseDelegate):
 class ProceduralItem(BaseItem):
     # __metaclass__ = LogMethodCalls
 
-    ALEMBIC_ICON = QtGui.QPixmap(os.path.join(cmds.getModulePath(moduleName='mtoa'), 'icons', "alembic.png"))
+    ALEMBIC_ICON = QtGui.QPixmap(os.path.join(mu.rootdir(), 'icons', "alembic.png"))
     GROUP_ICON = QtGui.QPixmap(":/out_transform.png")
     MESH_ICON = QtGui.QPixmap(":/out_mesh.png")
     POINTS_ICON = QtGui.QPixmap(":/out_particle.png")
