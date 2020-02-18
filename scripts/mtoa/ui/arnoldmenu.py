@@ -16,6 +16,7 @@ import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
 from maya.api import OpenMaya
+import urllib2
 
 
 from uuid import getnode as get_mac
@@ -132,6 +133,16 @@ def arnoldAboutDialog():
     
     pluginPath = os.path.dirname(os.path.dirname(cmds.pluginInfo( 'mtoa', query=True, path=True)))
     pluginPath = os.path.join(pluginPath,"scripts","mtoa","ui","AboutArnold.txt")
+    currentVersionNumber = cmds.pluginInfo( 'mtoa', query=True, v=True)
+    latestVersionNumber = None
+    data = None
+
+    try:
+        request = urllib2.Request('https://version.solidangle.com/maya', data)
+        response = urllib2.urlopen(request, timeout=4)
+        latestVersionNumber = response.read()
+    except:
+        pass
 
     with open(pluginPath, "r") as fileHandle:
         legaltext = fileHandle.read()
@@ -143,8 +154,9 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
-    arnoldAboutText += u"\nDeveloped by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez, Pál Mezei,\nMichael Farnsworth, Adam Felt, Bernard Kwok, Niklas Harrysson,\nJonathan Feldstein, Cynthia Beauchemin, Patrick Hodoul,\nSebastien Blaineau-Ortega, Ashley Handscomb Retallack, \nKrishnan Ramachandran\n\n"
-    arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant, Ryan Harvey, \nYvonne Yeung, Michael Wile, Nicholas Verschelde,\nStephen Blair, Nikola Milosevic, Orn Gunnarsson"
+    
+    arnoldAcknowledgements = u"\nDeveloped by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez, Pál Mezei,\nMichael Farnsworth, Adam Felt, Bernard Kwok, Niklas Harrysson,\nJonathan Feldstein, Cynthia Beauchemin, Patrick Hodoul,\nSebastien Blaineau-Ortega, Ashley Handscomb Retallack, \nKrishnan Ramachandran\n\n"
+    arnoldAcknowledgements += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant, Ryan Harvey, \nYvonne Yeung, Michael Wile, Nicholas Verschelde,\nStephen Blair, Nikola Milosevic, Orn Gunnarsson"
 
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
@@ -160,7 +172,27 @@ def arnoldAboutDialog():
     cmds.text(align="left",label=arnoldAboutText)
 
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
-    
+
+  
+    if (latestVersionNumber > currentVersionNumber and latestVersionNumber):
+        newVersionText = "New Mtoa Version " + latestVersionNumber + " is now available"
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(align="left",label=newVersionText, font = "boldLabelFont", ebg = True, bgc = (0,1,0) )
+
+        cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.button(label=' Get Latest ', c=lambda *args: cmds.launch(webPage= 'https://www.arnoldrenderer.com/arnold/download/'))
+     
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(align="left",label=arnoldAcknowledgements)
+
     cmds.text(label="");cmds.text(label="");cmds.text(label="");
     
     cmds.scrollField(editable=False, wordWrap=True, font="plainLabelFont", height=200, text=legaltext)
@@ -501,7 +533,7 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5ARP/Arnoldpedia'))
         
         cmds.menuItem('MtoAReleaseNotes', label='Release Notes', parent='ArnoldHelpMenu',
-        c=lambda *args: cmds.launch(webPage= 'https://docs.arnoldrenderer.com/display/A5AFMUG' + str(cmds.pluginInfo( 'mtoa', query=True, version=True))))
+        c=lambda *args: cmds.launch(webPage= 'https://docs.arnoldrenderer.com/display/A5AFMUG/' + str(cmds.pluginInfo( 'mtoa', query=True, version=True))))
                     
         cmds.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())
