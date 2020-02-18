@@ -502,8 +502,9 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
             self.conButton.clicked.disconnect()
             self.conButton.clicked.connect(self.selectNode)
             # make a callback for if the connected node is renamed
-            node_type = cmds.objectType(node)
-            callbacks.addNameChangedCallback(callbacks.CallbackWithArgs(self.renameNode), node_type, applyToExisting=True)
+            if cmds.objExists(node):
+                node_type = cmds.objectType(node)
+                callbacks.addNameChangedCallback(callbacks.CallbackWithArgs(self.renameNode), node_type, applyToExisting=True)
 
         if node == '':
             self.disconnectNode(emit)
@@ -785,6 +786,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         value_type = type(value)
         if value is None:
             value_type = str
+        self.controlWidget.setValue(value)
         self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
                                    param,
                                    self.getOperation(),

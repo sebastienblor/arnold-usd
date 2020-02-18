@@ -36,6 +36,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    IsMasterInstance();
    m_isAlembic = false;
    m_isAss = false;
+   m_isUsd = false;
 
    MString dso = FindMayaPlug("dso").asString();
    if (dso.length() == 0)
@@ -55,12 +56,8 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 
       if (ext == "usd" || ext == "usda" || ext == "usdc")
       {
-         if (AiNodeEntryLookUp("usd"))
-         {
-            // oh amazing, there's a usd node available ! let's use it
-            return AddArnoldNode("usd");  
-         }
-         AiMsgError("[mtoa.standin] USD files not supported : %s", GetMayaNodeName().asChar());         
+         m_isUsd = true;
+         return AddArnoldNode("usd");  
       }
    }
 
@@ -201,6 +198,14 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
 
    if ( m_isAlembic )
       AiNodeSetFlt(node, "frame", framestep);
+
+   if (m_isUsd) 
+   {
+      MString objectpath = m_DagNode.findPlug("objectPath", true).asString();
+      // note that the attribute name is slightly different than in the alembic procedural
+      AiNodeSetStr(node, "object_path", objectpath.asChar());
+      AiNodeSetFlt(node, "frame", framestep);
+   }
 }
 
 void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
