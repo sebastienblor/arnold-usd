@@ -9,6 +9,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import maya.OpenMaya as om
 import os
+from mtoa.utils import string_types
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -343,7 +344,7 @@ def registerDefaultTranslator(nodeType, default):
                                    applyToExisting=False, apiArgs=True)
 
 def getDefaultTranslator(obj):
-    if isinstance(obj, str):
+    if isinstance(obj, string_types):
         selList = om.MSelectionList()
         selList.add(obj)
         obj = om.MObject()

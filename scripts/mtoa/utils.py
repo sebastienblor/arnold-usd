@@ -22,6 +22,10 @@ from .ui.qt.Qt import *
 from maya import OpenMayaUI as omui 
 import time
 
+try:
+    string_types = basestring
+except NameError:
+    string_types = str
 
 from .hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
 
@@ -272,7 +276,7 @@ def expandFileTokens(path, tokens, leaveUnmatchedTokens=False):
         >>> expandFileTokens('filename[_<RenderPass>].jpg', {})
         'filename.jpg'
     """
-    if isinstance(tokens, str):
+    if isinstance(tokens, string_types):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
     grp_reg = re.compile('\[([^\]]+)\]')
@@ -351,7 +355,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
     """
     # convert tokens to dictionary
-    if isinstance(tokens, str):
+    if isinstance(tokens, string_types):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
     kwargs.update(dict(frame=frame,

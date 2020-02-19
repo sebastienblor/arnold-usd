@@ -4,11 +4,13 @@ import mtoa.melUtils as melUtils
 import mtoa.callbacks as callbacks
 from collections import namedtuple
 from itertools import groupby
+from mtoa.utils import string_types
 import re
 import arnold.ai_params
 import maya.api.OpenMaya as om
 import maya.mel as mel
 import maya.cmds as cmds
+
 
 BUILTIN_AOVS = (
                 ('P',                   'vector'),
@@ -209,13 +211,13 @@ class SceneAOV(object):
         return '%s(%r, %d)' % (self.__class__.__name__, self.node, self.index)
 
     def __eq__(self, other):
-        if isinstance(other, str):
+        if isinstance(other, string_types):
             return self.name == other
         else:
             return self.name == other.name
 
     def __lt__(self, other):
-        if isinstance(other, str):
+        if isinstance(other, string_types):
             if other == "beauty":
                 return False
             if self.name == "beauty":
@@ -231,7 +233,7 @@ class SceneAOV(object):
                 return self.name < other.name
 
     def __gt__(self, other):
-        if isinstance(other, str):
+        if isinstance(other, string_types):
             if self.name == "beauty":
                 return False
             if other == "beauty":
@@ -452,7 +454,7 @@ class AOVInterface(object):
         raises an error if there is more than one match
         returns True if the node was found and removed, False otherwise
         '''
-        if isinstance(aov, str):
+        if isinstance(aov, basestring):
             matches = self.getAOVs(include=[aov])
             if not matches:
                 return False

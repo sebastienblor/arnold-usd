@@ -8,7 +8,7 @@ from __future__ import print_function
 
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
-from mtoa.utils import prettify, toMayaStyle, getMayaAPIVersion
+from mtoa.utils import prettify, toMayaStyle, getMayaAPIVersion, string_types
 import mtoa.core as core
 import maya.cmds as cmds
 import maya.mel
@@ -117,7 +117,7 @@ class BaseTemplate(object):
 
 def modeAttrMethod(func):
     def wrapped(self, attr, *args, **kwargs):
-        assert isinstance(attr, str), "%r.%s: attr argument must be a string, got %s" % (self, func.__name__, type(attr).__name__)
+        assert isinstance(attr, string_types), "%r.%s: attr argument must be a string, got %s" % (self, func.__name__, type(attr).__name__)
         modefunc = getattr(self._mode, func.__name__)
         if self.convertToMayaStyle:
             attr = toMayaStyle(attr)
