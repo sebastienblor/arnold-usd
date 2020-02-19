@@ -515,6 +515,9 @@ elif env['COMPILER'] == 'msvc':
 
     if export_symbols:
         MSVC_FLAGS += " /Z7"  # generates complete debug information
+    else:
+        MSVC_FLAGS += " /Zi"
+        MSVC_FLAGS += " /FS"
 
     LINK_FLAGS  = " /MANIFEST"
 
