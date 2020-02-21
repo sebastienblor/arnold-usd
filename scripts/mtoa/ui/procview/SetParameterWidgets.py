@@ -163,7 +163,7 @@ class SetParametersPanel(QtWidgets.QFrame):
 
     def addOverrideGUI(self, param_type, param, op, value, index, operator, enabled):
 
-        new_widget = MtoAOperatorOverrideWidget(param_type, param, op, value, self.paramDict, self, enabled, True)
+        new_widget = MtoAOperatorOverrideWidget(param_type, param, op, value, self.paramDict, self.overridesPanel, enabled, True)
 
         new_widget.index = index
         new_widget.operator = operator
