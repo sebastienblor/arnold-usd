@@ -95,6 +95,10 @@ def clearWidget(widget):
     """clear children from given widget"""
     item = widget.layout().takeAt(0)
     while item:
+        if isinstance(item, QtWidgets.QWidgetItem):
+            item.widget().close()
+        elif isinstance(item, QtWidgets.QSpacerItem):
+            widget.layout().removeItem(item)
         del item
         item = widget.layout().takeAt(0)
 
