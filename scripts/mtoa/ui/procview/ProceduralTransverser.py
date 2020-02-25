@@ -55,6 +55,8 @@ PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
 DISP_MAP = 'disp_map'
 SHADER = 'shader'
 
+FILE_CACHE = {}
+
 def ArnoldUniverseOnlyBegin():
     if not AiUniverseIsActive():
         AiBegin()
