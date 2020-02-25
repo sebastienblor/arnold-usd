@@ -517,7 +517,7 @@ class ProceduralItem(BaseItem):
             rootData = self.transverser.getRootObjectInfo(self.node)
             if rootData:
                 item = ProceduralItem(self, self.transverser, self.node, data=rootData)
-                item.obtainChildren(delayUpdate)
+                # item.obtainChildren(delayUpdate)
         elif delayUpdate:
             # delay the update by creating a tempory node that will be deleted on the expand
             ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL", 0])
