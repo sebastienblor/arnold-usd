@@ -718,19 +718,21 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          status = ExportLights(selected);
          status = ExportDag(selected);
 
-         // Eventually export selected shaders #3991
-         MStringArray shaders;
-         MGlobal::executeCommand("ls -sl -mat", shaders); // get selected shaders
-         for (unsigned int shd = 0; shd < shaders.length(); ++shd)
+         // Ensure that any node that is selected is properly exported.
+         // Dag nodes were already treated above, so we only consider non-dag nodes below
+         MItSelectionList it(*selected, MFn::kInvalid, &status);
+         MDagPath selectedPath;
+         MObject selectedNode;
+         for (it.reset(); !it.isDone(); it.next())
          {
-            MSelectionList shdElem;
-            shdElem.add(shaders[shd]);
-            MObject depNode;
-            shdElem.getDependNode(0, depNode);
-            MPlug shaderPlug = (!depNode.isNull()) ? MFnDependencyNode(depNode).findPlug("message", true) : MPlug();
-            if (!shaderPlug.isNull())
-               ExportNode(shaderPlug);
+            if (it.getDagPath(selectedPath) == MStatus::kSuccess)
+               continue; // dag node, no need to consider it
             
+            if (it.getDependNode (selectedNode) != MStatus::kSuccess)
+               continue;
+            MPlug nodePlug = (!selectedNode.isNull()) ? MFnDependencyNode(selectedNode).findPlug("message", true) : MPlug();
+            if (!nodePlug.isNull())
+               ExportNode(nodePlug);            
          }
       }
       else
@@ -1467,8 +1469,9 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected, bool skipRoot
          }
          else
          {
-            // TODO: if it's a node we don't support / export should we set status to failure
-            // or just raise a warning?
+            // Keep all the DependencyNodes (shaders, etc...) in the selected list
+            // because we want to ensure that they're exported #4148
+            selected->add(node);
          }
       }
       else
