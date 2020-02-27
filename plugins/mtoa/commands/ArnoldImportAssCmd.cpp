@@ -221,7 +221,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       AiASSLoad(universe, filename.asChar(), mask);   
    }
 
-   CShaderLinkSanitizer sanitizer(universe, "importAxf_");
+   CShaderLinkSanitizer sanitizer(universe, "importArnold_");
    sanitizer.SanitizeOutputComponents();
 
    MString logStr("Importing file ");
