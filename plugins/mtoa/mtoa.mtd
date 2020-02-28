@@ -1405,7 +1405,7 @@
     
 [node ray_switch_rgba]
     maya.hide               BOOL    true
-    maya.id                 INT     0x00115D84
+    maya.name               STRING  "aiRaySwitch"
     
 
 [node ambient_occlusion]
@@ -1532,10 +1532,13 @@
 
 
 [node lambert]
-    maya.hide               BOOL    true
-    maya.id                 INT     0x00115D86
-
-
+    maya.name               STRING "aiLambert"
+    maya.classification     STRING "shader/surface"
+    maya.id                 INT     0x00115DB0
+    [attr Kd]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    
 [node noise]
     desc                    STRING  "2D procedural noise"
     maya.name               STRING  "aiNoise"
@@ -2238,7 +2241,31 @@
         softmax             FLOAT   2
 
 [node checkerboard]
-    maya.hide               BOOL    true
+    maya.name               STRING "aiCheckerboard"
+    maya.classification     STRING "texture"
+    maya.id                 INT     0x00115DB1
+    [attr u_frequency]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr v_frequency]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr u_offset]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr v_offset]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr contrast]
+        min                 FLOAT   0
+        max                 FLOAT   1
+    [attr filter_strength]
+        min                 FLOAT   0
+        softmax             FLOAT   10
+    [attr filter_offset]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+
 
 [node clamp]
     maya.id                 INT     0x00115D5E
@@ -2462,9 +2489,65 @@ desc STRING "Multiplies the curvature by this factor."
         softmax             FLOAT   10.0
     
 [node float_to_matrix]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115DB2
+    maya.name               STRING  "aiFloatToMatrix"
+    maya.classification     STRING  "utility/conversion"
+    maya.swatch             BOOL    false
+    [attr input00]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input01]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input02]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input03]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input10]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input11]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input12]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input13]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input20]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input21]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input22]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input23]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input30]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input31]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input32]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+    [attr input33]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   10.0
+
+
+    
 [node float_to_rgb]
     maya.hide               BOOL    true
+    maya.name               STRING  "aiFloatToRgba"
+
 [node float_to_rgba]
     maya.id                 INT     0x00115D9E
     maya.name               STRING  "aiFloatToRgba"
@@ -2528,6 +2611,11 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node mix_rgba]
     maya.hide               BOOL    true
+    maya.name               STRING  "aiMixShader"
+    [attr input1]
+        maya.name           STRING  "shader1"
+    [attr input2]
+        maya.name           STRING  "shader2"
 
 [node modulo]
     maya.id                 INT     0x00115D6E
@@ -2668,8 +2756,12 @@ desc STRING "Multiplies the curvature by this factor."
     
 
 [node rgb_to_vector]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115DB4
+    maya.name               STRING  "aiRgbToVector"
+    maya.classification     STRING  "utility/conversion"
+    maya.swatch             BOOL    true
 
+    
 [node rgba_to_float]
     maya.id                 INT     0x00115DA8
     maya.name               STRING  "aiRgbaToFloat"
@@ -2766,6 +2858,7 @@ maya.swatch             BOOL    false
 
 [node switch_rgba]
     maya.hide               BOOL   true
+    maya.name               STRING "aiSwitch"
 
 [node switch_shader]
     maya.id                 INT     0x00115D7B
@@ -2889,6 +2982,8 @@ c4d.step FLOAT 0.01
 
 [node user_data_rgb]
     maya.hide               BOOL    true
+    maya.name               STRING  "aiUserDataColor"
+    
 
 [node user_data_string]
     maya.id                 INT      0x00115D15
@@ -2911,8 +3006,12 @@ c4d.step FLOAT 0.01
 
 
 [node vector_to_rgb]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115DB3
+    maya.name               STRING  "aiVectorToRgb"
+    maya.classification     STRING  "utility/conversion"
+    maya.swatch             BOOL    true
 
+    
 [node volume_collector]
     maya.id                 INT     0x00115D1F
     maya.name               STRING  "aiVolumeCollector"
