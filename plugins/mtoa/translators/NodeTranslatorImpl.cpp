@@ -404,8 +404,10 @@ void CNodeTranslatorImpl::RemoveUpdateCallbacks()
 {
    if (m_mayaCallbackIDs.length() == 0) return;
    
-   const MStatus status = MNodeMessage::removeCallbacks(m_mayaCallbackIDs);
-   if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
+   MNodeMessage::removeCallbacks(m_mayaCallbackIDs);
+   // Always clear the callbacks list, otherwise the new callbacks
+   // won't be restored in the next IPR update (#4110).
+   m_mayaCallbackIDs.clear();
 }
 
 void CNodeTranslatorImpl::Init(CArnoldSession* session, const CNodeAttrHandle& object)
