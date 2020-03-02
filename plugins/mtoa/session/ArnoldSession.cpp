@@ -2740,6 +2740,7 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
    ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
    if (it != m_processedTranslators.end())
    {
+      it->second->m_impl->RemoveUpdateCallbacks();
       it->second->RequestUpdate();
    }
  

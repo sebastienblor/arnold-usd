@@ -1,0 +1,100 @@
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\13', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\13', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20200000\\msvc_opt\\testsuite\\test_0379', 'ADCLMHUB_LOG_LEVEL': 'T', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'PATH': 'C:\\solidangle\\mtoadeploy\\2020\\bin;C:\\Program Files\\Autodesk\\Maya2020\\bin;C:\\solidangle\\mtoadeploy\\2020\\lib;C:\\solidangle\\mtoadeploy\\2020\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt', 'ProgramW6432': 'C:\\Program Files'}
+ 
+ ==== Exec cmd ==== 
+ 
+mayabatch -file D:\arnold\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0379\test.ma -script "D:\arnold\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0379\test.mel" -proj "D:\arnold\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0379"
+ 
+ Initialized VP2.0 renderer {
+
+  Version : 2016.11.53.12. Feature Level 5.
+
+  Adapter : Quadro K620/PCIe/SSE2
+
+  Vendor ID: 4318. Device ID : 5051
+
+  Driver : .
+
+  API : OpenGL V.4.6.
+
+  Max texture size : 16384 * 16384.
+
+  Max tex coords : 32
+
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+
+  Shader compiler profile : (Best card profile)
+
+  Active stereo support available : 0
+
+  GPU Memory Limit : 4095 MB.
+
+  CPU Memory Limit: 62183.6 MB.
+
+  MultiDraw consolidation: enabled
+
+}
+
+OpenCL evaluator is attempting to initialize OpenCL.
+
+Detected 1 OpenCL Platforms: 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.2.108.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics cl_kernel_attribute_nv 
+
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+
+###############################################################################
+
+Begin attempted read of a shade fragment XML file.
+
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+
+Errors loading XML:
+
+-------------------------------------------------------------------------------
+
+Could not find file: aiRectangleAreaLight.xml
+
+-------------------------------------------------------------------------------
+
+End attempted read of fragment XML.
+
+###############################################################################
+
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
+
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
+
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
+
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
+
+File read in  0.023 seconds.
+
+Result: D:/arnold/mtoa/build/windows_x86_64/20200000/msvc_opt/testsuite/test_0379/test.ma
+
+CRenderViewInterface::SetOption Camera /persp/perspShape
+
+CRenderViewInterface::SetOption Wait Render 1
+
+CRenderViewInterface::SetOption Wait Render 1
+
+CRenderViewInterface::SetOption Wait Render 1
+
+CRenderViewInterface::SetOption Save Image D:/arnold/mtoa/build/windows_x86_64/20200000/msvc_opt/testsuite/test_0379/testrender_1.tif
+
+CRenderViewInterface::SetOption Wait Render 1
+
+CRenderViewInterface::SetOption Save Image D:/arnold/mtoa/build/windows_x86_64/20200000/msvc_opt/testsuite/test_0379/testrender_2.tif
+
+Warning: file: D:\arnold\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0379\test.mel line 34: Object, 'group', skipped. It is already a child of the parent, 'world'.
+
+CRenderViewInterface::SetOption Wait Render 1
+
+CRenderViewInterface::SetOption Save Image D:/arnold/mtoa/build/windows_x86_64/20200000/msvc_opt/testsuite/test_0379/testrender_3.tif
+
