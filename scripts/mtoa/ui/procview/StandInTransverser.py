@@ -24,7 +24,8 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            PROC_NUM_CHILDREN, \
-                           OVERRIDE_OP, DISABLE_OP
+                           OVERRIDE_OP, DISABLE_OP, \
+                           FILE_CACHE
 
 from mtoa.callbacks import *
 
@@ -84,12 +85,17 @@ class StandInTransverser(ProceduralTransverser):
         return count
 
     def getRootObjectInfo(self, node):
+        global FILE_CACHE
         self.nodeName = node
         filename = self.getFileName(node)
-        numNodes = 0
-        if filename:
-            numNodes = self.getNumNodes(filename)
-        return ["/", "/", '', 'visible', '', 'procedural', None, 'shape', numNodes]
+        if filename not in FILE_CACHE.keys():
+            numNodes = 0
+            if filename:
+                numNodes = self.getNumNodes(filename)
+            FILE_CACHE[filename] = []
+            FILE_CACHE[filename].append({'children': [],
+                                         'data': ["/", "/", '', 'visible', '', 'procedural', None, 'shape', numNodes]})
+        return FILE_CACHE[filename][0]['data']
 
     def getFileName(self, node):
 
