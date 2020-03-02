@@ -16,7 +16,10 @@ import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
 from maya.api import OpenMaya
-import urllib2
+try:
+    import urllib2 as urllib
+except ModuleNotFoundError as e:
+    import urllib
 
 
 from uuid import getnode as get_mac
@@ -138,8 +141,8 @@ def arnoldAboutDialog():
     data = None
 
     try:
-        request = urllib2.Request('https://version.solidangle.com/maya', data)
-        response = urllib2.urlopen(request, timeout=4)
+        request = urllib.Request('https://version.solidangle.com/maya', data)
+        response = urllib.urlopen(request, timeout=4)
         latestVersionNumber = response.read()
     except:
         pass
