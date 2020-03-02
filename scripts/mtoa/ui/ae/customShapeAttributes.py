@@ -985,40 +985,47 @@ class VrCameraTemplate(CameraTemplate):
 templates.registerTranslatorUI(VrCameraTemplate, "camera", "vr_camera")
 
 def cameraOrthographicChanged(orthoPlug, *args):
-    "called to sync .aiTranslator when .orthographic changes"
+    # Bool attribute orthographic is being changed, we must eventually
+    # sync the translator attributeq
     if not core.arnoldIsCurrentRenderer(): return
     fnCam = om.MFnCamera(orthoPlug.node())
     transPlug = fnCam.findPlug('aiTranslator')
     if not transPlug.isNull():
         isOrtho = orthoPlug.asBool()
-        
         currTrans = transPlug.asString()
         newTrans = None
-        if isOrtho and currTrans != 'orthographic':
-            newTrans = 'orthographic'
-        elif not isOrtho and currTrans == 'orthographic':
-            newTrans = 'perspective'
+        if isOrtho:
+            # We're setting orthographic checkbox to True, but the 
+            # current translator is known to be perspective. Let's
+            # switch to orthographic translator
+            if currTrans == 'perspective' or currTrans == 'fisheye':
+                newTrans = 'orthographic'
+        else:
+            # We're disabling the orthographic checkbox, but the 
+            # current translator is still orthographic. Let's switch it 
+            # to perspective
+            if currTrans == 'orthographic':
+                newTrans = 'perspective'
         if newTrans:
             transPlug.setString(newTrans)
 
 def cameraTranslatorChanged(transPlug, *args):
-    "called to sync .orthographic when .aiTranslator changes"
+    # The translator attribute is being changed, we must eventually
+    # update the bool attribute "orthographic"
     if not core.arnoldIsCurrentRenderer(): return
     fnCam = om.MFnCamera(transPlug.node())
     currTrans = transPlug.asString()
     orthoPlug = fnCam.findPlug('orthographic')
     isOrtho = orthoPlug.asBool()
-    #print "cameraTranslatorChanged", fnCam.name(), currTrans, isOrtho
-    # when a file is opening, we need to choose one attribute to lead, because
-    # the order that attributes are set is unpredictable. This fixes a case
-    # where translators may have gotten out of sync
-    if om.MFileIO.isOpeningFile():
-        if isOrtho and currTrans != 'orthographic':
+    if currTrans == 'orthographic':
+        # We're setting the translator to orthographic,
+        # we need to enable the checkbox "orthographic"
+        if not isOrtho:
             orthoPlug.setBool(True)
-    else:
-        if not isOrtho and currTrans == 'orthographic':
-            orthoPlug.setBool(True)
-        elif isOrtho and currTrans != 'orthographic':
+    elif currTrans == 'perspective' or currTrans == 'fisheye':
+        # We're setting the translator to a perspective camera,
+        # we must ensure the checkbox "orthographic" is disabled
+        if isOrtho:
             orthoPlug.setBool(False)
 
 def getCameraDefault(obj):

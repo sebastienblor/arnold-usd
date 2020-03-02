@@ -1,0 +1,18 @@
+print "Running Export Selected shaders";
+
+select -r aiStandardSurface1;
+arnoldExportAss -f "exported_shaders.ass" -s -shadowLinks 0 -mask 16 -lightLinks 0 -fullPath -asciiAss-cam perspShape;
+
+select -r -adn;
+delete;
+
+polyCylinder -r 1 -h 2 -sx 20 -sy 1 -sz 1 -ax 0 1 0 -rcp 0 -cuv 3 -ch 1;
+defaultDirectionalLight(1, 1,1,1, "0", 0,0,0, 0);
+setAttr "directionalLightShape1.intensity" 5;
+shadingNode "aiSkyDomeLight" -name "skydome" -asLight;
+
+arnoldImportAss -f "./data/exported_shaders.ass" -mask 16;
+connectAttr -f aiStandardSurface1.outColor initialShadingGroup.surfaceShader;
+
+arnoldRenderView -mode "render_silent";
+arnoldRenderView -option "Save Image" "./testrender.tif";
