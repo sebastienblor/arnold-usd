@@ -1,0 +1,42 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+string $img = "";
+
+// Do a first render, then parent the area light to a group
+// then move the group plus the area light
+
+select -r aiAreaLight1 ;
+select -add group ;
+parent;
+
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+select -r group ;
+move -r 0 0 -1.619176 ;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+select -r aiAreaLight1 ;
+move -r 0 2.118337 0 ;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+select -r aiAreaLight1 ;
+select -add group ;
+parent -w;
+setAttr "aiAreaLight1.translateZ" 2;
+setAttr "group.translateY" 100000;
+
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
