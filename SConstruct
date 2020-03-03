@@ -515,6 +515,10 @@ elif env['COMPILER'] == 'msvc':
 
     if export_symbols:
         MSVC_FLAGS += " /Z7"  # generates complete debug information
+    else:
+        MSVC_FLAGS += " /Zi"  # Enable writing pdb files for OPT builds
+        MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+        MSVC_FLAGS += " /FdMtoA.pdb"
 
     LINK_FLAGS  = " /MANIFEST"
 
