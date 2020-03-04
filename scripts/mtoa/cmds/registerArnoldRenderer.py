@@ -3,10 +3,13 @@ import os
 import sys
 import inspect
 import mtoa.utils
-import arnoldShelf
+
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.melUtils as mu
+
+
+isBatch = cmds.about(batch=True)
 
 def mtoaPackageRoot():
     '''return the path to the mtoa python package directory'''
@@ -14,14 +17,16 @@ def mtoaPackageRoot():
 
 try:
     import mtoa.utils as utils
-    import mtoa.ui.exportass as exportass
-    import mtoa.ui.nodeTreeLister as nodeTreeLister
-    import mtoa.ui.globals.common
-    import mtoa.ui.qt as qt
-    from mtoa.ui.globals.settings import updateBackgroundSettings, updateAtmosphereSettings
-    import mtoa.ui.ae.utils as aeUtils
-    from mtoa.ui.arnoldmenu import createArnoldMenu
-    from mtoa.ui.ae.customShaderTemplates import appendToSSTemplate
+    if not isBatch:
+        import arnoldShelf
+        import mtoa.ui.exportass as exportass
+        import mtoa.ui.nodeTreeLister as nodeTreeLister
+        import mtoa.ui.globals.common
+        import mtoa.ui.qt as qt
+        from mtoa.ui.globals.settings import updateBackgroundSettings, updateAtmosphereSettings
+        import mtoa.ui.ae.utils as aeUtils
+        from mtoa.ui.arnoldmenu import createArnoldMenu
+        from mtoa.ui.ae.customShaderTemplates import appendToSSTemplate
     import mtoa.cmds.arnoldRender as arnoldRender
     from mtoa.cmds.rendererCallbacks import aiRenderSettingsBuiltCallback
 except:
@@ -274,8 +279,9 @@ def _register():
     cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
     cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
     cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')
-    utils.pyToMelProc(updateBackgroundSettings, useName=True)
-    utils.pyToMelProc(updateAtmosphereSettings, useName=True)
+    if not isBatch:
+        utils.pyToMelProc(updateBackgroundSettings, useName=True)
+        utils.pyToMelProc(updateAtmosphereSettings, useName=True)
     #We have to source this file otherwise maya will override
     #our mel proc overrides below.
     #
@@ -285,26 +291,29 @@ def _register():
         utils.pyToMelProc(addOneTabToGlobalsWindow,
                           [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
                           useName=True)
-    utils.pyToMelProc(renderSettingsTabLabel_melToUI,
+    if not isBatch:
+        utils.pyToMelProc(renderSettingsTabLabel_melToUI,
                       [('string', 'mel')],
                       useName=True)
-    utils.pyToMelProc(updateMayaImageFormatControl,
+        utils.pyToMelProc(updateMayaImageFormatControl,
                       useName=True)
 
 def registerArnoldRenderer():
+    print " Trying to Register Arnold"
     try:
         alreadyRegistered = cmds.renderer('arnold', exists=True)
         if not alreadyRegistered:
-
             cmds.evalDeferred(_register)
-
             # AE Templates
             # the following must occur even in batch mode because they contain calls to registerDefaultTranslator
-            cmds.evalDeferred(aeUtils.loadAETemplates)
+            if not isBatch:
+                cmds.evalDeferred(aeUtils.loadAETemplates)
+                import mtoa.ui.ae.customShapeAttributes
+                import mtoa.ui.ae.customShaderTemplates
+
             import rendererCallbacks
             rendererCallbacks.registerCallbacks()
-            import mtoa.ui.ae.customShapeAttributes
-            import mtoa.ui.ae.customShaderTemplates
+            
             if not cmds.about(batch=True):
                 # Reload the AE Window if it has already been opened
                 cmds.evalDeferred(aeUtils.rebuildAE)
@@ -320,7 +329,8 @@ def registerArnoldRenderer():
             #_overrideMelScripts()
 
             # Add option box for file translator
-            utils.pyToMelProc(exportass.arnoldAssOpts,
+            if not isBatch:
+                utils.pyToMelProc(exportass.arnoldAssOpts,
                               [('string', 'parent'), ('string', 'action'),
                                ('string', 'initialSettings'), ('string', 'resultCallback')],
                                useName=True)
