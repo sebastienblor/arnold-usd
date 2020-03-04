@@ -87,7 +87,7 @@ public:
    static CExtension* NewExtension(const MString &extensionFile);
    static MStatus RegisterExtensionAttribute(const MNodeClass &nodeClass, const MObject &attrib);
    static MStatus UnregisterExtensionAttributes(const MObject &plugin);
-
+   static const ArnoldNodeMetadataStore *FindNodeMetadatas(const std::string &nodeType, bool mayaType = false);
 protected:
    static MStatus DoUnloadExtension(CExtension* extension);   
    static MStatus DeleteExtension(CExtension* &extension);

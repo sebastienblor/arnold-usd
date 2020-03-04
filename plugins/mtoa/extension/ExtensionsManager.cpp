@@ -7,6 +7,11 @@
 #include <algorithm>
 #endif
 
+#include <string>
+#include <algorithm>
+#include <cctype>
+
+
 #include "ExtensionsManager.h"
 #include "ExtensionImpl.h"
 
@@ -50,8 +55,10 @@ MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
 OperatorsMap CExtensionsManager::s_operators;
 CustomShapesMap CExtensionsManager::s_customShapes;
 
-static unordered_set<std::string>  s_deferredExtensions;
 
+static ArnoldNodeMetadataMap s_nodeEntryMetadatas;
+
+static unordered_set<std::string>  s_deferredExtensions;
 static unordered_set<std::string>  s_mayaExtensionClasses;
 static unordered_set<std::string>  s_extensionAttributes;
 
@@ -154,6 +161,7 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
       MString filename = ArnoldGetEntryFile(nentry);
+      std::string nodeEntryName = AiNodeEntryGetName(nentry);
 
       // skip builtins and already registered
       if (filename.length() > 0 && !CExtension::IsArnoldPluginLoaded(filename))
@@ -161,6 +169,19 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
          MStatus pluginStatus;
          LoadArnoldPlugin(filename, path, &pluginStatus, true);
          if (MStatus::kSuccess != pluginStatus && MStatus::kNotFound != pluginStatus) status = pluginStatus;
+      }
+      if (s_nodeEntryMetadatas.find(nodeEntryName) == s_nodeEntryMetadatas.end()) {
+         // Need to store all the metadatas;
+         ArnoldNodeMetadataStore &metadataStore = s_nodeEntryMetadatas[nodeEntryName];
+         // For now we only store the node entry "global" metadatas (i.e. not the attribute-specific ones)
+         AtMetaDataIterator* metadataIter = AiNodeEntryGetMetaDataIterator(nentry);
+         while(!AiMetaDataIteratorFinished(metadataIter)) {
+            const AtMetaDataEntry* metadata = AiMetaDataIteratorGetNext(metadataIter);
+            if (!metadata)
+               continue;
+            metadataStore.push_back(*metadata); // copy the metadata entry;
+         }
+         AiMetaDataIteratorDestroy(metadataIter);
       }
    }
 
@@ -1405,6 +1426,47 @@ const CPxMayaNode* CExtensionsManager::FindRegisteredMayaNode(const CPxMayaNode 
       return NULL;
    }
 }
+
+
+const ArnoldNodeMetadataStore *CExtensionsManager::FindNodeMetadatas(const std::string &nodeType, bool mayaType)
+{
+   std::string arnoldType = nodeType;
+   
+   if (mayaType) 
+   {
+      // The input node type is referring to a maya node.
+      // Let's find first what is the corresponding arnold node
+      const CPxTranslator* translator = CExtensionsManager::FindRegisteredTranslator(CPxMayaNode(MString(nodeType.c_str())));
+      if (translator)
+         arnoldType = translator->arnold.asChar();
+      else
+      {
+         // For some reason we didn't find the translator, let's try with a node type
+         // generated automatically based on the maya one.
+         if (nodeType.length() > 2 && nodeType[0] == 'a' && nodeType[1] == 'i')
+         {
+            arnoldType.reserve(nodeType.length() * 2);
+            for (size_t i = 2; i < nodeType.length(); ++i)
+            {
+               if (i > 2 && std::isupper(nodeType[i]))
+                  arnoldType.push_back('_');
+               arnoldType.push_back(nodeType[i]);
+            }
+            MString arnoldTypeStr(arnoldType.c_str());
+            arnoldTypeStr.toLowerCase();
+            arnoldType = arnoldTypeStr.asChar();
+         }
+      }
+   }
+
+   ArnoldNodeMetadataMap::iterator it = s_nodeEntryMetadatas.find(arnoldType);
+   if (it == s_nodeEntryMetadatas.end())
+      return NULL;
+   
+   return &it->second;
+
+}
+
 
 /// Try to find a given translator proxy in all registered translators
 /// for the given Maya node.

@@ -29,3 +29,5 @@ typedef unordered_map<std::string, MString> DefaultTranslatorMap;
 typedef unordered_set<std::string> CustomShapesMap;
 typedef unordered_set<std::string> OperatorsMap;
 
+typedef std::vector<AtMetaDataEntry> ArnoldNodeMetadataStore;
+typedef unordered_map<std::string, ArnoldNodeMetadataStore> ArnoldNodeMetadataMap;

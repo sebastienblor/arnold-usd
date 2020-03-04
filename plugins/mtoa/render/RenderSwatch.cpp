@@ -560,7 +560,6 @@ bool CRenderSwatchGenerator::doIteration()
    if (CMayaScene::GetSessionMode() == MTOA_SESSION_BATCH )
       return true; // shouldn't even be here in batch
    
-
    MObject mayaNode = swatchNode();
    MObject arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
 
@@ -569,83 +568,45 @@ bool CRenderSwatchGenerator::doIteration()
       MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
       arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
    }
-
-   bool sceneSwatch = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
-   
-   bool universeExists = AiUniverseIsActive();
-   // If no universe already exists, we should start a session
-   if (!universeExists)
-      CMayaScene::Begin(MTOA_SESSION_SWATCH);
-
    MFnDependencyNode depNode(mayaNode);
    std::string nodeType = depNode.typeName().asChar();
-   MString arnoldType;
-   // In the most common case, we can easily get the name of the arnold node entry
-   // from the maya node type (e.g. aiStandardSurface -> standard_surface)
-   if (nodeType.length() > 2 && nodeType[0] == 'a' && nodeType[1] == 'i')
-   {
-      std::string arnoldTypeStr;
-      arnoldTypeStr.reserve(nodeType.length() * 2);
-      for (size_t i = 2; i < nodeType.length(); ++i)
-      {
-         if (i > 2 && std::isupper(nodeType[i]))
-            arnoldTypeStr.push_back('_');
-         arnoldTypeStr.push_back(nodeType[i]);
-      }
-      arnoldType = arnoldTypeStr.c_str();
-      arnoldType.toLowerCase();
-   }
-   // Get the AtNodeEntry for this type name
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnoldType.asChar());
-   if (nodeEntry == NULL)
-   {
-      // We didn't find the arnold node entry, let's loop over the known node entries and see
-      // if one of them has the maya.name metadata pointing to our maya node type
-      AtString arnoldAStr(arnoldType.asChar());
-      AtNodeEntryIterator* nodeEntryIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
-      AtString mayaNameMtd;
-      while (!AiNodeEntryIteratorFinished(nodeEntryIter))
-      {
-         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeEntryIter);
-         if (!AiMetaDataGetStr(nentry, NULL, "maya.name", &mayaNameMtd))
-            continue;
-         if (mayaNameMtd == arnoldAStr)
-         {
-            nodeEntry = nentry;
-            break;
-         }
-      }
-      AiNodeEntryIteratorDestroy(nodeEntryIter);
-   }
+   const ArnoldNodeMetadataStore *metadataStore = CExtensionsManager::FindNodeMetadatas(nodeType, true);
+   
+   bool sceneSwatch = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
    
    bool gpuRenderCompatibility = true;
    bool doSwatch = false;
 
-   if (nodeEntry)
+   if (metadataStore)
    {
-      AiMetaDataGetBool(nodeEntry, NULL, "gpu_support", &gpuRenderCompatibility);
-      doSwatch = sceneSwatch && (AiNodeEntryGetType(nodeEntry) == AI_NODE_SHADER);
-      AiMetaDataGetBool(nodeEntry, NULL, "maya.swatch", &doSwatch);
+      for (size_t i = 0; i < metadataStore->size(); ++i)
+      {
+         const AtString &metadataName = metadataStore->at(i).name;
+         static const AtString gpu_supportStr("gpu_support");
+         static const AtString maya_swatchStr("maya.swatch");
+         if (metadataName == gpu_supportStr) {
+            gpuRenderCompatibility = metadataStore->at(i).value.BOOL();
+         }
+         else if (metadataName == maya_swatchStr)
+            doSwatch = metadataStore->at(i).value.BOOL();
+      }
    }
-   
-   // if a universe was created, let's clear it
-   if (!universeExists)
-      CMayaScene::End();
 
    if (!gpuRenderCompatibility)
    {
       // If GPU isn't supported for this node, we always show the no-gpu icon
       DoNoGPUImage();
-   } else if (doSwatch && !universeExists)
+   } else if (doSwatch && !AiUniverseIsActive())
    {
+      CMayaScene::Begin(MTOA_SESSION_SWATCH);
       // if swatch is enabled AND no render is in progress, we can start a swatch rendering
       DoSwatchRender();
+      CMayaScene::End();
    } else
    {
       // fallback behaviour, show a static image
       DoStaticImage();
    }
-
    return true;
 }
 
