@@ -569,7 +569,7 @@ bool CRenderSwatchGenerator::doIteration()
       arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
    }
    MFnDependencyNode depNode(mayaNode);
-   std::string nodeType = depNode.typeName().asChar();
+   MString nodeType = depNode.typeName();
    const ArnoldNodeMetadataStore *metadataStore = CExtensionsManager::FindNodeMetadatas(nodeType, true);
    
    bool sceneSwatch = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();

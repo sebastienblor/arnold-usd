@@ -1017,16 +1017,38 @@ def cameraTranslatorChanged(transPlug, *args):
     currTrans = transPlug.asString()
     orthoPlug = fnCam.findPlug('orthographic')
     isOrtho = orthoPlug.asBool()
+    builtinPerspectiveCams = ['perspective', 'fisheye', 'cylindrical', 'spherical', 'vr_camera']
     if currTrans == 'orthographic':
         # We're setting the translator to orthographic,
         # we need to enable the checkbox "orthographic"
         if not isOrtho:
             orthoPlug.setBool(True)
-    elif currTrans == 'perspective' or currTrans == 'fisheye':
+    elif currTrans in builtinPerspectiveCams:
         # We're setting the translator to a perspective camera,
         # we must ensure the checkbox "orthographic" is disabled
         if isOrtho:
             orthoPlug.setBool(False)
+    else:
+        # Unknown camera ! Let's check for metadata "orthographic"
+        cameraNodes = cmds.arnoldPlugins(listMatchMetadata=("maya.name", "camera"))
+        matchingTranslators = cmds.arnoldPlugins(listMatchMetadata=("maya.translator", currTrans))
+        # we need to find a camera node that has the matching translator
+        camera = None
+        for cameraNode in cameraNodes:
+            if cameraNode in matchingTranslators:
+                camera = cameraNode
+                break
+
+        if camera:
+            # we found the translator, let's ask for its metadata "orthographic"
+            newOrtho = False
+            orthoMetadata = cmds.arnoldPlugins(getNodeMetadata=(camera, 'orthographic'))
+            if orthoMetadata == 'true':
+                newOrtho = True
+
+            if isOrtho != newOrtho:
+                orthoPlug.setBool(newOrtho)
+
 
 def getCameraDefault(obj):
     isOrtho = om.MFnDependencyNode(obj).findPlug("orthographic").asBool()
