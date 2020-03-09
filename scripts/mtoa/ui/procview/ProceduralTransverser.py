@@ -55,6 +55,13 @@ PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
 DISP_MAP = 'disp_map'
 SHADER = 'shader'
 
+BUILTIN_NODES = ['root',
+                 'ai_default_reflection_shader',
+                 'ai_bad_shader',
+                 '_default_arnold_shader',
+                 '_default_arnold_shader_color']
+
+
 FILE_CACHE = {}
 
 def ArnoldUniverseOnlyBegin():
@@ -133,7 +140,6 @@ class ProceduralTransverser(BaseTransverser):
                                 if t:
                                     enum_values.append(t)
                             except UnicodeDecodeError as e:
-                                print("{}.{}[{}] '{}'".format(nodeType, paramName, i, t))
                                 raise e
                             i += 1
 
@@ -333,8 +339,8 @@ class ProceduralTransverser(BaseTransverser):
                 selectionStr = '' 
                 break
             selectionStr += sel[PROC_PATH]
-            if sel[PROC_ENTRY] =='xform':
-                selectionStr += '/*'
+            # if sel[PROC_ENTRY] =='xform':
+            #     selectionStr += '/*'
         if selectionStr == self.selectionStr:
             return
         self.selectionStr = selectionStr

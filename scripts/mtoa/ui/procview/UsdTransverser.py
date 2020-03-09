@@ -24,7 +24,7 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            PROC_NUM_CHILDREN, \
                            OVERRIDE_OP, DISABLE_OP, \
-                           FILE_CACHE
+                           FILE_CACHE, BUILTIN_NODES
 
 from mtoa.callbacks import *
 
@@ -129,7 +129,7 @@ class UsdTransverser(ProceduralTransverser):
                     continue
 
                 nodeName = ai.AiNodeGetName(node)
-                if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader' or nodeName == '_default_arnold_shader' or nodeName == '_default_arnold_shader_color' or nodeName == '':
+                if nodeName in BUILTIN_NODES or nodeName in ['', 'options']:
                     continue
 
                 entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))

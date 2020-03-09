@@ -657,6 +657,7 @@ class BaseItem(object):
     def __init__(self, parentItem, name, index=-1):
         """Called after the instance has been created."""
         self.name = name
+        self.parentItem = None
         self.childItems = []
         self.expanded = False
         if index >= 0:

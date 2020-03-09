@@ -510,17 +510,20 @@ class ProceduralItem(BaseItem):
 
     @busy_cursor
     def obtainChildren(self, delayUpdate=False):
-        if self.childrenObtained:
+        if self.childrenObtained or (len(self.data) and self.data[PROC_IOBJECT] == 'NULL'):
             return
+
+        if len(self.data) == PROC_NUM_CHILDREN+1 and self.data[PROC_NUM_CHILDREN] == 0:
+            self.childrenObtained = True
+            return self.childrenObtained
 
         if not self.data and not self.parent():
             rootData = self.transverser.getRootObjectInfo(self.node)
             if rootData:
                 item = ProceduralItem(self, self.transverser, self.node, data=rootData)
-                # item.obtainChildren(delayUpdate)
         elif delayUpdate:
             # delay the update by creating a tempory node that will be deleted on the expand
-            ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL", 0])
+            ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL", "", 0])
             return
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
