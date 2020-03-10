@@ -675,6 +675,10 @@ class BaseItem(object):
         """The label of the item."""
         return self.name
 
+    def setName(self, name):
+        """The label of the item."""
+        self.name = name
+
     def appendChild(self, child):
         """Add a child to the data structure."""
         child.parentItem = self

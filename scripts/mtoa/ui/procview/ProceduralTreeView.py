@@ -523,8 +523,8 @@ class ProceduralItem(BaseItem):
                 item = ProceduralItem(self, self.transverser, self.node, data=rootData)
         elif delayUpdate:
             # delay the update by creating a tempory node that will be deleted on the expand
-            ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL", "", 0])
-            return
+            if not len(self.childItems):
+                ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL", "", 0])
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
             # For now we don't show the operators in the hierarchy, we need to make it an option
@@ -535,10 +535,21 @@ class ProceduralItem(BaseItem):
                     for op in operators:
                         ProceduralItem(self, self.transverser, operator=op)
 
+            create=False
+            if not len(self.childItems):
+                create=True
+
             children = self.transverser.dir(self.data[PROC_IOBJECT])
             if children:
-                for child in children:
-                    childItem = ProceduralItem(self, self.transverser, self.node, data=child)
+                for i, child in enumerate(children):
+                    if not create:
+                        c = self.child(i)
+                        if c:
+                            c.data = child
+                            c.name = child[PROC_NAME]
+                    else:
+                        ProceduralItem(self, self.transverser, self.node, data=child)
+                    create = True
 
             self.childrenObtained = True
 
@@ -596,7 +607,7 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
         index = self.sourceModel().index(sourceRow, 0, sourceParent)
         item = index.internalPointer()
         if item and not item.childrenObtained:
-            item.obtainChildren()
+            item.obtainChildren(True)
         accepted = super(ProceduralTreeFilterModel, self).filterAcceptsRow(sourceRow, sourceParent)
         # TODO get if this should be expanded
         return accepted
@@ -649,9 +660,7 @@ class ProceduralTreeFilterModel(QtCore.QSortFilterProxyModel):
             startRow = row + 1
             sourceIndex = self.mapToSource(parent)
             item = sourceIndex.internalPointer()
-            self.beginInsertRows(parent, startRow, startRow + item.numChildren())
             item.obtainChildren()
-            self.endInsertRows()
             return True
         return False
 
