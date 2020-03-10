@@ -11,6 +11,11 @@ from .Qt import cmds
 import re
 import time
 
+try:
+    long
+except NameError:
+    long = int
+
 _DPI_SCALE = \
     1.0 \
     if not hasattr(cmds, "mayaDpiSetting") else \
@@ -80,7 +85,7 @@ def toQtObject(mayaUIName, pySideType=QtCore.QObject):
             ptr = OpenMayaUI.MQtUtil.findMenuItem(mayaUIName)
 
     if ptr is not None:
-        obj = shiboken.wrapInstance(int(ptr), pySideType)
+        obj = shiboken.wrapInstance(long(ptr), pySideType)
         return obj
 
 
@@ -88,7 +93,7 @@ def toMayaName(qtObject):
     '''
     Given a QtWidget get the maya name
     '''
-    return OpenMayaUI.MQtUtil.fullName(int(shiboken.getCppPointer(qtObject)[0]))
+    return OpenMayaUI.MQtUtil.fullName(long(shiboken.getCppPointer(qtObject)[0]))
 
 
 def clearWidget(widget):

@@ -23,25 +23,27 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            PROC_NUM_CHILDREN, \
-                           OVERRIDE_OP, DISABLE_OP
+                           OVERRIDE_OP, DISABLE_OP, \
+                           BUILTIN_NODES, FILE_CACHE
 
 from mtoa.callbacks import *
+
 
 class CustomProcTreeItem():
     def __init__(self, data):
         self.children = [] # array of CustomProcItemTree children indices
         self.data = data  # tranverser data for this item
 
-###### UI to create a procedural operator
 
+###### UI to create a procedural operator
 class CustomProceduralTransverser(ProceduralTransverser):
     """ StandIn  Transverser class """
     __instance = None
-    
+
     def __new__(cls, *args, **kwargs):
 
         if not cls.__instance:
-            instance = super(CustomProceduralTransverser, cls).__new__(cls, *args, **kwargs)
+            instance = super(CustomProceduralTransverser, cls).__new__(cls)
             cls.__instance = instance
 
         return cls.__instance
@@ -61,26 +63,27 @@ class CustomProceduralTransverser(ProceduralTransverser):
 
 
     def buildTree(self, parentIndex, nameSplit, nameSplitIndex, entry=None, entryType=None):
+        global FILE_CACHE
         if nameSplitIndex >= len(nameSplit):
             return
 
         name = nameSplit[nameSplitIndex] # name of the current item at this level
         childIndex = -1
         # search if one of the parent's child items has this name
-        for child in self.items[parentIndex].children:
-            if name == self.items[child].data[PROC_NAME]:
+        for child in FILE_CACHE[self.proceduralFilename][parentIndex]['children']:
+            if name == FILE_CACHE[self.proceduralFilename][child]['data'][PROC_NAME]:
                 childIndex = child
                 break
 
         if childIndex < 0:
             # didn't find an existing entry
-            childIndex = len(self.items) # this will be my child index
-            parentPath = self.items[parentIndex].data[PROC_PATH]
+            childIndex = len(FILE_CACHE[self.proceduralFilename])  # this will be my child index
+            parentPath = FILE_CACHE[self.proceduralFilename][parentIndex]['data'][PROC_PATH]
             if len(parentPath) or nameSplitIndex > 0:
                 path = '{}/{}'.format(parentPath, name)
             else:
                 path = name
-            
+
             if path != '/'.join(nameSplit):
                 this_entry = 'xform'
                 this_entryType = None
@@ -92,52 +95,72 @@ class CustomProceduralTransverser(ProceduralTransverser):
             if node:
                 entry = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
                 entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
-            self.items[parentIndex].children.append(childIndex)
-            if PROC_NUM_CHILDREN >= len(self.items[parentIndex].data):
-                self.items[parentIndex].data.append(0)
-            self.items[parentIndex][PROC_NUM_CHILDREN] += 1
-            self.items.append(CustomProcTreeItem([path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]))
-            
+            FILE_CACHE[self.proceduralFilename][parentIndex]['children'].append(childIndex)
+            if PROC_NUM_CHILDREN >= len(FILE_CACHE[self.proceduralFilename][parentIndex]['data']):
+                FILE_CACHE[self.proceduralFilename][parentIndex]['data'].append(0)
+            FILE_CACHE[self.proceduralFilename][parentIndex]['data'][PROC_NUM_CHILDREN] += 1
+            FILE_CACHE[self.proceduralFilename].append({'children': [],
+                                                        'data': [path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]})
+
         # now call buildTree recursively
         self.buildTree(childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
         return 
 
 
     def getRootObjectInfo(self, node):
+        global FILE_CACHE
         if ai.AiUniverseIsActive():
             cmds.error("Cannot populate procedurals while a render is in progress")
             return
         self.nodeName = node
-        ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
-        self.items.append(CustomProcTreeItem(['', '', '', 'visible', '', '', 0, None]))
-        proc = ai.AiNode(self.procedural)
-        ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
-        ai.AiRender(ai.AI_RENDER_MODE_FREE)
-        iter = ai.AiUniverseGetNodeIterator(None, ai.AI_NODE_ALL);
-        
-        while not ai.AiNodeIteratorFinished(iter):
-            node = ai.AiNodeIteratorGetNext(iter)
-            if node == proc:
-                continue
 
-            nodeName = ai.AiNodeGetName(node)
-            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader':
-                continue
+        if self.proceduralFilename not in FILE_CACHE.keys():
+            FILE_CACHE[self.proceduralFilename] = []
+            FILE_CACHE[self.proceduralFilename].append({'children': [],
+                                                        'data': ['', '', '', 'visible', '', '', 0, None]})
+            beginSession = (not ai.AiUniverseIsActive())
+            if beginSession:
+                ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
 
-            entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
-            entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
-            nameSplit = nodeName.split('/')
-            startIndex = 0
-            if len(nameSplit[0]) == 0:
-                startIndex = 1
-            self.buildTree(0, nameSplit, startIndex, entryName, entryType)
+            universe = ai.AiUniverse()
+            proc = ai.AiNode(universe, 'usd')
+            ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
+            paramMap = ai.AiParamValueMap()
+            ai.AiParamValueMapSetBool(paramMap, 'list', True)
+            ai.AiProceduralViewport(proc, universe, ai.AI_PROC_BOXES, paramMap)
+            iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL)
 
-        ai.AiNodeIteratorDestroy(iter)
+            while not ai.AiNodeIteratorFinished(iter):
+                node = ai.AiNodeIteratorGetNext(iter)
+                if node == proc:
+                    continue
 
-        ai.AiRenderAbort()
-        ai.AiEnd()
+                nodeName = ai.AiNodeGetName(node)
+                if nodeName in BUILTIN_NODES or nodeName in ['', 'options']:
+                    continue
+
+                entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
+                entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
+                nameSplit = nodeName.split('/')
+                startIndex = 0
+                if len(nameSplit[0]) == 0:
+                    startIndex = 1
+                self.buildTree(0, nameSplit, startIndex, entryName, entryType)
+
+            ai.AiParamValueMapDestroy(paramMap)
+            ai.AiNodeIteratorDestroy(iter)
+            ai.AiUniverseDestroy(universe)
+            if beginSession:
+                ai.AiEnd()
+
+        # populate the items
+        for item in FILE_CACHE[self.proceduralFilename]:
+            usd_item = CustomProcTreeItem(item['data'])
+            usd_item.children = item['children']
+            self.items.append(usd_item)
+
         return self.items[0].data
-        
+
     def dir(self, iobject):
         if not iobject:
             iobject = 0
@@ -151,9 +174,4 @@ class CustomProceduralTransverser(ProceduralTransverser):
 
         return children
 
-
-
-
-
-    
 ################################################

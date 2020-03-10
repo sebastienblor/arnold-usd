@@ -24,7 +24,8 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            PROC_NUM_CHILDREN, \
-                           OVERRIDE_OP, DISABLE_OP
+                           OVERRIDE_OP, DISABLE_OP, \
+                           FILE_CACHE, BUILTIN_NODES
 
 from mtoa.callbacks import *
 
@@ -33,7 +34,7 @@ from mtoa.callbacks import *
 class StandInTransverser(ProceduralTransverser):
     """ StandIn  Transverser class """
     __instance = None
-    
+
     def __new__(cls, *args, **kwargs):
 
         if not cls.__instance:
@@ -54,10 +55,20 @@ class StandInTransverser(ProceduralTransverser):
         if iObj == None:
             return ['/', '/', '', 'visible', '', None, None, None, ]
 
-        name = iObj
-        nodeEntry = self.nodeEntries[iObj]
-        nodeEntryType = self.nodeEntryTypes[iObj]
-        return [name, name, '', 'visible', name, nodeEntry, name, nodeEntryType]
+        global FILE_CACHE
+        self.nodeName = node
+        filename = self.getFileName(node)
+
+        obj = []
+
+        for i, v in enumerate(FILE_CACHE[filename]):
+            if v[PROC_IOBJECT] == iObj:
+                return v
+
+        # name = iObj
+        # nodeEntry = self.nodeEntries[iObj]
+        # nodeEntryType = self.nodeEntryTypes[iObj]
+        return None
 
     def getNumNodes(self, filename):
 
@@ -84,12 +95,18 @@ class StandInTransverser(ProceduralTransverser):
         return count
 
     def getRootObjectInfo(self, node):
+        global FILE_CACHE
         self.nodeName = node
         filename = self.getFileName(node)
-        numNodes = 0
-        if filename:
-            numNodes = self.getNumNodes(filename)
-        return ["/", "/", '', 'visible', '', 'procedural', None, 'shape', numNodes]
+        if filename not in FILE_CACHE.keys():
+            numNodes = 0
+            if filename:
+                numNodes = self.getNumNodes(filename)
+
+            FILE_CACHE[filename] = []
+            FILE_CACHE[filename].append(["/", "/", 'root', 'visible', '', 'procedural', None, 'shape', numNodes])
+
+        return FILE_CACHE[filename][0]
 
     def getFileName(self, node):
 
@@ -120,7 +137,7 @@ class StandInTransverser(ProceduralTransverser):
         return filename
 
     def dir(self, iobject):
-        if iobject != None:
+        if iobject not in [None, '/']:
             return []
 
         filename = self.getFileName(self.nodeName)
@@ -129,48 +146,45 @@ class StandInTransverser(ProceduralTransverser):
         if not os.path.exists(str(filename)):
             return
 
-        ass_nodes = []
+        if len(FILE_CACHE[filename]) is 1:
+            universeCreated = False
+            if not ai.AiUniverseIsActive():
+                universeCreated = True
+                ai.AiBegin()
 
-        universeCreated = False
-        if not ai.AiUniverseIsActive():
-            universeCreated = True
-            ai.AiBegin()
+            universe = ai.AiUniverse()
+            ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
 
-        universe = ai.AiUniverse()
-        ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
+            iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
 
-        iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
+            while not ai.AiNodeIteratorFinished(iter):
+                node = ai.AiNodeIteratorGetNext(iter)
+                nodeName = ai.AiNodeGetName(node)
+                if nodeName in BUILTIN_NODES or nodeName == 'options':
+                    continue
 
-        while not ai.AiNodeIteratorFinished(iter):
-            node = ai.AiNodeIteratorGetNext(iter)
-            nodeName = ai.AiNodeGetName(node)
-            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options':
-                continue
+                nodeEntry = ai.AiNodeGetNodeEntry(node)
+                entryName = ai.AiNodeEntryGetName(nodeEntry)
 
-            nodeEntry = ai.AiNodeGetNodeEntry(node)
-            entryName = ai.AiNodeEntryGetName(nodeEntry)
+                name = ai.AiNodeGetName(node)
+                nentry = ai.AiNodeGetNodeEntry(node)
+                nodeEntry = ai.AiNodeEntryGetName(nentry)
+                nodeEntryType = ai.AiNodeEntryGetTypeName(nentry)
+                if nodeEntryType == 'shape':
+                    derivedType = ai.AiNodeEntryGetDerivedType(nentry)
+                    if derivedType == ai.AI_NODE_SHAPE_PROCEDURAL:
+                        nodeEntryType = 'procedural'
+                    elif derivedType == ai.AI_NODE_SHAPE_VOLUME:
+                        nodeEntryType = 'volume'
 
-            name = ai.AiNodeGetName(node)
-            nentry = ai.AiNodeGetNodeEntry(node)
-            nodeEntry = ai.AiNodeEntryGetName(nentry)
-            nodeEntryType = ai.AiNodeEntryGetTypeName(nentry)
-            if nodeEntryType == 'shape':
-                derivedType = ai.AiNodeEntryGetDerivedType(nentry)
-                if derivedType == ai.AI_NODE_SHAPE_PROCEDURAL:
-                    nodeEntryType = 'procedural'
-                elif derivedType == ai.AI_NODE_SHAPE_VOLUME:
-                    nodeEntryType = 'volume'
+                FILE_CACHE[filename].append([name, name, '/', 'visible', name, nodeEntry, name, nodeEntryType, 0])
 
-            ass_nodes.append([name, name, '', 'visible', name, nodeEntry, name, nodeEntryType, 0])
-            self.nodeEntries[name] = nodeEntry
-            self.nodeEntryTypes[name] = nodeEntryType
+            ai.AiNodeIteratorDestroy(iter)
+            ai.AiUniverseDestroy(universe)
 
-        ai.AiNodeIteratorDestroy(iter)
-        ai.AiUniverseDestroy(universe)
-
-        if universeCreated:
-            ai.AiEnd()
-        return ass_nodes
+            if universeCreated:
+                ai.AiEnd()
+        return FILE_CACHE[filename][1:]
         # but we should consider nested procedurals....
 
 
