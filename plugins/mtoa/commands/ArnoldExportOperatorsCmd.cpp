@@ -240,8 +240,11 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
       if (AiNodeDeclare(targets[0], "is_target", "constant BOOL"))
          AiNodeSetBool(targets[0], "is_target", true);
    }
-   AiASSWrite(NULL, filename.asChar(), (exportShaders) ? AI_NODE_OPERATOR | AI_NODE_SHADER : AI_NODE_OPERATOR);
 
+   AtParamValueMap* params = AiParamValueMap();
+   AiParamValueMapSetInt(params, AtString("mask"), (exportShaders) ? AI_NODE_OPERATOR | AI_NODE_SHADER : AI_NODE_OPERATOR);
+   AiSceneWrite(NULL, filename.asChar(), params);
+   AiParamValueMapDestroy(params);
 
    CMayaScene::End();
    return MS::kSuccess;

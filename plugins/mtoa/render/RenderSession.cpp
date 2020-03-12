@@ -754,11 +754,15 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed, b
       if(sceneFileName.length() > 0)
          AiMetadataStoreSetStr(mds, AtString("scene"), sceneFileName.asChar());
 
-
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
-      AiASSWriteWithMetadata(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding(), mds);
+      AtParamValueMap* params = AiParamValueMap();
+      AiParamValueMapSetInt(params, AtString("mask"), m_renderOptions.outputAssMask());
+      AiParamValueMapSetBool(params, AtString("open_procs"), m_renderOptions.expandProcedurals());
+      AiParamValueMapSetBool(params, AtString("binary"), m_renderOptions.useBinaryEncoding());
+      AiSceneWrite(NULL, fileName.asChar(), params, mds);
       AiMetadataStoreDestroy(mds);
+      AiParamValueMapDestroy(params);
 
       if (writeBox && getenv("MTOA_EXPORT_ASSTOC"))
       {

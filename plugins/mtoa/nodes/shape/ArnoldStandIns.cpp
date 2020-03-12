@@ -485,7 +485,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          static const AtString box_str("box");
          static const AtString ginstance_str("ginstance");
 
-         // AiASSWrite(universe, "/home/handsca/viewport.ass", AI_NODE_SHAPE);  // for debugging
          AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
          while (!AiNodeIteratorFinished(iter))
