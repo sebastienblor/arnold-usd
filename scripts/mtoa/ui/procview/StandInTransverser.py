@@ -100,7 +100,9 @@ class StandInTransverser(ProceduralTransverser):
         global FILE_CACHE
         self.nodeName = node
         filename = self.getFileName(node)
-        if filename not in FILE_CACHE.keys():
+        if not filename:
+            return None
+        elif filename not in FILE_CACHE.keys():
             FILE_CACHE[filename] = []
             FILE_CACHE[filename].append(["/", "/", 'root', 'visible', '', 'procedural', None, 'shape', 1])
 
