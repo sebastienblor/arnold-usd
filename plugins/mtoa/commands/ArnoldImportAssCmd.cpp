@@ -218,7 +218,10 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    }
    else
    {
-      AiASSLoad(universe, filename.asChar(), mask);   
+      AtParamValueMap* params = AiParamValueMap();
+      AiParamValueMapSetInt(params, AtString("mask"), mask);
+      AiSceneLoad(universe, filename.asChar(), params);
+      AiParamValueMapDestroy(params);
    }
 
    CShaderLinkSanitizer sanitizer(universe, "importArnold_");
