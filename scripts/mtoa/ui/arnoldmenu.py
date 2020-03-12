@@ -304,7 +304,7 @@ def arnoldImportOperators():
     if defaultOperatorsFolder == "":
         defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
 
-    objFilter = "ASS File (*.ass)"
+    objFilter = "ASS File (*.ass);; USD File (*.usd *.usda *.usdc)"
     ret = cmds.fileDialog2(cap='Import Operator Graph',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
     if len(ret):
         defaultOperatorsFolder = ret[0]
@@ -315,9 +315,8 @@ def arnoldExportShaders():
     global defaultFolder
     if defaultFolder == "":
         defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
-    objFilter = "ASS File (*.ass);; MaterialX File (*.mtlx)"
+    objFilter = "ASS File (*.ass);; MaterialX File (*.mtlx);; USD File (*.usd *.usda *.usdc)"
     ret = cmds.fileDialog2(cap='Select File',okc='Select',ff=objFilter,fm=0,dir=defaultFolder) or []
-    print("return item is " , ret)
     if len(ret) > 0:
         if ret[0].split('.')[-1] == "mtlx":
             cmds.arnoldExportToMaterialX(filename=ret[0], mtl=True)
@@ -329,7 +328,7 @@ def arnoldImportShaders():
     if defaultOperatorsFolder == "":
         defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
 
-    objFilter = "ASS File (*.ass);; AXF File (*.axf);; MaterialX File (*.mtlx)"
+    objFilter = "ASS File (*.ass);; AXF File (*.axf);; MaterialX File (*.mtlx);; USD File (*.usd *.usda *.usdc)"
     ret = cmds.fileDialog2(cap='Import Arnold Shaders',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
     if len(ret):
         defaultOperatorsFolder = ret[0]

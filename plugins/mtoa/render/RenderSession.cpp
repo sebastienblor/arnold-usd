@@ -92,6 +92,10 @@ namespace
    MString VerifyFileName(MString fileName, bool compressed)
    {
       unsigned int len = fileName.length();
+      if ((len > 5) && ((fileName.substring(len - 4, len - 1).toLowerCase() == ".usd") ||
+                        (fileName.substring(len - 5, len - 1).toLowerCase() == ".usda")||
+                        (fileName.substring(len - 5, len - 1).toLowerCase() == ".usdc")))
+         return fileName;
 
       if (!compressed)
       {
