@@ -104,7 +104,7 @@ def clearWidget(widget):
             item.widget().close()
         elif isinstance(item, QtWidgets.QSpacerItem):
             widget.layout().removeItem(item)
-        del item
+        item.widget().deleteLater()
         item = widget.layout().takeAt(0)
 
 
