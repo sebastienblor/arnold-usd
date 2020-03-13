@@ -126,7 +126,6 @@ class UsdTransverser(ProceduralTransverser):
             return
 
         if len(FILE_CACHE[self.proceduralFilename]) == 1:
-            print("usd - populating cache")
             beginSession = (not ai.AiUniverseIsActive())
             if beginSession:
                 ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
@@ -173,8 +172,6 @@ class UsdTransverser(ProceduralTransverser):
         if not iobject:
             iobject = 0
         self.populate_cache()
-        if len(self.items) == 1:
-            self.populate_items()
         children = []
         if iobject == 'NULL':
             return children
