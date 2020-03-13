@@ -56,6 +56,7 @@ DISP_MAP = 'disp_map'
 SHADER = 'shader'
 
 BUILTIN_NODES = ['root',
+                 'options',
                  'ai_default_reflection_shader',
                  'ai_bad_shader',
                  '_default_arnold_shader',

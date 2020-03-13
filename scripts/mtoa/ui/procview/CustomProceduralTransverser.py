@@ -104,31 +104,44 @@ class CustomProceduralTransverser(ProceduralTransverser):
 
         # now call buildTree recursively
         self.buildTree(childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
-        return 
-
+        return
 
     def getRootObjectInfo(self, node):
         global FILE_CACHE
-        if ai.AiUniverseIsActive():
-            cmds.error("Cannot populate procedurals while a render is in progress")
-            return
+
         self.nodeName = node
+        self.items = []
 
         if self.proceduralFilename not in FILE_CACHE.keys():
             FILE_CACHE[self.proceduralFilename] = []
             FILE_CACHE[self.proceduralFilename].append({'children': [],
-                                                        'data': ['', '', '', 'visible', '', '', 0, None]})
+                                                        'data': ['/', 'root', '', 'visible', '', self.procedural, 0, 'shape', 1]})
+        # populate the items
+        root_item = FILE_CACHE[self.proceduralFilename][0]
+        usd_item = CustomProcTreeItem(root_item['data'])
+        usd_item.children = root_item['children']
+        self.items.append(usd_item)
+
+        return self.items[0].data
+
+    def populate_cache(self):
+        global FILE_CACHE
+
+        if self.proceduralFilename not in FILE_CACHE.keys():
+            return
+
+        if len(FILE_CACHE[self.proceduralFilename]) == 1:
+            if ai.AiUniverseIsActive():
+                cmds.error("Cannot populate procedurals while a render is in progress")
+                return
             beginSession = (not ai.AiUniverseIsActive())
             if beginSession:
                 ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
 
-            universe = ai.AiUniverse()
-            proc = ai.AiNode(universe, 'usd')
+            proc = ai.AiNode(self.procedural)
             ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
-            paramMap = ai.AiParamValueMap()
-            ai.AiParamValueMapSetBool(paramMap, 'list', True)
-            ai.AiProceduralViewport(proc, universe, ai.AI_PROC_BOXES, paramMap)
-            iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL)
+            ai.AiRender(ai.AI_RENDER_MODE_FREE)
+            iter = ai.AiUniverseGetNodeIterator(None, ai.AI_NODE_ALL)
 
             while not ai.AiNodeIteratorFinished(iter):
                 node = ai.AiNodeIteratorGetNext(iter)
@@ -147,30 +160,29 @@ class CustomProceduralTransverser(ProceduralTransverser):
                     startIndex = 1
                 self.buildTree(0, nameSplit, startIndex, entryName, entryType)
 
-            ai.AiParamValueMapDestroy(paramMap)
             ai.AiNodeIteratorDestroy(iter)
-            ai.AiUniverseDestroy(universe)
             if beginSession:
                 ai.AiEnd()
 
-        # populate the items
-        for item in FILE_CACHE[self.proceduralFilename]:
-            usd_item = CustomProcTreeItem(item['data'])
-            usd_item.children = item['children']
-            self.items.append(usd_item)
-
-        return self.items[0].data
+        if len(self.items) == 1:
+            # populate the items
+            for item in FILE_CACHE[self.proceduralFilename][1:]:
+                usd_item = CustomProcTreeItem(item['data'])
+                usd_item.children = item['children']
+                self.items.append(usd_item)
 
     def dir(self, iobject):
         if not iobject:
             iobject = 0
+        self.populate_cache()
         children = []
         if iobject == 'NULL':
             return children
         if iobject >= len(self.items):
             return []
         for ich in self.items[iobject].children:
-            children.append(self.getObjectInfo(ich))
+            child = self.getObjectInfo(ich)
+            children.append(child)
 
         return children
 

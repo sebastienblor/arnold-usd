@@ -84,7 +84,9 @@ class StandInTransverser(ProceduralTransverser):
         count = 0
         while not ai.AiNodeIteratorFinished(iter):
             node = ai.AiNodeIteratorGetNext(iter)
-            count += 1
+            nodeName = ai.AiNodeGetName(node)
+            if nodeName not in BUILTIN_NODES:
+                count += 1
 
         ai.AiNodeIteratorDestroy(iter)
         ai.AiUniverseDestroy(universe)
@@ -98,13 +100,11 @@ class StandInTransverser(ProceduralTransverser):
         global FILE_CACHE
         self.nodeName = node
         filename = self.getFileName(node)
-        if filename not in FILE_CACHE.keys():
-            numNodes = 0
-            if filename:
-                numNodes = self.getNumNodes(filename)
-
+        if not filename:
+            return None
+        elif filename not in FILE_CACHE.keys():
             FILE_CACHE[filename] = []
-            FILE_CACHE[filename].append(["/", "/", 'root', 'visible', '', 'procedural', None, 'shape', numNodes])
+            FILE_CACHE[filename].append(["/", "/", 'root', 'visible', '', 'procedural', None, 'shape', 1])
 
         return FILE_CACHE[filename][0]
 
@@ -147,6 +147,11 @@ class StandInTransverser(ProceduralTransverser):
             return
 
         if len(FILE_CACHE[filename]) is 1:
+            numNodes = 0
+            if filename:
+                numNodes = self.getNumNodes(filename)
+            FILE_CACHE[filename][0][PROC_NUM_CHILDREN] = numNodes
+
             universeCreated = False
             if not ai.AiUniverseIsActive():
                 universeCreated = True
