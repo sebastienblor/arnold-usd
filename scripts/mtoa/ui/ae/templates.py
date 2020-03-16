@@ -802,7 +802,7 @@ class TranslatorControl(AttributeTemplate):
                                self.updateChildrenCallback,
                                self.updateChildrenCallback)
             else:
-                translator, template = self.getTranslatorTemplates()[0]
+                translator, template = next(self.getTranslatorTemplates())
                 self.addChildTemplate('message', template)
 
 #-------------------------------------------------
