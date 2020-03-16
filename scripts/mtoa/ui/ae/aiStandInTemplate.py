@@ -306,6 +306,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         if self.nodeName == self.transverser_node and filename == self.current_filename:
             self.properties_panel.setItem(self.nodeName, None)
+            self.tree.transverser.filenameAttr = 'dso'
             return False  # nothing to do here...
 
         filename_changed = False
@@ -963,6 +964,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('abc_nameprefix', label='Name Prefix')
         # make_instance
         self.addControl('abc_make_instance', label='Make Instance')
+        # use_instance_cache
+        self.addControl("abc_use_instance_cache", label="Use Instance Cache", annotation='Un-check to disable the sharing of instances between archives with the same filename')
         # pull_user_params
         self.addControl('abc_pull_user_params', label='Pull User Params')
         # visibility_ignore
