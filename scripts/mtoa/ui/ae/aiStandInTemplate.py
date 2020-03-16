@@ -306,6 +306,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         if self.nodeName == self.transverser_node and filename == self.current_filename:
             self.properties_panel.setItem(self.nodeName, None)
+            self.tree.transverser.filenameAttr = 'dso'
             return False  # nothing to do here...
 
         filename_changed = False
