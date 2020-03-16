@@ -10,6 +10,8 @@ import os, glob
 Import('env')
 local_env = env.Clone(SHLIBPREFIX = '')
 
+
+
 # Add new procedural directory names here
 PROCEDURALS = ['ParticleInstancer', 'ParticleVolume'] 
 
@@ -22,6 +24,8 @@ MTOA_PROCS = []
 
 local_env.Append(CPPPATH = ['.'])
 local_env.Append(LIBS = Split('ai'))
+
+
 
 # For every procedural found, get a list of source and include files
 for dir in PROCEDURALS:

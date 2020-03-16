@@ -26,6 +26,12 @@ local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 if system.os =='windows':
    local_env.Append(CPPPATH = ['.'])   
    local_env.Append(LIBS=Split('ai.lib'))
+   if local_env['MODE'] == 'opt':
+      print "Am i doing this for hair physical"
+      MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+      MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+      MSVC_FLAGS += " /Fdbuild\\hairPhysicalShaderTranslator.pdb"
+      local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 else:
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai'))
@@ -47,6 +53,11 @@ include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_ba
 if system.os =='windows':
    shader_env.Append(CPPPATH = ['.'])   
    shader_env.Append(LIBS=Split('ai.lib'))
+   if local_env['MODE'] == 'opt':
+      MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+      MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+      MSVC_FLAGS += " /Fdbuild\\hairPhysicalShader_shaders.pdb"
+      shader_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 else:
    shader_env.Append(CPPPATH = ['.'])
    shader_env.Append(LIBS=Split('ai'))

@@ -14,9 +14,15 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'sh
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
-EXT = local_env.SharedLibrary('shave', source_files, LIBPREFIX='')
+EXT = local_env.SharedLibrary('', source_files, LIBPREFIX='')
 
 if system.os == 'windows':
+   if local_env['MODE']== 'opt':
+      MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+      MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+      MSVC_FLAGS += " /Fdbuild\shave.pdb"
+      local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+   
    local_env.Append(LIBS=Split('libShaveAPI.lib'))
    local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')   
 else:
@@ -42,6 +48,11 @@ include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_ba
 if system.os =='windows':
    shader_env.Append(CPPPATH = ['.'])
    shader_env.Append(LIBS=Split('ai.lib'))
+   if shader_env['MODE']== 'opt':
+      MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+      MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+      MSVC_FLAGS += " /Fdbuild\shave_shaders.pdb"
+      shader_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 else:
    shader_env.Append(CPPPATH = ['.'])
    shader_env.Append(LIBS=Split('ai'))

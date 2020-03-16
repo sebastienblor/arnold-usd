@@ -22,6 +22,11 @@ for subdir in ['attributes', 'common', 'extension', 'platform', 'utils', 'sessio
    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
 
+
+MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+MSVC_FLAGS += " /Fdbuild\mtoa_api.pdb"
+
 #Add files to be exported by the API from 'nodes' and 'translators' folder
 source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('nodes', 'shape', 'ArnoldProceduralNode.cpp'),
@@ -131,6 +136,8 @@ local_env.Append(LIBPATH = [qt_lib_dir])
 print 'Qt libraries in ' + qt_lib_dir
 
 if system.os == 'windows':
+    if local_env['MODE'] == 'opt':
+        local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
     else:
@@ -161,7 +168,7 @@ if not local_env['MTOA_DISABLE_RV']:
     else:
         local_env.Append(LIBS = ['ai_renderview'])
 
- 
+
 
 MTOA_API = local_env.SharedLibrary('mtoa_api', source_files)
 

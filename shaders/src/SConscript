@@ -10,6 +10,10 @@ import os
 Import('env')
 local_env = env.Clone()
 
+MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+MSVC_FLAGS += " /Fdbuild\mtoa_shaders.pdb"
+
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'shaders', 'src')
 source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
@@ -18,6 +22,8 @@ include_files = find_files_recursive(src_base_dir, ['.h'])
 local_env.Append(CPPPATH = ['.'])
 
 if system.os =='windows':
+    if local_env['MODE'] == 'opt':
+        local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
     local_env.Append(LIBS=Split('ai.lib ws2_32.lib'))
 else:    
     local_env.Append(LIBS=Split('ai'))

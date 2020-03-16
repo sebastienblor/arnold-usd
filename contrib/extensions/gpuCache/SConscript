@@ -20,6 +20,12 @@ if system.os == 'darwin':
 if system.os !='windows':
     local_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+    MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+    MSVC_FLAGS += " /Fdbuild\gpuCacheTranslator.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(ROOT_DIR, 'contrib', 'extensions', 'gpuCache', 'plugin')
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]

@@ -21,8 +21,12 @@ plugin_env.Append(CPPPATH = ['.'])
 EXT = plugin_env.SharedLibrary('synColorTranslator', source_files, LIBPREFIX='')
 
 if system.os == 'windows':
+   if plugin_env['MODE']== 'opt':
+        MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+        MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+        MSVC_FLAGS += " /Fdbuild\synColorTranslator.pdb"
+        plugin_env.Append(CCFLAGS = Split(MSVC_FLAGS))
    plugin_env['MSVSSCONSCRIPT'] = plugin_env.File('SConscript')
-
 
 # import build env
 Import('env')
@@ -52,6 +56,11 @@ shader_env.Append(LIBPATH = [syncolor_library_path])
 
 # Add platform specific paths
 if system.os =='windows':
+   if shader_env['MODE']== 'opt':
+      MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
+      MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
+      MSVC_FLAGS += " /Fdbuild\synColor_shaders.pdb"
+      shader_env.Append(CCFLAGS = Split(MSVC_FLAGS))
    shader_env.Append(LIBS=Split('ai.lib'))
    shader_env.Append(LIBS=Split('synColor.lib'))
 else:
