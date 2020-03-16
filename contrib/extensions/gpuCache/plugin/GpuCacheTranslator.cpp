@@ -37,6 +37,7 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    CShapeTranslator::MakeCommonAttributes(helper);
 
    helper.MakeInput("make_instance");
+   helper.MakeInput("use_instance_cache");
    helper.MakeInput("exclude_xform");
    helper.MakeInput("flip_v");
 
@@ -184,13 +185,24 @@ void CGpuCacheTranslator::AddUpdateCallbacks()
    CShapeTranslator::AddUpdateCallbacks();
 }
 
+void CGpuCacheTranslator::Export(AtNode* anode)
+{
+   m_attrChanged = false;
+   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
+   if (strcmp(nodeType, "ginstance") == 0)
+   {
+      CProceduralTranslator::ExportInstance(anode, GetMasterInstance());
+   }
+   else
+   {
+      ExportProcedural(anode);
+   }
+}
+
 void CGpuCacheTranslator::ExportProcedural( AtNode *shape )
 {
    if (s_alembicSupported == false || shape == NULL)
       return;
-
-   // ExportMatrix(shape);
-   // ProcessRenderFlags(shape);
 
    // export gpuCache parameters   
    MPlug filenamePlug = FindMayaPlug("cacheFileName");
@@ -234,6 +246,7 @@ void CGpuCacheTranslator::ExportProcedural( AtNode *shape )
    AiNodeSetFlt(shape, "fps", fps);
 
    AiNodeSetBool(shape, "make_instance", FindMayaPlug( "aiMakeInstance" ).asBool());
+   AiNodeSetBool(shape, "use_instance_cache", FindMayaPlug( "aiUseInstanceCache" ).asBool());
    AiNodeSetBool(shape, "exclude_xform", FindMayaPlug("aiExcludeXform").asBool());
    AiNodeSetBool(shape, "flip_v", FindMayaPlug("aiFlipV").asBool());
 
@@ -300,7 +313,7 @@ void CGpuCacheTranslator::ExportProcedural( AtNode *shape )
       }
    }
 
-   ExportProcedural(shape);
+   CProceduralTranslator::ExportProcedural(shape);
 
    AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
    AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));

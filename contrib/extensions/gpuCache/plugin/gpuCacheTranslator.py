@@ -434,6 +434,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.commonShapeAttributes()
         self.beginLayout("Translator Options", collapse=False)
         self.addControl("aiMakeInstance", label="Make Instance", annotation='Create instances where possible, to save geometry duplication')
+        self.addControl("aiUseInstanceCache", label="Use Instance Cache", annotation='Un-check to disable the sharing of instances between archives with the same filename')
         self.addControl("aiExcludeXform", label="Exclude Xform", annotation='Exclude transform information from cache')
         self.addControl("aiFlipV", label="Flip V", annotation='Flip UVs in V direction (when using caches with inverted UVs)')
         self.addControl("aiVisibilityIgnore", label="Visibility Ignore", annotation='Ignore Visibility channels on geo in the archive')
