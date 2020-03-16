@@ -80,7 +80,7 @@ class CustomProceduralTransverser(ProceduralTransverser):
             childIndex = len(FILE_CACHE[self.proceduralFilename])  # this will be my child index
             parentPath = FILE_CACHE[self.proceduralFilename][parentIndex]['data'][PROC_PATH]
             if len(parentPath) or nameSplitIndex > 0:
-                path = '{}/{}'.format(parentPath, name)
+                path = '/'.join(nameSplit[:nameSplitIndex+1])
             else:
                 path = name
 
@@ -112,6 +112,8 @@ class CustomProceduralTransverser(ProceduralTransverser):
         self.nodeName = node
         self.items = []
 
+        if not self.proceduralFilename:
+            return None
         if self.proceduralFilename not in FILE_CACHE.keys():
             FILE_CACHE[self.proceduralFilename] = []
             FILE_CACHE[self.proceduralFilename].append({'children': [],

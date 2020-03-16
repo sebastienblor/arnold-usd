@@ -33,7 +33,8 @@ from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransve
 try:
     from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 except ModuleNotFoundError as e:
-    AlembicTransverser = CustomProceduralTransverser
+    AlembicTransverser = None
+from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 
 # from alembic import Abc, AbcGeom
 
@@ -54,13 +55,20 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         return toQtObject(currentWidgetName, pySideType)
 
     def abcInfoNew(self, nodeAttr):
+        nodeName = nodeAttr.split('.')[0]
         self.callbacks = []
         self.currentItem = None
         currentWidget = self.__currentWidget()
 
-        self.abcTransverser = AlembicTransverser()
-        self.abcTransverser.filenameAttr = 'cacheFileName'
-        self.abcTransverser.selectionAttr = None
+        if AlembicTransverser:
+            self.abcTransverser = AlembicTransverser()
+            self.abcTransverser.filenameAttr = 'cacheFileName'
+            self.abcTransverser.selectionAttr = None
+        else:
+            fileAttr = '{}.cacheFileName'.format(nodeName)
+            filename = cmds.getAttr(fileAttr)
+            self.abcTransverser = CustomProceduralTransverser('alembic', 'filename', filename)
+
         self.currentNode = ''
         self.currentFilename = ''
 
@@ -99,11 +107,11 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         if self.abcTransverser:
             self.abcTransverser.filenameAttr = 'cacheFileName'
             self.abcTransverser.selectionAttr = None
+        if type(self.abcTransverser) == CustomProceduralTransverser:
+            self.abcTransverser.proceduralFilename = filename
 
         self.tree.setCurrentNode(self.nodeName, True, filename_changed)
         self.properties_panel.setNode(self.nodeName)
-
-
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
@@ -149,13 +157,17 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             control = cmds.textFieldGrp(control_name, label=label)
         elif param_type is AI_TYPE_ENUM:
             enum_ctrl = cmds.optionMenuGrp(control_name, label=label)
+            enum_param = AiParamGetEnum(param_entry)
             # populate the options
             i = 0
             t = True
             while t is not None:
-                t = AiEnumGetString(AiParamGetEnum(param_entry), i)
-                if t:
-                    cmds.menuItem( label=t )
+                try:
+                    t = AiEnumGetString(enum_param, i)
+                    if t:
+                        cmds.menuItem( label=t )
+                except UnicodeDecodeError as e:
+                    t = None
                 i += 1
             control = enum_ctrl
         return control
@@ -434,6 +446,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.commonShapeAttributes()
         self.beginLayout("Translator Options", collapse=False)
         self.addControl("aiMakeInstance", label="Make Instance", annotation='Create instances where possible, to save geometry duplication')
+        self.addControl("aiUseInstanceCache", label="Use Instance Cache", annotation='Un-check to disable the sharing of instances between archives with the same filename')
         self.addControl("aiExcludeXform", label="Exclude Xform", annotation='Exclude transform information from cache')
         self.addControl("aiFlipV", label="Flip V", annotation='Flip UVs in V direction (when using caches with inverted UVs)')
         self.addControl("aiVisibilityIgnore", label="Visibility Ignore", annotation='Ignore Visibility channels on geo in the archive')

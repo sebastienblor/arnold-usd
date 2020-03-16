@@ -267,6 +267,9 @@ void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
    // # make_instance
    bool make_instance = FindProceduralPlug("abc_make_instance").asBool();
    AiNodeSetBool(node, "make_instance", make_instance);
+   // # use_instance_cache
+   bool use_instance_cache = FindProceduralPlug("abc_use_instance_cache").asBool();
+   AiNodeSetBool(node, "use_instance_cache", use_instance_cache);
    // # pull_user_params
    bool pull_user_params = FindProceduralPlug("abc_pull_user_params").asBool();
    AiNodeSetBool(node, "pull_user_params", pull_user_params);

@@ -1173,6 +1173,12 @@ MStatus CArnoldStandInShape::initialize()
    data.shortName = "abc_pull_user_params";
    s_attributes.MakeInputBoolean(data);
 
+   data.defaultValue.BOOL() = true;
+   data.name = "abcUseInstanceCache";
+   data.shortName = "abc_use_instance_cache";
+   s_attributes.MakeInputBoolean(data);
+
+
 
    return MStatus::kSuccess;
 }
