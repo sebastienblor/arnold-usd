@@ -493,10 +493,11 @@ MStatus CArnoldSession::UpdateLightLinks()
          AiMsgError("[mtoa] Failed to parse light linking information for %i lights", m_numLights);
       
    }
-   else
+   else if (m_sessionOptions.m_mode != MTOA_SESSION_ASS)
    {
       AiMsgWarning("[mtoa] No light in scene");
    }
+
 
    FlagLightLinksDirty(false);
    if (MtoaTranslationInfo())

@@ -31,6 +31,7 @@
 #include "utils/Universe.h"
 
 #include "commands/ArnoldAssTranslator.h"
+#include "commands/ArnoldUsdTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
 #include "commands/ArnoldImportAssCmd.h"
 #include "commands/ArnoldUpdateTxCmd.h"
@@ -1088,10 +1089,15 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
       plugin.deregisterImageFile(CTxTextureFile::fileName);
 
    if (initData[MTOA_INIT_FILE_IMPORT])
+   {
       plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeImport);
+   }
 
    if (initData[MTOA_INIT_FILE_EXPORT])
+   {
       plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeExport);
+      plugin.deregisterFileTranslator(CArnoldUsdTranslator::fileTypeExport);
+   }
 
    if (connectionCallback)
       MMessage::removeCallback(connectionCallback);
@@ -1132,6 +1138,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                                           CArnoldAssTranslator::optionScriptExport,
                                           CArnoldAssTranslator::optionDefault,
                                           false);
+   
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
@@ -1166,7 +1173,30 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
+
+   // Arnold-USD file translator
+   status = plugin.registerFileTranslator(CArnoldUsdTranslator::fileTypeExport,
+                                          CArnoldUsdTranslator::fileIcon,
+                                          CArnoldUsdTranslator::exportCreator,
+                                          CArnoldUsdTranslator::optionScriptExport,
+                                          CArnoldUsdTranslator::optionDefault,
+                                          false);
    
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgDebug("Successfully registered Arnold-USD file exporter");
+      initializedData[MTOA_INIT_FILE_EXPORT] = true;
+   }
+   else
+   {
+      AiMsgError("Failed to register Arnold-USD file exporter");
+      MGlobal::displayError("Failed to register Arnold-USD file exporter");
+      
+      MtoAInitFailed(object, plugin, initializedData);
+      return MStatus::kFailure;
+   }
+      
    // Register image formats
    MStringArray extensions;
    extensions.append("tex");
@@ -1652,6 +1682,19 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       returnStatus = MStatus::kFailure;
       AiMsgError("Failed to deregister Arnold ass file importer");
       MGlobal::displayError("Failed to deregister Arnold ass file importer");
+   }
+   status = plugin.deregisterFileTranslator(CArnoldUsdTranslator::fileTypeExport);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold-USD file exporter");
+      MGlobal::displayInfo("Successfully deregistered Arnold-USD file exporter");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold-USD file exporter");
+      MGlobal::displayError("Failed to deregister Arnold-USD file exporter");
    }
 
    // Restore the original env variables, so that they don't accumulate if we re-load MtoA

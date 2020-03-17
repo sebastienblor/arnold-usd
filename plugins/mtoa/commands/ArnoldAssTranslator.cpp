@@ -14,8 +14,8 @@
 #include <maya/M3dView.h>
 
 // Set some fixed values in the translator class
-char CArnoldAssTranslator::fileTypeImport[]        = "ARNOLD";
-char CArnoldAssTranslator::fileTypeExport[]        = "ARNOLD";
+char CArnoldAssTranslator::fileTypeImport[]        = "ASS";
+char CArnoldAssTranslator::fileTypeExport[]        = "ASS Export";
 char CArnoldAssTranslator::fileExtension[]         = "ass";
 char CArnoldAssTranslator::fileIcon[]              = "arnoldAssFile.xpm";
 char CArnoldAssTranslator::optionScriptImport[]    = "";
@@ -44,7 +44,7 @@ inline MString CArnoldAssTranslator::defaultExtension() const
 
 inline MString CArnoldAssTranslator::filter() const
 {
-   return MString("*.ass *.ass.gz *.usd *.usda *.usdc");
+   return MString("*.ass *.ass.gz");
 }
 
 void* CArnoldAssTranslator::importCreator()
