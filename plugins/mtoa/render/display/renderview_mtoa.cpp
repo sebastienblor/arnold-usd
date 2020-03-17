@@ -930,8 +930,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
       if (pickedObject == NULL)
          continue;
 
-      AtString selName = (AiNodeLookUpUserParameter(pickedObject, "dcc_name")) ? 
-         AiNodeGetStr(pickedObject, "dcc_name") : AtString(AiNodeGetName(pickedObject));
+      AtString selName = AtString(AiNodeGetName(pickedObject));
 
       MString selectedPath = MString(selName.c_str());
 
@@ -943,8 +942,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
          parentNode = AiNodeGetParent(pickedObject);
          if (parentNode)
          {
-            AtString childSelName = (AiNodeLookUpUserParameter(pickedObject, "dcc_name")) ? 
-               AiNodeGetStr(pickedObject, "dcc_name") : AtString(AiNodeGetName(pickedObject));
+            AtString childSelName = AtString(AiNodeGetName(pickedObject));
             selectedPath = MString(childSelName.c_str()) + MString("/") + selectedPath;
          }
          else
