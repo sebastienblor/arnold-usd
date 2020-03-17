@@ -13,13 +13,6 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'lo
 
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
-if system.os =='windows' and local_env['MODE'] == 'opt':
-      print "Let'd do look dev kit now"
-      MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
-      MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
-      MSVC_FLAGS += " /Fdbuild\lookdevkit.pdb"
-      local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
-
 
 EXT = local_env.SharedLibrary('lookdevkit', source_files, LIBPREFIX='')
 
@@ -43,11 +36,6 @@ if system.os =='windows':
    shader_env.Append(CPPPATH = ['.'])
    shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'lookdevkit', 'common')])
    shader_env.Append(LIBS=Split('ai.lib'))
-   if shader_env['MODE'] == 'opt':
-      MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
-      MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
-      MSVC_FLAGS += " /Fdbuild\lookdevkit_shaders.pdb"
-      shader_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 else:
    shader_env.Append(CPPPATH = ['.'])
    shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'lookdevkit', 'common')])

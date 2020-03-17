@@ -14,10 +14,6 @@ local_env = maya_env.Clone()
 GLEW_INCLUDES = local_env.subst(local_env['GLEW_INCLUDES'])
 GLEW_LIB = local_env.subst(local_env['GLEW_LIB'])
 
-MSVC_FLAGS = " /Zi"  # Enable writing pdb files for OPT builds
-MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
-MSVC_FLAGS += " /Fdbuild\mtoa.pdb"
-
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
@@ -126,7 +122,6 @@ else:
 local_env.Append(LIBPATH = [qt_lib_dir])
 
 if system.os == 'windows':
-    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
     else:
