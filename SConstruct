@@ -515,10 +515,6 @@ elif env['COMPILER'] == 'msvc':
 
     if export_symbols:
         MSVC_FLAGS += " /Z7"  # generates complete debug information
-    else:
-        MSVC_FLAGS += " /Zi"  # Enable writing pdb files for OPT builds
-        MSVC_FLAGS += " /FS"  # Enable parallel writing into pdb files
-        MSVC_FLAGS += " /FdMtoA.pdb"
 
     LINK_FLAGS  = " /MANIFEST"
 
@@ -532,6 +528,9 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /GL"     # enables whole program optimization
         MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
         MSVC_FLAGS += " /Ox"     # selects maximum optimization
+        MSVC_FLAGS += " /Zi"
+        MSVC_FLAGS += " /FS"
+        LINK_FLAGS += " /DEBUG"
       
         LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
     else:  ## Debug mode
@@ -784,6 +783,7 @@ env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
 if not env['DISABLE_COMMON']:
     env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
+
 if system.os == 'windows':
     # Rename plugins as .mll and install them in the target path
     mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
@@ -799,6 +799,7 @@ if system.os == 'windows':
     
     libs = MTOA_API[1]
     env.Install(env['TARGET_LIB_PATH'], libs)
+
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -1088,7 +1089,7 @@ for ext in os.listdir(ext_base_dir):
             EXT_SHADERS = EXT[1] 
         if len(EXT) == 3:
             EXT_PROCS = EXT[2]
-        
+
         # EXT may contain a shader result
         ext_arnold = None
         target_type = 'shader'
