@@ -4,6 +4,7 @@ import maya.mel as mel
 import mtoa.core as core
 import platform, os
 import mtoa.utils as mutils
+import mtoa.batchRenderOptions
 _maya_version = mutils.getMayaVersion()
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
@@ -76,6 +77,10 @@ def arnoldBatchRender(option):
         
 def arnoldBatchStop():
     mel.eval('batchRender')
+
+def arnoldBatchRenderOptions():
+    win = mtoa.batchRenderOptions.MtoABatchRenderOptions()
+    win.create()
 
 def arnoldIprStart(editor, resolutionX, resolutionY, camera):
     # Make sure the aiOptions node exists

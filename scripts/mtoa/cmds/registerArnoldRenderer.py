@@ -250,6 +250,7 @@ def _register():
                                                     [('string', 'option')])
     args['batchRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                     [('string', 'option')])
+    args['batchRenderOptionsProcedure'] = utils.pyToMelProc(arnoldRender.arnoldBatchRenderOptions)
     args['batchRenderOptionsStringProcedure'] = utils.pyToMelProc(arnoldRender.arnoldBatchRenderOptionsString, returnType='string')
     args['cancelBatchRenderProcedure']  = utils.pyToMelProc(arnoldRender.arnoldBatchStop)
     args['iprRenderProcedure']          = utils.pyToMelProc(arnoldRender.arnoldIprRender,
