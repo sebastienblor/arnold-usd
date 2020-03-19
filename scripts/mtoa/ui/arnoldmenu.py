@@ -39,54 +39,37 @@ def doCreateStandInFile():
     LoadStandInButtonPush('{}.dso'.format(node))
 
 
-def doExportStandIn(selected=True):
+def doExportStandIn(selected=True, fileFormat="ASS Export"):
     #Save the defaultType
     core.createOptions()
-    default = cmds.optionVar(q='defaultFileExportActiveType')
+    optionVarName = 'defaultFileExportActiveType' if selected else 'defaultFileExportAllType'
+    default = cmds.optionVar(q=optionVarName)
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
     try:
         #Change it to ASS
-        cmds.optionVar(sv=('defaultFileExportActiveType', "ASS Export"))
+        cmds.optionVar(sv=(optionVarName, fileFormat))
         if selected:
             maya.mel.eval('ExportSelection')
         else:
             maya.mel.eval('Export')
     finally:
-        cmds.optionVar(sv=('defaultFileExportActiveType', default))
+        cmds.optionVar(sv=(optionVarName, default))
 
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
 def doExportOptionsStandIn(selected=True):
     core.createOptions()
+    optionVarName = 'defaultFileExportAllType' if selected else 'defaultFileExportActiveType'
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
 
     if selected:
         maya.mel.eval('ExportSelectionOptions')
+        maya.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
     else:
         maya.mel.eval('ExportOptions')
-
-    maya.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
-
-    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
-
-
-def doExportUSD(selected=True):
-    #Save the defaultType
-    core.createOptions()
-    default = cmds.optionVar(q='defaultFileExportActiveType')
-    defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
-    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
-    try:
-        #Change it to ASS
-        cmds.optionVar(sv=('defaultFileExportActiveType', "Arnold-USD"))
-        if selected:
-            maya.mel.eval('ExportSelection')
-        else:
-            maya.mel.eval('Export')
-    finally:
-        cmds.optionVar(sv=('defaultFileExportActiveType', default))
+        maya.mel.eval('setCurrentFileTypeOption ExportAll "" "ASS Export"')
 
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
@@ -436,7 +419,7 @@ def createArnoldMenu():
         addRuntimeMenuItem('ArnoldAlembicExportAll', parent='ArnoldSceneExport', label='Export All to Alembic ..', image='AlembicShelf.png',
                     command='import mtoa.ui.exportalembic;mtoa.ui.exportalembic.exportAll()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the whole scene as a Alembic .abc file')
         addRuntimeMenuItem('ArnoldUsdExportAll', parent='ArnoldSceneExport', label='Export All to USD ..', image='UsdShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn(selected=False)', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the whole scene as a USD file')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn(selected=False, fileFormat="Arnold-USD")', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the whole scene as a USD file')
         cmds.menuItem(parent='ArnoldSceneExport', divider=True)
         addRuntimeMenuItem('ArnoldExportSelectedStandIn', parent='ArnoldSceneExport', label='Export Selection to .ASS..', image='ExportStandinShelf.png',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn(selected=True)', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Standin .ass file')
@@ -446,7 +429,7 @@ def createArnoldMenu():
         addRuntimeMenuItem('ArnoldAlembicExportSelection', parent='ArnoldSceneExport', label='Export Selection to Alembic ..', image='AlembicShelf.png',
                     command='import mtoa.ui.exportalembic;mtoa.ui.exportalembic.exportSelected()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Alembic .abc file')
         addRuntimeMenuItem('ArnoldUsdExportSelection', parent='ArnoldSceneExport', label='Export Selection to USD ..', image='UsdShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportUSD(selected=True)', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a USD file')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn(selected=True, fileFormat="Arnold-USD")', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a USD file')
 
         cmds.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
@@ -463,6 +446,15 @@ def createArnoldMenu():
         addRuntimeMenuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", rtcLabel="Arnold: Create Physical Sky", image='PhysicalSkyShelf.png', keywords='sun;sky;env;dome;ibl',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreatePhysicalSky()', category='Lights', annotation='Create an Arnold Skydome w/ Physical Sky illumination')
         
+        cmds.menuItem('ArnoldShaders', label='Shaders', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        addRuntimeMenuItem('ArnoldExportShaders', label='Export Selected Shaders', parent='ArnoldShaders', keywords='shader',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportShaders()', category="Shaders", annotation='Export the selected shaders to a .ass file')
+        addRuntimeMenuItem('ArnoldImportShaders', label='Import Arnold Shaders', parent='ArnoldShaders', keywords='shader',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportShaders()', category="Shaders", annotation='Import a shader library from a .ass file')
+        cmds.menuItem(parent='ArnoldShaders', divider=True)
+        cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldShaders',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
+        
         customShapes = cmds.arnoldPlugins(listCustomShapes=True)
         if customShapes and len(customShapes) > 0:
             cmds.menuItem('ArnoldCustomShapes', label='Custom Shapes', parent='ArnoldMenu', subMenu=True, tearOff=True)
@@ -473,6 +465,11 @@ def createArnoldMenu():
         operators = cmds.arnoldPlugins(listOperators=True)
         if operators and len(operators) > 0:
             cmds.menuItem('ArnoldOperators', label='Operators', parent='ArnoldMenu', subMenu=True, tearOff=True)
+            addRuntimeMenuItem('ArnoldExportOperators', label='Export Operator Graph', parent='ArnoldOperators', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Operators", annotation='Export an operator graph to a .ass file')
+            addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldOperators', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Operators", annotation='Import an operator graph from a .ass file')
+            cmds.menuItem(parent='ArnoldOperators', divider=True)
             for operator in operators:
                 addRuntimeMenuItem(operator, parent='ArnoldOperators', label=operator, rtcLabel='Arnold: Create {} Operator'.format(operator),
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateOperator("{}")'.format(operator), category = 'Operators')
@@ -512,16 +509,6 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldUpdateTx()', category="Utilities", annotation="Convert / Updates all textures to TX for Arnold rendering")
         cmds.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldLightManager()')
-        cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
-        addRuntimeMenuItem('ArnoldExportOperators', label='Export Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export an operator graph to a .ass file')
-        addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
-        addRuntimeMenuItem('ArnoldExportShaders', label='Export Selected Shaders', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportShaders()', category="Utilities", annotation='Export the selected shaders to a .ass file')
-        addRuntimeMenuItem('ArnoldImportShaders', label='Import Arnold Shaders', parent='ArnoldUtilities', keywords='operator',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportShaders()', category="Utilities", annotation='Import a shader library from a .ass file')
         addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportMaterialx()', category="Utilities", annotation='Export the selected shading trees to .mtlx files')
         addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
