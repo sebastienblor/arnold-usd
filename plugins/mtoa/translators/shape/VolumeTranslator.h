@@ -20,11 +20,9 @@ protected:
       CShapeTranslator()
    {}
    
-//   void ExportBoundingBox(AtNode* procedural);
-
    void ExportVolumeShaders(AtNode* procedural);
    virtual void ExportShaders();
-
+   MString GetFileName();
    AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
    AtNode* ExportVolume(AtNode* volume, bool update);
    virtual void RequestUpdate();
