@@ -18,10 +18,6 @@
 #include "extension/Extension.h"
 #include "extension/ExtensionsManager.h"
 
-// FIXME we shouldn't be including the internal APIs in an extension
-#include "scene/MayaScene.h"
-#include "render/RenderSession.h"
-
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
@@ -98,6 +94,33 @@ static std::string GenerateBobPath(const std::string& exportFile, const AtNode* 
       return exportFile + "-" + nodePart + motionPart + ".bob";
    else
       return exportFile.substr(0, pos) + "-" + nodePart + motionPart + ".bob";
+}
+
+// Return a base path in maya workspace folder, under bifrost.
+// Later on, GenerateBobPath will compute a final .bob filename
+// for every step
+
+static MString GetBaseBobPath()
+{
+   MString filename;
+   MString sceneFilename;
+   MGlobal::executeCommand("file -q -sn", sceneFilename);
+
+   MStatus status = MGlobal::executeCommand(MString("workspace -q -rd;"), filename);
+
+   // If no workspace was found, let's just return the name of the scene,
+   // the bob file will then be saved next to the maya scene
+   if (status != MS::kSuccess)
+      return sceneFilename;
+   
+   filename += "/bifrost/";
+
+   // extract the basename of the maya scene   
+   MFileObject fileObj;
+   fileObj.setRawFullName(sceneFilename);
+
+   filename += fileObj.rawName();
+   return filename;
 }
 
 
@@ -358,8 +381,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
       unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? GetNumMotionSteps() : 1;
 
       // FIXME we shouldn't be calling the internal APIs in an extension
-      MString exportFilePath = CMayaScene::GetRenderSession()->RenderOptions()->outputAssFile();
-      if (GetSessionMode() != MTOA_SESSION_ASS || exportFilePath.length() == 0)
+      MString baseBobPath = GetBaseBobPath();
+      if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
       {
          // Pass pointers (handles) over for speed, as there's no danger of
          // pointers being written to disk
@@ -397,7 +420,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
             AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "file");
             AtArray *filenames_array = AiArrayAllocate(1, numMotionSteps, AI_TYPE_STRING);
 
-            std::string bobFilePath = GenerateBobPath(exportFilePath.asChar(), shape, step);
+            std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, step);
             AiArraySetStr(filenames_array, step, AtString(bobFilePath.c_str()));
 
             AiMsgInfo("[mtoa.bifrost_graph] %s: serialized Bifrost data too large, serializing to disk as: %s",
@@ -713,9 +736,8 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    }
 
    unsigned int step = GetMotionStep();
-
-   // FIXME we shouldn't be calling the internal APIs in an extension
-   MString exportFilePath = CMayaScene::GetRenderSession()->RenderOptions()->outputAssFile();
+   
+   MString baseBobPath = GetBaseBobPath();
 
    MPlug dataStreamPlug     = FindMayaPlug("outputBifrostDataStream"); // Preferred plug
    MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");    // Legacy plug
@@ -736,7 +758,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
       AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
 
-      if (GetSessionMode() != MTOA_SESSION_ASS || exportFilePath.length() == 0)
+      if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
       {
          // Pass pointers (handles) over for speed, as there's no danger of
          // pointers being written to disk
@@ -767,7 +789,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
                if (key == step)
                   continue;
 
-               std::string bobFilePath = GenerateBobPath(exportFilePath.asChar(), shape, key);
+               std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, key);
                AiArraySetStr(newDataArray, key, AtString(bobFilePath.c_str()));
                FILE *fp = fopen(bobFilePath.c_str(), "wb");
                fwrite(AiArrayMapKey(dataArray, key), sizeof(uint8_t), keySize, fp);
@@ -795,7 +817,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
                fp = fopen(current_filename.c_str(), "wb");
             else
             {
-               std::string bobFilePath = GenerateBobPath(exportFilePath.asChar(), shape, step);
+               std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, step);
                AiArraySetStr(dataArray, step, AtString(bobFilePath.c_str()));
                fp = fopen(bobFilePath.c_str(), "wb");
             }

@@ -87,6 +87,38 @@ namespace{
    static volatile int s_renderingFinished;
 }
 
+namespace
+{
+   MString VerifyFileName(MString fileName, bool compressed)
+   {
+      unsigned int len = fileName.length();
+      if ((len > 5) && ((fileName.substring(len - 4, len - 1).toLowerCase() == ".usd") ||
+                        (fileName.substring(len - 5, len - 1).toLowerCase() == ".usda")||
+                        (fileName.substring(len - 5, len - 1).toLowerCase() == ".usdc")))
+         return fileName;
+
+      if (!compressed)
+      {
+         if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() != ".ass"))
+            fileName += ".ass";
+      }
+      else
+      {
+         if ((len < 7) || (fileName.substring(len - 7, len - 1).toLowerCase() != ".ass.gz"))
+         {
+            if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() == ".ass"))
+               fileName += ".gz";
+            else if ((len < 3) || (fileName.substring(len - 3, len - 1).toLowerCase() == ".gz"))
+               fileName = fileName.substring(0, len - 4) + ".ass.gz";
+            else
+               fileName += ".ass.gz";
+         }
+      }
+
+      return fileName;
+   }
+}
+
 MStatus CRenderSession::Begin(const CRenderOptions &options)
 {
    if (AiUniverseIsActive())
@@ -583,39 +615,6 @@ int CRenderSession::DoBatchRender()
    return AiRender(AI_RENDER_MODE_CAMERA);
 }
 
-MString CRenderSession::VerifyFileName(MString fileName, bool compressed)
-{
-   // if no filename is provided, let's use the outputAssFile from the render options
-   if (fileName.length() == 0)
-      fileName = m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde();
-
-   unsigned int len = fileName.length();
-   if ((len > 5) && ((fileName.substring(len - 4, len - 1).toLowerCase() == ".usd") ||
-                     (fileName.substring(len - 5, len - 1).toLowerCase() == ".usda")||
-                     (fileName.substring(len - 5, len - 1).toLowerCase() == ".usdc")))
-      return fileName;
-
-   if (!compressed)
-   {
-      if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() != ".ass"))
-         fileName += ".ass";
-   }
-   else
-   {
-      if ((len < 7) || (fileName.substring(len - 7, len - 1).toLowerCase() != ".ass.gz"))
-      {
-         if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() == ".ass"))
-            fileName += ".gz";
-         else if ((len < 3) || (fileName.substring(len - 3, len - 1).toLowerCase() == ".gz"))
-            fileName = fileName.substring(0, len - 4) + ".ass.gz";
-         else
-            fileName += ".ass.gz";
-      }
-   }
-
-   return fileName;
-}
-
 MString CRenderSession::GetAssName(const MString& customName,
                                         const MCommonRenderSettingsData& renderGlobals,
                                         double frameNumber,
@@ -676,8 +675,16 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed, b
    MString fileName;
    AtNode *options = AiUniverseGetOptions();
 
-   fileName = VerifyFileName(customFileName, compressed);
-   
+   // if no custom fileName is given, use the default one in the environment variable
+   if (customFileName.length() > 0)
+   {
+      fileName = VerifyFileName(customFileName.asChar(), compressed);
+   }
+   else
+   {
+      fileName = VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), compressed);
+   }
+
    if (fileName.length() == 0)
    {
       AiMsgError("[mtoa] File name must be set before exporting .ass file");

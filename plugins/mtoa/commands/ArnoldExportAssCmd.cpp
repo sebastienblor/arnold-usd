@@ -394,32 +394,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
             
       arnoldSession->SetExportAllShadingGroups(exportAllShadingGroups);
 
-      // Set the renderOptions "outputAssFile" based on the first camera name.
-      // This is only needed for the bifrost translator who wants to know where the 
-      // ass file is being exported.
       MFnDependencyNode fnCam;
-      // Set the export file path based on the first to be generated
-      if (cameras.length() > 0 && cameras[0].isValid())
-      {
-         fnCam.setObject(cameras[0].transform());
-         cameraName = fnCam.name();
-      } else
-      {
-         cameraName = "";
-      }
-
-      renderSession->RenderOptions()->setOutputAssFile(
-                renderSession->VerifyFileName(renderSession->GetAssName(customFileName,
-                                              renderGlobals,
-                                              curframe,
-                                              sceneName,
-                                              cameraName,
-                                              assExtension,
-                                              renderLayer,
-                                              createDirectory,
-                                              isSequence,
-                                              subFrames,
-                                              batch, &status), compressed));
 
       // Export the scene or the selection
       if (exportSelected)
