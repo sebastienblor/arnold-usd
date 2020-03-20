@@ -72,8 +72,6 @@ public:
 
    static void RenderViewPlayblast(bool state, void * data);
 
-
-
    // Render Methods.
    /// Render into the Render View, not IPR.
    int DoInteractiveRender();
@@ -195,6 +193,7 @@ public:
       
    const AtRGBA *GetDisplayedBuffer(unsigned int *w = NULL, unsigned int *h = NULL);
    static void PostDisplay();
+   MString VerifyFileName(MString fileName, bool compressed);
 
 private:
 

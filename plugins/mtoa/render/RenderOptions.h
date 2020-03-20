@@ -111,6 +111,10 @@ public:
    {
       return m_outputAssFile;
    }
+   void setOutputAssFile(const MString &f)
+   {
+      m_outputAssFile = f;
+   }
 
    unsigned int outputAssMask() const
    {
