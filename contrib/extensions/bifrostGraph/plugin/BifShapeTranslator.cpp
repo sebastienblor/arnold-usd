@@ -3,6 +3,7 @@
 
 #include "BifShapeTranslator.h"
 
+#include <maya/MAnimControl.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MProfiler.h>
@@ -27,6 +28,10 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <Windows.h>
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 
@@ -69,31 +74,87 @@ static const size_t ARNOLD_MAX_PARAMETER_BYTES = size_t(2) * 1024UL * 1024UL * 1
 static const size_t MAX_PATH_LENGTH = 4096;
 
 
-static std::string GenerateBobPath(const std::string& exportFile, const AtNode* node, unsigned int step)
+// Input is a file that ends with the maya scene (.ma or .mb), subtract off the
+// extension and make it unique for this node and time sample.
+static std::string GenerateBobPath(const std::string& exportFile, const AtNode* node, double frame)
 {
+   std::ostringstream bobPathStream;
+
+   // Drop the extension
+   std::string exportPrefix;
+   size_t pos = exportFile.rfind('.');
+   size_t dirBasePos = exportFile.rfind('/');
+   if (pos == std::string::npos || pos < dirBasePos)
+      exportPrefix = exportFile;
+   else
+      exportPrefix = exportFile.substr(0, pos);
+   bobPathStream << exportPrefix << "-";
+
    std::string nodePart(AiNodeGetName(node));
    // Sanitize node name so it's suitable to be an on-disk filename
-   for (size_t i = 0; i < nodePart.length(); ++i)
+   for (size_t i = 0; i < nodePart.size(); ++i)
    {
       if (nodePart[i] == '\\' || nodePart[i] == '/' || nodePart[i] == '|' || nodePart[i] == ':')
          nodePart[i] = '_';
    }
    // Skip any leading underscores, they're not helpful
    nodePart = nodePart.substr(nodePart.find_first_not_of('_'), std::string::npos);
+   bobPathStream << nodePart;
 
-   // We don't need the frame here, because file export typically auto-names the
-   // file with the frame information already in it.  We just need to differentiate
-   // by motion step so we don't overwrite the same file over and over.
-   std::ostringstream numberStream;
-   numberStream << "-" << step;
-   numberStream.flush();
-   std::string motionPart = numberStream.str();
+   // Generate a frame spec from a frame, of the form ..._<[-]int>_<4 digit frac>
+   double wholePart;
+   double fracPart = std::modf(frame, &wholePart);
+   int intSpec = static_cast<int>(wholePart);
+   int fracSpec = static_cast<int>(std::abs(fracPart) * 1000.0);
+   bobPathStream << "_" << intSpec << '_' << fracSpec;
 
-   auto pos = exportFile.rfind('.');
-   if (pos == std::string::npos || pos == 0)
-      return exportFile + "-" + nodePart + motionPart + ".bob";
-   else
-      return exportFile.substr(0, pos) + "-" + nodePart + motionPart + ".bob";
+   bobPathStream << ".bob";
+   bobPathStream.flush();
+
+   std::string path = bobPathStream.str();
+   // Convert to native path for Windows
+#ifdef _WIN32
+   for (size_t i = 0; i < path.size(); ++i)
+   {
+      if (path[i] == '/')
+         path[i] = '\\';
+   }
+#endif
+
+   // Create all parent directories as needed so the final file can be written
+   bool success = true;
+   for (size_t delimiterPos = path.find_first_of("/\\"); delimiterPos != std::string::npos; delimiterPos = path.find_first_of("/\\", delimiterPos + 1))
+   {
+      std::string subpath = path.substr(0, delimiterPos);
+      if (subpath.empty())
+         continue;
+#ifdef _WIN32
+      int err = _mkdir(subpath.c_str());
+      if (err != 0 && errno != EEXIST)
+      {
+         AiMsgWarning("[mtoa.bifrost_graph] %s: could not create directories for path %s (subpath %s, error=%d)",
+                      AiNodeGetName(node),
+                      path.c_str(),
+                      subpath.c_str(),
+                      err);
+         success = false;
+         break;
+      }
+#else
+      int err = mkdir(subpath.c_str(), 0755);
+      if (err != 0 && errno != EEXIST && errno != EACCES)
+      {
+         AiMsgWarning("[mtoa.bifrost_graph] %s: could not create directories for path %s (subpath %s, error=%d)",
+                      AiNodeGetName(node),
+                      path.c_str(),
+                      subpath.c_str(),
+                      err);
+         success = false;
+         break;
+      }
+#endif
+   }
+   return success ? path : std::string();
 }
 
 // Return a base path in maya workspace folder, under bifrost.
@@ -112,10 +173,10 @@ static MString GetBaseBobPath()
    // the bob file will then be saved next to the maya scene
    if (status != MS::kSuccess)
       return sceneFilename;
-   
+
    filename += "/bifrost/";
 
-   // extract the basename of the maya scene   
+   // extract the basename of the maya scene
    MFileObject fileObj;
    fileObj.setRawFullName(sceneFilename);
 
@@ -351,6 +412,8 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
 void CBifShapeTranslator::Export( AtNode *shape )
 {
    unsigned int step = GetMotionStep();
+   double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
@@ -364,9 +427,10 @@ void CBifShapeTranslator::Export( AtNode *shape )
    MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");    // Legacy plug
    if (!dataStreamPlug.isNull() && s_arnoldBifrostABIRev >= 2)
    {
-      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputBifrostDataStream for motion step %u",
+      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputBifrostDataStream for motion step %u (frame %f)",
                  AiNodeGetName(shape),
-                 step);
+                 step,
+                 frame);
       MDataHandle dataStreamHandle;
       dataStreamPlug.getValue(dataStreamHandle);
       MFnDoubleArrayData arrData(dataStreamHandle.data());
@@ -380,7 +444,6 @@ void CBifShapeTranslator::Export( AtNode *shape )
 
       unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? GetNumMotionSteps() : 1;
 
-      // FIXME we shouldn't be calling the internal APIs in an extension
       MString baseBobPath = GetBaseBobPath();
       if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
       {
@@ -416,34 +479,38 @@ void CBifShapeTranslator::Export( AtNode *shape )
          if (serialisedNBytes >= ARNOLD_MAX_PARAMETER_BYTES)
          {
             // Write the input to a file and have the proc it later
-
-            AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "file");
-            AtArray *filenames_array = AiArrayAllocate(1, numMotionSteps, AI_TYPE_STRING);
-
-            std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, step);
-            AiArraySetStr(filenames_array, step, AtString(bobFilePath.c_str()));
-
-            AiMsgInfo("[mtoa.bifrost_graph] %s: serialized Bifrost data too large, serializing to disk as: %s",
-                      AiNodeGetName(shape),
-                      bobFilePath.c_str());
-
-            FILE *fp = fopen(bobFilePath.c_str(), "wb");
-            uint8_t* data = serialisedData;
-            size_t numBytesLeft = serialisedNBytes;
-            while (numBytesLeft > 0)
+            std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, frame);
+            if (!bobFilePath.empty())
             {
-               size_t bytesToWrite = 2 * 1024 * 1024;
-               if (bytesToWrite > numBytesLeft)
-                  bytesToWrite = numBytesLeft;
-               fwrite(data, sizeof(uint8_t), bytesToWrite, fp);
-               numBytesLeft -= bytesToWrite;
-               data += bytesToWrite;
-            }
-            fclose(fp);
+                AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "file");
+                AtArray *filenames_array = AiArrayAllocate(1, numMotionSteps, AI_TYPE_STRING);
 
-            AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
-            AiNodeSetArray(shape, "bifrost:input0", filenames_array);
-            AiNodeSetArray(shape, "input_interpretations", interpsArray);
+                AiArraySetStr(filenames_array, step, AtString(bobFilePath.c_str()));
+
+                AiMsgInfo("[mtoa.bifrost_graph] %s: serialized Bifrost data too large, serializing to disk as: %s",
+                          AiNodeGetName(shape),
+                          bobFilePath.c_str());
+
+                FILE *fp = fopen(bobFilePath.c_str(), "wb");
+                uint8_t* data = serialisedData;
+                size_t numBytesLeft = serialisedNBytes;
+                while (numBytesLeft > 0)
+                {
+                   size_t bytesToWrite = 2 * 1024 * 1024;
+                   if (bytesToWrite > numBytesLeft)
+                      bytesToWrite = numBytesLeft;
+                   fwrite(data, sizeof(uint8_t), bytesToWrite, fp);
+                   numBytesLeft -= bytesToWrite;
+                   data += bytesToWrite;
+                }
+                fclose(fp);
+
+                AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
+                AiNodeSetArray(shape, "bifrost:input0", filenames_array);
+                AiNodeSetArray(shape, "input_interpretations", interpsArray);
+            }
+            else
+               AiMsgWarning("[mtoa.bifrost_graph] %s: could not write Bifrost serialized data, maya project area inaccessible", AiNodeGetName(shape));
          }
          else
          {
@@ -484,9 +551,10 @@ void CBifShapeTranslator::Export( AtNode *shape )
       // Legacy plug for backwards compatibility.  This plug can only output
       // up to 4 GB of data maximum, see ARNOLD-147 for details.
 
-      AiMsgInfo("[mtoa.bifrost_graph] %s: exporting plug outputSerializedData for motio step %u",
+      AiMsgInfo("[mtoa.bifrost_graph] %s: exporting plug outputSerializedData for motion step %u (frame %f)",
                 AiNodeGetName(shape),
-                step);
+                step,
+                frame);
       MDataHandle serialisedDataHandle;
       serialisedDataPlug.getValue(serialisedDataHandle);
       MFnDoubleArrayData arrData(serialisedDataHandle.data());
@@ -736,7 +804,8 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
    }
 
    unsigned int step = GetMotionStep();
-   
+   double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+
    MString baseBobPath = GetBaseBobPath();
 
    MPlug dataStreamPlug     = FindMayaPlug("outputBifrostDataStream"); // Preferred plug
@@ -747,9 +816,10 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    if (!dataStreamPlug.isNull())
    {
-      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputBifrostDataStream for motion step %u",
+      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputBifrostDataStream for motion step %u (frame %f)",
                  AiNodeGetName(shape),
-                 step);
+                 step,
+                 frame);
       MDataHandle dataStreamHandle;
       dataStreamPlug.getValue(dataStreamHandle);
       MFnDoubleArrayData arrData(dataStreamHandle.data());
@@ -782,6 +852,8 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
             // Previous motion samples were directly serialized, but this sample is over
             // the limit for parameter size, we need to stream out all already-written
             // steps to files as well.
+            unsigned int frameSteps = 1;
+            const double *frameTimes = GetMotionFrames(frameSteps);
             size_t keySize = AiArrayGetKeySize(dataArray);
             AtArray *newDataArray = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_STRING);
             for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
@@ -789,12 +861,24 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
                if (key == step)
                   continue;
 
-               std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, key);
-               AiArraySetStr(newDataArray, key, AtString(bobFilePath.c_str()));
-               FILE *fp = fopen(bobFilePath.c_str(), "wb");
-               fwrite(AiArrayMapKey(dataArray, key), sizeof(uint8_t), keySize, fp);
-               fclose(fp);
-               AiArrayUnmap(dataArray);
+               // Rewrite the data with the frame time of the other motion key (if available)
+               double frameTime = (key < frameSteps && frameTimes != NULL) ? frameTimes[key] : frame;
+               std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, frameTime);
+               if (!bobFilePath.empty())
+               {
+                  AiArraySetStr(newDataArray, key, AtString(bobFilePath.c_str()));
+                  FILE *fp = fopen(bobFilePath.c_str(), "wb");
+                  fwrite(AiArrayMapKey(dataArray, key), sizeof(uint8_t), keySize, fp);
+                  fclose(fp);
+                  AiArrayUnmap(dataArray);
+               }
+               else
+               {
+                  AiMsgWarning("[mtoa.bifrost_graph] %s: could not write Bifrost serialized data, maya project area inaccessible", AiNodeGetName(shape));
+                  AiFree(serialisedData);
+                  dataStreamPlug.destructHandle(dataStreamHandle);
+                  return;
+               }
             }
 
             AiNodeResetParameter(shape, "bifrost:input0");
@@ -812,18 +896,17 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
          if (AiArrayGetType(dataArray) == AI_TYPE_STRING)
          {
             FILE *fp = NULL;
-            AtString current_filename = AiArrayGetStr(dataArray, step);
-            if (!current_filename.empty())
-               fp = fopen(current_filename.c_str(), "wb");
-            else
+            std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, frame);
+            if (!bobFilePath.empty())
             {
-               std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, step);
                AiArraySetStr(dataArray, step, AtString(bobFilePath.c_str()));
                fp = fopen(bobFilePath.c_str(), "wb");
+               fwrite(&serialisedData[0], sizeof(uint8_t), serialisedSize, fp);
+               fclose(fp);
             }
+            else
+               AiMsgWarning("[mtoa.bifrost_graph] %s: could not write Bifrost serialized data, maya project area inaccessible", AiNodeGetName(shape));
 
-            fwrite(&serialisedData[0], sizeof(uint8_t), serialisedSize, fp);
-            fclose(fp);
             AiFree(serialisedData);
             dataStreamPlug.destructHandle(dataStreamHandle);
             return;
@@ -897,9 +980,10 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
       // Legacy plug for backwards compatibility.  This plug can only output
       // up to 4 GB of data maximum, see ARNOLD-147 for details.
 
-      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputSerializedData for motion step %u",
+      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputSerializedData for motion step %u (frame %f)",
                  AiNodeGetName(shape),
-                 step);
+                 step,
+                 frame);
       MDataHandle serialisedDataHandle;
       serialisedDataPlug.getValue(serialisedDataHandle);
       MFnDoubleArrayData arrData(serialisedDataHandle.data());
