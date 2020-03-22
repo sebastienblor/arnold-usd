@@ -285,7 +285,9 @@ static void GetArnoldBifrostAPIExtensions(const char* dsoPath, const char* dsoNa
 {
     typedef int (*ArnoldBifrostABIRevision)();
 #ifdef _WIN32
-    HMODULE handle = GetModuleHandleA(dsoName);
+    std::string fullPath = std::string(dsoPath) + "/" + std::string(dsoName) + ".dll";
+    // Load and leak the handle, so Arnold doesn't unload it on us and invalidate our function references!
+    HMODULE handle = LoadLibraryA(dsoName);
     if (handle != NULL)
     {
        ArnoldBifrostABIRevision revFunc = (ArnoldBifrostABIRevision)GetProcAddress(handle, "ArnoldBifrostABIRevision");
@@ -299,6 +301,7 @@ static void GetArnoldBifrostAPIExtensions(const char* dsoPath, const char* dsoNa
     }
 #else
     std::string fullPath = std::string(dsoPath) + "/" + std::string(dsoName) + ".so";
+    // Load and leak the handle, so Arnold doesn't unload it on us and invalidate our function references!
     void *handle = dlopen(fullPath.c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (handle != NULL)
     {
