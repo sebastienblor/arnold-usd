@@ -3651,19 +3651,18 @@ void* CreateQuadShadingSwitchTranslator()
 
 // Toon
 //
-
 void CToonTranslator::Export(AtNode* shader)
 {
    CShaderTranslator::Export(shader);
 
-   // Now we need to do something special for attribute "rim_light".
+   // Now we need to do something special for attribute "rim_light" .
    // It is a string in arnold, but it's actually an implicit connection to another node.
    // We need to ensure this connection is created in the translator by calling ExportConnectedNode,
    // and we need to use the real name of the light node, which might be different from the maya name.
-   MPlug lightPlug = FindMayaPlug("rimLight");
-   if (!lightPlug.isNull())
+   MPlug rimLightPlug = FindMayaPlug("rimLight");
+   if (!rimLightPlug.isNull())
    {
-      MString lightName = lightPlug.asString();
+      MString lightName = rimLightPlug.asString();
       if (lightName.length() > 0)
       {
          MSelectionList activeList;
@@ -3685,6 +3684,55 @@ void CToonTranslator::Export(AtNode* shader)
          }
       }
    }
+
+   // Same for attribute "lights" that can contain a list of lights
+   MPlug lightsPlug = FindMayaPlug("lights");
+   MString lightsStr;
+
+   if (!lightsPlug.isNull())
+   {
+      MString lightName = lightsPlug.asString();
+      if (lightName.length() > 0)
+      {
+         // Split the string with ";" or " " separator
+         char separator = (lightName.indexW(';') >= 0) ? ';' : ' ';
+         MStringArray splitStr;
+         lightName.split(separator, splitStr);
+         
+         for (unsigned int i = 0; i < splitStr.length(); ++i)
+         {
+            MSelectionList activeList;
+            activeList.add(splitStr[i]);
+            bool foundLight = false;
+            if (activeList.length() > 0)
+            {
+               MObject lightObj;
+               activeList.getDependNode(0, lightObj);
+               if (!lightObj.isNull())
+               {
+                  MPlug dummyPlug = MFnDependencyNode(lightObj).findPlug("message", true);
+                  if (!dummyPlug.isNull())
+                  {
+                     AtNode *lightArnoldNode = ExportConnectedNode(dummyPlug);
+                     AtString lightArnoldName = (lightArnoldNode) ? AtString(AiNodeGetName(lightArnoldNode)) : AtString("");
+                     foundLight = true;
+                     if (lightsStr.length() > 0)
+                        lightsStr += MString(";");
+                     lightsStr += lightArnoldName;
+                  }               
+               }
+            }
+            if (!foundLight)
+            {
+               // if for some reason the light wasn't found, we put instead the original unmodified name
+               if (lightsStr.length() > 0)
+                  lightsStr += MString(";");
+               lightsStr += splitStr[i];
+            }
+         }
+      }
+   }
+   AiNodeSetStr(shader, "lights", lightsStr.asChar()); 
 }
 
 AtNode* CToonTranslator::CreateArnoldNodes()
