@@ -581,6 +581,10 @@ namespace // <anonymous>
                                     "",
                                     CArnoldMaterialXShaderTranslator::creator,
                                     CArnoldMaterialXShaderTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiToon",
+                                       "",
+                                       CToonTranslator::creator,
+                                       CToonTranslator::NodeInitializer);         
 
       // Lights
       builtin->RegisterTranslator("directionalLight",
@@ -920,9 +924,6 @@ namespace // <anonymous>
                                        "",
                                        CMayaClampTranslator::creator);
 
-         shaders->RegisterTranslator("aiToon",
-                                       "",
-                                       CToonTranslator::creator);
          shaders->RegisterTranslator("condition",
                                        "",
                                        CConditionTranslator::creator);
