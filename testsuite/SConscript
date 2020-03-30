@@ -389,7 +389,7 @@ def run_test(target, source, env):
       ref_thumbnail = os.path.join(test_dir, 'ref_'+output_images[index] + '.png')
 
       if test_env['MAKE_THUMBNAILS'] and os.path.exists(reference_image) :
-         cmd = oiiotool_path + ' -v --info ' + reference_image
+         cmd = '"' + oiiotool_path + '"'  + ' -v --info ' +  '"' + reference_image + '"'
          retcode, info = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell)
 
          if show_test_output:
@@ -441,13 +441,14 @@ def run_test(target, source, env):
                ## if the test passed - compare the generated image to the reference
                ## and compute the diff jpeg image by substracting them, taking the absolute value,
                ## and multiplying by 4
-               img_diff_opt = '--threads 1 --hardfail %f --fail %f --failpercent %f --warnpercent %f' % (diff_hardfail, diff_fail, diff_failpercent, diff_warnpercent)
-               img_diff_cmd = ('%s ' + img_diff_opt + ' --diff %s %s') % (oiiotool_path, output_image, reference_image)
+               img_diff_opt = ' --threads 1 --hardfail %f --fail %f --failpercent %f --warnpercent %f' % (diff_hardfail, diff_fail, diff_failpercent, diff_warnpercent)
+               img_diff_cmd = ('"%s" ' + img_diff_opt + ' --diff "%s" "%s"') % (oiiotool_path, output_image, reference_image)
                if test_env['MAKE_THUMBNAILS'] :
                   if is_deep :
                      img_diff_cmd += ' --flatten --swap --flatten --swap '
                   img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o ' % tuple([channels] + [alpha] * 4)
-                  img_diff_cmd += dif_thumbnail + ' '
+                  img_diff_cmd += '"' + dif_thumbnail + '" '
+               print "Image DIFF " , img_diff_cmd
                retcode, out = sa.system.execute(img_diff_cmd, cwd=test_dir, env=local_env, shell=use_shell)
                with open(os.path.join(test_dir, "%s.diff.log") % TEST_NAME, 'w') as f:
                   f.writelines(l + '\n' for l in out)
@@ -461,13 +462,13 @@ def run_test(target, source, env):
             ## convert these to jpg form for makeweb
             if test_env['MAKE_THUMBNAILS']:
                if os.path.exists(output_image):
-                  cmd = oiiotool_path + ' --threads 1 ' + output_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + new_thumbnail
+                  cmd = '"' + oiiotool_path + '"' + ' --threads 1 ' + '"' + output_image + '"' + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + '"' + new_thumbnail + '"'
                   sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
                else:
                   status = 'FAILED'
 
       if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image) and test_env['MAKE_THUMBNAILS'] :
-         cmd = oiiotool_path + ' --threads 1 ' + reference_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + ref_thumbnail
+         cmd = '"' + oiiotool_path + '"' + ' --threads 1 ' + '"' + reference_image + '"' + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + '"' + ref_thumbnail + '"'
          print "CMD is " , cmd 
          sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
 
