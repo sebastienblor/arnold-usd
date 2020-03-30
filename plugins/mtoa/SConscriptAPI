@@ -87,14 +87,14 @@ if not mayaQtFolder or not mayaQtTarGz :
     mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
 
-if not os.path.isdir(mayaQtFolder):
-    if os.path.exists(mayaQtTarGz):
-        print "Extracting Qt Files..."
-        import tarfile
-        tfile = tarfile.open(mayaQtTarGz, 'r:gz')
-        tfile.extractall(mayaQtFolder)
-    else:
-        print "Error : Qt Files not Found"
+#if not os.path.isdir(mayaQtFolder):
+#    if os.path.exists(mayaQtTarGz):
+#        print "Extracting Qt Files..."
+#        import tarfile
+#        tfile = tarfile.open(mayaQtTarGz, 'r:gz')
+#        tfile.extractall(mayaQtFolder)
+#    else:
+#        print "Error : Qt Files not Found"
 
 
 local_env['QT_ROOT_DIR'] = mayaQtFolder
