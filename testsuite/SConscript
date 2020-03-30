@@ -468,6 +468,7 @@ def run_test(target, source, env):
 
       if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image) and test_env['MAKE_THUMBNAILS'] :
          cmd = oiiotool_path + ' --threads 1 ' + reference_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + ref_thumbnail
+         print "CMD is " , cmd 
          sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
 
    readme_file = os.path.join(test_dir, 'README')
