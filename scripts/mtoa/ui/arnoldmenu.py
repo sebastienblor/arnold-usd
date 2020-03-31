@@ -165,7 +165,7 @@ def arnoldAboutDialog():
     mtoaBuildDate = cmds.arnoldPlugins(getBuildDate=True)
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
-    arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
+    arnoldAboutText += "\nArnold Core "+ai.AiGetVersionString()
     
     arnoldAcknowledgements = u"\nDeveloped by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez, Pál Mezei,\nMichael Farnsworth, Adam Felt, Bernard Kwok, Niklas Harrysson,\nJonathan Feldstein, Cynthia Beauchemin, Patrick Hodoul,\nSebastien Blaineau-Ortega, Ashley Handscomb Retallack, \nKrishnan Ramachandran\n\n"
     arnoldAcknowledgements += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant, Ryan Harvey, \nYvonne Yeung, Michael Wile, Nicholas Verschelde,\nStephen Blair, Nikola Milosevic, Orn Gunnarsson"
@@ -186,7 +186,7 @@ def arnoldAboutDialog():
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
 
   
-    if (latestVersionNumber > currentVersionNumber and latestVersionNumber):
+    if (latestVersionNumber and latestVersionNumber > currentVersionNumber):
         newVersionText = "New Mtoa Version " + latestVersionNumber + " is now available"
         cmds.text(label="")
         cmds.text(label="")
