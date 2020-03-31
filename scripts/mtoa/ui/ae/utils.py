@@ -97,6 +97,16 @@ def expandEnvVars(filePath):
 def aeCallback(func):
     return utils.pyToMelProc(func, [('string', 'nodeName')], procPrefix='AEArnoldCallback')
 
+def aeAttrFunc(funcstr):
+    def makeFunc(funcstr, *x, **z):
+        cmd = funcstr
+        if len(z):
+            cmd += " {}".format(" ".join(["-{} {}".format(k, v if isinstance(v, str) else "") for k, v in z.items()]))
+        if len(x):
+            cmd += " {}".format(" ".join(x))
+        return mel.eval(cmd)
+    return lambda *a, **b: makeFunc(funcstr, *a, **b)
+
 def _makeAEProc(modname, objname, procname):
     contents = '''global proc %(procname)s( string $nodeName ){
     python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(objname)s','" + $nodeName + "')");}'''
