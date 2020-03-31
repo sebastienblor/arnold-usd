@@ -448,7 +448,6 @@ def run_test(target, source, env):
                      img_diff_cmd += ' --flatten --swap --flatten --swap '
                   img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o ' % tuple([channels] + [alpha] * 4)
                   img_diff_cmd += '"' + dif_thumbnail + '" '
-               print "Image DIFF " , img_diff_cmd
                retcode, out = sa.system.execute(img_diff_cmd, cwd=test_dir, env=local_env, shell=use_shell)
                with open(os.path.join(test_dir, "%s.diff.log") % TEST_NAME, 'w') as f:
                   f.writelines(l + '\n' for l in out)
@@ -469,7 +468,6 @@ def run_test(target, source, env):
 
       if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image) and test_env['MAKE_THUMBNAILS'] :
          cmd = '"' + oiiotool_path + '"' + ' --threads 1 ' + '"' + reference_image + '"' + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + '"' + ref_thumbnail + '"'
-         print "CMD is " , cmd 
          sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
 
    readme_file = os.path.join(test_dir, 'README')
