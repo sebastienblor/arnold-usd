@@ -78,7 +78,7 @@ vars.AddVariables(
     BoolVariable('SHOW_PLOTS', 'Display timing plots for the testsuite. gnuplot has to be found in the environment path.', False),
     BoolVariable('CLEAN_TESTSUITE_RESULTS', 'Remove all the test files from the testsuite output and only keep the reports/images', False),
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
-    ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_001*'),
+    ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_0015*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
     PathVariable('BUILD_DIR',
@@ -361,6 +361,7 @@ if build_id_file_read != build_id_file_contents:
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
+print " Is there a problem here " 
 print 'Maya version   : %s' % maya_version
 print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
