@@ -25,6 +25,8 @@ except ModuleNotFoundError as e:
 from uuid import getnode as get_mac
 import os
 import sys
+if sys.version_info[0] < 3:
+    from io import open
 
 defaultFolder = ""
 defaultOperatorsFolder = ""
@@ -156,7 +158,7 @@ def arnoldAboutDialog():
     except:
         pass
 
-    with open(pluginPath, "r") as fileHandle:
+    with open(pluginPath, "r", encoding="utf8") as fileHandle:
         legaltext = fileHandle.read()
 
     arnoldAboutText =  u"Arnold for Maya\n\n"

@@ -31,6 +31,11 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 
 try:
+    ModuleNotFoundError
+except NameError as e:
+    ModuleNotFoundError = ImportError
+
+try:
     from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 except ModuleNotFoundError as e:
     AlembicTransverser = None
