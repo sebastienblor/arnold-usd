@@ -27,8 +27,6 @@ is_linux   = os_name == _linux
 is_darwin  = os_name == _darwin
 is_windows = os_name == _windows
 
-print "I'm running the Sconscript of the testsuite"
-
 Import('env')
 
 # Total running time for all tests
@@ -49,7 +47,6 @@ move_command     = sa.system.is_windows and '$move /Y' or '$mv'
 lib_extension    = {'darwin' : '.so', 'linux'  : '.so', 'windows': '.dll'}.get(sa.system.os, None)
 
 def list_tests(target, source, env):
-   print "List_tests"
    for file in source:
       name = os.path.basename(os.path.dirname(str(file)))
       with open(str(file), 'r') as f:
@@ -146,7 +143,6 @@ def list_groups(target, source, env):
 listgroups_bld = Builder(action = Action(list_groups, "Listing test groups..."))
 
 def run_test(target, source, env):
-   print "I'm supposed to be running a test"
    global TOTAL_RUNNING_TIME
    status = 'OK'
    status_valgrind = 'OK'
@@ -452,7 +448,6 @@ def run_test(target, source, env):
                      img_diff_cmd += ' --flatten --swap --flatten --swap '
                   img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o ' % tuple([channels] + [alpha] * 4)
                   img_diff_cmd += '"' + dif_thumbnail + '" '
-               print "Image DIFF " , img_diff_cmd
                retcode, out = sa.system.execute(img_diff_cmd, cwd=test_dir, env=local_env, shell=use_shell)
                with open(os.path.join(test_dir, "%s.diff.log") % TEST_NAME, 'w') as f:
                   f.writelines(l + '\n' for l in out)
@@ -473,7 +468,6 @@ def run_test(target, source, env):
 
       if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image) and test_env['MAKE_THUMBNAILS'] :
          cmd = '"' + oiiotool_path + '"' + ' --threads 1 ' + '"' + reference_image + '"' + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + '"' + ref_thumbnail + '"'
-         print "CMD is " , cmd 
          sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
 
    readme_file = os.path.join(test_dir, 'README')

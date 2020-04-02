@@ -21,7 +21,7 @@ testsuite_common = os.path.abspath(os.path.join('testsuite', 'common'))
 #Import('env')
 class Test:
    def __init__(self,
-                script              = 'Render -verb -proj "%proj%" -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"',  # To be set later in prepare_test
+                script              = 'Render -proj "%proj%" -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"',  # To be set later in prepare_test
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'test',
