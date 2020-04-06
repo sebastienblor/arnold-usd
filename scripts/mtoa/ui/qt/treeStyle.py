@@ -15,21 +15,20 @@ class TreeStyle(QtWidgets.QCommonStyle):
     DROP_INDICATOR_WIDTH = dpiScale(3)
     DROP_INDICATOR_LEFT_OFFSET = dpiScale(-25)
 
-    def __init__(self, parent):
-        self.__parent = parent
+    def __init__(self):
         super(TreeStyle, self).__init__()
 
     def drawComplexControl(self, control, option, painter, widget = None):
-        return self.__parent.drawComplexControl(control, option, painter, widget)
+        return QtWidgets.QApplication.style().drawComplexControl(control, option, painter, widget)
 
     def drawControl(self, element, option, painter, widget = None):
-        return self.__parent.drawControl(element, option, painter, widget)
+        return QtWidgets.QApplication.style().drawControl(element, option, painter, widget)
 
     def drawItemPixmap(self, painter, rectangle, alignment, pixmap):
-        return self.__parent.drawItemPixmap(painter, rectangle, alignment, pixmap)
+        return QtWidgets.QApplication.style().drawItemPixmap(painter, rectangle, alignment, pixmap)
 
     def drawItemText(self, painter, rectangle, alignment, palette, enabled, text, textRole = QtGui.QPalette.NoRole):
-        return self.__parent.drawItemText(painter, rectangle, alignment, palette, enabled, text, textRole)
+        return QtWidgets.QApplication.style().drawItemText(painter, rectangle, alignment, palette, enabled, text, textRole)
 
     def drawPrimitive(self, element, option, painter, widget = None):
         """ Draws the given primitive element with the provided painter using the style options specified by option. """
@@ -50,36 +49,36 @@ class TreeStyle(QtWidgets.QCommonStyle):
             painter.restore()
 
     def generatedIconPixmap(self, iconMode, pixmap, option):
-        return self.__parent.generatedIconPixmap(iconMode, pixmap, option)
+        return QtWidgets.QApplication.style().generatedIconPixmap(iconMode, pixmap, option)
 
     def hitTestComplexControl(self, control, option, position, widget = None):
-        return self.__parent.hitTestComplexControl(control, option, position, widget)
+        return QtWidgets.QApplication.style().hitTestComplexControl(control, option, position, widget)
 
     def itemPixmapRect(self, rectangle, alignment, pixmap):
-        return self.__parent.itemPixmapRect(rectangle, alignment, pixmap)
+        return QtWidgets.QApplication.style().itemPixmapRect(rectangle, alignment, pixmap)
 
     def itemTextRect(self, metrics, rectangle, alignment, enabled, text):
-        return self.__parent.itemTextRect(metrics, rectangle, alignment, enabled, text)
+        return QtWidgets.QApplication.style().itemTextRect(metrics, rectangle, alignment, enabled, text)
 
     def pixelMetric(self, metric, option = None, widget = None):
-        return self.__parent.pixelMetric(metric, option, widget)
+        return QtWidgets.QApplication.style().pixelMetric(metric, option, widget)
 
     def polish(self, *args, **kwargs):
-        return self.__parent.polish(*args, **kwargs)
+        return QtWidgets.QApplication.style().polish(*args, **kwargs)
 
     def styleHint(self, hint, option=None, widget=None, returnData=None):
         if hint == QtWidgets.QStyle.SH_Slider_AbsoluteSetButtons:
             return QtCore.Qt.LeftButton | QtCore.Qt.MidButton | QtCore.Qt.RightButton
-        return self.__parent.styleHint(hint, option, widget, returnData)
+        return QtWidgets.QApplication.style().styleHint(hint, option, widget, returnData)
 
     def subControlRect(self, control, option, subControl, widget = None):
-        return self.__parent.subControlRect(control, option, subControl, widget)
+        return QtWidgets.QApplication.style().subControlRect(control, option, subControl, widget)
 
     def subElementRect(self, element, option, widget = None):
-        return self.__parent.subElementRect(element, option, widget)
+        return QtWidgets.QApplication.style().subElementRect(element, option, widget)
 
     def unpolish(self, *args, **kwargs):
-        return self.__parent.unpolish(*args, **kwargs)
+        return QtWidgets.QApplication.style().unpolish(*args, **kwargs)
 
     def sizeFromContents(self, ct, opt, contentsSize, widget = None):
-        return self.__parent.sizeFromContents(ct, opt, contentsSize, widget)
+        return QtWidgets.QApplication.style().sizeFromContents(ct, opt, contentsSize, widget)
