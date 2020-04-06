@@ -12,7 +12,7 @@ from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTr
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
+                           PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, PROC_NUM_CHILDREN \
                            OVERRIDE_OP, DISABLE_OP
 
 
@@ -103,8 +103,10 @@ class AlembicTransverser(ProceduralTransverser):
         abc_items = []
         obj_data = self.getObjectInfo(iObj)
         abc_items.append(obj_data)
-        for child in iObj.children:
-            abc_items += self.visitObject(child, obj_data[PROC_PATH], obj_data[PROC_VISIBILITY])
+        for i in range(obj_data[PROC_NUM_CHILDREN]):
+            abc_items += self.visitObject(self.getObjectInfo(iObj.children[i]),
+                                          obj_data[PROC_PATH],
+                                          obj_data[PROC_VISIBILITY])
 
         return abc_items
 
@@ -130,8 +132,8 @@ class AlembicTransverser(ProceduralTransverser):
         if iobject == 'NULL':
             return children
 
-        for ich in iobject.children:
-            children.append(self.getObjectInfo(ich))
+        for i in range(iobject.getNumChildren()):
+            children.append(self.getObjectInfo(iobject.children[i]))
 
         return children
 
