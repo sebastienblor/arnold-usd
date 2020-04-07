@@ -31,22 +31,10 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 
 try:
-    ModuleNotFoundError
-except NameError as e:
-    ModuleNotFoundError = ImportError
-
-try:
     from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
-except ModuleNotFoundError as e:
+except ImportError as e:
     AlembicTransverser = None
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
-
-# from alembic import Abc, AbcGeom
-
-# from alembic.AbcCoreAbstract import *
-# from alembic.Abc import *
-# from alembic.Util import *
-# from alembic.AbcGeom import *
 
 from arnold import *
 
