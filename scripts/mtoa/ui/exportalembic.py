@@ -616,6 +616,7 @@ def getOptionVar(name, default):
 
 
 def setupExport():
+    mel.eval('source "performAlembicExport.mel"')
 
     # main options
     cmds.optionVar(iv=['Alembic_exportUVWrite', 1])
