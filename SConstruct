@@ -36,7 +36,7 @@ elif system.os == 'linux':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     # linux conventions would be to actually use lib for dynamic libraries!
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
-    glew_default_lib = '/usr/lib64/libGLEW.a'
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
     glew_default_include = '/usr/include'
 elif system.os == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
