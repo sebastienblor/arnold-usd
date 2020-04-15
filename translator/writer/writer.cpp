@@ -59,13 +59,6 @@ void UsdArnoldWriter::Write(const AtUniverse *universe)
         _shutterEnd = AiNodeGetFlt(camera, AtString("shutter_end"));
     }
 
-    AtNode *camera = AiUniverseGetCamera(universe);
-    if (camera)
-    {  
-        _shutterStart  = AiNodeGetFlt(camera, AtString("shutter_start"));
-        _shutterEnd  = AiNodeGetFlt(camera, AtString("shutter_end"));
-    }
-
     // Loop over the universe nodes, and write each of them
     AtNodeIterator *iter = AiUniverseGetNodeIterator(_universe, _mask);
     while (!AiNodeIteratorFinished(iter)) {
