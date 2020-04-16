@@ -79,6 +79,12 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("IOR", label='IOR')
         self.endLayout()
 
+        self.beginLayout("Sheen", collapse=True)
+        self.addControl("sheen", label="Sheen")
+        self.addControl("sheenColor", label="Sheen Color")
+        self.addControl("sheenRoughness", label="Sheen Roughness")
+        self.endLayout()
+
         self.beginLayout("Emission", collapse=False)
         self.addControl("emission", label="Weight")
         self.addControl("emission_color", label="Color")
@@ -101,13 +107,6 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("indirect_specular", label="Indirect Specular")
         self.addControl("energy_conserving", label="Energy Conserving")
         self.endLayout()
-
-        self.beginLayout("Sheen", collapse=True)
-        self.addControl("sheen", label="Sheen")
-        self.addControl("sheenColor", label="Sheen Color")
-        self.addControl("sheenRoughness", label="Sheen Roughness")
-        self.endLayout()
-
 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
