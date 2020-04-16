@@ -307,6 +307,8 @@ def run_test(target, source, env):
       previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
       os.environ['   '] = test_env.subst(test_env['TARGET_DESCR_PATH'])
       os.environ['MAYA_VERSION'] = test_env['MAYA_VERSION']
+      local_env['ARNOLD_MATERIALX_SEARCH_PATH'] = test_dir
+
    
       os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
       
