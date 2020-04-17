@@ -4,7 +4,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiStateIntTemplate(ShaderAETemplate):
 
     def setup(self):
-    	self.beginScrollLayout()
+        self.beginScrollLayout()
         
         self.addControl("variable")
         

@@ -23,7 +23,8 @@ from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            PROC_NUM_CHILDREN, \
-                           OVERRIDE_OP, DISABLE_OP
+                           OVERRIDE_OP, DISABLE_OP, \
+                           FILE_CACHE, BUILTIN_NODES
 
 from mtoa.callbacks import *
 
@@ -37,8 +38,8 @@ class UsdProcTreeItem():
 class UsdTransverser(ProceduralTransverser):
     """ StandIn  Transverser class """
     __instance = None
-    
-    def __new__(cls, *args, **kwargs):
+
+    def __new__(cls, filenameAttr, filename, *args, **kwargs):
 
         if not cls.__instance:
             instance = super(UsdTransverser, cls).__new__(cls, *args, **kwargs)
@@ -60,21 +61,22 @@ class UsdTransverser(ProceduralTransverser):
 
 
     def buildTree(self, parentIndex, nameSplit, nameSplitIndex, entry=None, entryType=None):
+        global FILE_CACHE
         if nameSplitIndex >= len(nameSplit):
             return
 
         name = nameSplit[nameSplitIndex] # name of the current item at this level
         childIndex = -1
         # search if one of the parent's child items has this name
-        for child in self.items[parentIndex].children:
-            if name == self.items[child].data[PROC_NAME]:
+        for child in FILE_CACHE[self.proceduralFilename][parentIndex]['children']:
+            if name == FILE_CACHE[self.proceduralFilename][child]['data'][PROC_NAME]:
                 childIndex = child
                 break
 
         if childIndex < 0:
             # didn't find an existing entry
-            childIndex = len(self.items) # this will be my child index
-            parentPath = self.items[parentIndex].data[PROC_PATH]
+            childIndex = len(FILE_CACHE[self.proceduralFilename])  # this will be my child index
+            parentPath = FILE_CACHE[self.proceduralFilename][parentIndex]['data'][PROC_PATH]
             if len(parentPath) or nameSplitIndex > 0:
                 path = '/'.join(nameSplit[:nameSplitIndex+1])
             else:
@@ -88,74 +90,97 @@ class UsdTransverser(ProceduralTransverser):
                 this_entryType = entryType
 
             node = ai.AiNodeLookUpByName(path)
-            self.items[parentIndex].children.append(childIndex)
-            if PROC_NUM_CHILDREN >= len(self.items[parentIndex].data):
-                self.items[parentIndex].data.append(0)
-            self.items[parentIndex].data[PROC_NUM_CHILDREN] += 1
-            self.items.append(UsdProcTreeItem([path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]))
+            FILE_CACHE[self.proceduralFilename][parentIndex]['children'].append(childIndex)
+            if PROC_NUM_CHILDREN >= len(FILE_CACHE[self.proceduralFilename][parentIndex]['data']):
+                FILE_CACHE[self.proceduralFilename][parentIndex]['data'].append(0)
+            FILE_CACHE[self.proceduralFilename][parentIndex]['data'][PROC_NUM_CHILDREN] += 1
+            FILE_CACHE[self.proceduralFilename].append({'children': [],
+                                                        'data': [path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]})
 
         # now call buildTree recursively
         self.buildTree(childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
-        return 
-
+        return
 
     def getRootObjectInfo(self, node):
-        beginSession = (not ai.AiUniverseIsActive())
-        if beginSession:
-            ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
+        global FILE_CACHE
 
-        universe = ai.AiUniverse()
         self.nodeName = node
-        
-        self.items.append(UsdProcTreeItem(['/', 'root', '', 'visible', '', 'usd', 0, 'shape']))
-        proc = ai.AiNode(universe, 'usd')
-        ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
-        paramMap = ai.AiParamValueMap()
-        ai.AiParamValueMapSetBool(paramMap, 'list', True)
-        ai.AiProceduralViewport(proc, universe, ai.AI_PROC_BOXES, paramMap);
-        iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
-        
-        while not ai.AiNodeIteratorFinished(iter):
-            node = ai.AiNodeIteratorGetNext(iter)
-            if node == proc:
-                continue
+        self.items = []
 
-            nodeName = ai.AiNodeGetName(node)
-            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options' or nodeName == 'ai_bad_shader' or nodeName == '_default_arnold_shader' or nodeName == '_default_arnold_shader_color' or nodeName == '':
-                continue
+        if self.proceduralFilename not in FILE_CACHE.keys():
+            FILE_CACHE[self.proceduralFilename] = []
+            FILE_CACHE[self.proceduralFilename].append({'children': [],
+                                                        'data': ['/', 'root', '', 'visible', '', 'usd', 0, 'shape', 1]})
+        # populate the items
+        root_item = FILE_CACHE[self.proceduralFilename][0]
+        usd_item = UsdProcTreeItem(root_item['data'])
+        usd_item.children = root_item['children']
+        self.items.append(usd_item)
 
-            entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
-            entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
-            nameSplit = nodeName.split('/')
-            startIndex = 0
-            if len(nameSplit[0]) == 0:
-                startIndex = 1
-            self.buildTree(0, nameSplit, startIndex, entryName, entryType)
-
-
-        ai.AiParamValueMapDestroy(paramMap)
-        ai.AiNodeIteratorDestroy(iter)
-        ai.AiUniverseDestroy(universe)
-        if beginSession:
-            ai.AiEnd()
         return self.items[0].data
-        
+
+    def populate_cache(self):
+        global FILE_CACHE
+
+        if self.proceduralFilename not in FILE_CACHE.keys():
+            return
+
+        if len(FILE_CACHE[self.proceduralFilename]) == 1:
+            beginSession = (not ai.AiUniverseIsActive())
+            if beginSession:
+                ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
+
+            universe = ai.AiUniverse()
+            proc = ai.AiNode(universe, 'usd')
+            ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
+            paramMap = ai.AiParamValueMap()
+            ai.AiParamValueMapSetBool(paramMap, 'list', True)
+            ai.AiProceduralViewport(proc, universe, ai.AI_PROC_BOXES, paramMap)
+            iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL)
+
+            while not ai.AiNodeIteratorFinished(iter):
+                node = ai.AiNodeIteratorGetNext(iter)
+                if node == proc:
+                    continue
+
+                nodeName = ai.AiNodeGetName(node)
+                if nodeName in BUILTIN_NODES or nodeName in ['', 'options']:
+                    continue
+
+                entryName = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
+                entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
+                nameSplit = nodeName.split('/')
+                startIndex = 0
+                if len(nameSplit[0]) == 0:
+                    startIndex = 1
+                self.buildTree(0, nameSplit, startIndex, entryName, entryType)
+
+            ai.AiParamValueMapDestroy(paramMap)
+            ai.AiNodeIteratorDestroy(iter)
+            ai.AiUniverseDestroy(universe)
+            if beginSession:
+                ai.AiEnd()
+
+        if len(self.items) == 1:
+            # populate the items
+            for item in FILE_CACHE[self.proceduralFilename][1:]:
+                usd_item = UsdProcTreeItem(item['data'])
+                usd_item.children = item['children']
+                self.items.append(usd_item)
+
     def dir(self, iobject):
         if not iobject:
             iobject = 0
+        self.populate_cache()
         children = []
         if iobject == 'NULL':
             return children
         if iobject >= len(self.items):
             return []
         for ich in self.items[iobject].children:
-            children.append(self.getObjectInfo(ich))
+            child = self.getObjectInfo(ich)
+            children.append(child)
 
         return children
 
-
-
-
-
-    
 ################################################

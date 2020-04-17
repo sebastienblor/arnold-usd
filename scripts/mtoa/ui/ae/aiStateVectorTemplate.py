@@ -4,7 +4,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiStateVectorTemplate(ShaderAETemplate):
 
     def setup(self):
-    	self.beginScrollLayout()
+        self.beginScrollLayout()
         
         self.addControl("variable")
         

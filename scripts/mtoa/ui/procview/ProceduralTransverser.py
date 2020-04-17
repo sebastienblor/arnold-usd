@@ -5,7 +5,6 @@ import maya.cmds as cmds
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser, valueIsExpression
 from mtoa.ui.qt.widgets import TYPES_DICT_STRINGS
-from alembic import Abc, AbcGeom
 from arnold import *
 
 (PROC_PATH,
@@ -23,7 +22,7 @@ from arnold import *
 
 SELECTION_REGEX = re.compile(r'.*(?=/\*)')
 
-EXP_REGEX = re.compile(r"""(?P<type>bool|byte|int|uint|float|rgb|rgba|vector|vector2|string|matrix|node)?\s* # parameter
+EXP_REGEX = re.compile(r"""(?:(?P<type>bool|byte|int|uint|float|rgb|rgba|vector|vector2|string|matrix|node)\s+)? # parameter
                          (?P<param>[\w.:\[\]]+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
                          (?P<value>.*) # value
@@ -55,6 +54,16 @@ PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
 
 DISP_MAP = 'disp_map'
 SHADER = 'shader'
+
+BUILTIN_NODES = ['root',
+                 'options',
+                 'ai_default_reflection_shader',
+                 'ai_bad_shader',
+                 '_default_arnold_shader',
+                 '_default_arnold_shader_color']
+
+
+FILE_CACHE = {}
 
 def ArnoldUniverseOnlyBegin():
     if not AiUniverseIsActive():
@@ -126,15 +135,18 @@ class ProceduralTransverser(BaseTransverser):
                         enumParam = AiParamGetEnum(param)
                         i = 0
                         t = True
-                        while t is not None:
-                            t = AiEnumGetString(enumParam, i)
-                            if t:
-                                enum_values.append(t)
+                        while t:
+                            try:
+                                t = AiEnumGetString(enumParam, i)
+                                if t:
+                                    enum_values.append(t)
+                            except UnicodeDecodeError as e:
+                                raise e
                             i += 1
 
                     default_value = self._getDefaultValue(param, param_type)
-                    
-                    if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys(): 
+
+                    if paramName not in list(self.paramDict[nodeType].keys()) + list(self.paramDict['common'].keys()):
                         is_array = param_type == AI_TYPE_ARRAY
                         self.paramDict[nodeType][paramName] = (param_type,
                                                                default_value,
@@ -328,8 +340,8 @@ class ProceduralTransverser(BaseTransverser):
                 selectionStr = '' 
                 break
             selectionStr += sel[PROC_PATH]
-            if sel[PROC_ENTRY] =='xform':
-                selectionStr += '/*'
+            # if sel[PROC_ENTRY] =='xform':
+            #     selectionStr += '/*'
         if selectionStr == self.selectionStr:
             return
         self.selectionStr = selectionStr

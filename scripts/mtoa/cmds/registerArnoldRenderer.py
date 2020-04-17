@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 import glob
 import os
 import sys
 import inspect
 import mtoa.utils
-import arnoldShelf
+from . import arnoldShelf
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.melUtils as mu
@@ -249,6 +250,7 @@ def _register():
                                                     [('string', 'option')])
     args['batchRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                     [('string', 'option')])
+    args['batchRenderOptionsProcedure'] = utils.pyToMelProc(arnoldRender.arnoldBatchRenderOptions)
     args['batchRenderOptionsStringProcedure'] = utils.pyToMelProc(arnoldRender.arnoldBatchRenderOptionsString, returnType='string')
     args['cancelBatchRenderProcedure']  = utils.pyToMelProc(arnoldRender.arnoldBatchStop)
     args['iprRenderProcedure']          = utils.pyToMelProc(arnoldRender.arnoldIprRender,
@@ -301,7 +303,7 @@ def registerArnoldRenderer():
             # AE Templates
             # the following must occur even in batch mode because they contain calls to registerDefaultTranslator
             cmds.evalDeferred(aeUtils.loadAETemplates)
-            import rendererCallbacks
+            from . import rendererCallbacks
             rendererCallbacks.registerCallbacks()
             import mtoa.ui.ae.customShapeAttributes
             import mtoa.ui.ae.customShaderTemplates

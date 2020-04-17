@@ -179,6 +179,19 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          customFileName = customFileName.substringW(0, nchars-4);
       }
+      else if (nchars > 4 && customFileName.substringW(nchars-4, nchars) == ".usd")
+      {
+         customFileName = customFileName.substringW(0, nchars-5);
+         assExtension = "usd";
+      } else if (nchars > 5 && customFileName.substringW(nchars-5, nchars) == ".usda")
+      {
+         customFileName = customFileName.substringW(0, nchars-6);
+         assExtension = "usda";
+      } else if (nchars > 5 && customFileName.substringW(nchars-5, nchars) == ".usdc")
+      {
+         customFileName = customFileName.substringW(0, nchars-6);
+         assExtension = "usdc";
+      }
    }
    // Rendered render layer
    // TODO: add this to flags

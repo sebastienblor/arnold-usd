@@ -1,6 +1,7 @@
 '''
 functions for dealing with mtoa node types and classifications
 '''
+from __future__ import print_function
 
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
@@ -8,6 +9,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import maya.OpenMaya as om
 import os
+from mtoa.utils import string_types
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -150,7 +152,7 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     exist on the aiAOV node.  As a result AOVs that override the global value will lose 
     driver/filter specific settings like compression and quality.
     """
-    print "[mtoa] upgrading to new AOV driver/filter setup"
+    print("[mtoa] upgrading to new AOV driver/filter setup")
     aovNodes = cmds.ls(type='aiAOV')
     if defaultDriver is None:
         defaultDriver = 'defaultArnoldDriver'
@@ -178,10 +180,10 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
                 translator = cmds.getAttr('{}.{}'.format(node, controlAttr), asString=True)
                 if translator in ['', '<Use Globals>']:
                     cmds.connectAttr('{}.message'.format(defaultNode), at)
-                    print "[mtoa] upgrading %s: connected to default node %s" % (node, defaultNode)
+                    print("[mtoa] upgrading %s: connected to default node %s" % (node, defaultNode))
                 else:
                     outputNode = cmds.createNode(mayaNodeType, skipSelect=True)
-                    print "[mtoa] upgrading %s: created new node %s and set translator to %r" % (node, outputNode, translator)
+                    print("[mtoa] upgrading %s: created new node %s and set translator to %r" % (node, outputNode, translator))
                     cmds.connectAttr('{}.message'.format(outputNode), at)
                     cmds.setAttr('{}.aiTranslator'.format(outputNode), translator, type="string")
 
@@ -342,7 +344,7 @@ def registerDefaultTranslator(nodeType, default):
                                    applyToExisting=False, apiArgs=True)
 
 def getDefaultTranslator(obj):
-    if isinstance(obj, basestring):
+    if isinstance(obj, string_types):
         selList = om.MSelectionList()
         selList.add(obj)
         obj = om.MObject()

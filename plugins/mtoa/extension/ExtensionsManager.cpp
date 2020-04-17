@@ -7,6 +7,11 @@
 #include <algorithm>
 #endif
 
+#include <string>
+#include <algorithm>
+#include <cctype>
+
+
 #include "ExtensionsManager.h"
 #include "ExtensionImpl.h"
 
@@ -50,8 +55,10 @@ MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
 OperatorsMap CExtensionsManager::s_operators;
 CustomShapesMap CExtensionsManager::s_customShapes;
 
-static unordered_set<std::string>  s_deferredExtensions;
 
+static ArnoldNodeMetadataMap s_nodeEntryMetadatas;
+
+static unordered_set<std::string>  s_deferredExtensions;
 static unordered_set<std::string>  s_mayaExtensionClasses;
 static unordered_set<std::string>  s_extensionAttributes;
 
@@ -154,6 +161,7 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
       MString filename = ArnoldGetEntryFile(nentry);
+      std::string nodeEntryName = AiNodeEntryGetName(nentry);
 
       // skip builtins and already registered
       if (filename.length() > 0 && !CExtension::IsArnoldPluginLoaded(filename))
@@ -161,6 +169,19 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
          MStatus pluginStatus;
          LoadArnoldPlugin(filename, path, &pluginStatus, true);
          if (MStatus::kSuccess != pluginStatus && MStatus::kNotFound != pluginStatus) status = pluginStatus;
+      }
+      if (s_nodeEntryMetadatas.find(nodeEntryName) == s_nodeEntryMetadatas.end()) {
+         // Need to store all the metadatas;
+         ArnoldNodeMetadataStore &metadataStore = s_nodeEntryMetadatas[nodeEntryName];
+         // For now we only store the node entry "global" metadatas (i.e. not the attribute-specific ones)
+         AtMetaDataIterator* metadataIter = AiNodeEntryGetMetaDataIterator(nentry);
+         while(!AiMetaDataIteratorFinished(metadataIter)) {
+            const AtMetaDataEntry* metadata = AiMetaDataIteratorGetNext(metadataIter);
+            if (!metadata)
+               continue;
+            metadataStore.push_back(*metadata); // copy the metadata entry;
+         }
+         AiMetaDataIteratorDestroy(metadataIter);
       }
    }
 
@@ -1404,6 +1425,123 @@ const CPxMayaNode* CExtensionsManager::FindRegisteredMayaNode(const CPxMayaNode 
    {
       return NULL;
    }
+}
+
+
+const ArnoldNodeMetadataStore *CExtensionsManager::FindNodeMetadatas(const MString &nodeType, bool mayaType)
+{
+   std::string arnoldType = nodeType.asChar();
+   
+   if (mayaType) 
+   {
+      // The input node type is referring to a maya node.
+      // Let's find first what is the corresponding arnold node
+      const CPxTranslator* translator = CExtensionsManager::FindRegisteredTranslator(CPxMayaNode(nodeType));
+      if (translator)
+         arnoldType = translator->arnold.asChar();
+      else
+      {
+         // For some reason we didn't find the translator, let's try with a node type
+         // generated automatically based on the maya one.
+         if (arnoldType.length() > 2 && arnoldType[0] == 'a' && arnoldType[1] == 'i')
+         {
+            std::string nameConvert = arnoldType;
+            for (size_t i = 2; i < arnoldType.length(); ++i)
+            {
+               if (i > 2 && std::isupper(arnoldType[i]))
+                  nameConvert.push_back('_');
+               nameConvert.push_back(arnoldType[i]);
+            }
+            MString arnoldTypeStr(nameConvert.c_str());
+            arnoldTypeStr.toLowerCase();
+            arnoldType = arnoldTypeStr.asChar();
+         }
+      }
+   }
+
+   ArnoldNodeMetadataMap::iterator it = s_nodeEntryMetadatas.find(arnoldType);
+   if (it == s_nodeEntryMetadatas.end())
+      return NULL;
+   
+   return &it->second;
+
+}
+
+MStringArray CExtensionsManager::FindMatchingMetadatas(const MString &metadata, const MString& value)
+{
+   MStringArray nodeTypes;
+   const AtString metadataStr(metadata.asChar());
+   for (ArnoldNodeMetadataMap::iterator it = s_nodeEntryMetadatas.begin(); it != s_nodeEntryMetadatas.end(); ++it) 
+   {
+      ArnoldNodeMetadataStore &metadataStore = it->second;
+      for(ArnoldNodeMetadataStore::iterator metadataIter = metadataStore.begin(); 
+         metadataIter != metadataStore.end(); ++metadataIter) 
+      {
+         if (metadataIter->name != metadataStr)
+            continue;
+
+         // Found a node that has a matching metadata, let's check if the value corresponds
+         AtParamValue &paramValue = metadataIter->value;
+         MString paramValueStr;
+
+         switch(metadataIter->type) {
+            case AI_TYPE_BYTE:
+               paramValueStr += (int)paramValue.BYTE();
+            break;
+            case AI_TYPE_INT:
+               paramValueStr += paramValue.INT();
+            break;
+            case AI_TYPE_UINT:
+               paramValueStr += (int)paramValue.UINT();
+            break;
+            case AI_TYPE_BOOLEAN:
+               paramValueStr = (paramValue.BOOL()) ? MString("true") : MString("false");
+            break;
+            case AI_TYPE_USHORT:
+            case AI_TYPE_HALF:
+            case AI_TYPE_FLOAT:
+               paramValueStr += paramValue.FLT();
+            break;
+            case AI_TYPE_RGB:
+               paramValueStr += paramValue.RGB().r;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGB().g;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGB().b;
+            break;
+            case AI_TYPE_RGBA:
+               paramValueStr += paramValue.RGBA().r;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGBA().g;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGBA().b;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGBA().a;
+            break;
+            case AI_TYPE_VECTOR:
+               paramValueStr += paramValue.VEC().x;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.VEC().y;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.VEC().z;
+            break;
+            case AI_TYPE_VECTOR2:
+               paramValueStr += paramValue.VEC2().x;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.VEC2().y;
+            break;
+            case AI_TYPE_ENUM:
+            case AI_TYPE_STRING:
+               paramValueStr = MString(paramValue.STR().c_str());
+            break;
+            default:
+            break;
+         }
+         if (paramValueStr == value)
+            nodeTypes.append(MString(it->first.c_str()));
+      }
+   }
+   return nodeTypes;
 }
 
 /// Try to find a given translator proxy in all registered translators

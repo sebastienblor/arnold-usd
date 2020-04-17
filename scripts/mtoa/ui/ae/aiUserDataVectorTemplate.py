@@ -3,7 +3,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiUserDataVectorTemplate(ShaderAETemplate):
     def setup(self):
-    	
+        
         self.beginScrollLayout()
 
         self.addControl('vectorAttrName',label='Attribute')

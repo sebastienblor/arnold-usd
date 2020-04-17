@@ -112,7 +112,7 @@ class BaseCodeEditor(QtWidgets.QPlainTextEdit):
                 painter.drawText(0, top, self.lineNumberArea.width(), self.fontMetrics().height(),
                                  QtCore.Qt.AlignCenter, number)
 
-            block = block.next()
+            block = next(block)
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
             blockNumber += 1

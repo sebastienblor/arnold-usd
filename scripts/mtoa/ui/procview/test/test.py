@@ -1,8 +1,9 @@
+from __future__ import print_function
 
 import sys
 import os
 __path = os.path.abspath(os.path.dirname(__file__)+'/../../../../../../scripts')
-print __path
+print(__path)
 sys.path.insert(0, __path)
 
 
@@ -46,4 +47,4 @@ if __name__ == '__main__':
                     children.append(i)
             break
     for ch in children:
-        print ch
+        print(ch)

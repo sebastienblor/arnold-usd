@@ -11,6 +11,11 @@ from .Qt import cmds
 import re
 import time
 
+try:
+    long
+except NameError:
+    long = int
+
 _DPI_SCALE = \
     1.0 \
     if not hasattr(cmds, "mayaDpiSetting") else \
@@ -95,7 +100,11 @@ def clearWidget(widget):
     """clear children from given widget"""
     item = widget.layout().takeAt(0)
     while item:
-        del item
+        if isinstance(item, QtWidgets.QWidgetItem):
+            item.widget().close()
+        elif isinstance(item, QtWidgets.QSpacerItem):
+            widget.layout().removeItem(item)
+        item.widget().deleteLater()
         item = widget.layout().takeAt(0)
 
 
@@ -157,7 +166,7 @@ def getMayaWindow():
     """
     ptr = OpenMayaUI.MQtUtil.mainWindow()
     if ptr is not None:
-        return shiboken.wrapInstance(long(ptr), QtWidgets.QWidget)
+        return shiboken.wrapInstance(int(ptr), QtWidgets.QWidget)
 
 
 class Timer:

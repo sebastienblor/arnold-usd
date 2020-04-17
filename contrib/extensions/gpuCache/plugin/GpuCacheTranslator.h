@@ -14,8 +14,8 @@ public:
       CProceduralTranslator() 
    {}
 
-   virtual void Export(AtNode* curve);
-   virtual void ExportMotion(AtNode* curve);
+   void Export(AtNode* anode);
+   virtual void ExportMotion(AtNode* shape);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    virtual void AddUpdateCallbacks();
@@ -24,8 +24,9 @@ public:
    {
       return new CGpuCacheTranslator();
    }
-   virtual void ExportShaders();
    virtual void NodeChanged(MObject& node, MPlug& plug);
 
 private:
+   virtual void ExportProcedural(AtNode* shape);
+   virtual void ExportShaders();
 };

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import maya.mel
 from mtoa.ui.ae.operatorTemplate import OperatorAETemplate
@@ -117,7 +118,7 @@ class AEaiIncludeGraphTemplate(OperatorAETemplate):
 
         filename = cmds.getAttr(attrName)
 
-        print filename
+        print(filename)
         target_ops = []
 
         universeCreated = False

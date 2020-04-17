@@ -1,3 +1,4 @@
+from __future__ import print_function
 import mtoa.aovs as aovs
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI
@@ -24,10 +25,10 @@ def newAOVPrompt(default=''):
         if str(newAOV).replace("_","").isalnum():
             return newAOV, aovs.AOVInterface().addAOV(newAOV)
         else:
-            print "Invalid AOV Name"
+            print("Invalid AOV Name")
             return None, None
     else:
-        print "AOV creation canceled"
+        print("AOV creation canceled")
         return None, None
 
 class AOVOptionMenuGrp(templates.AttributeTemplate):

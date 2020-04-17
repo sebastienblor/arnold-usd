@@ -196,12 +196,17 @@ if system.os == 'windows':
     maya_version_base = maya_version[0:4]
 
     msvc_version = '11.0'
+
+    # Visual Studio 2015
     if int(maya_version_base) >= 2018:
         msvc_version = '14.0'
+
     '''
+    # Visual Studio 2017
     if int(maya_version_base) >= 2020:
-        msvc_version = '15.9'
+        msvc_version = '14.1'
     '''
+    
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
     tmp_env['MSVC_VERSION'] = msvc_version
@@ -532,6 +537,9 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /GL"     # enables whole program optimization
         MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
         MSVC_FLAGS += " /Ox"     # selects maximum optimization
+        MSVC_FLAGS += " /Zi"
+        MSVC_FLAGS += " /FS"
+        LINK_FLAGS += " /DEBUG"
       
         LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
     else:  ## Debug mode
@@ -784,6 +792,7 @@ env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
 if not env['DISABLE_COMMON']:
     env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
+
 if system.os == 'windows':
     # Rename plugins as .mll and install them in the target path
     mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
@@ -799,6 +808,7 @@ if system.os == 'windows':
     
     libs = MTOA_API[1]
     env.Install(env['TARGET_LIB_PATH'], libs)
+
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -1088,7 +1098,7 @@ for ext in os.listdir(ext_base_dir):
             EXT_SHADERS = EXT[1] 
         if len(EXT) == 3:
             EXT_PROCS = EXT[2]
-        
+
         # EXT may contain a shader result
         ext_arnold = None
         target_type = 'shader'

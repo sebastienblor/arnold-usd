@@ -34,7 +34,7 @@ class MtoAExportOperatorGraph(object):
         global defaultFolder
         if defaultFolder == "":
             defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
-        ret = cmds.fileDialog2(cap='Select File',okc='Select',ff="Arnold Operator Graph (*.ass)",fm=0,dir=defaultFolder) or []
+        ret = cmds.fileDialog2(cap='Select File',okc='Select',ff="ASS File (*.ass);; USD File (*.usd *.usda *.usdc)",fm=0,dir=defaultFolder) or []
         if ret is not None and len(ret):
             defaultFolder = ret[0]
             cmds.textFieldButtonGrp('Filename', e=True, text=defaultFolder)            
@@ -44,7 +44,7 @@ class MtoAExportOperatorGraph(object):
         filename = cmds.textFieldButtonGrp('Filename', q=True, tx=True)
 
         if (filename == ''):
-            cmds.confirmDialog( title='Export Operator Graph', message='An output .ass file must be selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+            cmds.confirmDialog( title='Export Operator Graph', message='An output file must be selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
         exportMode = cmds.optionMenuGrp('export', q=True, v=True)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from . import toPyObject
 from .Qt import OpenMayaUI
 from .Qt import QtCore
@@ -43,7 +44,7 @@ class BaseTreeView(QtWidgets.QTreeView):
         # Custom style
         delegate = BaseDelegate(self)
         self.setItemDelegate(delegate)
-        self.setStyle(TreeStyle(self.style()))
+        self.setStyle(TreeStyle())
         self.setIndentation(ITEM_INDENT)
 
         self.setRootIsDecorated(False)
@@ -228,7 +229,7 @@ class BaseModel(QtCore.QAbstractItemModel):
             return item.getIndent()
         elif role == NODE_ENABLED:
             return item.isEnabled()
-        print "data has no valid role", role
+        print("data has no valid role", role)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """Set the role data for the item at index to value."""
@@ -656,6 +657,7 @@ class BaseItem(object):
     def __init__(self, parentItem, name, index=-1):
         """Called after the instance has been created."""
         self.name = name
+        self.parentItem = None
         self.childItems = []
         self.expanded = False
         if index >= 0:
@@ -672,6 +674,10 @@ class BaseItem(object):
     def getName(self):
         """The label of the item."""
         return self.name
+
+    def setName(self, name):
+        """The label of the item."""
+        self.name = name
 
     def appendChild(self, child):
         """Add a child to the data structure."""

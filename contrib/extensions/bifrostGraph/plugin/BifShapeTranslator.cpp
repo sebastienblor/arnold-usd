@@ -3,6 +3,7 @@
 
 #include "BifShapeTranslator.h"
 
+#include <maya/MAnimControl.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MProfiler.h>
@@ -18,6 +19,7 @@
 #include "extension/Extension.h"
 #include "extension/ExtensionsManager.h"
 
+
 #if defined(_WIN32)
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -26,11 +28,34 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <Windows.h>
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 
+// arnold_bifrost ABI revisions
+//
+// ABI revision 0: initial version (ArnoldBifrostABIVersion() function not introduced yet)
+// ABI revision 1: add support for arbitrary ARNOLD array data types for serialized BOB data,
+//                 and add support for "tfile" interpretation to delete temp files after use,
+//                 and add ArnoldBifrostABIRevision() export so the revision can be queried.
+// ABI revision 2: add support for handle conversion and serialization as extra APIs,
+//                 ArnoldBifrostPrepareHandle() and ArnoldBifrostSerializeData().
+//                 This also adds the "handle" interpretation for input parameters
+//                 used to pass properly refcounted Bifrost data.
+static int s_arnoldBifrostABIRev = 0;
+
 static bool s_loadedProcedural = false;
-static int  s_arnoldBifrostABIRev = 0;
+
+// Pass the results of this to arnold_bifrost as a "handle" parameter, it takes care of the rest
+typedef void*    (*ArnoldBifrostPrepareHandleFunc)(void *input_buffer, size_t input_length);
+// Write the contents to wherever you like, but use AiFree() to clean up the return buffer
+typedef uint8_t* (*ArnoldBifrostSerializeDataFunc)(void *input_buffer, size_t input_length, size_t& output_length);
+
+static ArnoldBifrostPrepareHandleFunc s_arnoldBifrostPrepareHandle = NULL;
+static ArnoldBifrostSerializeDataFunc s_arnoldBifrostSerializeData = NULL;
 
 #ifdef _WIN32
 static MString s_bifrostProcedural = "arnold_bifrost";
@@ -43,11 +68,122 @@ static MString s_bifrostProceduralPath = "";
 // 2 GB, e.g. 2^31 elements of single bytes, matching limits of Arnold 5.4.0.0 and earlier
 // (newer versions have a fix allowing the full 2^32 elements, or 4 GB per array key)
 static const size_t ARNOLD_MAX_BYTE_ARRAY_SIZE = size_t(2) * 1024UL * 1024UL * 1024UL;
-// 32 GB, e.g. 2^31 elements of 16-byte RGBAs, same size as 2^32 elements of
-// 8-byte doubles which is what Bifrost gives on its output plug for BOB data
+// 32 GB, e.g. 2^31 elements of 16-byte RGBAs, matching the max size of any array key possible in Arnold
 static const size_t ARNOLD_MAX_PARAMETER_BYTES = size_t(2) * 1024UL * 1024UL * 1024UL * sizeof(AtRGBA);
 
 static const size_t MAX_PATH_LENGTH = 4096;
+
+
+// Input is a file that ends with the maya scene (.ma or .mb), subtract off the
+// extension and make it unique for this node and time sample.
+static std::string GenerateBobPath(const std::string& exportFile, const AtNode* node, double frame)
+{
+   std::ostringstream bobPathStream;
+
+   // Drop the extension
+   std::string exportPrefix;
+   size_t pos = exportFile.rfind('.');
+   size_t dirBasePos = exportFile.rfind('/');
+   if (pos == std::string::npos || pos < dirBasePos)
+      exportPrefix = exportFile;
+   else
+      exportPrefix = exportFile.substr(0, pos);
+   bobPathStream << exportPrefix << "-";
+
+   std::string nodePart(AiNodeGetName(node));
+   // Sanitize node name so it's suitable to be an on-disk filename
+   for (size_t i = 0; i < nodePart.size(); ++i)
+   {
+      if (nodePart[i] == '\\' || nodePart[i] == '/' || nodePart[i] == '|' || nodePart[i] == ':')
+         nodePart[i] = '_';
+   }
+   // Skip any leading underscores, they're not helpful
+   nodePart = nodePart.substr(nodePart.find_first_not_of('_'), std::string::npos);
+   bobPathStream << nodePart;
+
+   // Generate a frame spec from a frame, of the form ..._<[-]int>_<4 digit frac>
+   double wholePart;
+   double fracPart = std::modf(frame, &wholePart);
+   int intSpec = static_cast<int>(wholePart);
+   int fracSpec = static_cast<int>(std::abs(fracPart) * 1000.0);
+   bobPathStream << "_" << intSpec << '_' << fracSpec;
+
+   bobPathStream << ".bob";
+   bobPathStream.flush();
+
+   std::string path = bobPathStream.str();
+   // Convert to native path for Windows
+#ifdef _WIN32
+   for (size_t i = 0; i < path.size(); ++i)
+   {
+      if (path[i] == '/')
+         path[i] = '\\';
+   }
+#endif
+
+   // Create all parent directories as needed so the final file can be written
+   bool success = true;
+   for (size_t delimiterPos = path.find_first_of("/\\"); delimiterPos != std::string::npos; delimiterPos = path.find_first_of("/\\", delimiterPos + 1))
+   {
+      std::string subpath = path.substr(0, delimiterPos);
+      if (subpath.empty())
+         continue;
+#ifdef _WIN32
+      int err = _mkdir(subpath.c_str());
+      if (err != 0 && errno != EEXIST)
+      {
+         AiMsgWarning("[mtoa.bifrost_graph] %s: could not create directories for path %s (subpath %s, error=%d)",
+                      AiNodeGetName(node),
+                      path.c_str(),
+                      subpath.c_str(),
+                      err);
+         success = false;
+         break;
+      }
+#else
+      int err = mkdir(subpath.c_str(), 0755);
+      if (err != 0 && errno != EEXIST && errno != EACCES)
+      {
+         AiMsgWarning("[mtoa.bifrost_graph] %s: could not create directories for path %s (subpath %s, error=%d)",
+                      AiNodeGetName(node),
+                      path.c_str(),
+                      subpath.c_str(),
+                      err);
+         success = false;
+         break;
+      }
+#endif
+   }
+   return success ? path : std::string();
+}
+
+// Return a base path in maya workspace folder, under bifrost.
+// Later on, GenerateBobPath will compute a final .bob filename
+// for every step
+
+static MString GetBaseBobPath()
+{
+   MString filename;
+   MString sceneFilename;
+   MGlobal::executeCommand("file -q -sn", sceneFilename);
+
+   MStatus status = MGlobal::executeCommand(MString("workspace -q -rd;"), filename);
+
+   // If no workspace was found, let's just return the name of the scene,
+   // the bob file will then be saved next to the maya scene
+   if (status != MS::kSuccess)
+      return sceneFilename;
+
+   filename += "/bifrost/";
+
+   // extract the basename of the maya scene
+   MFileObject fileObj;
+   fileObj.setRawFullName(sceneFilename);
+
+   filename += fileObj.rawName();
+   return filename;
+}
+
 
 // WARNING: The same function is duplicated in the "old" bifrost extension.
 // If you change this one, don't forget to change the other
@@ -145,25 +281,38 @@ static MString GetArnoldBifrostPath()
    return topVersionPath;
 }
 
-static void GetArnoldBifrostABIRevision(const char* dsoPath, const char* dsoName)
+static void GetArnoldBifrostAPIExtensions(const char* dsoPath, const char* dsoName)
 {
     typedef int (*ArnoldBifrostABIRevision)();
 #ifdef _WIN32
-    HMODULE handle = GetModuleHandleA(dsoName);
+    std::string fullPath = std::string(dsoPath) + "/" + std::string(dsoName) + ".dll";
+    // Load and leak the handle, so Arnold doesn't unload it on us and invalidate our function references!
+    HMODULE handle = LoadLibraryA(dsoName);
     if (handle != NULL)
     {
        ArnoldBifrostABIRevision revFunc = (ArnoldBifrostABIRevision)GetProcAddress(handle, "ArnoldBifrostABIRevision");
        if (revFunc != NULL)
           s_arnoldBifrostABIRev = revFunc();
+       if (s_arnoldBifrostABIRev >= 2)
+       {
+          s_arnoldBifrostSerializeData = (ArnoldBifrostSerializeDataFunc)GetProcAddress(handle, "ArnoldBifrostSerializeData");
+          s_arnoldBifrostPrepareHandle = (ArnoldBifrostPrepareHandleFunc)GetProcAddress(handle, "ArnoldBifrostPrepareHandle");
+       }
     }
 #else
     std::string fullPath = std::string(dsoPath) + "/" + std::string(dsoName) + ".so";
+    // Load and leak the handle, so Arnold doesn't unload it on us and invalidate our function references!
     void *handle = dlopen(fullPath.c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (handle != NULL)
     {
        ArnoldBifrostABIRevision revFunc = (ArnoldBifrostABIRevision)dlsym(handle, "ArnoldBifrostABIRevision");
        if (revFunc != NULL)
           s_arnoldBifrostABIRev = revFunc();
+       if (s_arnoldBifrostABIRev >= 2)
+       {
+          s_arnoldBifrostSerializeData = (ArnoldBifrostSerializeDataFunc)dlsym(handle, "ArnoldBifrostSerializeData");
+          s_arnoldBifrostPrepareHandle = (ArnoldBifrostPrepareHandleFunc)dlsym(handle, "ArnoldBifrostPrepareHandle");
+       }
     }
 #endif
 }
@@ -178,7 +327,7 @@ static bool LoadBifrostProcedural()
 
    if (AiNodeEntryLookUp("bifrost_graph") != NULL)
    {
-      GetArnoldBifrostABIRevision(s_bifrostProceduralPath.asChar(), s_bifrostProcedural.asChar());
+      GetArnoldBifrostAPIExtensions(s_bifrostProceduralPath.asChar(), s_bifrostProcedural.asChar());
       s_loadedProcedural = true;
       return true;
    }
@@ -195,7 +344,7 @@ static bool LoadBifrostProcedural()
          if (fo.exists())
          {
             extension->LoadArnoldPlugin(s_bifrostProcedural, s_bifrostProceduralPath);
-            GetArnoldBifrostABIRevision(s_bifrostProceduralPath.asChar(), s_bifrostProcedural.asChar());
+            GetArnoldBifrostAPIExtensions(s_bifrostProceduralPath.asChar(), s_bifrostProcedural.asChar());
             s_loadedProcedural = true;
             return true;
          }
@@ -266,6 +415,8 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
 void CBifShapeTranslator::Export( AtNode *shape )
 {
    unsigned int step = GetMotionStep();
+   double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
@@ -274,11 +425,139 @@ void CBifShapeTranslator::Export( AtNode *shape )
       AiNodeSetStr(shape, "filename", filename.asChar());
    }
 
-   // export the Bifrost graph data if not file is supplied
-   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
-   if (!serialisedDataPlug.isNull() && filenamePlug.isDefaultValue())
+   // export the Bifrost graph results if no file is supplied
+   MPlug dataStreamPlug     = FindMayaPlug("outputBifrostDataStream"); // Preferred plug
+   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");    // Legacy plug
+   if (!dataStreamPlug.isNull() && s_arnoldBifrostABIRev >= 2)
    {
-      AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
+      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputBifrostDataStream for motion step %u (frame %f)",
+                 AiNodeGetName(shape),
+                 step,
+                 frame);
+      MDataHandle dataStreamHandle;
+      dataStreamPlug.getValue(dataStreamHandle);
+      MFnDoubleArrayData arrData(dataStreamHandle.data());
+      MDoubleArray streamData = arrData.array();
+
+      unsigned int nEle = streamData.length();
+      size_t nBytes = static_cast<size_t>(nEle) * sizeof(double);
+
+      AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
+      AiNodeSetArray(shape, "input_names", inputsArray);
+
+      unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? GetNumMotionSteps() : 1;
+
+      MString baseBobPath = GetBaseBobPath();
+      if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
+      {
+         // Pass pointers (handles) over for speed, as there's no danger of
+         // pointers being written to disk
+
+         // arnold_bifrost turns the handle stream into an actual pointer handle
+         // for us to pass back to it.  It takes care of lifetime issues with
+         // the smart pointers the handle refers to.
+         void* handle = s_arnoldBifrostPrepareHandle(&streamData[0], nBytes);
+
+         // Send serialized data directly to arnold_bifrost, maximizing size per
+         // key by masquerading as a larger-sized data type if necessary
+         AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "handle");
+         AtArray *dataArray = AiArrayAllocate(1, numMotionSteps, AI_TYPE_POINTER);
+         for (unsigned int i = 0; i < numMotionSteps; ++i)
+            AiArraySetPtr(dataArray, i, i == step ? handle : NULL);
+
+         AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY POINTER");
+         AiNodeSetArray(shape, "bifrost:input0", dataArray);
+         AiNodeSetArray(shape, "input_interpretations", interpsArray);
+      }
+      else
+      {
+         AiMsgDebug("[mtoa.bifrost_graph] %s: detected Arnold file export, will use Bifrost serialized data",
+                    AiNodeGetName(shape));
+
+         // Convert the handle data stream to fully-serialized Bifrost data
+         size_t serialisedNBytes = 0;
+         uint8_t* serialisedData = s_arnoldBifrostSerializeData(&streamData[0], nBytes, serialisedNBytes);
+
+         // Write fully-serialized data to disk (or inline into AtArray if it fits)
+         if (serialisedNBytes >= ARNOLD_MAX_PARAMETER_BYTES)
+         {
+            // Write the input to a file and have the proc it later
+            std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, frame);
+            if (!bobFilePath.empty())
+            {
+                AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "file");
+                AtArray *filenames_array = AiArrayAllocate(1, numMotionSteps, AI_TYPE_STRING);
+
+                AiArraySetStr(filenames_array, step, AtString(bobFilePath.c_str()));
+
+                AiMsgInfo("[mtoa.bifrost_graph] %s: serialized Bifrost data too large, serializing to disk as: %s",
+                          AiNodeGetName(shape),
+                          bobFilePath.c_str());
+
+                FILE *fp = fopen(bobFilePath.c_str(), "wb");
+                uint8_t* data = serialisedData;
+                size_t numBytesLeft = serialisedNBytes;
+                while (numBytesLeft > 0)
+                {
+                   size_t bytesToWrite = 2 * 1024 * 1024;
+                   if (bytesToWrite > numBytesLeft)
+                      bytesToWrite = numBytesLeft;
+                   fwrite(data, sizeof(uint8_t), bytesToWrite, fp);
+                   numBytesLeft -= bytesToWrite;
+                   data += bytesToWrite;
+                }
+                fclose(fp);
+
+                AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
+                AiNodeSetArray(shape, "bifrost:input0", filenames_array);
+                AiNodeSetArray(shape, "input_interpretations", interpsArray);
+            }
+            else
+               AiMsgWarning("[mtoa.bifrost_graph] %s: could not write Bifrost serialized data, maya project area inaccessible", AiNodeGetName(shape));
+         }
+         else
+         {
+            // When serializing data, Arnold will B85 encode data if it takes up more
+            // than 32 bytes of memory.  We want to use raw bytes rather than printing
+            // any float data if B85 encoding won't kick in, otherwise we may not
+            // get byte-for-byte transfer from printed floats.
+            uint8_t arrayType = (serialisedNBytes <= 32) ? AI_TYPE_BYTE : AI_TYPE_RGBA;
+            uint64_t arrayTypeSize = arrayType == AI_TYPE_BYTE ? sizeof(uint8_t) : sizeof(AtRGBA);
+            const char* arrayDecl = arrayType == AI_TYPE_BYTE ? "constant ARRAY BYTE" : "constant ARRAY RGBA";
+            uint64_t extraElem = (serialisedNBytes % arrayTypeSize > 0) ? 1 : 0;
+
+            // Send serialized data directly to arnold_bifrost, maximizing size per
+            // key by masquerading as a larger-sized data type if necessary
+            AtArray *interpsArray = AiArray(1, 1, AI_TYPE_STRING, "serialized");
+            AtArray *dataArray = AiArrayAllocate(static_cast<uint32_t>(serialisedNBytes / arrayTypeSize + extraElem), numMotionSteps, arrayType);
+
+            uint8_t* data = serialisedData;
+            uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
+            memcpy(dataList, data, serialisedNBytes);
+            size_t keySize = AiArrayGetKeySize(dataArray);
+            if (serialisedNBytes < keySize)
+               memset(dataList + serialisedNBytes, 0, keySize - serialisedNBytes);
+            AiArrayUnmap(dataArray);
+
+            AiNodeDeclare(shape, "bifrost:input0", arrayDecl);
+            AiNodeSetArray(shape, "bifrost:input0", dataArray);
+            AiNodeSetArray(shape, "input_interpretations", interpsArray);
+         }
+
+         AiFree(serialisedData);
+      }
+
+      dataStreamPlug.destructHandle(dataStreamHandle);
+   }
+   else if (!serialisedDataPlug.isNull())
+   {
+      // Legacy plug for backwards compatibility.  This plug can only output
+      // up to 4 GB of data maximum, see ARNOLD-147 for details.
+
+      AiMsgInfo("[mtoa.bifrost_graph] %s: exporting plug outputSerializedData for motion step %u (frame %f)",
+                AiNodeGetName(shape),
+                step,
+                frame);
       MDataHandle serialisedDataHandle;
       serialisedDataPlug.getValue(serialisedDataHandle);
       MFnDoubleArrayData arrData(serialisedDataHandle.data());
@@ -520,162 +799,346 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
+   MPlug filenamePlug = FindMayaPlug("aiFilename");
+   if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
+   {
+      // Export already done in first exported step
+      return;
+   }
+
    unsigned int step = GetMotionStep();
+   double frame = MAnimControl::currentTime().as(MTime::uiUnit());
 
-   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");
-   if (serialisedDataPlug.isNull())
+   MString baseBobPath = GetBaseBobPath();
+
+   MPlug dataStreamPlug     = FindMayaPlug("outputBifrostDataStream"); // Preferred plug
+   MPlug serialisedDataPlug = FindMayaPlug("outputSerializedData");    // Legacy plug
+
+   if (dataStreamPlug.isNull() && serialisedDataPlug.isNull())
       return;
 
-   AiMsgInfo("[mtoa.bifrost_graph] : Exporting plug outputSerializedData");
-   MDataHandle serialisedDataHandle;
-   serialisedDataPlug.getValue(serialisedDataHandle);
-   MFnDoubleArrayData arrData(serialisedDataHandle.data());
-   MDoubleArray serialisedData = arrData.array();
-   size_t serialisedSize = serialisedData.length() * sizeof(double);
-
-   AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
-   if (s_arnoldBifrostABIRev < 1 && serialisedSize >= ARNOLD_MAX_BYTE_ARRAY_SIZE)
+   if (!dataStreamPlug.isNull())
    {
-      // arnold_bifrost only takes an array of BYTEs, and we can only have 2GB
-      // in size, so we have to bail as we're over the limit and can't write
-      // the data to a temp file (or it won't get cleaned up and will spam
-      // the filesystem).  Better to issue an error and let the user break
-      // up their Bifrost outputs if possible.
-      AiMsgError("[mtoa.bifrost_graph] %s: this version of arnold_bifrost does not support more than 2GB of data per bif shape, "
-                 "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
-                 AiNodeGetName(shape));
-      serialisedDataPlug.destructHandle(serialisedDataHandle);
-      return;
-   }
+      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputBifrostDataStream for motion step %u (frame %f)",
+                 AiNodeGetName(shape),
+                 step,
+                 frame);
+      MDataHandle dataStreamHandle;
+      dataStreamPlug.getValue(dataStreamHandle);
+      MFnDoubleArrayData arrData(dataStreamHandle.data());
+      MDoubleArray streamData = arrData.array();
+      size_t streamSize = streamData.length() * sizeof(double);
 
-   if (AiArrayGetType(dataArray) != AI_TYPE_STRING && serialisedSize >= ARNOLD_MAX_PARAMETER_BYTES)
-   {
-      // Previous motion samples were directly serialized, but this sample is over
-      // the limit for parameter size, we need to stream out all already-written
-      // steps to temp files
-      size_t keySize = AiArrayGetKeySize(dataArray);
-      AtArray *newDataArray = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_STRING);
-      for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+      AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
+
+      if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
       {
-         if (key == step)
-            continue;
+         // Pass pointers (handles) over for speed, as there's no danger of
+         // pointers being written to disk
 
-#ifdef _WIN32
-         char *filename = new char[MAX_PATH_LENGTH];
-         bool success = ::tmpnam_s(filename, MAX_PATH_LENGTH) == 0;
-         FILE *fp = success ? fopen(filename, "wb") : NULL;
-         AiArraySetStr(newDataArray, key, AtString(filename));
-         delete[] filename;
-#else
-         char filename[] = "/tmp/bob-XXXXXX";
-         int tmpFD = ::mkstemp(filename);
-         bool success = tmpFD > -1;
-         FILE *fp = success ? fdopen(tmpFD, "wb") : NULL;
-         AiArraySetStr(newDataArray, key, AtString(filename));
-#endif
+         // arnold_bifrost turns the handle stream into an actual pointer handle
+         // for us to pass back to it.  It takes care of lifetime issues with
+         // the smart pointers the handle refers to.
+         void* handle = s_arnoldBifrostPrepareHandle(&streamData[0], streamSize);
 
-         fwrite(AiArrayMapKey(dataArray, key), sizeof(uint8_t), keySize, fp);
-         fclose(fp);
-         AiArrayUnmap(dataArray);
-      }
-
-      AiNodeResetParameter(shape, "bifrost:input0");
-      AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
-      AiNodeSetArray(shape, "bifrost:input0", newDataArray);
-      dataArray = newDataArray;
-
-      // Reset the interpretation to temp file
-      AtArray *interpsArray = AiNodeGetArray(shape, "input_interpretations");
-      AiArraySetStr(interpsArray, 0, "tfile");
-   }
-
-   // If the serialized data was too large or we streamed out to a temp file,
-   // we also stream this sample out to a temp file (regardless of its size).
-   if (AiArrayGetType(dataArray) == AI_TYPE_STRING)
-   {
-      FILE *fp = NULL;
-      AtString current_filename = AiArrayGetStr(dataArray, step);
-      if (!current_filename.empty())
-      {
-         fp = fopen(current_filename.c_str(), "wb");
+         // This is the simplest case: just set the handle for the current motion step
+         AiArraySetPtr(dataArray, step, handle);
       }
       else
       {
-#ifdef _WIN32
-         char* filename = new char[MAX_PATH_LENGTH];
-         bool success = ::tmpnam_s(filename, MAX_PATH_LENGTH) == 0;
-         fp = success ? fopen(filename, "wb") : NULL;
-         AiArraySetStr(dataArray, step, AtString(filename));
-         delete[] filename;
-#else
-         char filename[] = "/tmp/bob-XXXXXX";
-         int tmpFD = ::mkstemp(filename);
-         bool success = tmpFD > -1;
-         fp = success ? fdopen(tmpFD, "wb") : NULL;
-         AiArraySetStr(dataArray, step, AtString(filename));
-#endif
-      }
+         // Convert the handle data stream to fully-serialized Bifrost data
+         size_t serialisedSize = 0;
+         uint8_t* serialisedData = s_arnoldBifrostSerializeData(&streamData[0], streamSize, serialisedSize);
 
-      fwrite(&serialisedData[0], sizeof(uint8_t), serialisedSize, fp);
-      fclose(fp);
-      serialisedDataPlug.destructHandle(serialisedDataHandle);
-      return;
-   }
+         if (AiArrayGetType(dataArray) != AI_TYPE_STRING && serialisedSize >= ARNOLD_MAX_PARAMETER_BYTES)
+         {
+            // Previous motion samples were directly serialized, but this sample is over
+            // the limit for parameter size, we need to stream out all already-written
+            // steps to files as well.
+            unsigned int frameSteps = 1;
+            const double *frameTimes = GetMotionFrames(frameSteps);
+            size_t keySize = AiArrayGetKeySize(dataArray);
+            AtArray *newDataArray = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_STRING);
+            for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+            {
+               if (key == step)
+                  continue;
 
-   // Data is serialized to an array, so take care to resize the keys if this
-   // one is bigger than the previous keys already filled.
-   size_t keySize = AiArrayGetKeySize(dataArray);
-   uint8_t nKeys = AiArrayGetNumKeys(dataArray);
-   if (nKeys <= step)
-   {
-      AiMsgWarning("[mtoa.bifrost_graph] attempted motion key export when key is not available");
-      serialisedDataPlug.destructHandle(serialisedDataHandle);
-      return;
-   }
-   if (serialisedSize > keySize)
-   {
-      // Note: prior to arnold_bifrost ABI rev 1, it only accepts BYTE arrays,
-      // but afterward is accepts any non-STRING data type, and interprets it
-      // as raw bytes anyway.  This allows us to store more data per key in memory.
-      // We use BYTE when there are 32 bytes or less of data so that we don't
-      // print actual floats into an ASS file, otherwise we use RGBA so we can
-      // maximize the size per key in B85-encoded format.
+               // Rewrite the data with the frame time of the other motion key (if available)
+               double frameTime = (key < frameSteps && frameTimes != NULL) ? frameTimes[key] : frame;
+               std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, frameTime);
+               if (!bobFilePath.empty())
+               {
+                  AiArraySetStr(newDataArray, key, AtString(bobFilePath.c_str()));
+                  FILE *fp = fopen(bobFilePath.c_str(), "wb");
+                  fwrite(AiArrayMapKey(dataArray, key), sizeof(uint8_t), keySize, fp);
+                  fclose(fp);
+                  AiArrayUnmap(dataArray);
+               }
+               else
+               {
+                  AiMsgWarning("[mtoa.bifrost_graph] %s: could not write Bifrost serialized data, maya project area inaccessible", AiNodeGetName(shape));
+                  AiFree(serialisedData);
+                  dataStreamPlug.destructHandle(dataStreamHandle);
+                  return;
+               }
+            }
 
-      uint8_t arrayType = (s_arnoldBifrostABIRev < 1 || serialisedSize <= 32) ? AI_TYPE_BYTE : AI_TYPE_RGBA;
-      size_t arrayTypeSize = arrayType == AI_TYPE_BYTE ? sizeof(uint8_t) : sizeof(AtRGBA);
-      const char* arrayDecl = arrayType == AI_TYPE_BYTE ? "constant ARRAY BYTE" : "constant ARRAY RGBA";
-      size_t extraElem = (serialisedSize % arrayTypeSize > 0) ? 1 : 0;
+            AiNodeResetParameter(shape, "bifrost:input0");
+            AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
+            AiNodeSetArray(shape, "bifrost:input0", newDataArray);
+            dataArray = newDataArray;
 
-      AtArray* newDataArray = AiArrayAllocate(serialisedSize / arrayTypeSize + extraElem, GetNumMotionSteps(), arrayType);
-      size_t newKeySize = AiArrayGetKeySize(newDataArray);
-      uint8_t* existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
-      uint8_t* newData = static_cast<uint8_t*>(AiArrayMap(newDataArray));
-      for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
-      {
-         if (key == step)
-            continue;
-         memcpy(&newData[key * newKeySize], &existingData[key * keySize], keySize);
+            // Reset the interpretation to temp file
+            AtArray *interpsArray = AiNodeGetArray(shape, "input_interpretations");
+            AiArraySetStr(interpsArray, 0, "file");
+         }
+
+         // If the serialized data was too large or we streamed out to a temp file,
+         // we also stream this sample out to a temp file (regardless of its size).
+         if (AiArrayGetType(dataArray) == AI_TYPE_STRING)
+         {
+            FILE *fp = NULL;
+            std::string bobFilePath = GenerateBobPath(baseBobPath.asChar(), shape, frame);
+            if (!bobFilePath.empty())
+            {
+               AiArraySetStr(dataArray, step, AtString(bobFilePath.c_str()));
+               fp = fopen(bobFilePath.c_str(), "wb");
+               fwrite(&serialisedData[0], sizeof(uint8_t), serialisedSize, fp);
+               fclose(fp);
+            }
+            else
+               AiMsgWarning("[mtoa.bifrost_graph] %s: could not write Bifrost serialized data, maya project area inaccessible", AiNodeGetName(shape));
+
+            AiFree(serialisedData);
+            dataStreamPlug.destructHandle(dataStreamHandle);
+            return;
+         }
+
+         // Data is serialized to an array, so take care to resize the keys if this
+         // one is bigger than the previous keys already filled.
+         size_t keySize = AiArrayGetKeySize(dataArray);
+         uint8_t nKeys = AiArrayGetNumKeys(dataArray);
+         if (nKeys <= step)
+         {
+            AiMsgWarning("[mtoa.bifrost_graph] %s: attempted motion key export when key %u is not available",
+                         AiNodeGetName(shape),
+                         step);
+            AiFree(serialisedData);
+            dataStreamPlug.destructHandle(dataStreamHandle);
+            return;
+         }
+         if (serialisedSize > keySize)
+         {
+            // Note: prior to arnold_bifrost ABI rev 1, it only accepts BYTE arrays,
+            // but afterward is accepts any non-STRING data type, and interprets it
+            // as raw bytes anyway.  This allows us to store more data per key in memory.
+            // We use BYTE when there are 32 bytes or less of data so that we don't
+            // print actual floats into an ASS file, otherwise we use RGBA so we can
+            // maximize the size per key in B85-encoded format.
+
+            uint8_t arrayType = serialisedSize <= 32 ? AI_TYPE_BYTE : AI_TYPE_RGBA;
+            size_t arrayTypeSize = arrayType == AI_TYPE_BYTE ? sizeof(uint8_t) : sizeof(AtRGBA);
+            const char* arrayDecl = arrayType == AI_TYPE_BYTE ? "constant ARRAY BYTE" : "constant ARRAY RGBA";
+            size_t extraElem = (serialisedSize % arrayTypeSize > 0) ? 1 : 0;
+
+            AtArray* newDataArray = AiArrayAllocate(serialisedSize / arrayTypeSize + extraElem, GetNumMotionSteps(), arrayType);
+            size_t newKeySize = AiArrayGetKeySize(newDataArray);
+            uint8_t* existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
+            uint8_t* newData = static_cast<uint8_t*>(AiArrayMap(newDataArray));
+            for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+            {
+               if (key == step)
+                  continue;
+               memcpy(&newData[key * newKeySize], &existingData[key * keySize], keySize);
+               // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
+               memset(&newData[key * newKeySize + keySize], 0, newKeySize - keySize);
+            }
+            AiArrayUnmap(dataArray);
+            AiArrayUnmap(newDataArray);
+
+            AiNodeResetParameter(shape, "bifrost:input0");
+            AiNodeDeclare(shape, "bifrost:input0", arrayDecl);
+            AiNodeSetArray(shape, "bifrost:input0", newDataArray);
+            // Get the new array and key size for this motion sample's copy below
+            dataArray = newDataArray;
+            keySize = newKeySize;
+         }
+
+         // Copy the data into the current motion key
+         uint8_t* data = serialisedData;
+         uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
+         memcpy(dataList, data, serialisedSize);
          // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
-         memset(&newData[key * newKeySize + keySize], 0, newKeySize - keySize);
+         if (serialisedSize < keySize)
+            memset(dataList + serialisedSize, 0, keySize - serialisedSize);
+         AiArrayUnmap(dataArray);
+
+         AiFree(serialisedData);
       }
-      AiArrayUnmap(dataArray);
-      AiArrayUnmap(newDataArray);
-
-      AiNodeResetParameter(shape, "bifrost:input0");
-      AiNodeDeclare(shape, "bifrost:input0", arrayDecl);
-      AiNodeSetArray(shape, "bifrost:input0", newDataArray);
-      // Get the new array and key size for this motion sample's copy below
-      dataArray = newDataArray;
-      keySize = newKeySize;
+      dataStreamPlug.destructHandle(dataStreamHandle);
    }
+   else
+   {
+      // Legacy plug for backwards compatibility.  This plug can only output
+      // up to 4 GB of data maximum, see ARNOLD-147 for details.
 
-   // Copy the data into the current motion key
-   uint8_t* data = reinterpret_cast<uint8_t*>(&serialisedData[0]);
-   uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
-   memcpy(dataList, data, serialisedSize);
-   // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
-   if (serialisedSize < keySize)
-      memset(dataList + serialisedSize, 0, keySize - serialisedSize);
-   AiArrayUnmap(dataArray);
-   serialisedDataPlug.destructHandle(serialisedDataHandle);
+      AiMsgDebug("[mtoa.bifrost_graph] %s: exporting plug outputSerializedData for motion step %u (frame %f)",
+                 AiNodeGetName(shape),
+                 step,
+                 frame);
+      MDataHandle serialisedDataHandle;
+      serialisedDataPlug.getValue(serialisedDataHandle);
+      MFnDoubleArrayData arrData(serialisedDataHandle.data());
+      MDoubleArray serialisedData = arrData.array();
+      size_t serialisedSize = serialisedData.length() * sizeof(double);
+
+      AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
+      if (s_arnoldBifrostABIRev < 1 && serialisedSize >= ARNOLD_MAX_BYTE_ARRAY_SIZE)
+      {
+         // arnold_bifrost only takes an array of BYTEs, and we can only have 2GB
+         // in size, so we have to bail as we're over the limit and can't write
+         // the data to a temp file (or it won't get cleaned up and will spam
+         // the filesystem).  Better to issue an error and let the user break
+         // up their Bifrost outputs if possible.
+         AiMsgError("[mtoa.bifrost_graph] %s: this version of arnold_bifrost does not support more than 2GB of data per bif shape, "
+                    "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
+                    AiNodeGetName(shape));
+         serialisedDataPlug.destructHandle(serialisedDataHandle);
+         return;
+      }
+
+      if (AiArrayGetType(dataArray) != AI_TYPE_STRING && serialisedSize >= ARNOLD_MAX_PARAMETER_BYTES)
+      {
+         // Previous motion samples were directly serialized, but this sample is over
+         // the limit for parameter size, we need to stream out all already-written
+         // steps to temp files
+         size_t keySize = AiArrayGetKeySize(dataArray);
+         AtArray *newDataArray = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_STRING);
+         for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+         {
+            if (key == step)
+               continue;
+
+#ifdef _WIN32
+            char *filename = new char[MAX_PATH_LENGTH];
+            bool success = ::tmpnam_s(filename, MAX_PATH_LENGTH) == 0;
+            FILE *fp = success ? fopen(filename, "wb") : NULL;
+            AiArraySetStr(newDataArray, key, AtString(filename));
+            delete[] filename;
+#else
+            char filename[] = "/tmp/bob-XXXXXX";
+            int tmpFD = ::mkstemp(filename);
+            bool success = tmpFD > -1;
+            FILE *fp = success ? fdopen(tmpFD, "wb") : NULL;
+            AiArraySetStr(newDataArray, key, AtString(filename));
+#endif
+
+            fwrite(AiArrayMapKey(dataArray, key), sizeof(uint8_t), keySize, fp);
+            fclose(fp);
+            AiArrayUnmap(dataArray);
+         }
+
+         AiNodeResetParameter(shape, "bifrost:input0");
+         AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
+         AiNodeSetArray(shape, "bifrost:input0", newDataArray);
+         dataArray = newDataArray;
+
+         // Reset the interpretation to temp file
+         AtArray *interpsArray = AiNodeGetArray(shape, "input_interpretations");
+         AiArraySetStr(interpsArray, 0, "tfile");
+      }
+
+      // If the serialized data was too large or we streamed out to a temp file,
+      // we also stream this sample out to a temp file (regardless of its size).
+      if (AiArrayGetType(dataArray) == AI_TYPE_STRING)
+      {
+         FILE *fp = NULL;
+         AtString current_filename = AiArrayGetStr(dataArray, step);
+         if (!current_filename.empty())
+         {
+            fp = fopen(current_filename.c_str(), "wb");
+         }
+         else
+         {
+#ifdef _WIN32
+            char* filename = new char[MAX_PATH_LENGTH];
+            bool success = ::tmpnam_s(filename, MAX_PATH_LENGTH) == 0;
+            fp = success ? fopen(filename, "wb") : NULL;
+            AiArraySetStr(dataArray, step, AtString(filename));
+            delete[] filename;
+#else
+            char filename[] = "/tmp/bob-XXXXXX";
+            int tmpFD = ::mkstemp(filename);
+            bool success = tmpFD > -1;
+            fp = success ? fdopen(tmpFD, "wb") : NULL;
+            AiArraySetStr(dataArray, step, AtString(filename));
+#endif
+         }
+
+         fwrite(&serialisedData[0], sizeof(uint8_t), serialisedSize, fp);
+         fclose(fp);
+         serialisedDataPlug.destructHandle(serialisedDataHandle);
+         return;
+      }
+
+      // Data is serialized to an array, so take care to resize the keys if this
+      // one is bigger than the previous keys already filled.
+      size_t keySize = AiArrayGetKeySize(dataArray);
+      uint8_t nKeys = AiArrayGetNumKeys(dataArray);
+      if (nKeys <= step)
+      {
+         AiMsgWarning("[mtoa.bifrost_graph] %s: attempted motion key export when key %u is not available",
+                      AiNodeGetName(shape),
+                      step);
+         serialisedDataPlug.destructHandle(serialisedDataHandle);
+         return;
+      }
+      if (serialisedSize > keySize)
+      {
+         // Note: prior to arnold_bifrost ABI rev 1, it only accepts BYTE arrays,
+         // but afterward is accepts any non-STRING data type, and interprets it
+         // as raw bytes anyway.  This allows us to store more data per key in memory.
+         // We use BYTE when there are 32 bytes or less of data so that we don't
+         // print actual floats into an ASS file, otherwise we use RGBA so we can
+         // maximize the size per key in B85-encoded format.
+
+         uint8_t arrayType = (s_arnoldBifrostABIRev < 1 || serialisedSize <= 32) ? AI_TYPE_BYTE : AI_TYPE_RGBA;
+         size_t arrayTypeSize = arrayType == AI_TYPE_BYTE ? sizeof(uint8_t) : sizeof(AtRGBA);
+         const char* arrayDecl = arrayType == AI_TYPE_BYTE ? "constant ARRAY BYTE" : "constant ARRAY RGBA";
+         size_t extraElem = (serialisedSize % arrayTypeSize > 0) ? 1 : 0;
+
+         AtArray* newDataArray = AiArrayAllocate(serialisedSize / arrayTypeSize + extraElem, GetNumMotionSteps(), arrayType);
+         size_t newKeySize = AiArrayGetKeySize(newDataArray);
+         uint8_t* existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
+         uint8_t* newData = static_cast<uint8_t*>(AiArrayMap(newDataArray));
+         for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+         {
+            if (key == step)
+               continue;
+            memcpy(&newData[key * newKeySize], &existingData[key * keySize], keySize);
+            // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
+            memset(&newData[key * newKeySize + keySize], 0, newKeySize - keySize);
+         }
+         AiArrayUnmap(dataArray);
+         AiArrayUnmap(newDataArray);
+
+         AiNodeResetParameter(shape, "bifrost:input0");
+         AiNodeDeclare(shape, "bifrost:input0", arrayDecl);
+         AiNodeSetArray(shape, "bifrost:input0", newDataArray);
+         // Get the new array and key size for this motion sample's copy below
+         dataArray = newDataArray;
+         keySize = newKeySize;
+      }
+
+      // Copy the data into the current motion key
+      uint8_t* data = reinterpret_cast<uint8_t*>(&serialisedData[0]);
+      uint8_t *dataList = static_cast<uint8_t*>(AiArrayMapKey(dataArray, step));
+      memcpy(dataList, data, serialisedSize);
+      // Zero any remaining bytes to be nice to the Bifrost deserialisation parser
+      if (serialisedSize < keySize)
+         memset(dataList + serialisedSize, 0, keySize - serialisedSize);
+      AiArrayUnmap(dataArray);
+      serialisedDataPlug.destructHandle(serialisedDataHandle);
+   }
 }

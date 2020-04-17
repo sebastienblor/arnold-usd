@@ -26,6 +26,9 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("lcs", "listCustomShapes", MSyntax::kNoArg);
    syntax.addFlag("lop", "listOperators", MSyntax::kNoArg);
    syntax.addFlag("sdt", "setDefaultTranslator", MSyntax::kString, MSyntax::kString);
+   syntax.addFlag("lnm", "listNodeMetadatas", MSyntax::kString);
+   syntax.addFlag("gnm", "getNodeMetadata", MSyntax::kString, MSyntax::kString);
+   syntax.addFlag("lmm", "listMatchMetadata", MSyntax::kString, MSyntax::kString);
 
    syntax.addFlag("llx", "listLoadedExtensions", MSyntax::kNoArg);
    syntax.addFlag("gev", "getExtensionApiVersion", MSyntax::kString);
@@ -217,8 +220,100 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
 #ifdef CLIC_V2
       setResult(MString("2"));
 #endif
-   }
+   } else if(args.isFlagSet("listMatchMetadata"))
+   {
+      MString metadataName, metadataValue;
+      args.getFlagArgument("listMatchMetadata", 0, metadataName);
+      args.getFlagArgument("listMatchMetadata", 1, metadataValue);
+      setResult(CExtensionsManager::FindMatchingMetadatas(metadataName, metadataValue));
+   } else if (args.isFlagSet("listNodeMetadatas"))
+   {
+      MString nodeEntry;
+      args.getFlagArgument("listNodeMetadatas", 0, nodeEntry);
+      const ArnoldNodeMetadataStore *metadatas = CExtensionsManager::FindNodeMetadatas(nodeEntry, false);
+      MStringArray resultArray;
+      for (size_t i = 0; i < metadatas->size(); ++i)
+      {
+         resultArray.append(metadatas->at(i).name.c_str());
+      }
+      setResult(resultArray);
+   } else if (args.isFlagSet("getNodeMetadata"))
+   {
+      MString nodeEntry;
+      args.getFlagArgument("getNodeMetadata", 0, nodeEntry);
+      MString metadataName;
+      args.getFlagArgument("getNodeMetadata", 1, metadataName);
+      AtString metadataNameStr(metadataName.asChar());
+      const ArnoldNodeMetadataStore *metadatas = CExtensionsManager::FindNodeMetadatas(nodeEntry, false);
+      MString paramValueStr;
+      for (size_t i = 0; i < metadatas->size(); ++i) 
+      {
+         const AtMetaDataEntry &metadata = metadatas->at(i);
+         if (metadata.name != metadataNameStr)
+            continue;
+         // found the metadata, now get its value
+         const AtParamValue &paramValue = metadata.value;
+         switch(metadata.type)
+         {
+            case AI_TYPE_BYTE:
+               paramValueStr += (int)paramValue.BYTE();
+            break;
+            case AI_TYPE_INT:
+               paramValueStr += paramValue.INT();
+            break;
+            case AI_TYPE_UINT:
+               paramValueStr += (int)paramValue.UINT();
+            break;
+            case AI_TYPE_BOOLEAN:
+               paramValueStr = (paramValue.BOOL()) ? MString("true") : MString("false");
+            break;
+            case AI_TYPE_USHORT:
+            case AI_TYPE_HALF:
+            case AI_TYPE_FLOAT:
+               paramValueStr += paramValue.FLT();
+            break;
+            case AI_TYPE_RGB:
+               paramValueStr += paramValue.RGB().r;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGB().g;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGB().b;
+            break;
+            case AI_TYPE_RGBA:
+               paramValueStr += paramValue.RGBA().r;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGBA().g;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGBA().b;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.RGBA().a;
+            break;
+            case AI_TYPE_VECTOR:
+               paramValueStr += paramValue.VEC().x;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.VEC().y;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.VEC().z;
+            break;
+            case AI_TYPE_VECTOR2:
+               paramValueStr += paramValue.VEC2().x;
+               paramValueStr += MString(",");
+               paramValueStr += paramValue.VEC2().y;
+            break;
+            case AI_TYPE_ENUM:
+            case AI_TYPE_STRING:
+               paramValueStr = MString(paramValue.STR().c_str());
+            break;
+            default:
+            break;
+         }
+
+         break;
+      }
+      setResult(paramValueStr);
+   }      
 
    // FIXME: error on unknown flag
    return MS::kSuccess;
+
 }

@@ -4,7 +4,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiCollectionTemplate(ShaderAETemplate):
 
     def setup(self):
-    	self.beginScrollLayout()
+        self.beginScrollLayout()
         
         self.beginLayout('Operator', collapse=False)
         self.addControl("enable")

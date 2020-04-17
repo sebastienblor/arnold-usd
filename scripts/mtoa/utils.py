@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import maya.cmds as cmds
 import maya.mel as mel
 import inspect
@@ -16,12 +18,22 @@ import ctypes
 from ctypes import *
 
 from multiprocessing import cpu_count
-from ui.qt.Qt import *
+from .ui.qt.Qt import *
 from maya import OpenMayaUI as omui 
 import time
 
+try:
+    string_types = basestring
+except NameError:
+    string_types = str
 
-from hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
+from .hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
+
+def rootdir():
+    try:
+        return cmds.getModulePath(moduleName='mtoa')
+    except RuntimeError as e:
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 def rootdir():
     try:
@@ -117,7 +129,7 @@ def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, p
                 pass
         elif isinstance(pyobj, types.MethodType):
             try:
-                procPrefix += '_' + pyobj.im_class.__name__ + '_' + pyobj.__name__
+                procPrefix += '_' + pyobj.__self__.__class__.__name__ + '_' + pyobj.__name__
             except (AttributeError, TypeError):
                 pass
         d['procname'] = '%s%s' % (procPrefix, objId)
@@ -240,7 +252,7 @@ def registerFileToken(func, newTokens=None):
             try:
                 _tokenNames.extend(newTokens)
             except:
-                print "second argument to registerFileToken expects a string or a list of strings"
+                print("second argument to registerFileToken expects a string or a list of strings")
 
 def registeredTokens():
     global _tokenNames
@@ -270,7 +282,7 @@ def expandFileTokens(path, tokens, leaveUnmatchedTokens=False):
         >>> expandFileTokens('filename[_<RenderPass>].jpg', {})
         'filename.jpg'
     """
-    if isinstance(tokens, basestring):
+    if isinstance(tokens, string_types):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
     grp_reg = re.compile('\[([^\]]+)\]')
@@ -349,7 +361,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
     """
     # convert tokens to dictionary
-    if isinstance(tokens, basestring):
+    if isinstance(tokens, string_types):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
     kwargs.update(dict(frame=frame,
@@ -416,9 +428,9 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     for cb in _tokenCallbacks:
         try:
             res = cb(path, tokens, **kwargs)
-        except Exception, err:
+        except Exception as err:
             if catchErrors:
-                print "Callback %s.%s failed: %s" % (cb.__module__, cb.__name__, err)
+                print("Callback %s.%s failed: %s" % (cb.__module__, cb.__name__, err))
             else:
                 raise
         else:
@@ -442,19 +454,20 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         imageDir = imageDir if imageDir else 'data'
         imageDir = cmds.workspace(expandName=imageDir);
 
-    codecs = ['utf-8', 'latin-1']
-    for i in codecs:
-        try:
-            partialPath = partialPath.decode(i)
-            break
-        except UnicodeDecodeError:
-            pass
-    for i in codecs:
-        try:
-            imageDir = imageDir.decode(i)
-            break
-        except UnicodeDecodeError:
-            pass   
+    if sys.version_info[0] == 2:
+        codecs = ['utf-8', 'latin-1']
+        for i in codecs:
+            try:
+                partialPath = partialPath.decode(i)
+                break
+            except UnicodeDecodeError:
+                pass
+        for i in codecs:
+            try:
+                imageDir = imageDir.decode(i)
+                break
+            except UnicodeDecodeError:
+                pass
 
     if cmds.optionVar(exists="OverrideFileOutputDirectory"):
         result = os.path.join(imageDir, partialPath)
@@ -488,10 +501,11 @@ registerFileToken(fileTokenVersion, 'Version')
 registerFileToken(fileTokenVersion, 'Eye')
 
 def convertToUnicode(s):
-    try:
-        s = s.encode('utf-8')
-    except UnicodeDecodeError:
-        pass
+    if sys.version_info[0] == 2:
+        try:
+            s = s.encode('utf-8')
+        except UnicodeDecodeError:
+            pass
     return s
 
 def getEnvironmentVariable(name):
@@ -623,6 +637,10 @@ def getMayaVersion():
     return int(float(version[:4]))
 
 
+def getMayaAPIVersion():
+    version = cmds.about(api=True)
+    return int(str(version)[:4])
+
 
 cb_id = None
 percent_done = 0.0
@@ -659,17 +677,17 @@ def GPU_optixCacheCallBack(*args):
 def cache_populate_callback(cUserdata, status, fraction_done, msg):
 
    if fraction_done==0.0:
-      print '[AiGPUCachePopulate] Running ..'
+      print('[AiGPUCachePopulate] Running ..')
       return
    if status != ai.AtRenderErrorCode:
       global percent_done
       if ( fraction_done*100.0 > percent_done ):
-        print '[AiGPUCachePopulate] (%.1f%% done)' % (100.0*fraction_done)
+        print('[AiGPUCachePopulate] (%.1f%% done)' % (100.0*fraction_done))
         percent_done = 100.0 * fraction_done
    else:
-      print '[AiGPUCachePopulate] Error: %s'
+      print('[AiGPUCachePopulate] Error: %s')
    if fraction_done==1.0:
-      print '[AiGPUCachePopulate] Finished.'
+      print('[AiGPUCachePopulate] Finished.')
 
 def populate_GPUCache():
 

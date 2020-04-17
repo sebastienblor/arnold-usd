@@ -4,10 +4,11 @@ in python.  The core class for writing templates is `AttributeTemplate`, which a
 using `registerAETemplate` or `registerTranslatorUI` depending on whether the template is for a node
 or for an mtoa translator.
 """
+from __future__ import print_function
 
 from maya.utils import executeDeferred
-from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
-from mtoa.utils import prettify, toMayaStyle
+from mtoa.ui.ae.utils import aeCallback, AttrControlGrp, aeAttrFunc
+from mtoa.utils import prettify, toMayaStyle, getMayaAPIVersion, string_types
 import mtoa.core as core
 import maya.cmds as cmds
 import maya.mel
@@ -116,7 +117,7 @@ class BaseTemplate(object):
 
 def modeAttrMethod(func):
     def wrapped(self, attr, *args, **kwargs):
-        assert isinstance(attr, basestring), "%r.%s: attr argument must be a string, got %s" % (self, func.__name__, type(attr).__name__)
+        assert isinstance(attr, string_types), "%r.%s: attr argument must be a string, got %s" % (self, func.__name__, type(attr).__name__)
         modefunc = getattr(self._mode, func.__name__)
         if self.convertToMayaStyle:
             attr = toMayaStyle(attr)
@@ -468,10 +469,15 @@ class AERootMode(BaseMode):
                 cmds.editorTemplate(suppress=attr)
             except RuntimeError:
                 pass
-        cmds.editorTemplate(aeCallback(template._doSetup),
-                          aeCallback(template._doUpdate),
-                          attr,
-                          callCustom=True)
+        if getMayaAPIVersion() <= 2020:
+            cmds.editorTemplate(aeCallback(template._doSetup),
+                                aeCallback(template._doUpdate),
+                                attr,
+                                callCustom=True)
+        else:
+            cmds.editorTemplate(attr,
+                                callCustom=[template._doSetup,
+                                            template._doUpdate])
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
                    preventOverride=False, dynamic=False, enumeratedItem=None):
@@ -501,12 +507,19 @@ class AERootMode(BaseMode):
 
     def addCustom(self, attr, newFunc, replaceFunc):
         # TODO: support multiple attributes passed
-        if hasattr(newFunc, '__call__'):
-            newFunc = aeCallback(newFunc)
-        if hasattr(replaceFunc, '__call__'):
-            replaceFunc = aeCallback(replaceFunc)
-        args = (newFunc, replaceFunc, attr) 
-        cmds.editorTemplate(callCustom=1, *args)
+        if getMayaAPIVersion() <= 2020:
+            if hasattr(newFunc, '__call__'):
+                newFunc = aeCallback(newFunc)
+            if hasattr(replaceFunc, '__call__'):
+                replaceFunc = aeCallback(replaceFunc)
+            args = (newFunc, replaceFunc, attr)
+            cmds.editorTemplate(callCustom=True, *args)
+        else:
+            if isinstance(newFunc, str):
+                newFunc = aeAttrFunc(newFunc)
+            if isinstance(replaceFunc, str):
+                replaceFunc = aeAttrFunc(replaceFunc)
+            cmds.editorTemplate(attr, callCustom=[newFunc, replaceFunc])
 
     def addSeparator(self):
         cmds.editorTemplate(addSeparator=True)
@@ -793,7 +806,7 @@ class TranslatorControl(AttributeTemplate):
                                self.updateChildrenCallback,
                                self.updateChildrenCallback)
             else:
-                translator, template = self.getTranslatorTemplates()[0]
+                translator, template = list(self.getTranslatorTemplates())[0]
                 self.addChildTemplate('message', template)
 
 #-------------------------------------------------

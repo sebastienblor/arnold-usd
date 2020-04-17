@@ -12,7 +12,7 @@ class AEaiRandomTemplate(ShaderAETemplate):
         cmds.editorTemplate(dimControl=(nodeName, "inputColor", (False if inputTypeValue == 2  else True)))
     
     def setup(self):
-    	self.addSwatch()
+        self.addSwatch()
         self.beginScrollLayout()
 
         self.beginLayout('Random', collapse=False)

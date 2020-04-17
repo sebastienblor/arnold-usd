@@ -16,14 +16,9 @@
 
 #include <algorithm>
 #include <string>
-static bool s_usdSupported = false;
 
 void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
 {
-   s_usdSupported = (AiNodeEntryLookUp("usd") != NULL);
-   if (!s_usdSupported)
-      return;
-
    CExtensionAttrHelper helper(context.maya, "usd");
    CShapeTranslator::MakeCommonAttributes(helper);
 
@@ -40,7 +35,6 @@ void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CUsdProxyShapeTranslator::CreateArnoldNodes()
 {
-   if (!s_usdSupported) return NULL;
 
    return AddArnoldNode("usd");
 }
@@ -77,7 +71,7 @@ void CUsdProxyShapeTranslator::AddUpdateCallbacks()
 
 void CUsdProxyShapeTranslator::Export( AtNode *shape )
 {
-   if (s_usdSupported == false || shape == NULL)
+   if (shape == NULL)
       return;
 
    // ExportMatrix(shape);
@@ -106,20 +100,13 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
    MTime curTime = MAnimControl::currentTime();
 
    AiNodeSetFlt(shape, "frame", float(FindMayaPlug("time").asFloat()));
-   
-   
+  
    ExportProcedural(shape);
-
-   AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
-   AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));
 }
 
 
 void CUsdProxyShapeTranslator::ExportShaders()
 {
-   if (s_usdSupported == false)
-      return;
-
    AtNode *node = GetArnoldNode();
    if (node == NULL)
       return;
@@ -143,7 +130,7 @@ void CUsdProxyShapeTranslator::ExportShaders()
 
 void CUsdProxyShapeTranslator::ExportMotion(AtNode *shape)
 {
-   if (s_usdSupported == false || shape == NULL)
+   if (shape == NULL)
       return;
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
@@ -155,8 +142,6 @@ void CUsdProxyShapeTranslator::ExportMotion(AtNode *shape)
 
 void CUsdProxyShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   if (s_usdSupported == false)
-      return;
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
    MString plugName = plug.partialName(false, false, false, false, false, true);
 

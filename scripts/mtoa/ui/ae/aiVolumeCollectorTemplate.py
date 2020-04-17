@@ -1,3 +1,4 @@
+from __future__ import print_function
 import maya.cmds as cmds
 import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -6,7 +7,7 @@ class AEaiVolumeCollectorTemplate(ShaderAETemplate):
     def scatteringSource(self, nodeName):
         source = self.nodeAttr('scattering_source')
         sourceVal = cmds.getAttr(source)
-        print sourceVal
+        print(sourceVal)
         if(sourceVal == 0):
             cmds.editorTemplate(dimControl=(nodeName, "scattering", False))
             cmds.editorTemplate(dimControl=(nodeName, "scatteringChannel", True))
@@ -17,7 +18,7 @@ class AEaiVolumeCollectorTemplate(ShaderAETemplate):
     def attenuationSource(self, nodeName):
         source = self.nodeAttr('attenuation_source')
         sourceVal = cmds.getAttr(source)
-        print sourceVal
+        print(sourceVal)
         if(sourceVal == 0):
             cmds.editorTemplate(dimControl=(nodeName, "attenuation", False))
             cmds.editorTemplate(dimControl=(nodeName, "attenuationChannel", True))
@@ -31,7 +32,7 @@ class AEaiVolumeCollectorTemplate(ShaderAETemplate):
     def emissionSource(self, nodeName):
         source = self.nodeAttr('emission_source')
         sourceVal = cmds.getAttr(source)
-        print sourceVal
+        print(sourceVal)
         if(sourceVal == 0):
             cmds.editorTemplate(dimControl=(nodeName, "emission", False))
             cmds.editorTemplate(dimControl=(nodeName, "emissionChannel", True))

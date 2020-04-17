@@ -485,7 +485,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          static const AtString box_str("box");
          static const AtString ginstance_str("ginstance");
 
-         // AiASSWrite(universe, "/home/handsca/viewport.ass", AI_NODE_SHAPE);  // for debugging
          AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
          while (!AiNodeIteratorFinished(iter))
@@ -1173,6 +1172,12 @@ MStatus CArnoldStandInShape::initialize()
    data.name = "abcPullUserParams";
    data.shortName = "abc_pull_user_params";
    s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "abcUseInstanceCache";
+   data.shortName = "abc_use_instance_cache";
+   s_attributes.MakeInputBoolean(data);
+
 
 
    return MStatus::kSuccess;

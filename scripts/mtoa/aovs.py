@@ -1,13 +1,16 @@
+from __future__ import print_function
 import mtoa.utils as utils
 import mtoa.melUtils as melUtils
 import mtoa.callbacks as callbacks
 from collections import namedtuple
 from itertools import groupby
+from mtoa.utils import string_types
 import re
 import arnold.ai_params
 import maya.api.OpenMaya as om
 import maya.mel as mel
 import maya.cmds as cmds
+
 
 BUILTIN_AOVS = (
                 ('P',                   'vector'),
@@ -123,11 +126,11 @@ def listAvailableIndices(logIdxList, nreq):
             rem = min(nreq-len(free), idx-(last+1))
             if rem <= 0:
                 return free
-            for i in xrange(0, rem):
+            for i in range(0, rem):
                 free.append(last+1+i)
         last = idx
     rem = nreq-len(free)
-    for i in xrange(0, rem):
+    for i in range(0, rem):
         free.append(last+1+i)
     return free
 
@@ -155,7 +158,7 @@ def removeAliases(aovs):
         for aov in aovs:
             try:
                 cmds.removeMultiInstance(sg + '.ai_aov_' + aov.name)
-            except RuntimeError, err:
+            except RuntimeError as err:
                 pass #print err
 
 def addAliases(aovs):
@@ -208,13 +211,13 @@ class SceneAOV(object):
         return '%s(%r, %d)' % (self.__class__.__name__, self.node, self.index)
 
     def __eq__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, string_types):
             return self.name == other
         else:
             return self.name == other.name
 
     def __lt__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, string_types):
             if other == "beauty":
                 return False
             if self.name == "beauty":
@@ -230,7 +233,7 @@ class SceneAOV(object):
                 return self.name < other.name
 
     def __gt__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, string_types):
             if self.name == "beauty":
                 return False
             if other == "beauty":
@@ -295,13 +298,13 @@ class SceneAOV(object):
         for sg in cmds.ls(type='shadingEngine'):
             try:
                 cmds.aliasAttr(sg + '.ai_aov_' + oldName, remove=True)
-            except RuntimeError, err:
+            except RuntimeError as err:
                 pass #print err
 
             sgAttr = '{}.aiCustomAOVs'.format(sg)
             try:
                 cmds.aliasAttr('ai_aov_' + newName, '{}[{}]'.format(sgAttr,self.index))
-            except RuntimeError, err:
+            except RuntimeError as err:
                 pass #print err
 
     def update(self):
@@ -486,7 +489,7 @@ class AOVInterface(object):
         for input in inputs:
             # callback may have deleted it
             if cmds.objExists(input) and not cmds.listConnections('{}.message'.format(input), source=False, destination=True):
-                print "deleting", input
+                print("deleting", input)
 
     def renameAOVs(self, oldName, newName):
         '''
@@ -600,7 +603,7 @@ def createAliases(sg):
     if cmds.attributeQuery('attributeAliasList', node=sg, exists=True):
         alias_list = '{}.attributeAliasList'.format(sg)
         if cmds.objExists(alias_list) and not cmds.aliasAttr(sg, q=True) :
-            print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg
+            print("Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg)
             cmds.deleteAttr(alias_list)
 
     aovList = getAOVNodes(True)
