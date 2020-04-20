@@ -44,7 +44,7 @@ class BaseTreeView(QtWidgets.QTreeView):
         # Custom style
         delegate = BaseDelegate(self)
         self.setItemDelegate(delegate)
-        self.setStyle(TreeStyle(self.style()))
+        self.setStyle(TreeStyle())
         self.setIndentation(ITEM_INDENT)
 
         self.setRootIsDecorated(False)

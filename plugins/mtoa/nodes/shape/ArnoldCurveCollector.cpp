@@ -101,6 +101,12 @@ MStatus CArnoldCurveCollector::initialize()
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    addAttribute(opaque);
+
+   MObject matte = nAttr.create("aiMatte", "aiMatte", MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setStorable(true);
+   addAttribute(matte);
+   
    
    CAttrData data;
    data.stringDefault = "";

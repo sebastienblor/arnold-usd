@@ -49,7 +49,7 @@ public:
  **/
 
    // RenderView functions
-   void OpenRenderView(int width, int height, float scaleFactor, QWidget *parent = NULL, bool showWin = true);
+   void OpenRenderView(int width, int height, float scaleFactor, QWidget *parent = NULL, bool showWin = true, const char *menusFilter = NULL);
    void CloseRenderView();
    void DestroyRenderView();
    // return the renderView Qt Window

@@ -118,7 +118,7 @@ def aiHyperShadeCreateMenu_BuildMenu():
 
 def createNodeCallback(runtimeClassification, postCommand, nodeType):
 
-    node = unicode(createArnoldNode(nodeType, runtimeClassification=runtimeClassification))
+    node = str(createArnoldNode(nodeType, runtimeClassification=runtimeClassification))
     if postCommand:
         postCommand = postCommand.replace('%node', node).replace('%type', nodeType).replace(r'\"','"')
         maya.mel.eval(postCommand)

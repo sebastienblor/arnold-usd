@@ -7,7 +7,7 @@ or for an mtoa translator.
 from __future__ import print_function
 
 from maya.utils import executeDeferred
-from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
+from mtoa.ui.ae.utils import aeCallback, AttrControlGrp, aeAttrFunc
 from mtoa.utils import prettify, toMayaStyle, getMayaAPIVersion, string_types
 import mtoa.core as core
 import maya.cmds as cmds
@@ -515,6 +515,10 @@ class AERootMode(BaseMode):
             args = (newFunc, replaceFunc, attr)
             cmds.editorTemplate(callCustom=True, *args)
         else:
+            if isinstance(newFunc, str):
+                newFunc = aeAttrFunc(newFunc)
+            if isinstance(replaceFunc, str):
+                replaceFunc = aeAttrFunc(replaceFunc)
             cmds.editorTemplate(attr, callCustom=[newFunc, replaceFunc])
 
     def addSeparator(self):
