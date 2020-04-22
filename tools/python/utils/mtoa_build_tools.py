@@ -76,10 +76,12 @@ def make_module(env, target, source):
       os.makedirs(os.path.dirname(source[0]))
    f = open(source[0], 'w' )
    # Maya got problems with double digit versions
-   # f.write('+ mtoa %s %s\n' % (get_mtoa_version(3), target[0]))
-   f.write('+ mtoa %s %s\n' % ('any', target[0]))
+    f.write('+ mtoa %s %s\n' % (get_mtoa_version(3), target[0]))
+   #f.write('+ mtoa %s %s\n' % ('any', target[0]))
    f.write('PATH +:= bin\n')
    f.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
+   f.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
+   f.write('MAYA_RENDER_DESC_PATH += %s\n' % target[0])
    f.close()
 
 def set_target_arch(arch):
