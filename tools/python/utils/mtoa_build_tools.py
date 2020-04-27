@@ -71,6 +71,7 @@ def get_maya_version(path):
    f.close()
 
 def make_module(env, target, source):
+
    # When symbols defined in the plug-in
    if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
       os.makedirs(os.path.dirname(source[0]))

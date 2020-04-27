@@ -160,7 +160,7 @@ def run_test(target, source, env):
      
    test_ref_dir =   os.path.join(env.Dir('.').srcnode().abspath, 'testsuite', TEST_NAME, 'ref')
    
-   show_test_output = True#(test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(TEST_TARGETS) == 1))
+   show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(TEST_TARGETS) == 1))
 
    # Propagate our scons construction environment into a dictionary suitable for
    # subprocess.Popen (only string values allowed)
