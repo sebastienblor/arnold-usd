@@ -73,6 +73,7 @@ listtestscripts_bld = Builder(action = Action(list_test_scripts, "Listing test s
 
 def list_test_errors(target, source, env):
    for file in source:
+   print "Please delete me" 
       dirname = os.path.dirname(str(file))
       name = os.path.basename(dirname)
       with open(str(file), 'r') as f:
