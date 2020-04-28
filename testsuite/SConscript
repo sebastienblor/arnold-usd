@@ -73,7 +73,6 @@ listtestscripts_bld = Builder(action = Action(list_test_scripts, "Listing test s
 
 def list_test_errors(target, source, env):
    for file in source:
-   print "Please delete me" 
       dirname = os.path.dirname(str(file))
       name = os.path.basename(dirname)
       with open(str(file), 'r') as f:
@@ -244,17 +243,18 @@ def run_test(target, source, env):
          cmd = os.path.join(test_dir, cmd)
 
       tokens = cmd.split()
+
       if tokens[0] == 'kick':
          cmd = os.path.join(kick_path, cmd)
          # Append additional parameters if given
          cmd += ' ' + test_env['KICK_PARAMS']
          cmd += ' -l ' + test_env['USD_PROCEDURAL_INSTALL_PATH']
-      elif os.path.splitext(tokens[0])[1] == '.py':
+      elif '.py' in os.path.splitext(tokens[0])[1]:
          # Use the same Python interpreter we used for launching SCons
          # But don't forget to add double quotes in case this path contains spaces (eg C:\Program Files(x86)\Python\python.exe ...)
          cmd = '"' + sys.executable + '" ' + cmd
          use_shell = True
-      
+
       # TODO : THESE NEED TO SET properly
       use_shell = True
 
