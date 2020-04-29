@@ -5,6 +5,30 @@
 #include "utils/MayaUtils.h"
 #include <maya/MFnNumericData.h>
 
+
+const char* OperationStrings[] =
+{
+   "==",
+   "!=",
+   "<",
+   ">",
+   "<=",
+   ">=",
+   NULL
+};
+
+enum operation
+{
+   OP_ADD = 0,
+   OP_SUBTRACT,
+   OP_MULTIPLY,
+   OP_DIVIDE,
+   OP_MIN,
+   OP_MAX,
+   OP_POW
+};
+
+
 void CLookDevKitTranslator::ExportRGBAChannels(AtNode *shader, const char *arnoldParam, const char *rgbParam, const char *alphaParam)
 { 
    ProcessParameter(shader, arnoldParam, AI_TYPE_RGBA, rgbParam); 
@@ -69,7 +93,38 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
    else if (nodeType == MString("floatMask"))
       nodeType = MString("rgb_to_float");
    else if (nodeType == MString("floatMath"))
-      nodeType = MString("rgb_to_float");
+   {
+      MPlug opPlug = FindMayaPlug("operation");
+      if (!opPlug.isNull())
+      {
+         int operation = opPlug.asInt();
+         switch (operation)
+         {
+            default:
+            case OP_ADD: // add
+               nodeType = MString("add");
+               break;
+            case OP_SUBTRACT:  // subtract
+               nodeType = MString("subtract");
+               break;
+            case OP_MULTIPLY: // multiply
+               nodeType = MString("multiply");
+               break;
+            case OP_DIVIDE: // divide
+               nodeType = MString("divide");
+               break;
+            case OP_MIN:  // Min
+               nodeType = MString("min");
+               break;
+            case OP_MAX: // Max
+               nodeType = MString("max");
+               break;
+            case OP_POW: // Pow
+               nodeType = MString("pow");
+               break;
+         }
+      }
+   }
    else if (nodeType == MString("colorCorrect"))
    {      
       AtNode *cc = AddArnoldNode("color_correct");
@@ -123,28 +178,6 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
    return node;
 }
 
-
-const char* OperationStrings[] =
-{
-   "==",
-   "!=",
-   "<",
-   ">",
-   "<=",
-   ">=",
-   NULL
-};
-
-enum operation
-{
-   OP_ADD = 0,
-   OP_SUBTRACT,
-   OP_MULTIPLY,
-   OP_DIVIDE,
-   OP_MIN,
-   OP_MAX,
-   OP_POW
-};
 
 void CLookDevKitTranslator::Export(AtNode* shader)
 {
@@ -360,52 +393,16 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       AiNodeSetBool(shader, "enable7", false);
       AiNodeSetBool(shader, "enable8", false);
    } else if (nodeType == MString("floatMath"))
-   {     
-      MPlug opPlug = FindMayaPlug("operation");
-      std::string opName;
-      if (!opPlug.isNull())
+   {  
+      static AtString powStr("pow");
+      if (AiNodeIs(shader, powStr))
       {
-         int operation = opPlug.asInt();
-         switch (operation)
-         {
-            default:
-            case OP_ADD: // add
-               opName = "add";
-               break;
-            case OP_SUBTRACT:  // subtract
-               opName = "subtract";
-               break;
-            case OP_MULTIPLY: // multiply
-               opName = "multiply";
-               break;
-            case OP_DIVIDE: // divide
-               opName = "divide";
-               break;
-            case OP_MIN:  // Min
-               opName = "min";
-               break;
-            case OP_MAX: // Max
-               opName = "max";
-            case OP_POW: // Pow
-               opName = "pow";
-               break;
-         }
-      }
-      AtNode *mathNode = GetArnoldNode(opName.c_str());
-      if (mathNode == NULL)
-         mathNode = AddArnoldNode(opName.c_str(), opName.c_str());
-
-      AiNodeLink(mathNode, "input", shader);
-      AiNodeSetStr(shader, "mode", "r");
-
-      if (opName == "pow")
-      {
-         ProcessParameter(mathNode, "base.r", AI_TYPE_FLOAT, "floatA");
-         ProcessParameter(mathNode, "exponent.r", AI_TYPE_FLOAT, "floatB");
+         ProcessParameter(shader, "base", AI_TYPE_RGB, "floatA");
+         ProcessParameter(shader, "exponent", AI_TYPE_RGB, "floatB");
       } else
       {
-         ProcessParameter(mathNode, "input1.r", AI_TYPE_FLOAT, "floatA");
-         ProcessParameter(mathNode, "input2.r", AI_TYPE_FLOAT, "floatB");
+         ProcessParameter(shader, "input1", AI_TYPE_RGB, "floatA");
+         ProcessParameter(shader, "input2", AI_TYPE_RGB, "floatB");
       }
    }  else if (nodeType == MString("floatCondition"))
    {
@@ -763,6 +760,12 @@ void CLookDevKitTranslator::NodeChanged(MObject& node, MPlug& plug)
       else if ((plugName == "clampOutput") && GetArnoldNode("clamp") == NULL)
          SetUpdateMode(AI_RECREATE_NODE);
       
+   } else if (nodeType == MString("floatMath"))
+   {
+      MString plugName = plug.partialName(false, false, false, false, false, true);
+      if (plugName == "operation")
+         SetUpdateMode(AI_RECREATE_NODE);
+     
    }
    CShaderTranslator::NodeChanged(node, plug);
 }
