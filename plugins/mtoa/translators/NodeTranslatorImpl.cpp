@@ -663,7 +663,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             // value in the R,G,B channels and set A = 1
             float val = plug.asFloat();
             AtRGBA col(val, val, val, 1.f);
-            AtRGBA prevCol = AiNodeGetRGB(arnoldNode, arnoldParamName);
+            AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamName);
             if (col != prevCol)
                AiNodeSetRGBA(arnoldNode, arnoldParamName, col.r, col.g, col.b, col.a);
          }
