@@ -85,13 +85,13 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
    else if (nodeType == MString("floatLogic"))
       nodeType = MString("compare");
    else if (nodeType == MString("floatCondition"))
-      nodeType = MString("rgb_to_float");
+      nodeType = MString("switch_rgba");
    else if (nodeType == MString("floatConstant"))
       nodeType = MString("layer_float");
    else if (nodeType == MString("floatComposite"))
-      nodeType = MString("rgb_to_float");
+      nodeType = MString("layer_rgba");
    else if (nodeType == MString("floatMask"))
-      nodeType = MString("rgb_to_float");
+      nodeType = MString("subtract");
    else if (nodeType == MString("floatMath"))
    {
       MPlug opPlug = FindMayaPlug("operation");
@@ -407,30 +407,21 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       }
    }  else if (nodeType == MString("floatCondition"))
    {
-      AtNode *switchShader = GetArnoldNode("switch_rgba");
-      if (switchShader == NULL)
-         switchShader = AddArnoldNode("switch_rgba", "switch_rgba");
-
-      ProcessParameter(switchShader, "input0.r", AI_TYPE_FLOAT, "floatB");
-      ProcessParameter(switchShader, "input1.r", AI_TYPE_FLOAT, "floatA");
-      ProcessParameter(switchShader, "index", AI_TYPE_INT, "condition");
-      AiNodeLink(switchShader, "input", shader);
-      AiNodeSetStr(shader, "mode", "r");
+      ProcessParameter(shader, "input0", AI_TYPE_RGBA, "floatB");
+      ProcessParameter(shader, "input1", AI_TYPE_RGBA, "floatA");
+      ProcessParameter(shader, "index", AI_TYPE_INT, "condition");
    } else if (nodeType == MString("floatComposite"))
    {
-      AtNode *layerRgba = GetArnoldNode("layer_rgba");
-      if (layerRgba == NULL)
-         layerRgba = AddArnoldNode("layer_rgba", "layer_rgba");
+      ProcessParameter(shader, "input1", AI_TYPE_RGBA, "floatA");
+      ProcessParameter(shader, "input2", AI_TYPE_RGBA, "floatB");
 
-      ProcessParameter(layerRgba, "input1.r", AI_TYPE_FLOAT, "floatA");
-      ProcessParameter(layerRgba, "input2.r", AI_TYPE_FLOAT, "floatB");
-      ProcessParameter(layerRgba, "mix2", AI_TYPE_FLOAT, "factor");
-      AiNodeSetBool(layerRgba, "enable3", false);
-      AiNodeSetBool(layerRgba, "enable4", false);
-      AiNodeSetBool(layerRgba, "enable5", false);
-      AiNodeSetBool(layerRgba, "enable6", false);
-      AiNodeSetBool(layerRgba, "enable7", false);
-      AiNodeSetBool(layerRgba, "enable8", false);
+      ProcessParameter(shader, "mix2", AI_TYPE_FLOAT, "factor");
+      AiNodeSetBool(shader, "enable3", false);
+      AiNodeSetBool(shader, "enable4", false);
+      AiNodeSetBool(shader, "enable5", false);
+      AiNodeSetBool(shader, "enable6", false);
+      AiNodeSetBool(shader, "enable7", false);
+      AiNodeSetBool(shader, "enable8", false);
 
       MPlug operationPlug = FindMayaPlug("operation");
       if (!operationPlug.isNull())
@@ -439,51 +430,43 @@ void CLookDevKitTranslator::Export(AtNode* shader)
          {
             default:
             case COP_ADD:
-               AiNodeSetStr(layerRgba, "operation2", "plus");
+               AiNodeSetStr(shader, "operation2", "plus");
             break;
             case COP_SUBTRACT:
-               AiNodeSetStr(layerRgba, "operation2", "subtract");
+               AiNodeSetStr(shader, "operation2", "subtract");
             break;
             case COP_MIX:
-               AiNodeSetStr(layerRgba, "operation2", "overwrite");
+               AiNodeSetStr(shader, "operation2", "overwrite");
             break;
             case COP_MULTIPLY:
-               AiNodeSetStr(layerRgba, "operation2", "multiply");            
+               AiNodeSetStr(shader, "operation2", "multiply");            
             break;
             case COP_SCREEN:
                // Note: in the past we were actually doing "add" here
-               AiNodeSetStr(layerRgba, "operation2", "screen");            
+               AiNodeSetStr(shader, "operation2", "screen");            
             break;
             case COP_OVERLAY:
                // overlay formula seemed to be wrong before
-               AiNodeSetStr(layerRgba, "operation2", "overlay");
+               AiNodeSetStr(shader, "operation2", "overlay");
             break;
             case COP_DIFFERENCE:
                // FIXME: should this be "minus" or "difference" ? it used to be "minus"...
-               AiNodeSetStr(layerRgba, "operation2", "difference");
+               AiNodeSetStr(shader, "operation2", "difference");
             break;
             case COP_DODGE:
-               AiNodeSetStr(layerRgba, "operation2", "color_dodge");
+               AiNodeSetStr(shader, "operation2", "color_dodge");
             break;
             case COP_BURN:
                // The previous result seemed to be wrong
-               AiNodeSetStr(layerRgba, "operation2", "color_burn");
+               AiNodeSetStr(shader, "operation2", "color_burn");
             break;
          }
       }
-
-      AiNodeLink(layerRgba, "input", shader);
-      AiNodeSetStr(shader, "mode", "r");
+      
    } else if (nodeType == MString("floatMask"))
    {
-      AtNode *subtract = GetArnoldNode("subtract");
-      if (subtract == NULL)
-         subtract = AddArnoldNode("subtract", "subtract");
-
-      ProcessParameter(subtract, "input1.r", AI_TYPE_FLOAT, "inFloat");
-      ProcessParameter(subtract, "input2.r", AI_TYPE_FLOAT, "mask");
-      AiNodeLink(subtract, "input", shader);
-      AiNodeSetStr(shader, "mode", "r");
+      ProcessParameter(shader, "input1", AI_TYPE_RGB, "inFloat");
+      ProcessParameter(shader, "input2", AI_TYPE_RGB, "mask");
    } else if (nodeType == MString("colorCorrect"))
    {
       AtNode *cc = shader;
