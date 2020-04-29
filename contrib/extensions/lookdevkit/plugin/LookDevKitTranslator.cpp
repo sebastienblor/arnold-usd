@@ -277,8 +277,9 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       MPlug operationPlug = FindMayaPlug("operation");
       if (!operationPlug.isNull())
       {
-         MString operation = operationPlug.asString();
-         AiNodeSetStr(shader, "test", operation.asChar());
+         int op = operationPlug.asInt();
+         if (op >= 0 && op <= 5)
+            AiNodeSetStr(shader, "test", OperationStrings[op]);
       }
    
    } else if (nodeType == MString("colorConstant"))
