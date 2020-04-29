@@ -304,7 +304,8 @@ def run_test(target, source, env):
       local_env['MAYA_RENDER_DESC_PATH'] = test_env['TARGET_MODULE_PATH']
       if os.getenv("MAYA_APP_DIR"):
          local_env['MAYA_APP_DIR'] = os.getenv("MAYA_APP_DIR")
-      
+      else:
+         local_env['MAYA_APP_DIR'] = test_env['MAYA_ROOT']
       ## why this being in Maya.env doesn't work?
       previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
       os.environ['   '] = test_env.subst(test_env['TARGET_DESCR_PATH'])
