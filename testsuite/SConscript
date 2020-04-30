@@ -319,12 +319,21 @@ def run_test(target, source, env):
          print '====Exec %s' % cmd
          print os.getenv('PATH')
       
+      keys = os.environ.keys()
+      for key in keys:
+         if 'GO' in key or 'WRAPPER' in key:
+            print "Deleting Key " , key 
+            del [key]
       
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
-      
+      fullenv = os.environ
+      #import pprint
+      #envstr = pprint.format(fullenv,indent=4)
       with open(logfile, 'w') as f:
          f.write('==== Setting Path ===== \n \n ')
          f.write(str(local_env) + '\n \n ')
+         f.write('==== FULL ENV ===== \n \n ')
+         f.write(str(fullenv) + '\n \n ')
          f.write('==== Exec cmd ==== \n \n')
          f.write(cmd + '\n \n ')
          f.writelines(l + '\n' for l in out)
