@@ -311,31 +311,21 @@ def run_test(target, source, env):
       os.environ['   '] = test_env.subst(test_env['TARGET_DESCR_PATH'])
       os.environ['MAYA_VERSION'] = test_env['MAYA_VERSION']
       local_env['ARNOLD_MATERIALX_SEARCH_PATH'] = test_dir
-
-   
-      #os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
-      #os.environ["MAYA_DISABLE_CIP"] = "1"
-      #os.environ["MAYA_DISABLE_CER"] = "1"
-
       local_env['PYMEL_SKIP_MEL_INIT'] = "1"
+      ## Dont need to be submitting CER and CIP for CI process
+      ## Also without this testsuite crashes with Maya 2018
       local_env["MAYA_DISABLE_CIP"] = "1"
       local_env["MAYA_DISABLE_CER"] = "1"
 
-
-      
       if show_test_output:
          print '====Exec %s' % cmd
          print os.getenv('PATH')
       
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
-      fullenv = os.environ
-      #import pprint
-      #envstr = pprint.format(fullenv,indent=4)
+
       with open(logfile, 'w') as f:
          f.write('==== Setting Path ===== \n \n ')
          f.write(str(local_env) + '\n \n ')
-         f.write('==== FULL ENV ===== \n \n ')
-         f.write(str(fullenv) + '\n \n ')
          f.write('==== Exec cmd ==== \n \n')
          f.write(cmd + '\n \n ')
          f.writelines(l + '\n' for l in out)
