@@ -313,17 +313,19 @@ def run_test(target, source, env):
       local_env['ARNOLD_MATERIALX_SEARCH_PATH'] = test_dir
 
    
-      os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
+      #os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
+      #os.environ["MAYA_DISABLE_CIP"] = "1"
+      #os.environ["MAYA_DISABLE_CER"] = "1"
+
+      local_env['PYMEL_SKIP_MEL_INIT'] = "1"
+      local_env["MAYA_DISABLE_CIP"] = "1"
+      local_env["MAYA_DISABLE_CER"] = "1"
+
+
       
       if show_test_output:
          print '====Exec %s' % cmd
          print os.getenv('PATH')
-      
-      keys = os.environ.keys()
-      for key in keys:
-         if 'GO' in key or 'WRAPPER' in key:
-            print "Deleting Key " , key 
-            del [key]
       
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
       fullenv = os.environ
