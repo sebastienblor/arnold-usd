@@ -57,7 +57,7 @@ def groupn(iterable, n):
     '''
     group a flat list into tuples of length n
     '''
-    return zip(*[iter(iterable)]*n)
+    return list(zip(*[iter(iterable)]*n))
 
 def createColor(node, name):
     node = str(node)
