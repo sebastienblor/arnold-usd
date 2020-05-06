@@ -36,7 +36,7 @@ elif system.os == 'linux':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     # linux conventions would be to actually use lib for dynamic libraries!
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
-    glew_default_lib = '/usr/lib64/libGLEW.a'
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
     glew_default_include = '/usr/include'
 elif system.os == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
@@ -366,6 +366,7 @@ if build_id_file_read != build_id_file_contents:
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
+print " Is there a problem here " 
 print 'Maya version   : %s' % maya_version
 print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
@@ -533,9 +534,9 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /GL"     # enables whole program optimization
         MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
         MSVC_FLAGS += " /Ox"     # selects maximum optimization
-        MSVC_FLAGS += " /Zi"
-        MSVC_FLAGS += " /FS"
-        LINK_FLAGS += " /DEBUG"
+        #MSVC_FLAGS += " /Zi"
+        #MSVC_FLAGS += " /FS"
+        #LINK_FLAGS += " /DEBUG"
       
         LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
     else:  ## Debug mode
@@ -1452,8 +1453,8 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'maketx')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'oslc')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'oslinfo')])
-        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'lmutil')])
-        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'rlmutil')])
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'lmutil')])
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'rlmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'noice')])
 
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'ArnoldLicenseManager.app', 'Contents', 'MacOS', 'ArnoldLicenseManager')])
