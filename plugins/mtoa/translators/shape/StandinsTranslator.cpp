@@ -192,8 +192,9 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
 
    if (m_isAss)
    {
-      bool useAutoInstancing = FindProceduralPlug("useAutoInstancing").asBool();
-      AiNodeSetBool(node, "auto_instancing", useAutoInstancing);
+      MPlug plug = FindProceduralPlug("useAutoInstancing");
+      if (!plug.isNull())
+         AiNodeSetBool(node, "auto_instancing", plug.asBool());
    }
 
    if ( m_isAlembic )

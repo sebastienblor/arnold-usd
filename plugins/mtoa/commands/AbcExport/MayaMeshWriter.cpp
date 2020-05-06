@@ -710,54 +710,6 @@ void MayaMeshWriter::getPolyNormals(std::vector<float> & oNormals)
     {
         return;
     }
-    // we need to check the locked state of the normals
-    else if ( status != MS::kSuccess )
-    {
-        bool userSetNormals = false;
-
-        // go through all per face-vertex normals and verify if any of them
-        // has been tweaked by users
-        unsigned int numFaces = lMesh.numPolygons();
-        for (unsigned int faceIndex = 0; faceIndex < numFaces; faceIndex++)
-        {
-            MIntArray normals;
-            lMesh.getFaceNormalIds(faceIndex, normals);
-            unsigned int numNormals = normals.length();
-            for (unsigned int n = 0; n < numNormals; n++)
-            {
-                if (lMesh.isNormalLocked(normals[n]))
-                {
-                    userSetNormals = true;
-                    break;
-                }
-            }
-        }
-
-        // we looped over all the normals and they were all calculated by Maya
-        // so we just need to check to see if any of the edges are hard
-        // before we decide not to write the normals.
-        if (!userSetNormals)
-        {
-            bool hasHardEdges   = false;
-
-            // go through all edges and verify if any of them is hard edge
-            unsigned int numEdges = lMesh.numEdges();
-            for (unsigned int edgeIndex = 0; edgeIndex < numEdges; edgeIndex++)
-            {
-                if (!lMesh.isEdgeSmooth(edgeIndex))
-                {
-                    hasHardEdges = true;
-                    break;
-                }
-            }
-
-            // all the edges were smooth, we don't need to write the normals
-            if (!hasHardEdges)
-            {
-                return;
-            }
-        }
-    }
 
     bool flipNormals = false;
     plug = lMesh.findPlug("flipNormals", true, &status);

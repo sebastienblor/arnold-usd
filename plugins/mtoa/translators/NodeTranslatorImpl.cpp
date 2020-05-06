@@ -580,7 +580,16 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             if (col != prevCol)
                AiNodeSetRGB(arnoldNode, arnoldParamName, col.r, col.g, col.b);
          }
-         else
+         else if (numChildren == 0)
+         {
+            // The attribute is a scalar in Maya but RGB in Arnold. We just export the scalar
+            // value in the 3 channels
+            float val = plug.asFloat();
+            AtRGB col(val, val, val);
+            AtRGB prevCol = AiNodeGetRGB(arnoldNode, arnoldParamName);
+            if (col != prevCol)
+               AiNodeSetRGB(arnoldNode, arnoldParamName, col.r, col.g, col.b);
+         } else
          {
             AiMsgError("[mtoa] Improper RGB attribute %s",
                        plug.partialName(true, false, false, false, false, true).asChar());
@@ -648,6 +657,15 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                             plug.child(2).asFloat(),
                             1.0f);
             }
+         } else if (numChildren == 0)
+         {
+            // The attribute is a scalar in Maya but RGBA in Arnold. We just export the scalar
+            // value in the R,G,B channels and set A = 1
+            float val = plug.asFloat();
+            AtRGBA col(val, val, val, 1.f);
+            AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamName);
+            if (col != prevCol)
+               AiNodeSetRGBA(arnoldNode, arnoldParamName, col.r, col.g, col.b, col.a);
          }
          else
          {

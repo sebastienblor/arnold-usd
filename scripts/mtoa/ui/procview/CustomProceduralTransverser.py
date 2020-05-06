@@ -133,17 +133,16 @@ class CustomProceduralTransverser(ProceduralTransverser):
             return
 
         if len(FILE_CACHE[self.proceduralFilename]) == 1:
-            if ai.AiUniverseIsActive():
-                cmds.error("Cannot populate procedurals while a render is in progress")
-                return
             beginSession = (not ai.AiUniverseIsActive())
             if beginSession:
                 ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
 
-            proc = ai.AiNode(self.procedural)
+            universe = ai.AiUniverse()
+            proc = ai.AiNode(universe, self.procedural)
             ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)
-            ai.AiRender(ai.AI_RENDER_MODE_FREE)
-            iter = ai.AiUniverseGetNodeIterator(None, ai.AI_NODE_ALL)
+            ai.AiProceduralViewport(proc, universe, ai.AI_PROC_BOXES)
+
+            iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL)
 
             while not ai.AiNodeIteratorFinished(iter):
                 node = ai.AiNodeIteratorGetNext(iter)
