@@ -416,6 +416,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
 {
    unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+   bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
 
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
@@ -445,7 +446,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
       AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
       AiNodeSetArray(shape, "input_names", inputsArray);
 
-      unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? GetNumMotionSteps() : 1;
+      unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && !velocityOnly ? GetNumMotionSteps() : 1;
 
       MString baseBobPath = GetBaseBobPath();
       if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
@@ -583,7 +584,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
       AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
       AiNodeSetArray(shape, "input_names", inputsArray);
 
-      unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? GetNumMotionSteps() : 1;
+      unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && !velocityOnly ? GetNumMotionSteps() : 1;
 
       if (nBytes >= ARNOLD_MAX_PARAMETER_BYTES)
       {
@@ -780,9 +781,6 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
 
 bool CBifShapeTranslator::RequiresMotionData()
 {
-   if (FindMayaPlug("aiMotionBlurMode").asInt() == 1)
-      return false;
-
    return CProceduralTranslator::RequiresMotionData();
 }
 
@@ -808,6 +806,10 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+   bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
+   unsigned int numMotionSteps = velocityOnly ? 1 : GetNumMotionSteps();
+   if (step >= numMotionSteps)
+      return;
 
    MString baseBobPath = GetBaseBobPath();
 
@@ -858,8 +860,8 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
             unsigned int frameSteps = 1;
             const double *frameTimes = GetMotionFrames(frameSteps);
             size_t keySize = AiArrayGetKeySize(dataArray);
-            AtArray *newDataArray = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_STRING);
-            for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+            AtArray *newDataArray = AiArrayAllocate(1, numMotionSteps, AI_TYPE_STRING);
+            for (unsigned int key = 0; key < numMotionSteps; ++key)
             {
                if (key == step)
                   continue;
@@ -942,11 +944,11 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
             const char* arrayDecl = arrayType == AI_TYPE_BYTE ? "constant ARRAY BYTE" : "constant ARRAY RGBA";
             size_t extraElem = (serialisedSize % arrayTypeSize > 0) ? 1 : 0;
 
-            AtArray* newDataArray = AiArrayAllocate(serialisedSize / arrayTypeSize + extraElem, GetNumMotionSteps(), arrayType);
+            AtArray* newDataArray = AiArrayAllocate(serialisedSize / arrayTypeSize + extraElem, numMotionSteps, arrayType);
             size_t newKeySize = AiArrayGetKeySize(newDataArray);
             uint8_t* existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
             uint8_t* newData = static_cast<uint8_t*>(AiArrayMap(newDataArray));
-            for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+            for (unsigned int key = 0; key < numMotionSteps; ++key)
             {
                if (key == step)
                   continue;
@@ -1014,8 +1016,8 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
          // the limit for parameter size, we need to stream out all already-written
          // steps to temp files
          size_t keySize = AiArrayGetKeySize(dataArray);
-         AtArray *newDataArray = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_STRING);
-         for (unsigned int key = 0; key < GetNumMotionSteps(); ++key)
+         AtArray *newDataArray = AiArrayAllocate(1, numMotionSteps, AI_TYPE_STRING);
+         for (unsigned int key = 0; key < numMotionSteps; ++key)
          {
             if (key == step)
                continue;
@@ -1108,7 +1110,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
          const char* arrayDecl = arrayType == AI_TYPE_BYTE ? "constant ARRAY BYTE" : "constant ARRAY RGBA";
          size_t extraElem = (serialisedSize % arrayTypeSize > 0) ? 1 : 0;
 
-         AtArray* newDataArray = AiArrayAllocate(serialisedSize / arrayTypeSize + extraElem, GetNumMotionSteps(), arrayType);
+         AtArray* newDataArray = AiArrayAllocate(serialisedSize / arrayTypeSize + extraElem, numMotionSteps, arrayType);
          size_t newKeySize = AiArrayGetKeySize(newDataArray);
          uint8_t* existingData = static_cast<uint8_t*>(AiArrayMap(dataArray));
          uint8_t* newData = static_cast<uint8_t*>(AiArrayMap(newDataArray));
