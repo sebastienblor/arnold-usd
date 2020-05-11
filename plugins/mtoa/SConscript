@@ -14,6 +14,8 @@ local_env = maya_env.Clone()
 GLEW_INCLUDES = local_env.subst(local_env['GLEW_INCLUDES'])
 GLEW_LIB = local_env.subst(local_env['GLEW_LIB'])
 
+
+
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
@@ -68,6 +70,8 @@ mayaQtFolder = ""
 mayaQtTarGz = ""
 
 MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
+ARNOLD_AXF_INCLUDES = os.path.join(MTOA_EXTERNAL_PATH, 'axf/include')
+ARNOLD_AXF_LIB = os.path.join(MTOA_EXTERNAL_PATH, 'axf/lib/', system.os )
 
 if (int(maya_version_base) == 2014):
     if system.os == 'darwin':
@@ -155,6 +159,9 @@ if not local_env['MTOA_DISABLE_RV']:
     else:
         local_env.Append(LIBS = ['ai_renderview'])
 
+local_env.Append(CPPPATH = [ARNOLD_AXF_INCLUDES,])
+local_env.Append(LIBPATH = [ARNOLD_AXF_LIB,])
+local_env.Append(LIBS=Split('AxFtoA'))
 
 if system.os == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')
