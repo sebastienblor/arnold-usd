@@ -839,15 +839,23 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    MPlug stepSizePlug = fnDGNode.findPlug("aiStepSize", true);
 //   if (!stepSizePlug.isNull())
 //      isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
-
-
-   MPlug shadingGroupPlug = GetNodeShadingGroup(path.node(), instanceNum);
-
+   
    m_displaced = false;
    
    float maximumDisplacementPadding = -AI_BIG;
    bool enableAutoBump = false;
    MPlug plug;
+
+   bool hasInstMaterialAssign = false;
+
+#if MAYA_API_VERSION >= 20210000
+   MPlug matPlug = fnDGNode.findPlug("instMaterialAssign", true);
+   matPlug = matPlug.elementByLogicalIndex(instanceNum);
+   if (matPlug.isConnected()) 
+      hasInstMaterialAssign = true;
+#endif
+
+   MPlug shadingGroupPlug = hasInstMaterialAssign ? MPlug() : GetNodeShadingGroup(path.node(), instanceNum);
 
    // Only one Shading Group applied to Mesh
    if (!shadingGroupPlug.isNull())
@@ -891,57 +899,38 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       MObjectArray shadingGroups;
       // Indices are used later when exporting shidxs
       fnMesh.getConnectedShaders(instanceNum, shadingGroups, indices);
-
-      for (int J = 0; (J < (int) shadingGroups.length()); J++)
+      
+      for (unsigned int sh = 0; sh < shadingGroups.length(); ++sh)
       {
          // SURFACE MATERIAL EXPORT
          // We have an array of Shading Groups in shadingGroups, but we need the MPlugs to them
          // MPlugs to Shader Groups must be exported in the same order they appear in "shadingGroups"
-         MFnDependencyNode fnDGNode(m_dagPath.node());
-         MPlug plug(m_dagPath.node(), fnDGNode.attribute("instObjGroups"));
-         plug = plug.elementByLogicalIndex(instanceNum);
-         MObject obGr = MFnDependencyNode(GetMayaObject()).attribute("objectGroups");
-         plug = plug.child(obGr);
-         
          bool exported = false;
-         // Loop over all MPlugs to Shader Nodes
-         int plugElements = plug.evaluateNumElements();
-         for (int i = 0; i < plugElements && !exported ; i++)
-         {
-            MPlugArray connections;
-            plug.elementByPhysicalIndex(i).connectedTo(connections, false, true);
-            for(unsigned int j=0; j < connections.length() && !exported ; j++)
-            {
-               // Only export if MPlug matches the connected Shader Group
-               if (shadingGroups[J] == connections[j].node())
-               {
-                  // connections[j] is the MPlug to shadingGroups[J]
+         MFnDependencyNode shadingGroupNode(shadingGroups[sh]);
+
          
-                  if (!connections[j].isNull())
-                  {
-                     AtNode *shader = ExportConnectedNode(connections[j]);
-                     if (shader != NULL)
-                     {
-                        meshShaders.push_back(shader);
-                        exported = true;
-                     }
-                  }
-               }
+         MPlug messagePlug = shadingGroupNode.findPlug("message");
+         if (!messagePlug.isNull())
+         {
+            AtNode *shader = ExportConnectedNode(messagePlug);
+            if (shader != NULL)
+            {
+               meshShaders.push_back(shader);
+               exported = true;
             }
          }
+
          // If not exported, it means that the Shading Group MPlug has not been found
          if (!exported)
          {
             AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s MPlug not found",
-                  GetTranslatorName().asChar(), MFnDependencyNode(shadingGroups[J]).name().asChar());
+                  GetTranslatorName().asChar(), shadingGroupNode.name().asChar());
             meshShaders.push_back(NULL);
          }
 
          // DISPLACEMENT MATERIAL EXPORT
-
-         MPlugArray        connections;
-         MFnDependencyNode fnDGShadingGroup(shadingGroups[J]);
-         MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader", true);
+         MPlugArray connections;
+         MPlug shaderPlug = shadingGroupNode.findPlug("displacementShader", true);
          shaderPlug.connectedTo(connections, true, false);
 
          // are there any connections to displacementShader?

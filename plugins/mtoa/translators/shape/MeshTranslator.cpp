@@ -13,6 +13,12 @@ static unsigned int GetNumMeshGroups(const MDagPath& dagPath)
    MFnDependencyNode fnDGNode(node);
    int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
 
+#if MAYA_API_VERSION >= 20210000
+   MPlug matPlug = fnDGNode.findPlug("instMaterialAssign", true);
+   if (matPlug.elementByLogicalIndex(instanceNum).isConnected())
+      return 1;
+#endif
+
    MPlug plug = fnDGNode.findPlug("instObjGroups", true);
 
    if (plug.elementByLogicalIndex(instanceNum).isConnected())
