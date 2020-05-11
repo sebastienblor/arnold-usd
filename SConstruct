@@ -263,9 +263,7 @@ env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
 
-ARNOLD_AXF_INCLUDES = os.path.join(EXTERNAL_PATH, 'axf/include')
 ARNOLD_AXF_LIB = os.path.join(EXTERNAL_PATH, 'axf/lib/', system.os )
-
 
 ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
 ARNOLD_BINARIES = env.subst(env['ARNOLD_BINARIES'])
@@ -638,10 +636,6 @@ elif system.os == 'linux':
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
-
-env.Append(CPPPATH = [ARNOLD_AXF_INCLUDES,])
-env.Append(LIBPATH = [ARNOLD_AXF_LIB,])
-env.Append(LIBS=Split('AxFtoA'))
 
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
