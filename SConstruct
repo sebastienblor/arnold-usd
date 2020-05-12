@@ -197,11 +197,9 @@ if system.os == 'windows':
 
     msvc_version = '14.0'
 
-    '''
     # Visual Studio 2017
     if int(maya_version_base) >= 2021 or tmp_env['MAYA_MAINLINE']:
         msvc_version = '14.1'
-    '''
     
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
@@ -528,9 +526,12 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /GL"     # enables whole program optimization
         MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
         MSVC_FLAGS += " /Ox"     # selects maximum optimization
-        #MSVC_FLAGS += " /Zi"
-        #MSVC_FLAGS += " /FS"
-        #LINK_FLAGS += " /DEBUG"
+
+        # Temporarily disable the symbols for maya master
+        if not env['MAYA_MAINLINE']:
+            MSVC_FLAGS += " /Zi"
+            MSVC_FLAGS += " /FS"
+            LINK_FLAGS += " /DEBUG"
       
         LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
     else:  ## Debug mode
