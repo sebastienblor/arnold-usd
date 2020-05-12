@@ -195,17 +195,11 @@ if system.os == 'windows':
 
     maya_version_base = maya_version[0:4]
 
-    msvc_version = '11.0'
+    msvc_version = '14.0'
 
-    # Visual Studio 2015
-    if int(maya_version_base) >= 2018:
-        msvc_version = '14.0'
-
-    '''
     # Visual Studio 2017
-    if int(maya_version_base) >= 2020:
+    if int(maya_version_base) >= 2021 or tmp_env['MAYA_MAINLINE']:
         msvc_version = '14.1'
-    '''
     
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
@@ -364,7 +358,6 @@ if build_id_file_read != build_id_file_contents:
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
-print " Is there a problem here " 
 print 'Maya version   : %s' % maya_version
 print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
@@ -532,9 +525,10 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /GL"     # enables whole program optimization
         MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
         MSVC_FLAGS += " /Ox"     # selects maximum optimization
-        #MSVC_FLAGS += " /Zi"
-        #MSVC_FLAGS += " /FS"
-        #LINK_FLAGS += " /DEBUG"
+
+        # Temporarily disable the symbols for maya master
+        if not env['MAYA_MAINLINE']:
+            LINK_FLAGS += " /DEBUG"
       
         LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
     else:  ## Debug mode
