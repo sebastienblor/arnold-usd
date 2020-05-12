@@ -358,7 +358,6 @@ if build_id_file_read != build_id_file_contents:
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
-print " Is there a problem here " 
 print 'Maya version   : %s' % maya_version
 print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
