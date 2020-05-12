@@ -528,8 +528,6 @@ elif env['COMPILER'] == 'msvc':
 
         # Temporarily disable the symbols for maya master
         if not env['MAYA_MAINLINE']:
-            MSVC_FLAGS += " /Zi"
-            MSVC_FLAGS += " /FS"
             LINK_FLAGS += " /DEBUG"
       
         LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
