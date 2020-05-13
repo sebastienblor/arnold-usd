@@ -902,12 +902,8 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       
       for (unsigned int sh = 0; sh < shadingGroups.length(); ++sh)
       {
-         // SURFACE MATERIAL EXPORT
-         // We have an array of Shading Groups in shadingGroups, but we need the MPlugs to them
-         // MPlugs to Shader Groups must be exported in the same order they appear in "shadingGroups"
          bool exported = false;
          MFnDependencyNode shadingGroupNode(shadingGroups[sh]);
-
          
          MPlug messagePlug = shadingGroupNode.findPlug("message");
          if (!messagePlug.isNull())
@@ -919,8 +915,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                exported = true;
             }
          }
-
-         // If not exported, it means that the Shading Group MPlug has not been found
+         
          if (!exported)
          {
             AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s MPlug not found",
