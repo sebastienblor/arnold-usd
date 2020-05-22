@@ -897,7 +897,7 @@ vp2Shaders = GetViewportShaders(maya_version)
 
 for vp2Shader in vp2Shaders:
     vpTargetShader = vp2Shader.replace('2020/', '')
-    vpTargetShader = vp2Shader.replace('2020\\', '')
+    vpTargetShader = vpTargetShader.replace('2020\\', '')
     env.InstallAs([os.path.join(TARGET_VP2_PATH, vpTargetShader)], [os.path.join('plugins', 'mtoa', 'viewport2', vp2Shader)])
 
 # install include files
