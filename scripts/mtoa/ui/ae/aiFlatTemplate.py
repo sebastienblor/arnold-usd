@@ -17,12 +17,6 @@ class AEaiFlatTemplate(ShaderAETemplate):
         self.addControl('color', label='Color')
         self.endLayout()
 
-        self.beginLayout('Matte', collapse=True)
-        self.addControl('aiEnableMatte', label='Enable Matte')
-        self.addControl('aiMatteColor', label='Matte Color')
-        self.addControl('aiMatteColorA', label='Matte Opacity')
-        self.endLayout()
-        
         # include/call base class/node attributes
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
