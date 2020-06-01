@@ -2133,7 +2133,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    MObject isVisibleAttr = fnNode.attribute("isVisible");
 
    // first initialize all layers to be disabled.
-   for (unsigned int i = 0; i < 8; ++i)
+   for (unsigned int i = 1; i <= 8; ++i)
    {
       sprintf(aiAttr, "enable%u", i);
       AiNodeSetBool(shader, aiAttr, false);
