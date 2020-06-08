@@ -130,6 +130,14 @@ public:
    // Host tells the renderview what status to display, so that we can get finer information about what happens during export
    void SetStatusInfo(const char *); 
 
+   // Set the max rate (times-per-second) at which a render can be restarted for a scene update. 
+   // A value of 0 means that any change can trigger a scene update, whatever the timing is
+   void SetUpdateFPS(float fps);
+
+   // Set the max rate (times-per-second) at which the image buffer will be updated on screen
+   // A value of 0 means that every bucket that is rendered can trigger a GL display   
+   void SetDrawFPS(float fps);
+
 /**  
  *    Functions that may be invoked by the RenderView depending 
  *    user actions. They need to be overridden to define what
