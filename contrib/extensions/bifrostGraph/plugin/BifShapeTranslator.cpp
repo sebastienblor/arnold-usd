@@ -759,7 +759,8 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
       if (connections.length() > 0)
       {
          // Skip any default shader assigned, we don't want this overriding the proc child node shaders
-         bool found_shader = namespaceEndsWith(connections[0].name().asChar(), "lambert1");
+         bool found_shader = namespaceEndsWith(connections[0].name().asChar(), "lambert1") || 
+                             namespaceEndsWith(connections[0].name().asChar(), "standardSurface1");;
          bool found_engine = namespaceEndsWith(shadingGroupPlug.name().asChar(), "initialShadingGroup");
          if ( found_shader && found_engine )
          {
