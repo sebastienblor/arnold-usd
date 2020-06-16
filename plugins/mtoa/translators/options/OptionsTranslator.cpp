@@ -1513,7 +1513,7 @@ void COptionsTranslator::Export(AtNode *options)
          if (aovWriteNode == NULL)
             aovWriteNode = AddArnoldNode(aovWriteType.asChar(), shaderTag.c_str());
          //std::string aovWriteName = AiNodeGetName(shaderNode);
-         //aovWriteName += "@aov_shader";
+         //aovWriteName += "/aov_shader";
          //AiNodeSetStr(aovWriteNode, "name", aovWriteName.c_str());
          if (aovWriteNode)
          {

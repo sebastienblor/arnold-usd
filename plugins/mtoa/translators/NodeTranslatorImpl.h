@@ -24,7 +24,7 @@
 
 
 #define AI_ATT_SEP "."
-#define AI_TAG_SEP "@"
+#define AI_TAG_SEP "/"
 
 #define NODE_TRANSLATOR_REFERENCES 1
 
