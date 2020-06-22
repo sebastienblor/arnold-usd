@@ -1,0 +1,469 @@
+from __future__ import print_function
+from __future__ import absolute_import
+import maya.cmds as cmds
+import maya.utils as utils
+import os.path
+import re
+import os
+import platform
+import mtoa.makeTx as makeTx
+import arnold as ai
+from mtoa.ui.qt.Qt import QtWidgets, QtCore
+# legacy imports
+import copy
+import logging
+import string
+
+
+valid_chars = string.ascii_letters
+
+_regex = r'^([\w\_]+)\.([\w\_\*]+)$'
+regex = re.compile(_regex)
+logger = logging.getLogger(__name__)
+
+
+img_extensions = [
+    '.jpeg',
+    '.jpg',
+    '.tiff',
+    '.tif',
+    '.png',
+    '.exr',
+    '.hdr',
+    '.bmp',
+    '.tga',
+]
+
+default_texture_data = {
+    'usage': [],
+    'root': '',
+    'name': '',
+    'status': 'notx',
+    'path': None,
+    'txpath': None,
+    'colorspace': None
+}
+
+
+class MakeTxThread (QtCore.QThread):
+    def __init__(self, manager, parent):
+        QtCore.QThread.__init__(self, parent)
+        self.txManager = manager
+        self.filesCreated = 0
+        self.createdErrors = 0
+        self.is_canceled = False
+        self.progress = None
+
+    def run(self):
+        self.filesCreated = 0
+        self.createdErrors = 0
+        self.is_canceled = False
+        self.createTx()
+
+    # create a .tx file with the provided options. It will wait until it is finished
+    def runMakeTx(self, texture, space):
+
+        arg_options = self.txManager.get_tx_args()
+        status = utils.executeInMainThreadWithResult( makeTx.makeTx, texture, colorspace=space, arguments=arg_options)
+        return status
+
+    def createTx(self):
+        selected_textures = self.txManager.get_selected_textures()
+        if not selected_textures:
+            return
+
+        # first we need to make sure the options & color manager node were converted to arnold
+        arnoldUniverseActive = ai.AiUniverseIsActive()
+
+        if not arnoldUniverseActive:
+            cmds.arnoldScene(mode='create')
+
+        ai.AiMsgSetConsoleFlags(ai.AI_LOG_INFO)
+
+        render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
+
+        cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
+
+        textureList = []
+
+        arg_options = self.txManager.get_tx_args()
+
+        textureSearchPaths = cmds.getAttr('defaultArnoldRenderOptions.texture_searchpath')
+        searchPaths = []
+
+        if platform.system().lower() == 'windows':
+            searchPaths = textureSearchPaths.split(';')
+        else:
+            searchPaths = textureSearchPaths.split(':')
+
+        for textureData in selected_textures:
+            texture = textureData['path']
+
+            # we could use textureData[2] for the colorSpace
+            # but in case it hasn't been updated correctly
+            # it's still better to ask maya again what is the color space
+            nodes = [x.split('.')[0] for x in textureData['usage']]
+            colorSpace = 'auto'
+            conflictSpace = False
+
+            for node in nodes:
+                nodeColorSpace = cmds.getAttr(node+'.colorSpace')
+                if colorSpace != 'auto' and colorSpace != nodeColorSpace:
+                    conflictSpace = True
+
+                colorSpace = nodeColorSpace
+
+            if colorSpace == 'auto' and textureData['colorspace'] != '':
+                colorSpace = textureData['colorspace']
+
+            if not texture:
+                continue
+
+            # if a conflict is found, pop-up a dialog
+            if conflictSpace:
+                msg = os.path.basename(texture)
+                msg += '\n'
+                msg += 'has conflicting Color Spaces.\n'
+                msg += 'Use ('
+                msg += colorSpace
+                msg += ') ?'
+
+                result = cmds.confirmDialog(
+                    title='Conflicting Color Spaces',
+                    message=msg,
+                    button=['OK', 'Cancel'],
+                    defaultButton='OK',
+                    cancelButton='Cancel',
+                    dismissString='Cancel')
+
+                if result == 'Cancel':
+                    break
+
+            # Process all the files that were found previously for this texture (eventually multiple tokens)
+
+            inputFiles = makeTx.expandFilename(texture)
+
+            if len(inputFiles) == 0:
+                # file not found, need to search in the Texture Search Paths
+                for searchPath in searchPaths:
+                    if searchPath.endswith('/'):
+                        currentSearchTexture = searchPath + texture
+                    else:
+                        currentSearchTexture = searchPath + '/' + texture
+
+                    inputFiles = makeTx.expandFilename(currentSearchTexture)
+                    if len(inputFiles) > 0:
+                        break
+
+            for inputFile in inputFiles:
+
+                tile_info = makeTx.imageInfo(inputFile)
+
+                txArguments = "-v -u --unpremult --oiio"
+                if not self.txManager.tx_use_autotx.isChecked():
+                    txArguments = ' '.join(arg_options)
+
+                if cmEnable and colorSpace != render_colorspace:
+
+                    txArguments += ' --colorconvert "'
+                    txArguments += colorSpace
+                    txArguments += '" "'
+                    txArguments += render_colorspace
+                    txArguments += '"'
+
+                    if tile_info['bit_depth'] <= 8:
+                        txArguments += ' --format exr -d half --compression dwaa'
+
+                # need to invalidate the TX texture from the cache
+                outputTx = os.path.splitext(inputFile)[0] + '.tx'
+                ai.AiTextureInvalidate(outputTx)
+
+                textureList.append([inputFile, txArguments, textureData['index']])
+
+        self.txManager.filesToCreate = len(textureList)
+        texture_dict = {t[0]:t[1:] for t in textureList}
+
+        num_jobs_left = len(textureList)   # default to arbitrary value > 0
+
+        self.progress = QtWidgets.QProgressDialog("processing textures...", "Abort", 0, num_jobs_left, self.txManager)
+        # progress.setWindowModality(QtCore.Qt.WindowModal)
+        self.progress.forceShow()
+        self.progress.setCancelButton(None)
+        self.progress.canceled.connect(self.cancel_tx)
+
+        # Now I have a list of textures to be converted
+        # let's give  this list to arnold
+        for i, textureToConvert in enumerate(textureList):
+            self.txManager.set_status(textureToConvert[2], "processing ..")
+            ai.AiMakeTx(textureToConvert[0], textureToConvert[1])
+
+        status = ai.POINTER(ai.AtMakeTxStatus)() # returns the current status of the input files
+        source_files = ai.POINTER(ai.AtPythonString)() # returns the list of input files in the same order as the status
+        num_submitted = ai.c_uint()
+
+        self.createdErrors = 0
+        self.filesCreated = 0
+
+        processed = 0
+        while (num_jobs_left > 0):
+            if self.is_canceled:
+                print("[mtoa.tx] tx generation has been cancelled")
+                ai.AiMakeTxAbort(ai.byref(status), ai.byref(source_files), ai.byref(num_submitted))
+                break
+
+            num_jobs_left = ai.AiMakeTxWaitJob(ai.byref(status), ai.byref(source_files), ai.byref(num_submitted))
+            for i in range(0, num_submitted.value):
+                # get the status and update the ui
+                src_str = str(source_files[i])
+                item_index = texture_dict[src_str][1]
+                if status[i] is not ai.AiTxPending and self.txManager.get_status(item_index) in ["processing ..", "notx"]:
+                    self.txManager.update_data(item_index)
+                    processed += 1
+
+            self.progress.setValue(processed)
+
+        if (num_submitted.value > len(textureList)):
+            ai.AiMsgFatal("There are more submitted textures than there are textures! "
+                          "Queue should have been cleared!")
+
+        for i in range(0, num_submitted.value):
+
+            src_str = str(source_files[i])
+            invalidate = True
+
+            if (status[i] == ai.AiTxUpdated):
+                self.filesCreated += 1
+                print("[mtoa.tx] {}: {} was updated".format(i, src_str))
+            elif (status[i] == ai.AiTxError):
+                self.createdErrors += 1
+                invalidate = False
+                print("[mtoa.tx] {}: {} could not be updated".format(i, src_str))
+            elif (status[i] == ai.AiTxUpdate_unneeded):
+                invalidate = False
+                print("[mtoa.tx] {}: {} did not need to be updated".format(i, src_str))
+            elif (status[i] == ai.AiTxAborted):
+                # invalidate = False
+                print("[mtoa.tx] {}: {} was aborted".format(i, src_str))
+
+            # need to invalidate the TX texture from the cache
+            outputTx = os.path.splitext(src_str)[0] + '.tx'
+            if outputTx[0] == '"':
+                outputTx = outputTx[1:]
+
+            if invalidate:
+                ai.AiTextureInvalidate(outputTx)
+
+        self.progress.close()
+        utils.executeDeferred(self.txManager.on_refresh)
+
+        # an arnold scene was created above, let's delete it now
+        if not arnoldUniverseActive:
+            cmds.arnoldScene(mode="destroy")
+
+    def cancel_tx(self):
+        # status = ai.POINTER(ai.AtMakeTxStatus)()  # returns the current status of the input files
+        # source_files = ai.POINTER(ai.AtPythonString)()  # returns the list of input files in the same order as the status
+        # num_submitted = ai.c_uint()
+
+        # ai.AiMakeTxAbort(ai.byref(status), ai.byref(source_files), ai.byref(num_submitted))
+        self.is_canceled = True
+
+
+def sanitize_string(string):
+    '''Converts a string with possible non-ascii characters into a clean safe
+    string'''
+    result = ''
+    for letter in string:
+        result += letter if letter in valid_chars else '_'
+    return result
+
+
+def is_image(file):
+    '''Returns whether the input file is an image'''
+    ext = os.path.splitext(file)[1]
+    return ext in img_extensions
+
+
+def get_folder_textures(folder, subfolders=False):
+    '''Returns a dictionary with all textures found in a folder. If subfolders
+    flag is True, subfolders will be also scanned.'''
+    textures = {}
+    files = []
+    if not subfolders:
+        files = [x for x in os.listdir(folder) if is_image(x)]
+        files = [os.path.join(folder, x) for x in files]
+    else:
+        for root, fld, fileList in os.walk(folder):
+            files += [os.path.join(root, x) for x in fileList if is_image(x)]
+
+    # Normalize ALL texture paths to avoid slash conflicts
+    files = [os.path.normpath(x) for x in files]
+
+    for texture in files:
+        textures[texture] = copy.deepcopy(default_texture_data)
+
+    return build_texture_data(textures, expand=False)
+
+
+def get_scanned_files(scan_attributes):
+    '''Scans the current scene for textures based on an input list. The
+    scan_attributes argument must be a list of strings, in which each of them
+    should be the node type and the node attribute separated by a dot.
+    Attributes accept the "*" wildcard.
+
+    Example:
+        >> get_scanned_files(['file.texturePath', 'mesh.mtoa_*'])
+    '''
+    textures = {}
+
+    for scan in scan_attributes:
+        if not regex.match(scan):
+            raise ValueError(
+                'Scan attribute "%s" does not match regex "%s"' %
+                (scan, _regex))
+
+        ntype, attr = scan.split('.')
+        attributes = set()
+        if '*' not in attr:
+            nodes = cmds.ls('*.%s' % attr, r=True, type=ntype, o=True)
+            [attributes.add('%s.%s' % (x, attr)) for x in nodes]
+        else:
+            for node in cmds.ls(type=ntype):
+                for a in cmds.listAttr(node, r=True, st=attr) or []:
+                    if not cmds.getAttr(a, type=True) == 'string':
+                        continue
+
+                    attributes.add(a)
+
+        for attribute in attributes:
+            texture_path = cmds.getAttr(attribute)
+            if texture_path is None:
+                continue
+
+            texture_path = os.path.normpath(texture_path)
+            textures.setdefault(
+                texture_path, copy.deepcopy(default_texture_data))
+            textures[texture_path]['usage'].append(attribute)
+            textures[texture_path]['path'] = texture_path
+            textures[texture_path]['name'] = os.path.basename(texture_path)
+
+    return build_texture_data(textures)
+
+
+def build_texture_data(textures, expand=True):
+    '''Builds the texture's dictionary. If the expand flag is enabled, it will
+    attempt to expand the variables in the path.'''
+
+    for texture, texture_data in textures.items():
+        if expand:
+            texture_exp = makeTx.expandFilename(texture)
+            if len(texture_exp):
+                texture_exp = texture_exp[0]
+            else:
+                texture_exp = texture
+        else:
+            texture_exp = texture
+
+        root, name = os.path.split(texture_exp)
+        name_noext, ext = os.path.splitext(name)
+
+        if ext == '.tx':
+            txstatus = 'onlytx'
+            txpath = texture_exp
+        else:
+            txpath = os.path.join(root, name_noext + '.tx')
+            if os.path.isfile(txpath):
+                txstatus = 'hastx'
+            else:
+                txstatus = 'notx'
+                txpath = None
+
+        if not os.path.isfile(texture_exp):
+            txstatus = 'missing'
+
+        if texture not in textures.keys():
+            textures.setdefault(
+                texture, copy.deepcopy(textures[texture]))
+
+        textures[texture]['root'] = root
+        textures[texture]['name'] = name
+        textures[texture]['status'] = txstatus
+        textures[texture]['txpath'] = txpath
+        textures[texture]['path'] = texture
+        iinfo = makeTx.imageInfo(texture_exp)
+        cs = makeTx.guessColorspace(iinfo)
+        if cs == 'linear':
+            cs = 'Raw'
+        textures[texture]['colorspace'] = cs
+        for k,v in iinfo.items():
+            textures[texture][k] = v
+
+    return textures
+
+
+def update_texture_data(texture_data):
+    path = texture_data['path']
+    texture_exp = makeTx.expandFilename(path)
+    if len(texture_exp):
+        texture_exp = texture_exp[0]
+    else:
+        texture_exp = path
+    path_noext, ext = os.path.splitext(path)
+    txpath = texture_data['txpath']
+    txstatus = 'notx'
+    if not txpath:
+        txpath = os.path.join(path_noext + '.tx')
+        if os.path.isfile(txpath):
+            txstatus = 'hastx'
+        else:
+            txstatus = 'notx'
+            txpath = None
+    if not os.path.isfile(texture_exp):
+        txstatus = 'missing'
+    texture_data['status'] = txstatus
+    texture_data['txpath'] = txpath
+    iinfo = makeTx.imageInfo(path)
+    cs = makeTx.guessColorspace(iinfo)
+    if cs == 'linear':
+        cs = 'Raw'
+    texture_data['colorspace'] = cs
+
+    return texture_data
+
+
+def build_tx_arguments(
+        update=True,
+        verbose=True,
+        nans=True,
+        stats=True,
+        unpremutl=True,
+        threads=None,
+        preset=None,
+        extra_args=None):
+    '''Builds the maketx argument list'''
+    args = []
+    if update:
+        args.append('-u')
+
+    if verbose:
+        args.append('-v')
+
+    if nans:
+        args.append('--checknan')
+
+    if stats:
+        args.append('--stats')
+
+    if unpremutl:
+        args.append('--unpremult')
+
+    if preset is not None:
+        args.append('--' + preset)
+
+    if extra_args:
+        args += [x for x in extra_args.split(' ') if x]
+
+    if threads is not None and threads > 0:
+        args += ['--threads', str(threads)]
+
+    return args
