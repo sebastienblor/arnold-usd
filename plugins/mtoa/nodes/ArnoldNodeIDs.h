@@ -17,6 +17,7 @@
 #define ARNOLD_NODEID_FILTER                    0x00115C04
 #define ARNOLD_NODEID_VOLUME                    0x00115C05
 #define ARNOLD_NODEID_CURVES_COLLECTOR          0x00115C06
+#define ARNOLD_NODEID_VIEW_REGION_MANIP         0x00115C07
 
 // Arnold Lights and light filters
 #define ARNOLD_NODEID_BARNDOOR                  0x00115C80

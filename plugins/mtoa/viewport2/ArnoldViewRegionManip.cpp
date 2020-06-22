@@ -12,6 +12,7 @@
 #include "ArnoldViewRegionManip.h"
 
 #include "scene/MayaScene.h"
+#include "nodes/ArnoldNodeIDs.h"
 
 #include <maya/MIOStream.h>
 #include <maya/MMatrix.h>
@@ -26,9 +27,8 @@
 #include <maya/MStateManager.h>
 
 
-
 // Statics
-MTypeId ArnoldViewRegionManipulator::id(0x81046); // TODO: Need a new ID for this
+MTypeId ArnoldViewRegionManipulator::id(ARNOLD_NODEID_VIEW_REGION_MANIP);
 MString ArnoldViewRegionManipulator::registrantId("ArnoldViewRegionManipulatorPlugin");
 
 //
