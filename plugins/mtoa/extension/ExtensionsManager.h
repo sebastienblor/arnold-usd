@@ -68,7 +68,7 @@ public:
    static void GetAOVShaders(MStringArray& result);
    static void GetCustomShapes(MStringArray& result);
    static void GetOperators(MStringArray& result);
-
+   static void GetImagers(MStringArray& result);
 
    static CExtension* GetExtension(const MString &extensionFile);
    static CExtension* GetExtensionByName(const MString &extensionName);
@@ -83,6 +83,8 @@ public:
    static MStringArray ListLoadedExtensions();
    static void AddCustomShape(const MString &shape);
    static void AddOperator(const MString &op);
+   static void AddImager(const MString &imager);   
+
    
    static CExtension* NewExtension(const MString &extensionFile);
    static MStatus RegisterExtensionAttribute(const MNodeClass &nodeClass, const MObject &attrib);
@@ -116,4 +118,5 @@ private:
    static MCallbackId s_pluginLoadedCallbackId;
    static CustomShapesMap s_customShapes;
    static OperatorsMap s_operators;
+   static ImagersMap s_imagers;
 };

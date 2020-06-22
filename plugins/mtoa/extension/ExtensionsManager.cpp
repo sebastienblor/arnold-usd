@@ -53,6 +53,7 @@ MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
 OperatorsMap CExtensionsManager::s_operators;
+ImagersMap CExtensionsManager::s_imagers;
 CustomShapesMap CExtensionsManager::s_customShapes;
 
 
@@ -1116,6 +1117,20 @@ void CExtensionsManager::GetOperators(MStringArray& result)
    {
       MString opName((*it).c_str());
       result.append(opName);
+   }
+}
+void CExtensionsManager::AddImager(const MString &imager)
+{
+   std::string imgStr(imager.asChar());
+   s_imagers.insert(imgStr);
+}
+
+void CExtensionsManager::GetImagers(MStringArray& result)
+{
+   for (ImagersMap::const_iterator it = s_imagers.begin(); it != s_imagers.end(); ++it)
+   {
+      MString imgName((*it).c_str());
+      result.append(imgName);
    }
 }
 

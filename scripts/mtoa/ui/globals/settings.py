@@ -8,7 +8,7 @@ import maya.mel
 import mtoa.utils as utils
 import sys
 import maya.OpenMaya as OM
-
+import maya.mel as mel
 
 def updateRenderSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -1320,6 +1320,130 @@ def createArnoldSubdivSettings():
 
     cmds.setUITemplate(popTemplate=True)
 
+global _imagerShadersFrame
+_imagerShadersFrame = None
+global _imagerShaders
+_imagerShaders = []
+
+
+def updateImagerShaders(*args):
+
+    global _imagerShaders
+    global _imagerShadersFrame
+
+    for row in _imagerShaders:
+        if cmds.frameLayout(row, exists=True):
+            cmds.deleteUI(row)
+
+    _imagerShaders = []
+
+    cmds.setParent(_imagerShadersFrame)
+    imagersSize = cmds.getAttr('defaultArnoldRenderOptions.imagers', s=True)
+
+    for i in range(imagersSize):
+
+        frame = cmds.frameLayout(collapsable=False, labelVisible=False)
+        _imagerShaders.append(frame)
+
+        rowName = 'arnoldImagerShadersRow%d' % i
+        cmds.rowLayout(rowName, nc=2, columnWidth2=[350, 50], columnAttach2=['both', 'right'])
+        imagerCtrlName = 'imagers%d' % i
+        imagerShaderName = 'defaultArnoldRenderOptions.imagers[%d]' % i
+
+        cmds.attrNavigationControlGrp(imagerCtrlName,
+                                label='',
+                                at=imagerShaderName, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+imagerShaderName+"\" \"\"")
+
+        imagerShaderDelete = 'arnoldImagerShaderDelete%d' % i
+        cmds.symbolButton(imagerShaderDelete, image="SP_TrashIcon.png", command=lambda *args: deleteImagerShader(i))
+        cmds.setParent(_imagerShadersFrame)
+
+    cmds.setParent('..')
+    
+
+def deleteImagerShader(index):
+    global _imagerShaders
+    global _imagerShadersFrame
+
+    if _imagerShaders is None:
+        return
+
+    shadersLength = len(_imagerShaders)
+
+    if index < 0 or index >= shadersLength:
+        return 
+
+    if index <= shadersLength - 2:
+        for i in range(index, shadersLength - 1):
+            imagerShaderElem = 'defaultArnoldRenderOptions.imagers[%d]' % i
+            elemConnection = cmds.listConnections(imagerShaderElem,p=True, d=False,s=True)
+            if (not elemConnection is None):
+                for elem in elemConnection:
+                    cmds.disconnectAttr(elem, imagerShaderElem)
+
+
+            imagerShaderNextElem = 'defaultArnoldRenderOptions.imagers[%d]' % (i+1)
+            nextElemConnection = cmds.listConnections(imagerShaderNextElem,p=True, d=False,s=True)
+            if (not nextElemConnection is None) and len(nextElemConnection) > 0:
+                cmds.connectAttr(nextElemConnection[0], imagerShaderElem)
+
+    imagerShaderElem = 'defaultArnoldRenderOptions.imagers[%d]' % (shadersLength - 1)
+    cmds.removeMultiInstance(imagerShaderElem , b=True)
+
+    updateImagerShaders()
+
+def addImager(node):
+    imagersSize = cmds.getAttr('defaultArnoldRenderOptions.imagers', s=True)
+    attrName = 'defaultArnoldRenderOptions.imagers[%d]' % imagersSize
+    cmds.connectAttr("%s.message"%node, attrName, force=True)
+    updateImagerShaders()
+    cmds.select(node, r=True)
+
+def createImager(type):
+    imager = cmds.createNode(type)
+    addImager(imager)
+
+def buildImagerMenu(popup):
+    cmds.popupMenu(popup, edit=True, deleteAllItems=True)
+    imagers = cmds.arnoldPlugins(listImagers=True) or []
+
+    for imager in imagers:
+        imagerNodes = cmds.ls(type=imager) or []
+        for imagerNode in imagerNodes:
+            cmds.menuItem(parent=popup, label=imagerNode, command=Callback(addImager, imagerNode))
+
+    cmds.menuItem(parent=popup, divider=True)
+    for imager in imagers:
+        cmdsLbl = 'Create {}'.format(imager)
+        cmds.menuItem(parent=popup, label=cmdsLbl,  command=Callback(createImager, imager))
+
+def createArnoldImagerSettings():
+# SEB
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
+
+    global _imagerShadersFrame
+    _imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Post-Process / Imagers', width=400,
+                        collapsable=True, collapse=True)
+
+    cmds.scriptJob(parent=_imagerShadersFrame, attributeChange=['defaultArnoldRenderOptions.imagers', updateImagerShaders], dri=True, alc=True, per=True )
+
+    cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
+    cmds.text(label='')
+    addButton =  cmds.button(label='Add')
+    impopup = cmds.popupMenu(parent=addButton, button=1)
+    cmds.popupMenu(impopup, edit=True, postMenuCommand=Callback(buildImagerMenu, impopup))
+    cmds.setParent('..') # rowLayout
+
+    cmds.setParent(_imagerShadersFrame)
+    updateImagerShaders()
+
+    cmds.setParent('..')
+    cmds.setParent('..')
+
+    cmds.setUITemplate(popTemplate=True)
+
+
 
 def createArnoldTextureSettings():
 
@@ -1332,7 +1456,7 @@ def createArnoldTextureSettings():
                         label="Auto-convert Textures to TX ", 
                         attribute='defaultArnoldRenderOptions.autotx')
 
-    cmds.attrControlGrp('use_existing_tiled_textures', 
+    cmds.attrControlGrp('use_existing_tiled_textures',
                         label="Use Existing TX Textures", 
                         attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
     
@@ -1928,6 +2052,10 @@ def createArnoldRendererGlobalsTab():
     cmds.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
     createArnoldSubdivSettings()
     cmds.setParent('..')
+    
+    #cmds.frameLayout('arnoldImagerSettings', label="Post-process", cll= True, cl=1)
+    createArnoldImagerSettings()
+    #cmds.setParent('..')
     
     cmds.formLayout(parentForm,
                     edit=True,

@@ -17,6 +17,7 @@
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "nodes/shape/ArnoldProceduralNode.h"
 #include "nodes/ArnoldOperatorNode.h"
+#include "nodes/ArnoldImagerNode.h"
 #include "nodes/shader/ArnoldSkinShaderNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 #include "nodes/shader/ArnoldStandardSurfaceNode.h"
@@ -448,6 +449,15 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          initialize = CArnoldOperatorNode::initialize;
          abstract   = &CArnoldOperatorNode::s_abstract;
 
+      } else if (arnoldNodeTypeName == "driver")
+      {
+         // Special case for drivers
+         if (arnold.length() > 7 && arnold.substringW(0, 6) == MString("imager_")) {
+            creator    = CArnoldImagerNode::creator;
+            initialize = CArnoldImagerNode::initialize;
+            abstract   = &CArnoldImagerNode::s_abstract;
+            SetName(toMayaStyle(MString("ai_") + node));
+         }
       }
    }
    // classification string if none is stored
