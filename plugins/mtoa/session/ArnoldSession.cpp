@@ -2744,9 +2744,38 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
 
    ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
    if (it != m_processedTranslators.end())
-   {
-      it->second->m_impl->RemoveUpdateCallbacks();
-      it->second->RequestUpdate();
+   {  
+
+      CNodeTranslator *tr = it->second;
+      if (tr)
+      {
+         tr->m_impl->RemoveUpdateCallbacks();
+
+         // This node's name might have changed, we need to update it here #4238
+         // Option 1 : re-generate the node
+         tr->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
+
+         // Option 2 : just rename the node, is this enough ? or would there be any reason
+         // for things to be done differently in CNodeTranslator::CreateArnoldNode depending 
+         // on the hierarchy ?
+         /*  
+         AtNode *arnoldNode = tr->GetArnoldNode();
+         if (arnoldNode)
+         {
+            MString oldName = AiNodeGetName(arnoldNode);
+            MString newName = tr->m_impl->MakeArnoldName(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
+            if (newName != oldName)
+            {
+               AiNodeSetStr(arnoldNode, "name", newName.asChar());
+               CMayaScene::GetRenderSession()->ObjectNameChanged(path.node(), oldName);
+            }
+         }*/
+            
+         tr->RequestUpdate();
+      }
+
+      
+
    }
  
    // Recursively dive into the dag children
