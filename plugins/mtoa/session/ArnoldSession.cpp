@@ -1855,7 +1855,7 @@ UPDATE_BEGIN:
                   MFnDagNode(MFnDagNode(shapePath.node()).parent(0)).getPath(srcParent);
                   srcParent.push(shapePath.node());
 
-                  // If this isn't the master instance
+                  // If this isn't the primary instance
                   if (!(srcParent == shapePath))
                   {
                      dagTr = ExportDagPath(shapePath);

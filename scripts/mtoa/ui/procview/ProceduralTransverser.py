@@ -43,7 +43,7 @@ SELECTION_OPS = [OVERRIDE_OP, DISABLE_OP, COLLECTION_OP]
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
-PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
+PARAM_IGNORELIST = ['id', 'visibility', 'name', 'matrix',
                    'motion_start', 'motion_end', 'shader', 'disp_map',
                    'vidxs', 'vlist', 'nsides', 'uvidxs', 'shidxs',
                    'nlist', 'nidxs', 'uvlist', 'crease_idxs',
@@ -121,8 +121,8 @@ class ProceduralTransverser(BaseTransverser):
                     param_type = AiParamGetType(param)
                     paramName = AiParamGetName(param)
 
-                    # skip parameters in the blacklist
-                    if paramName in PARAM_BLACKLIST:
+                    # skip parameters in the IGNORELIST
+                    if paramName in PARAM_IGNORELIST:
                         continue
 
                     if param_type == AI_TYPE_ARRAY:
