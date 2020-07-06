@@ -1,0 +1,38 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+select -r group1;
+ungroup;
+select -r group2;
+ungroup;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+string $img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+select -r  pSphere1;
+doGroup 0 1 1;
+select -r aiSkyDomeLight1;
+select -add group1 ;
+parent;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+select -r pSphere1 ;
+parent -w;
+
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
