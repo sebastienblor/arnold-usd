@@ -1661,7 +1661,14 @@ void CArnoldSession::DoUpdate()
                it->second->RequestUpdate();                 
             } // otherwise, this node shouldn't be updated at all 
          }
+
+         // If motion blur changes, we need to ensure that the render camera is updated.
+         // In particular, we need the shutter_start / shutter_end to be updated properly (see #4126)
+         CNodeTranslator *cameraTranslator = CNodeTranslator::GetTranslator(m_sessionOptions.GetExportCamera());
+         if (cameraTranslator)
+            cameraTranslator->RequestUpdate();
       }
+      
       UpdateMotionFrames();
       m_updateMotionData = false;
    }
