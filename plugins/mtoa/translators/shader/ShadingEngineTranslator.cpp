@@ -224,6 +224,10 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
             MFnDependencyNode parentDag(parent);
             MString nameParent = parentDag.name();
 
+            // Note that it is possible that the connected node is a renderLayer. In that case
+            // there is no direct connection to the meshes so we can't update it. Because of that, the displacement
+            // isn't updated properly (see #4183)
+
             MDagPath dagPath;
             MStatus status = MDagPath::getAPathTo(parent, dagPath);
             if (!status)
