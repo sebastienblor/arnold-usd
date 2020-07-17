@@ -533,7 +533,7 @@ class ProceduralTransverser(BaseTransverser):
         return overrides, parent_overrides
 
     @classmethod
-    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, enable=True, index=-1):
+    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, enable=True, force_expression=False, index=-1):
 
         op = operator
         if index == -1:
@@ -551,7 +551,7 @@ class ProceduralTransverser(BaseTransverser):
 
         value = str(value)
 
-        if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
+        if not force_expression and param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
             value = "'{}'".format(value)
 
         # get if this is a custom param
