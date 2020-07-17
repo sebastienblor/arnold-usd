@@ -156,7 +156,7 @@ def valueIsExpression(value):
     if re.match(r'^(\.?\d+(?:\.\d+)?|(?:[@#][a-zA-Z0-9]*))\s*[\+\-\*/\^\%]?', value):
         return True
 
-    return False
+    return True
 
 
 def getMayaWindow():

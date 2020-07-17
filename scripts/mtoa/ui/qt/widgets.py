@@ -400,6 +400,13 @@ class MtoAStrControl(QtWidgets.QLineEdit):
         if m:
             self.setText(m.group(1))
 
+    def keyPressEvent(self, event):
+
+        if event.key() == QtCore.Qt.Key_Return:
+            self.clearFocus()
+        else:
+            super(MtoAStrControl, self).keyPressEvent(event)
+
 
 class MtoALabelLineEdit(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
@@ -609,11 +616,11 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     deleteMe = QtCore.Signal(object)
     paramChanged = QtCore.Signal(str)
-    #                             param, operation, value, param_type, custom, index, operator
-    valueChanged = QtCore.Signal((str, str, str, int, bool, int, str, bool),
-                                 (str, str, int, int, bool, int, str, bool),
-                                 (str, str, bool, int, bool, int, str, bool),
-                                 (str, str, float, int, bool, int, str, bool))
+    #                             param, operation, value, param_type, custom, index, operator, enabled, force_expression
+    valueChanged = QtCore.Signal((str,   str,       str,   int,        bool,   int,   str,      bool,    bool),
+                                 (str,   str,       int,   int,        bool,   int,   str,      bool,    bool),
+                                 (str,   str,       bool,  int,        bool,   int,   str,      bool,    bool),
+                                 (str,   str,       float, int,        bool,   int,   str,      bool,    bool))
     overrideTriggered = QtCore.Signal(str)
     connectionTriggered = QtCore.Signal()
 
@@ -673,7 +680,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
         self.exp_panel = QtWidgets.QFrame()
         self.exp_panel.setLayout(QtWidgets.QVBoxLayout())
-        self.expressionEditor = QtWidgets.QLineEdit()
+        self.expressionEditor = MtoAStrControl()
         self.exp_panel.layout().addWidget(self.expressionEditor)
         self.exp_panel.layout().setContentsMargins(0, 0, 0, 0)
         self.exp_panel.layout().insertStretch(-1)
@@ -770,7 +777,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         value_type = type(value)
         if value is None:
             value_type = str
-        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool, bool].emit(
                                    param,
                                    self.getOperation(),
                                    value,
@@ -778,7 +785,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
                                    self.user_param,
                                    self.index,
                                    self.operator,
-                                   self.enabled)
+                                   self.enabled,
+                                   False)
         self.expressionEditor.setText(str(value))
 
     def emitExpressionValueChanged(self, value):
@@ -787,7 +795,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         if value is None:
             value_type = str
         self.controlWidget.setValue(value)
-        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool, bool].emit(
                                    param,
                                    self.getOperation(),
                                    value,
@@ -795,7 +803,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
                                    self.user_param,
                                    self.index,
                                    self.operator,
-                                   self.enabled)
+                                   self.enabled,
+                                   True)
 
     def emitOperationChanged(self, operation):
         param = self.getParam()
@@ -803,7 +812,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         value_type = type(value)
         if value is None:
             value_type = str
-        self.valueChanged[str, str, value_type, int, bool, int, str, bool].emit(
+        self.valueChanged[str, str, value_type, int, bool, int, str, bool, bool].emit(
                                    param,
                                    operation,
                                    value,
@@ -811,7 +820,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
                                    self.user_param,
                                    self.index,
                                    self.operator,
-                                   self.enabled)
+                                   self.enabled,
+                                   False)
 
     def populateParams(self, paramDict):
 
