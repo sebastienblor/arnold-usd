@@ -8,7 +8,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 # Execute the script
 
-whiteList = ['directionalLight.aiExposure',
+acceptlist = ['directionalLight.aiExposure',
 			'directionalLight.aiAngle',
 			'spotLight.aiExposure',
 			'spotLight.aiRadius',
@@ -41,7 +41,7 @@ def testMayaNode(nodeName):
 
 		objType = cmds.objectType(nodeName)
 		fullAttr = '{}.{}'.format(objType, attr)
-		if fullAttr in whiteList:
+		if fullAttr in acceptlist:
 			continue
 
 		print 'WARNING: Parameter {} might appear in the channel Box'.format(fullAttr)
