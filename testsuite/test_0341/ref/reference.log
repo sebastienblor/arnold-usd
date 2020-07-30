@@ -1,14 +1,14 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\chunank\\AppData\\Local\\Temp', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2019', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata;C:\\Program Files (x86)\\Windows Kits\\10\\References;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2019\\bin;C:\\Program Files\\Autodesk\\Maya2019\\bin;C:\\Program Files\\Autodesk\\Arnold\\Maya2019\\lib;C:\\Program Files\\Autodesk\\Arnold\\Maya2019\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\dev\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\chunank\\AppData\\Local\\Temp', 'LOCALAPPDATA': 'C:\\Users\\chunank\\AppData\\Local', 'VSCMD_ARG_app_plat': '', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\dev\\mtoa\\build\\windows_x86_64\\20190200\\msvc_opt\\testsuite\\test_0341', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2019', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\dev\\mtoa\\build\\windows_x86_64\\20190200\\msvc_opt\\testsuite\\test_0341'}
+ {'TMP': 'C:\\Users\\chunank\\AppData\\Local\\Temp', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2020', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata;C:\\Program Files (x86)\\Windows Kits\\10\\References;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2020\\bin;C:\\Program Files\\Autodesk\\Maya2020\\bin;C:\\Program Files\\Autodesk\\Arnold\\Maya2020\\lib;C:\\Program Files\\Autodesk\\Arnold\\Maya2020\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\dev\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\chunank\\AppData\\Local\\Temp', 'LOCALAPPDATA': 'C:\\Users\\chunank\\AppData\\Local', 'VSCMD_ARG_app_plat': '', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\dev\\mtoa\\build\\windows_x86_64\\20200000\\msvc_opt\\testsuite\\test_0341', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2020', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\dev\\mtoa\\build\\windows_x86_64\\20200000\\msvc_opt\\testsuite\\test_0341'}
  
  ==== Exec cmd ==== 
  
-mayabatch -file C:\dev\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341\test.ma -script "C:\dev\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341\test.mel" -proj "C:\dev\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341"
+mayabatch -file C:\dev\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0341\test.ma -script "C:\dev\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0341\test.mel" -proj "C:\dev\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0341"
  
  Initialized VP2.0 renderer {
 
-  Version : 2016.11.44.12. Feature Level 5.
+  Version : 2016.11.53.12. Feature Level 5.
 
   Adapter : GeForce GTX 1050 Ti with Max-Q Design/PCIe/SSE2
 
@@ -52,6 +52,40 @@ OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
+00:00:00   515MB         | log started Thu Jul 30 15:39:17 2020
+
+00:00:00   515MB         | Arnold 6.0.4.0 [3881cc93] windows icc-17.0.2 oiio-2.2.1 osl-1.11.6 vdb-4.0.0 clm-1.1.1.118 rlm-12.4.2 optix-6.6.0 2020/07/23 15:42:25
+
+00:00:00   515MB         | running on LON826FJR2, pid=19728
+
+00:00:00   515MB         |  1 x Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz (6 cores, 12 logical) with 32504MB
+
+00:00:00   515MB         |  NVIDIA driver version 442.92 (Optix 60600)
+
+00:00:00   515MB         |  GPU 0: GeForce GTX 1050 Ti with Max-Q Design @ 1417MHz (compute 6.1) with 4096MB (4014MB available) (NVLink:0)
+
+00:00:00   515MB         |  Windows 8 Professional (version 6.2, build 9200)
+
+00:00:00   515MB         |  soft limit for open files raised from 512 to 2048
+
+00:00:00   515MB         |  
+
+00:00:00   515MB         | loading plugins from C:\Program Files\Autodesk\Arnold\Maya2020\bin\..\plugins ...
+
+00:00:00   515MB         |  alembic_proc.dll: alembic uses Arnold 6.0.4.0
+
+00:00:00   515MB         |  cryptomatte.dll: cryptomatte uses Arnold 6.0.4.0
+
+00:00:00   515MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 6.0.4.0
+
+00:00:00   515MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 6.0.4.0
+
+00:00:00   516MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 6.0.4.0
+
+00:00:00   530MB         |  usd_proc.dll: usd uses Arnold 6.0.4.0
+
+00:00:00   530MB         | loaded 6 plugins from 4 lib(s) in 0:00.07
+
 ###############################################################################
 
 Begin attempted read of a shade fragment XML file.
@@ -70,21 +104,35 @@ End attempted read of fragment XML.
 
 ###############################################################################
 
-ai.dll loaded from non standard location C:\Program Files\Autodesk\Arnold\Maya2019\bin
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
 
-Cannot open file ':/expression.svg', because: No such file or directory
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
 
-Cannot open file ':/expression.svg', because: No such file or directory
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
 
-Cannot open file ':/expression.svg', because: No such file or directory
+qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
 
-Cannot open file ':/expression.svg', because: No such file or directory
+Qt WebEngine seems to be initialized from a plugin. Please set Qt::AA_ShareOpenGLContexts using QCoreApplication::setAttribute before constructing QGuiApplication.
 
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  0.31 seconds.
+File read in  0.4 seconds.
 
-Result: C:/dev/mtoa/build/windows_x86_64/20190200/msvc_opt/testsuite/test_0341/test.ma
+Result: C:/dev/mtoa/build/windows_x86_64/20200000/msvc_opt/testsuite/test_0341/test.ma
 
-00:00:00   607MB WARNING | [mtoa] No light in scene
+00:00:00   931MB WARNING | [mtoa] No light in scene
+
+ RENDER IS CALLED 
+
+ RENDER IS CALLED 
+
+ RENDER IS CALLED 
+
+ RENDER IS CALLED 
+
+ RENDER IS CALLED 
+
+ RENDER IS CALLED 
+
+ RENDER IS CALLED 
 
