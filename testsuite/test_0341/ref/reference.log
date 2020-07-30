@@ -1,20 +1,20 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20190200\\msvc_opt\\testsuite\\test_0341', 'ADCLMHUB_LOG_LEVEL': 'T', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2019', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'PATH': 'C:\\solidangle\\mtoadeploy\\2019\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2019\\bin;C:\\solidangle\\mtoadeploy\\2019\\lib;C:\\solidangle\\mtoadeploy\\2019\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2019', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt', 'ProgramW6432': 'C:\\Program Files'}
+ {'TMP': 'C:\\Users\\chunank\\AppData\\Local\\Temp', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2019', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata;C:\\Program Files (x86)\\Windows Kits\\10\\References;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2019\\bin;C:\\Program Files\\Autodesk\\Maya2019\\bin;C:\\Program Files\\Autodesk\\Arnold\\Maya2019\\lib;C:\\Program Files\\Autodesk\\Arnold\\Maya2019\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\dev\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\chunank\\AppData\\Local\\Temp', 'LOCALAPPDATA': 'C:\\Users\\chunank\\AppData\\Local', 'VSCMD_ARG_app_plat': '', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\dev\\mtoa\\build\\windows_x86_64\\20190200\\msvc_opt\\testsuite\\test_0341', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\Program Files\\Autodesk\\Arnold\\Maya2019', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\dev\\mtoa\\build\\windows_x86_64\\20190200\\msvc_opt\\testsuite\\test_0341'}
  
  ==== Exec cmd ==== 
  
-D:\arnold\Maya-runtimes\windows\Maya2019\bin\mayabatch -file D:\arnold\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341\test.ma -script "D:\arnold\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341\test.mel" -proj "D:\arnold\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341"
+mayabatch -file C:\dev\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341\test.ma -script "C:\dev\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341\test.mel" -proj "C:\dev\mtoa\build\windows_x86_64\20190200\msvc_opt\testsuite\test_0341"
  
  Initialized VP2.0 renderer {
 
   Version : 2016.11.44.12. Feature Level 5.
 
-  Adapter : Quadro K620/PCIe/SSE2
+  Adapter : GeForce GTX 1050 Ti with Max-Q Design/PCIe/SSE2
 
-  Vendor ID: 4318. Device ID : 5051
+  Vendor ID: 4318. Device ID : 16027
 
-  Driver : nvoglv64.dll:23.21.13.8819.
+  Driver : .
 
   API : OpenGL V.4.6.
 
@@ -28,9 +28,9 @@ D:\arnold\Maya-runtimes\windows\Maya2019\bin\mayabatch -file D:\arnold\mtoa\buil
 
   Active stereo support available : 0
 
-  GPU Memory Limit : 4095 MB.
+  GPU Memory Limit : 4096 MB.
 
-  CPU Memory Limit: 62183.7 MB.
+  CPU Memory Limit: 30878.9 MB.
 
   MultiDraw consolidation: enabled
 
@@ -38,11 +38,15 @@ D:\arnold\Maya-runtimes\windows\Maya2019\bin\mayabatch -file D:\arnold\mtoa\buil
 
 OpenCL evaluator is attempting to initialize OpenCL.
 
-Detected 1 OpenCL Platforms: 
+Detected 2 OpenCL Platforms: 
 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.83.
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.2.161.
 
- Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer 
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics 
+
+ 1: Intel(R) Corporation. Intel(R) OpenCL. OpenCL 2.1 .
+
+ Supported extensions: cl_intel_dx9_media_sharing cl_khr_3d_image_writes cl_khr_byte_addressable_store cl_khr_d3d11_sharing cl_khr_depth_images cl_khr_dx9_media_sharing cl_khr_fp64 cl_khr_gl_sharing cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_icd cl_khr_image2d_from_buffer cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_spir 
 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 
@@ -66,7 +70,7 @@ End attempted read of fragment XML.
 
 ###############################################################################
 
-00:00:00   434MB ERROR   | [mtoa] [bifrostTranslator] Could not find arnold_bifrost in search path C:/Program Files/Autodesk/Bifrost/Maya2019/1.9.5.38/bifrost/
+ai.dll loaded from non standard location C:\Program Files\Autodesk\Arnold\Maya2019\bin
 
 Cannot open file ':/expression.svg', because: No such file or directory
 
@@ -75,14 +79,12 @@ Cannot open file ':/expression.svg', because: No such file or directory
 Cannot open file ':/expression.svg', because: No such file or directory
 
 Cannot open file ':/expression.svg', because: No such file or directory
-
-Error: file: C:/Allegorithmic/SubstanceMaya/2019/scripts/userSetup.mel line 54: UI commands can't be run in batch mode.
 
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  0.36 seconds.
+File read in  0.31 seconds.
 
-Result: D:/arnold/mtoa/build/windows_x86_64/20190200/msvc_opt/testsuite/test_0341/test.ma
+Result: C:/dev/mtoa/build/windows_x86_64/20190200/msvc_opt/testsuite/test_0341/test.ma
 
-00:00:00   526MB WARNING | [mtoa] No light in scene
+00:00:00   607MB WARNING | [mtoa] No light in scene
 
