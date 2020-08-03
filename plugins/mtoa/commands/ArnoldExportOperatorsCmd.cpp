@@ -175,7 +175,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                   {
                      // need to insert a merge op
                      MString mergeOpName = fnShape.name();
-                     mergeOpName += "@input_merge_op";
+                     mergeOpName += "/input_merge_op";
                      AtNode *mergeOp = AiNode(NULL, "merge", mergeOpName.asChar());
                      AtArray* opArray = AiArrayAllocate(procOps.size(), 1, AI_TYPE_NODE);
                      for (unsigned int i = 0; i < procOps.size(); ++i)
@@ -215,7 +215,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      MString look_str = look.asString();
 
                      MString mergNodeName = name;
-                     mergNodeName += "@";
+                     mergNodeName += "/";
                      mergNodeName += look_str;
                      AtNode *mergeNode = AiNodeLookUpByName(mergNodeName.asChar());
                      if (mergeNode)

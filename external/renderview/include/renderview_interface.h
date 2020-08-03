@@ -49,7 +49,7 @@ public:
  **/
 
    // RenderView functions
-   void OpenRenderView(int width, int height, float scaleFactor, QWidget *parent = NULL, bool showWin = true);
+   void OpenRenderView(int width, int height, float scaleFactor, QWidget *parent = NULL, bool showWin = true, const char *menusFilter = NULL);
    void CloseRenderView();
    void DestroyRenderView();
    // return the renderView Qt Window
@@ -66,7 +66,9 @@ public:
    // return the Qt Options Window
    QMainWindow *GetOptionsWindow();
 
-
+   // return the render progress (all passes)
+   float GetProgress(bool& isPrepass);
+   
    // Render the scene.
    // This function assumes that the Arnold scene already exists
    void Render();
@@ -96,7 +98,7 @@ public:
    // is changed
    void HostSelectionChanged(const AtNode **selection, unsigned int size);
 
-   void InterruptRender();
+   void InterruptRender(bool waitFinished = false);
    void ObjectNameChanged(const char *oldName, const char *newName);
 
    // This function should be invoked by the host
@@ -122,6 +124,8 @@ public:
    // copied to another container. Its life scope will end after any subsequent call to this same function.
    const char *GetOption(const char *option);
 
+   // enables an option in the render view
+   void SetOptionEnabled(const char *option, bool enabled = true);
 
    // Get a serialized definition of the RenderView options
    const char *Serialize(bool userSettings = true, bool sceneSettings = true);
@@ -129,6 +133,14 @@ public:
 
    // Host tells the renderview what status to display, so that we can get finer information about what happens during export
    void SetStatusInfo(const char *); 
+
+   // Set the max rate (times-per-second) at which a render can be restarted for a scene update. 
+   // A value of 0 means that any change can trigger a scene update, whatever the timing is
+   void SetUpdateFPS(float fps);
+
+   // Set the max rate (times-per-second) at which the image buffer will be updated on screen
+   // A value of 0 means that every bucket that is rendered can trigger a GL display   
+   void SetDrawFPS(float fps);
 
 /**  
  *    Functions that may be invoked by the RenderView depending 
@@ -172,7 +184,7 @@ public:
    // in case the host application needs to be adverted
    // == Note: virtual methods must be defined here to avoid linking errors on *nix.
    // == We just do an inline call to ResizeMainWindow() which is doing the real job
-   virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
+   virtual void Resize(int width, int height, bool drawableArea = false) {ResizeMainWindow(width, height, drawableArea);}
 
 
    // Renderer telling us that something has changed in the render results
@@ -204,7 +216,7 @@ private:
    
    // internal usage only, we need these functions to avoid linking issues on *nix
    void UpdateGlWidget();
-   void ResizeMainWindow(int w, int h);
+   void ResizeMainWindow(int w, int h, bool drawableArea = false);
 };
 
 // In the Future these Manipulator classes should be removed and handled

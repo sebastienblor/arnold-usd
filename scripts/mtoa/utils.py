@@ -63,7 +63,7 @@ def groupn(iterable, n):
     '''
     group a flat list into tuples of length n
     '''
-    return zip(*[iter(iterable)]*n)
+    return list(zip(*[iter(iterable)]*n))
 
 def createColor(node, name):
     node = str(node)
@@ -594,11 +594,6 @@ def createMeshLight(legacy=False, centerPivot=True):
 
         p = cmds.parent(lightTransform, meshTransform, relative=True)
         lightShape = cmds.listRelatives(p[0], shapes=True, fullPath=True)[0]
-        # Hide the original mesh using the visibility attribute
-        # We previously used lodVisibility to keep the dirtiness propagation enabled,
-        # but I can't manage to find a situation that fails. So we're now using visibility
-
-        #cmds.connectAttr('%s.showOriginalMesh' % lightShape, '%s.lodVisibility' % meshShape)
         cmds.connectAttr('%s.showOriginalMesh' % lightShape, '%s.visibility' % meshShape)
 
         # FIXME : we shouldn't have to do this, but otherwise it takes a couple of tweaks on

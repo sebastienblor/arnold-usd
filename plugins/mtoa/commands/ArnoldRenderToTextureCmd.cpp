@@ -292,7 +292,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          filterNode = AiNode("gaussian_filter");
       }
 
-      static std::string filterName("defaultArnoldFilter@cameraMapperFilter");
+      static std::string filterName("defaultArnoldFilter/cameraMapperFilter");
       AiNodeSetStr(filterNode, "name", filterName.c_str());
 
       double filterWidth = 2.0;
@@ -351,11 +351,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       std::vector<AtNode*> aovDrivers;
       std::vector<std::string> aovNames;
 
-      outputsList.push_back("RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput");
+      outputsList.push_back("RGBA RGBA defaultArnoldFilter/cameraMapperFilter defaultArnoldDriver/cameraMapperOutput");
 
       // create a driver that will write the output texture
       AtNode *driver = AiNode("driver_exr");
-      static std::string uvMapperDriverName ("defaultArnoldDriver@cameraMapperOutput");
+      static std::string uvMapperDriverName ("defaultArnoldDriver/cameraMapperOutput");
 
       AiNodeSetStr(driver, "name", uvMapperDriverName.c_str());
 

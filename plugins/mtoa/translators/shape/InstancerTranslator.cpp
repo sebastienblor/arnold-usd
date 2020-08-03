@@ -678,7 +678,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
 
          if (m_cloneInstances[idx])
          {
-            MString instName = baseName + MString("@") + instanceKey;
+            MString instName = baseName + MString("/") + instanceKey;
          
             // Clone the master node (lights can't be instanced in arnold)
             instance  = AiNodeClone(obj, AtString(instName.asChar()));

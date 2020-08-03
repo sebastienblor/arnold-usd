@@ -568,14 +568,16 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
          }
       }
 
-      // if we still have entries in tempMap, that means the particle died in this frameStep
-      if (tempMap.size() > 0)
+      if (!m_isSprite)
       {
-         for (it = tempMap.begin(); it != tempMap.end(); it++)
+         // if we still have entries in tempMap, that means the particle died in this frameStep
+         if (tempMap.size() > 0)
          {
-            // here we Support removing of dead particles via looping and culling by particle map in the final output loop
-            int pindex = it->second;
-            (*m_out_radiusArrays[step])[pindex] = 0.0;
+            for (it = tempMap.begin(); it != tempMap.end(); it++)
+            {
+               // here we Support removing of dead particles via looping and culling by particle map in the final output loop
+               (*m_out_radiusArrays[step])[it->second] = 0.0;
+            }
          }
       }
 
@@ -639,7 +641,8 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
             it2 = pos2Map.find(pindex);
             if (it2 == pos2Map.end())   // found the particle in the scene already
             {
-               (*m_out_radiusArrays[step])[pindex] = 0.0;
+               if (!m_isSprite)
+                  (*m_out_radiusArrays[step])[pindex] = 0.0;
             }
             else
             {
@@ -722,8 +725,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
 
    MDoubleArray *newSSXArray = NULL;
    MDoubleArray *newSSYArray = NULL;
-   MDoubleArray *newRadiusArray =NULL;
-
+   
    if (m_isSprite)
    {
       newSSXArray = new MDoubleArray((*m_out_spriteScaleXArrays[previousStep]));
@@ -732,11 +734,8 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
       m_out_spriteScaleYArrays[step] = newSSYArray;
    }
    else if (multipleRadiuses)
-   {
-      newRadiusArray = new MDoubleArray((*m_out_radiusArrays[previousStep]));
-      m_out_radiusArrays[step] = newRadiusArray;
-   }
-
+      m_out_radiusArrays[step] = new MDoubleArray((*m_out_radiusArrays[previousStep]));
+   
    particle = GetArnoldNode();
 
    MTime oneSec(1.0, MTime::kSeconds);
@@ -980,10 +979,9 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    unordered_map <int, int> tempMap = m_particleIDMap;
    unordered_map <int, int>::iterator it;
 
-   MDoubleArray *newRadiusArray =NULL;
-   newRadiusArray = new MDoubleArray((*m_out_radiusArrays[previousStep]));
-   m_out_radiusArrays[step] = newRadiusArray;
-
+   if (!m_isSprite)
+      m_out_radiusArrays[step] = new MDoubleArray((*m_out_radiusArrays[previousStep]));
+   
    float fra1 = (float) curTime.as(MTime::uiUnit());
    float diff = 0.0;
 
@@ -996,7 +994,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
          int pindex = it->second;
 
          (*newPositionArray)[pindex] = (*positionArray1)[j];
-         (*m_out_radiusArrays[step])[pindex] = (*radiusArray1)[j];
+         if (!m_isSprite)
+            (*m_out_radiusArrays[step])[pindex] = (*radiusArray1)[j];
 
          // to speed up the  search, we remove the particles we've already found..
          tempMap.erase(it);
@@ -1025,13 +1024,16 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
                (*m_out_positionArrays[k]).append((*positionArray1)[j]);
             }
 
-            if ((k == step) || ((fmod(fra1, evaluateEvery) != 0.0f) &&(k == step - 1))) //Not if it is a cache frame
+            if (!m_isSprite)
             {
-               (*m_out_radiusArrays[k]).append((*radiusArray1)[j]);
-            }
-            else
-            {
-               (*m_out_radiusArrays[k]).append(0.0);
+               if ((k == step) || ((fmod(fra1, evaluateEvery) != 0.0f) &&(k == step - 1))) //Not if it is a cache frame
+               {
+                  (*m_out_radiusArrays[k]).append((*radiusArray1)[j]);
+               }
+               else
+               {
+                  (*m_out_radiusArrays[k]).append(0.0);
+               }
             }
          }
       }
@@ -1044,7 +1046,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
       {
          int pindex = it->second;
          (*newPositionArray)[pindex] = (*m_out_positionArrays[previousStep])[pindex];
-         (*m_out_radiusArrays[step])[pindex] = 0.0;
+         if (!m_isSprite)
+            (*m_out_radiusArrays[step])[pindex] = 0.0;
       }
    }
 
@@ -1137,7 +1140,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
          {
             int pindex = it->second;
             (*newPositionArray)[pindex] = (*m_out_positionArrays[previousStep])[pindex];
-            (*m_out_radiusArrays[step])[pindex] = 0.0;
+            if (!m_isSprite)
+               (*m_out_radiusArrays[step])[pindex] = 0.0;
          }
       }
 
@@ -1202,7 +1206,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
             if (it2 == pos2Map.end())   // found the particle in the scene already
             {
                (*newPositionArray)[pindex] = (*m_out_positionArrays[previousStep])[pindex];
-               (*m_out_radiusArrays[step])[pindex] = 0.0;
+               if (!m_isSprite)
+                  (*m_out_radiusArrays[step])[pindex] = 0.0;
             }
             else
             {

@@ -273,9 +273,8 @@ def arnoldLicensingNodeLocked():
     
 def arnoldTxManager():
     core.createOptions()
-    win = mtoa.txManager.MtoATxManager()
-    win.create()
-    win.refreshList()
+    mtoa.txManager.show()
+    
 
 def arnoldUpdateTx():
     core.createOptions()

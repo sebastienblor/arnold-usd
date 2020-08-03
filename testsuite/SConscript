@@ -27,7 +27,6 @@ is_linux   = os_name == _linux
 is_darwin  = os_name == _darwin
 is_windows = os_name == _windows
 
-
 Import('env')
 
 # Total running time for all tests
@@ -144,7 +143,6 @@ def list_groups(target, source, env):
 listgroups_bld = Builder(action = Action(list_groups, "Listing test groups..."))
 
 def run_test(target, source, env):
-
    global TOTAL_RUNNING_TIME
    status = 'OK'
    status_valgrind = 'OK'
@@ -245,17 +243,18 @@ def run_test(target, source, env):
          cmd = os.path.join(test_dir, cmd)
 
       tokens = cmd.split()
+
       if tokens[0] == 'kick':
          cmd = os.path.join(kick_path, cmd)
          # Append additional parameters if given
          cmd += ' ' + test_env['KICK_PARAMS']
          cmd += ' -l ' + test_env['USD_PROCEDURAL_INSTALL_PATH']
-      elif os.path.splitext(tokens[0])[1] == '.py':
+      elif '.py' in os.path.splitext(tokens[0])[1]:
          # Use the same Python interpreter we used for launching SCons
          # But don't forget to add double quotes in case this path contains spaces (eg C:\Program Files(x86)\Python\python.exe ...)
          cmd = '"' + sys.executable + '" ' + cmd
          use_shell = True
-      
+
       # TODO : THESE NEED TO SET properly
       use_shell = True
 
@@ -303,19 +302,26 @@ def run_test(target, source, env):
       # make sure we'll load the .mod file in the target mtoa folder, and thus load the right version of mtoa
       local_env['MAYA_MODULE_PATH'] = test_env['TARGET_MODULE_PATH']
       local_env['MAYA_RENDER_DESC_PATH'] = test_env['TARGET_MODULE_PATH']
+      if os.getenv("MAYA_APP_DIR"):
+         local_env['MAYA_APP_DIR'] = os.getenv("MAYA_APP_DIR")
+      
       ## why this being in Maya.env doesn't work?
       previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
       os.environ['   '] = test_env.subst(test_env['TARGET_DESCR_PATH'])
       os.environ['MAYA_VERSION'] = test_env['MAYA_VERSION']
-   
-      os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
-      
+      local_env['ARNOLD_MATERIALX_SEARCH_PATH'] = test_dir
+      local_env['PYMEL_SKIP_MEL_INIT'] = "1"
+      ## Dont need to be submitting CER and CIP for CI process
+      ## Also without this testsuite crashes with Maya 2018
+      local_env["MAYA_DISABLE_CIP"] = "1"
+      local_env["MAYA_DISABLE_CER"] = "1"
+
       if show_test_output:
          print '====Exec %s' % cmd
          print os.getenv('PATH')
       
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
-      
+
       with open(logfile, 'w') as f:
          f.write('==== Setting Path ===== \n \n ')
          f.write(str(local_env) + '\n \n ')
@@ -389,7 +395,7 @@ def run_test(target, source, env):
       ref_thumbnail = os.path.join(test_dir, 'ref_'+output_images[index] + '.png')
 
       if test_env['MAKE_THUMBNAILS'] and os.path.exists(reference_image) :
-         cmd = oiiotool_path + ' -v --info ' + reference_image
+         cmd = '"' + oiiotool_path + '"'  + ' -v --info ' +  '"' + reference_image + '"'
          retcode, info = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell)
 
          if show_test_output:
@@ -441,13 +447,13 @@ def run_test(target, source, env):
                ## if the test passed - compare the generated image to the reference
                ## and compute the diff jpeg image by substracting them, taking the absolute value,
                ## and multiplying by 4
-               img_diff_opt = '--threads 1 --hardfail %f --fail %f --failpercent %f --warnpercent %f' % (diff_hardfail, diff_fail, diff_failpercent, diff_warnpercent)
-               img_diff_cmd = ('%s ' + img_diff_opt + ' --diff %s %s') % (oiiotool_path, output_image, reference_image)
+               img_diff_opt = ' --threads 1 --hardfail %f --fail %f --failpercent %f --warnpercent %f' % (diff_hardfail, diff_fail, diff_failpercent, diff_warnpercent)
+               img_diff_cmd = ('"%s" ' + img_diff_opt + ' --diff "%s" "%s"') % (oiiotool_path, output_image, reference_image)
                if test_env['MAKE_THUMBNAILS'] :
                   if is_deep :
                      img_diff_cmd += ' --flatten --swap --flatten --swap '
                   img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o ' % tuple([channels] + [alpha] * 4)
-                  img_diff_cmd += dif_thumbnail + ' '
+                  img_diff_cmd += '"' + dif_thumbnail + '" '
                retcode, out = sa.system.execute(img_diff_cmd, cwd=test_dir, env=local_env, shell=use_shell)
                with open(os.path.join(test_dir, "%s.diff.log") % TEST_NAME, 'w') as f:
                   f.writelines(l + '\n' for l in out)
@@ -461,13 +467,13 @@ def run_test(target, source, env):
             ## convert these to jpg form for makeweb
             if test_env['MAKE_THUMBNAILS']:
                if os.path.exists(output_image):
-                  cmd = oiiotool_path + ' --threads 1 ' + output_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + new_thumbnail
+                  cmd = '"' + oiiotool_path + '"' + ' --threads 1 ' + '"' + output_image + '"' + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + '"' + new_thumbnail + '"'
                   sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
                else:
                   status = 'FAILED'
 
       if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image) and test_env['MAKE_THUMBNAILS'] :
-         cmd = oiiotool_path + ' --threads 1 ' + reference_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + ref_thumbnail
+         cmd = '"' + oiiotool_path + '"' + ' --threads 1 ' + '"' + reference_image + '"' + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + '"' + ref_thumbnail + '"'
          sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
 
    readme_file = os.path.join(test_dir, 'README')
@@ -716,22 +722,22 @@ def process_testsuite(target, source, env):
          test_dir  = str(test.dir)
          test_name = os.path.basename(test_dir)
          try:        
-            whitelist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
-            whitelist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
-            whitelist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
-            whitelist.extend(glob.glob(os.path.join(test_dir, 'dif_*.png')))
-            whitelist.append(os.path.join(test_dir, test_name +'.log'))
-            whitelist.append(os.path.join(test_dir, test_name +'.html'))
-            whitelist.append(os.path.join(test_dir, test_name +'.vg.xml'))
-            whitelist.append(os.path.join(test_dir, 'README'))
-            whitelist.append(os.path.join(test_dir, 'STATUS'))
-            whitelist.append(os.path.join(test_dir, 'TIMINGS'))      
+            acceptlist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
+            acceptlist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
+            acceptlist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
+            acceptlist.extend(glob.glob(os.path.join(test_dir, 'dif_*.png')))
+            acceptlist.append(os.path.join(test_dir, test_name +'.log'))
+            acceptlist.append(os.path.join(test_dir, test_name +'.html'))
+            acceptlist.append(os.path.join(test_dir, test_name +'.vg.xml'))
+            acceptlist.append(os.path.join(test_dir, 'README'))
+            acceptlist.append(os.path.join(test_dir, 'STATUS'))
+            acceptlist.append(os.path.join(test_dir, 'TIMINGS'))      
             for root, dirs, files in os.walk(test_dir):
                for folder in dirs:
                   sa.path.remove(os.path.join(test_dir, folder))
                for file in files:
                   full_path = os.path.join(test_dir, file)
-                  if not full_path in whitelist:
+                  if not full_path in acceptlist:
                      sa.path.remove(full_path)
          except (ValueError, TypeError):
             print 'Could not clear the testsuite folder {}'.format(test_dir)
@@ -916,21 +922,21 @@ while True:
 
 # Second stage. We have a flat list of single tests, so we prepare them for building
 
-BLACKLIST     = {'ignore':[], 'os':[]}
+IGNORELIST     = {'ignore':[], 'os':[]}
 SKIPPED_TESTS = {'ignore':0, 'os':0, 'other':0}
 
 # Tests in 'ignore' group are always added to the black list
-BLACKLIST['ignore'] = find_test_group('ignore', env)
+IGNORELIST['ignore'] = find_test_group('ignore', env)
 
 # We also want to ignore the tests specific to this maya version
 # FIXME : let put all these "ignore" groups in an env variable that is filled in 
 # MtoA's Sconstruct and just used here, so that this file isn't Maya-specific
 ignore_version = 'ignore_' + test_env['MAYA_VERSION_BASE']
-BLACKLIST['ignore'] |= find_test_group(ignore_version, env)
+IGNORELIST['ignore'] |= find_test_group(ignore_version, env)
 
 # FIXME For now I'm ignoring the gui tests because they cause hangs in multi-thread
 # should we use a lock system ? or run them separatey in single thread ?
-BLACKLIST['ignore'] |= find_test_group('gui', env)
+IGNORELIST['ignore'] |= find_test_group('gui', env)
 
 # Tests intended for this platform
 OSTESTLIST = find_test_group(sa.system.os, env)
@@ -939,21 +945,21 @@ for o in sa.system.allowed.os:
    if o != sa.system.os:
       for atest in find_test_group(o, env):
          if atest not in OSTESTLIST:
-            BLACKLIST['os'].append(atest)
+            IGNORELIST['os'].append(atest)
 
 # There are also tests to be ignored on specific OS
 ignore_os = 'ignore_' + sa.system.os
 for atest in find_test_group(ignore_os, env):
-   BLACKLIST['os'].append(atest)
+   IGNORELIST['os'].append(atest)
 
 for target in sorted(TEST_NAMES, reverse=(env['TEST_ORDER']=='normal')):
    # Don't skip ignored tests when a single test was explicitly requested
    if skip_ignored_tests and len(TEST_NAMES) > 1:
-      if target in BLACKLIST['ignore']:
+      if target in IGNORELIST['ignore']:
          SKIPPED_TESTS['ignore'] += 1
          print_safe('skipping test %s -- found in black list' % (target))
          continue
-   if target in BLACKLIST['os']:
+   if target in IGNORELIST['os']:
       SKIPPED_TESTS['os'] += 1
       print_safe('skipping test %s -- found in black list' % (target))
       continue

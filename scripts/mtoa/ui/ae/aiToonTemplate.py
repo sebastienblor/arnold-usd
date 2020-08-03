@@ -68,6 +68,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("rim_light", label="Light")
         self.addControl("rim_light_color", label="Color")
         self.addControl("rim_light_width", label="Width")
+        self.addControl("rim_light_tint", label="Tint")
         self.endLayout()
 
         self.beginLayout("Transmission", collapse=True)

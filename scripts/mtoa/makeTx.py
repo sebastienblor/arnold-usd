@@ -99,9 +99,9 @@ def guessColorspace(img_info):
             return 'linear'
 
         # now discard the image file as AiTextureGetFormat has loaded it
-        AiTextureInvalidate(filename)
+        AiTextureInvalidate(img_info['filename'])
     except:
-        print('[maketx] Error: Could not guess colorspace for "%s"' % filename)
+        print('[maketx] Error: Could not guess colorspace for "%s"' % img_info['filename'])
         return 'linear'
 
 
@@ -109,6 +109,7 @@ def imageInfo(filename):
     '''Get image information
     '''
     img_info = {}
+    img_info['filename'] = filename
     img_info['bit_depth'] = AiTextureGetBitDepth(filename)
     img_info['format'] = AiTextureGetFormat(filename)
     return img_info

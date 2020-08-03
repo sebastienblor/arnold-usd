@@ -23,13 +23,13 @@ numElems = AiArrayGetNumElements(outputsArray)
 if numElems != 7:
 	success = False
 else:
-	success = success and AiArrayGetStr(outputsArray, 0) == 'RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_exr.RGBA'
-	success = success and AiArrayGetStr(outputsArray, 1) == 'RGBA_denoise RGBA defaultArnoldRenderOptions@RGBA_denoise defaultArnoldDriver@driver_exr.RGBA_denoise'
-	success = success and AiArrayGetStr(outputsArray, 2) == 'albedo RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_exr.albedo'
-	success = success and AiArrayGetStr(outputsArray, 3) == 'diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_exr.diffuse'
-	success = success and AiArrayGetStr(outputsArray, 4) == 'diffuse_denoise RGB defaultArnoldRenderOptions@diffuse_denoise defaultArnoldDriver@driver_exr.diffuse_denoise'
-	success = success and AiArrayGetStr(outputsArray, 5) == 'specular RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_exr.specular'
-	success = success and AiArrayGetStr(outputsArray, 6) == 'specular_denoise RGB defaultArnoldRenderOptions@specular_denoise defaultArnoldDriver@driver_exr.specular_denoise'
+	success = success and AiArrayGetStr(outputsArray, 0) == 'RGBA RGBA defaultArnoldFilter/gaussian_filter defaultArnoldDriver/driver_exr.RGBA'
+	success = success and AiArrayGetStr(outputsArray, 1) == 'RGBA_denoise RGBA defaultArnoldRenderOptions/RGBA_denoise defaultArnoldDriver/driver_exr.RGBA_denoise'
+	success = success and AiArrayGetStr(outputsArray, 2) == 'albedo RGB defaultArnoldFilter/gaussian_filter defaultArnoldDriver/driver_exr.albedo'
+	success = success and AiArrayGetStr(outputsArray, 3) == 'diffuse RGB defaultArnoldFilter/gaussian_filter defaultArnoldDriver/driver_exr.diffuse'
+	success = success and AiArrayGetStr(outputsArray, 4) == 'diffuse_denoise RGB defaultArnoldRenderOptions/diffuse_denoise defaultArnoldDriver/driver_exr.diffuse_denoise'
+	success = success and AiArrayGetStr(outputsArray, 5) == 'specular RGB defaultArnoldFilter/gaussian_filter defaultArnoldDriver/driver_exr.specular'
+	success = success and AiArrayGetStr(outputsArray, 6) == 'specular_denoise RGB defaultArnoldRenderOptions/specular_denoise defaultArnoldDriver/driver_exr.specular_denoise'
 
 if success:
 	print 'OK'

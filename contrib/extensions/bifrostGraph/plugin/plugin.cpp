@@ -12,6 +12,10 @@ extern "C"
                                      "",
                                      CBifShapeTranslator::creator,
                                      CBifShapeTranslator::NodeInitializer);
+        extension.RegisterTranslator("bifrostGraphShape", // translate bifrost graph nodes
+                                     "",
+                                     CBifShapeTranslator::creator,
+                                     CBifShapeTranslator::NodeInitializer);
     }
 
     DLLEXPORT void deinitializeExtension ( CExtension& extension )

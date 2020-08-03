@@ -37,8 +37,7 @@ class AttributeListWindow(object):
         self.handleAttributes(mode)
         
         if self._attributes :
-            labels = self._attributes.keys()
-            labels.sort()
+            labels = sorted(self._attributes.keys())
             for attr in labels:
                 cmds.textScrollList(self.scrollList, edit=True, append=attr)
 
@@ -70,8 +69,7 @@ class AttributeListWindow(object):
         if self._attributes is None:
             return
         filterText = cmds.textField(self.filterText, query=True, text=True)
-        labels = self._attributes.keys()
-        labels.sort()
+        labels = sorted(self._attributes.keys())
         if filterText == "":
             for attr in labels:
                 cmds.textScrollList(self.scrollList, edit=True, append=attr)       

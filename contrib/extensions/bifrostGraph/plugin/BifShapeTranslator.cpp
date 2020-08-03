@@ -522,7 +522,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
             else
                AiMsgWarning("[mtoa.bifrost_graph] %s: could not write Bifrost serialized data, maya project area inaccessible", AiNodeGetName(shape));
          }
-         else
+         else if (serialisedNBytes > 0)
          {
             // When serializing data, Arnold will B85 encode data if it takes up more
             // than 32 bytes of memory.  We want to use raw bytes rather than printing
@@ -551,7 +551,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
             AiNodeSetArray(shape, "input_interpretations", interpsArray);
          }
 
-         AiFree(serialisedData);
+         if (serialisedData != NULL)
+            AiFree(serialisedData);
       }
 
       dataStreamPlug.destructHandle(dataStreamHandle);
@@ -765,7 +766,8 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
       if (connections.length() > 0)
       {
          // Skip any default shader assigned, we don't want this overriding the proc child node shaders
-         bool found_shader = namespaceEndsWith(connections[0].name().asChar(), "lambert1");
+         bool found_shader = namespaceEndsWith(connections[0].name().asChar(), "lambert1") || 
+                             namespaceEndsWith(connections[0].name().asChar(), "standardSurface1");;
          bool found_engine = namespaceEndsWith(shadingGroupPlug.name().asChar(), "initialShadingGroup");
          if ( found_shader && found_engine )
          {
@@ -857,6 +859,12 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
          // Convert the handle data stream to fully-serialized Bifrost data
          size_t serialisedSize = 0;
          uint8_t* serialisedData = s_arnoldBifrostSerializeData(&streamData[0], streamSize, serialisedSize);
+         if (serialisedData == NULL || serialisedSize == 0)
+         {
+             // We already get a warning from arnold_bifrost about a failed/empty serialization, no need to issue another
+             dataStreamPlug.destructHandle(dataStreamHandle);
+             return;
+         }
 
          if (AiArrayGetType(dataArray) != AI_TYPE_STRING && serialisedSize >= ARNOLD_MAX_PARAMETER_BYTES)
          {

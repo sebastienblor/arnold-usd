@@ -454,7 +454,7 @@ class AOVInterface(object):
         raises an error if there is more than one match
         returns True if the node was found and removed, False otherwise
         '''
-        if isinstance(aov, basestring):
+        if isinstance(aov, string_types):
             matches = self.getAOVs(include=[aov])
             if not matches:
                 return False
