@@ -3762,6 +3762,36 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT     0x00115DA9
 
 
+[node imager_exposure]
+    maya.name              STRING "aiImagerExposure"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB5
+    [attr exposure]
+        softmin             FLOAT     0
+        softmax             FLOAT     5
+    [attr vignetting]
+        softmin             FLOAT     0
+        softmax             FLOAT     100
+    [attr highlights]
+        softmin             FLOAT     0
+        softmax             FLOAT     5
+    [attr midtones]
+        softmin             FLOAT     0
+        softmax             FLOAT     5
+    [attr shadows]
+        softmin             FLOAT     0
+        softmax             FLOAT     5
+    [attr saturation]
+        softmin             FLOAT     0
+        softmax             FLOAT     5
+
+
+
+
+    
+    
 
 
 

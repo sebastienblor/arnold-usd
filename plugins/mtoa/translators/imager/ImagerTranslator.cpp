@@ -28,3 +28,8 @@ void CImagerTranslator::Export(AtNode *shader)
 void CImagerTranslator::NodeInitializer(CAbTranslator context)
 {   
 }
+
+void CImagerTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   CNodeTranslator::NodeChanged(node, plug);
+}

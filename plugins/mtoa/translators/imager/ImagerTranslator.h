@@ -16,5 +16,6 @@ public:
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    void Export(AtNode* atNode);
-
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
 };
