@@ -367,7 +367,7 @@ def get_scanned_files(scan_attributes):
         else:
             for node in cmds.ls(type=ntype):
                 for a in cmds.listAttr(node, r=True, st=attr) or []:
-                    if not cmds.getAttr(a, type=True) == 'string':
+                    if not cmds.getAttr(".".join([node, a]), type=True) == 'string':
                         continue
 
                     attributes.add(a)
