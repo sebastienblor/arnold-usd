@@ -1,4 +1,4 @@
 from .ui import show
-import lib
+from .lib import updateAllTx
 
-__all__ = ['show', 'lib']
+__all__ = ['show', 'updateAllTx']

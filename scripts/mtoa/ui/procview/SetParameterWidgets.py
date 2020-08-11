@@ -172,11 +172,11 @@ class SetParametersPanel(QtWidgets.QFrame):
         if param_type == AI_TYPE_NODE or param in [SHADER, DISP_MAP]:
             new_widget.controlWidget.control.connectionButtonClicked.connect(lambda: self.newShadingNode(param))
 
-        # param, operation, value, param_type, custom, index, operator
-        new_widget.valueChanged[str, str, str, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, int, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, bool, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, float, int, bool, int, str, bool].connect(self.setOverride)
+        # param, operation, value, param_type, custom, index, operator, enable
+        new_widget.valueChanged[str, str, str,   int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, int,   int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, bool,  int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, float, int, bool, int, str, bool, bool].connect(self.setOverride)
         # add widget
         self.overridesPanel.layout().addWidget(new_widget)
         return new_widget
@@ -207,7 +207,7 @@ class SetParametersPanel(QtWidgets.QFrame):
 
         return None
 
-    def setOverride(self, param, op, value, param_type=None, custom=False, index=-1, operator=None, enabled=True):
+    def setOverride(self, param, op, value, param_type=None, custom=False, index=-1, operator=None, enabled=True, force_expression=False):
         if not operator:
             return
 
@@ -216,4 +216,4 @@ class SetParametersPanel(QtWidgets.QFrame):
             if not param_type:
                 param_type = param_data[DATA_PARAM_TYPE]
 
-        return self.transverser.setOverride(None, None, operator, param, op, value, param_type, custom, enabled, index)
+        return self.transverser.setOverride(None, None, operator, param, op, value, param_type, custom, enabled, force_expression, index)

@@ -1,0 +1,21 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+setAttr "defaultArnoldRenderOptions.motion_frames" 0.2;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+string $img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+setAttr "defaultArnoldRenderOptions.range_type" 2;
+setAttr "defaultArnoldRenderOptions.motion_frames" 0.8;
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+

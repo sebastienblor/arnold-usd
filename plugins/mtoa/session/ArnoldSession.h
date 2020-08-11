@@ -51,7 +51,7 @@ typedef unordered_map<std::string, CNodeTranslator*> ObjectToTranslatorMap;
 typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
 typedef std::pair<CNodeAttrHandle, MCallbackId> HiddenObjectCallbackPair;
 
-// Map dag object handles to master instance
+// Map dag object handles to primary instance
 typedef unordered_map<MObjectHandle, MDagPath> ObjectHandleToDagMap;
 
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.

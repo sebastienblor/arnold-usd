@@ -300,7 +300,13 @@ static void GetArnoldBifrostAPIExtensions(const char* dsoPath, const char* dsoNa
        }
     }
 #else
-    std::string fullPath = std::string(dsoPath) + "/" + std::string(dsoName) + ".so";
+    std::string fullPath = std::string(dsoPath) + "/" + std::string(dsoName) ;
+    #ifdef _LINUX
+      fullPath += ".so";
+    #else
+      fullPath += ".dylib";
+    #endif
+    
     // Load and leak the handle, so Arnold doesn't unload it on us and invalidate our function references!
     void *handle = dlopen(fullPath.c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (handle != NULL)

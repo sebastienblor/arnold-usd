@@ -43,7 +43,7 @@ SELECTION_OPS = [OVERRIDE_OP, DISABLE_OP, COLLECTION_OP]
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
-PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
+PARAM_IGNORELIST = ['id', 'visibility', 'name', 'matrix',
                    'motion_start', 'motion_end', 'shader', 'disp_map',
                    'vidxs', 'vlist', 'nsides', 'uvidxs', 'shidxs',
                    'nlist', 'nidxs', 'uvlist', 'crease_idxs',
@@ -121,8 +121,8 @@ class ProceduralTransverser(BaseTransverser):
                     param_type = AiParamGetType(param)
                     paramName = AiParamGetName(param)
 
-                    # skip parameters in the blacklist
-                    if paramName in PARAM_BLACKLIST:
+                    # skip parameters in the IGNORELIST
+                    if paramName in PARAM_IGNORELIST:
                         continue
 
                     if param_type == AI_TYPE_ARRAY:
@@ -533,7 +533,7 @@ class ProceduralTransverser(BaseTransverser):
         return overrides, parent_overrides
 
     @classmethod
-    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, enable=True, index=-1):
+    def setOverride(cls, node, path, operator, param, operation, value, param_type, custom=False, enable=True, force_expression=False, index=-1):
 
         op = operator
         if index == -1:
@@ -551,7 +551,7 @@ class ProceduralTransverser(BaseTransverser):
 
         value = str(value)
 
-        if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE] and not valueIsExpression(value):
+        if not force_expression and param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
             value = "'{}'".format(value)
 
         # get if this is a custom param

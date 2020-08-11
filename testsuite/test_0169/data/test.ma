@@ -10403,11 +10403,9 @@ select -ne :defaultRenderGlobals;
 	addAttr -ci true -sn "deadlineJobPriority" -ln "deadlineJobPriority" -at "long";
 	addAttr -ci true -sn "deadlineLimitCount" -ln "deadlineLimitCount" -at "long";
 	addAttr -ci true -sn "deadlineConcurrentTasks" -ln "deadlineConcurrentTasks" -at "long";
-	addAttr -ci true -sn "deadlineSlaveTimeout" -ln "deadlineSlaveTimeout" -at "long";
-	addAttr -ci true -sn "deadlineMinSlaveTimeout" -ln "deadlineMinSlaveTimeout" -at "long";
 	addAttr -ci true -sn "deadlineLimitGroups" -ln "deadlineLimitGroups" -dt "string";
 	addAttr -ci true -sn "deadlineMachineList" -ln "deadlineMachineList" -dt "string";
-	addAttr -ci true -sn "deadlineIsBlacklist" -ln "deadlineIsBlacklist" -at "long";
+	addAttr -ci true -sn "deadlineIsIgnorelist" -ln "deadlineIsIgnorelist" -at "long";
 	addAttr -ci true -sn "deadlineSubmitAsSuspended" -ln "deadlineSubmitAsSuspended" 
 		-at "long";
 	addAttr -ci true -sn "deadlineCloseOnSubmission" -ln "deadlineCloseOnSubmission" 

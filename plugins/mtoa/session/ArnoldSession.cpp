@@ -1661,7 +1661,14 @@ void CArnoldSession::DoUpdate()
                it->second->RequestUpdate();                 
             } // otherwise, this node shouldn't be updated at all 
          }
+
+         // If motion blur changes, we need to ensure that the render camera is updated.
+         // In particular, we need the shutter_start / shutter_end to be updated properly (see #4126)
+         CNodeTranslator *cameraTranslator = CNodeTranslator::GetTranslator(m_sessionOptions.GetExportCamera());
+         if (cameraTranslator)
+            cameraTranslator->RequestUpdate();
       }
+      
       UpdateMotionFrames();
       m_updateMotionData = false;
    }
@@ -1848,7 +1855,7 @@ UPDATE_BEGIN:
                   MFnDagNode(MFnDagNode(shapePath.node()).parent(0)).getPath(srcParent);
                   srcParent.push(shapePath.node());
 
-                  // If this isn't the master instance
+                  // If this isn't the primary instance
                   if (!(srcParent == shapePath))
                   {
                      dagTr = ExportDagPath(shapePath);
@@ -2261,16 +2268,17 @@ bool CArnoldSession::IsVisible(MFnDagNode &node)
    if (status == MStatus::kFailure || !visPlug.asBool())
       return false;
 
-/*
-   Reverting this lodVisibility code, as explained in #2679
+   // LOD visibility support had first been implemented for mesh lights, 
+   // but it was then reverted in #2679 , because some users were relying
+   // on this attribute to be ignored by Arnold. This was, back at the time, 
+   // the only was to hide an object from the viewport and still render it.
+   // There are now different ways to achieve this, so we're re-introducing the
+   // support for lodVisibility in #4259
    
-   // FIXME do we really want lodVisibility to affect the visibility in arnold ?
-   // Maya viewport seems indeed to take it into account. Note that this is used
-   // only by Mesh lights
    MPlug lodVisPlug = node.findPlug("lodVisibility", &status);
    if (status == MStatus::kFailure || !lodVisPlug.asBool())
       return false;
-*/
+
    // Check override visibility
    MPlug overPlug = node.findPlug("overrideEnabled", true, &status);
    if (status == MStatus::kSuccess && overPlug.asBool())
@@ -2743,9 +2751,38 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
 
    ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
    if (it != m_processedTranslators.end())
-   {
-      it->second->m_impl->RemoveUpdateCallbacks();
-      it->second->RequestUpdate();
+   {  
+
+      CNodeTranslator *tr = it->second;
+      if (tr)
+      {
+         tr->m_impl->RemoveUpdateCallbacks();
+
+         // This node's name might have changed, we need to update it here #4238
+         // Option 1 : re-generate the node
+         tr->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
+
+         // Option 2 : just rename the node, is this enough ? or would there be any reason
+         // for things to be done differently in CNodeTranslator::CreateArnoldNode depending 
+         // on the hierarchy ?
+         /*  
+         AtNode *arnoldNode = tr->GetArnoldNode();
+         if (arnoldNode)
+         {
+            MString oldName = AiNodeGetName(arnoldNode);
+            MString newName = tr->m_impl->MakeArnoldName(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
+            if (newName != oldName)
+            {
+               AiNodeSetStr(arnoldNode, "name", newName.asChar());
+               CMayaScene::GetRenderSession()->ObjectNameChanged(path.node(), oldName);
+            }
+         }*/
+            
+         tr->RequestUpdate();
+      }
+
+      
+
    }
  
    // Recursively dive into the dag children

@@ -9,6 +9,7 @@ import platform
 import mtoa.makeTx as makeTx
 import arnold as ai
 from mtoa.ui.qt.Qt import QtWidgets, QtCore
+from mtoa.ui.qt.utils import getMayaWindow
 # legacy imports
 import copy
 import logging
@@ -41,24 +42,40 @@ default_texture_data = {
     'status': 'notx',
     'path': None,
     'txpath': None,
-    'colorspace': None
+    'colorspace': None,
+    'index': 0
 }
+
+scene_default_texture_scan = [
+    'file.fileTextureName',
+    'aiImage.filename',
+    'imagePlane.imageName',
+    'mesh.mtoa_constant_*'
+]
 
 
 class MakeTxThread (QtCore.QThread):
+
+    maxProgress = QtCore.Signal(int)
+    progress = QtCore.Signal(int)
+
     def __init__(self, manager, parent):
         QtCore.QThread.__init__(self, parent)
         self.txManager = manager
         self.filesCreated = 0
         self.createdErrors = 0
         self.is_canceled = False
-        self.progress = None
+        self.force = True
+
+        self.processor = TxProcessor(self.txManager)
 
     def run(self):
         self.filesCreated = 0
         self.createdErrors = 0
         self.is_canceled = False
-        self.createTx()
+        self.processor.maxProgress.connect(self.emit_max_progress)
+        self.processor.progress.connect(self.emit_progress)
+        self.processor.createTx()
 
     # create a .tx file with the provided options. It will wait until it is finished
     def runMakeTx(self, texture, space):
@@ -66,6 +83,33 @@ class MakeTxThread (QtCore.QThread):
         arg_options = self.txManager.get_tx_args()
         status = utils.executeInMainThreadWithResult( makeTx.makeTx, texture, colorspace=space, arguments=arg_options)
         return status
+
+    def emit_max_progress(self, value):
+        self.maxProgress.emit(value)
+
+    def emit_progress(self, value):
+        self.progress.emit(value)
+
+    def set_forced(self, forced):
+        self.processor.force = forced
+
+    def cancel_tx(self):
+        self.is_canceled = True
+
+
+class TxProcessor(QtCore.QObject):
+    """docstring for TxProcessor"""
+
+    maxProgress = QtCore.Signal(int)
+    progress = QtCore.Signal(int)
+
+    def __init__(self, txmanager):
+        super(TxProcessor, self).__init__()
+        self.txManager = txmanager
+        self.filesCreated = 0
+        self.createdErrors = 0
+        self.is_canceled = False
+        self.force = True
 
     def createTx(self):
         selected_textures = self.txManager.get_selected_textures()
@@ -159,8 +203,10 @@ class MakeTxThread (QtCore.QThread):
 
                 tile_info = makeTx.imageInfo(inputFile)
 
-                txArguments = "-v -u --unpremult --oiio"
-                if not self.txManager.tx_use_autotx.isChecked():
+                txArguments = "-v --unpremult --oiio"
+                if self.force:
+                    txArguments += " -u"
+                if not self.txManager.get_use_autotx():
                     txArguments = ' '.join(arg_options)
 
                 if cmEnable and colorSpace != render_colorspace:
@@ -185,11 +231,8 @@ class MakeTxThread (QtCore.QThread):
 
         num_jobs_left = len(textureList)   # default to arbitrary value > 0
 
-        self.progress = QtWidgets.QProgressDialog("processing textures...", "Abort", 0, num_jobs_left, self.txManager)
-        # progress.setWindowModality(QtCore.Qt.WindowModal)
-        self.progress.forceShow()
-        self.progress.setCancelButton(None)
-        self.progress.canceled.connect(self.cancel_tx)
+        # set the max progress on the progress bar/dialog
+        self.maxProgress.emit(num_jobs_left)
 
         # Now I have a list of textures to be converted
         # let's give  this list to arnold
@@ -220,7 +263,8 @@ class MakeTxThread (QtCore.QThread):
                     self.txManager.update_data(item_index)
                     processed += 1
 
-            self.progress.setValue(processed)
+            # emit progress to the progress bar/dialog
+            self.progress.emit(processed)
 
         if (num_submitted.value > len(textureList)):
             ai.AiMsgFatal("There are more submitted textures than there are textures! "
@@ -253,20 +297,13 @@ class MakeTxThread (QtCore.QThread):
             if invalidate:
                 ai.AiTextureInvalidate(outputTx)
 
-        self.progress.close()
         utils.executeDeferred(self.txManager.on_refresh)
 
         # an arnold scene was created above, let's delete it now
         if not arnoldUniverseActive:
             cmds.arnoldScene(mode="destroy")
 
-    def cancel_tx(self):
-        # status = ai.POINTER(ai.AtMakeTxStatus)()  # returns the current status of the input files
-        # source_files = ai.POINTER(ai.AtPythonString)()  # returns the list of input files in the same order as the status
-        # num_submitted = ai.c_uint()
-
-        # ai.AiMakeTxAbort(ai.byref(status), ai.byref(source_files), ai.byref(num_submitted))
-        self.is_canceled = True
+        return True
 
 
 def sanitize_string(string):
@@ -467,3 +504,71 @@ def build_tx_arguments(
         args += ['--threads', str(threads)]
 
     return args
+
+
+class DummyManager(object):
+    """docstring for DummyManager"""
+    def __init__(self):
+        super(DummyManager, self).__init__()
+        self.filesToCreate = []
+        self.textures = []
+
+    def on_refresh(self):
+        """ dummy method """
+        pass
+
+    def get_use_autotx(self):
+        return True
+
+    def set_status(self, index, status):
+        self.textures[index]['status'] = status
+
+    def get_status(self, index):
+        return self.textures[index]['status']
+
+    def get_tx_args(self):
+        return ""
+
+    def get_selected_textures(self):
+        _textures = utils.executeInMainThreadWithResult(get_scanned_files, scene_default_texture_scan)
+        self.textures = []
+        i = 0
+        for k in sorted(_textures.keys()):
+            _textures[k]['index'] = i
+            self.textures.append(_textures[k])
+            i += 1
+
+        return self.textures
+
+    def update_data(self, row):
+
+        data = self.textures[row]
+        self.textures[row] = update_texture_data(data)
+
+
+def updateAllTx(force, threaded=True):
+
+    manager = DummyManager()
+
+    # check if we are in batch mode
+    if not cmds.about(batch=True):
+        mayawindow = getMayaWindow()
+        thread = MakeTxThread(manager, mayawindow)
+        thread.set_forced(force)
+        progress = QtWidgets.QProgressDialog("processing textures...", "Abort", 0, 2, mayawindow)
+        progress.forceShow()
+        progress.setWindowModality(QtCore.Qt.WindowModal)
+
+        progress.canceled.connect(thread.cancel_tx)
+        thread.maxProgress.connect(progress.setMaximum)
+        thread.progress.connect(progress.setValue)
+        thread.finished.connect(progress.deleteLater)
+
+        thread.start()
+
+    else:
+
+        processor = TxProcessor(manager)
+        return processor.createTx()
+
+    return False

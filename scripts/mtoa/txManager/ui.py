@@ -4,6 +4,7 @@ import logging
 import traceback
 import copy
 import os
+from time import sleep
 
 from mtoa.ui.qt.Qt import QtWidgets, QtCore
 
@@ -29,13 +30,6 @@ def delete_ui(name):
     while cmds.window(name, exists=True):
         cmds.deleteUI(name)
 
-
-scene_default_texture_scan = [
-    'file.fileTextureName',
-    'aiImage.filename',
-    'imagePlane.colorSpace',
-    'mesh.mtoa_constant_*'
-]
 
 # Unused
 filters = [
@@ -205,7 +199,7 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         self.scene_include_actions_layout = QtWidgets.QHBoxLayout()
 
         self.scene_include = QtWidgets.QListWidget()
-        self.scene_include.addItems(scene_default_texture_scan)
+        self.scene_include.addItems(lib.scene_default_texture_scan)
         self.scene_include_add = QtWidgets.QPushButton('Add')
         self.scene_include_rm = QtWidgets.QPushButton('Remove')
         self.scene_include_actions_layout.addWidget(self.scene_include_add)
@@ -288,12 +282,9 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
         self.action_create = QtWidgets.QPushButton('Create .tx for selected')
         self.action_rm = QtWidgets.QPushButton('Remove .tx for selected')
-        self.action_cancel = QtWidgets.QPushButton('Cancel Convert')
-        self.action_cancel.setEnabled(False)
 
         self.actions_layout.addWidget(self.action_create)
         self.actions_layout.addWidget(self.action_rm)
-        self.actions_layout.addWidget(self.action_cancel)
 
         self.right_layout.addWidget(self.options_group)
         self.right_layout.addWidget(self.scene_options_group)
@@ -343,7 +334,6 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
         self.action_create.clicked.connect(self.on_create_tx)
         self.action_rm.clicked.connect(self.on_delete_tx)
-        self.action_cancel.clicked.connect(self.on_cancel_tx)
 
         # Initialization
         self.on_update_args()
@@ -565,14 +555,20 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
         self.action_create.setEnabled(False)
         self.action_rm.setEnabled(False)
-        self.action_cancel.setEnabled(True)
         if not self.thread:
             self.thread = lib.MakeTxThread(self, self)
             self.thread.finished.connect(self.on_finish_tx)
 
-        self.thread.start()
+        progress = QtWidgets.QProgressDialog("processing textures...", "Abort", 0, 2, self)
+        progress.forceShow()
+        progress.setWindowModality(QtCore.Qt.WindowModal)
 
-        self.on_refresh()
+        progress.canceled.connect(self.on_cancel_tx)
+        self.thread.maxProgress.connect(progress.setMaximum)
+        self.thread.progress.connect(progress.setValue)
+        self.thread.finished.connect(progress.deleteLater)
+
+        self.thread.start()
 
     def on_delete_tx(self):
         '''Callback for TX deletion'''
@@ -599,11 +595,13 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
             while self.thread.isRunning():
                 continue
 
+        self.on_refresh()
+
     def on_finish_tx(self):
         # stop the thread
         self.action_create.setEnabled(True)
         self.action_rm.setEnabled(True)
-        self.action_cancel.setEnabled(False)
+        self.on_refresh()
 
     def set_status(self, row, status="N/A"):
         item = self.texture_list.topLevelItem(row)
@@ -620,6 +618,9 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
             return data['status']
 
         return None
+
+    def get_use_autotx(self):
+        return self.tx_use_autotx.isChecked()
 
     def update_data(self, row):
         item = self.texture_list.topLevelItem(row)
