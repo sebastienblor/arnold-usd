@@ -581,7 +581,9 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
             logger.info('Deleting "%s"...' % data['txpath'])
             try:
-                os.remove(data['txpath'])
+                tx_files = lib.makeTx.expandFilename(data['txpath'])
+                for tx in tx_files:
+                    os.remove(tx)
             except Exception:
                 traceback.print_exc()
                 logger.error('Failed to remove tx file "%s"' % data['path'])
