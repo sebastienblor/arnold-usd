@@ -365,6 +365,10 @@ void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
    if (!LoadBifrostProcedural())
       AiMsgWarning("Bifrost procedural could not be found: %s", s_bifrostProceduralPath.asChar());
 
+   MNodeClass bifrostClass(MString("bifrostGraphShape"));
+   if (bifrostClass.typeId() == MTypeId(MFn::kInvalid))
+      return;
+
    CExtensionAttrHelper helper(context.maya, "procedural");
 //   Arnold-76 : no longer create the common shape attributes
 //   CShapeTranslator::MakeCommonAttributes(helper);
