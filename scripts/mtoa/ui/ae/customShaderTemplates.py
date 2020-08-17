@@ -93,6 +93,8 @@ class StandardSurfaceTemplate(templates.AttributeTemplate):
         self.addControl("aiIndirectSpecular", label="Indirect Specular", annotation="Indirect Specular")
         self.endLayout()
 
+        self.suppress("aiUserOptions")
+
 templates.registerAETemplate(StandardSurfaceTemplate, "standardSurface")
 
 
