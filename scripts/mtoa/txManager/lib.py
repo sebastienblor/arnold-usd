@@ -136,14 +136,6 @@ class TxProcessor(QtCore.QObject):
 
         arg_options = self.txManager.get_tx_args()
 
-        textureSearchPaths = cmds.getAttr('defaultArnoldRenderOptions.texture_searchpath')
-        searchPaths = []
-
-        if platform.system().lower() == 'windows':
-            searchPaths = textureSearchPaths.split(';')
-        else:
-            searchPaths = textureSearchPaths.split(':')
-
         for textureData in selected_textures:
             texture = textureData['path']
 
@@ -188,20 +180,7 @@ class TxProcessor(QtCore.QObject):
                     break
 
             # Process all the files that were found previously for this texture (eventually multiple tokens)
-
-            inputFiles = makeTx.expandFilename(texture)
-
-            if len(inputFiles) == 0:
-                # file not found, need to search in the Texture Search Paths
-                for searchPath in searchPaths:
-                    if searchPath.endswith('/'):
-                        currentSearchTexture = searchPath + texture
-                    else:
-                        currentSearchTexture = searchPath + '/' + texture
-
-                    inputFiles = makeTx.expandFilename(currentSearchTexture)
-                    if len(inputFiles) > 0:
-                        break
+            inputFiles = utils.executeInMainThreadWithResult(makeTx.expandFilename, texture)
 
             for inputFile in inputFiles:
 
@@ -470,7 +449,7 @@ def update_texture_data(texture_data):
         txstatus = 'missing'
     texture_data['status'] = txstatus
     texture_data['txpath'] = txpath
-    iinfo = makeTx.imageInfo(path)
+    iinfo = makeTx.imageInfo(texture_exp)
     cs = makeTx.guessColorspace(iinfo)
     if cs == 'linear':
         cs = 'Raw'
