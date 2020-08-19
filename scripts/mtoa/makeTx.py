@@ -50,42 +50,62 @@ _token_generic_rx = re.compile('<[^>]*>')
 
 def expandFilename(filename):
 
-    if filename.find('<') < 0:
-        #no tokens, let's just return the filename in a single-element array if this file exists
-        #(otherwise an empty array)
-        if os.path.isfile(filename):
-            return [filename]
+    found_files = []
 
-        return []
+    searchPaths = [cmds.workspace(q=True, rd=True, fn=True)]
 
+    textureSearchPaths = cmds.getAttr('defaultArnoldRenderOptions.texture_searchpath')
 
-    '''Return a list of image filenames with all tokens expanded.
-       Since there is a long list of supported tokens, we're now searching for
-       them in a more generic way (instead of specially looking for <udim>, <tile>, <attr:>)
-    '''
-    expand_glob = re.sub(_token_generic_rx, '*', filename)
-    
-    expanded_list =  glob.glob(expand_glob)
-    for expanded_img in expanded_list:
-        if os.path.splitext(expanded_img)[1] != '.tx':
-            # don't invalidate .tx files
-            AiTextureInvalidate(expanded_img)
-    
-    return expanded_list
+    if platform.system().lower() == 'windows':
+        searchPaths += textureSearchPaths.split(';')
+    else:
+        searchPaths += textureSearchPaths.split(':')
 
-    # FIXME : we're skipping the code below that used to filter only the image files
-    # because of the AiTextureGetFormat bug explained in #2675 .
-    # However, most of the time the extension is still explicitely written in the filename
-    # (e.g. image<token>.tif) so it might not be a big problem to skip the filter
-    
-    # testing AiTextureGetFormat to make sure the file is a valid image causes an image load.
-    #filteredList = filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
-    #for filteredImg in filteredList:
-    #    if os.path.splitext(filteredImg)[1] != '.tx':
-    #        # don't invalidate .tx files
-    #        AiTextureInvalidate(filteredImg)
+    cwd = os.getcwd()
 
-    #return filteredList
+    for searchPath in searchPaths:
+
+        # skip if search path doesn't exist
+        if not os.path.isdir(searchPath):
+            continue
+
+        os.chdir(searchPath)
+        abs_path = os.path.abspath(filename)
+
+        if filename.find('<') < 0:
+            # no tokens, let's just return the filename in a single-element array if this file exists
+            # (otherwise an empty array)
+            if os.path.isfile(abs_path):
+                found_files = [abs_path]
+
+        '''Return a list of image filenames with all tokens expanded.
+           Since there is a long list of supported tokens, we're now searching for
+           them in a more generic way (instead of specially looking for <udim>, <tile>, <attr:>)
+        '''
+        expand_glob = re.sub(_token_generic_rx, '*', abs_path)
+
+        found_files = glob.glob(expand_glob)
+        for expanded_img in found_files:
+            if os.path.splitext(expanded_img)[1] != '.tx':
+                # don't invalidate .tx files
+                AiTextureInvalidate(expanded_img)
+
+        # FIXME : we're skipping the code below that used to filter only the image files
+        # because of the AiTextureGetFormat bug explained in #2675 .
+        # However, most of the time the extension is still explicitely written in the filename
+        # (e.g. image<token>.tif) so it might not be a big problem to skip the filter
+
+        # testing AiTextureGetFormat to make sure the file is a valid image causes an image load.
+        #filteredList = filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
+        #for filteredImg in filteredList:
+        #    if os.path.splitext(filteredImg)[1] != '.tx':
+        #        # don't invalidate .tx files
+        #        AiTextureInvalidate(filteredImg)
+
+        #return filteredList
+
+    os.chdir(cwd)
+    return found_files
 
 
 def guessColorspace(img_info):
