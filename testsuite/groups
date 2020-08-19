@@ -38,15 +38,12 @@ ignore_windows:
 ignore_linux: test_0167_linux test_0248 test_0260
 ignore_darwin: test_0248 
 
-ignore_2017: test_0098_Maya2020 test_0123 test_0193 test_0237 test_0242 test_0167_win test_0167_mac test_0259 test_0318 test_0363 test_0261 test_0298
+ignore_2018: test_0098_Maya2020 test_0139 test_0167_win test_0167_linux test_0167_mac test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233
 
 # bifrost tests are temporarily disabled
-ignore_2018: test_0098_Maya2020 test_0139 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233
+ignore_2019: test_0098_Maya2020 test_0139 test_0167_win_2018 test_0167_linux_2018 test_0167_mac_2018 test_0242 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233
 
-# bifrost tests are temporarily disabled
-ignore_2019: test_0098_Maya2020 test_0139 test_0242 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233
-
-ignore_2020: test_0098 test_0139 test_0242 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233
+ignore_2020: test_0098 test_0139  test_0167_win_2018 test_0167_linux_2018 test_0167_mac_2018 test_0242 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233
 
 gui: test_0143 test_0153 test_0154 test_0155 test_0156 test_0157 test_0160 test_0189 test_0199 test_0263
 # ignored because they produce no image
