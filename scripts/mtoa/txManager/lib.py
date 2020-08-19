@@ -243,7 +243,7 @@ class TxProcessor(QtCore.QObject):
                 src_str = str(source_files[i])
                 item_index = texture_dict[src_str][1]
                 if status[i] is not ai.AiTxPending and self.txManager.get_status(item_index) in ["processing ..", "notx"]:
-                    self.txManager.update_data(item_index)
+                    utils.executeInMainThreadWithResult(self.txManager.update_data, item_index)
                     processed += 1
 
             # emit progress to the progress bar/dialog
