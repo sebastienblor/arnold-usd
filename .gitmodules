@@ -1,0 +1,3 @@
+[submodule "external\\arnold-usd"]
+	path = external\\arnold-usd
+	url = https://github.com/Autodesk/arnold-usd.git
