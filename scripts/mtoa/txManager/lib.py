@@ -147,7 +147,7 @@ class TxProcessor(QtCore.QObject):
             conflictSpace = False
 
             for node in nodes:
-                if not cmds.attributeQuery("colorspace", node=node, exists=True):
+                if not cmds.attributeQuery("colorSpace", node=node, exists=True):
                     continue
 
                 nodeColorSpace = cmds.getAttr(node+'.colorSpace')
