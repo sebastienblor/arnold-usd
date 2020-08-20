@@ -61,6 +61,8 @@ def expandFilename(filename):
     else:
         searchPaths += textureSearchPaths.split(':')
 
+    searchPaths += utils.getSourceImagesDir()
+
     cwd = os.getcwd()
 
     for searchPath in searchPaths:
