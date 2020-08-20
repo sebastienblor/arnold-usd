@@ -71,12 +71,14 @@ def expandFilename(filename):
 
         os.chdir(searchPath)
         abs_path = os.path.abspath(filename)
+        abs_path = utils.expandEnvVariables(abs_path)
 
         if filename.find('<') < 0:
             # no tokens, let's just return the filename in a single-element array if this file exists
             # (otherwise an empty array)
             if os.path.isfile(abs_path):
                 found_files = [abs_path]
+                break
 
         '''Return a list of image filenames with all tokens expanded.
            Since there is a long list of supported tokens, we're now searching for
@@ -89,6 +91,9 @@ def expandFilename(filename):
             if os.path.splitext(expanded_img)[1] != '.tx':
                 # don't invalidate .tx files
                 AiTextureInvalidate(expanded_img)
+
+        if len(found_files):
+            break
 
         # FIXME : we're skipping the code below that used to filter only the image files
         # because of the AiTextureGetFormat bug explained in #2675 .
@@ -130,8 +135,12 @@ def imageInfo(filename):
     '''
     img_info = {}
     img_info['filename'] = filename
-    img_info['bit_depth'] = AiTextureGetBitDepth(filename)
-    img_info['format'] = AiTextureGetFormat(filename)
+    if os.path.isfile(filename):
+        img_info['bit_depth'] = AiTextureGetBitDepth(filename)
+        img_info['format'] = AiTextureGetFormat(filename)
+    else:
+        img_info['bit_depth'] = 8
+        img_info['format'] = "unknown"
     return img_info
 
 

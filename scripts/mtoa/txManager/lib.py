@@ -147,6 +147,9 @@ class TxProcessor(QtCore.QObject):
             conflictSpace = False
 
             for node in nodes:
+                if not cmds.attributeQuery("colorspace", node=node, exists=True):
+                    continue
+
                 nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                 if colorSpace != 'auto' and colorSpace != nodeColorSpace:
                     conflictSpace = True
@@ -353,7 +356,7 @@ def get_scanned_files(scan_attributes):
                     if not cmds.getAttr(".".join([node, a]), type=True) == 'string':
                         continue
 
-                    attributes.add(a)
+                    attributes.add(".".join([node, a]))
 
         for attribute in attributes:
 
@@ -364,7 +367,7 @@ def get_scanned_files(scan_attributes):
                 attr_exp = attribute.replace(k, v)
 
             texture_path = cmds.getAttr(attr_exp)
-            if texture_path is None:
+            if not texture_path:
                 continue
 
             texture_path = os.path.normpath(texture_path)
