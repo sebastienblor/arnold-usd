@@ -160,6 +160,9 @@ vars.AddVariables(
     PathVariable('TARGET_PRESETS_PATH',
                  'Path for presets.',
                  os.path.join('$TARGET_MODULE_PATH', 'presets'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_USD_DELEGATE_PATH', 
+                 'Path used for installation of arnold USD render delegate', 
+                 os.path.join('$TARGET_MODULE_PATH', 'usd'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
                  '.', PathVariable.PathIsDir),
@@ -170,6 +173,7 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
+    PathVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
@@ -651,6 +655,18 @@ if env['MTOA_DISABLE_RV']:
 env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
 
+USD_DELEGATE = None
+USD_PATH = env.subst(env['USD_PATH'])
+if USD_PATH and len(USD_PATH) > 0:
+    USD_DELEGATE = env.SConscript(os.path.join('usd', 'SConscript'),
+                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
+                      duplicate   = 0,
+                      exports     = 'env')
+    SConscriptChdir(0)
+    env.AlwaysBuild(USD_DELEGATE)
+
+
+
 if system.os == 'windows':
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
@@ -832,8 +848,6 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
-if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
-    env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'usd'), os.path.join(ARNOLD, 'usd', 'delegate'))
 if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
     env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins','usd'), glob.glob(os.path.join(ARNOLD, 'plugins', 'usd', '*')))
 
@@ -1204,14 +1218,6 @@ for p in materialx_files:
         [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
     ]
 
-if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
-    usd_delegate_files = find_files_recursive(os.path.join(ARNOLD, 'usd'), None)
-    for p in usd_delegate_files:
-        (d, f) = os.path.split(p)
-        PACKAGE_FILES += [
-            [os.path.join(ARNOLD, 'usd', p), os.path.join('usd', d)]
-        ]
-
 if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
     usd_resources = find_files_recursive(os.path.join(ARNOLD, 'plugins', 'usd'), None)
     for p in usd_resources:
@@ -1458,6 +1464,7 @@ def create_installer(target, source, env):
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installPath)
+        mtoaMod.write('PXR_PLUGINPATH_NAME += %s/hydra\n' % installPath)
         mtoaMod.close()
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
@@ -1557,6 +1564,7 @@ aliases.append(env.Alias('install-bin',     env['TARGET_BINARIES']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))
+aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_DELEGATE_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)

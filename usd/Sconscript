@@ -1,0 +1,89 @@
+import os
+import platform
+import sys
+import SCons.Action
+
+import utils as sa
+
+# vim: filetype=python
+
+## load our own python modules
+import utils.system as system
+from utils.build_tools import find_files_recursive
+
+import os
+
+# import build env
+Import('env')
+local_env = env.Clone()
+globals()['USD_DELEGATE'] = []
+
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
+source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
+include_files = find_files_recursive(src_base_dir, ['.h'])
+
+local_env.Append(CPPPATH = ['.'])
+
+lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
+lib_prefix = {'windows' : ''}.get(system.os, '')
+lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
+
+usd_install_dir = env['USD_PATH']
+usd_lib_dir = os.path.join(usd_install_dir, 'lib')
+usd_lib = os.path.join(usd_lib_dir, 'libusd_ms' + lib_extension)
+tbb_lib = os.path.join(usd_lib_dir, lib_prefix + 'tbb' + lib_extension) 
+
+usd_supported_modes = ['opt', 'debug', 'profile']
+
+usd_delegate_folder = os.path.join(env['BUILD_BASE_DIR'], 'usd')
+def _usd_delegate(target, source, env):
+   #########
+   args = dict(
+      COMPILER = 'msvc' if system.is_windows else env['_COMPILER'],
+      ARNOLD_PATH         = env['ARNOLD'],
+      PYTHON_INCLUDE      = os.path.dirname(sys.executable),
+      PYTHON_LIB          = os.path.dirname(sys.executable), # this variable needs to be defined, but it's not used
+#      PYTHON_INCLUDE      = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python'),
+#      PYTHON_LIB          = os.path.join(env['MAYA_ROOT'], 'lib'),
+      USD_PATH= usd_install_dir,
+      USD_BIN= usd_lib_dir,
+      TBB_LIB= usd_lib_dir,
+      TBB_STATIC=True,
+      USD_BUILD_MODE = 'shared_libs',
+      USD_LIB_PREFIX ='',
+      PREFIX_RENDER_DELEGATE= usd_delegate_folder,
+      BUILD_SCHEMAS=False,
+      BUILD_RENDER_DELEGATE=True,
+      BUILD_USD_WRITER=False,
+      BUILD_PROCEDURAL=False,
+      BUILD_TESTSUITE=False,
+      BUILD_DOCS=False,
+      BOOST_INCLUDE= r'C:\Users\blaines\Downloads\MayaUSD_0.3.0_Windows_RelWithDebInfo_202008110756_99a9987_studio_plugins\plug-ins\mayausd\USD\include\boost-1_70',
+      BUILD_HOUDINI_TOOLS=False,
+      BUILD_NDR_PLUGIN=False,
+      MODE= 'opt',
+      SHOW_CMDS=True,
+      WARN_LEVEL='warn-only',
+      CXXVERSION='2015'
+
+   )
+
+   if platform.system().lower() == 'darwin':
+      args['SDK_PATH']          = env['SDK_PATH']
+      args['SDK_VERSION']       = env['SDK_VERSION']
+      args['MACOS_VERSION_MIN'] = env['MACOS_VERSION_MIN']
+   args = ' '.join(['{}={}'.format(k, v) for k, v in args.items()])
+   usd_project = env.Dir(os.path.join(env['EXTERNAL_PATH'], 'arnold-usd')).abspath
+   usd_scons = os.path.join(usd_project, 'tools', 'scons', 'scons.py')
+   usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
+   abuild = '{} -B {} --site-dir={}'.format(sys.executable, usd_scons, usd_scons_site)
+   cmd = '{} {} delegate-install'.format(abuild, args)
+   local_env['PATH'] = local_env['ENV']['PATH']
+   error, output = system.execute(cmd, cwd=usd_project, env=local_env, shell=True,  verbose=True)
+
+usd_delegate_action  = SCons.Action.Action(_usd_delegate    , 'Building USD render delegate ...')
+USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action    )
+local_env.Alias('usd_delegate', USD_DELEGATE)
+Return('USD_DELEGATE')
