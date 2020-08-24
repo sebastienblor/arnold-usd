@@ -53,6 +53,10 @@ scene_default_texture_scan = [
     'mesh.mtoa_constant_*'
 ]
 
+scene_expand_attributes = {
+    'fileTextureName': 'computedFileTextureNamePattern'
+}
+
 
 class MakeTxThread (QtCore.QThread):
 
@@ -367,13 +371,20 @@ def get_scanned_files(scan_attributes):
         else:
             for node in cmds.ls(type=ntype):
                 for a in cmds.listAttr(node, r=True, st=attr) or []:
-                    if not cmds.getAttr(a, type=True) == 'string':
+                    if not cmds.getAttr(".".join([node, a]), type=True) == 'string':
                         continue
 
                     attributes.add(a)
 
         for attribute in attributes:
-            texture_path = cmds.getAttr(attribute)
+
+            # for some attributes we need to use a differnt computed attribute
+            # to get the actual result or expressions etc
+            attr_exp = attribute
+            for k, v in scene_expand_attributes.items():
+                attr_exp = attribute.replace(k, v)
+
+            texture_path = cmds.getAttr(attr_exp)
             if texture_path is None:
                 continue
 
@@ -403,14 +414,14 @@ def build_texture_data(textures, expand=True):
 
         root, name = os.path.split(texture_exp)
         name_noext, ext = os.path.splitext(name)
-
         if ext == '.tx':
             txstatus = 'onlytx'
-            txpath = texture_exp
+            txpath = texture
         else:
-            txpath = os.path.join(root, name_noext + '.tx')
-            if os.path.isfile(txpath):
+            txpath_exp = os.path.join(root, name_noext + '.tx')
+            if os.path.isfile(txpath_exp):
                 txstatus = 'hastx'
+                txpath = os.path.splitext(texture)[0] + '.tx'
             else:
                 txstatus = 'notx'
                 txpath = None
@@ -423,7 +434,7 @@ def build_texture_data(textures, expand=True):
                 texture, copy.deepcopy(textures[texture]))
 
         textures[texture]['root'] = root
-        textures[texture]['name'] = name
+        textures[texture]['name'] = os.path.split(texture)[-1]
         textures[texture]['status'] = txstatus
         textures[texture]['txpath'] = txpath
         textures[texture]['path'] = texture
