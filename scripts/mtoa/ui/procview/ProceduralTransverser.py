@@ -605,7 +605,7 @@ class ProceduralTransverser(BaseTransverser):
 
             nodeeditor = panel+'NodeEditorEd'
 
-            ops = cmds.listConnections(node+'.operators')
+            ops = cmds.listConnections(node+'.operators') or []
 
             for op in ops:
                 cmds.nodeEditor(nodeeditor, edit=True, addNode=op)
