@@ -3762,7 +3762,50 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT     0x00115DA9
 
 
+#### Imagers
 
+[node imager_exposure_compensation]
+    maya.name              STRING "aiImagerExposureCompensation"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB5
+    [attr exposure]
+        softmin             FLOAT     0
+        softmax             FLOAT     5
+    
+
+[node imager_color_correct]
+    maya.name              STRING "aiImagerColorCorrect"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB6
+    
+
+[node imager_lens_effects]
+    maya.name              STRING "aiImagerLensEffect"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB7
+    [attr vignetting]
+        softmin             FLOAT     0
+        softmax             FLOAT     200
+
+[node imager_white_balance]
+    maya.name              STRING "aiImagerWhiteBalance"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB8
+    
+[node imager_max_physical_camera]
+    maya.hide               BOOL     TRUE
+    
+
+    
+    
 
 
 

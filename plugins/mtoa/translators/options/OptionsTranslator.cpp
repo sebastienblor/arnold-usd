@@ -1390,6 +1390,37 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetPtr(options, "operator", NULL);
    }
 
+   MPlug pImg = FindMayaPlug("imagers");
+   unsigned numImagers = pImg.numElements();
+   std::vector<AtNode*> imagersStack;
+   imagersStack.reserve(numImagers);
+   for (unsigned int i = 0; i < numImagers; ++i)
+   {
+      MPlug imagerPlug = pImg[i];
+      conns.clear();
+      imagerPlug.connectedTo(conns, true, false);
+      AtNode* linkedNode = (conns.length() > 0) ?
+         ExportConnectedNode(conns[0]) : nullptr;
+      
+      if (linkedNode)
+         imagersStack.push_back(linkedNode);
+   }
+   if (!imagersStack.empty())
+   {
+      for (auto aovData : m_aovData)
+      {
+         for (auto output : aovData.outputs)
+         {
+            AtNode *driver = output.driver;
+            if (driver)
+            {
+               AiNodeSetPtr(driver, "input", (void*)imagersStack[0]);
+            }
+         }
+      }
+      for (size_t i = 1; i < imagersStack.size(); ++i)
+         AiNodeSetPtr(imagersStack[i-1], "input", (void*)imagersStack[i]);
+   }
 
    // subdivision dicing camera
    //
