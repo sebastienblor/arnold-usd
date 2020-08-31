@@ -727,10 +727,10 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         new_widget.deleteMe.connect(self.removeOverrideWidget)
 
         # param, operation, value, param_type, custom, index, operator
-        new_widget.valueChanged[str, str, str, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, int, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, bool, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, float, int, bool, int, str, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, str, int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, int, int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, bool, int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, float, int, bool, int, str, bool, bool].connect(self.setOverride)
         # add widget
         parentPanel.layout().addWidget(new_widget)
         return new_widget
