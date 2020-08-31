@@ -3773,6 +3773,8 @@ desc STRING "Apply a gamma correction to the color."
     [attr exposure]
         softmin             FLOAT     0
         softmax             FLOAT     5
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
     
 
 [node imager_color_correct]
@@ -3781,7 +3783,9 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB6
-    
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+        
 
 [node imager_lens_effects]
     maya.name              STRING "aiImagerLensEffect"
@@ -3792,14 +3796,18 @@ desc STRING "Apply a gamma correction to the color."
     [attr vignetting]
         softmin             FLOAT     0
         softmax             FLOAT     200
-
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
 [node imager_white_balance]
     maya.name              STRING "aiImagerWhiteBalance"
     maya.classification     STRING  "imager"
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB8
-    
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+        
 [node imager_max_physical_camera]
     maya.hide               BOOL     TRUE
     
