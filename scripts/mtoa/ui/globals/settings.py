@@ -1355,7 +1355,7 @@ def updateImagerShaders(*args):
                                 at=imagerShaderName, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+imagerShaderName+"\" \"\"")
 
         imagerShaderDelete = 'arnoldImagerShaderDelete%d' % i
-        cmds.symbolButton(imagerShaderDelete, image="SP_TrashIcon.png", command=lambda *args: deleteImagerShader(i))
+        cmds.symbolButton(imagerShaderDelete, image="SP_TrashIcon.png", command=lambda arg=None,x=i: deleteImagerShader(x) )
         cmds.setParent(_imagerShadersFrame)
 
     cmds.setParent('..')
@@ -1369,19 +1369,19 @@ def deleteImagerShader(index):
         return
 
     shadersLength = len(_imagerShaders)
-
     if index < 0 or index >= shadersLength:
         return 
 
-    if index <= shadersLength - 2:
-        for i in range(index, shadersLength - 1):
-            imagerShaderElem = 'defaultArnoldRenderOptions.imagers[%d]' % i
-            elemConnection = cmds.listConnections(imagerShaderElem,p=True, d=False,s=True)
-            if (not elemConnection is None):
-                for elem in elemConnection:
-                    cmds.disconnectAttr(elem, imagerShaderElem)
+    for i in range(index, shadersLength):
+        # first disconnect the existing imagers connected at this index
+        imagerShaderElem = 'defaultArnoldRenderOptions.imagers[%d]' % i
+        elemConnection = cmds.listConnections(imagerShaderElem,p=True, d=False,s=True)
+        if (not elemConnection is None):
+            for elem in elemConnection:
+                cmds.disconnectAttr(elem, imagerShaderElem)
 
-
+        # then, connect the following element to the current one
+        if i < shadersLength - 1:
             imagerShaderNextElem = 'defaultArnoldRenderOptions.imagers[%d]' % (i+1)
             nextElemConnection = cmds.listConnections(imagerShaderNextElem,p=True, d=False,s=True)
             if (not nextElemConnection is None) and len(nextElemConnection) > 0:

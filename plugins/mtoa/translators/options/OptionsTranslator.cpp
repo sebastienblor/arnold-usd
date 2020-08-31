@@ -1392,8 +1392,11 @@ void COptionsTranslator::Export(AtNode *options)
 
    MPlug pImg = FindMayaPlug("imagers");
    unsigned numImagers = pImg.numElements();
+   
    std::vector<AtNode*> imagersStack;
    imagersStack.reserve(numImagers);
+
+   // Process the stack of imagers that need to be rendered
    for (unsigned int i = 0; i < numImagers; ++i)
    {
       MPlug imagerPlug = pImg[i];
@@ -1405,21 +1408,31 @@ void COptionsTranslator::Export(AtNode *options)
       if (linkedNode)
          imagersStack.push_back(linkedNode);
    }
-   if (!imagersStack.empty())
+
+   // Loop over all the output drivers, set the attribute input to the first imager 
+   for (auto aovData : m_aovData)
    {
-      for (auto aovData : m_aovData)
+      for (auto output : aovData.outputs)
       {
-         for (auto output : aovData.outputs)
+         AtNode *driver = output.driver;
+         if (driver)
          {
-            AtNode *driver = output.driver;
-            if (driver)
-            {
+            if (!imagersStack.empty())
                AiNodeSetPtr(driver, "input", (void*)imagersStack[0]);
-            }
+            else
+               AiNodeResetParameter(driver, "input");
          }
       }
+   }
+
+   // Process the imagers tree, by connecting them through the attribute "input"
+   if (!imagersStack.empty())
+   {      
       for (size_t i = 1; i < imagersStack.size(); ++i)
-         AiNodeSetPtr(imagersStack[i-1], "input", (void*)imagersStack[i]);
+         AiNodeSetPtr(imagersStack[i-1], "input", (void*)imagersStack[i]); 
+      
+      // Ensure the last imager in the stack doesn't have any input from a previous render
+      AiNodeResetParameter(imagersStack.back(), "input");
    }
 
    // subdivision dicing camera
