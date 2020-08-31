@@ -3762,8 +3762,10 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT     0x00115DA9
 
 
-[node imager_exposure]
-    maya.name              STRING "aiImagerExposure"
+#### Imagers
+
+[node imager_exposure_compensation]
+    maya.name              STRING "aiImagerExposureCompensation"
     maya.classification     STRING  "imager"
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
@@ -3771,28 +3773,39 @@ desc STRING "Apply a gamma correction to the color."
     [attr exposure]
         softmin             FLOAT     0
         softmax             FLOAT     5
+    
+
+[node imager_color_correct]
+    maya.name              STRING "aiImagerColorCorrect"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB6
+    
+
+[node imager_lens_effects]
+    maya.name              STRING "aiImagerLensEffect"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB7
     [attr vignetting]
         softmin             FLOAT     0
-        softmax             FLOAT     100
-    [attr highlights]
-        softmin             FLOAT     0
-        softmax             FLOAT     5
-    [attr midtones]
-        softmin             FLOAT     0
-        softmax             FLOAT     5
-    [attr shadows]
-        softmin             FLOAT     0
-        softmax             FLOAT     5
-    [attr saturation]
-        softmin             FLOAT     0
-        softmax             FLOAT     5
+        softmax             FLOAT     200
 
-
-
+[node imager_white_balance]
+    maya.name              STRING "aiImagerWhiteBalance"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB8
+    
+[node imager_max_physical_camera]
+    maya.hide               BOOL     TRUE
+    
 
     
     
-
 
 
 
