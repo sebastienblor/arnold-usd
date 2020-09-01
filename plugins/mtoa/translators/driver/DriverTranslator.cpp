@@ -59,7 +59,7 @@ void CDriverTranslator::Export(AtNode *shader)
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
 
-      if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
+      if (strcmp(paramName, "name") != 0 && strcmp(paramName, "layer_selection") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
 
@@ -156,13 +156,14 @@ AtNode *CDriverTranslator::GetChildDriver(const std::string &token)
 
    static AtString s_nameStr("name");
    static AtString s_filenameStr("filename");
+   static AtString s_inputStr("input");
    // Now need to copy all parameters
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       AtString paramName(AiParamGetName(paramEntry));
-      if (paramName == s_filenameStr || paramName == s_nameStr)
+      if (paramName == s_filenameStr || paramName == s_nameStr || paramName == s_inputStr)
          continue;
 
       switch(AiParamGetType(paramEntry))

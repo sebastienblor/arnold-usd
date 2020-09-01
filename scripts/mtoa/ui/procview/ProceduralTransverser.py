@@ -340,8 +340,8 @@ class ProceduralTransverser(BaseTransverser):
                 selectionStr = '' 
                 break
             selectionStr += sel[PROC_PATH]
-            # if sel[PROC_ENTRY] =='xform':
-            #     selectionStr += '/*'
+            if sel[PROC_ENTRY] =='xform':
+                selectionStr += '/*'
         if selectionStr == self.selectionStr:
             return
         self.selectionStr = selectionStr
@@ -605,7 +605,7 @@ class ProceduralTransverser(BaseTransverser):
 
             nodeeditor = panel+'NodeEditorEd'
 
-            ops = cmds.listConnections(node+'.operators')
+            ops = cmds.listConnections(node+'.operators') or []
 
             for op in ops:
                 cmds.nodeEditor(nodeeditor, edit=True, addNode=op)

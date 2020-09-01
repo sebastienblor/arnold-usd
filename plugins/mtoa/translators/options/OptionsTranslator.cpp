@@ -1390,6 +1390,60 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetPtr(options, "operator", NULL);
    }
 
+   MPlug pImg = FindMayaPlug("imagers");
+   unsigned numImagers = pImg.numElements();
+   
+   std::vector<AtNode*> imagersStack;
+   imagersStack.reserve(numImagers);
+
+   // Process the stack of imagers that need to be rendered
+   for (unsigned int i = 0; i < numImagers; ++i)
+   {
+      MPlug imagerPlug = pImg[i];
+      conns.clear();
+      imagerPlug.connectedTo(conns, true, false);
+      AtNode* linkedNode = (conns.length() > 0) ?
+         ExportConnectedNode(conns[0]) : nullptr;
+      
+      if (linkedNode)
+         imagersStack.push_back(linkedNode);
+   }
+
+   // Loop over all the output drivers, set the attribute input to the first imager 
+   MString beautyName = "RGBA";
+   for (auto aovData : m_aovData)
+   {
+      if (aovData.name != "beauty" && aovData.name != "RGBA" && aovData.name != "RGB") 
+         continue;
+      
+      beautyName = aovData.name;
+
+      for (auto output : aovData.outputs)
+      {
+         AtNode *driver = output.driver;
+         if (driver)
+         {
+            if (!imagersStack.empty())
+               AiNodeSetPtr(driver, "input", (void*)imagersStack[0]);
+            else
+               AiNodeResetParameter(driver, "input");
+         }
+      }
+   }
+
+   // Process the imagers tree, by connecting them through the attribute "input"
+   if (!imagersStack.empty())
+   {      
+      for (size_t i = 0; i < imagersStack.size() - 1; ++i)
+      {
+         AiNodeSetPtr(imagersStack[i], "input", (void*)imagersStack[i+1]); 
+         AiNodeSetStr(imagersStack[i], "layer_selection", beautyName.asChar());
+      }
+      
+      // Ensure the last imager in the stack doesn't have any input from a previous render
+      AiNodeResetParameter(imagersStack.back(), "input");
+      AiNodeSetStr(imagersStack.back(), "layer_selection", beautyName.asChar());
+   }
 
    // subdivision dicing camera
    //
