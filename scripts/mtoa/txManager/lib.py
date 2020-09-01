@@ -183,7 +183,7 @@ class TxProcessor(QtCore.QObject):
                     break
 
             # Process all the files that were found previously for this texture (eventually multiple tokens)
-            inputFiles = utils.executeInMainThreadWithResult(makeTx.expandFilename, texture)
+            inputFiles = utils.executeInMainThreadWithResult(makeTx.expandFilenameWithSearchPaths, texture)
 
             for inputFile in inputFiles:
 
@@ -386,7 +386,7 @@ def build_texture_data(textures, expand=True):
 
     for texture, texture_data in textures.items():
         if expand:
-            texture_exp = makeTx.expandFilename(texture)
+            texture_exp = makeTx.expandFilenameWithSearchPaths(texture)
             if len(texture_exp):
                 texture_exp = texture_exp[0]
             else:
@@ -433,7 +433,7 @@ def build_texture_data(textures, expand=True):
 
 def update_texture_data(texture_data):
     path = texture_data['path']
-    texture_exp = makeTx.expandFilename(path)
+    texture_exp = makeTx.expandFilenameWithSearchPaths(path)
     if len(texture_exp):
         texture_exp = texture_exp[0]
     else:

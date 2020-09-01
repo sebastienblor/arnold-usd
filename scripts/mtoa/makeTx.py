@@ -48,7 +48,55 @@ else:
 #_token_tile_rx = re.compile('<tile:?[^>]*>')
 _token_generic_rx = re.compile('<[^>]*>')
 
+
+## Function to expand the filename. This function does not account for the search path, and
+# will return an empty filename if it cannot be expanded. The client code has to call it 
+# again with each of the search paths in order to expand it to the correct filename.
+## TODO: merge it with the function "expandFilenameWithSearchPath" below
 def expandFilename(filename):
+
+    if filename.find('<') < 0:
+        #no tokens, let's just return the filename in a single-element array if this file exists
+        #(otherwise an empty array)
+        if os.path.isfile(filename):
+            return [filename]
+
+        return []
+
+
+    '''Return a list of image filenames with all tokens expanded.
+       Since there is a long list of supported tokens, we're now searching for
+       them in a more generic way (instead of specially looking for <udim>, <tile>, <attr:>)
+    '''
+    expand_glob = re.sub(_token_generic_rx, '*', filename)
+    
+    expanded_list =  glob.glob(expand_glob)
+    for expanded_img in expanded_list:
+        if os.path.splitext(expanded_img)[1] != '.tx':
+            # don't invalidate .tx files
+            AiTextureInvalidate(expanded_img)
+    
+    return expanded_list
+
+    # FIXME : we're skipping the code below that used to filter only the image files
+    # because of the AiTextureGetFormat bug explained in #2675 .
+    # However, most of the time the extension is still explicitely written in the filename
+    # (e.g. image<token>.tif) so it might not be a big problem to skip the filter
+    
+    # testing AiTextureGetFormat to make sure the file is a valid image causes an image load.
+    #filteredList = filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
+    #for filteredImg in filteredList:
+    #    if os.path.splitext(filteredImg)[1] != '.tx':
+    #        # don't invalidate .tx files
+    #        AiTextureInvalidate(filteredImg)
+
+    #return filteredList
+
+
+## Function to expand the filename, that takes into account the texture search path 
+## TODO: merge it with the function "expandFilename" above, since client code is handling
+# the search path on their own....
+def expandFilenameWithSearchPaths(filename):
 
     found_files = []
 
