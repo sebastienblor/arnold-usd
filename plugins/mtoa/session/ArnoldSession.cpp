@@ -2487,6 +2487,22 @@ void CArnoldSession::ExportTxFiles()
       // Now expandedFilenames contains the list of files found on disk that could match
       // the eventual tokens
 
+      // if the file wasn't found on disk, we should check in the search paths
+      if (expandedFilenames.length() == 0)
+      {
+         for (unsigned int t = 0; t < searchPaths.length(); ++t)
+         {
+            searchPath = searchPaths[t];
+            searchFilename = searchPath + filename;
+            expandedFilenames = expandFilename(searchFilename);
+
+            // found some files, no need to continue
+            if (expandedFilenames.length() > 0)
+               break;
+
+         }
+      }
+
       // append the AtNode as well as its resolved filename
       // so that use-tx can verify if the tx file does exist
       // (even though we're not converting it to TX now)
@@ -2683,6 +2699,21 @@ void CArnoldSession::ExportTxFiles()
          txFilename = txFilename.substring(0, txFilename.rindexW(".")) + MString("tx");
 
          MStringArray expandedFilenames = expandFilename(txFilename);
+
+         // if no TX file was found, check the search paths,
+         // but only do this if the current search path (listFullPaths[i]) was empty,
+         // which happens if the original texture wasn't found on disk
+         if (expandedFilenames.length() == 0 && listFullPaths[i].numChars() == 0)
+         {            
+            for (unsigned int s = 0; s < searchPaths.length(); ++s)
+            {
+               MString searchFilename = searchPaths[s] + txFilename;
+               expandedFilenames = expandFilename(searchFilename);
+               
+               // we found the texture, stop searching
+               if (expandedFilenames.length() > 0) break;
+            }
+         }
 
          // TX files were found, we can replace the extension to TX
          if (expandedFilenames.length() > 0)
