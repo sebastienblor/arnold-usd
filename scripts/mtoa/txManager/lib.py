@@ -136,14 +136,6 @@ class TxProcessor(QtCore.QObject):
 
         arg_options = self.txManager.get_tx_args()
 
-        textureSearchPaths = cmds.getAttr('defaultArnoldRenderOptions.texture_searchpath')
-        searchPaths = []
-
-        if platform.system().lower() == 'windows':
-            searchPaths = textureSearchPaths.split(';')
-        else:
-            searchPaths = textureSearchPaths.split(':')
-
         for textureData in selected_textures:
             texture = textureData['path']
 
@@ -155,6 +147,9 @@ class TxProcessor(QtCore.QObject):
             conflictSpace = False
 
             for node in nodes:
+                if not cmds.attributeQuery("colorSpace", node=node, exists=True):
+                    continue
+
                 nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                 if colorSpace != 'auto' and colorSpace != nodeColorSpace:
                     conflictSpace = True
@@ -188,20 +183,7 @@ class TxProcessor(QtCore.QObject):
                     break
 
             # Process all the files that were found previously for this texture (eventually multiple tokens)
-
-            inputFiles = makeTx.expandFilename(texture)
-
-            if len(inputFiles) == 0:
-                # file not found, need to search in the Texture Search Paths
-                for searchPath in searchPaths:
-                    if searchPath.endswith('/'):
-                        currentSearchTexture = searchPath + texture
-                    else:
-                        currentSearchTexture = searchPath + '/' + texture
-
-                    inputFiles = makeTx.expandFilename(currentSearchTexture)
-                    if len(inputFiles) > 0:
-                        break
+            inputFiles = utils.executeInMainThreadWithResult(makeTx.expandFilenameWithSearchPaths, texture)
 
             for inputFile in inputFiles:
 
@@ -264,7 +246,7 @@ class TxProcessor(QtCore.QObject):
                 src_str = str(source_files[i])
                 item_index = texture_dict[src_str][1]
                 if status[i] is not ai.AiTxPending and self.txManager.get_status(item_index) in ["processing ..", "notx"]:
-                    self.txManager.update_data(item_index)
+                    utils.executeInMainThreadWithResult(self.txManager.update_data, item_index)
                     processed += 1
 
             # emit progress to the progress bar/dialog
@@ -374,7 +356,7 @@ def get_scanned_files(scan_attributes):
                     if not cmds.getAttr(".".join([node, a]), type=True) == 'string':
                         continue
 
-                    attributes.add(a)
+                    attributes.add(".".join([node, a]))
 
         for attribute in attributes:
 
@@ -385,7 +367,7 @@ def get_scanned_files(scan_attributes):
                 attr_exp = attribute.replace(k, v)
 
             texture_path = cmds.getAttr(attr_exp)
-            if texture_path is None:
+            if not texture_path:
                 continue
 
             texture_path = os.path.normpath(texture_path)
@@ -404,7 +386,7 @@ def build_texture_data(textures, expand=True):
 
     for texture, texture_data in textures.items():
         if expand:
-            texture_exp = makeTx.expandFilename(texture)
+            texture_exp = makeTx.expandFilenameWithSearchPaths(texture)
             if len(texture_exp):
                 texture_exp = texture_exp[0]
             else:
@@ -451,7 +433,7 @@ def build_texture_data(textures, expand=True):
 
 def update_texture_data(texture_data):
     path = texture_data['path']
-    texture_exp = makeTx.expandFilename(path)
+    texture_exp = makeTx.expandFilenameWithSearchPaths(path)
     if len(texture_exp):
         texture_exp = texture_exp[0]
     else:
@@ -470,7 +452,7 @@ def update_texture_data(texture_data):
         txstatus = 'missing'
     texture_data['status'] = txstatus
     texture_data['txpath'] = txpath
-    iinfo = makeTx.imageInfo(path)
+    iinfo = makeTx.imageInfo(texture_exp)
     cs = makeTx.guessColorspace(iinfo)
     if cs == 'linear':
         cs = 'Raw'

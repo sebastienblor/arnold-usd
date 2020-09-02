@@ -48,6 +48,11 @@ else:
 #_token_tile_rx = re.compile('<tile:?[^>]*>')
 _token_generic_rx = re.compile('<[^>]*>')
 
+
+## Function to expand the filename. This function does not account for the search path, and
+# will return an empty filename if it cannot be expanded. The client code has to call it 
+# again with each of the search paths in order to expand it to the correct filename.
+## TODO: merge it with the function "expandFilenameWithSearchPath" below
 def expandFilename(filename):
 
     if filename.find('<') < 0:
@@ -88,6 +93,76 @@ def expandFilename(filename):
     #return filteredList
 
 
+## Function to expand the filename, that takes into account the texture search path 
+## TODO: merge it with the function "expandFilename" above, since client code is handling
+# the search path on their own....
+def expandFilenameWithSearchPaths(filename):
+
+    found_files = []
+
+    searchPaths = [cmds.workspace(q=True, rd=True, fn=True)]
+
+    textureSearchPaths = cmds.getAttr('defaultArnoldRenderOptions.texture_searchpath')
+
+    if platform.system().lower() == 'windows':
+        searchPaths += textureSearchPaths.split(';')
+    else:
+        searchPaths += textureSearchPaths.split(':')
+
+    searchPaths += utils.getSourceImagesDir()
+
+    cwd = os.getcwd()
+
+    for searchPath in searchPaths:
+
+        # skip if search path doesn't exist
+        if not os.path.isdir(searchPath):
+            continue
+
+        os.chdir(searchPath)
+        abs_path = os.path.abspath(filename)
+        abs_path = utils.expandEnvVariables(abs_path)
+
+        if filename.find('<') < 0:
+            # no tokens, let's just return the filename in a single-element array if this file exists
+            # (otherwise an empty array)
+            if os.path.isfile(abs_path):
+                found_files = [abs_path]
+                break
+
+        '''Return a list of image filenames with all tokens expanded.
+           Since there is a long list of supported tokens, we're now searching for
+           them in a more generic way (instead of specially looking for <udim>, <tile>, <attr:>)
+        '''
+        expand_glob = re.sub(_token_generic_rx, '*', abs_path)
+
+        found_files = glob.glob(expand_glob)
+        for expanded_img in found_files:
+            if os.path.splitext(expanded_img)[1] != '.tx':
+                # don't invalidate .tx files
+                AiTextureInvalidate(expanded_img)
+
+        if len(found_files):
+            break
+
+        # FIXME : we're skipping the code below that used to filter only the image files
+        # because of the AiTextureGetFormat bug explained in #2675 .
+        # However, most of the time the extension is still explicitely written in the filename
+        # (e.g. image<token>.tif) so it might not be a big problem to skip the filter
+
+        # testing AiTextureGetFormat to make sure the file is a valid image causes an image load.
+        #filteredList = filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
+        #for filteredImg in filteredList:
+        #    if os.path.splitext(filteredImg)[1] != '.tx':
+        #        # don't invalidate .tx files
+        #        AiTextureInvalidate(filteredImg)
+
+        #return filteredList
+
+    os.chdir(cwd)
+    return found_files
+
+
 def guessColorspace(img_info):
     '''Guess the colorspace of the input image filename.
     @return: a string suitable for the --colorconvert option of maketx (linear, sRGB, Rec709)
@@ -110,8 +185,12 @@ def imageInfo(filename):
     '''
     img_info = {}
     img_info['filename'] = filename
-    img_info['bit_depth'] = AiTextureGetBitDepth(filename)
-    img_info['format'] = AiTextureGetFormat(filename)
+    if os.path.isfile(filename):
+        img_info['bit_depth'] = AiTextureGetBitDepth(filename)
+        img_info['format'] = AiTextureGetFormat(filename)
+    else:
+        img_info['bit_depth'] = 8
+        img_info['format'] = "unknown"
     return img_info
 
 

@@ -502,6 +502,12 @@ def convertToUnicode(s):
             pass
     return s
 
+def expandEnvVariables(path):
+
+    path = path.replace(']', '}')
+    path = path.replace('[', '${')
+    return os.path.expandvars(os.path.expanduser(path))
+
 def getEnvironmentVariable(name):
     '''
     This function is meant to support unicode environment variables in python 2.*
