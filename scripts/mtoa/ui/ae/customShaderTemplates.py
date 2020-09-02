@@ -110,12 +110,14 @@ def appendToSSTemplate():
         global int $gAEstandardSurfaceLayout_Subsurface;
         if ($layoutID == $gAEstandardSurfaceLayout_Subsurface) {
             editorTemplate -addSeparator;
-            editorTemplate -l "Arnold Sub-surface Type" -addControl "aiSubsurfaceType" ;
+            editorTemplate -beginLayout "Arnold Transmission" -collapse false;
             }
         global int $gAEstandardSurfaceLayout_Transmission;
         if ($layoutID == $gAEstandardSurfaceLayout_Transmission) {
-            editorTemplate -addSeparator;
-            editorTemplate -l "Arnold Transmit AOVS" -addControl "aiTransmitAovs";
+            editorTemplate -beginLayout "Arnold Transmission" -collapse false;
+            editorTemplate -l "Transmit AOVS" -addControl "aiTransmitAovs";
+            editorTemplate -l "Dielectric Priority" -addControl "aiDielectricPriority" -annotation "Priority for nested dielectrics 1=high, 0=disabled, max=255";
+            editorTemplate -endLayout;
             }
     }
     stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, "Arnold_SSmyCallback");
