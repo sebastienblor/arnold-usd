@@ -39,10 +39,9 @@ void CLookDevKitTranslator::ExportRGBAChannels(AtNode *shader, const char *arnol
    MString arnoldAlphaChannel = MString(arnoldParam) + MString(".a");
 
    bool isLinked = AiNodeIsLinked(shader, arnoldParam);
-
-   if (connections.length() > 0)
-   {
-      AtNode* srcArnoldNode = ExportConnectedNode(connections[0]);
+   AtNode* srcArnoldNode = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+   if (srcArnoldNode)
+   {      
       // don't do the link if we're already connected to the same shader
       if ((!isLinked) || (srcArnoldNode != AiNodeGetLink(shader, arnoldParam)))
          AiNodeLink(srcArnoldNode, arnoldAlphaChannel.asChar(), shader);
@@ -535,9 +534,9 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       MPlug huePlug = FindMayaPlug("hueShift");
       connections.clear();
       huePlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         AtNode* linkedNode = ExportConnectedNode(connections[0]);
+      AtNode* linkedNode = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+      if (linkedNode)
+      {         
          AtNode* multiply = GetArnoldNode("mult_hue");
          if (multiply == NULL)
             multiply = AddArnoldNode("multiply", "mult_hue");
@@ -564,9 +563,9 @@ void CLookDevKitTranslator::Export(AtNode* shader)
          MPlug plug = FindMayaPlug("colGamma");
          MPlugArray connections;
          plug.connectedTo(connections, true, false);
-         if (connections.length() > 0)
+         AtNode *linkedNode = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+         if (linkedNode)
          {
-            AtNode* linkedNode = ExportConnectedNode(connections[0]);
             // there is a link on the gamma attribute. We need to insert an invert shader in the middle
             AtNode* invert = GetArnoldNode("invert");
             if (invert == NULL)
@@ -653,9 +652,9 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       MPlugArray connections;
       MPlug inPlug = FindMayaPlug("inFloat");
       inPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      AtNode *target = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+      if (target)
       {
-         AtNode *target = ExportConnectedNode(connections[0]);
          AiNodeLink(target, "input", shader);
       } else
       {
@@ -666,9 +665,9 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       MPlug gainPlug = FindMayaPlug("gain");
       connections.clear();
       gainPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      target = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+      if (target)
       {
-         AtNode *target = ExportConnectedNode(connections[0]);
          AiNodeLink(target, "multiply", shader);
       } else
       {
@@ -678,9 +677,9 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       MPlug offsetPlug = FindMayaPlug("offset");
       connections.clear();
       offsetPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      target = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+      if (target)
       {
-         AtNode *target = ExportConnectedNode(connections[0]);
          AiNodeLink(target, "add", shader);
       } else
       {
