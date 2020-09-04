@@ -212,6 +212,13 @@ MStatus CArnoldAssTranslator::writer(const MFileObject& file,
    unsigned int i, nopts = optionList.length();
    for (i=0; i<nopts; ++i)
    {
+      int exportPrefixIndex = optionList[i].indexW(MString("-exportPrefix "));
+      if (exportPrefixIndex >= 0 && optionList[i].indexW("/") >= 0)
+      {
+         optionList[i].substitute(MString("-exportPrefix "), MString(""));
+         optionList[i].substitute(MString(" "), MString(""));
+         optionList[i] = MString("-exportPrefix \"") + optionList[i] + MString("\" ");
+      }      
       cmdStr += " " + optionList[i];
    }
    // If we're interactive, use the active camera
