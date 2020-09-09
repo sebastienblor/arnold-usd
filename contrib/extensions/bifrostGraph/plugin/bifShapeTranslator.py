@@ -1,4 +1,5 @@
 import mtoa.ui.ae.templates as templates
+import maya.cmds as cmds
 
 
 class bifShapeDescriptionTemplate(templates.ShapeTranslatorTemplate):
@@ -19,3 +20,5 @@ class bifShapeDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
 
 templates.registerAETemplate(bifShapeDescriptionTemplate, "bifShape")
+if 'bifrostGraphShape' in cmds.allNodeTypes( ):
+    templates.registerAETemplate(bifShapeDescriptionTemplate, "bifrostGraphShape")
