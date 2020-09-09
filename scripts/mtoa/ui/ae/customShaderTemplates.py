@@ -110,7 +110,7 @@ def appendToSSTemplate():
         global int $gAEstandardSurfaceLayout_Subsurface;
         if ($layoutID == $gAEstandardSurfaceLayout_Subsurface) {
             editorTemplate -addSeparator;
-            editorTemplate -beginLayout "Arnold Transmission" -collapse false;
+            editorTemplate -l "Arnold Sub-surface Type" -addControl "aiSubsurfaceType" ;
             }
         global int $gAEstandardSurfaceLayout_Transmission;
         if ($layoutID == $gAEstandardSurfaceLayout_Transmission) {
