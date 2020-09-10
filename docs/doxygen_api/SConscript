@@ -69,7 +69,7 @@ def build_api_docs(target, source, env):
 
 Import('env BUILD_BASE_DIR')
 
-DOCS_TARGET_PATH = os.path.abspath(os.path.join(BUILD_BASE_DIR, 'docs', 'api'))
+DOCS_TARGET_PATH = os.path.abspath(os.path.join(BUILD_BASE_DIR, 'docs', 'mtoa'))
 
 MTOA_API_DOCS = env.Command(os.path.join(DOCS_TARGET_PATH, 'sdk.done'),   ## target
                             None,                             ## sources
