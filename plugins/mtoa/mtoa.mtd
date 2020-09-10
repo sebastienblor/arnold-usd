@@ -2660,10 +2660,13 @@ desc STRING "Multiplies the curvature by this factor."
     maya.id                 INT     0x00115DA7
     [attr position]
         maya.hide           BOOL    true
+        maya.name           STRING  "ramp.ramp_Position"
     [attr value]
         maya.hide           BOOL    true
+        maya.name           STRING  "ramp.ramp_FloatValue"
     [attr interpolation]
         maya.hide           BOOL    true
+        maya.name           STRING  "ramp.ramp_Interp"
     [attr input]
         min                 FLOAT   0
         max                 FLOAT   1
@@ -2677,10 +2680,13 @@ desc STRING "Multiplies the curvature by this factor."
     maya.id                 INT     0x00115DA6
     [attr position]
         maya.hide           BOOL    true
+        maya.name           STRING  "ramp.ramp_Position"
     [attr color]
         maya.hide           BOOL    true
+        maya.name           STRING  "ramp.ramp_Color"
     [attr interpolation]
         maya.hide           BOOL    true
+        maya.name           STRING  "ramp.ramp_Interp"
     [attr input]
         min                 FLOAT   0
         max                 FLOAT   1
