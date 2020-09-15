@@ -14,7 +14,6 @@
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include "viewport2/ArnoldVolumeGeometryOverride.h"
-#include "viewport2/ArnoldProceduralGeometryOverride.h"
 #include "viewport2/ArnoldStandInSubSceneOverride.h"
 #include <maya/MSelectionMask.h>
 #include <maya/MViewport2Renderer.h>
@@ -477,7 +476,7 @@ namespace // <anonymous>
                            CArnoldStandInShape::id,
                            CArnoldStandInShape::creator,
                            CArnoldStandInShape::initialize,
-                           CArnoldStandInShapeUI::creator,
+                           nullptr,
                            &AI_STANDIN_CLASSIFICATION);
       CHECK_MSTATUS(status);
       
@@ -487,7 +486,7 @@ namespace // <anonymous>
                            CArnoldVolumeShape::id,
                            CArnoldVolumeShape::creator,
                            CArnoldVolumeShape::initialize,
-                           CArnoldVolumeShapeUI::creator,
+                           nullptr,
                            &AI_VOLUME_CLASSIFICATION);
       CHECK_MSTATUS(status);
 
@@ -1407,11 +1406,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
          "arnoldVolumeNodeOverride",
    	  CArnoldVolumeGeometryOverride::Creator);
       CHECK_MSTATUS(status); 
-
-      status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
-         AI_PROCEDURAL_CLASSIFICATION,
-         "arnoldProceduralNodeOverride",
-         CArnoldProceduralGeometryOverride::Creator);
 
 #ifdef MTOA_ENABLE_AVP
       MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();

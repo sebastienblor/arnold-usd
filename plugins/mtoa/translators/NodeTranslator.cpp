@@ -271,7 +271,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
    MString nodeName = m_impl->MakeArnoldName(type, tag);
    AtString nodeNameStr(nodeName.asChar());
-   AtNode* node = AiNode(type, nodeNameStr);
+   AtNode* node = AiNode(m_impl->m_universe, type, nodeNameStr);
    AddExistingArnoldNode(node, tag);
    return node;
 }

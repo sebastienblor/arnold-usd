@@ -47,6 +47,7 @@ public :
       m_animArrays(false),
       m_isExported(false),
       m_overrideSetsDirty(false),
+      m_universe(NULL),
       m_tr(translator){}
    virtual ~CNodeTranslatorImpl() {}
 
@@ -200,8 +201,9 @@ public :
    // for example a single shader assigned to the whole scene
    std::vector<CNodeTranslator *> m_references;
    unordered_set<CNodeTranslator *> m_backReferences;
-protected:
 
+   // in which universe to create arnold nodes
+   AtUniverse *m_universe;
 
 protected:
    CNodeTranslator &m_tr;

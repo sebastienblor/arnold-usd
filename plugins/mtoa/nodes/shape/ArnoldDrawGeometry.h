@@ -25,9 +25,9 @@ enum GeometryDrawingMode{
 // interface for drawing
 // so we could add support for curves
 // point clouds or other primitives
-class CArnoldStandInGeometry{
+class DLLEXPORT CArnoldDrawGeometry{
 protected:
-   CArnoldStandInGeometry(AtNode* node); // basic visibility and matrix queries
+   CArnoldDrawGeometry(AtNode* node); // basic visibility and matrix queries
    
    AtVector m_BBMin, m_BBMax;
    AtMatrix m_matrix;
@@ -53,7 +53,7 @@ protected:
    // bounding box mode
    virtual void DrawBoundingBox() const;
 public:
-   virtual ~CArnoldStandInGeometry();
+   virtual ~CArnoldDrawGeometry();
 
    virtual void Draw(int drawMode, bool applyTransform = true);   
    MBoundingBox GetBBox(bool transformed = true) const;
@@ -83,7 +83,7 @@ public:
    virtual void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const {}
 };
 
-class CArnoldPolymeshGeometry : public CArnoldStandInGeometry{
+class DLLEXPORT CArnoldDrawPolymesh : public CArnoldDrawGeometry{
 private:
    std::vector<AtVector> m_vlist;
    std::vector<unsigned int> m_vidxs;
@@ -107,8 +107,8 @@ private:
    Triangulator& triangulator() const;
 
 public:
-   CArnoldPolymeshGeometry(AtNode* node);
-   ~CArnoldPolymeshGeometry();  
+   CArnoldDrawPolymesh(AtNode* node);
+   ~CArnoldDrawPolymesh();  
 
    // get the raw points
    virtual size_t PointCount() const;
@@ -124,7 +124,7 @@ public:
    virtual void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices = false) const;
 };
 
-class CArnoldPointsGeometry : public CArnoldStandInGeometry{
+class DLLEXPORT CArnoldDrawPoints : public CArnoldDrawGeometry{
 private:
    std::vector<AtVector> m_points;
 
@@ -134,46 +134,46 @@ private:
    void DrawNormalAndPolygons() const;
 
 public:
-   CArnoldPointsGeometry(AtNode* node);
-   ~CArnoldPointsGeometry();  
+   CArnoldDrawPoints(AtNode* node);
+   ~CArnoldDrawPoints();  
 
    virtual size_t PointCount() const;
    virtual void GetPoints(float* points, const AtMatrix* matrix = NULL) const;
 };
 
-class CArnoldStandInGInstance {
+class DLLEXPORT CArnoldDrawGInstance {
 private:
-   CArnoldStandInGeometry* p_geom;   
+   CArnoldDrawGeometry* p_geom;   
    AtMatrix m_matrix;
    bool m_inheritXForm;
 public:
-   CArnoldStandInGInstance(CArnoldStandInGeometry* g, const AtMatrix &m, bool i);
-   ~CArnoldStandInGInstance();
+   CArnoldDrawGInstance(CArnoldDrawGeometry* g, const AtMatrix &m, bool i);
+   ~CArnoldDrawGInstance();
 
    void Draw(int drawMode);
    MBoundingBox GetBBox() const;
    const AtMatrix& GetMatrix() const;
-   const CArnoldStandInGeometry& GetGeometry() const;
+   const CArnoldDrawGeometry& GetGeometry() const;
 };
 
-class CArnoldProceduralGeometry : public CArnoldStandInGeometry{
+class DLLEXPORT CArnoldDrawProcedural : public CArnoldDrawGeometry {
 private:
    void DrawPolygons() const;
    void DrawWireframe() const;
    void DrawPoints() const;
    void DrawNormalAndPolygons() const;
 public:
-   CArnoldProceduralGeometry(AtNode* node);
-   ~CArnoldProceduralGeometry();
+   CArnoldDrawProcedural(AtNode* node);
+   ~CArnoldDrawProcedural();
 };
 
-class CArnoldBoxGeometry : public CArnoldStandInGeometry{
+class DLLEXPORT CArnoldDrawBox : public CArnoldDrawGeometry {
 private:
    void DrawPolygons() const;
    void DrawWireframe() const;
    void DrawPoints() const;
    void DrawNormalAndPolygons() const;
 public:
-   CArnoldBoxGeometry(AtNode* node);
-   ~CArnoldBoxGeometry();
+   CArnoldDrawBox(AtNode* node);
+   ~CArnoldDrawBox();
 };

@@ -1,9 +1,7 @@
-#include "ArnoldStandInGeometry.h"
+#include "ArnoldDrawGeometry.h"
 
 #include <maya/MMatrix.h>
 
-#include <maya/MPxSurfaceShape.h>
-#include <maya/MPxSurfaceShapeUI.h>
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
 #else
@@ -22,7 +20,7 @@ static MMatrix AtMatrixToMMatrix(const AtMatrix& mtx)
   return res;
 }
 
-CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
+CArnoldDrawGeometry::CArnoldDrawGeometry(AtNode* node)
 {
    m_BBMin.x = AI_BIG;
    m_BBMin.y = AI_BIG;
@@ -44,12 +42,12 @@ CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
    m_invalid = false;
 }
 
-CArnoldStandInGeometry::~CArnoldStandInGeometry()
+CArnoldDrawGeometry::~CArnoldDrawGeometry()
 {
    AiArrayDestroy(p_matrices);
 }
 
-void CArnoldStandInGeometry::DrawBoundingBox() const
+void CArnoldDrawGeometry::DrawBoundingBox() const
 {
    glBegin(GL_LINES);
    
@@ -92,7 +90,7 @@ void CArnoldStandInGeometry::DrawBoundingBox() const
    glEnd();
 }
 
-void CArnoldStandInGeometry::Draw(int drawMode, bool applyTransform)
+void CArnoldDrawGeometry::Draw(int drawMode, bool applyTransform)
 {
    if (applyTransform)
    {
@@ -123,7 +121,7 @@ void CArnoldStandInGeometry::Draw(int drawMode, bool applyTransform)
       glPopMatrix();
 }
 
-MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed) const
+MBoundingBox CArnoldDrawGeometry::GetBBox(bool transformed) const
 {
    if (transformed)
    {   
@@ -142,12 +140,12 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed) const
   
 }
 
-const AtMatrix& CArnoldStandInGeometry::GetMatrix() const
+const AtMatrix& CArnoldDrawGeometry::GetMatrix() const
 {
    return m_matrix;
 }
 
-bool CArnoldStandInGeometry::Visible(StandinSelectionFilter filter) const
+bool CArnoldDrawGeometry::Visible(StandinSelectionFilter filter) const
 {
    if (!m_visible)
       return false;
@@ -164,12 +162,12 @@ bool CArnoldStandInGeometry::Visible(StandinSelectionFilter filter) const
    }
 }
 
-bool CArnoldStandInGeometry::Invalid() const
+bool CArnoldDrawGeometry::Invalid() const
 {
    return m_invalid;
 }
 
-CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry(node),
+CArnoldDrawPolymesh::CArnoldDrawPolymesh(AtNode* node) : CArnoldDrawGeometry(node),
     m_polyTriangulator(NULL),
     mTriangulator(NULL)
 {  
@@ -284,7 +282,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    }
 }
 
-CArnoldPolymeshGeometry::~CArnoldPolymeshGeometry()
+CArnoldDrawPolymesh::~CArnoldDrawPolymesh()
 {
    if (mTriangulator)
        delete mTriangulator;
@@ -293,7 +291,7 @@ CArnoldPolymeshGeometry::~CArnoldPolymeshGeometry()
        delete m_polyTriangulator;
 }
 
-void CArnoldPolymeshGeometry::DrawPolygons() const
+void CArnoldDrawPolymesh::DrawPolygons() const
 {
    if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
       return;
@@ -310,7 +308,7 @@ void CArnoldPolymeshGeometry::DrawPolygons() const
    }
 }
 
-void CArnoldPolymeshGeometry::DrawWireframe() const
+void CArnoldDrawPolymesh::DrawWireframe() const
 {
    if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
       return;
@@ -327,7 +325,7 @@ void CArnoldPolymeshGeometry::DrawWireframe() const
    }
 }
 
-void CArnoldPolymeshGeometry::DrawPoints() const
+void CArnoldDrawPolymesh::DrawPoints() const
 {
     if (m_vlist.size() == 0)
         return;
@@ -339,7 +337,7 @@ void CArnoldPolymeshGeometry::DrawPoints() const
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
+void CArnoldDrawPolymesh::DrawNormalAndPolygons() const
 {
     if ((m_nlist.size() == 0) || (m_nidxs.size() == 0))
     {
@@ -362,7 +360,7 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
     }
 }
 
-size_t CArnoldPolymeshGeometry::WireIndexCount() const
+size_t CArnoldDrawPolymesh::WireIndexCount() const
 {
     if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
         return 0;
@@ -376,7 +374,7 @@ size_t CArnoldPolymeshGeometry::WireIndexCount() const
     return total;
 }
 
-void CArnoldPolymeshGeometry::GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset) const
+void CArnoldDrawPolymesh::GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset) const
 {
     if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
         return;
@@ -403,7 +401,7 @@ void CArnoldPolymeshGeometry::GetWireIndexing(unsigned int* outIndices, unsigned
     }
 }
 
-void CArnoldPolymeshGeometry::createPolyTriangulator()
+void CArnoldDrawPolymesh::createPolyTriangulator()
 {
     if (m_polyTriangulator == NULL)
     {
@@ -414,18 +412,18 @@ void CArnoldPolymeshGeometry::createPolyTriangulator()
     }
 }
 
-PolyTriangulator<unsigned int>& CArnoldPolymeshGeometry::polyTriangulator() const
+PolyTriangulator<unsigned int>& CArnoldDrawPolymesh::polyTriangulator() const
 {
     if (m_polyTriangulator == NULL)
     {
         // one time non-const access to do deferred initialization
-        const_cast<CArnoldPolymeshGeometry*>(this)->createPolyTriangulator();
+        const_cast<CArnoldDrawPolymesh*>(this)->createPolyTriangulator();
     }
 
     return *m_polyTriangulator;
 }
 
-void CArnoldPolymeshGeometry::createMultiStreamTriangulator()
+void CArnoldDrawPolymesh::createMultiStreamTriangulator()
 {
     if (mTriangulator == NULL)
     {
@@ -439,18 +437,18 @@ void CArnoldPolymeshGeometry::createMultiStreamTriangulator()
     }
 }
 
-Triangulator& CArnoldPolymeshGeometry::triangulator() const
+Triangulator& CArnoldDrawPolymesh::triangulator() const
 {
     if (mTriangulator == NULL)
     {
         // one time non-const access to do deferred initialization
-        const_cast<CArnoldPolymeshGeometry*>(this)->createMultiStreamTriangulator();
+        const_cast<CArnoldDrawPolymesh*>(this)->createMultiStreamTriangulator();
     }
 
     return *mTriangulator;
 }
 
-size_t CArnoldPolymeshGeometry::TriangleIndexCount(bool sharedVertices) const
+size_t CArnoldDrawPolymesh::TriangleIndexCount(bool sharedVertices) const
 {
     if (sharedVertices)
         return triangulator().fTriangleIndices.size();
@@ -458,7 +456,7 @@ size_t CArnoldPolymeshGeometry::TriangleIndexCount(bool sharedVertices) const
         return polyTriangulator().numTriangles() * 3;       
 }
 
-void CArnoldPolymeshGeometry::GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices) const
+void CArnoldDrawPolymesh::GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices) const
 {
     const std::vector<unsigned int>& indices = sharedVertices
         ? triangulator().fTriangleIndices 
@@ -468,9 +466,9 @@ void CArnoldPolymeshGeometry::GetTriangleIndexing(unsigned int* outIndices, unsi
         outIndices[i] = indices[i] + vertexOffset;
 }
 
-size_t CArnoldPolymeshGeometry::PointCount() const { return m_vlist.size(); }
+size_t CArnoldDrawPolymesh::PointCount() const { return m_vlist.size(); }
 
-void CArnoldPolymeshGeometry::GetPoints(float* vertices, const AtMatrix* matrix) const
+void CArnoldDrawPolymesh::GetPoints(float* vertices, const AtMatrix* matrix) const
 {
     if (matrix)
     {
@@ -485,7 +483,7 @@ void CArnoldPolymeshGeometry::GetPoints(float* vertices, const AtMatrix* matrix)
 }
 
 
-void CArnoldPolymeshGeometry::GetSharedNormals(float* outNormals, const AtMatrix* matrix) const
+void CArnoldDrawPolymesh::GetSharedNormals(float* outNormals, const AtMatrix* matrix) const
 {
     if (matrix)
     {
@@ -501,7 +499,7 @@ void CArnoldPolymeshGeometry::GetSharedNormals(float* outNormals, const AtMatrix
         memcpy(&outNormals[0], &triangulator().fMappedNormals[0], triangulator().fMappedNormals.size()*sizeof(float));
 }
 
-void CArnoldPolymeshGeometry::GetSharedVertices(float* outVertices, const AtMatrix* matrix) const
+void CArnoldDrawPolymesh::GetSharedVertices(float* outVertices, const AtMatrix* matrix) const
 {
     if (matrix)
     {
@@ -517,12 +515,12 @@ void CArnoldPolymeshGeometry::GetSharedVertices(float* outVertices, const AtMatr
         memcpy(&outVertices[0], &triangulator().fMappedPositions[0], triangulator().fMappedPositions.size()*sizeof(float));
 }
 
-size_t CArnoldPolymeshGeometry::SharedVertexCount() const
+size_t CArnoldDrawPolymesh::SharedVertexCount() const
 {
     return triangulator().fMappedPositions.size() > 0 ? triangulator().fMappedPositions.size()/3 : 0;
 }
 
-CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+CArnoldDrawPoints::CArnoldDrawPoints(AtNode* node) : CArnoldDrawGeometry(node)
 {   
    AtArray* points = AiNodeGetArray(node, "points");
    unsigned nelements = (points != 0) ? AiArrayGetNumElements(points) : 0;
@@ -548,22 +546,22 @@ CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeome
       m_invalid = true;
 }
 
-CArnoldPointsGeometry::~CArnoldPointsGeometry()
+CArnoldDrawPoints::~CArnoldDrawPoints()
 {
    
 }
 
-void CArnoldPointsGeometry::DrawPolygons() const
+void CArnoldDrawPoints::DrawPolygons() const
 {
    DrawPoints();
 }
 
-void CArnoldPointsGeometry::DrawWireframe() const
+void CArnoldDrawPoints::DrawWireframe() const
 {
    DrawPoints();
 }
 
-void CArnoldPointsGeometry::DrawPoints() const
+void CArnoldDrawPoints::DrawPoints() const
 {
    glEnableClientState(GL_VERTEX_ARRAY);
    
@@ -573,14 +571,14 @@ void CArnoldPointsGeometry::DrawPoints() const
    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void CArnoldPointsGeometry::DrawNormalAndPolygons() const
+void CArnoldDrawPoints::DrawNormalAndPolygons() const
 {
    DrawPoints();
 }
 
-size_t CArnoldPointsGeometry::PointCount() const { return m_points.size(); }
+size_t CArnoldDrawPoints::PointCount() const { return m_points.size(); }
 
-void CArnoldPointsGeometry::GetPoints(float* vertices, const AtMatrix* matrix) const
+void CArnoldDrawPoints::GetPoints(float* vertices, const AtMatrix* matrix) const
 {
     if (matrix)
     {
@@ -594,16 +592,16 @@ void CArnoldPointsGeometry::GetPoints(float* vertices, const AtMatrix* matrix) c
         memcpy(&vertices[0], &m_points[0][0], m_points.size()*3*sizeof(float));
 }
 
-CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, const AtMatrix &m, bool i) :
+CArnoldDrawGInstance::CArnoldDrawGInstance(CArnoldDrawGeometry* g, const AtMatrix &m, bool i) :
    p_geom(g), m_matrix(m), m_inheritXForm(i)
 {}
 
-CArnoldStandInGInstance::~CArnoldStandInGInstance()
+CArnoldDrawGInstance::~CArnoldDrawGInstance()
 {
 
 }
 
-void CArnoldStandInGInstance::Draw(int DrawMode)
+void CArnoldDrawGInstance::Draw(int DrawMode)
 {
    AiMsgWarning("geom draw");
    glPushMatrix();
@@ -612,7 +610,7 @@ void CArnoldStandInGInstance::Draw(int DrawMode)
    glPopMatrix();
 }
 
-MBoundingBox CArnoldStandInGInstance::GetBBox() const
+MBoundingBox CArnoldDrawGInstance::GetBBox() const
 {
    MMatrix mmtx = AtMatrixToMMatrix(m_matrix);
 
@@ -630,74 +628,74 @@ MBoundingBox CArnoldStandInGInstance::GetBBox() const
    }
 }
 
-const AtMatrix& CArnoldStandInGInstance::GetMatrix() const
+const AtMatrix& CArnoldDrawGInstance::GetMatrix() const
 {
     return m_matrix;
 }
 
-const CArnoldStandInGeometry& CArnoldStandInGInstance::GetGeometry() const
+const CArnoldDrawGeometry& CArnoldDrawGInstance::GetGeometry() const
 {
     return *p_geom;
 }
 
-CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* node) : CArnoldDrawGeometry(node)
 {
    m_BBMin = AiNodeGetVec(node, "min");
    m_BBMax = AiNodeGetVec(node, "max");
 }
 
-CArnoldProceduralGeometry::~CArnoldProceduralGeometry()
+CArnoldDrawProcedural::~CArnoldDrawProcedural()
 {
    
 }
 
-void CArnoldProceduralGeometry::DrawPolygons() const
+void CArnoldDrawProcedural::DrawPolygons() const
 {
    DrawBoundingBox();
 }
 
-void CArnoldProceduralGeometry::DrawWireframe() const
+void CArnoldDrawProcedural::DrawWireframe() const
 {
    DrawBoundingBox();
 }
 
-void CArnoldProceduralGeometry::DrawPoints() const
+void CArnoldDrawProcedural::DrawPoints() const
 {
    DrawBoundingBox();
 }
 
-void CArnoldProceduralGeometry::DrawNormalAndPolygons() const
+void CArnoldDrawProcedural::DrawNormalAndPolygons() const
 {
    DrawBoundingBox();
 }
 
-CArnoldBoxGeometry::CArnoldBoxGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+CArnoldDrawBox::CArnoldDrawBox(AtNode* node) : CArnoldDrawGeometry(node)
 {
    m_BBMin = AiNodeGetVec(node, "min");
    m_BBMax = AiNodeGetVec(node, "max");
 }
 
-CArnoldBoxGeometry::~CArnoldBoxGeometry()
+CArnoldDrawBox::~CArnoldDrawBox()
 {
    
 }
 
-void CArnoldBoxGeometry::DrawPolygons() const
+void CArnoldDrawBox::DrawPolygons() const
 {
    DrawBoundingBox();
 }
 
-void CArnoldBoxGeometry::DrawWireframe() const
+void CArnoldDrawBox::DrawWireframe() const
 {
    DrawBoundingBox();
 }
 
-void CArnoldBoxGeometry::DrawPoints() const
+void CArnoldDrawBox::DrawPoints() const
 {
    DrawBoundingBox();
 }
 
-void CArnoldBoxGeometry::DrawNormalAndPolygons() const
+void CArnoldDrawBox::DrawNormalAndPolygons() const
 {
    DrawBoundingBox();
 }
