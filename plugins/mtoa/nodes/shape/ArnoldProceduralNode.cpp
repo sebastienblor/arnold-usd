@@ -290,6 +290,8 @@ void CArnoldProceduralNode::updateGeometry()
       AiProceduralViewport(proc, universe, viewport_mode);
       DrawUniverse(universe);
    }
+   if (translator)
+      delete translator;
 
    AiUniverseDestroy(universe);
    AiUniverseDestroy(proc_universe);
