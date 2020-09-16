@@ -3773,8 +3773,8 @@ desc STRING "Apply a gamma correction to the color."
 
 #### Imagers
 
-[node imager_exposure_compensation]
-    maya.name              STRING "aiImagerExposureCompensation"
+[node imager_exposure]
+    maya.name              STRING "aiImagerExposure"
     maya.classification     STRING  "imager"
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
@@ -3820,46 +3820,3 @@ desc STRING "Apply a gamma correction to the color."
 [node imager_max_physical_camera]
     maya.hide               BOOL     TRUE
     
-
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

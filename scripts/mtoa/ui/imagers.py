@@ -307,15 +307,14 @@ class ImagersUI(object):
         cmds.setParent(parent)
 
         self.currentWidget = toQtObject(cmds.setParent(query=True), QtWidgets.QWidget)
-        self.fileContents = QtWidgets.QFrame(self.currentWidget)
-        self.fileContents.setLayout(QtWidgets.QVBoxLayout(self.fileContents))
-        self.currentWidget.layout().addWidget(self.fileContents)
+        self.frame = QtWidgets.QFrame(self.currentWidget)
+        self.frame.setLayout(QtWidgets.QVBoxLayout(self.frame))
+        self.currentWidget.layout().addWidget(self.frame)
         self.imagerStack = ImagerStackView(None, self.currentWidget)
         self.imagerStack.setObjectName("ImagerStackWidget")
-        self.fileContents.layout().addWidget(self.imagerStack)
+        self.frame.layout().addWidget(self.imagerStack)
         self.updateImagers()
         cmds.setParent('..')
-
 
     def updateImagers(self):
         self.imagerStack.model().refresh()

@@ -2,7 +2,7 @@ import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-class AEaiImagerExposureCompensationTemplate(ShaderAETemplate):
+class AEaiImagerExposureTemplate(ShaderAETemplate):
 
     def setup(self):
         #mel.eval('AEswatchDisplay "%s"' % nodeName)
