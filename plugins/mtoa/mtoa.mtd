@@ -3817,6 +3817,9 @@ desc STRING "Apply a gamma correction to the color."
     [attr layer_selection]
         maya.hide               BOOL     TRUE
         
-[node imager_max_physical_camera]
-    maya.hide               BOOL     TRUE
-    
+[node imager_tonemap]
+    maya.name              STRING "aiImagerTonemap"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DB9
