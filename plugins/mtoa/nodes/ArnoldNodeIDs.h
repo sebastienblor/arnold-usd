@@ -190,6 +190,9 @@
 #define ARNOLD_NODEID_SHADER_AOV_WRITE_VECTOR    0x00115DBB
 #define ARNOLD_NODEID_OPERATOR_STRING_REPLACE    0x00115DBC
 // FIXME id 0x00115DB9 was accidentally skipped. 
+
+//0x00115DBD is for bifrost
+
 // Be sure to pick it next time a node is added
 
 

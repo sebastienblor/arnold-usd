@@ -1,4 +1,14 @@
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <algorithm>
+#endif
+
 #include "BifShapeTranslator.h"
+#include "../nodes/BifrostShapeNode.h"
 #include "extension/Extension.h"
 
 extern "C"
@@ -16,6 +26,12 @@ extern "C"
                                      "",
                                      CBifShapeTranslator::creator,
                                      CBifShapeTranslator::NodeInitializer);
+        extension.RegisterNode("arnoldBifrostShape",
+                        CBifrostShapeNode::id,
+                        CBifrostShapeNode::creator,
+                        CBifrostShapeNode::initialize,
+                        MPxNode::kLocatorNode, 
+                        CBifrostShapeNode::s_classification);
     }
 
     DLLEXPORT void deinitializeExtension ( CExtension& extension )

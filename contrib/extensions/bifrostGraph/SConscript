@@ -23,6 +23,8 @@ if system.os !='windows':
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrostGraph', 'plugin')
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+src_nodes_dir = os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrostGraph', 'nodes')
+source_files  += [os.path.join('nodes', x) for x in find_files_recursive(src_nodes_dir, ['.c', '.cpp'])]
 EXT = local_env.SharedLibrary('bifShapeTranslator', source_files, LIBPREFIX= '')
 
 if (system.os == 'windows'):
