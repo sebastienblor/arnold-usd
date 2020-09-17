@@ -251,13 +251,6 @@ MStatus CArnoldProceduralNode::setDependentsDirty( const MPlug& plug, MPlugArray
 
 void CArnoldProceduralNode::updateGeometry()
 {
-   // If we are in a batch render, it is not needed and it will cause the render crash. 
-   if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
-   {
-      m_data->m_bbox.clear();
-      return;
-   }
-
    bool universeCreated = ArnoldUniverseBegin();
    
    AtUniverse *universe = AiUniverse();

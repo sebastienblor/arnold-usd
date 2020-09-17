@@ -310,6 +310,12 @@ CArnoldProceduralData* CArnoldBaseProcedural::geometry()
 {
    if (m_data == NULL || m_data->m_isDirty)
    {
+         // If we are in a batch render, it is not needed and it will cause the render crash. 
+      if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+      {
+         m_data->m_bbox.clear();
+         return m_data;
+      }
       updateGeometry();
       m_data->m_isDirty = false;
    }

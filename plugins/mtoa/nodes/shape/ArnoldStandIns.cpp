@@ -641,14 +641,6 @@ CArnoldStandInData *CArnoldStandInShape::GetStandinData()
 void CArnoldStandInShape::updateGeometry()   
 {
    CArnoldStandInData *data = GetStandinData();
-
-   // If we are in a batch render, it is not needed and it will cause the render crash. 
-   if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
-   {
-      data->m_bbox.clear();
-      return;
-   }
-
    //======== Update geom data
 
    MString tmpFilename = data->filename;
