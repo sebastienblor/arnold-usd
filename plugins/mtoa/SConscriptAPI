@@ -24,13 +24,17 @@ for subdir in ['attributes', 'common', 'extension', 'platform', 'utils', 'sessio
 
 #Add files to be exported by the API from 'nodes' and 'translators' folder
 source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
+                    os.path.join('nodes', 'shape', 'ArnoldBaseProcedural.cpp'),
                     os.path.join('nodes', 'shape', 'ArnoldProceduralNode.cpp'),
+                    os.path.join('nodes', 'shape', 'ArnoldDrawGeometry.cpp'),
+                    os.path.join('nodes', 'shape', 'PolyTriangulator.cpp'),
                     os.path.join('nodes', 'ArnoldOperatorNode.cpp'),
                     os.path.join('nodes', 'ArnoldImagerNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldStandardNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldStandardSurfaceNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldStandardHairNode.cpp'),
 					os.path.join('nodes', 'shader', 'ArnoldSkinShaderNode.cpp'),
+                    os.path.join('viewport2', 'ArnoldProceduralSubSceneOverride.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),                    
                     os.path.join('translators', 'camera', 'ImagePlaneTranslator.cpp'),                    

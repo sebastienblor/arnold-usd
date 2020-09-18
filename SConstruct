@@ -948,7 +948,9 @@ apiheaders = [
                 os.path.join('utils', 'Universe.h'),
                 os.path.join('utils', 'MtoaLog.h'),
                 os.path.join('utils', 'time.h'),
-                os.path.join('utils', 'HashUtils.h')
+                os.path.join('utils', 'HashUtils.h'),
+                os.path.join('viewport2', 'ArnoldProceduralSubSceneOverride.h')
+
 ]
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, 'mtoa', x) for x in apiheaders],

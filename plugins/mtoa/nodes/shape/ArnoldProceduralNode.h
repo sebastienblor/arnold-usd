@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ArnoldBaseProcedural.h"
 #include "attributes/AttrHelper.h"
 #include <maya/MPxHwShaderNode.h>
 #include <maya/MObjectArray.h>
@@ -14,28 +15,24 @@
  *    This class is meant for procedural nodes created automatically by arnold procedural dlls
  **/
 
-class DLLEXPORT CArnoldProceduralNode
-   :  public MPxSurfaceShape
+class CArnoldProceduralNode
+   :  public CArnoldBaseProcedural
 {
 
 public:
+   CArnoldProceduralNode();
+   virtual ~CArnoldProceduralNode() {}
 
    virtual void postConstructor();
 
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
-   virtual bool isBounded() const {return true;}
-   virtual MBoundingBox boundingBox() const;
-   
-   virtual MSelectionMask getShapeSelectionMask() const;
    virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
-
-   MBoundingBox* geometry();
 
    CAbMayaNode m_abstract;
 
    static void* creator();
    static MStatus initialize();
-
+   virtual void updateGeometry();
+   
    static CAbMayaNode s_abstract;
 
    
@@ -46,34 +43,6 @@ public:
    static std::vector<CStaticAttrHelper> s_nodeHelpers;
 
 
-   MBoundingBox m_bbox;
-
 };  // class CArnoldShaderNode
 
 
-
-
-
-// UI class - defines the UI part of a shape node
-class CArnoldProceduralNodeUI: public MPxSurfaceShapeUI
-{
-public:
-   CArnoldProceduralNodeUI();
-   virtual ~CArnoldProceduralNodeUI();
-   virtual void getDrawRequests(const MDrawInfo & info,
-         bool objectAndActiveOnly, MDrawRequestQueue & requests);
-   virtual void draw(const MDrawRequest & request, M3dView & view) const;
-   virtual bool select(MSelectInfo &selectInfo, MSelectionList &selectionList,
-         MPointArray &worldSpaceSelectPts) const;
-
-   void getDrawRequestsWireFrame(MDrawRequest&, const MDrawInfo&);
-
-   static void * creator();
-   // Draw Tokens
-   //
-   enum
-   {
-      kDrawBoundingBox, kLastToken
-   };
-
-}; // class CArnoldProceduralNodeUI

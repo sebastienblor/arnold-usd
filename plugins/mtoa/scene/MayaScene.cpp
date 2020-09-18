@@ -59,6 +59,8 @@ CRenderSession* CMayaScene::GetRenderSession()
 
 CArnoldSession* CMayaScene::GetArnoldSession()
 {
+   if (s_arnoldSession == NULL)
+      s_arnoldSession = new CArnoldSession();
    return s_arnoldSession;
 }
 
@@ -125,10 +127,14 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
    // FIXME: raise an error if Begin is called on active session
    // (forcing a CMayaScene::End() to be called before a CMayaScene::Begin() ?
-   if (s_renderSession == NULL)
-      s_renderSession = new CRenderSession(isInteractive);
-   if (s_arnoldSession == NULL)
-      s_arnoldSession = new CArnoldSession();
+   if (s_renderSession)
+      delete s_renderSession;
+
+   s_renderSession = new CRenderSession(isInteractive);
+   if (s_arnoldSession)
+      delete s_arnoldSession;
+   
+   s_arnoldSession = new CArnoldSession();
 
    MString mayaVersion = MGlobal::mayaVersion();     
    MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;

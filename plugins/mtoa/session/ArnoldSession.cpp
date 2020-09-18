@@ -2841,4 +2841,35 @@ void CArnoldSession::ExportImagePlane()
    }
 }
 
+CNodeTranslator *CArnoldSession::ExportNodeToUniverse(const MObject &object, AtUniverse *universe)
+{
+   if (this == NULL)
+      return NULL;
+   
+   AtNode* arnoldNode = NULL;
+   CNodeTranslator* translator = NULL;
+   MDagPath dagPath;
+   if (MFnDagNode(MFnDagNode(object).parent(0)).getPath(dagPath) == MS::kSuccess)
+   {
+      // Dag path
+      dagPath.push(object);
+      translator = static_cast<CNodeTranslator*>(CExtensionsManager::GetTranslator(dagPath));
+      if (translator == NULL)
+         return NULL;
+      translator->m_impl->m_universe = universe;
+      translator->m_impl->Init(this, dagPath);
+
+   } else
+   {
+      translator = CExtensionsManager::GetTranslator(object);
+      if (translator == NULL)   
+         return NULL;
+      translator->m_impl->m_universe = universe;
+      translator->m_impl->Init(this, object, "message");
+   }
+      
+   translator->m_impl->DoExport();
+   return translator;
+}
+   
 

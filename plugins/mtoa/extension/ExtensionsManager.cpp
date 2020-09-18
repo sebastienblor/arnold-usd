@@ -22,9 +22,9 @@
 #include "utils/Universe.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "utils/Universe.h"
-
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/shape/ArnoldProceduralNode.h"
+#include "viewport2/ArnoldProceduralSubSceneOverride.h"
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -34,8 +34,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MSceneMessage.h>
 #include <maya/MDGModifier.h>
-
-
+#include <maya/MDrawRegistry.h>
 // CExtensionsManager
 
 
@@ -1362,9 +1361,16 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
    // FIXME find a better way to do this (add flag in mayaNode ?)
    if (mayaNode.creator == CArnoldProceduralNode::creator)
    {
+      MString proceduralClassification = "drawdb/subscene/arnold/procedural/" + mayaNode.arnold; 
       status = MFnPlugin(s_plugin, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION).registerShape(mayaNode.name, mayaNode.id,
-            mayaNode.creator, mayaNode.initialize, CArnoldProceduralNodeUI::creator,
-            classificationPtr );
+            mayaNode.creator, mayaNode.initialize, nullptr,
+            &proceduralClassification);
+
+      MString proceduralId = mayaNode.name + MString("Override");
+      MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
+          proceduralClassification,
+          proceduralId,
+          CArnoldProceduralSubSceneOverride::Creator);
       
    } else
    {

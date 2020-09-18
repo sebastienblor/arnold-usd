@@ -200,6 +200,8 @@ public:
 
    const ObjectToTranslatorMap &GetProcessedTranslators() const {return m_processedTranslators;}
 
+   CNodeTranslator *ExportNodeToUniverse(const MObject &object, AtUniverse *universe);
+
 private:
 
    CArnoldSession()

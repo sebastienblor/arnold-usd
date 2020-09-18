@@ -9,7 +9,6 @@
 
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "nodes/options/ArnoldOptionsNode.h"
 #include "translators/DagTranslator.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
@@ -53,24 +52,18 @@
 #include <fstream>
 #include <string>
 
-#define LEAD_COLOR            18 // green
-#define ACTIVE_COLOR       15 // white
-#define ACTIVE_AFFECTED_COLOR 8  // purple
-#define DORMANT_COLOR         4  // blue
-#define HILITE_COLOR       17 // pale blue
 MTypeId CArnoldStandInShape::id(ARNOLD_NODEID_STAND_INS);
 
 CStaticAttrHelper CArnoldStandInShape::s_attributes(CArnoldStandInShape::addAttribute);
 
 MObject CArnoldStandInShape::s_dso;
-MObject CArnoldStandInShape::s_mode;
 MObject CArnoldStandInShape::s_useFrameExtension;
 MObject CArnoldStandInShape::s_frameNumber;
 MObject CArnoldStandInShape::s_useSubFrame;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
 MObject CArnoldStandInShape::s_overrideNodes;
-MObject CArnoldStandInShape::s_selectedItems;
+
 //MObject CArnoldStandInShape::s_deferStandinLoad;
 //MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
@@ -83,244 +76,53 @@ MObject CArnoldStandInShape::s_objectPath;
 MObject CArnoldStandInShape::s_abcLayers;
 MObject CArnoldStandInShape::s_abcFps;
 
-enum StandinDrawingMode{
-   DM_BOUNDING_BOX,
-   DM_PER_OBJECT_BOUNDING_BOX,
-   DM_POLYWIRE,
-   DM_WIREFRAME,
-   DM_POINT_CLOUD,
-   DM_SHADED_POLYWIRE,
-   DM_SHADED
-};
-
-CArnoldStandInGeom::CArnoldStandInGeom()
+CArnoldStandInData::CArnoldStandInData() : CArnoldProceduralData()
 {
    dso  = "";
-   data = "";
-   mode = 0;
-   geomLoaded = "";
    //scale = 1.0f;
-   BBmin = MPoint(-1.0f, -1.0f, -1.0f);
-   BBmax = MPoint(1.0f, 1.0f, 1.0f);
-   bbox = MBoundingBox(BBmin, BBmax);
-   IsGeomLoaded = false;
-   updateView = true;
-   updateBBox = true;
+   MPoint BBmin = MPoint(-1.0f, -1.0f, -1.0f);
+   MPoint BBmax = MPoint(1.0f, 1.0f, 1.0f);
+   m_bbox = MBoundingBox(BBmin, BBmax);
    useSubFrame = false;
    useFrameExtension = false;
    dList = 0;
    drawOverride = 0;
-   hasSelection=false;
+   m_loadFile = true;
+   m_updateFilename = true;
 }
 
-CArnoldStandInGeom::~CArnoldStandInGeom()
+CArnoldStandInData::~CArnoldStandInData()
 {
    Clear();
 }
 
-void CArnoldStandInGeom::Clear()
+
+CArnoldStandInShape::CArnoldStandInShape() : CArnoldBaseProcedural()
 {
-   for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-      delete it->second;
-   m_geometryList.clear();
-
-   for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-      delete (*it);
-   m_instanceList.clear();
-   hasSelection = false;
-}
-
-void CArnoldStandInGeom::Draw(int DrawMode)
-{
-   for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-   {
-      if (it->second->Visible())
-         it->second->Draw(DrawMode);
-   }
-
-   for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-      (*it)->Draw(DrawMode);
-}
-
-size_t CArnoldStandInGeom::PointCount(StandinSelectionFilter filter) const
-{
-    size_t totalPoints = 0;
-    for (geometryListIterType it = m_geometryList.begin();
-         it != m_geometryList.end(); ++it)
-    {
-        if (it->second->Visible(filter))
-        {
-            totalPoints += it->second->PointCount();
-        }
-    }
-
-    for (instanceListIterType it = m_instanceList.begin();
-         it != m_instanceList.end(); ++it)
-    {
-        if ((*it)->GetGeometry().Visible(filter))
-        {
-            totalPoints += (*it)->GetGeometry().PointCount();
-        }
-    }
-    return totalPoints;
-}
-
-size_t CArnoldStandInGeom::SharedVertexCount(StandinSelectionFilter filter) const
-{
-    size_t totalPoints = 0;
-    for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-    {
-        if (it->second->Visible(filter))
-            totalPoints += it->second->SharedVertexCount();
-    }
-
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-        if ((*it)->GetGeometry().Visible(filter))
-          totalPoints += (*it)->GetGeometry().SharedVertexCount();
-    return totalPoints;
-}
-
-size_t CArnoldStandInGeom::WireIndexCount(StandinSelectionFilter filter) const
-{
-    size_t total = 0;
-    for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-    {
-        if (it->second->Visible(filter))
-        {
-            total += it->second->WireIndexCount();
-        }
-    }
-
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-    {
-        if ((*it)->GetGeometry().Visible(filter))
-        {
-            total += (*it)->GetGeometry().WireIndexCount();
-        }
-    }
-    return total;
-}
-
-size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices, StandinSelectionFilter filter) const
-{
-    size_t total = 0;
-    for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-    {
-        if (it->second->Visible(filter))
-        {
-            total += it->second->TriangleIndexCount(sharedVertices);
-        }
-    }
-
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-    {
-        if ((*it)->GetGeometry().Visible(filter))
-        {
-            total += (*it)->GetGeometry().TriangleIndexCount(sharedVertices);
-        }
-    }
-    return total;
-}
-
-size_t CArnoldStandInGeom::VisibleGeometryCount(StandinSelectionFilter filter) const
-{
-    size_t total = 0;
-    for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-    {
-        if (it->second->Visible(filter))
-            total++;
-    }
-
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-    {
-        if ((*it)->GetGeometry().Visible(filter))
-            total++;
-    }
-    return total;
-}
-
-CArnoldStandInShape::CArnoldStandInShape() : m_attrChangeId(0), m_refreshAvoided(false)
-{
-}
-
-CArnoldStandInShape::~CArnoldStandInShape()
-{
-   if (m_attrChangeId != 0)
-      MMessage::removeCallback(m_attrChangeId);
-}
-
-/* override */
-void CArnoldStandInShape::postConstructor()
-{
-   // This call allows the shape to have shading groups assigned
-   setRenderable(true);
-
-   MObject me = thisMObject();
-   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, AttrChangedCallback, this);
-}
-
-MStatus CArnoldStandInShape::compute(const MPlug& plug, MDataBlock& data)
-{
-   return MS::kUnknownParameter;
+   m_data = new CArnoldStandInData();
 }
 
 // Load geometry from ass to display it in the viewport.
 //
-MStatus CArnoldStandInShape::GetPointsFromAss()
+MStatus CArnoldStandInShape::LoadFile()
 {
    MStatus status;
-   CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
-   CArnoldStandInGeom* geom = nonConstThis->geometry();
-   
-   // If we are in a batch render, it is not needed and it will cause the render crash. 
-   if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
-   {
-      geom->bbox.clear();
+   CArnoldStandInData* geom = GetStandinData();
+   if (geom == NULL)
+      return MS::kFailure;
+
+   if (!geom->m_loadFile)
       return MS::kSuccess;
-   }
 
-   m_refreshAvoided = false;   
-
+   geom->m_loadFile = false;
+   
    MString assfile = geom->filename;
-   MString dsoData = geom->data;
    float frameStep = geom->frame + geom->frameOffset;
    bool AiUniverseCreated = false;
    bool free_render = false;
    AtUniverse *universe = NULL;
    if (assfile != "")
-   {  
-      MPlug selPlug(thisMObject(), s_selectedItems);
-      MString selectedItems;
-      selPlug.getValue(selectedItems);
-      MStringArray selectedItemsList;
-      MStringArray xformSelections;
-
-      if (selectedItems.length() > 0)
-         selectedItems.split(',', selectedItemsList);
-      
-      unordered_set<std::string> selectedMap;
-      for (unsigned int i = 0; i < selectedItemsList.length(); ++i)
-      {
-         const MString &sel = selectedItemsList[i];
-         if (sel.asChar()[sel.length() - 1] == '*')
-            xformSelections.append(sel.substringW(0, sel.length() - 2));
-         else
-            selectedMap.insert(std::string(sel.asChar()));
-
-      }
-      
+   {       
       bool processRead = false;
       bool isSo = false;
       bool isAss = false;
@@ -447,7 +249,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
         AtProcViewportMode viewport_mode = AI_PROC_BOXES;
 
-        switch (geom->mode)
+        switch (geom->m_mode)
         {
           case DM_BOUNDING_BOX:
           case DM_PER_OBJECT_BOUNDING_BOX:
@@ -466,126 +268,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
         // get the proc geo in a new universe
         AiProceduralViewport(proc, universe, viewport_mode);
       }
-
       if (processRead)
-      {
-         geom->geomLoaded = geom->filename;
-         //clear current geo
-         geom->bbox.clear();
-         
-         geom->Clear();
-
-         // iterate all shape in file twice
-         // first load all the shapes
-         // then resolve all the instances
-
-         static const AtString polymesh_str("polymesh");
-         static const AtString points_str("points");
-         static const AtString procedural_str("procedural");
-         static const AtString box_str("box");
-         static const AtString ginstance_str("ginstance");
-
-         AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
-
-         while (!AiNodeIteratorFinished(iter))
-         {
-            AtNode* node = AiNodeIteratorGetNext(iter);
-            if (node == procedural)
-               continue;
-            if (node)
-            {  
-               MString nodeName = MString(AiNodeGetName(node));
-               CArnoldStandInGeometry* g = 0;
-               if (AiNodeIs(node, polymesh_str))
-                  g = new CArnoldPolymeshGeometry(node);
-               else if (AiNodeIs(node, points_str))
-                  g = new CArnoldPointsGeometry(node);
-               else if(AiNodeIs(node, procedural_str))
-                  g = new CArnoldProceduralGeometry(node);
-               else if(AiNodeIs(node, box_str))
-                  g = new CArnoldBoxGeometry(node);
-               else
-                  continue;
-               if (g->Invalid())
-               {
-                  delete g;
-                  continue;
-               }
-               if (g->Visible())
-                  geom->bbox.expand(g->GetBBox());  
-
-                
-               bool selected = (selectedMap.find(std::string(nodeName.asChar())) != selectedMap.end());
-               if (!selected)
-               {
-                  for (unsigned int i = 0; i < xformSelections.length(); ++i)
-                  {
-                     const MString &sel = xformSelections[i];
-                     if (nodeName.length() > sel.length() && nodeName.substringW(0, sel.length() - 1) == sel)
-                        selected = true;
-                  }
-               }
-               if (selected)
-                  geom->hasSelection = true;
-               
-               g->SetSelected(selected);
-               geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
-            }
-         }
-
-         AiNodeIteratorDestroy(iter);
-
-         iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
-
-         while (!AiNodeIteratorFinished(iter))
-         {
-            AtNode* node = AiNodeIteratorGetNext(iter);
-            if (node == procedural)
-               continue;
-            if (node)
-            {
-               if (AiNodeGetByte(node, "visibility") == 0)
-                  continue;
-               AtMatrix total_matrix = AiM4Identity();
-               bool inherit_xform = true;
-               bool isInstance = false;
-               while(AiNodeIs(node, ginstance_str))
-               {                  
-                  isInstance = true;
-                  AtMatrix current_matrix = AiNodeGetMatrix(node, "matrix");
-                  if (inherit_xform)
-                  {
-                     total_matrix = AiM4Mult(total_matrix, current_matrix);
-                  }
-                  inherit_xform = AiNodeGetBool(node, "inherit_xform");
-                  node = (AtNode*)AiNodeGetPtr(node, "node");
-               }
-               if (!isInstance)
-                  continue;
-               if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
-               {
-                  std::string nodeName(AiNodeGetName(node));
-                  CArnoldStandInGeom::geometryListIterType giter = geom->m_geometryList.find(nodeName);
-                  if (giter != geom->m_geometryList.end())
-                  {
-                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(giter->second, total_matrix, inherit_xform);
-                     geom->m_instanceList.push_back(gi);
-                     geom->bbox.expand(gi->GetBBox());
-                  }
-               }               
-            }
-         }
-
-         AiNodeIteratorDestroy(iter);
-         geom->IsGeomLoaded = true;
-         geom->updateView = true;
-         status = MS::kSuccess;
-      }
+         DrawUniverse(universe);
       else
-      {
-         geom->IsGeomLoaded = false;
          status = MS::kFailure;
-      }
       
       // if (free_render) AiRenderAbort();
       if (universe) AiUniverseDestroy(universe);
@@ -597,131 +283,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       status = MS::kFailure;
    }
 
-
    return status;
-}
-
-bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHandle& datahandle,
-      MDGContext &context)
-{
-   bool isOk = true;
-   if (plug == s_dso)
-   {
-      datahandle.set(fGeometry.dso);
-      isOk = true;
-   }
-   else if (plug == s_data)
-   {
-      datahandle.set(fGeometry.data);
-      isOk = true;
-   }
-   else if (plug == s_mode)
-   {
-      datahandle.set(fGeometry.mode);
-      isOk = true;
-   }
-   else if (plug == s_useFrameExtension)
-   {
-      datahandle.set(fGeometry.useFrameExtension);
-      isOk = true;
-   }
-   else if (plug == s_frameNumber)
-   {
-      datahandle.set(fGeometry.frame);
-      isOk = true;
-   }
-   else if (plug == s_useSubFrame)
-   {
-      datahandle.set(fGeometry.useSubFrame);
-      isOk = true;
-   }
-   else if (plug == s_frameOffset)
-   {
-      datahandle.set(fGeometry.frameOffset);
-      isOk = true;
-   }
-   /*else if (plug == s_scale)
-   {
-      datahandle.set(fGeometry.scale);
-      isOk = true;
-   }*/
-   else if (plug == s_boundingBoxMin)
-   {
-      float3 value;
-      GetPointPlugValue(plug, value);
-      fGeometry.BBmin = MPoint(value[0], value[1], value[2]);
-      isOk = true;
-   }
-   else if (plug == s_boundingBoxMax)
-   {
-      float3 value;
-      GetPointPlugValue(plug, value);
-      fGeometry.BBmax = MPoint(value[0], value[1], value[2]);
-      isOk = true;
-   }
-   else
-   {
-      isOk = MPxSurfaceShape::getInternalValueInContext(plug, datahandle, context);
-   }
-   return isOk;
-}
-
-bool CArnoldStandInShape::setInternalValueInContext(const MPlug& plug,
-      const MDataHandle& datahandle, MDGContext &context)
-{
-   bool isOk = true;
-   if (plug == s_dso)
-   {
-      isOk = true;
-   }
-   else if (plug == s_data)
-   {
-      isOk = true;
-   }
-   else if (plug == s_mode)
-   {
-      //fix for later : Be sure that mode is in range
-      isOk = true;
-   }
-   else if (plug == s_useFrameExtension)
-   {
-      isOk = true;
-   }
-   else if (plug == s_frameNumber)
-   {
-      isOk = true;
-   }
-   else if (plug == s_useSubFrame)
-   {
-      isOk = true;
-   }
-   else if (plug == s_frameOffset)
-   {
-      isOk = true;
-   }
-   /*else if (plug == s_scale)
-   {
-      isOk = true;
-   }*/
-   else if (plug == s_boundingBoxMax)
-   {
-      isOk = true;
-   }
-   else if (plug == s_boundingBoxMin)
-   {
-      isOk = true;
-   }
-   else
-   {
-      isOk = MPxSurfaceShape::setInternalValueInContext(plug, datahandle, context);
-   }
-
-   return isOk;
-}
-
-bool CArnoldStandInShape::isBounded() const
-{
-   return true;
 }
 
 MStatus CArnoldStandInShape::GetPointPlugValue(MPlug plug, float3 & value)
@@ -759,18 +321,18 @@ float convertToFloat(const char *number)
       return static_cast<float>(atof(number));
 }
 
+
 bool CArnoldStandInShape::LoadBoundingBox()
 {
-   CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
-   CArnoldStandInGeom* geom = nonConstThis->geometry();
+   CArnoldStandInData* geom = GetStandinData();
+   if (geom == NULL)
+      return false;
+   
    // default value
-   geom->bbox = MBoundingBox(MPoint(-1.f, -1.f, -1.f), MPoint(1.f, 1.f, 1.f));
+   geom->m_bbox = MBoundingBox(MPoint(-1.f, -1.f, -1.f), MPoint(1.f, 1.f, 1.f));
 
    MString path_val = geom->filename;
 
-#define STANDIN_USE_METADATA
-
-#ifdef STANDIN_USE_METADATA
    AtMetadataStore *mds = AiMetadataStore();
    AtString boundsStr;
    
@@ -791,7 +353,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
          {
             MPoint min(xmin, ymin, zmin);
             MPoint max(xmax, ymax, zmax);
-            geom->bbox = MBoundingBox(min, max);
+            geom->m_bbox = MBoundingBox(min, max);
          } 
          
          AiMetadataStoreDestroy(mds);   
@@ -799,50 +361,6 @@ bool CArnoldStandInShape::LoadBoundingBox()
       }
    }
    AiMetadataStoreDestroy(mds);
-#else
-   // Manually parsing the ass file to extract the bounds.
-   
-   // First check if this ass file has metadata
-   std::ifstream assfile(path_val.asChar());
-   std::string assline;
-   if (assfile.is_open())
-   {  
-      while(true)
-      {    
-         std::getline(assfile, assline);
-
-         // we're assuming the metadatas are stored at the top of the ass file
-         if (assline.length() > 0 && assline[0] != '#')
-            break;
-
-         if (assline.substr(0, 11) == "### bounds:")
-         {
-            assline = assline.substr(10);
-            char *str = new char[assline.length() + 1];
-            strcpy(str, assline.c_str());
-            strtok(str, " ");
-            double xmin = convertToFloat(strtok(NULL, " "));
-            double ymin = convertToFloat(strtok(NULL, " "));
-            double zmin = convertToFloat(strtok(NULL, " "));
-            double xmax = convertToFloat(strtok(NULL, " "));
-            double ymax = convertToFloat(strtok(NULL, " "));
-            double zmax = convertToFloat(strtok(NULL, " "));
-            
-            if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
-            {
-               MPoint min(xmin, ymin, zmin);
-               MPoint max(xmax, ymax, zmax);
-               geom->bbox = MBoundingBox(min, max);
-            } 
-            
-            delete []str;
-            return true;
-         }
-      }
-      assfile.close();
-   }
-#endif
-
 
    // if the ass file doesn't have any metadata (old file),
    // then check the asstoc
@@ -880,7 +398,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
       {
          MPoint min(xmin, ymin, zmin);
          MPoint max(xmax, ymax, zmax);
-         geom->bbox = MBoundingBox(min, max);
+         geom->m_bbox = MBoundingBox(min, max);
       } 
       
       delete []str;
@@ -890,59 +408,6 @@ bool CArnoldStandInShape::LoadBoundingBox()
    {
       return false;
    }
-}
-
-MBoundingBox CArnoldStandInShape::boundingBox() const
-{
-   // Returns the bounding box for the shape.
-   CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
-   CArnoldStandInGeom* geom = nonConstThis->geometry();
-   MPoint bbMin = geom->BBmin;
-   MPoint bbMax = geom->BBmax;
-
-   float minCoords[4];
-   float maxCoords[4];
-
-   bbMin.get(minCoords);
-   bbMax.get(maxCoords);
-
-   /*if(geom->deferStandinLoad)
-   {
-      // Calculate scaled BBox dimensions
-      float halfSize[3] =
-      {0.5f*(maxCoords[0] - minCoords[0]),
-       0.5f*(maxCoords[1] - minCoords[1]),
-       0.5f*(maxCoords[2] - minCoords[2])};
-      float center[3] =
-      {0.5f*(maxCoords[0] + minCoords[0]),
-       0.5f*(maxCoords[1] + minCoords[1]),
-       0.5f*(maxCoords[2] + minCoords[2])};
-
-      minCoords[0] = -halfSize[0]*geom->scale + center[0];
-      minCoords[1] = -halfSize[1]*geom->scale + center[1];
-      minCoords[2] = -halfSize[2]*geom->scale + center[2];
-
-      maxCoords[0] =  halfSize[0]*geom->scale + center[0];
-      maxCoords[1] =  halfSize[1]*geom->scale + center[1];
-      maxCoords[2] =  halfSize[2]*geom->scale + center[2];
-   }
-   */
-   return MBoundingBox (minCoords, maxCoords);
-
-}
-
-MSelectionMask CArnoldStandInShape::getShapeSelectionMask() const
-//
-// Description
-//     This method is overriden to support interactive object selection in Viewport 2.0
-//
-// Returns
-//
-//    The selection mask of the shape
-//
-{
-	MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
-    return MSelectionMask( selType );
 }
 
 void* CArnoldStandInShape::creator()
@@ -958,9 +423,6 @@ MStatus CArnoldStandInShape::initialize()
 
    s_attributes.SetNode("procedural");
 
-   // Why did we need to do that here ? this is invoked in translator's initialize
-   //CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
-
    s_dso = tAttr.create("dso", "dso", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);
@@ -973,16 +435,7 @@ MStatus CArnoldStandInShape::initialize()
    if (typeLabel != MString("Standin"))
       MGlobal::executeCommand("filePathEditor -registerType aiStandIn.dso -typeLabel \"Standin\"");
 
-   s_mode = eAttr.create("mode", "mode", 0);
-   eAttr.addField("Bounding Box", DM_BOUNDING_BOX);
-   eAttr.addField("Per Object Bounding Box", DM_PER_OBJECT_BOUNDING_BOX);
-   eAttr.addField("Polywire", DM_POLYWIRE);
-   eAttr.addField("Wireframe", DM_WIREFRAME);
-   eAttr.addField("Point Cloud", DM_POINT_CLOUD);
-   eAttr.addField("Shaded Polywire", DM_SHADED_POLYWIRE);
-   eAttr.addField("Shaded", DM_SHADED);
-   //eAttr.setInternal(true);
-   addAttribute(s_mode);
+   CArnoldBaseProcedural::initializeCommonAttributes();
 
    s_useFrameExtension = nAttr.create("useFrameExtension", "useFrameExtension",
          MFnNumericData::kBoolean, 0);
@@ -1006,6 +459,7 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_frameOffset);
 
+   // This "data" attribute is no longer used
    s_data = tAttr.create("data", "data", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);
@@ -1051,13 +505,7 @@ MStatus CArnoldStandInShape::initialize()
    tAttr.setStorable(true);
    addAttribute(s_namespaceName);
 
-   s_selectedItems = tAttr.create("selectedItems", "selected_items", MFnData::kString);
-   tAttr.setHidden(true);
-   tAttr.setStorable(false);
-   tAttr.setWritable(false);
-   tAttr.setInternal(true);
-   addAttribute(s_selectedItems);
-
+   
    // atributes that are used only by translation
    CAttrData data;
    
@@ -1178,117 +626,78 @@ MStatus CArnoldStandInShape::initialize()
    data.shortName = "abc_use_instance_cache";
    s_attributes.MakeInputBoolean(data);
 
-
-
    return MStatus::kSuccess;
 }
 
-//
-// This function gets the draw mode from the shape
-//
-int CArnoldStandInShape::drawMode()
+CArnoldStandInData *CArnoldStandInShape::GetStandinData()
 {
-	int mode;
-    MPlug plug(thisMObject(), s_mode);
-    plug.getValue(mode);
-    return mode;
+   return static_cast<CArnoldStandInData*>(m_data);
 }
-
-/*
-//
-// This function returns true if loading the standin should be deferred.
-//
-bool CArnoldStandInShape::deferStandinLoad()
-{
-    MPlug plug(thisMObject(), s_deferStandinLoad);
-    plug.getValue(fGeometry.deferStandinLoad);
-    return fGeometry.deferStandinLoad;
-}
-*/
 //
 // This function gets the values of all the attributes and
-// assigns them to the fGeometry. Calling MPlug::getValue
+// assigns them to the m_data-> Calling MPlug::getValue
 // will ensure that the values are up-to-date.
 //
-CArnoldStandInGeom* CArnoldStandInShape::geometry()
+void CArnoldStandInShape::updateGeometry()   
 {
-   int tmpMode = fGeometry.mode;
-   int tmpDrawOverride = fGeometry.drawOverride;
+   CArnoldStandInData *data = GetStandinData();
+   //======== Update geom data
 
-   MString tmpFilename = fGeometry.filename;
-   MString tmpDso = fGeometry.dso;
-   MString tmpData = fGeometry.data;
-   //bool tmpDeferStandinLoad =  fGeometry.deferStandinLoad;
-   //float tmpScale =  fGeometry.scale;
-   bool tmpUseFrameExtension = fGeometry.useFrameExtension;
-   float tmpFrameStep = fGeometry.frame + fGeometry.frameOffset;
-
-   MString tmpAbcLayers = fGeometry.abcLayers;
-   float tmpAbcFps = fGeometry.abcFps;
-
+   MString tmpFilename = data->filename;
+   
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_dso);
-   plug.getValue(fGeometry.dso);
-
-   plug.setAttribute(s_data);
-   plug.getValue(fGeometry.data);
-
-   plug.setAttribute(s_mode);
-   plug.getValue(fGeometry.mode);
-
+   plug.getValue(data->dso);
+   
    plug.setAttribute(s_useFrameExtension);
-   plug.getValue(fGeometry.useFrameExtension);
+   plug.getValue(data->useFrameExtension);
 
    plug.setAttribute(s_frameNumber);
-   plug.getValue(fGeometry.frame);
+   plug.getValue(data->frame);
 
    plug.setAttribute(s_useSubFrame);
-   plug.getValue(fGeometry.useSubFrame);
+   plug.getValue(data->useSubFrame);
 
    plug.setAttribute(s_frameOffset);
-   plug.getValue(fGeometry.frameOffset);
+   plug.getValue(data->frameOffset);
 
    plug.setAttribute(s_objectPath);
-   plug.getValue(fGeometry.objectPath);
+   plug.getValue(data->objectPath);
 
    plug.setAttribute(s_abcLayers);
-   plug.getValue(fGeometry.abcLayers);
+   plug.getValue(data->abcLayers);
 
    plug.setAttribute(s_abcFps);
-   plug.getValue(fGeometry.abcFps);
-
-   //plug.setAttribute(s_deferStandinLoad);
-   //plug.getValue(fGeometry.deferStandinLoad);
-   
-   //plug.setAttribute(s_scale);
-   //plug.getValue(fGeometry.scale);
+   plug.getValue(data->abcFps);
    
    plug.setAttribute(s_drawOverride); 
-   plug.getValue(fGeometry.drawOverride);
+   plug.getValue(data->drawOverride);
    
    float3 f3_value; 
  	plug.setAttribute(s_boundingBoxMin); 
  	GetPointPlugValue(plug, f3_value); 
- 	fGeometry.BBmin = MPoint(f3_value[0], f3_value[1], f3_value[2]); 
+ 	data->m_bbox.min() = MPoint(f3_value[0], f3_value[1], f3_value[2]); 
 
  	plug.setAttribute(s_boundingBoxMax); 
  	GetPointPlugValue(plug, f3_value); 
- 	fGeometry.BBmax = MPoint(f3_value[0], f3_value[1], f3_value[2]); 
+ 	data->m_bbox.max() = MPoint(f3_value[0], f3_value[1], f3_value[2]); 
 
- 	if (fGeometry.drawOverride == 0) 
+ 	if (data->drawOverride == 0) 
  	{ 
       MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
       if (!ArnoldRenderOptionsNode.isNull()) 
-         fGeometry.drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort(); 
+         data->drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort(); 
  	} 
  	else 
-      fGeometry.drawOverride -= 1;
+      data->drawOverride -= 1;
+   //====================================
 
-   float framestep = fGeometry.frame + fGeometry.frameOffset;
+   float framestep = data->frame + data->frameOffset;
 
    // If changed framestep, useFrameExtension or dso
-   if (tmpFrameStep != framestep || tmpUseFrameExtension != fGeometry.useFrameExtension || tmpDso != fGeometry.dso)
+   if (data->m_updateFilename)
    {
+      data->m_updateFilename = false;
       MString frameNumber = "0";
          
       bool subFrames = ((framestep - floor(framestep)) >= 0.001);
@@ -1305,17 +714,17 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       bool resolved = false;
       MString a, b;
 
-      start = fGeometry.dso.index('#');
-      end = fGeometry.dso.rindex('#');
+      start = data->dso.index('#');
+      end = data->dso.rindex('#');
 
       if(start >= 0)
       {
-         if(fGeometry.dso.substring(start-1,start-1) == "_")
-            newDso = fGeometry.dso.substring(0,start-2) + ".#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+         if(data->dso.substring(start-1,start-1) == "_")
+            newDso = data->dso.substring(0,start-2) + ".#" + data->dso.substring(end+1,data->dso.length());
          else
-            newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+            newDso = data->dso.substring(0,start-1) + "#" + data->dso.substring(end+1,data->dso.length());
 
-         fGeometry.dso.substring(start,end).split('.',pattern);
+         data->dso.substring(start,end).split('.',pattern);
          if(pattern.length() > 0)
          {
             framePadding = pattern[0].length();
@@ -1329,10 +738,10 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       }
       else
       {
-         newDso = fGeometry.dso;
+         newDso = data->dso;
       }
 
-      if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
+      if (subFrames || data->useSubFrame || (subFramePadding != 0))
       {
          int fullFrame = (int) floor(framestep);
          int subFrame = (int) floor((framestep - fullFrame) * 1000);
@@ -1348,14 +757,14 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       }
       frameNumber = frameExtWithDot;
 
-      resolved = MRenderUtil::exactFileTextureName(newDso, fGeometry.useFrameExtension,
-            frameNumber, fGeometry.filename);
+      resolved = MRenderUtil::exactFileTextureName(newDso, data->useFrameExtension,
+            frameNumber, data->filename);
 
       if (!resolved)
       {
          frameNumber = frameExtWithHash;
-         resolved = MRenderUtil::exactFileTextureName(newDso, fGeometry.useFrameExtension,
-            frameNumber, fGeometry.filename);
+         resolved = MRenderUtil::exactFileTextureName(newDso, data->useFrameExtension,
+            frameNumber, data->filename);
       }
 
       if (!resolved)
@@ -1364,522 +773,94 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          //  find the file.
          if (start >= 0)
          {
-            MString baseName = fGeometry.dso.substring(0,start-1) + frameExt + fGeometry.dso.substring(end+1,fGeometry.dso.length());
-            resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, fGeometry.filename);
+            MString baseName = data->dso.substring(0,start-1) + frameExt + data->dso.substring(end+1,data->dso.length());
+            resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, data->filename);
          }
       }
 
       if (!resolved)
       {
-         fGeometry.filename = fGeometry.dso;
+         data->filename = data->dso;
       }
    }
-   
-   // Check if something has changed that requires us to reload the .ass (or at least the bounding box)
-   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride || tmpFrameStep != framestep || tmpAbcLayers != fGeometry.abcLayers || tmpAbcFps != fGeometry.abcFps))
-   {
-      // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
-      // If we can't, we have to load the .ass file and compute it ourselves
-      if (fGeometry.mode != 0 || !LoadBoundingBox())
-         GetPointsFromAss();
-      
-      MPoint bbMin = fGeometry.bbox.min();
-      MPoint bbMax = fGeometry.bbox.max();
-      // If BBox has zero size, make it default size
-      if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
-      {
-         float3 m_value;
-         plug.setAttribute(s_boundingBoxMin);
-         GetPointPlugValue(plug, m_value);
-         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
+   if (data->filename.length() == 0)
+      return; // early out for empty procedurals
+   if (data->filename != tmpFilename)
+      data->m_loadFile = true;
 
-         plug.setAttribute(s_boundingBoxMax);
-         GetPointPlugValue(plug, m_value);
-         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-
-         fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
-         
-      }
-      else
-      {
-         float3 m_value;
-         m_value[0] = (float)bbMin.x;
-         m_value[1] = (float)bbMin.y;
-         m_value[2] = (float)bbMin.z;
-         plug.setAttribute(s_boundingBoxMin);
-         SetPointPlugValue(plug, m_value);
-         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
-
-         m_value[0] = (float)bbMax.x;
-         m_value[1] = (float)bbMax.y;
-         m_value[2] = (float)bbMax.z;
-         plug.setAttribute(s_boundingBoxMax);
-         SetPointPlugValue(plug, m_value);
-         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-      }
-      fGeometry.updateView = true;
-   }
-
-   return &fGeometry;
-}
-
-void CArnoldStandInShape::UpdateSelectedItems()
-{
-   MPlug selPlug(thisMObject(), s_selectedItems);
-   MString selectedItems;
-   selPlug.getValue(selectedItems);
-   MStringArray selectedItemsList;
-
-   MStringArray xformSelections;
-   if (selectedItems.length() > 0)
-   {
-      selectedItems.split(',', selectedItemsList);
-   }
-   unordered_set<std::string> selectedMap;
-   for (unsigned int i = 0; i < selectedItemsList.length(); ++i)
-   {
-      const MString &sel = selectedItemsList[i];
-      if (sel.asChar()[sel.length() - 1] == '*')
-      {
-         xformSelections.append(sel.substringW(0, sel.length() - 2));
-      }
-      else
-         selectedMap.insert(std::string(sel.asChar()));
-   }
-   
-   CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
-   CArnoldStandInGeom* geom = nonConstThis->geometry();
-   geom->hasSelection = false;
-   for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin(); it != geom->m_geometryList.end(); ++it)
-   {
-      CArnoldStandInGeometry* g = it->second;
-      MString nodeName(it->first.c_str());
-
-      bool selected = false;
-
-      if (g)
-      {
-         bool selected = (selectedMap.find(std::string(nodeName.asChar())) != selectedMap.end());
-         if (!selected)
-         {
-            for (unsigned int i = 0; i < xformSelections.length(); ++i)
-            {
-               const MString &sel = xformSelections[i];
-               if (nodeName.length() > sel.length() && nodeName.substringW(0, sel.length() - 1) == sel)
-                  selected = true;
-            }
-         }
-         if (selected)
-            geom->hasSelection = true;
-
-         g->SetSelected(selected);
-      }
-      
-   }
-}
-void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
-{
-   CArnoldStandInShape *node = static_cast<CArnoldStandInShape*>(clientData);
-   if (!node)
-      return; 
-
-   MFnAttribute fnAttr(plug.attribute());
-   MString attrName = fnAttr.name();
-
-   if (plug == s_selectedItems)
-   {
-      node->UpdateSelectedItems();
-   }
-}
-
-// UI IMPLEMENTATION
-
-CArnoldStandInShapeUI::CArnoldStandInShapeUI()
-{
-}
-CArnoldStandInShapeUI::~CArnoldStandInShapeUI()
-{
-}
-
-void* CArnoldStandInShapeUI::creator()
-{
-   return new CArnoldStandInShapeUI();
-}
-
-void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objectAndActiveOnly*/,
-      MDrawRequestQueue & queue)
-{
-   // Are we displaying meshes?
-   if (!info.objectDisplayStatus(M3dView::kDisplayMeshes))
+   // if draw is disabled
+   if (data->drawOverride == 3)
       return;
 
-   // Do we enable display of standins?
-   int drawOverride = 0;
-   MStatus status;
-   MFnDependencyNode dNode(info.multiPath().node(), &status);
-   if (status)
+   // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
+   // If we can't, we have to load the .ass file and compute it ourselves
+   if (m_data->m_mode != 0 || !LoadBoundingBox()) {
+
+      LoadFile();
+   }
+
+   MPoint bbMin = m_data->m_bbox.min();
+   MPoint bbMax = m_data->m_bbox.max();
+   // If BBox has zero size, make it default size
+   if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
    {
-      MPlug plug = dNode.findPlug("standInDrawOverride", true, &status);
-      if (!plug.isNull() && status)
+      float3 m_value;
+      plug.setAttribute(s_boundingBoxMin);
+      GetPointPlugValue(plug, m_value);
+      m_data->m_bbox.min() = MPoint(m_value[0], m_value[1], m_value[2]);
+
+      plug.setAttribute(s_boundingBoxMax);
+      GetPointPlugValue(plug, m_value);
+      m_data->m_bbox.max() = MPoint(m_value[0], m_value[1], m_value[2]);
+      
+   }
+   else
+   {
+      float3 m_value;
+      m_value[0] = (float)bbMin.x;
+      m_value[1] = (float)bbMin.y;
+      m_value[2] = (float)bbMin.z;
+      plug.setAttribute(s_boundingBoxMin);
+      SetPointPlugValue(plug, m_value);
+      m_data->m_bbox.min() = MPoint(m_value[0], m_value[1], m_value[2]);
+
+      m_value[0] = (float)bbMax.x;
+      m_value[1] = (float)bbMax.y;
+      m_value[2] = (float)bbMax.z;
+      plug.setAttribute(s_boundingBoxMax);
+      SetPointPlugValue(plug, m_value);
+      m_data->m_bbox.max() = MPoint(m_value[0], m_value[1], m_value[2]);
+   }
+}
+
+MStatus CArnoldStandInShape::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
+{
+   CArnoldStandInData *data = GetStandinData();
+   if (data)
+   {
+
+      // Signal to VP2 that we require an update. By default, do it for any attribute
+      //MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
+      if (plug == s_useFrameExtension || plug == s_frameNumber || plug == s_useSubFrame || 
+         plug == s_frameOffset || plug == s_dso)
       {
-         const int localDrawOverride = plug.asShort();
-         if (localDrawOverride == 0) // use global settings
+         data->m_updateFilename = true;
+         data->m_isDirty = true;
+         data->m_loadFile = true;
+      } else if (plug == s_drawOverride || plug == s_abcFps || plug == s_abcFps)
+      {
+         data->m_isDirty = true;
+         data->m_loadFile = true;
+      } else 
+      {
+         MString plugName = plug.partialName(false, false, false, false, false, true);
+         if (plugName == MString("mode"))
          {
-            MObject ArnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
-            if (!ArnoldRenderOptionsNode.isNull())
-               drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort();
+            data->m_isDirty = true;
+            data->m_loadFile = true;
          }
-         else
-            drawOverride = localDrawOverride - 1;
       }
    }
-
-   if (drawOverride == 2) // draw is disabled
-      return;
-
-   // The draw data is used to pass geometry through the
-   // draw queue. The data should hold all the information
-   // needed to draw the shape.
-   //
-   MDrawData data;
-   MDrawRequest request = info.getPrototype(*this);
-   CArnoldStandInShape* shapeNode = reinterpret_cast<CArnoldStandInShape*>(surfaceShape());
-   CArnoldStandInGeom* geom = shapeNode->geometry();
-   geom->drawOverride = drawOverride;
-   getDrawData(geom, data);
-   request.setDrawData(data);
-
-   // Use mode status to determine how to display object
-   // why was there a switch if everything executed the same code??
-   getDrawRequestsWireFrame(request, info);
-   queue.add(request);
+   CArnoldBaseProcedural::setDependentsDirty(plug, plugArray);
+   return MS::kSuccess;
 }
-
-void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) const
-{
-   MDrawData data = request.drawData();
-   CArnoldStandInGeom * geom = (CArnoldStandInGeom*) data.geometry();
-   view.beginGL();
-   glPushAttrib(GL_ALL_ATTRIB_BITS);
-   glEnable(GL_DEPTH_TEST);
-   glDepthFunc(GL_LEQUAL);
-
-   if (geom->updateView || geom->updateBBox)
-   {
-      if (geom->dList == 0)
-         geom->dList = glGenLists(2);
-
-      // Only show scaled BBox in this case
-      /*
-      if(geom->deferStandinLoad)
-      {
-         float minPt[4];
-         float maxPt[4];
-         geom->BBmin.get(minPt);
-         geom->BBmax.get(maxPt);
-         
-         // Calculate scaled BBox dimensions
-         float halfSize[3] =
-         {0.5f*(maxPt[0] - minPt[0]), 0.5f*(maxPt[1] - minPt[1]), 0.5f*(maxPt[2] - minPt[2])};
-         float center[3] =
-         {0.5f*(maxPt[0] + minPt[0]), 0.5f*(maxPt[1] + minPt[1]), 0.5f*(maxPt[2] + minPt[2])};
-         float sbottomLeftFront[3] =
-         {-halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float stopLeftFront[3] =
-         {-halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float sbottomRightFront[3] =
-         { halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float stopRightFront[3] =
-         { halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float sbottomLeftBack[3] =
-         {-halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-         float stopLeftBack[3] =
-         {-halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-         float sbottomRightBack[3] =
-         { halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-         float stopRightBack[3] =
-         { halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-               
-         glNewList(geom->dList+1, GL_COMPILE);
-         glBegin(GL_LINE_STRIP);
-         glVertex3fv(sbottomLeftFront);
-         glVertex3fv(sbottomLeftBack);
-         glVertex3fv(stopLeftBack);
-         glVertex3fv(stopLeftFront);
-         glVertex3fv(sbottomLeftFront);
-         glVertex3fv(sbottomRightFront);
-         glVertex3fv(sbottomRightBack);
-         glVertex3fv(stopRightBack);
-         glVertex3fv(stopRightFront);
-         glVertex3fv(sbottomRightFront);
-         glEnd();
-         
-         glBegin(GL_LINES);
-         glVertex3fv(sbottomLeftBack);
-         glVertex3fv(sbottomRightBack);
-
-         glVertex3fv(stopLeftBack);
-         glVertex3fv(stopRightBack);
-
-         glVertex3fv(stopLeftFront);
-         glVertex3fv(stopRightFront);
-         glEnd();
-         glEndList();
-      }*/
-      geom->updateBBox = false;
-   }
-   
-   if (geom->updateView)
-   {
-      float minPt[4];
-      float maxPt[4];
-      geom->BBmin.get(minPt);
-      geom->BBmax.get(maxPt);
-      float bottomLeftFront[3] =
-      { minPt[0], minPt[1], minPt[2] };
-      float topLeftFront[3] =
-      { minPt[0], maxPt[1], minPt[2] };
-      float bottomRightFront[3] =
-      { maxPt[0], minPt[1], minPt[2] };
-      float topRightFront[3] =
-      { maxPt[0], maxPt[1], minPt[2] };
-      float bottomLeftBack[3] =
-      { minPt[0], minPt[1], maxPt[2] };
-      float topLeftBack[3] =
-      { minPt[0], maxPt[1], maxPt[2] };
-      float bottomRightBack[3] =
-      { maxPt[0], minPt[1], maxPt[2] };
-      float topRightBack[3] =
-      { maxPt[0], maxPt[1], maxPt[2] };
-
-      glMatrixMode(GL_MODELVIEW);
-
-      switch (geom->mode)
-      {
-      case DM_BOUNDING_BOX:
-         glNewList(geom->dList, GL_COMPILE);
-         glBegin(GL_LINE_STRIP);
-
-         glVertex3fv(bottomLeftFront);
-         glVertex3fv(bottomLeftBack);
-         glVertex3fv(topLeftBack);
-         glVertex3fv(topLeftFront);
-         glVertex3fv(bottomLeftFront);
-         glVertex3fv(bottomRightFront);
-         glVertex3fv(bottomRightBack);
-         glVertex3fv(topRightBack);
-         glVertex3fv(topRightFront);
-         glVertex3fv(bottomRightFront);
-         glEnd();
-
-         glBegin(GL_LINES);
-         glVertex3fv(bottomLeftBack);
-         glVertex3fv(bottomRightBack);
-
-         glVertex3fv(topLeftBack);
-         glVertex3fv(topRightBack);
-
-         glVertex3fv(topLeftFront);
-         glVertex3fv(topRightFront);
-         glEnd();
-         glEndList();
-         break;
-      case DM_PER_OBJECT_BOUNDING_BOX:
-         glNewList(geom->dList, GL_COMPILE);
-         geom->Draw(GM_BOUNDING_BOX);
-         glEndList();
-         break;
-      case DM_POLYWIRE: // filled polygon
-         glNewList(geom->dList, GL_COMPILE);
-         glPushAttrib(GL_CURRENT_BIT);
-         glEnable(GL_POLYGON_OFFSET_FILL);         
-         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-         geom->Draw(GM_POLYGONS);         
-         glPopAttrib();
-         geom->Draw(GM_WIREFRAME);         
-         glEndList();
-         break;
-
-      case DM_WIREFRAME: // wireframe
-         glNewList(geom->dList, GL_COMPILE);
-         geom->Draw(GM_WIREFRAME);
-         glEndList();         
-         break;
-
-      case DM_POINT_CLOUD: // points
-         glPushAttrib(GL_CURRENT_BIT);
-         glEnable(GL_POINT_SMOOTH);
-         // Make round points, not square points and not working
-         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-         glEnable(GL_BLEND);
-         glDepthMask(GL_TRUE);
-         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-         glNewList(geom->dList, GL_COMPILE);
-         geom->Draw(GM_POINTS);
-         glEndList();
-         
-         glDisable(GL_POINT_SMOOTH);
-         glPopAttrib();
-         break;
-      case DM_SHADED_POLYWIRE: // shaded polywire
-         {
-            glNewList(geom->dList, GL_COMPILE);
-            const bool enableLighting = view.displayStyle() == M3dView::kGouraudShaded;
-            if (enableLighting)
-            {
-               glEnable(GL_LIGHTING);
-               glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-               glEnable(GL_COLOR_MATERIAL);
-            }
-            glPushAttrib(GL_CURRENT_BIT);
-            glEnable(GL_POLYGON_OFFSET_FILL);                  
-            glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-            geom->Draw(GM_NORMAL_AND_POLYGONS);
-            glPopAttrib();
-            if (enableLighting)
-            {
-               glDisable(GL_LIGHTING);
-               glDisable(GL_COLOR_MATERIAL);
-            }
-            geom->Draw(GM_WIREFRAME);
-            glEndList();
-         }
-         break;
-      case DM_SHADED: // shaded
-         {
-            glNewList(geom->dList, GL_COMPILE);
-            const bool enableLighting = view.displayStyle() == M3dView::kGouraudShaded;
-            if (enableLighting)
-            {
-               glEnable(GL_LIGHTING);
-               glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-               glEnable(GL_COLOR_MATERIAL);
-            }
-            glPushAttrib(GL_ALL_ATTRIB_BITS);         
-            glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-            geom->Draw(GM_NORMAL_AND_POLYGONS);
-            glPopAttrib();
-            if (enableLighting)
-            {
-               glDisable(GL_LIGHTING);
-               glDisable(GL_COLOR_MATERIAL);
-            }
-            glEndList();
-         }
-         break;
-      }
-      geom->Clear();
-      geom->updateView = false;
-   }
-
-   if (geom->drawOverride == 1 || geom->drawOverride == 3 )
-   {
-      MBoundingBox m_bbox = geom->bbox;
-      float minPt[4];
-      float maxPt[4];
-      geom->BBmin.get(minPt);
-      geom->BBmax.get(maxPt);
-      const float bottomLeftFront[3] =
-      { minPt[0], minPt[1], minPt[2] };
-      const float topLeftFront[3] =
-      { minPt[0], maxPt[1], minPt[2] };
-      const float bottomRightFront[3] =
-      { maxPt[0], minPt[1], minPt[2] };
-      const float topRightFront[3] =
-      { maxPt[0], maxPt[1], minPt[2] };
-      const float bottomLeftBack[3] =
-      { minPt[0], minPt[1], maxPt[2] };
-      const float topLeftBack[3] =
-      { minPt[0], maxPt[1], maxPt[2] };
-      const float bottomRightBack[3] =
-      { maxPt[0], minPt[1], maxPt[2] };
-      const float topRightBack[3] =
-      { maxPt[0], maxPt[1], maxPt[2] };
-
-      glBegin(GL_LINE_STRIP);
-      glVertex3fv(bottomLeftFront);
-      glVertex3fv(bottomLeftBack);
-      glVertex3fv(topLeftBack);
-      glVertex3fv(topLeftFront);
-      glVertex3fv(bottomLeftFront);
-      glVertex3fv(bottomRightFront);
-      glVertex3fv(bottomRightBack);
-      glVertex3fv(topRightBack);
-      glVertex3fv(topRightFront);
-      glVertex3fv(bottomRightFront);
-      glEnd();
-
-      glBegin(GL_LINES);
-      glVertex3fv(bottomLeftBack);
-      glVertex3fv(bottomRightBack);
-
-      glVertex3fv(topLeftBack);
-      glVertex3fv(topRightBack);
-
-      glVertex3fv(topLeftFront);
-      glVertex3fv(topRightFront);
-      glEnd();
-   }
-   else if (geom->dList != 0)
-   {      
-      glCallList(geom->dList);
-      // Draw scaled BBox
-      //if(geom->deferStandinLoad)
-      //   glCallList(geom->dList+1);
-   }
-   glPopAttrib();
-   view.endGL();
-}
-
-void CArnoldStandInShapeUI::getDrawRequestsWireFrame(MDrawRequest& request, const MDrawInfo& info)
-{
-   request.setToken(kDrawBoundingBox);
-   M3dView::DisplayStatus displayStatus = info.displayStatus();
-   M3dView::ColorTable activeColorTable = M3dView::kActiveColors;
-   M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
-   switch (displayStatus)
-   {
-   case M3dView::kLead:
-      request.setColor(LEAD_COLOR, activeColorTable);
-      break;
-   case M3dView::kActive:
-      request.setColor(ACTIVE_COLOR, activeColorTable);
-      break;
-   case M3dView::kActiveAffected:
-      request.setColor(ACTIVE_AFFECTED_COLOR, activeColorTable);
-      break;
-   case M3dView::kDormant:
-      request.setColor(DORMANT_COLOR, dormantColorTable);
-      break;
-   case M3dView::kHilite:
-      request.setColor(HILITE_COLOR, activeColorTable);
-      break;
-   default:
-      break;
-   }
-
-}
-
-bool CArnoldStandInShapeUI::select(MSelectInfo &selectInfo, MSelectionList &selectionList,
-      MPointArray &worldSpaceSelectPts) const
-{
-//
-// Select function. Gets called when the bbox for the object is selected.
-// This function just selects the object without doing any intersection tests.
-//
-// Arguments:
-//
-//     selectInfo           - the selection state information
-//     selectionList        - the list of selected items to add to
-//     worldSpaceSelectPts  -
-//
-   MSelectionMask priorityMask(MSelectionMask::kSelectMeshes);
-   MSelectionList item;
-   item.add(selectInfo.selectPath());
-   MPoint xformedPt;
-
-   selectInfo.addSelection(item, xformedPt, selectionList, worldSpaceSelectPts, priorityMask, false);
-   return true;
-
-}
-

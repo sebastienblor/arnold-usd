@@ -441,7 +441,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             creator    = CArnoldProceduralNode::creator;
             initialize = CArnoldProceduralNode::initialize;
             abstract   = &CArnoldProceduralNode::s_abstract;
-            classification = "drawdb/geometry/arnold/procedural"; // should we also be using "subscene" for versions >= 2017 as the standin do ?
+            classification = "drawdb/subscene/arnold/procedural/" + arnoldNodeTypeName;
          }
       } else if (arnoldNodeTypeName == "operator")
       {
