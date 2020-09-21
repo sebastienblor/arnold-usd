@@ -120,9 +120,10 @@ class ImagerStackModel(BaseModel):
 
             if elemConnection and len(elemConnection) > 0:
                 imager = elemConnection[0].split('.')[0]
-                enabled = cmds.getAttr('{}.enable'.format(imager))
-                ImagerItem(self.rootItem, imager, enabled)
-                self.imagers.append(imager)
+                if cmds.objExists(imager) and cmds.attributeQuery('enable', node=imager, exists=True):
+                    enabled = cmds.getAttr('{}.enable'.format(imager))
+                    ImagerItem(self.rootItem, imager, enabled)
+                    self.imagers.append(imager)
 
         self.endResetModel()
 
