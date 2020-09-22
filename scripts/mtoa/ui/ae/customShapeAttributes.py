@@ -99,7 +99,11 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 
     def updateAutobump(self, nodeAttr, *args):
         enabled = cmds.checkBox(self.aiAutobumpCtrl, q=True, value=True)
-        cmds.setAttr(nodeAttr, enabled)
+        previousEnable = True if cmds.getAttr(nodeAttr) else False
+        # only call setAttr if the value is actually different, or
+        # this will trigger an IPR refresh #4344
+        if previousEnable != enabled:
+            cmds.setAttr(nodeAttr, enabled)
         cmds.checkBox(self.aiAutobumpCamCtrl, edit=True, enable = enabled)
         cmds.checkBox(self.aiAutobumpDiffReflCtrl, edit=True, enable = enabled)
         cmds.checkBox(self.aiAutobumpDiffTransCtrl, edit=True, enable = enabled)
