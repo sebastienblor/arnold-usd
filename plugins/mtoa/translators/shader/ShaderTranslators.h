@@ -194,6 +194,8 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
 };
 
 class CAiImageTranslator : public CShaderTranslator{
