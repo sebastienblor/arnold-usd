@@ -262,7 +262,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       // Start off the render.
       // Unless we are in "open" mode
-      renderSession->RunRenderView();
+      CMayaScene::GetRenderSession()->SetRenderViewOption("Run IPR", "1");
+      //renderSession->RunRenderView();
    } else if (mode == "stop")
    {
       if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
