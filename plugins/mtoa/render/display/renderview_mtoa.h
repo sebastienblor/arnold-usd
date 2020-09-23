@@ -71,7 +71,7 @@ public:
    virtual void NodeParamChanged(AtNode *node, const char *paramName);
    virtual void RenderViewClosed(bool close_ui);
    virtual void RenderOptionsClosed();
-   virtual void Resize(int width, int height);
+   virtual void Resize(int width, int height, bool drawableArea = false);
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
