@@ -120,9 +120,10 @@ class ImagerStackModel(BaseModel):
 
             if elemConnection and len(elemConnection) > 0:
                 imager = elemConnection[0].split('.')[0]
-                enabled = cmds.getAttr('{}.enable'.format(imager))
-                ImagerItem(self.rootItem, imager, enabled)
-                self.imagers.append(imager)
+                if cmds.objExists(imager) and cmds.attributeQuery('enable', node=imager, exists=True):
+                    enabled = cmds.getAttr('{}.enable'.format(imager))
+                    ImagerItem(self.rootItem, imager, enabled)
+                    self.imagers.append(imager)
 
         self.endResetModel()
 
@@ -307,15 +308,14 @@ class ImagersUI(object):
         cmds.setParent(parent)
 
         self.currentWidget = toQtObject(cmds.setParent(query=True), QtWidgets.QWidget)
-        self.fileContents = QtWidgets.QFrame(self.currentWidget)
-        self.fileContents.setLayout(QtWidgets.QVBoxLayout(self.fileContents))
-        self.currentWidget.layout().addWidget(self.fileContents)
+        self.frame = QtWidgets.QFrame(self.currentWidget)
+        self.frame.setLayout(QtWidgets.QVBoxLayout(self.frame))
+        self.currentWidget.layout().addWidget(self.frame)
         self.imagerStack = ImagerStackView(None, self.currentWidget)
         self.imagerStack.setObjectName("ImagerStackWidget")
-        self.fileContents.layout().addWidget(self.imagerStack)
+        self.frame.layout().addWidget(self.imagerStack)
         self.updateImagers()
         cmds.setParent('..')
-
 
     def updateImagers(self):
         self.imagerStack.model().refresh()

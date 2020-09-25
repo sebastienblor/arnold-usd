@@ -1337,7 +1337,7 @@ def createArnoldImagerSettings():
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
 
-    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', width=400,
+    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', width=400, height=200,
                         collapsable=True, collapse=True)
 
     _imagerUI = imagers.ImagersUI(imagerShadersFrame)

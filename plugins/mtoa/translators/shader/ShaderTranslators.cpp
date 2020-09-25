@@ -2929,6 +2929,21 @@ AtNode* CAiStandardHairTranslator::CreateArnoldNodes()
    return AddArnoldNode("standard_hair");
 }
 
+void CAiStandardHairTranslator::NodeChanged(MObject& node, MPlug& plug)
+{   
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
+   // aiTransparency is an attribute created specially for VP2, we want to 
+   // ignore it otherwise this can refresh the IPR over and over #4341
+   if (plugName.substringW(0, 13) == MString("aiTransparency"))
+      return;
+   
+   if (plugName == "aiEnableMatte" || plugName == "aiMatteColor" || plugName == "aiMatteColorA" )
+         SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
+
 AtNode* CAiImageTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("image");

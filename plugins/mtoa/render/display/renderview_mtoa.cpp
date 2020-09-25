@@ -1831,7 +1831,7 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
    CMayaScene::ExecuteScript(m_progressiveRenderFinished, false, true);
 }
 
-void CRenderViewMtoA::Resize(int width, int height)
+void CRenderViewMtoA::Resize(int width, int height, bool drawableArea)
 {
 #ifdef ARV_DOCKED
    if (s_arvWorkspaceControl == NULL)

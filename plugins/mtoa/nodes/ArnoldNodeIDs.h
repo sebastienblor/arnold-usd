@@ -184,19 +184,12 @@
 #define ARNOLD_NODEID_IMAGER_COLOR_CORRECT       0x00115DB6
 #define ARNOLD_NODEID_IMAGER_LENS_EFFECT         0x00115DB7
 #define ARNOLD_NODEID_IMAGER_WHITE_BALANCE       0x00115DB8
-
+#define ARNOLD_NODEID_IMAGER_TONEMAP             0x00115DB9
 
 #define ARNOLD_NODEID_SHADER_MATERIALX           0x00115DBA
 #define ARNOLD_NODEID_SHADER_AOV_WRITE_VECTOR    0x00115DBB
 #define ARNOLD_NODEID_OPERATOR_STRING_REPLACE    0x00115DBC
-// FIXME id 0x00115DB9 was accidentally skipped. 
-
-//0x00115DBD is for bifrost
-
-// Be sure to pick it next time a node is added
-
-
-
+//0x00115DBD is for ArnoldBifrostShape
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00

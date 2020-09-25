@@ -122,9 +122,9 @@ AbcGeom::GeometryScope mtoaStrToScope(std::string &  plugName)
     // mtoa_*_attrName string
     if (strncmp(plugName.c_str(), "mtoa_constant_", 14) == 0)
         return AbcGeom::kConstantScope;
-    else if (!strncmp(plugName.c_str(), "mtoa_uniform_", 13) == 0)
+    else if (strncmp(plugName.c_str(), "mtoa_uniform_", 13) == 0)
         return AbcGeom::kUniformScope;
-    else if (!strncmp(plugName.c_str(), "mtoa_varying_", 13) == 0)
+    else if (strncmp(plugName.c_str(), "mtoa_varying_", 13) == 0)
         return AbcGeom::kVaryingScope;
     return AbcGeom::kConstantScope;
 }

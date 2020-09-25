@@ -2557,12 +2557,13 @@ void CArnoldSession::ExportTxFiles()
 
 //================= Part 2 : run MakeTX on the necessary textures   
 
-   MString arv_msg("Converting ");
-   arv_msg += (int) listTextures.size();
-   arv_msg += " textures to .TX....";
-   CMayaScene::GetRenderSession()->SetRenderViewStatusInfo(arv_msg);
-
-      
+   if (!listTextures.empty())
+   {
+      MString arv_msg("Converting ");
+      arv_msg += (int) listTextures.size();
+      arv_msg += " textures to .TX....";
+      CMayaScene::GetRenderSession()->SetRenderViewStatusInfo(arv_msg);
+   }
 
    // We now have the full list of textures, let's loop over them
    for (unsigned int i = 0; i < listTextures.size(); ++i)
