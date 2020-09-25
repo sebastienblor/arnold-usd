@@ -154,7 +154,7 @@ static MString GetBaseBobPath()
 
 void CBifShapeTranslator::NodeInitializer(CAbTranslator context)
 {
-   if (BifrostUtils::LoadBifrostProcedural())
+   if (!BifrostUtils::LoadBifrostProcedural())
       AiMsgWarning("Bifrost procedural could not be found: %s", BifrostUtils::GetBifrostProceduralPath().asChar());
 
    MNodeClass bifrostClass(MString("bifrostGraphShape"));
