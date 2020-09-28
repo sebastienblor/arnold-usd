@@ -40,7 +40,15 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 
    MString dso = FindMayaPlug("dso").asString();
    if (dso.length() == 0)
+   {
+      MPlug overridesPlug = FindMayaPlug("overrides");
+      if (overridesPlug.numElements() > 0)
+      {
+         m_isUsd = true;
+         return AddArnoldNode("usd");  
+      }
       return NULL;
+   }
 
    MStringArray splitStr;
    dso.split('.', splitStr);
@@ -206,6 +214,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
       // note that the attribute name is slightly different than in the alembic procedural
       AiNodeSetStr(node, "object_path", objectpath.asChar());
       AiNodeSetFlt(node, "frame", framestep);
+      ProcessParameter(node, "overrides", AI_TYPE_ARRAY);
    }
 }
 
@@ -221,7 +230,7 @@ void CArnoldStandInsTranslator::NodeChanged(MObject& node, MPlug& plug)
       plugName == "standInDrawOverride" || plugName == "mode") return;
 
    // Since the created arnold type depends on the dso, we need to recreate the geometry if it changes
-   if (plugName == "dso")
+   if (plugName == "dso" || plugName == "overrides")
       SetUpdateMode(AI_RECREATE_NODE);
 
    if (plugName == "ignoreGroupNodes")

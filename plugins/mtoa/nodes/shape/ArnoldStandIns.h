@@ -37,6 +37,8 @@ public:
    float abcFps;
    bool m_updateFilename;
    bool m_loadFile;
+   bool m_hasOverrides;
+
 };
 
 // Shape class - defines the non-UI part of a shape node
@@ -86,6 +88,7 @@ private:
    static MObject s_objectPath;
    static MObject s_abcLayers;
    static MObject s_abcFps;
+   static MObject s_overrides;
 
 }; // class CArnoldStandInShape
 

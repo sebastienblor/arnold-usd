@@ -75,6 +75,7 @@ MObject CArnoldStandInShape::s_ignoreGroupNodes;
 MObject CArnoldStandInShape::s_objectPath;
 MObject CArnoldStandInShape::s_abcLayers;
 MObject CArnoldStandInShape::s_abcFps;
+MObject CArnoldStandInShape::s_overrides;
 
 CArnoldStandInData::CArnoldStandInData() : CArnoldProceduralData()
 {
@@ -89,6 +90,7 @@ CArnoldStandInData::CArnoldStandInData() : CArnoldProceduralData()
    drawOverride = 0;
    m_loadFile = true;
    m_updateFilename = true;
+   m_hasOverrides = false;
 }
 
 CArnoldStandInData::~CArnoldStandInData()
@@ -110,8 +112,8 @@ MStatus CArnoldStandInShape::LoadFile()
    CArnoldStandInData* geom = GetStandinData();
    if (geom == NULL)
       return MS::kFailure;
-
-   if (!geom->m_loadFile)
+   
+   if (!geom->m_loadFile && !geom->m_hasOverrides)
       return MS::kSuccess;
 
    geom->m_loadFile = false;
@@ -121,7 +123,7 @@ MStatus CArnoldStandInShape::LoadFile()
    bool AiUniverseCreated = false;
    bool free_render = false;
    AtUniverse *universe = NULL;
-   if (assfile != "")
+   if (assfile != "" || geom->m_hasOverrides)
    {       
       bool processRead = false;
       bool isSo = false;
@@ -137,6 +139,8 @@ MStatus CArnoldStandInShape::LoadFile()
 
       if (splitStr.length() > 1)
          ext = splitStr[splitStr.length() -1].toLowerCase();
+      else if (geom->m_hasOverrides)
+         ext = "usd";
       
       if (ext == "so")
       {
@@ -159,6 +163,8 @@ MStatus CArnoldStandInShape::LoadFile()
          isAbc = true;
       else if (ext == "usd" || ext == "usda" || ext == "usdc")
          isUsd = true;      
+      else if (geom->m_hasOverrides)
+         isUsd = true;
 
       if (!AiUniverseIsActive())
       {
@@ -238,7 +244,16 @@ MStatus CArnoldStandInShape::LoadFile()
          AiNodeSetFlt(proc, "frame", frameStep);
          MPlug objectPathPlug(thisMObject(), s_objectPath);
          AiNodeSetStr(proc, "object_path", objectPathPlug.asString().asChar());
-         
+         if (geom->m_hasOverrides)
+         {
+            MPlug overridesPlug(thisMObject(), s_overrides);
+            int numOverrides = overridesPlug.numElements();
+            AtArray* overridesArray = AiArrayAllocate(numOverrides, 1, AI_TYPE_STRING);
+            for (int o = 0; o < numOverrides; ++o)
+               AiArraySetStr(overridesArray, o, overridesPlug[o].asString().asChar());
+            
+            AiNodeSetArray(proc, "overrides", overridesArray);
+         }
       } else
          proc = AiNode(proc_universe, "procedural", name().asChar());
 
@@ -505,7 +520,13 @@ MStatus CArnoldStandInShape::initialize()
    tAttr.setStorable(true);
    addAttribute(s_namespaceName);
 
-   
+   s_overrides = tAttr.create("overrides", "overrides", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setStorable(true);
+   tAttr.setArray(true);
+   addAttribute(s_overrides);
+
+
    // atributes that are used only by translation
    CAttrData data;
    
@@ -682,6 +703,9 @@ void CArnoldStandInShape::updateGeometry()
  	GetPointPlugValue(plug, f3_value); 
  	data->m_bbox.max() = MPoint(f3_value[0], f3_value[1], f3_value[2]); 
 
+   MPlug overPlug(thisMObject(), s_overrides);
+   data->m_hasOverrides = (overPlug.numElements() > 0);
+
  	if (data->drawOverride == 0) 
  	{ 
       MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
@@ -783,8 +807,9 @@ void CArnoldStandInShape::updateGeometry()
          data->filename = data->dso;
       }
    }
-   if (data->filename.length() == 0)
+   if (data->filename.length() == 0 && !data->m_hasOverrides)
       return; // early out for empty procedurals
+
    if (data->filename != tmpFilename)
       data->m_loadFile = true;
 
@@ -854,7 +879,7 @@ MStatus CArnoldStandInShape::setDependentsDirty( const MPlug& plug, MPlugArray& 
       } else 
       {
          MString plugName = plug.partialName(false, false, false, false, false, true);
-         if (plugName == MString("mode"))
+         if (plugName == MString("mode") || plugName == "overrides")
          {
             data->m_isDirty = true;
             data->m_loadFile = true;

@@ -1089,6 +1089,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('doubleSided', label='   Double-Sided')
         self.addControl('overrideMatte', changeCommand=self.updateOverridesVisibility, label='Override Matte')
         self.addControl('aiMatte', label='   Matte')
+        self.addSeparator()
+        self.addControl('overrides', label='USD Overrides')
         self.endLayout()
 
         self.endNoOptimize()
