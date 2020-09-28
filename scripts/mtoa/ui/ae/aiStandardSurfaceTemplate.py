@@ -66,7 +66,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         cmds.editorTemplate(dimControl=(nodeName, 'transmissionDispersion', dim_transmission_interior))
         cmds.editorTemplate(dimControl=(nodeName, 'transmissionExtraRoughness', dim_transmission_interior))
         cmds.editorTemplate(dimControl=(nodeName, 'transmitAovs', dim_transmission))
-        cmds.editorTemplate(dimControl=(nodeName, 'transmitAovs', dim_transmission))
+        cmds.editorTemplate(dimControl=(nodeName, 'dielectricPriority', dim_transmission))
 
         dim_subsurface = metal_1 or transmission_1 or subsurface_0
         dim_subsurface_radius = dim_subsurface or thin_walled
