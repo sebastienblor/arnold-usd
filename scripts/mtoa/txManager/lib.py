@@ -143,21 +143,21 @@ class TxProcessor(QtCore.QObject):
             # but in case it hasn't been updated correctly
             # it's still better to ask maya again what is the color space
             nodes = [x.split('.')[0] for x in textureData['usage']]
-            colorSpace = 'auto'
+            detected_colorSpace = colorSpace = 'auto'
             conflictSpace = False
+
+            if textureData['colorspace'] != '':
+                colorSpace = textureData['colorspace']
 
             for node in nodes:
                 if not cmds.attributeQuery("colorSpace", node=node, exists=True):
                     continue
 
                 nodeColorSpace = cmds.getAttr(node+'.colorSpace')
-                if colorSpace != 'auto' and colorSpace != nodeColorSpace:
+                if detected_colorSpace != 'auto' and detected_colorSpace != nodeColorSpace:
                     conflictSpace = True
 
-                colorSpace = nodeColorSpace
-
-            if colorSpace == 'auto' and textureData['colorspace'] != '':
-                colorSpace = textureData['colorspace']
+                detected_colorSpace = nodeColorSpace
 
             if not texture:
                 continue
@@ -166,7 +166,7 @@ class TxProcessor(QtCore.QObject):
             if conflictSpace:
                 msg = os.path.basename(texture)
                 msg += '\n'
-                msg += 'has conflicting Color Spaces.\n'
+                msg += 'has conflicting Color Spaces in texture nodes.\n'
                 msg += 'Use ('
                 msg += colorSpace
                 msg += ') ?'
@@ -421,6 +421,7 @@ def build_texture_data(textures, expand=True):
         textures[texture]['txpath'] = txpath
         textures[texture]['path'] = texture
         iinfo = makeTx.imageInfo(texture_exp)
+
         cs = makeTx.guessColorspace(iinfo)
         if cs == 'linear':
             cs = 'Raw'
@@ -452,8 +453,21 @@ def update_texture_data(texture_data):
         txstatus = 'missing'
     texture_data['status'] = txstatus
     texture_data['txpath'] = txpath
-    iinfo = makeTx.imageInfo(texture_exp)
-    cs = makeTx.guessColorspace(iinfo)
+    nodes = [x.split('.')[0] for x in texture_data['usage']]
+    conflictSpace = False
+    cs = 'auto'
+    for node in nodes:
+        if not cmds.attributeQuery("colorSpace", node=node, exists=True):
+            continue
+
+        nodeColorSpace = cmds.getAttr(node+'.colorSpace')
+        if cs != 'auto' and cs != nodeColorSpace:
+            conflictSpace = True
+
+        cs = nodeColorSpace
+    if conflictSpace or cs == 'auto':
+        iinfo = makeTx.imageInfo(texture_exp)
+        cs = makeTx.guessColorspace(iinfo)
     if cs == 'linear':
         cs = 'Raw'
     texture_data['colorspace'] = cs
