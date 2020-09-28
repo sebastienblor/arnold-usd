@@ -307,6 +307,22 @@ def is_image(file):
     return ext in img_extensions
 
 
+def get_colorspace(textureData):
+
+    nodes = [x.split('.')[0] for x in textureData['usage']]
+    colorSpace = 'auto'
+
+    for node in nodes:
+        if not cmds.attributeQuery("colorSpace", node=node, exists=True):
+            continue
+
+        nodeColorSpace = cmds.getAttr(node+'.colorSpace')
+
+        colorSpace = nodeColorSpace
+
+    return colorSpace
+
+
 def get_folder_textures(folder, subfolders=False):
     '''Returns a dictionary with all textures found in a folder. If subfolders
     flag is True, subfolders will be also scanned.'''
@@ -421,8 +437,9 @@ def build_texture_data(textures, expand=True):
         textures[texture]['txpath'] = txpath
         textures[texture]['path'] = texture
         iinfo = makeTx.imageInfo(texture_exp)
-
-        cs = makeTx.guessColorspace(iinfo)
+        cs = get_colorspace(textures[texture])
+        if cs == 'auto':
+            cs = makeTx.guessColorspace(iinfo)
         if cs == 'linear':
             cs = 'Raw'
         textures[texture]['colorspace'] = cs
@@ -453,24 +470,15 @@ def update_texture_data(texture_data):
         txstatus = 'missing'
     texture_data['status'] = txstatus
     texture_data['txpath'] = txpath
-    nodes = [x.split('.')[0] for x in texture_data['usage']]
-    conflictSpace = False
-    cs = 'auto'
-    for node in nodes:
-        if not cmds.attributeQuery("colorSpace", node=node, exists=True):
-            continue
-
-        nodeColorSpace = cmds.getAttr(node+'.colorSpace')
-        if cs != 'auto' and cs != nodeColorSpace:
-            conflictSpace = True
-
-        cs = nodeColorSpace
-    if conflictSpace or cs == 'auto':
-        iinfo = makeTx.imageInfo(texture_exp)
+    cs = get_colorspace(texture_data)
+    iinfo = makeTx.imageInfo(texture_exp)
+    if cs == 'auto':
         cs = makeTx.guessColorspace(iinfo)
     if cs == 'linear':
         cs = 'Raw'
     texture_data['colorspace'] = cs
+    for k,v in iinfo.items():
+        texture_data[k] = v
 
     return texture_data
 
