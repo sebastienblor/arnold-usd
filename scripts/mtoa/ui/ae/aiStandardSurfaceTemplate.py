@@ -183,7 +183,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl("transmitAovs", label="Transmit AOVs")
         self.addSeparator()
-        self.addControl("dielectricPriority", label="Dielectric Priority", annotation="Priority for nested dielectrics 1=high, 0=disabled, max=255")
+        self.addControl("dielectricPriority", label="Dielectric Priority", annotation="Priority for nested dielectrics")
         self.endLayout()
 
         self.beginLayout("Subsurface", collapse=True)

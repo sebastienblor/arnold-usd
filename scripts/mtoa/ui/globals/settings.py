@@ -973,6 +973,11 @@ def createArnoldSamplingSettings():
                         label='Use Autobump in SSS',
                         attribute='defaultArnoldRenderOptions.sssUseAutobump',
                         annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
+
+    cmds.attrControlGrp('dielectric_priorities',
+                        label='Enable Dielectric Priorities',
+                        attribute='defaultArnoldRenderOptions.dielectricPriorities',
+                        annotation='Enable/disable the priority system for nested dielectrics. Disable this checkbox for legacy dielectric calculations')
     
     cmds.separator()
     cmds.attrControlGrp('ss_indirect_specular_blur',

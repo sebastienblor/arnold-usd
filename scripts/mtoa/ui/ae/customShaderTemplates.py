@@ -116,7 +116,7 @@ def appendToSSTemplate():
         if ($layoutID == $gAEstandardSurfaceLayout_Transmission) {
             editorTemplate -beginLayout "Arnold Transmission" -collapse false;
             editorTemplate -l "Transmit AOVS" -addControl "aiTransmitAovs";
-            editorTemplate -l "Dielectric Priority" -addControl -annotation "Priority for nested dielectrics 1=high, 0=disabled, max=255" "aiDielectricPriority";
+            editorTemplate -l "Dielectric Priority" -addControl -annotation "Priority for nested dielectrics" "aiDielectricPriority";
             editorTemplate -endLayout;
             }
     }
