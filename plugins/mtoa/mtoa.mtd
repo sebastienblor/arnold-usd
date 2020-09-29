@@ -1330,8 +1330,10 @@
         softmin         FLOAT   0.0
         softmax         FLOAT   1.0
     [attr dielectric_priority]
-        min             INT     0
+        min             INT     -255
         max             INT     255
+        softmin         INT     -10
+        softmax         INT     10
     [attr subsurface]
         min             FLOAT   0.0
         max             FLOAT   1.0
