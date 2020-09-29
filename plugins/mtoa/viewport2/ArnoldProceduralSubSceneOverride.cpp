@@ -730,7 +730,7 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
         {
             // fill the index, vertex, and optionally the normal streams with data from the geometry
             fillBuffers((*it)->GetGeometry(), indices, vertices, normals, startIndex, pointOffset, 
-                item->primitive(), wantNormals, boxMode);
+                item->primitive(), wantNormals, boxMode, &(*it)->GetMatrix());
         }        
     }
 
@@ -752,7 +752,7 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
 
 void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& standIn, 
     unsigned int* indices, float* vertices, float* normals, size_t& startIndex, size_t& pointOffset,
-    const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode)
+    const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode, const AtMatrix *matrix)
 {
     if (!standIn.Visible()) return;
 
@@ -775,7 +775,7 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
         startIndex += getIndexing(standIn, indices+startIndex, pointOffset, primitive, wantNormals);
 
         // get the vertex streams (normals are optional)
-        pointOffset += getVertexStreams(standIn, vertices+(pointOffset*3), (normals ? normals+(pointOffset*3) : NULL));
+        pointOffset += getVertexStreams(standIn, vertices+(pointOffset*3), (normals ? normals+(pointOffset*3) : NULL), matrix);
     }
 }
 
@@ -805,22 +805,22 @@ size_t CArnoldProceduralSubSceneOverride::getIndexing(
     return indexCount;
 }
 
-size_t CArnoldProceduralSubSceneOverride::getVertexStreams(const CArnoldDrawGeometry& standIn, float* vertices, float* normals)
+size_t CArnoldProceduralSubSceneOverride::getVertexStreams(const CArnoldDrawGeometry& standIn, float* vertices, float* normals, const AtMatrix *matrix)
 {
     // transform and add the points
-    const AtMatrix& matrix = standIn.GetMatrix();
-
+    const AtMatrix *itemMatrix = (matrix) ? matrix : &standIn.GetMatrix();
+    
     if (normals)
     {
         // get the vertices and normals as single indexed streams
         // (must have the same counts)
-        standIn.GetSharedVertices(vertices, &matrix);
-        standIn.GetSharedNormals(normals, &matrix);
+        standIn.GetSharedVertices(vertices, itemMatrix);
+        standIn.GetSharedNormals(normals, itemMatrix);
         return standIn.SharedVertexCount();
     }
     else
     {
-        standIn.GetPoints(vertices, &matrix);
+        standIn.GetPoints(vertices, itemMatrix);
         return standIn.PointCount();
     }
 }
