@@ -188,8 +188,9 @@ void CBifrostShapeNode::updateGeometry()
    // get the proc geo in a new universe
    // add param value for "procedural_only" (what for ?)AD8e33
    AtParamValueMap* paramValues = AiParamValueMap();
-   AiParamValueMapSetBool(paramValues, AtString("procedural_only"), true);      
-   AiProceduralViewport(proc, universe, viewport_mode);
+   AiParamValueMapSetBool(paramValues, AtString("procedural_only"), true);  
+   AiParamValueMapSetInt(paramValues, AtString("recursion_level"), 0);  
+   AiProceduralViewport(proc, universe, AI_PROC_POLYGONS, paramValues);
    DrawUniverse(universe);
 
    AiParamValueMapDestroy(paramValues);
