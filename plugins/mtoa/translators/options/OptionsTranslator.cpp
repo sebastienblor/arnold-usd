@@ -1413,11 +1413,11 @@ void COptionsTranslator::Export(AtNode *options)
    MString beautyName = "RGBA";
    for (auto aovData : m_aovData)
    {
-      if (aovData.name != "beauty" && aovData.name != "RGBA" && aovData.name != "RGB") 
-         continue;
+      if (aovData.name == "beauty" || aovData.name == "RGBA" || aovData.name == "RGB")
+         beautyName = aovData.name;   
+      else if (aovData.name != "RGBA_denoise" && aovData.name != "RGB_denoise" )
+         continue;     
       
-      beautyName = aovData.name;
-
       for (auto output : aovData.outputs)
       {
          AtNode *driver = output.driver;

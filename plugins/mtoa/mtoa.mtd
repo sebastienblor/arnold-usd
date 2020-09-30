@@ -1973,6 +1973,9 @@
     [attr tiled]
         maya.name           STRING  "deepexrTiled"
         maya.shortname      STRING  "deepexr_tiled"
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
     
 [node driver_exr]
     maya.translator         STRING  "exr"
@@ -1986,6 +1989,9 @@
     [attr tiled]
         maya.name           STRING  "exrTiled"
         maya.shortname      STRING  "tiled"
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
     
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
@@ -2000,6 +2006,9 @@
         max                 INT     100
     [attr color_space]
         maya.hide           BOOL    true
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
 
 [node driver_png]
     maya.translator         STRING  "png"
@@ -2014,6 +2023,9 @@
         maya.shortname      STRING  "png_format"
     [attr color_space]
         maya.hide           BOOL    true
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
 
 [node driver_tiff]
     maya.translator         STRING  "tif"
@@ -2032,7 +2044,8 @@
     [attr tiled]
         maya.name           STRING  "tiffTiled"
         maya.shortname      STRING  "tiff_tiled"
-    
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
     [attr color_space]
         maya.hide           BOOL    true
 
