@@ -757,9 +757,19 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
     if (!standIn.Visible()) return;
 
     if (boxMode)
-    {       
+    {
         // Add the cube into the vertex and index buffer.
         MBoundingBox box = standIn.GetBBox();
+
+        if (matrix)
+        {
+            AtVector minBox (box.min().x, box.min().y, box.min().z);
+            AtVector maxBox (box.max().x, box.max().y, box.max().z);
+            minBox = AiM4PointByMatrixMult(*matrix, minBox);
+            maxBox = AiM4PointByMatrixMult(*matrix, maxBox);
+            box = MBoundingBox(MPoint(minBox.x, minBox.y, minBox.z), MPoint(maxBox.x, maxBox.y, maxBox.z));
+        }
+
         for (int currentVertex = 0 ; currentVertex < kCubeCount; ++currentVertex)
         {
             indices[currentVertex+startIndex] = currentVertex+pointOffset;
