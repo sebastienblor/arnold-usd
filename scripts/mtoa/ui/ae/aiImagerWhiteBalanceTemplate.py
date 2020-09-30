@@ -6,16 +6,11 @@ import maya.cmds as cmds
 class AEaiImagerWhiteBalanceTemplate(ShaderAETemplate):
 
     def updateParamsVisibility(self, nodeName):
-        
-        temperatureAttr = '%s.%s' % (nodeName, 'temperature')
-        illuminantAttr = '%s.%s' % (nodeName, 'illuminant')
-        customAttr = '%s.%s' % (nodeName, 'custom')
         modeAttr = '%s.%s' % (nodeName, 'mode')
         modeValue = cmds.getAttr(modeAttr)
         cmds.editorTemplate(dimControl=(nodeName, 'temperature', modeValue != 1))
         cmds.editorTemplate(dimControl=(nodeName, 'illuminant', modeValue != 0))
         cmds.editorTemplate(dimControl=(nodeName, 'custom', modeValue != 2))
-        
 
     def setup(self):
     

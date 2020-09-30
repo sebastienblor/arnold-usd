@@ -329,6 +329,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("sss_use_autobump");
    s_attributes.MakeInput("indirect_specular_blur");
+   s_attributes.MakeInput("dielectric_priorities");
 
       
    s_aa_seed = uAttr.create("AA_seed", "aaseed", MFnUnitAttribute::kTime);

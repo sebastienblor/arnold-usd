@@ -1330,8 +1330,10 @@
         softmin         FLOAT   0.0
         softmax         FLOAT   1.0
     [attr dielectric_priority]
-        min             INT     0
+        min             INT     -255
         max             INT     255
+        softmin         INT     -10
+        softmax         INT     10
     [attr subsurface]
         min             FLOAT   0.0
         max             FLOAT   1.0
@@ -1971,6 +1973,9 @@
     [attr tiled]
         maya.name           STRING  "deepexrTiled"
         maya.shortname      STRING  "deepexr_tiled"
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
     
 [node driver_exr]
     maya.translator         STRING  "exr"
@@ -1984,6 +1989,9 @@
     [attr tiled]
         maya.name           STRING  "exrTiled"
         maya.shortname      STRING  "tiled"
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
     
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
@@ -1998,6 +2006,9 @@
         max                 INT     100
     [attr color_space]
         maya.hide           BOOL    true
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
 
 [node driver_png]
     maya.translator         STRING  "png"
@@ -2012,6 +2023,9 @@
         maya.shortname      STRING  "png_format"
     [attr color_space]
         maya.hide           BOOL    true
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
+    
 
 [node driver_tiff]
     maya.translator         STRING  "tif"
@@ -2030,7 +2044,8 @@
     [attr tiled]
         maya.name           STRING  "tiffTiled"
         maya.shortname      STRING  "tiff_tiled"
-    
+    [attr layer_selection]
+        maya.hide               BOOL     TRUE
     [attr color_space]
         maya.hide           BOOL    true
 
@@ -3780,8 +3795,8 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB5
     [attr exposure]
-        softmin             FLOAT     0
-        softmax             FLOAT     5
+        softmin             FLOAT     -10
+        softmax             FLOAT     10
     [attr layer_selection]
         maya.hide               BOOL     TRUE
     
@@ -3793,8 +3808,44 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB6
     [attr layer_selection]
-        maya.hide               BOOL     TRUE
-        
+        maya.hide           BOOL     TRUE
+    [attr main_saturation]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr main_contrast]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr main_gamma]
+        min                 FLOAT    0
+        softmax             FLOAT    5
+    [attr shadows_saturation]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr shadows_contrast]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr shadows_gamma]
+        min                 FLOAT    0
+        softmax             FLOAT    5
+    [attr midtones_saturation]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr midtones_contrast]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr midtones_gamma]
+        min                 FLOAT    0
+        softmax             FLOAT    5
+    [attr highlights_saturation]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr highlights_contrast]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr highlights_gamma]
+        min                 FLOAT    0
+        softmax             FLOAT    5
+    
 
 [node imager_lens_effects]
     maya.name              STRING "aiImagerLensEffect"
@@ -3804,7 +3855,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT      0x00115DB7
     [attr vignetting]
         softmin             FLOAT     0
-        softmax             FLOAT     200
+        softmax             FLOAT     100
     [attr layer_selection]
         maya.hide               BOOL     TRUE
     
@@ -3815,7 +3866,11 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB8
     [attr layer_selection]
-        maya.hide               BOOL     TRUE
+        maya.hide           BOOL     TRUE
+    [attr temperature]
+        softmin             FLOAT   0
+        softmax             FLOAT   15000
+        
         
 [node imager_tonemap]
     maya.name              STRING "aiImagerTonemap"
@@ -3823,3 +3878,35 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB9
+    [attr layer_selection]
+        maya.hide           BOOL     TRUE
+    [attr filmic_toe_strength]
+        min                 FLOAT    0
+        max                 FLOAT    1
+    [attr filmic_toe_length]
+        min                 FLOAT    0
+        max                 FLOAT    1
+    [attr filmic_shoulder_strength]
+        min                 FLOAT    0
+        max                 FLOAT    1
+    [attr filmic_shoulder_length]
+        min                 FLOAT    0
+        softmax             FLOAT    3
+    [attr filmic_shoulder_angle]
+        min                 FLOAT    0
+        max                 FLOAT    1
+    [attr reinhard_highlights]
+        min                 FLOAT    0
+        max                 FLOAT    1
+    [attr reinhard_shadows]
+        min                 FLOAT    0
+        max                 FLOAT    1
+    [attr gamma]
+        min                 FLOAT    0
+        softmax             FLOAT    5
+    
+    
+    
+    
+        
+        

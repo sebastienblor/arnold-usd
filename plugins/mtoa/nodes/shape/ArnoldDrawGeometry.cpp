@@ -640,8 +640,25 @@ const CArnoldDrawGeometry& CArnoldDrawGInstance::GetGeometry() const
 
 CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* node) : CArnoldDrawGeometry(node)
 {
-   m_BBMin = AiNodeGetVec(node, "min");
-   m_BBMax = AiNodeGetVec(node, "max");
+   AtUniverse *universe = AiUniverse();
+   AiProceduralViewport(node, universe, AI_PROC_BOXES);
+   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
+   static AtString box_str("box");
+   AtBBox totalBox;
+   totalBox.init();
+
+   while (!AiNodeIteratorFinished(iter))
+   {      
+      AtNode* node = AiNodeIteratorGetNext(iter);
+      if (!AiNodeIs(node, box_str))
+         continue;
+      AtMatrix m = AiNodeGetMatrix(node, "matrix");
+      totalBox.expand(AiM4PointByMatrixMult(m, AiNodeGetVec(node, "min")));
+      totalBox.expand(AiM4PointByMatrixMult(m, AiNodeGetVec(node, "max")));
+   }
+   m_BBMin = totalBox.min;
+   m_BBMax = totalBox.max;
+   AiUniverseDestroy(universe);
 }
 
 CArnoldDrawProcedural::~CArnoldDrawProcedural()

@@ -1413,11 +1413,11 @@ void COptionsTranslator::Export(AtNode *options)
    MString beautyName = "RGBA";
    for (auto aovData : m_aovData)
    {
-      if (aovData.name != "beauty" && aovData.name != "RGBA" && aovData.name != "RGB") 
-         continue;
+      if (aovData.name == "beauty" || aovData.name == "RGBA" || aovData.name == "RGB")
+         beautyName = aovData.name;   
+      else if (aovData.name != "RGBA_denoise" && aovData.name != "RGB_denoise" )
+         continue;     
       
-      beautyName = aovData.name;
-
       for (auto output : aovData.outputs)
       {
          AtNode *driver = output.driver;
@@ -1429,20 +1429,6 @@ void COptionsTranslator::Export(AtNode *options)
                AiNodeResetParameter(driver, "input");
          }
       }
-   }
-
-   // Process the imagers tree, by connecting them through the attribute "input"
-   if (!imagersStack.empty())
-   {      
-      for (size_t i = 0; i < imagersStack.size() - 1; ++i)
-      {
-         AiNodeSetPtr(imagersStack[i], "input", (void*)imagersStack[i+1]); 
-         AiNodeSetStr(imagersStack[i], "layer_selection", beautyName.asChar());
-      }
-      
-      // Ensure the last imager in the stack doesn't have any input from a previous render
-      AiNodeResetParameter(imagersStack.back(), "input");
-      AiNodeSetStr(imagersStack.back(), "layer_selection", beautyName.asChar());
    }
 
    // subdivision dicing camera
@@ -1614,6 +1600,28 @@ void COptionsTranslator::Export(AtNode *options)
       // whether this option is enabled or not. See #3627
       if (gpuRender && GetSessionOptions().IsInteractiveRender())
          AiNodeSetBool(options, "enable_progressive_render", true);
+   }
+
+   // Process the imagers tree, by connecting them through the attribute "input"
+   if (!imagersStack.empty())
+   {  
+      MString layerSelection = beautyName;
+      if (optixDenoiser)
+      {
+         layerSelection +=  MString(" or ");
+         layerSelection += beautyName;
+         layerSelection += MString("_denoise");    
+      }
+
+      for (size_t i = 0; i < imagersStack.size() - 1; ++i)
+      {
+         AiNodeSetPtr(imagersStack[i], "input", (void*)imagersStack[i+1]); 
+         AiNodeSetStr(imagersStack[i], "layer_selection", layerSelection.asChar());
+      }
+      
+      // Ensure the last imager in the stack doesn't have any input from a previous render
+      AiNodeResetParameter(imagersStack.back(), "input");
+      AiNodeSetStr(imagersStack.back(), "layer_selection", layerSelection.asChar());
    }
 
    if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)

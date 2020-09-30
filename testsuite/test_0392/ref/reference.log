@@ -1,0 +1,131 @@
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\11', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata;C:\\Program Files (x86)\\Windows Kits\\10\\References;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'SystemRoot': 'C:\\WINDOWS', 'PATH': 'C:\\solidangle\\mtoadeploy\\2020\\bin;C:\\Program Files\\Autodesk\\Maya2020\\bin;C:\\solidangle\\mtoadeploy\\2020\\lib;C:\\solidangle\\mtoadeploy\\2020\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\Wbem;C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.222.10-hotspot\\bin;.', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\11', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'VSCMD_ARG_app_plat': '', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20200200\\msvc_opt\\testsuite\\test_0392', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20200200\\msvc_opt\\testsuite\\test_0392'}
+ 
+ ==== Exec cmd ==== 
+ 
+Render -proj "D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0392" -rd "D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0392" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0392\test.ma"
+ 
+ 
+Starting "C:\Program Files\Autodesk\Maya2020\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+
+  Version : 2016.11.53.12. Feature Level 5.
+
+  Adapter : GeForce RTX 2080 Ti/PCIe/SSE2
+
+  Vendor ID: 4318. Device ID : 5051
+
+  Driver : .
+
+  API : OpenGL V.4.6.
+
+  Max texture size : 16384 * 16384.
+
+  Max tex coords : 32
+
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+
+  Shader compiler profile : (Best card profile)
+
+  Active stereo support available : 0
+
+  GPU Memory Limit : 11264 MB.
+
+  CPU Memory Limit: 62183.7 MB.
+
+  MultiDraw consolidation: enabled
+
+}
+
+OpenCL evaluator is attempting to initialize OpenCL.
+
+Detected 1 OpenCL Platforms: 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 11.0.126.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics 
+
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+
+00:00:00   485MB         | log started Wed Sep 30 19:30:10 2020
+
+00:00:00   485MB         | Arnold 6.1.0.0 [5b70bd59] windows clang-10.0.1 oiio-2.2.1 osl-1.11.6 vdb-4.0.0 clm-1.1.1.118 rlm-12.4.2 optix-6.6.0 2020/09/29 10:47:09
+
+00:00:00   485MB         | running on REM8WCK8D2, pid=3660
+
+00:00:00   485MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65456MB
+
+00:00:00   485MB         |  NVIDIA driver version 445.75 (Optix 60700)
+
+00:00:00   485MB         |  GPU 0: GeForce RTX 2080 Ti @ 1635MHz (compute 7.5) with 11264MB (10726MB available) (NVLink:0)
+
+00:00:00   485MB         |  GPU 1: Quadro K620 @ 1124MHz (compute 5.0) with 2048MB (832MB available) (NVLink:0)
+
+00:00:00   485MB         |  Windows 8 Enterprise Edition (version 6.2, build 9200)
+
+00:00:00   485MB         |  soft limit for open files raised from 512 to 2048
+
+00:00:00   485MB         |  
+
+00:00:00   485MB         | loading plugins from C:\solidangle\mtoadeploy\2020\bin\..\plugins ...
+
+00:00:00   485MB         |  alembic_proc.dll: alembic uses Arnold 6.1.0.0
+
+00:00:00   485MB         |  cryptomatte.dll: cryptomatte uses Arnold 6.1.0.0
+
+00:00:00   485MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 6.1.0.0
+
+00:00:00   485MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 6.1.0.0
+
+00:00:00   485MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 6.1.0.0
+
+00:00:00   513MB         |  usd_proc.dll: usd uses Arnold 6.1.0.0
+
+00:00:00   513MB         | loaded 6 plugins from 4 lib(s) in 0:00.09
+
+###############################################################################
+
+Begin attempted read of a shade fragment XML file.
+
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+
+Errors loading XML:
+
+-------------------------------------------------------------------------------
+
+Could not find file: aiRectangleAreaLight.xml
+
+-------------------------------------------------------------------------------
+
+End attempted read of fragment XML.
+
+###############################################################################
+
+File read in  0.024 seconds.
+
+Result: D:/arnold/mtoa/build/windows_x86_64/20200200/msvc_opt/testsuite/test_0392/test.ma
+
+00:00:10   627MB WARNING | rendering with watermarks because of failed authorization:
+
+00:00:10   627MB         |  [clm.v2] timeout before callback was called
+
+00:00:10   627MB         |  environment variables:
+
+00:00:10   627MB         |         ARNOLD_LICENSE_ORDER   = (not set)
+
+00:00:10   627MB         |         ARNOLD_LICENSE_MANAGER = (not set)
+
+00:00:10   627MB         |  [rlm]  solidangle_LICENSE     = (not set)
+
+00:00:10   627MB         |  [rlm]  RLM_LICENSE            = (not set)
+
+00:00:10   627MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
+
+00:00:10   627MB         |  [clm]  LM_LICENSE_FILE        = (not set)
+
+00:00:10   627MB WARNING | [gpu] sparse textures are disabled due to old NVIDIA driver (445.75), expect higher memory usage. To use sparse textures, please use NVIDIA driver 452.6 and older
+Scene D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0392\test.ma completed.
+
