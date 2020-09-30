@@ -137,14 +137,21 @@ class StandInTransverser(ProceduralTransverser):
         return filename
 
     def dir(self, iobject):
-        if iobject not in [None, '/']:
+        if iobject not in [None, '/'] or not cmds.objExists(self.nodeName):
             return []
 
+        global FILE_CACHE
         filename = self.getFileName(self.nodeName)
 
         self.nodeEntries = {}
+        if not filename:
+            return []
+        
         if not os.path.exists(str(filename)):
-            return
+            return []
+        
+        if filename not in FILE_CACHE.keys():
+            self.getRootObjectInfo(self.nodeName)
 
         if len(FILE_CACHE[filename]) is 1:
             numNodes = 0
