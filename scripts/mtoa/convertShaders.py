@@ -4,7 +4,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlake', 'alLayer', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlake', 'alLayer', 'lambert', 'blinn', 'phong', 'phongE', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -84,6 +84,8 @@ def doMapping(inShd):
         ret = convertLambert(inShd)
     elif 'blinn' in shaderType:
         ret = convertBlinn(inShd)
+    elif 'phongE' in shaderType:
+        ret = convertPhongE(inShd)
     elif 'phong' in shaderType:
         ret = convertPhong(inShd)
     elif 'VRayMtl' in shaderType:
@@ -350,6 +352,32 @@ def convertPhong(inShd):
     cmds.setAttr(outNode + '.coat_roughness', 0)
 
     convertAttr(inShd, 'eccentricity', outNode, 'specularRoughness')
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
+    setValue(outNode + '.emission', 1)
+    convertAttr(inShd, 'incandescence', outNode, 'emissionColor')
+    
+    transparencyToOpacity(inShd, outNode)
+    
+    # not converting translucence since we don't have a direct equivalent
+    print("Converted %s to aiStandardSurface" % inShd)
+    return outNode
+
+def convertPhongE(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+
+    convertAttr(inShd, 'diffuse', outNode, 'base')
+    convertAttr(inShd, 'color', outNode, 'baseColor')
+
+    convertAttr(inShd, 'roughness', outNode, 'specularRoughness')
+    convertAttr(inShd, 'specularColor', outNode, 'specularColor')
+    setValue(outNode + '.specularIOR', 3.0)
+    setValue(outNode + '.specular', 1.0)
+
+    convertAttr(inShd, 'reflectivity', outNode, 'coat')
+    convertAttr(inShd, 'reflectedColor', outNode, 'coatColor')
+    setValue(outNode + '.coatIOR', 3.0)
+    cmds.setAttr(outNode + '.coat_roughness', 0)
+   
     convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
     setValue(outNode + '.emission', 1)
     convertAttr(inShd, 'incandescence', outNode, 'emissionColor')
