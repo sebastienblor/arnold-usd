@@ -190,7 +190,7 @@ void CBifrostShapeNode::updateGeometry()
    AtParamValueMap* paramValues = AiParamValueMap();
    AiParamValueMapSetBool(paramValues, AtString("procedural_only"), true);  
    AiParamValueMapSetInt(paramValues, AtString("recursion_level"), 0);  
-   AiProceduralViewport(proc, universe, AI_PROC_POLYGONS, paramValues);
+   AiProceduralViewport(proc, universe, viewport_mode, paramValues);
    DrawUniverse(universe);
 
    AiParamValueMapDestroy(paramValues);
