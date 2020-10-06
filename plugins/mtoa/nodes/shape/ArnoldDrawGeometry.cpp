@@ -603,7 +603,6 @@ CArnoldDrawGInstance::~CArnoldDrawGInstance()
 
 void CArnoldDrawGInstance::Draw(int DrawMode)
 {
-   AiMsgWarning("geom draw");
    glPushMatrix();
    glMultMatrixf(&m_matrix[0][0]);
    p_geom->Draw(DrawMode, m_inheritXForm);
