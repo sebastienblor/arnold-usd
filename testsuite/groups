@@ -18,7 +18,7 @@
 #######################
 
 # These tests are only executed on Windows
-windows: test_0098 test_0098_Maya2020 test_0203_win test_0372_win
+windows: test_0098 test_0098_Maya2020 test_0203_win test_0242 test_0372_win
 
 # These tests are only executed on Linux
 linux: test_0203_linux test_0372_linux
