@@ -8,9 +8,9 @@ class AEaiImagerExposureTemplate(ShaderAETemplate):
         #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
         self.beginScrollLayout()
-        self.addControl('enable', label='Enable')
+        self.addControl('enable', label='Enable', annotation='Enables this imager.')
         self.addSeparator()
-        self.addControl('exposure', label='Exposure')
+        self.addControl('exposure', label='Exposure', annotation='Exposure compensation amount in f-stops.')
         
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 

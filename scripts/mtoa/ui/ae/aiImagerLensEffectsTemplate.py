@@ -8,9 +8,9 @@ class AEaiImagerLensEffectsTemplate(ShaderAETemplate):
         #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
         self.beginScrollLayout()
-        self.addControl('enable', label='Enable')
+        self.addControl('enable', label='Enable', annotation='Enables this imager.')
         self.addSeparator()
-        self.addControl('vignetting', label='Vignetting')
+        self.addControl('vignetting', label='Vignetting', annotation='Vignetting amount')
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
