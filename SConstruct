@@ -1548,7 +1548,22 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
-        commandFile.write('python ./unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
+        commandFile.write("#!/bin/bash")
+        absPathCD = """
+ABSPATH=$(readlink -f "$0")
+ABSDIR=$(dirname "$ABSPATH")
+cd $ABSDIR
+"""
+        commandFile.write(absPathCD)
+        python3Check = """
+cmd="python3";
+if ! command -v $cmd &> /dev/null;then
+  cmd="python";
+fi
+"""
+        commandFile.write(python3Check)
+        commandFile.write('$cmd $ABSDIR/unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
+        commandFile.write("exit 0")
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
         installerPath = os.path.abspath('./%s' % (installer_name))
