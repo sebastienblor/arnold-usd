@@ -1078,6 +1078,7 @@ for ext in os.listdir(ext_base_dir):
             (ext == 'renderSetup') or 
             (ext == 'synColor') or
             (ext == 'usdProxyShape') or
+            (ext == 'usdPreviewSurface') or
             (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache') or
             (env['ENABLE_BIFROST_GRAPH'] == 1 and ext == 'bifrostGraph')):
         continue
@@ -1332,6 +1333,7 @@ PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPh
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdProxyShape', 'usdProxyShapeTranslator%s' % get_library_extension()), 'extensions'])
+PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdPreviewSurface', 'usdPreviewSurfaceTranslator%s' % get_library_extension()), 'extensions'])
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
