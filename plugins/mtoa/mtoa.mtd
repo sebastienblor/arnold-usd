@@ -111,7 +111,7 @@
     [attr max_subdivisions]
         maya.keyable        BOOL    false
         min                 INT     0
-        max                 INT     999
+        max                 INT     255
         linkable            BOOL    false
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
@@ -1330,8 +1330,6 @@
         softmin         FLOAT   0.0
         softmax         FLOAT   1.0
     [attr dielectric_priority]
-        min             INT     -255
-        max             INT     255
         softmin         INT     -10
         softmax         INT     10
     [attr subsurface]
