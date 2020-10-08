@@ -452,7 +452,12 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       } else if (arnoldNodeTypeName == "driver")
       {
          // Special case for drivers
-         if (arnold.length() > 7 && arnold.substringW(0, 6) == MString("imager_")) {
+         AtString subtypeMtd;
+         static AtString subtypeStr("subtype");
+         static AtString imagerStr("imager");
+
+         if (AiMetaDataGetStr(arnoldNodeEntry, NULL, subtypeStr, &subtypeMtd) && subtypeMtd == imagerStr)
+         {         
             creator    = CArnoldImagerNode::creator;
             initialize = CArnoldImagerNode::initialize;
             abstract   = &CArnoldImagerNode::s_abstract;
