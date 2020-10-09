@@ -116,10 +116,7 @@ size_t CArnoldProceduralData::PointCount(StandinSelectionFilter filter) const
     for (instanceListIterType it = m_instanceList.begin();
          it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible(filter))
-        {
-            totalPoints += (*it)->GetGeometry().PointCount();
-        }
+        totalPoints += (*it)->GetGeometry().PointCount();
     }
     return totalPoints;
 }
@@ -136,8 +133,7 @@ size_t CArnoldProceduralData::SharedVertexCount(StandinSelectionFilter filter) c
 
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
-        if ((*it)->GetGeometry().Visible(filter))
-          totalPoints += (*it)->GetGeometry().SharedVertexCount();
+        totalPoints += (*it)->GetGeometry().SharedVertexCount();
     return totalPoints;
 }
 
@@ -156,10 +152,8 @@ size_t CArnoldProceduralData::WireIndexCount(StandinSelectionFilter filter) cons
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible(filter))
-        {
-            total += (*it)->GetGeometry().WireIndexCount();
-        }
+        total += (*it)->GetGeometry().WireIndexCount();
+        
     }
     return total;
 }
@@ -179,10 +173,8 @@ size_t CArnoldProceduralData::TriangleIndexCount(bool sharedVertices, StandinSel
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible(filter))
-        {
-            total += (*it)->GetGeometry().TriangleIndexCount(sharedVertices);
-        }
+        total += (*it)->GetGeometry().TriangleIndexCount(sharedVertices);
+        
     }
     return total;
 }
@@ -200,8 +192,7 @@ size_t CArnoldProceduralData::VisibleGeometryCount(StandinSelectionFilter filter
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible(filter))
-            total++;
+        total++;
     }
     return total;
 }

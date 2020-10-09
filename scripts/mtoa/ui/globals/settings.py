@@ -1,4 +1,5 @@
-﻿
+# coding=utf-8
+
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
@@ -975,9 +976,9 @@ def createArnoldSamplingSettings():
                         annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
 
     cmds.attrControlGrp('dielectric_priorities',
-                        label='Enable Dielectric Priorities',
+                        label='Nested Dielectrics',
                         attribute='defaultArnoldRenderOptions.dielectricPriorities',
-                        annotation='Enable/disable the priority system for nested dielectrics. Disable this checkbox for legacy dielectric calculations')
+                        annotation='Enable resolving overlapping dielectrics into a well-defined medium, so that higher priority dielectrics override lower priority ones which are effectively removed.\\nThis is used to correctly set up cases with adjacent dielectric media such as a glass of water with ice.\\nPriority can be set on the standard_surface shader')
     
     cmds.separator()
     cmds.attrControlGrp('ss_indirect_specular_blur',

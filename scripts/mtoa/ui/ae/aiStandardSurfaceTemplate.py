@@ -183,7 +183,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl("transmitAovs", label="Transmit AOVs")
         self.addSeparator()
-        self.addControl("dielectricPriority", label="Dielectric Priority", annotation="Priority for nested dielectrics")
+        self.addControl("dielectricPriority", label="Dielectric Priority", annotation="Specifies how to resolve overlapping dielectrics into a well-defined medium, so that higher priority dielectrics override lower priority ones which are effectively removed.\nThis is used to correctly set up cases with adjacent dielectric media such as a glass of water with ice")
         self.endLayout()
 
         self.beginLayout("Subsurface", collapse=True)

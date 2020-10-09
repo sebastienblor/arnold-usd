@@ -111,7 +111,7 @@
     [attr max_subdivisions]
         maya.keyable        BOOL    false
         min                 INT     0
-        max                 INT     999
+        max                 INT     255
         linkable            BOOL    false
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
@@ -1330,8 +1330,6 @@
         softmin         FLOAT   0.0
         softmax         FLOAT   1.0
     [attr dielectric_priority]
-        min             INT     -255
-        max             INT     255
         softmin         INT     -10
         softmax         INT     10
     [attr subsurface]
@@ -1973,7 +1971,7 @@
     [attr tiled]
         maya.name           STRING  "deepexrTiled"
         maya.shortname      STRING  "deepexr_tiled"
-    [attr layer_selection]
+    [attr input]
         maya.hide               BOOL     TRUE
     
     
@@ -1989,7 +1987,7 @@
     [attr tiled]
         maya.name           STRING  "exrTiled"
         maya.shortname      STRING  "tiled"
-    [attr layer_selection]
+    [attr input]
         maya.hide               BOOL     TRUE
     
     
@@ -2006,7 +2004,7 @@
         max                 INT     100
     [attr color_space]
         maya.hide           BOOL    true
-    [attr layer_selection]
+    [attr input]
         maya.hide               BOOL     TRUE
     
 
@@ -2023,7 +2021,7 @@
         maya.shortname      STRING  "png_format"
     [attr color_space]
         maya.hide           BOOL    true
-    [attr layer_selection]
+    [attr input]
         maya.hide               BOOL     TRUE
     
 
@@ -2044,7 +2042,7 @@
     [attr tiled]
         maya.name           STRING  "tiffTiled"
         maya.shortname      STRING  "tiff_tiled"
-    [attr layer_selection]
+    [attr input]
         maya.hide               BOOL     TRUE
     [attr color_space]
         maya.hide           BOOL    true
@@ -3799,7 +3797,9 @@ desc STRING "Apply a gamma correction to the color."
         softmax             FLOAT     10
     [attr layer_selection]
         maya.hide               BOOL     TRUE
-    
+    [attr input]
+        maya.hide               BOOL     TRUE
+       
 
 [node imager_color_correct]
     maya.name              STRING "aiImagerColorCorrect"
@@ -3809,6 +3809,8 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT      0x00115DB6
     [attr layer_selection]
         maya.hide           BOOL     TRUE
+    [attr input]
+        maya.hide               BOOL     TRUE
     [attr main_saturation]
         min                 FLOAT    0
         softmax             FLOAT    2
@@ -3858,6 +3860,9 @@ desc STRING "Apply a gamma correction to the color."
         softmax             FLOAT     100
     [attr layer_selection]
         maya.hide               BOOL     TRUE
+    [attr input]
+        maya.hide               BOOL     TRUE
+    
     
 [node imager_white_balance]
     maya.name              STRING "aiImagerWhiteBalance"
@@ -3867,6 +3872,8 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT      0x00115DB8
     [attr layer_selection]
         maya.hide           BOOL     TRUE
+    [attr input]
+        maya.hide               BOOL     TRUE
     [attr temperature]
         softmin             FLOAT   0
         softmax             FLOAT   15000
@@ -3880,6 +3887,8 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT      0x00115DB9
     [attr layer_selection]
         maya.hide           BOOL     TRUE
+    [attr input]
+        maya.hide               BOOL     TRUE
     [attr filmic_toe_strength]
         min                 FLOAT    0
         max                 FLOAT    1

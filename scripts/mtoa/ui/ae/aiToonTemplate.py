@@ -101,6 +101,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginLayout("AOVs", collapse=True)
         self.addControl("aov_highlight", label="Highlight")
         self.addControl("aov_rim_light", label="Rim Light")
+        self.addControl("aov_prefix", label="AOV Prefix")
         self.endLayout()
 
         self.beginLayout("Advanced", collapse=True)

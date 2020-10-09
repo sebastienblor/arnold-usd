@@ -15,12 +15,12 @@ class AEaiImagerWhiteBalanceTemplate(ShaderAETemplate):
     def setup(self):
     
         self.beginScrollLayout()
-        self.addControl('enable', label='Enable')
+        self.addControl('enable', label='Enable', annotation='Enables this imager.')
         self.addSeparator()
-        self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility)
-        self.addControl('illuminant', label='Illuminant')
-        self.addControl('temperature', label='Temperature')
-        self.addControl('custom', label='Custom')
+        self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='EWhite balance mode. (illuminant, temperature, custom)')
+        self.addControl('illuminant', label='Illuminant', annotation='Temperature for black body mode.')
+        self.addControl('temperature', label='Temperature', annotation='Standard illuminant name for illuminante mode.')
+        self.addControl('custom', label='Custom', annotation='Custom white balance color.')
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()

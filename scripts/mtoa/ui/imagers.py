@@ -93,14 +93,17 @@ class ImagerStackView(BaseTreeView):
     def mousePressEvent(self, event):
         super(ImagerStackView, self).mousePressEvent(event)
         index = self.indexAt(event.pos())
-        item = index.internalPointer()
-        item.selectImager()
+        if index:
+            item = index.internalPointer()
+            if item:
+                item.selectImager()
 
 class ImagerStackModel(BaseModel):
     def __init__(self, treeView, parent=None):
 
         self.transverser = None
         self.imagers = []
+        self.scriptJobList = []
         super(ImagerStackModel, self).__init__(treeView, parent)
 
     def setTransverser(self, transverser):
@@ -121,9 +124,13 @@ class ImagerStackModel(BaseModel):
             if elemConnection and len(elemConnection) > 0:
                 imager = elemConnection[0].split('.')[0]
                 if cmds.objExists(imager) and cmds.attributeQuery('enable', node=imager, exists=True):
-                    enabled = cmds.getAttr('{}.enable'.format(imager))
+                    enableAttr = '{}.enable'.format(imager)
+                    enabled = cmds.getAttr(enableAttr)
                     ImagerItem(self.rootItem, imager, enabled)
                     self.imagers.append(imager)
+                    if imager not in self.scriptJobList:
+                        self.scriptJobList.append(imager)
+                        cmds.scriptJob(attributeChange=[enableAttr, lambda *args: self.refresh()])
 
         self.endResetModel()
 

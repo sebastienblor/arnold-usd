@@ -337,7 +337,9 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
 
    // Set the render session camera.
    renderSession->SetCamera(camera);
-   MString renderCamera = CDagTranslator::GetArnoldNaming(camera);
+   // Need to set the camera's partial path name, as this is what is being displayed
+   // in the renderview's menu #4360
+   MString renderCamera = camera.partialPathName();
    
    if (setDefaultCamera && !wasViewportRendering)
    {

@@ -5,7 +5,8 @@
 #include <maya/MPlugArray.h>
 #include <maya/MTimerMessage.h>
 #include <maya/MEventMessage.h>
-
+#include "render/RenderSession.h"
+#include "scene/MayaScene.h"
 
 AtNode* CImagerTranslator::CreateArnoldNodes()
 {
@@ -48,6 +49,11 @@ void CImagerTranslator::ProcessImagerChanges()
    }
    static AtString request_imager_update("request_imager_update");   
    Export(GetArnoldNode());
+
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRenderViewOption("Update Imagers", "1");
+
    AiRenderSetHintBool(request_imager_update, true);
 }
 

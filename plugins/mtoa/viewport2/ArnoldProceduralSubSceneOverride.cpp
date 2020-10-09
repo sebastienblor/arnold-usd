@@ -724,14 +724,11 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
     for (CArnoldProceduralData::instanceListIterType it = geom->m_instanceList.begin();
         it != geom->m_instanceList.end(); ++it)
     {
-        // we weren't testing IsVisible before, but it sounds like we should. 
-        // The size of the buffers was computed based on the visibility
-        if ((*it)->GetGeometry().Visible(selectionFilter))
-        {
-            // fill the index, vertex, and optionally the normal streams with data from the geometry
-            fillBuffers((*it)->GetGeometry(), indices, vertices, normals, startIndex, pointOffset, 
-                item->primitive(), wantNormals, boxMode, &(*it)->GetMatrix());
-        }        
+        // We don't want to test the source geometry visibility, as we can have visible ginstances
+        // pointing at an invisible source node
+        // fill the index, vertex, and optionally the normal streams with data from the geometry
+        fillBuffers((*it)->GetGeometry(), indices, vertices, normals, startIndex, pointOffset, 
+            item->primitive(), wantNormals, boxMode, &(*it)->GetMatrix());
     }
 
     // commit the index and vertex buffers for completion
@@ -754,8 +751,6 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
     unsigned int* indices, float* vertices, float* normals, size_t& startIndex, size_t& pointOffset,
     const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode, const AtMatrix *matrix)
 {
-    if (!standIn.Visible()) return;
-
     if (boxMode)
     {
         // Add the cube into the vertex and index buffer.
@@ -763,8 +758,8 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
 
         if (matrix)
         {
-            AtVector minBox (box.min().x, box.min().y, box.min().z);
-            AtVector maxBox (box.max().x, box.max().y, box.max().z);
+            AtVector minBox ((float)box.min().x, (float)box.min().y, (float)box.min().z);
+            AtVector maxBox ((float)box.max().x, (float)box.max().y, (float)box.max().z);
             minBox = AiM4PointByMatrixMult(*matrix, minBox);
             maxBox = AiM4PointByMatrixMult(*matrix, maxBox);
             box = MBoundingBox(MPoint(minBox.x, minBox.y, minBox.z), MPoint(maxBox.x, maxBox.y, maxBox.z));
