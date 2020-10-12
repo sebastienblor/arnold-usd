@@ -179,10 +179,9 @@ void BifrostUtils::GetArnoldBifrostAPIExtensions(const char* dsoPath, const char
 
 bool BifrostUtils::LoadBifrostProcedural()
 {
-   //  if (s_loadedProcedural )
-   //  {
-   //      return true;
-   //  }
+    if (s_loadedProcedural )
+      return true;
+    
     MString s_bifrostProceduralPath;
     s_bifrostProceduralPath = GetArnoldBifrostPath();
 
@@ -195,8 +194,6 @@ bool BifrostUtils::LoadBifrostProcedural()
     else if ( s_arnoldBifrostPrepareHandle == NULL )
     {
       GetArnoldBifrostAPIExtensions(s_bifrostProceduralPath.asChar(), s_bifrostProcedural.asChar());
-      s_loadedProcedural = true;
-      return true;
     }
 
     AiMsgInfo("[bifrost] %s", s_bifrostProceduralPath.asChar());
