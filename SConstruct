@@ -1284,6 +1284,7 @@ PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 
 if system.os == 'windows':
     PACKAGE_FILES.append([os.path.join(ARNOLD_API_LIB, '*'), 'lib'])
+    PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'vcredist', '*'), ''])
 
 license_files = find_files_recursive(os.path.join(ARNOLD, 'license'), None)
 for p in license_files:
