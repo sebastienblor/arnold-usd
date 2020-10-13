@@ -461,7 +461,13 @@ if env['COMPILER'] == 'gcc':
         env.Append(LINKFLAGS = Split('-z origin') )
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
-    env.Append(CXXFLAGS = Split('-std=c++11'))
+    if env['MAYA_MAINLINE']:
+        print '------ Setting C++14' 
+        env.Append(CXXFLAGS = Split('-std=c++14'))
+        env.Append(CCFLAGS = Split('-std=c++14'))
+    else:
+        env.Append(CXXFLAGS = Split('-std=c++11'))
+        
     if system.os == 'darwin':
         env.Append(CXXFLAGS = Split('-stdlib=libc++'))
         env.Append(LINKFLAGS = Split('-stdlib=libc++'))
