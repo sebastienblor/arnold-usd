@@ -57,7 +57,7 @@ else:
     common_env.Append(LIBS=Split('AdskXGen'))
     common_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     if system.os == 'darwin':
-        common_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        common_env.Append(CCFLAGS = Split('-stdlib=libc++'))
         common_env.Append(LINKFLAGS = Split('-lc++'))
 
 
@@ -120,7 +120,7 @@ else:
     local_env.Append(LIBS=Split('AdskXGen'))
     local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     if system.os == 'darwin':
-        local_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        local_env.Append(CCFLAGS = Split('-stdlib=libc++'))
         local_env.Append(LINKFLAGS = Split('-lc++'))
     '''
     if system.os == 'darwin':
@@ -200,7 +200,7 @@ else:
     proc_env.Append(LIBS=Split('AdskXGen'))
     proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     if system.os == 'darwin':
-        proc_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        proc_env.Append(CCFLAGS = Split('-stdlib=libc++'))
         proc_env.Append(LINKFLAGS = Split('-lc++'))
 
 EXT_PROCS = proc_env.SharedLibrary('xgenSpline_procedural', source_files, LIBPREFIX='')
