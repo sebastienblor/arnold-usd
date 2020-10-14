@@ -3313,9 +3313,6 @@ desc STRING "Apply a gamma correction to the color."
     [attr mix4]
         min             FLOAT   0
         softmax         FLOAT   1
-    [attr mix4]
-        min             FLOAT   0
-        softmax         FLOAT   1
     [attr mix5]
         min             FLOAT   0
         softmax         FLOAT   1
@@ -3357,9 +3354,6 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         softmax         FLOAT   1
     [attr mix3]
-        min             FLOAT   0
-        softmax         FLOAT   1
-    [attr mix4]
         min             FLOAT   0
         softmax         FLOAT   1
     [attr mix4]
@@ -3432,9 +3426,6 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         softmax         FLOAT   1
     [attr mix3]
-        min             FLOAT   0
-        softmax         FLOAT   1
-    [attr mix4]
         min             FLOAT   0
         softmax         FLOAT   1
     [attr mix4]
