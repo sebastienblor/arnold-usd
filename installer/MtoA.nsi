@@ -181,11 +181,23 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
 
     ; run the install script
 
-    StrCpy $R3 "$INSTDIR\license\ArnoldLicensing-8.1.0.1084_RC6-win.exe"
-    ${If} ${FileExists} "$R3"
-      ExecWait '$INSTDIR\license\ArnoldLicensing-8.1.0.1084_RC6-win.exe --silent'
+    StrCpy $R5 "$INSTDIR\VC_redist.x64.exe"
+    StrCpy $R6 "$INSTDIR\VC_redist_install.log"
+    ${If} ${FileExists} "$R5"
+      ExecWait '"$R5" /install /norestart /quiet /log "$R6"' $1
+      ${If} $1 != 0        ; success
+      ${AndIf} $1 != 1638  ; other (newer) version is installed
+      ${AndIf} $1 != 3010  ; success but restart required
+        StrCpy $9 "Failed to install Visual C++ redistributables for Visual Studio 2019 (14.27.29112)"
+        IfSilent +2
+          MessageBox MB_ICONEXCLAMATION $9
+          System::Call 'kernel32::AttachConsole(i -1)i.r0' ;attach to parent console
+          ${If} $0 != 0         
+             System::Call 'kernel32::GetStdHandle(i -11)i.r0' ;console attached -- get stdout handle
+             FileWrite $0 "$9$\n" 
+          ${EndIf}
+      ${EndIf}
     ${EndIf}
-    
 
     StrCpy $R4 "$INSTDIR\license\pitreg.exe"
     ${If} ${FileExists} "$R4"
@@ -209,17 +221,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
         ${EndIf}
     ${EndIf}
 
-    StrCpy $0 "$INSTDIR"
-    ; copy the files
-    SetOutPath "$0"
-    ; run the install script
-    IfFileExists "$0\VC_redist.x64.exe" 0 +7
-    ExecWait '"$0\VC_redist.x64.exe" /install /norestart /quiet /log "$0\VC_redist_install.log"' $1
-    ${If} $1 != 0        ; success
-    ${AndIf} $1 != 1638  ; other (newer) version is installed
-    ${AndIf} $1 != 3010  ; success but restart required
-       MessageBox MB_OK "Failed to install Visual C++ redistributables for Visual Studio 2019 (14.27.29112)"
-    ${EndIf}
+    
 
      
 SectionEnd
