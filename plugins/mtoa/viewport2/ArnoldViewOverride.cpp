@@ -388,7 +388,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
         // now restart the render and early out. We'll be called here again in the next refresh.
         if (!newCamName.empty())
+        {
+            CRenderSession::SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
             CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
+        }
 
         CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
 
