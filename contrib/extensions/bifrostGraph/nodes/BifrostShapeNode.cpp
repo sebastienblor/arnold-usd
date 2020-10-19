@@ -145,6 +145,17 @@ void CBifrostShapeNode::updateGeometry()
 
    AtNode *proc = AiNode(proc_universe,"bifrost_graph", name().asChar());
    MFnDependencyNode fnNode(connectedNode);
+
+   MPlug vpRenderPlug = fnNode.findPlug("viewportRenderSelect", true);
+   if (!vpRenderPlug.isNull())
+   {
+      int vpRenderValue = vpRenderPlug.asInt();
+      if (vpRenderValue == 0)
+         vpRenderPlug.setValue(2);
+      else if (vpRenderValue == 1)
+         vpRenderPlug.setValue(3);
+   }
+
    MPlug bifrostData  = fnNode.findPlug("outputBifrostDataStream", true);
    MDataHandle dataStreamHandle;
    bifrostData.getValue(dataStreamHandle);

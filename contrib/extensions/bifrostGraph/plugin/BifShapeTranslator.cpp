@@ -221,6 +221,16 @@ void CBifShapeTranslator::Export( AtNode *shape )
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
 
+   MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
+   if (!vpRenderPlug.isNull())
+   {
+      int vpRenderValue = vpRenderPlug.asInt();
+      if (vpRenderValue == 0)
+         vpRenderPlug.setValue(1);
+      else if (vpRenderValue == 2)
+         vpRenderPlug.setValue(3);
+   }   
+
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
@@ -956,4 +966,14 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
       AiArrayUnmap(dataArray);
       serialisedDataPlug.destructHandle(serialisedDataHandle);
    }
+}
+
+
+void CBifShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "viewportRenderSelect")
+      return; // we don't want to update IPR when this attribute changes
+
+   CProceduralTranslator::NodeChanged(node, plug);
 }
