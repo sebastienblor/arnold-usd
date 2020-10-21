@@ -4417,7 +4417,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "transmission_dispersion", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmission_extra_roughness", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmit_aovs", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "dielectric_priority", AI_TYPE_BYTE);
+   ProcessParameter(shader, "dielectric_priority", AI_TYPE_INT);
 
    // Subsurface
    ProcessParameter(shader, "subsurface", AI_TYPE_FLOAT);
