@@ -662,8 +662,9 @@ env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparin
 env['ROOT_DIR'] = os.getcwd()
 
 USD_DELEGATE = None
-USD_PATH = env.subst(env['USD_PATH'])
+USD_PATH = env.get('USD_PATH')
 if USD_PATH and len(USD_PATH) > 0:
+    USD_PATH = env.subst(USD_PATH)
     USD_DELEGATE = env.SConscript(os.path.join('usd', 'SConscript'),
                       variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
                       duplicate   = 0,
