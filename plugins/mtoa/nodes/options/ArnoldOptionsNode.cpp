@@ -90,6 +90,7 @@ MObject CArnoldOptionsNode::s_mtoa_translation_info;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_operator;
+MObject CArnoldOptionsNode::s_imagers;
 MObject CArnoldOptionsNode::s_atmosphereShader;
 MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
@@ -328,6 +329,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("sss_use_autobump");
    s_attributes.MakeInput("indirect_specular_blur");
+   s_attributes.MakeInput("dielectric_priorities");
 
       
    s_aa_seed = uAttr.create("AA_seed", "aaseed", MFnUnitAttribute::kTime);
@@ -586,6 +588,14 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setKeyable(false);
    mAttr.setReadable(true);
    addAttribute(s_operator);
+
+   s_imagers = mAttr.create("imagers", "imagers");
+   mAttr.setKeyable(false);
+   mAttr.setArray(true);
+   mAttr.setReadable(false);
+   mAttr.setIndexMatters(false);
+   addAttribute(s_imagers);
+   
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

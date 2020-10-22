@@ -208,8 +208,11 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         if (camNode)
         {
             camTranslator->RequestUpdate(); // ensure the camera is re-exported so that it considers the viewport resolution for FOV
-            newCamName =  AiNodeGetName(camNode);
-            AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
+            // We need to use the partial name as this is the one considered by ARV's camera menu
+            newCamName = camera.partialPathName().asChar(); 
+            // Need to give the list of cameras + the current camera to ARV's options window #4370
+            CRenderSession::SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
+            CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
         }
     }
     s_activeViewport = destination; // set this viewport as the "active" one
@@ -285,10 +288,12 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
             if (camNode)
             {
-                newCamName =  AiNodeGetName(camNode);
-                AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
+                // We need to use the partial name as this is the one considered by ARV's camera menu
+                newCamName =  camera.partialPathName().asChar();
+                // Need to give the list of cameras + the current camera to ARV's options window #4370
+                CRenderSession::SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
+                CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
             }
-
             needsRefresh = true;
         }
 	}
@@ -383,7 +388,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
         // now restart the render and early out. We'll be called here again in the next refresh.
         if (!newCamName.empty())
+        {
+            CRenderSession::SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
             CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
+        }
 
         CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
 

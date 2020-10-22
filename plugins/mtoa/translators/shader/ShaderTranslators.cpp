@@ -2929,6 +2929,21 @@ AtNode* CAiStandardHairTranslator::CreateArnoldNodes()
    return AddArnoldNode("standard_hair");
 }
 
+void CAiStandardHairTranslator::NodeChanged(MObject& node, MPlug& plug)
+{   
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
+   // aiTransparency is an attribute created specially for VP2, we want to 
+   // ignore it otherwise this can refresh the IPR over and over #4341
+   if (plugName.substringW(0, 13) == MString("aiTransparency"))
+      return;
+   
+   if (plugName == "aiEnableMatte" || plugName == "aiMatteColor" || plugName == "aiMatteColorA" )
+         SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
+
 AtNode* CAiImageTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("image");
@@ -4402,6 +4417,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "transmission_dispersion", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmission_extra_roughness", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmit_aovs", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "dielectric_priority", AI_TYPE_INT);
 
    // Subsurface
    ProcessParameter(shader, "subsurface", AI_TYPE_FLOAT);
@@ -4505,6 +4521,11 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       data.name = "aiTransmitAovs";
       data.shortName = "ai_transmit_aovs";
       helper.MakeInputBoolean(data);
+
+      data.defaultValue.INT() = 0;
+      data.name = "aiDielectricPriority";
+      data.shortName = "ai_dielectric_priority";
+      helper.MakeInputInt(data);
 
    // Matte Attributes 
       data.name = "aiEnableMatte";

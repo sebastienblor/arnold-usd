@@ -727,10 +727,10 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         new_widget.deleteMe.connect(self.removeOverrideWidget)
 
         # param, operation, value, param_type, custom, index, operator
-        new_widget.valueChanged[str, str, str, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, int, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, bool, int, bool, int, str, bool].connect(self.setOverride)
-        new_widget.valueChanged[str, str, float, int, bool, int, str, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, str, int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, int, int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, bool, int, bool, int, str, bool, bool].connect(self.setOverride)
+        new_widget.valueChanged[str, str, float, int, bool, int, str, bool, bool].connect(self.setOverride)
         # add widget
         parentPanel.layout().addWidget(new_widget)
         return new_widget
@@ -754,7 +754,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         return None
 
-    def setOverride(self, param, op, value, param_type=None, custom=False,  index=-1, operator=None, enabled=True):
+    def setOverride(self, param, op, value, param_type=None, custom=False,  index=-1, operator=None, enabled=True, force_expression=False):
         if not operator:
             ops = self.getItemOverrideOperator()
             if not type(ops) == list:
@@ -774,7 +774,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             if not param_type:
                 param_type = param_data[DATA_PARAM_TYPE]
 
-        if self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, enabled, index):
+        if self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, custom, enabled, force_expression, index):
             self.item.setDirty(True)
             return True
         return False

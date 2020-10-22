@@ -1,4 +1,5 @@
-﻿
+# coding=utf-8
+
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
@@ -8,7 +9,16 @@ import maya.mel
 import mtoa.utils as utils
 import sys
 import maya.OpenMaya as OM
+import maya.mel as mel
+import mtoa.ui.ae.utils as aeUtils
+import mtoa.ui.imagers as imagers
 
+from mtoa.ui.qt import toQtObject
+from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
+from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
+                       BaseItem, BaseWindow, dpiScale, Timer
+
+from mtoa.ui.qt.treeView import *
 
 def updateRenderSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -964,6 +974,11 @@ def createArnoldSamplingSettings():
                         label='Use Autobump in SSS',
                         attribute='defaultArnoldRenderOptions.sssUseAutobump',
                         annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
+
+    cmds.attrControlGrp('dielectric_priorities',
+                        label='Nested Dielectrics',
+                        attribute='defaultArnoldRenderOptions.dielectricPriorities',
+                        annotation='Enable resolving overlapping dielectrics into a well-defined medium, so that higher priority dielectrics override lower priority ones which are effectively removed.\\nThis is used to correctly set up cases with adjacent dielectric media such as a glass of water with ice.\\nPriority can be set on the standard_surface shader')
     
     cmds.separator()
     cmds.attrControlGrp('ss_indirect_specular_blur',
@@ -1320,6 +1335,22 @@ def createArnoldSubdivSettings():
 
     cmds.setUITemplate(popTemplate=True)
 
+global _imagerUI
+_imagerUI = None
+def createArnoldImagerSettings():
+    global _imagerUI
+
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
+
+    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', width=400, height=200,
+                        collapsable=True, collapse=True)
+
+    _imagerUI = imagers.ImagersUI(imagerShadersFrame)
+
+    cmds.setParent('..')
+    cmds.setUITemplate(popTemplate=True)
+
 
 def createArnoldTextureSettings():
 
@@ -1332,7 +1363,7 @@ def createArnoldTextureSettings():
                         label="Auto-convert Textures to TX ", 
                         attribute='defaultArnoldRenderOptions.autotx')
 
-    cmds.attrControlGrp('use_existing_tiled_textures', 
+    cmds.attrControlGrp('use_existing_tiled_textures',
                         label="Use Existing TX Textures", 
                         attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
     
@@ -1928,6 +1959,10 @@ def createArnoldRendererGlobalsTab():
     cmds.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
     createArnoldSubdivSettings()
     cmds.setParent('..')
+    
+    #cmds.frameLayout('arnoldImagerSettings', label="Post-process", cll= True, cl=1)
+    createArnoldImagerSettings()
+    #cmds.setParent('..')
     
     cmds.formLayout(parentForm,
                     edit=True,

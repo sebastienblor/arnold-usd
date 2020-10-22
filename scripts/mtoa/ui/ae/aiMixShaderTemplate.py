@@ -35,6 +35,7 @@ class AEaiMixShaderTemplate(ShaderAETemplate):
 
         self.addCustom("shader1", aiMixInputNew, aiMixInputReplace)
         self.addCustom("shader2", aiMixInputNew, aiMixInputReplace)
+        self.addControl('addTransparency', label = 'Add Transparency' , annotation = "Add Transparancy")
         
         # include/call base class/node attributes
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)

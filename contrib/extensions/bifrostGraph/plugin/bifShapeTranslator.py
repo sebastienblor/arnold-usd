@@ -1,4 +1,5 @@
 import mtoa.ui.ae.templates as templates
+import maya.cmds as cmds
 
 
 class bifShapeDescriptionTemplate(templates.ShapeTranslatorTemplate):
@@ -18,4 +19,21 @@ class bifShapeDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
 
 
+class bifrostGraphShapeDescriptionTemplate(templates.ShapeTranslatorTemplate):
+
+    def setup(self):
+
+        self.commonShapeAttributes()
+        self.beginLayout("Translator Options", collapse=False)
+        self.addControl("aiVelocityScale", label="Velocity scale", annotation='Multiplier on velocity-based motion')
+        self.addControl("aiMotionBlurMode", label="Motion blur mode", annotation='Export Sampled motion blur or velocity only')
+        self.addSeparator()
+        self.addControl("aiNamespace", label="Namespace", annotation='Procedural namespace')
+        self.addControl("aiUserOptions", label="User Options", annotation='Custom User Options (advanced)')
+        self.addSeparator()
+        self.endLayout()
+
+
 templates.registerAETemplate(bifShapeDescriptionTemplate, "bifShape")
+if 'bifrostGraphShape' in cmds.allNodeTypes( ):
+    templates.registerAETemplate(bifrostGraphShapeDescriptionTemplate, "bifrostGraphShape")

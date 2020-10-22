@@ -262,7 +262,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       // Start off the render.
       // Unless we are in "open" mode
-      renderSession->RunRenderView();
+      if (mode == "render_silent")
+         renderSession->RunRenderView(); 
+      else
+         CMayaScene::GetRenderSession()->SetRenderViewOption("Run IPR", "1");
+      
    } else if (mode == "stop")
    {
       if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
@@ -333,7 +337,9 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
 
    // Set the render session camera.
    renderSession->SetCamera(camera);
-   MString renderCamera = CDagTranslator::GetArnoldNaming(camera);
+   // Need to set the camera's partial path name, as this is what is being displayed
+   // in the renderview's menu #4360
+   MString renderCamera = camera.partialPathName();
    
    if (setDefaultCamera && !wasViewportRendering)
    {

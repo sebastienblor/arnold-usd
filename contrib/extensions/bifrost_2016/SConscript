@@ -22,7 +22,7 @@ if system.os =='windows':
 else:
    common_env.Append(CPPPATH = ['.'])
    common_env.Append(LIBS=Split(bifrostLib))
-   common_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
+   common_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 mayaRoot = common_env['MAYA_ROOT']
 if system.os == 'darwin':
@@ -96,7 +96,7 @@ else:
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai'))   
    local_env.Append(LIBS=Split(bifrostLib))
-   local_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX='')
 
@@ -178,7 +178,7 @@ else:
    proc_env.Append(CPPPATH = ['.'])
    proc_env.Append(LIBS=Split('ai'))
    proc_env.Append(LIBS=Split(bifrostLib))
-   proc_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
+   proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 EXT_PROCS = proc_env.SharedLibrary('bifrost_procedurals', source_files, LIBPREFIX='')
 #EXT_PROCS.target_type = 'procedural'

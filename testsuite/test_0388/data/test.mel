@@ -1,0 +1,12 @@
+print "Running Export Selected shaders";
+
+polyCylinder -r 1 -h 2 -sx 20 -sy 1 -sz 1 -ax 0 1 0 -rcp 0 -cuv 3 -ch 1;
+defaultDirectionalLight(1, 1,1,1, "0", 0,0,0, 0);
+setAttr "directionalLightShape1.intensity" 5;
+shadingNode "aiSkyDomeLight" -name "skydome" -asLight;
+
+arnoldImportAss -f "./shaders.ass" -mask 16;
+connectAttr -f shader1.outColor initialShadingGroup.surfaceShader;
+
+arnoldRenderView -mode "render_silent";
+arnoldRenderView -option "Save Image" "./testrender.tif";

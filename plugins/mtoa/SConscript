@@ -27,7 +27,12 @@ for subdir in subdirs:
 #Remove files to be exported by the API from 'nodes' and 'translators' folder
 source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('nodes', 'shape', 'ArnoldProceduralNode.cpp'),
+                    os.path.join('nodes', 'shape', 'ArnoldBaseProcedural.cpp'),
+                    os.path.join('nodes', 'shape', 'ArnoldDrawGeometry.cpp'),
+                    os.path.join('nodes', 'shape', 'PolyTriangulator.cpp'),
                     os.path.join('nodes', 'ArnoldOperatorNode.cpp'),
+                    os.path.join('nodes', 'ArnoldImagerNode.cpp'),
+                    os.path.join('viewport2', 'ArnoldProceduralSubSceneOverride.cpp'),
                     os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'ImagePlaneTranslator.cpp'),
@@ -39,6 +44,7 @@ source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'shape', 'ProceduralTranslator.cpp'),
                     os.path.join('translators', 'shape', 'AutoProceduralTranslator.cpp'),
                     os.path.join('translators', 'operator', 'OperatorTranslator.cpp'),
+                    os.path.join('translators', 'imager', 'ImagerTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslatorImpl.cpp'),                    
                     os.path.join('translators', 'DagTranslator.cpp'),
@@ -136,7 +142,7 @@ if local_env['ENABLE_ALEMBIC']:
         local_env.Append(LIBS = [File(os.path.join(abc_lib_dir, 'libAlembic.a')), 
                                  File(os.path.join(ilmbase_lib_dir, 'libHalf.a')),
                                  File(os.path.join(ilmbase_lib_dir, 'libIex.a'))])
-        local_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++11')) # hide symbols by default
+        local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     elif system.os == 'windows':
         if local_env['MODE'] == 'debug':
             abc_lib_dir = os.path.join(abc_lib_dir, 'debug')

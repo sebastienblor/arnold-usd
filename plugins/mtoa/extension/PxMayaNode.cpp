@@ -17,6 +17,7 @@
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "nodes/shape/ArnoldProceduralNode.h"
 #include "nodes/ArnoldOperatorNode.h"
+#include "nodes/ArnoldImagerNode.h"
 #include "nodes/shader/ArnoldSkinShaderNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 #include "nodes/shader/ArnoldStandardSurfaceNode.h"
@@ -440,7 +441,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             creator    = CArnoldProceduralNode::creator;
             initialize = CArnoldProceduralNode::initialize;
             abstract   = &CArnoldProceduralNode::s_abstract;
-            classification = "drawdb/geometry/arnold/procedural"; // should we also be using "subscene" for versions >= 2017 as the standin do ?
+            classification = "drawdb/subscene/arnold/procedural/" + arnoldNodeTypeName;
          }
       } else if (arnoldNodeTypeName == "operator")
       {
@@ -448,6 +449,20 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          initialize = CArnoldOperatorNode::initialize;
          abstract   = &CArnoldOperatorNode::s_abstract;
 
+      } else if (arnoldNodeTypeName == "driver")
+      {
+         // Special case for drivers
+         AtString subtypeMtd;
+         static AtString subtypeStr("subtype");
+         static AtString imagerStr("imager");
+
+         if (AiMetaDataGetStr(arnoldNodeEntry, NULL, subtypeStr, &subtypeMtd) && subtypeMtd == imagerStr)
+         {         
+            creator    = CArnoldImagerNode::creator;
+            initialize = CArnoldImagerNode::initialize;
+            abstract   = &CArnoldImagerNode::s_abstract;
+            SetName(toMayaStyle(MString("ai_") + node));
+         }
       }
    }
    // classification string if none is stored

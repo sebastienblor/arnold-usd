@@ -114,8 +114,10 @@ def appendToSSTemplate():
             }
         global int $gAEstandardSurfaceLayout_Transmission;
         if ($layoutID == $gAEstandardSurfaceLayout_Transmission) {
-            editorTemplate -addSeparator;
-            editorTemplate -l "Arnold Transmit AOVS" -addControl "aiTransmitAovs";
+            editorTemplate -beginLayout "Arnold Transmission" -collapse false;
+            editorTemplate -l "Transmit AOVS" -addControl "aiTransmitAovs";
+            editorTemplate -l "Dielectric Priority" -addControl -annotation "Priority for nested dielectrics" "aiDielectricPriority";
+            editorTemplate -endLayout;
             }
     }
     stringArrayInsertAtIndex(0, $gAEstandardSurfaceTemplateCallbacks, "Arnold_SSmyCallback");

@@ -180,14 +180,16 @@
 #define ARNOLD_NODEID_VECTOR_TO_RGB              0x00115DB3
 #define ARNOLD_NODEID_RGB_TO_VECTOR              0x00115DB4
 
+#define ARNOLD_NODEID_IMAGER_EXPOSURE_COMP       0x00115DB5
+#define ARNOLD_NODEID_IMAGER_COLOR_CORRECT       0x00115DB6
+#define ARNOLD_NODEID_IMAGER_LENS_EFFECT         0x00115DB7
+#define ARNOLD_NODEID_IMAGER_WHITE_BALANCE       0x00115DB8
+#define ARNOLD_NODEID_IMAGER_TONEMAP             0x00115DB9
+
 #define ARNOLD_NODEID_SHADER_MATERIALX           0x00115DBA
 #define ARNOLD_NODEID_SHADER_AOV_WRITE_VECTOR    0x00115DBB
 #define ARNOLD_NODEID_OPERATOR_STRING_REPLACE    0x00115DBC
-// FIXME ids between 0x00115DB5 and 0x00115DB9 were accidentally 
-// skipped. Be sure to pick those next time a node is added
-
-
-
+//0x00115DBD is for ArnoldBifrostShape
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00

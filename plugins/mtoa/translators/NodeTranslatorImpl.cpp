@@ -1284,8 +1284,13 @@ void CNodeTranslatorImpl::AddNamingOptions(MString &name)
       name.substitute(MString("|"), MString ("/"));
    
    const MString &prefix = options.GetExportPrefix();
-   if (prefix.length() > 0)
+   if (prefix.length() > 0) {
       name = prefix + name;
+
+      // Ensure we don't have double-slashes, that cause problems in some formats
+      if (options.GetExportSeparator() == MTOA_EXPORT_SEPARATOR_SLASHES)
+         name.substitute(MString("//"), MString ("/"));
+   }
 }
 
 // check if an AtArray is animated,  i.e. has different values on multiple keys

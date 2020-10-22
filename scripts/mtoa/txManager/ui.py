@@ -148,9 +148,9 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
             self.info_layout.AllNonFixedFieldsGrow)
 
         # Info
-        self.colorspace = QtWidgets.QComboBox()
+        # self.colorspace = QtWidgets.QComboBox()  #  Hiding the colrospace widget for now, we don't want artist changing this from the TX manager
         # self.info_hastx = QtWidgets.QLabel()
-        self.info_layout.addRow('Colorspace:', self.colorspace)
+        # self.info_layout.addRow('Colorspace:', self.colorspace)
         # self.info_layout.addRow('Has .tx:', self.info_hastx)
 
         # LEFT assingments
@@ -330,7 +330,7 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
         self.tx_use_autotx.toggled.connect(self.tx_manual_options_widget.setDisabled)
 
-        self.colorspace.currentIndexChanged.connect(self.on_colorspace_change)
+        # self.colorspace.currentIndexChanged.connect(self.on_colorspace_change)
 
         self.action_create.clicked.connect(self.on_create_tx)
         self.action_rm.clicked.connect(self.on_delete_tx)
@@ -452,26 +452,26 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         texture_selection = self.texture_list.selectedItems()
 
         # update colorspace combo
-        colorspaces = set()
+        # colorspaces = set()
         for item in texture_selection:
             data = item.data(0, QtCore.Qt.UserRole)
             cmds.select(data['usage'], add=True)
-            colorspaces.add(data['colorspace'])
+        #     colorspaces.add(data['colorspace'])
 
-        self._dontupdate = True
-        self.colorspace.clear()
-        if not len(colorspaces):
-            return
+        # self._dontupdate = True
+        # self.colorspace.clear()
+        # if not len(colorspaces):
+        #     return
 
-        if len(colorspaces) > 1:
-            self.colorspace.addItem('Multiple')
+        # if len(colorspaces) > 1:
+        #     self.colorspace.addItem('Multiple')
 
-        default = cmds.colorManagementPrefs(q=True, inputSpaceNames=True)
-        self.colorspace.addItems(default)
-        if len(colorspaces) == 1:
-            colorspace = list(colorspaces)[0]
-            index = self.colorspace.findText(colorspace)
-            self.colorspace.setCurrentIndex(index)
+        # default = cmds.colorManagementPrefs(q=True, inputSpaceNames=True)
+        # self.colorspace.addItems(default)
+        # if len(colorspaces) == 1:
+        #     colorspace = list(colorspaces)[0]
+        #     index = self.colorspace.findText(colorspace)
+        #     self.colorspace.setCurrentIndex(index)
 
         # TODO update the tx info
 
@@ -581,7 +581,7 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
             logger.info('Deleting "%s"...' % data['txpath'])
             try:
-                tx_files = lib.makeTx.expandFilename(data['txpath'])
+                tx_files = lib.makeTx.expandFilenameWithSearchPaths(data['txpath'])
                 for tx in tx_files:
                     os.remove(tx)
             except Exception:

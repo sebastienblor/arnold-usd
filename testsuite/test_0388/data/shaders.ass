@@ -1,0 +1,59 @@
+### exported: Wed Sep  9 11:50:39 2020
+### from:     Arnold 6.0.5.0 [54e9a166] windows icc-17.0.2 oiio-2.2.1 osl-1.11.6 vdb-4.0.0 clm-1.1.1.118 rlm-12.4.2 optix-6.6.0 2020/08/28 20:37:52
+### host app: MtoA 4.0.4.1 07bfd8fc (master) Maya 2020
+### user: blaines
+### render_layer: defaultRenderLayer
+
+
+flat
+{
+	name shader1
+	color mult
+}
+multiply
+{
+	name mult
+	input1 ramp1
+	input2 float2rgb
+}
+float_to_rgb
+{
+	name float2rgb
+	r ramp2
+	g ramp2
+	b ramp2
+}
+
+
+ramp_rgb
+{
+ name ramp1
+ type "v"
+ position 3 1 FLOAT
+0.46639511 1 0.743380845
+ color 3 1 RGB
+ 0 0 1 0 1 0 1 0 0
+
+ interpolation 3 1 INT
+1 1 1
+ uvset ""
+ use_implicit_uvs "curves_only"
+ wrap_uvs on
+}
+
+
+ramp_float
+{
+ name ramp2
+ type "u"
+ position 3 1 FLOAT
+0.46639511 0.743380845 1
+ value 3 1 FLOAT
+0.4 1 0.9
+ interpolation 3 1 INT
+1 1 1
+ uvset ""
+ use_implicit_uvs "curves_only"
+ wrap_uvs on
+}
+

@@ -24,4 +24,5 @@ public:
       return new CBifShapeTranslator();
    }
    virtual void ExportShaders(AtNode* shape);
+   virtual void NodeChanged(MObject& node, MPlug& plug); 
 };

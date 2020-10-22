@@ -1,54 +1,132 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0147', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
+ {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\2', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata;C:\\Program Files (x86)\\Windows Kits\\10\\References;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'SystemRoot': 'C:\\WINDOWS', 'PATH': 'C:\\solidangle\\mtoadeploy\\2020\\bin;C:\\Program Files\\Autodesk\\Maya2020\\bin;C:\\solidangle\\mtoadeploy\\2020\\lib;C:\\solidangle\\mtoadeploy\\2020\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\Wbem;C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.222.10-hotspot\\bin;.', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\2', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'VSCMD_ARG_app_plat': '', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20200200\\msvc_opt\\testsuite\\test_0147', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20200200\\msvc_opt\\testsuite\\test_0147'}
  
  ==== Exec cmd ==== 
  
-D:\arnold\Maya-runtimes\windows\Maya2018\bin\Render -proj "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0147" -rd "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0147" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0147\test.ma"
+Render -proj "D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0147" -rd "D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0147" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0147\test.ma"
  
  
-Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
-sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+Starting "C:\Program Files\Autodesk\Maya2020\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+  Version : 2016.11.53.12. Feature Level 5.
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+  Adapter : GeForce RTX 2080 Ti/PCIe/SSE2
 
-Warning: file: C:\Users\blaines\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+  Vendor ID: 4318. Device ID : 5051
 
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+  Driver : .
 
-00:00:00   262MB WARNING | [mtoa] [<built-in>] [node subtract_geo] Assigning temporary node id 1138176 to associated Maya type name aiSubtractGeo.
+  API : OpenGL V.4.6.
 
-00:00:00   267MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+  Max texture size : 16384 * 16384.
 
-00:00:00   267MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+  Max tex coords : 32
 
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
 
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+  Shader compiler profile : (Best card profile)
 
-Successfully imported python module 'arnold'
+  Active stereo support available : 0
 
-Successfully imported python module 'mtoa'
+  GPU Memory Limit : 11264 MB.
 
-Successfully registered renderer 'arnold'
+  CPU Memory Limit: 62183.7 MB.
+
+  MultiDraw consolidation: enabled
+
+}
+
+OpenCL evaluator is attempting to initialize OpenCL.
+
+Detected 1 OpenCL Platforms: 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 11.0.126.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics 
+
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+
+00:00:00   486MB         | log started Tue Oct  6 12:00:52 2020
+
+00:00:00   486MB         | Arnold 6.1.0.0.beta21 [a534f3af] windows clang-10.0.1 oiio-2.2.1 osl-1.11.6 vdb-4.0.0 clm-1.1.1.118 rlm-12.4.2 optix-6.6.0 2020/10/01 18:56:43
+
+00:00:00   486MB         | running on REM8WCK8D2, pid=28480
+
+00:00:00   486MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65456MB
+
+00:00:00   486MB         |  NVIDIA driver version 445.75 (Optix 60700)
+
+00:00:00   486MB         |  GPU 0: GeForce RTX 2080 Ti @ 1635MHz (compute 7.5) with 11264MB (11036MB available) (NVLink:0)
+
+00:00:00   486MB         |  GPU 1: Quadro K620 @ 1124MHz (compute 5.0) with 2048MB (965MB available) (NVLink:0)
+
+00:00:00   486MB         |  Windows 8 Enterprise Edition (version 6.2, build 9200)
+
+00:00:00   486MB         |  soft limit for open files raised from 512 to 2048
+
+00:00:00   486MB         |  
+
+00:00:00   486MB         | loading plugins from C:\solidangle\mtoadeploy\2020\bin\..\plugins ...
+
+00:00:00   487MB         |  alembic_proc.dll: alembic uses Arnold 6.1.0.0.beta21
+
+00:00:00   487MB         |  cryptomatte.dll: cryptomatte uses Arnold 6.1.0.0.beta21
+
+00:00:00   487MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 6.1.0.0.beta21
+
+00:00:00   487MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 6.1.0.0.beta21
+
+00:00:00   487MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 6.1.0.0.beta21
+
+00:00:00   515MB         |  usd_proc.dll: usd uses Arnold 6.1.0.0.beta21
+
+00:00:00   515MB         | loaded 6 plugins from 4 lib(s) in 0:00.09
+
+###############################################################################
+
+Begin attempted read of a shade fragment XML file.
+
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+
+Errors loading XML:
+
+-------------------------------------------------------------------------------
+
+Could not find file: aiRectangleAreaLight.xml
+
+-------------------------------------------------------------------------------
+
+End attempted read of fragment XML.
+
+###############################################################################
 
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  1.3 seconds.
+File read in  0.46 seconds.
 
-File read in  1.3 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/20200200/msvc_opt/testsuite/test_0147/test.ma
 
-Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0147/test.ma
+00:00:10   628MB WARNING | rendering with watermarks because of failed authorization:
 
-00:00:00   325MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:10   628MB         |  [clm.v2] timeout before callback was called
 
-00:00:00   325MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:10   628MB         |  environment variables:
 
-00:00:00   326MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:10   628MB         |         ARNOLD_LICENSE_ORDER   = (not set)
 
-00:00:00   329MB WARNING | rendering with watermarks because of failed authorization:
+00:00:10   628MB         |         ARNOLD_LICENSE_MANAGER = (not set)
 
-Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0147\test.ma completed.
+00:00:10   628MB         |  [rlm]  solidangle_LICENSE     = (not set)
+
+00:00:10   628MB         |  [rlm]  RLM_LICENSE            = (not set)
+
+00:00:10   628MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
+
+00:00:10   628MB         |  [clm]  LM_LICENSE_FILE        = (not set)
+
+Scene D:\arnold\mtoa\build\windows_x86_64\20200200\msvc_opt\testsuite\test_0147\test.ma completed.
 

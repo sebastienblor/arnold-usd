@@ -1,8 +1,9 @@
 #pragma once
 
 #include "attributes/AttrHelper.h"
+#include "ArnoldBaseProcedural.h"
 #include "common/UnorderedContainer.h"
-#include "ArnoldStandInGeometry.h"
+#include "ArnoldDrawGeometry.h"
 
 #include <maya/MPxNode.h>
 #include <maya/MString.h>
@@ -15,97 +16,61 @@
 #include <map>
 
 // Geometry class
-class CArnoldStandInGeom
+class CArnoldStandInData : public CArnoldProceduralData
 {
 public:
 
-   CArnoldStandInGeom();
-   ~CArnoldStandInGeom();
+   CArnoldStandInData();
+   ~CArnoldStandInData();
    MString dso;
-   MString data;
    MString filename;
-   MString geomLoaded;
-   int mode;
    int frame;
    float frameOffset;
    bool useFrameExtension;
    bool useSubFrame;
-   bool IsGeomLoaded;
-   MBoundingBox bbox;
-//   bool deferStandinLoad;
    float scale;
-   MPoint BBmin;
-   MPoint BBmax;
-   typedef unordered_map<std::string, CArnoldStandInGeometry*> geometryListType;
-   typedef geometryListType::const_iterator geometryListIterType;
-   geometryListType m_geometryList;
-   typedef std::vector<CArnoldStandInGInstance*> instanceListType;
-   typedef instanceListType::const_iterator instanceListIterType;
-   instanceListType m_instanceList;
    int dList;
-   int updateView;
-   int updateBBox;
    int drawOverride;
    bool useAutoInstancing;
-   bool hasSelection;
    MString objectPath;
    MString abcLayers;
    float abcFps;
+   bool m_updateFilename;
+   bool m_loadFile;
+   bool m_hasOverrides;
 
-
-
-   void Clear();
-   void Draw(int DrawMode);
-   size_t PointCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
-   size_t SharedVertexCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
-   size_t VisibleGeometryCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
-   size_t WireIndexCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
-   size_t TriangleIndexCount(bool sharedVertices = false, StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
 };
 
 // Shape class - defines the non-UI part of a shape node
-class CArnoldStandInShape: public MPxSurfaceShape
+class CArnoldStandInShape: public CArnoldBaseProcedural
 {
 
 public:
    CArnoldStandInShape();
-   virtual ~CArnoldStandInShape();
+   virtual ~CArnoldStandInShape() {};
 
-   virtual void postConstructor();
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
-   virtual bool getInternalValueInContext(const MPlug&, MDataHandle&,
-         MDGContext &context);
-   virtual bool setInternalValueInContext(const MPlug&, const MDataHandle&,
-         MDGContext &context);
-
-   virtual bool isBounded() const;
-   virtual MBoundingBox boundingBox() const;
    
-   virtual MSelectionMask getShapeSelectionMask() const;
-
    MStatus GetPointPlugValue( MPlug plug, float3 & value );
    MStatus SetPointPlugValue( MPlug plug, float3   value );
    void CreateBoundingBox();
    bool LoadBoundingBox();
-   MStatus GetPointsFromAss();
+   MStatus LoadFile();
 
-   void UpdateSelectedItems();
-
+   virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
+ 
    static void* creator();
    static MStatus initialize();
-   CArnoldStandInGeom* geometry();
-
-   int drawMode();
-   //bool deferStandinLoad();
-
+   virtual void updateGeometry();
+   
    static MTypeId id;
-   static void  AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
+
 private:
-   CArnoldStandInGeom fGeometry;
+   CArnoldStandInData *GetStandinData();
+
    // Attributes
    static CStaticAttrHelper s_attributes;
    static MObject s_dso;
-   static MObject s_mode;
+
    static MObject s_useFrameExtension;
    static MObject s_frameNumber;
    static MObject s_useSubFrame;
@@ -119,37 +84,11 @@ private:
    static MObject s_boundingBoxMax;
    static MObject s_useAutoInstancing;
    static MObject s_drawOverride;
-   static MObject s_selectedItems;
    static MObject s_ignoreGroupNodes;
    static MObject s_objectPath;
    static MObject s_abcLayers;
    static MObject s_abcFps;
+   static MObject s_overrides;
 
-   MCallbackId m_attrChangeId;
-   bool m_refreshAvoided;
 }; // class CArnoldStandInShape
 
-
-// UI class - defines the UI part of a shape node
-class CArnoldStandInShapeUI: public MPxSurfaceShapeUI
-{
-public:
-   CArnoldStandInShapeUI();
-   virtual ~CArnoldStandInShapeUI();
-   virtual void getDrawRequests(const MDrawInfo & info,
-         bool objectAndActiveOnly, MDrawRequestQueue & requests);
-   virtual void draw(const MDrawRequest & request, M3dView & view) const;
-   virtual bool select(MSelectInfo &selectInfo, MSelectionList &selectionList,
-         MPointArray &worldSpaceSelectPts) const;
-
-   void getDrawRequestsWireFrame(MDrawRequest&, const MDrawInfo&);
-
-   static void * creator();
-   // Draw Tokens
-   //
-   enum
-   {
-      kDrawBoundingBox, kLastToken
-   };
-
-}; // class CArnoldStandInShapeUI
