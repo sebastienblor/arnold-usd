@@ -220,11 +220,11 @@ void CBifShapeTranslator::Export( AtNode *shape )
    unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
-
+   int vpRenderValue = -1;
    MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
    if (!vpRenderPlug.isNull())
    {
-      int vpRenderValue = vpRenderPlug.asInt();
+      vpRenderValue = vpRenderPlug.asInt();
       if (vpRenderValue == 0)
          vpRenderPlug.setValue(1);
       else if (vpRenderValue == 2)
@@ -392,6 +392,10 @@ void CBifShapeTranslator::Export( AtNode *shape )
                     "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
                     AiNodeGetName(shape));
          serialisedDataPlug.destructHandle(serialisedDataHandle);
+
+         if (vpRenderValue >= 0)
+            vpRenderPlug.setInt(vpRenderValue);
+
          return;
       }
 
@@ -538,6 +542,9 @@ void CBifShapeTranslator::Export( AtNode *shape )
    // prevent it from being exported. The best way to deal with this now is simply to reset the attribute here
    AiNodeResetParameter(shape, "receive_shadows");
 
+   // restore the attribute "viewportRenderSelect" to its original value
+   if (vpRenderValue >= 0)
+      vpRenderPlug.setInt(vpRenderValue);
 }
 
 
