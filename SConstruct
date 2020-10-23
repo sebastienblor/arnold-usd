@@ -224,7 +224,7 @@ env.Append(BUILDERS = {'MakeModule' : make_module})
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
-
+env['MAYA_INCLUDE_PATH'] = MAYA_INCLUDE_PATH
 # Setting a timelimit for the testsuite (in seconds)
 # env['TIMELIMIT'] = 120.0
 
