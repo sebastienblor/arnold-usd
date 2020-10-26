@@ -224,7 +224,6 @@ env.Append(BUILDERS = {'MakeModule' : make_module})
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
-env['MAYA_INCLUDE_PATH'] = MAYA_INCLUDE_PATH
 # Setting a timelimit for the testsuite (in seconds)
 # env['TIMELIMIT'] = 120.0
 
@@ -257,6 +256,8 @@ if env['MAYA_INCLUDE_PATH'] == '.':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
     else:
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+    env['MAYA_INCLUDE_PATH'] = MAYA_INCLUDE_PATH
+
 env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
