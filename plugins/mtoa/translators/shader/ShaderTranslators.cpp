@@ -4417,6 +4417,7 @@ void CStandardSurfaceTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "transmission_dispersion", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmission_extra_roughness", AI_TYPE_FLOAT);
    ProcessParameter(shader, "transmit_aovs", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "dielectric_priority", AI_TYPE_INT);
 
    // Subsurface
    ProcessParameter(shader, "subsurface", AI_TYPE_FLOAT);
@@ -4520,6 +4521,11 @@ void CStandardSurfaceTranslator::NodeInitializer(CAbTranslator context)
       data.name = "aiTransmitAovs";
       data.shortName = "ai_transmit_aovs";
       helper.MakeInputBoolean(data);
+
+      data.defaultValue.INT() = 0;
+      data.name = "aiDielectricPriority";
+      data.shortName = "ai_dielectric_priority";
+      helper.MakeInputInt(data);
 
    // Matte Attributes 
       data.name = "aiEnableMatte";

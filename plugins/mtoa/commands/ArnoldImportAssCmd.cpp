@@ -171,6 +171,31 @@ std::string GetShadingGroup(std::string name, unordered_map<std::string, std::st
    }
    return sgName;
 }
+std::string ConvertStringAttribute(const AtNode *node, const char *paramName)
+{
+   // We need to protect some characters as we'll end up running a setAttr
+   // MEL command
+   std::string str = std::string(AiNodeGetStr(node, paramName));
+   std::string::size_type i = str.find('\\');
+   while (i != std::string::npos)
+   {
+       str.replace(i, 1, "\\\\");
+       i = str.find('\\', i+2);
+   }
+   i = str.find("\n");
+   while (i != std::string::npos)
+   {
+       str.replace(i, 1, "\\n");
+       i = str.find("\n", i+2);
+   }
+   i = str.find("\"");
+   while (i != std::string::npos)
+   {
+       str.replace(i, 1, "\\\"");
+       i = str.find("\"", i+2);
+   }
+   return str;
+}
 
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 {
@@ -236,6 +261,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    unordered_map<std::string, std::string>  arnoldToMayaNames;
    unordered_map<std::string, std::string>  arnoldToMayaShadingEngines;
    std::vector<AtNode *> nodesToConvert;
+   static AtString osl_str("osl");
 
    // First Loop to create the imported nodes, and fill the map from arnold to maya nodes
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, mask);
@@ -253,6 +279,12 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       unsigned int nodeType = AiNodeEntryGetType(nodeEntry);
 
       std::string nodeEntryName = AiNodeEntryGetName(nodeEntry);
+
+      // Exception for osl shaders, the AtNodeEntry that we receive is different from the "builtin" one (#4334)
+      // It doesn't have any of the metadatas we'll query below. Let's switch to using the good one.
+      if (nodeEntryName == "osl")
+         nodeEntry = AiNodeEntryLookUp(osl_str);
+      
       MString mayaTypeName = ArnoldToMayaStyle(MString("ai_")+MString(nodeEntryName.c_str()));
 
       AtString mayaNodeNameMtd;
@@ -281,6 +313,29 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       std::string nodeName = AiNodeGetName(node);
       std::string mayaName = arnoldToMayaNames[nodeName];
 
+      bool isOsl = AiNodeIs(node, osl_str);
+      if (isOsl)
+      {
+         // OSL is special, we need to set its attribute "code" first.
+         // Then we need to go through the same code as when we decide
+         // to compile the code, through the attribute editor. This will 
+         // create all the maya node attributes corresponding to the ones 
+         // declared in the OSL code. Only after this, we can iterate over the attributes
+         // to convert them to Maya.
+         std::string str = ConvertStringAttribute(node, "code");
+         MString cmd = "setAttr " + MString(mayaName.c_str()) + MString(".code ") ;
+         cmd += "-type \"string\" \"";
+         cmd += str.c_str();
+         cmd += "\"";
+         MGlobal::executeCommand(cmd);
+         MString pythonCmd = MString("import mtoa.osl;mtoa.osl.OSLSceneModel(\"");
+         pythonCmd += MString(str.c_str());
+         pythonCmd += MString("\",\"");
+         pythonCmd += MString(mayaName.c_str());
+         pythonCmd += "\")";
+         MGlobal::executePythonCommand(pythonCmd);
+      }
+
       // loop over this arnold node parameters
       AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
       while (!AiParamIteratorFinished(nodeParam))
@@ -290,7 +345,12 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          std::string paramNameStr(paramName);
          if (paramNameStr == "name")
             continue;
-         
+
+         // For OSL, we already converted the attribute "code", we must not do it again
+         // (otherwise Arnold might recompile it under the hood)
+         if (isOsl && paramNameStr == "code")
+            continue;
+
          MString mayaAttrName = ArnoldToMayaAttrName(nodeEntry, paramName);
          if (mayaAttrName.length() == 0)
             continue;
@@ -375,7 +435,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                }
                {
                case AI_TYPE_STRING:
-                  std::string str = std::string(AiNodeGetStr(node, paramName));
+                  std::string str = ConvertStringAttribute(node, paramName);
                   attrValue += "-type \"string\" \"";
                   // convert any '\' to '\\' in the string
                   std::string::size_type i = str.find('\\');

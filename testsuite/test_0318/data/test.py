@@ -14,6 +14,7 @@ xgen_root_path    = os.path.join(maya_root_path, "plug-ins", "xgen")
 shaders_path = os.path.join(mtoa_root_path, "shaders")
 procedurals_path = os.path.join(mtoa_root_path, "procedurals")
 
+print '/////////////////////////////////////////////////////////////'
 env = {}
 if OS == "linux":
     maya_lib_path = os.path.join(maya_root_path, "lib")
@@ -37,5 +38,7 @@ kick = os.path.join(mtoa_root_path, 'bin', 'kick')
 cmd = '%s -v 2 -dp -dw scene.ass -l %s -l %s -r 160 120 -o testrender.tif' \
  % (kick, shaders_path, procedurals_path)
 
+print cmd
+print env
 p = subprocess.Popen(cmd.split(), env=env)
 p.communicate()

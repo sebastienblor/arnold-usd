@@ -22,9 +22,9 @@
 #include "utils/Universe.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "utils/Universe.h"
-
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/shape/ArnoldProceduralNode.h"
+#include "viewport2/ArnoldProceduralSubSceneOverride.h"
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -34,8 +34,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MSceneMessage.h>
 #include <maya/MDGModifier.h>
-
-
+#include <maya/MDrawRegistry.h>
 // CExtensionsManager
 
 
@@ -53,6 +52,7 @@ MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
 OperatorsMap CExtensionsManager::s_operators;
+ImagersMap CExtensionsManager::s_imagers;
 CustomShapesMap CExtensionsManager::s_customShapes;
 
 
@@ -1118,6 +1118,20 @@ void CExtensionsManager::GetOperators(MStringArray& result)
       result.append(opName);
    }
 }
+void CExtensionsManager::AddImager(const MString &imager)
+{
+   std::string imgStr(imager.asChar());
+   s_imagers.insert(imgStr);
+}
+
+void CExtensionsManager::GetImagers(MStringArray& result)
+{
+   for (ImagersMap::const_iterator it = s_imagers.begin(); it != s_imagers.end(); ++it)
+   {
+      MString imgName((*it).c_str());
+      result.append(imgName);
+   }
+}
 
 void CExtensionsManager::GetNodeAOVs(const MString &mayaTypeName, MStringArray& result)
 {
@@ -1347,9 +1361,16 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
    // FIXME find a better way to do this (add flag in mayaNode ?)
    if (mayaNode.creator == CArnoldProceduralNode::creator)
    {
+      MString proceduralClassification = "drawdb/subscene/arnold/procedural/" + mayaNode.arnold; 
       status = MFnPlugin(s_plugin, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION).registerShape(mayaNode.name, mayaNode.id,
-            mayaNode.creator, mayaNode.initialize, CArnoldProceduralNodeUI::creator,
-            classificationPtr );
+            mayaNode.creator, mayaNode.initialize, nullptr,
+            &proceduralClassification);
+
+      MString proceduralId = mayaNode.name + MString("Override");
+      MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
+          proceduralClassification,
+          proceduralId,
+          CArnoldProceduralSubSceneOverride::Creator);
       
    } else
    {

@@ -1,0 +1,7 @@
+print "Running Export Selected shaders";
+
+arnoldImportAss -f "./shaders.ass" -mask 16;
+
+connectAttr -f Map__2_0.outValue initialShadingGroup.surfaceShader;
+arnoldRenderView -mode "render_silent";
+arnoldRenderView -option "Save Image" "./testrender.tif";

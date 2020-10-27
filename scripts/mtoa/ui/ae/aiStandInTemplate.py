@@ -285,7 +285,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                                 annotation="Remove current look")
 
         self.lookExportCtrl = cmds.symbolButton('standInExportLookButton', image='save.png', command=self.exportLook,
-                                                annotation="Export looks to .ass or MaterialX file" )
+                                                annotation="Export looks" )
 
         cmds.text("")
         cmds.setParent('..')
@@ -512,8 +512,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         global defaultFolder
         if defaultFolder == "":
             defaultFolder = cmds.workspace(q=True, rd=True, fn=True)
-        ret = cmds.fileDialog2(cap='Export Look',
-                               okc='Export Look',
+        ret = cmds.fileDialog2(cap='Export Looks',
+                               okc='Export Looks',
                                ff=fileFormat,
                                fm=0,
                                dir=defaultFolder,
@@ -536,7 +536,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.error("{} has no looks to export".format(self.look_node))
             # include_graph
             filename = self.browseObjFilename(
-                "{0[0]} (*{0[1]});; {1[0]} (*{1[1]});;".format(*[(exportlook.OPERATOR_FILETYPES[k], k) for k in sorted(exportlook.OPERATOR_FILETYPES.keys())]),
+                "{0[0]} (*{0[1]});; {1[0]} (*{1[1]});; {2[0]} (*{2[1]});;".format(*[(exportlook.OPERATOR_FILETYPES[k], k) for k in sorted(exportlook.OPERATOR_FILETYPES.keys())]),
                 options={"selectFileFilter": exportlook.OPERATOR_FILETYPES[d_options['defaultLookExt']],
                          "optionsUICreate": "arnoldOpExportUI_Create",
                          "optionsUIInit": "arnoldOpExportUI_Init",
@@ -547,14 +547,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if filename:
                 options = exportlook.getOperatorOptions()
                 ext = os.path.splitext(filename)[-1]
-                if ext == ".ass":
-                    cmds.arnoldExportOperators(self.look_node, selection=True,
-                                               filename=filename,
-                                               shaders=options['exportShaders'])
-                    # check if we want to replace the graph
-                    if options['replaceNetwork']:
-                        self.replaceNetwork(filename)
-                elif ext == ".mtlx":
+                if ext == ".mtlx":
                     # get the current index
                     _base_index = cmds.getAttr("{}.index".format(self.look_node))
                     # loop over the looks
@@ -574,10 +567,18 @@ class AEaiStandInTemplate(ShaderAETemplate):
                     cmds.setAttr("{}.index".format(self.look_node), _base_index)
                     if options['replaceNetwork']:
                         self.replaceNetwork(filename)
+                else:
+                    cmds.arnoldExportOperators(self.look_node, selection=True,
+                                               filename=filename,
+                                               shaders=options['exportShaders'])
+                    # check if we want to replace the graph
+                    if options['replaceNetwork']:
+                        self.replaceNetwork(filename)
+
         else:                    # check if we want to replace the graph
             # if no look node export the current standin
             filename = self.browseObjFilename(
-                "{0[0]} (*{0[1]});; {1[0]} (*{1[1]});;".format(*[(exportlook.OPERATOR_FILETYPES[k], k) for k in sorted(exportlook.OPERATOR_FILETYPES.keys())]),
+                "{0[0]} (*{0[1]});; {1[0]} (*{1[1]});; {2[0]} (*{2[1]});;".format(*[(exportlook.OPERATOR_FILETYPES[k], k) for k in sorted(exportlook.OPERATOR_FILETYPES.keys())]),
                 options={"selectFileFilter": exportlook.OPERATOR_FILETYPES[d_options['defaultLookExt']],
                          "optionsUICreate": "arnoldOpExportUI_Create",
                          "optionsUIInit": "arnoldOpExportUI_Init",
@@ -587,13 +588,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
             if filename:
                 options = exportlook.getOperatorOptions()
                 ext = os.path.splitext(filename)[-1]
-                if ext == ".ass":
-                    cmds.arnoldExportOperators(self.nodeName, selection=True,
-                                               filename=filename,
-                                               shaders=options['exportShaders'])
-                    if options['replaceNetwork']:
-                        self.replaceNetwork(filename)
-                elif ext == ".mtlx":
+                if ext == ".mtlx":
 
                     properties = []
                     inputs = cmds.listConnections("{}.operators".format(self.nodeName)) or []
@@ -606,6 +601,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
                                                  fullPath=options['exportFullPath'],
                                                  separator=options['exportSeparator'],
                                                  relative=options['relativeAssignments'])
+                    if options['replaceNetwork']:
+                        self.replaceNetwork(filename)
+                else:
+                    cmds.arnoldExportOperators(self.nodeName, selection=True,
+                                               filename=filename,
+                                               shaders=options['exportShaders'])
                     if options['replaceNetwork']:
                         self.replaceNetwork(filename)
 
@@ -1088,6 +1089,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('doubleSided', label='   Double-Sided')
         self.addControl('overrideMatte', changeCommand=self.updateOverridesVisibility, label='Override Matte')
         self.addControl('aiMatte', label='   Matte')
+        self.addSeparator()
+        self.addControl('overrides', label='USD Overrides')
         self.endLayout()
 
         self.endNoOptimize()

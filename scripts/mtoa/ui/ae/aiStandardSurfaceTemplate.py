@@ -66,6 +66,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         cmds.editorTemplate(dimControl=(nodeName, 'transmissionDispersion', dim_transmission_interior))
         cmds.editorTemplate(dimControl=(nodeName, 'transmissionExtraRoughness', dim_transmission_interior))
         cmds.editorTemplate(dimControl=(nodeName, 'transmitAovs', dim_transmission))
+        cmds.editorTemplate(dimControl=(nodeName, 'dielectricPriority', dim_transmission))
 
         dim_subsurface = metal_1 or transmission_1 or subsurface_0
         dim_subsurface_radius = dim_subsurface or thin_walled
@@ -181,6 +182,8 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("transmissionExtraRoughness", label="Extra Roughness", annotation="Transmission Extra Roughness")
         self.addSeparator()
         self.addControl("transmitAovs", label="Transmit AOVs")
+        self.addSeparator()
+        self.addControl("dielectricPriority", label="Dielectric Priority", annotation="Specifies how to resolve overlapping dielectrics into a well-defined medium, so that higher priority dielectrics override lower priority ones which are effectively removed.\nThis is used to correctly set up cases with adjacent dielectric media such as a glass of water with ice")
         self.endLayout()
 
         self.beginLayout("Subsurface", collapse=True)

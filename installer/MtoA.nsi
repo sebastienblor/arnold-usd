@@ -181,11 +181,23 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
 
     ; run the install script
 
-    StrCpy $R3 "$INSTDIR\license\ArnoldLicensing-8.1.0.1084_RC6-win.exe"
-    ${If} ${FileExists} "$R3"
-      ExecWait '$INSTDIR\license\ArnoldLicensing-8.1.0.1084_RC6-win.exe --silent'
+    StrCpy $R5 "$INSTDIR\VC_redist.x64.exe"
+    StrCpy $R6 "$INSTDIR\VC_redist_install.log"
+    ${If} ${FileExists} "$R5"
+      ExecWait '"$R5" /install /norestart /quiet /log "$R6"' $1
+      ${If} $1 != 0        ; success
+      ${AndIf} $1 != 1638  ; other (newer) version is installed
+      ${AndIf} $1 != 3010  ; success but restart required
+        StrCpy $9 "Failed to install Visual C++ redistributables for Visual Studio 2019 (14.27.29112)"
+        IfSilent +2
+          MessageBox MB_ICONEXCLAMATION $9
+          System::Call 'kernel32::AttachConsole(i -1)i.r0' ;attach to parent console
+          ${If} $0 != 0         
+             System::Call 'kernel32::GetStdHandle(i -11)i.r0' ;console attached -- get stdout handle
+             FileWrite $0 "$9$\n" 
+          ${EndIf}
+      ${EndIf}
     ${EndIf}
-    
 
     StrCpy $R4 "$INSTDIR\license\pitreg.exe"
     ${If} ${FileExists} "$R4"
@@ -208,6 +220,8 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
             "Couldn't register Arnold renderer in Maya PIT file ($R3). Please contact support@solidangle.com"
         ${EndIf}
     ${EndIf}
+
+    
 
      
 SectionEnd

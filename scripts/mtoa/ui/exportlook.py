@@ -3,6 +3,7 @@ import maya.cmds as cmds
 import mtoa.utils as utils
 
 OPERATOR_FILETYPES = {".ass": "Arnold Operator Graph",
+                      ".usd .usda": "Arnold USD file",
                       ".mtlx": "MaterialX Look file"}
 
 def setOperatorOptions(options):
@@ -132,7 +133,7 @@ def arnoldOpExportUI_Init(parent, fileFilter):
 def arnoldOpExportUI_Change(parent, newType):
     cmds.setParent(parent)
 
-    if newType == OPERATOR_FILETYPES['.ass']:
+    if newType == OPERATOR_FILETYPES['.ass'] or newType == 'Arnold USD file':
         # show operator export
         cmds.frameLayout("arn_operatorOptions", edit=True, visible=True)
         cmds.frameLayout("arn_materialXOptions", edit=True, visible=False)

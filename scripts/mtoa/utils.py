@@ -27,6 +27,11 @@ try:
 except NameError:
     string_types = str
 
+try:
+    long
+except NameError:
+    long = int
+
 from .hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
 
 def rootdir():

@@ -340,8 +340,8 @@ class ProceduralTransverser(BaseTransverser):
                 selectionStr = '' 
                 break
             selectionStr += sel[PROC_PATH]
-            # if sel[PROC_ENTRY] =='xform':
-            #     selectionStr += '/*'
+            if sel[PROC_ENTRY] =='xform':
+                selectionStr += '/*'
         if selectionStr == self.selectionStr:
             return
         self.selectionStr = selectionStr

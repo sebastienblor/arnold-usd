@@ -2557,12 +2557,13 @@ void CArnoldSession::ExportTxFiles()
 
 //================= Part 2 : run MakeTX on the necessary textures   
 
-   MString arv_msg("Converting ");
-   arv_msg += (int) listTextures.size();
-   arv_msg += " textures to .TX....";
-   CMayaScene::GetRenderSession()->SetRenderViewStatusInfo(arv_msg);
-
-      
+   if (!listTextures.empty())
+   {
+      MString arv_msg("Converting ");
+      arv_msg += (int) listTextures.size();
+      arv_msg += " textures to .TX....";
+      CMayaScene::GetRenderSession()->SetRenderViewStatusInfo(arv_msg);
+   }
 
    // We now have the full list of textures, let's loop over them
    for (unsigned int i = 0; i < listTextures.size(); ++i)
@@ -2841,4 +2842,35 @@ void CArnoldSession::ExportImagePlane()
    }
 }
 
+CNodeTranslator *CArnoldSession::ExportNodeToUniverse(const MObject &object, AtUniverse *universe)
+{
+   if (this == NULL)
+      return NULL;
+   
+   AtNode* arnoldNode = NULL;
+   CNodeTranslator* translator = NULL;
+   MDagPath dagPath;
+   if (MFnDagNode(MFnDagNode(object).parent(0)).getPath(dagPath) == MS::kSuccess)
+   {
+      // Dag path
+      dagPath.push(object);
+      translator = static_cast<CNodeTranslator*>(CExtensionsManager::GetTranslator(dagPath));
+      if (translator == NULL)
+         return NULL;
+      translator->m_impl->m_universe = universe;
+      translator->m_impl->Init(this, dagPath);
+
+   } else
+   {
+      translator = CExtensionsManager::GetTranslator(object);
+      if (translator == NULL)   
+         return NULL;
+      translator->m_impl->m_universe = universe;
+      translator->m_impl->Init(this, object, "message");
+   }
+      
+   translator->m_impl->DoExport();
+   return translator;
+}
+   
 

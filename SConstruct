@@ -150,7 +150,7 @@ vars.AddVariables(
                  os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_DOC_PATH', 
                  'Path for documentation', 
-                 os.path.join('$TARGET_MODULE_PATH', 'docs','api'), PathVariable.PathIsDirCreate),                  
+                 os.path.join('$TARGET_MODULE_PATH', 'docs','mtoa'), PathVariable.PathIsDirCreate),                  
     PathVariable('TARGET_BINARIES', 
                  'Path for libraries', 
                  os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
@@ -768,7 +768,7 @@ TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
                            exports     = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS ')
 
 MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
-                     variant_dir = os.path.join(BUILD_BASE_DIR, 'docs', 'api'),
+                     variant_dir = os.path.join(BUILD_BASE_DIR, 'docs', 'mtoa'),
                      duplicate   = 0,
                      exports     = 'env BUILD_BASE_DIR')
 SConscriptChdir(1)
@@ -794,6 +794,8 @@ if system.os == 'windows':
     libs = MTOA_API[1]
     env.Install(env['TARGET_LIB_PATH'], libs)
 
+    # on windows, also install the ai.lib file
+    env.Install(os.path.join(TARGET_LIB_PATH), glob.glob(os.path.join(ARNOLD_API_LIB, '*')))
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -834,6 +836,9 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.pat
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
+# install all arnold sdk headers
+env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
+
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
@@ -947,10 +952,12 @@ apiheaders = [
                 os.path.join('utils', 'Universe.h'),
                 os.path.join('utils', 'MtoaLog.h'),
                 os.path.join('utils', 'time.h'),
-                os.path.join('utils', 'HashUtils.h')
+                os.path.join('utils', 'HashUtils.h'),
+                os.path.join('viewport2', 'ArnoldProceduralSubSceneOverride.h')
+
 ]
 
-env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
+env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, 'mtoa', x) for x in apiheaders],
               [os.path.join(apibasepath, x) for x in apiheaders])
              
               
@@ -958,8 +965,16 @@ env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.svg')))
-# install docs
-env.Install(TARGET_DOC_PATH, glob.glob(os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html', '*.*')))
+# install MtoA docs
+docfiles = find_files_recursive(os.path.join(BUILD_BASE_DIR, 'docs', 'mtoa', 'html'), None)
+env.InstallAs([os.path.join(TARGET_DOC_PATH, x) for x in docfiles],
+              [os.path.join(BUILD_BASE_DIR, 'docs', 'mtoa', 'html', x) for x in docfiles])
+
+# install Arnold docs
+docfiles = find_files_recursive(os.path.join(ARNOLD, 'doc', 'html'), None)
+env.InstallAs([os.path.join(TARGET_MODULE_PATH, 'docs', 'arnold', x) for x in docfiles],
+              [os.path.join(ARNOLD, 'doc', 'html', x) for x in docfiles])
+
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('docs', 'readme.txt')))
 # install presets
 presetfiles = find_files_recursive(os.path.join('presets'), ['.mel'])
@@ -1044,7 +1059,7 @@ ext_env = maya_env.Clone()
 if env['BUILD_EXT_TARGET_INCLUDES'] == 1:
     ext_env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
     # Instead of including our whole MtoA folder, we should just include what's provided in the public API
-    ext_env.Append(CPPPATH = [TARGET_INCLUDE_PATH])
+    ext_env.Append(CPPPATH = [os.path.join(TARGET_INCLUDE_PATH, 'mtoa')])
 else:
     ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
     
@@ -1067,6 +1082,7 @@ for ext in os.listdir(ext_base_dir):
             (ext == 'renderSetup') or 
             (ext == 'synColor') or
             (ext == 'usdProxyShape') or
+            (ext == 'usdPreviewSurface') or
             (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache') or
             (env['ENABLE_BIFROST_GRAPH'] == 1 and ext == 'bifrostGraph')):
         continue
@@ -1176,7 +1192,6 @@ for ext in os.listdir(ext_base_dir):
 ## (file_spec, destination_path)                        Copies a group of files specified by a glob expression
 ##
 PACKAGE_FILES = [
-[os.path.join('tools', 'ShaderConversion', 'mrShadersToArnold.py'), 'docs'],
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('icons', '*.png'), 'icons'],
@@ -1195,10 +1210,10 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
-[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
+[os.path.join(ARNOLD, 'include'), os.path.join('include', 'arnold')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
 
@@ -1274,6 +1289,10 @@ if clm_version == 2:
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 
+if system.os == 'windows':
+    PACKAGE_FILES.append([os.path.join(ARNOLD_API_LIB, '*'), 'lib'])
+    PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'vcredist', '*'), ''])
+
 license_files = find_files_recursive(os.path.join(ARNOLD, 'license'), None)
 for p in license_files:
     (d, f) = os.path.split(p)
@@ -1288,7 +1307,24 @@ for vp2shader in vp2shaders:
 
 for vp2shader in installedVp2Shaders:
     PACKAGE_FILES.append([vp2shader, 'vp2'])
-    
+
+# Adding MtoA docs
+docfiles = find_files_recursive(os.path.join(BUILD_BASE_DIR, 'docs', 'mtoa', 'html'), None)
+for p in docfiles:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(BUILD_BASE_DIR, 'docs', 'mtoa', 'html', p), os.path.join('docs', 'mtoa', d)]
+    ]
+# Adding Arnold docs
+docfiles = find_files_recursive(os.path.join(ARNOLD, 'doc', 'html'), None)
+for p in docfiles:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'doc', 'html', p), os.path.join('docs', 'arnold', d)]
+    ]
+
+
+
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
@@ -1305,6 +1341,7 @@ PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPh
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdProxyShape', 'usdProxyShapeTranslator%s' % get_library_extension()), 'extensions'])
+PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdPreviewSurface', 'usdPreviewSurfaceTranslator%s' % get_library_extension()), 'extensions'])
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
@@ -1363,7 +1400,7 @@ for p in arpybds:
 for p in apiheaders:
     (d, f) = os.path.split(p)
     PACKAGE_FILES += [
-        [os.path.join('plugins', 'mtoa', p), os.path.join('include', d)]
+        [os.path.join('plugins', 'mtoa', p), os.path.join('include', 'mtoa', d)]
     ]
 
 if system.os == 'windows':
@@ -1520,7 +1557,22 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
-        commandFile.write('python ./unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
+        commandFile.write("#!/bin/bash")
+        absPathCD = """
+ABSPATH=$(readlink -f "$0")
+ABSDIR=$(dirname "$ABSPATH")
+cd $ABSDIR
+"""
+        commandFile.write(absPathCD)
+        python3Check = """
+cmd="python3";
+if ! command -v $cmd &> /dev/null;then
+  cmd="python";
+fi
+"""
+        commandFile.write(python3Check)
+        commandFile.write('$cmd $ABSDIR/unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
+        commandFile.write("exit 0")
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
         installerPath = os.path.abspath('./%s' % (installer_name))

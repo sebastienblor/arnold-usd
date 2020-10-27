@@ -43,7 +43,7 @@ def castSelf(selfid):
         return selfid
 
 def addMethod( self, method ):
-    self.__dict__[method.__name__] = types.MethodType( method, self, xg.ui.tabs.RendermanRendererTabUI )
+    self.__dict__[method.__name__] = types.MethodType( method, self)
     
 if 'DpiScale' not in locals():
     def DpiScale(x):
@@ -348,7 +348,7 @@ def xgArnoldRefresh(selfid):
             else:
                 cmds.setAttr( nExistsName + ".render_mode", 3 ) #  batch = 3
         else:
-            print "Couldn't find Description Shape!"
+            print("Couldn't find Description Shape!")
 
 def xgArnoldArchiveExportInit(selfid):
     self = castSelf(selfid)

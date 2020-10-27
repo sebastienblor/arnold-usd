@@ -25,6 +25,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("las", "listAOVShaders", MSyntax::kNoArg);
    syntax.addFlag("lcs", "listCustomShapes", MSyntax::kNoArg);
    syntax.addFlag("lop", "listOperators", MSyntax::kNoArg);
+   syntax.addFlag("lim", "listImagers", MSyntax::kNoArg);
    syntax.addFlag("sdt", "setDefaultTranslator", MSyntax::kString, MSyntax::kString);
    syntax.addFlag("lnm", "listNodeMetadatas", MSyntax::kString);
    syntax.addFlag("gnm", "getNodeMetadata", MSyntax::kString, MSyntax::kString);
@@ -182,6 +183,12 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    {
       MStringArray result;
       CExtensionsManager::GetOperators(result);
+      setResult(result);
+   }
+   else if (args.isFlagSet("listImagers"))
+   {
+      MStringArray result;
+      CExtensionsManager::GetImagers(result);
       setResult(result);
    }
    else if(args.isFlagSet("setDefaultTranslator"))
