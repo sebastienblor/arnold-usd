@@ -276,6 +276,7 @@ TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
 TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
+TARGET_USD_DELEGATE_PATH = env.subst(env['TARGET_USD_DELEGATE_PATH'])
 TARGET_PLUGINS_PATH = env.subst(env['TARGET_PLUGINS_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
@@ -664,16 +665,14 @@ env['ROOT_DIR'] = os.getcwd()
 
 USD_DELEGATE = None
 USD_PATH = env.get('USD_PATH')
-if USD_PATH and len(USD_PATH) > 0:
+if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     USD_PATH = env.subst(USD_PATH)
     USD_DELEGATE = env.SConscript(os.path.join('usd', 'SConscript'),
                       variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
                       duplicate   = 0,
                       exports     = 'env')
-    SConscriptChdir(0)
-    env.AlwaysBuild(USD_DELEGATE)
-
-
+    
+    env.Install(TARGET_MODULE_PATH, USD_DELEGATE[0])
 
 if system.os == 'windows':
     maya_env = env.Clone()
@@ -1330,8 +1329,13 @@ for p in docfiles:
         [os.path.join(ARNOLD, 'doc', 'html', p), os.path.join('docs', 'arnold', d)]
     ]
 
-
-
+if USD_DELEGATE:
+    hydrafolder = USD_DELEGATE[0].rstr()
+    hydrafiles = find_files_recursive(os.path.join(hydrafolder), None)
+    for p in hydrafiles:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('hydra', d)]]
+        
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])

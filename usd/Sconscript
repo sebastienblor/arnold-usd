@@ -17,6 +17,7 @@ import os
 # import build env
 Import('env')
 local_env = env.Clone()
+__target = local_env.Dir('.')
 globals()['USD_DELEGATE'] = []
 
 
@@ -38,7 +39,8 @@ tbb_lib = os.path.join(usd_lib_dir, lib_prefix + 'tbb' + lib_extension)
 
 usd_supported_modes = ['opt', 'debug', 'profile']
 
-usd_delegate_folder = os.path.join(env['BUILD_BASE_DIR'], 'usd')
+usd_delegate_folder = os.path.join(__target.abspath, 'hydra')
+usd_delegate = os.path.join(usd_delegate_folder, "hdArnold"+lib_extension)
 def _usd_delegate(target, source, env):
    usd_env = env.Clone()
    #########
@@ -81,7 +83,8 @@ def _usd_delegate(target, source, env):
    usd_project = env.Dir(os.path.join(env['EXTERNAL_PATH'], 'arnold-usd')).abspath
    usd_scons = os.path.join(usd_project, 'tools', 'scons', 'scons.py')
    usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
-   args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), '-j', '{}'.format(env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   
    sub = subprocess.Popen([sys.executable] + args, cwd=usd_project)
    sub.communicate()
    if sub.returncode != 0:
