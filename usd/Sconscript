@@ -45,7 +45,7 @@ def _usd_delegate(target, source, env):
    usd_env = env.Clone()
    #########
    args = dict(
-      COMPILER = 'msvc' if system.is_windows else env['_COMPILER'],
+      COMPILER = 'msvc' if system.is_windows else env['COMPILER'],
       ARNOLD_PATH         = env['ARNOLD'],
       PYTHON_LIB          = os.path.join(env['MAYA_ROOT'], 'lib'),
       USD_PATH= usd_install_dir,
