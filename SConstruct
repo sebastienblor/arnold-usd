@@ -417,6 +417,8 @@ export_symbols = env['MODE'] in ['debug', 'profile']
 
 # FIXME : Bifrost library "bifrostrendercore" is returning warnings. Until we solve this I'm forcing warn_only here :-/
 env['WARN_LEVEL'] = 'warn_only'
+env['MACOS_VERSION_MIN'] = '10.11'
+
 if env['COMPILER'] == 'gcc':
     if system.os == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
         env['CC'] = env['SHCC']
@@ -504,8 +506,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.11'))
-        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.11'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=' + env['MACOS_VERSION_MIN']))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min='+ env['MACOS_VERSION_MIN']))
 
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
