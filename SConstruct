@@ -667,6 +667,9 @@ USD_DELEGATE = None
 USD_PATH = env.get('USD_PATH')
 if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     USD_PATH = env.subst(USD_PATH)
+    print 'updating usd submodule...'
+    system.execute('git submodule sync')
+    system.execute('git submodule update --init --recursive')
     USD_DELEGATE = env.SConscript(os.path.join('usd', 'SConscript'),
                       variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
                       duplicate   = 0,
