@@ -61,9 +61,7 @@ def _usd_delegate(target, source, env):
       BUILD_PROCEDURAL=False,
       BUILD_TESTSUITE=False,
       BUILD_DOCS=False,
-      BOOST_INCLUDE= os.path.join(usd_install_dir, 'include', 'boost-1_70'),
       BOOST_LIB= os.path.join(usd_install_dir, 'lib'),
-      BOOST_LIB_NAME='boost_%s27-vc141-mt-x64-1_70',
       BUILD_HOUDINI_TOOLS=False,
       BUILD_NDR_PLUGIN=False,
       MODE= env['MODE'],
@@ -77,6 +75,13 @@ def _usd_delegate(target, source, env):
       args['SDK_PATH']          = env['SDK_PATH']
       args['SDK_VERSION']       = env['SDK_VERSION']
       args['MACOS_VERSION_MIN'] = env['MACOS_VERSION_MIN']
+      args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost')
+      args['BOOST_LIB_NAME']    = 'boost_%s37'
+   else:
+      args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+      args['BOOST_LIB_NAME']    = 'boost_%s27-vc141-mt-x64-1_70'
+      
+      
 
    if env['MAYA_MAINLINE']:
       args['PYTHON_INCLUDE'] = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python27', 'Python')
