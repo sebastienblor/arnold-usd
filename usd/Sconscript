@@ -77,7 +77,7 @@ def _usd_delegate(target, source, env):
       args['MACOS_VERSION_MIN'] = env['MACOS_VERSION_MIN']
       args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost')
       args['BOOST_LIB_NAME']    = 'boost_%s37'
-      args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python')
+      args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
    else:
       args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost-1_70')
       args['BOOST_LIB_NAME']    = 'boost_%s27-vc141-mt-x64-1_70'
