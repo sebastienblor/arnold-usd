@@ -11,7 +11,8 @@ class CBifShapeTranslator
 {
 public:
    CBifShapeTranslator() :
-      CProceduralTranslator()
+      CProceduralTranslator(),
+      m_vpRenderSelect(-1)
    {}
 
    virtual void Export(AtNode* curve);
@@ -25,4 +26,9 @@ public:
    }
    virtual void ExportShaders(AtNode* shape);
    virtual void NodeChanged(MObject& node, MPlug& plug); 
+
+protected:
+   virtual void PostExport(AtNode *node);
+
+   int m_vpRenderSelect;
 };

@@ -220,14 +220,14 @@ void CBifShapeTranslator::Export( AtNode *shape )
    unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
-   int vpRenderValue = -1;
+   m_vpRenderSelect = -1;
    MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
    if (!vpRenderPlug.isNull())
    {
-      vpRenderValue = vpRenderPlug.asInt();
-      if (vpRenderValue == 0)
+      m_vpRenderSelect = vpRenderPlug.asInt();
+      if (m_vpRenderSelect == 0)
          vpRenderPlug.setValue(1);
-      else if (vpRenderValue == 2)
+      else if (m_vpRenderSelect == 2)
          vpRenderPlug.setValue(3);
    }   
 
@@ -392,10 +392,6 @@ void CBifShapeTranslator::Export( AtNode *shape )
                     "please break up your outputs into more or smaller objects, or upgrade your Bifrost distribution.",
                     AiNodeGetName(shape));
          serialisedDataPlug.destructHandle(serialisedDataHandle);
-
-         if (vpRenderValue >= 0)
-            vpRenderPlug.setInt(vpRenderValue);
-
          return;
       }
 
@@ -543,8 +539,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
    AiNodeResetParameter(shape, "receive_shadows");
 
    // restore the attribute "viewportRenderSelect" to its original value
-   if (vpRenderValue >= 0)
-      vpRenderPlug.setInt(vpRenderValue);
+   
 }
 
 
@@ -983,4 +978,18 @@ void CBifShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
       return; // we don't want to update IPR when this attribute changes
 
    CProceduralTranslator::NodeChanged(node, plug);
+}
+
+void CBifShapeTranslator::PostExport(AtNode *node)
+{
+   if (m_vpRenderSelect < 0)
+      return;
+
+   MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
+   if (vpRenderPlug.isNull())
+      return;
+
+   // restore the original attribute value
+   vpRenderPlug.setInt(m_vpRenderSelect); 
+   m_vpRenderSelect = -1;
 }
