@@ -34,8 +34,6 @@ lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(syst
 
 usd_install_dir = env['USD_PATH']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
-usd_lib = os.path.join(usd_lib_dir, 'libusd_ms' + lib_extension)
-tbb_lib = os.path.join(usd_lib_dir, lib_prefix + 'tbb' + lib_extension) 
 
 usd_supported_modes = ['opt', 'debug', 'profile']
 
@@ -53,7 +51,6 @@ def _usd_delegate(target, source, env):
       TBB_LIB= usd_lib_dir,
       TBB_STATIC=True,
       USD_BUILD_MODE = 'shared_libs',
-      USD_LIB_PREFIX ='""',
       PREFIX_RENDER_DELEGATE= usd_delegate_folder,
       BUILD_SCHEMAS=False,
       BUILD_RENDER_DELEGATE=True,
@@ -77,10 +74,13 @@ def _usd_delegate(target, source, env):
       args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost')
       args['BOOST_LIB_NAME']    = 'boost_%s37'
       args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
+      args['USD_LIB_PREFIX']    = 'lib'      
    else:
       args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost-1_70')
       args['BOOST_LIB_NAME']    = 'boost_%s27-vc141-mt-x64-1_70'
       args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python27', 'Python')
+      args['USD_LIB_PREFIX']    = '""'
+      
       
    usd_project = env.Dir(os.path.join(env['EXTERNAL_PATH'], 'arnold-usd')).abspath
    if not os.path.exists(usd_project):
