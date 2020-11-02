@@ -67,8 +67,7 @@ def _usd_delegate(target, source, env):
       MODE= env['MODE'],
       WARN_LEVEL='warn-only',
       MSVC_VERSION='14.1',
-      CXXVERSION='2015',
-      CXX_STANDARD='11',
+      CXX_STANDARD='14',
 
    )
    if platform.system().lower() == 'darwin':
