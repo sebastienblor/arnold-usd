@@ -47,6 +47,11 @@ else:
     print "Unknown operating system: %s" % system.os
     Exit(1)
 
+# Scons doesn't provide a string variable
+def StringVariable(key, help, default):
+    # We always get string values, so it's always valid and trivial to convert
+    return (key, help, default, lambda k, v, e: True, lambda s: s)
+
 ################################################################################
 #   Build system options
 ################################################################################
@@ -173,7 +178,7 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
-    PathVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
+    StringVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
