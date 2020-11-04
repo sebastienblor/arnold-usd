@@ -711,8 +711,11 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
                }
             }
 
-            AiNodeResetParameter(shape, "bifrost:input0");
-            AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
+            if (AiNodeLookUpUserParameter(shape, "bifrost:input0") == NULL)
+               AiNodeDeclare(shape, "bifrost:input0", "constant ARRAY STRING");
+            else
+               AiNodeResetParameter(shape, "bifrost:input0");
+            
             AiNodeSetArray(shape, "bifrost:input0", newDataArray);
             dataArray = newDataArray;
 
