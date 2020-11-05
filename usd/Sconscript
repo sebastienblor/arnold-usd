@@ -78,8 +78,8 @@ def _usd_delegate(target, source, env):
       args['PYTHON_LIB']        = os.path.join(env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
    else:
       args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-      args['BOOST_LIB_NAME']    = 'boost_%s27-vc141-mt-x64-1_70'
-      args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python27', 'Python')
+      args['BOOST_LIB_NAME']    = 'boost_%s37-vc141-mt-x64-1_70'
+      args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
       args['USD_LIB_PREFIX']    = '""'
       args['PYTHON_LIB']        = os.path.join(env['MAYA_ROOT'], 'lib')
       
