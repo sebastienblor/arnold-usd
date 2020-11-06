@@ -476,7 +476,20 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    MStatus stat;
    MPlugArray conns;
    widthPlug.connectedTo(conns, true, false);
-   bool widthConnected = (conns.length() > 0);
+   bool widthConnected = false;
+   if (conns.length() > 0)
+   {
+      MObject widthNode = conns[0].node();
+      // If the width is connected to a (maya-native) shader, 
+      // we will want to evaluate this shader along the curve length.
+      // This is done in GetCurveSegments, when we call MRenderUtil::sampleShadingNetwork.
+      // However, when an animation curve is connected, we just want a single value for this frame.
+      // That's why we're checking here the type of the connected node  (#3697)
+      if (!widthNode.hasFn(MFn::kAnimCurve))
+         widthConnected = true;
+   }
+
+   
 
    MPlug widthProfile = FindMayaPlug("aiWidthProfile");
 

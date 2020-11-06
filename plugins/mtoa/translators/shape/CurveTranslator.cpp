@@ -372,10 +372,21 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
 
       MPlugArray conns;
       widthPlug.connectedTo(conns, true, false);
+      mayaCurve.widthConnected = false;
       if (conns.length() > 0)
       {
-         mayaCurve.widthConnected = true;
+         MObject widthNode = conns[0].node();
+         // If the width is connected to a (maya-native) shader, 
+         // we will want to evaluate this shader along the curve length.
+         // This is done in GetCurveSegments, where we call MRenderUtil::sampleShadingNetwork.
+         // However, when an animation curve is connected, we just want a single value for this frame.
+         // That's why we're checking here the type of the connected node  (#3697)
+         if (!widthNode.hasFn(MFn::kAnimCurve))
+            mayaCurve.widthConnected = true;
+      }
 
+      if (mayaCurve.widthConnected)
+      {
          // our static map contains the width arrays for a given target shader +  a given amount of CVs.
          // The key in the map is the name of the shader + '#' + the amount of CVs
          // This static map is cleared whenever a new node is created, an update is requested, or a node is deleted
