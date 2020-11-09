@@ -296,7 +296,7 @@ mtoaMod.write('PATH +:= bin\n')
 mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
 mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
 mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
-mtoaMod.write('PXR_PLUGINPATH_NAME += %s/hydra\n' % installDir)
+mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/hydra\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
