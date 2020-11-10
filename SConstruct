@@ -47,6 +47,11 @@ else:
     print "Unknown operating system: %s" % system.os
     Exit(1)
 
+# Scons doesn't provide a string variable
+def StringVariable(key, help, default):
+    # We always get string values, so it's always valid and trivial to convert
+    return (key, help, default, lambda k, v, e: True, lambda s: s)
+
 ################################################################################
 #   Build system options
 ################################################################################
@@ -160,6 +165,9 @@ vars.AddVariables(
     PathVariable('TARGET_PRESETS_PATH',
                  'Path for presets.',
                  os.path.join('$TARGET_MODULE_PATH', 'presets'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_USD_DELEGATE_PATH', 
+                 'Path used for installation of arnold USD render delegate', 
+                 os.path.join('$TARGET_MODULE_PATH', 'usd'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
                  '.', PathVariable.PathIsDir),
@@ -170,6 +178,7 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
+    StringVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
@@ -220,7 +229,6 @@ env.Append(BUILDERS = {'MakeModule' : make_module})
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
-
 # Setting a timelimit for the testsuite (in seconds)
 # env['TIMELIMIT'] = 120.0
 
@@ -253,6 +261,8 @@ if env['MAYA_INCLUDE_PATH'] == '.':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
     else:
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+    env['MAYA_INCLUDE_PATH'] = MAYA_INCLUDE_PATH
+
 env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
@@ -271,6 +281,7 @@ TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
 TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
+TARGET_USD_DELEGATE_PATH = env.subst(env['TARGET_USD_DELEGATE_PATH'])
 TARGET_PLUGINS_PATH = env.subst(env['TARGET_PLUGINS_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
@@ -411,6 +422,8 @@ export_symbols = env['MODE'] in ['debug', 'profile']
 
 # FIXME : Bifrost library "bifrostrendercore" is returning warnings. Until we solve this I'm forcing warn_only here :-/
 env['WARN_LEVEL'] = 'warn_only'
+env['MACOS_VERSION_MIN'] = '10.11'
+
 if env['COMPILER'] == 'gcc':
     if system.os == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
         env['CC'] = env['SHCC']
@@ -461,7 +474,13 @@ if env['COMPILER'] == 'gcc':
         env.Append(LINKFLAGS = Split('-z origin') )
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
-    env.Append(CXXFLAGS = Split('-std=c++11'))
+    if env['MAYA_MAINLINE']:
+        print '------ Setting C++14' 
+        env.Append(CXXFLAGS = Split('-std=c++14'))
+        env.Append(CCFLAGS = Split('-std=c++14'))
+    else:
+        env.Append(CXXFLAGS = Split('-std=c++11'))
+        
     if system.os == 'darwin':
         env.Append(CXXFLAGS = Split('-stdlib=libc++'))
         env.Append(LINKFLAGS = Split('-stdlib=libc++'))
@@ -492,8 +511,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.11'))
-        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.11'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=' + env['MACOS_VERSION_MIN']))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min='+ env['MACOS_VERSION_MIN']))
 
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
@@ -654,6 +673,21 @@ if env['MTOA_DISABLE_RV']:
 
 env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
+
+USD_DELEGATE = None
+USD_PATH = env.get('USD_PATH')
+if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
+    USD_PATH = env.subst(USD_PATH)
+    print ('updating usd submodule...')
+    system.execute('git submodule sync')
+    system.execute('git submodule update --init --recursive')
+    print ('done')
+    USD_DELEGATE = env.SConscript(os.path.join('usd', 'SConscript'),
+                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
+                      duplicate   = 0,
+                      exports     = 'env')
+    if USD_DELEGATE:
+        env.Install(TARGET_MODULE_PATH, USD_DELEGATE[0])
 
 if system.os == 'windows':
     maya_env = env.Clone()
@@ -841,8 +875,6 @@ env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(
 
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
-if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
-    env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'usd'), os.path.join(ARNOLD, 'usd', 'delegate'))
 if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
     env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins','usd'), glob.glob(os.path.join(ARNOLD, 'plugins', 'usd', '*')))
 
@@ -1224,14 +1256,6 @@ for p in materialx_files:
         [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
     ]
 
-if os.path.exists(os.path.join(ARNOLD, 'usd', 'delegate')):
-    usd_delegate_files = find_files_recursive(os.path.join(ARNOLD, 'usd'), None)
-    for p in usd_delegate_files:
-        (d, f) = os.path.split(p)
-        PACKAGE_FILES += [
-            [os.path.join(ARNOLD, 'usd', p), os.path.join('usd', d)]
-        ]
-
 if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
     usd_resources = find_files_recursive(os.path.join(ARNOLD, 'plugins', 'usd'), None)
     for p in usd_resources:
@@ -1323,8 +1347,13 @@ for p in docfiles:
         [os.path.join(ARNOLD, 'doc', 'html', p), os.path.join('docs', 'arnold', d)]
     ]
 
-
-
+if USD_DELEGATE:
+    hydrafolder = USD_DELEGATE[0].rstr()
+    hydrafiles = find_files_recursive(os.path.join(hydrafolder), None)
+    for p in hydrafiles:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('hydra', d)]]
+        
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
@@ -1503,6 +1532,7 @@ def create_installer(target, source, env):
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installPath)
+        mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/hydra\n' % installPath)
         mtoaMod.close()
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
@@ -1617,6 +1647,7 @@ aliases.append(env.Alias('install-bin',     env['TARGET_BINARIES']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))
+aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_DELEGATE_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)

@@ -189,7 +189,7 @@
 #define ARNOLD_NODEID_SHADER_MATERIALX           0x00115DBA
 #define ARNOLD_NODEID_SHADER_AOV_WRITE_VECTOR    0x00115DBB
 #define ARNOLD_NODEID_OPERATOR_STRING_REPLACE    0x00115DBC
-
+//0x00115DBD is for ArnoldBifrostShape
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00

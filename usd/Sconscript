@@ -1,0 +1,108 @@
+import os
+import platform
+import sys
+import SCons.Action
+import subprocess
+
+import utils as sa
+
+# vim: filetype=python
+
+## load our own python modules
+import utils.system as system
+from utils.build_tools import find_files_recursive
+
+import os
+
+# import build env
+Import('env')
+local_env = env.Clone()
+__target = local_env.Dir('.')
+globals()['USD_DELEGATE'] = []
+
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
+source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
+include_files = find_files_recursive(src_base_dir, ['.h'])
+
+local_env.Append(CPPPATH = ['.'])
+
+lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
+lib_prefix = {'windows' : ''}.get(system.os, '')
+lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
+
+usd_install_dir = env['USD_PATH']
+usd_lib_dir = os.path.join(usd_install_dir, 'lib')
+
+usd_supported_modes = ['opt', 'debug', 'profile']
+
+usd_delegate_folder = os.path.join(__target.abspath, 'hydra')
+usd_delegate = os.path.join(usd_delegate_folder, "hdArnold"+lib_extension)
+def _usd_delegate(target, source, env):
+   usd_env = env.Clone()
+   #########
+   args = dict(
+      COMPILER = 'msvc' if system.is_windows else env['COMPILER'],
+      ARNOLD_PATH         = env['ARNOLD'],
+      USD_PATH= usd_install_dir,
+      USD_BIN= usd_lib_dir,
+      TBB_LIB= usd_lib_dir,
+      TBB_STATIC=True,
+      USD_BUILD_MODE = 'shared_libs',
+      PREFIX_RENDER_DELEGATE= usd_delegate_folder,
+      BUILD_SCHEMAS=False,
+      BUILD_RENDER_DELEGATE=True,
+      BUILD_USD_WRITER=False,
+      BUILD_PROCEDURAL=False,
+      BUILD_TESTSUITE=False,
+      BUILD_DOCS=False,
+      BOOST_LIB= os.path.join(usd_install_dir, 'lib'),
+      BUILD_HOUDINI_TOOLS=False,
+      BUILD_NDR_PLUGIN=False,
+      MODE= env['MODE'],
+      WARN_LEVEL='warn-only',
+      MSVC_VERSION='14.1',
+      CXX_STANDARD='14',
+
+   )
+   if platform.system().lower() == 'darwin':
+      args['SDK_PATH']          = env['SDK_PATH']
+      args['SDK_VERSION']       = env['SDK_VERSION']
+      args['MACOS_VERSION_MIN'] = env['MACOS_VERSION_MIN']
+      args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost')
+      args['BOOST_LIB_NAME']    = 'boost_%s37'
+      args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
+      args['USD_LIB_PREFIX']    = 'lib'     
+      args['PYTHON_LIB_NAME']   = 'libpython3.7'
+      args['PYTHON_LIB']        = os.path.join(env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
+   else:
+      args['BOOST_INCLUDE']     = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+      args['BOOST_LIB_NAME']    = 'boost_%s37-vc141-mt-x64-1_70'
+      args['PYTHON_INCLUDE']    = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
+      args['USD_LIB_PREFIX']    = '""'
+      args['PYTHON_LIB']        = os.path.join(env['MAYA_ROOT'], 'lib')
+      
+      
+      
+   usd_project = env.Dir(os.path.join(env['EXTERNAL_PATH'], 'arnold-usd')).abspath
+   if not os.path.exists(usd_project):
+      raise SCons.Errors.UserError('arnold-usd subrepository not found')
+
+   usd_scons = os.path.join(usd_project, 'tools', 'scons', 'scons.py')
+   if not os.path.exists(usd_scons):
+      raise SCons.Errors.UserError('arnold-usd scons file not found')
+
+   usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
+   args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   
+   sub = subprocess.Popen([sys.executable] + args, cwd=usd_project)
+   sub.communicate()
+   if sub.returncode != 0:
+      raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+   return None
+
+usd_delegate_action  = SCons.Action.Action(_usd_delegate    , 'Building USD render delegate ...')
+USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action  )
+local_env.Alias('usd_delegate', USD_DELEGATE)
+Return('USD_DELEGATE')

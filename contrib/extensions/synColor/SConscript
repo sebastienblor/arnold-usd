@@ -56,7 +56,7 @@ if system.os =='windows':
    shader_env.Append(LIBS=Split('synColor.lib'))
 else:
    shader_env.Append(LIBS=Split('ai'))
-   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden  -std=c++0x')) # hide symbols by default
+   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
    synColorLibs = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
 

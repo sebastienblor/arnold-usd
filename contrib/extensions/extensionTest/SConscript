@@ -73,7 +73,7 @@ else:
     proc_env.Append(LIBS=Split('ai'))
     proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     if system.os == 'darwin':
-        proc_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        proc_env.Append(CCFLAGS = Split('-stdlib=libc++'))
         proc_env.Append(LINKFLAGS = Split('-lc++'))
 
 EXT_PROCS = proc_env.SharedLibrary('mtoaTest_procedural', source_files, LIBPREFIX='')

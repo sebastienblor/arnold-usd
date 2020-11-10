@@ -17,7 +17,7 @@ if system.os == 'darwin':
     mayaRoot = mayaRoot.replace('//', '/')
 
 if system.os !='windows':
-    common_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
+    common_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 ext_base_dir = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2017')
 
