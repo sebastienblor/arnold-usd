@@ -84,7 +84,8 @@ class OSLSceneModel():
         self._shaderCode = shaderCode
         self._mayaNodeName = mayaNodeName
         self.compileState = False
-        self.compilationErrors = ''
+        self.compilationErrors = []
+        self.compilationWarnings = []
         self.inputAttributes = {}
         self.outputAttributes = {}
         self.__compileOSLCode__()
@@ -117,13 +118,17 @@ class OSLSceneModel():
         # compilation errors are stored into a "compilation_errors" user parameter
         if AiNodeLookUpUserParameter(osl_node, "compilation_errors"):
             compilation_errors = AiNodeGetArray(osl_node, "compilation_errors")
-        else:
-            compilation_errors = None
+            for i in range(AiArrayGetNumElements(compilation_errors)):
+                comp_error = AiArrayGetStr(compilation_errors, i)
+                if re.match(r'[<>\w]+:\d+: warning:', comp_error):
+                    self.compilationWarnings.append(comp_error)
+                else:
+                    self.compilationErrors.append(comp_error)
 
         # if osl_node is not reused it is possible to only check if the parameter exists
         # otherwise if the node is reused to check multiple code snippets
         # the parameter will be reset
-        if compilation_errors is None or AiArrayGetNumElements(compilation_errors) == 0:
+        if len(self.compilationErrors) == 0:
             self.compileState = True
             # get the morphed node entry
             osl_node_entry = AiNodeGetNodeEntry(osl_node)
@@ -141,8 +146,6 @@ class OSLSceneModel():
                     self.inputAttributes[paramName]['paramDefaultValue'] = AiParamGetDefault(pentry)
         else:
             self.compileState = False
-            for i in range(AiArrayGetNumElements(compilation_errors)):
-                self.compilationErrors += AiArrayGetStr(compilation_errors, i) + "\n"
         # cleanup the node
         AiUniverseDestroy(compilation_universe)
 
