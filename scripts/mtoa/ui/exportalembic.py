@@ -24,7 +24,7 @@ MTOA_ATTR_PREFIX = 'mtoa_'
 
 def containsWhiteSpace(str):
     pattern = re.compile(r'\s+')
-    return pattern.match(str)
+    return pattern.search(str)
 
 
 def formValidObjectName(string):
