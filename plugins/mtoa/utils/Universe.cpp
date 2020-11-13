@@ -78,7 +78,7 @@ bool ArnoldUniverseBegin(int logFlags)
       AiADPAddProductMetadata(AI_ADP_PLUGINNAME, AtString("mtoa"));
       AiADPAddProductMetadata(AI_ADP_PLUGINVERSION, AtString(MTOA_VERSION));
       AiADPAddProductMetadata(AI_ADP_HOSTNAME, AtString("Maya"));
-      AiADPAddProductMetadata(AI_ADP_HOSTVERSION, AtString(MAYA_VERSION));
+      AiADPAddProductMetadata(AI_ADP_HOSTVERSION, AtString(std::to_string(MAYA_API_VERSION).c_str()));
 
 
       AiBegin(mode);
@@ -101,7 +101,7 @@ bool ArnoldUniverseOnlyBegin()
       AiADPAddProductMetadata(AI_ADP_PLUGINNAME, AtString("mtoa"));
       AiADPAddProductMetadata(AI_ADP_PLUGINVERSION, AtString(MTOA_VERSION));
       AiADPAddProductMetadata(AI_ADP_HOSTNAME, AtString("Maya"));
-      AiADPAddProductMetadata(AI_ADP_HOSTVERSION, AtString(MAYA_VERSION));
+      AiADPAddProductMetadata(AI_ADP_HOSTVERSION, AtString(std::to_string(MAYA_API_VERSION).c_str()));
 
       AiBegin(mode);
       return true;
