@@ -349,14 +349,6 @@ if installMode == 1: # do the proper installation
     except:
         pass
 
-    if mayaVersion == '2021':
-        if EnsureDir(os.path.join(modulesDir + 'LT')):
-            shutil.copy(mtoaModPath, os.path.join(modulesDir + 'LT', 'mtoa.mod'))
-        try:
-            subprocess.call(['chown', sudoUser, os.path.join(modulesDir + 'LT', 'mtoa.mod')])
-        except:
-            pass
-
     # install the renderer description file in the maya dir
     mayaInstallDir = ''
     if sys.platform == 'darwin':
