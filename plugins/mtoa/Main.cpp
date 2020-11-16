@@ -779,14 +779,30 @@ namespace // <anonymous>
          MString moduleExtensionPath = pluginPath + MString("extensions");
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
          MString envVarStr = (envVar) ? MString(envVar) : MString("");
+         MString arnoldPluginPath;
+
          if (envVarStr.length() > 0 && envVarStr != modulePluginPath && envVarStr != proceduralsPath)
          {
             // store current variable to restore at unload
             s_arnold_plugin_path_orig = envVarStr;
-            SetEnv("ARNOLD_PLUGIN_PATH", envVarStr + MString(PATH_SEPARATOR) + modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
+            arnoldPluginPath = envVarStr + MString(PATH_SEPARATOR) + modulePluginPath;
          }
          else
-            SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
+            arnoldPluginPath =  modulePluginPath;
+         
+         bool appendProceduralsPath = true;
+
+#if MAYA_API_VERSION >= 20210000
+         MString ltAbout;
+         if (MGlobal::executeCommand(MString("about -ltVersion"), ltAbout) == MStatus::kSuccess && ltAbout.length() > 0 && ltAbout != "0")
+            appendProceduralsPath = false;
+#endif
+
+         if (appendProceduralsPath)
+            arnoldPluginPath += MString(PATH_SEPARATOR) + proceduralsPath;
+
+         SetEnv("ARNOLD_PLUGIN_PATH", arnoldPluginPath);
+
          envVar = getenv("MTOA_EXTENSIONS_PATH");
          envVarStr = (envVar) ? MString(envVar) : MString("");
          if (envVarStr.length() > 0 && envVarStr != moduleExtensionPath)
