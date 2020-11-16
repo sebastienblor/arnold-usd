@@ -793,8 +793,8 @@ namespace // <anonymous>
          bool appendProceduralsPath = true;
 
 #if MAYA_API_VERSION >= 20210000
-         MString ltAbout;
-         if (MGlobal::executeCommand(MString("about -ltVersion"), ltAbout) == MStatus::kSuccess && ltAbout.length() > 0 && ltAbout != "0")
+         int ltAbout = 0;
+         if (MGlobal::executeCommand(MString("about -ltVersion"), ltAbout) == MStatus::kSuccess && ltAbout > 0)
             appendProceduralsPath = false;
 #endif
 
