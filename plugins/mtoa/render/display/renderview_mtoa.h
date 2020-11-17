@@ -72,7 +72,8 @@ public:
    virtual void RenderViewClosed(bool close_ui);
    virtual void RenderOptionsClosed();
    virtual void Resize(int width, int height, bool drawableArea = false);
-
+   
+   QWidget* GetHostDCCWidgets();
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it

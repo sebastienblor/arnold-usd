@@ -5,8 +5,10 @@ import mtoa.core as core
 import arnold as ai
 import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
+from mtoa.ui.ae.aiImagerExposureTemplate import ImagerExposureUI
 
 from mtoa.ui.qt import toQtObject
+from mtoa.ui.qt import toMayaName
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale, Timer
@@ -21,6 +23,8 @@ class ImagerStackView(BaseTreeView):
 
     MIN_VISIBLE_ENTRIES = 4
     MAX_VISIBLE_ENTRIES = 10
+    
+    itemSelected = QtCore.Signal(str)
 
     def __init__(self, transverser = None, parent=None):
         super(ImagerStackView, self).__init__(parent)
@@ -88,8 +92,8 @@ class ImagerStackView(BaseTreeView):
         self.transverser = transverser
         self.model().setTransverser(transverser)
 
-    # Every time we select an imager element, we want to 
-    # select it in Maya
+    # # Every time we select an imager element, we want to 
+    # # select it in Maya
     def mousePressEvent(self, event):
         super(ImagerStackView, self).mousePressEvent(event)
         index = self.indexAt(event.pos())
@@ -97,6 +101,9 @@ class ImagerStackView(BaseTreeView):
             item = index.internalPointer()
             if item:
                 item.selectImager()
+                self.itemSelected.emit(item.getNodeName())
+
+
 
 class ImagerStackModel(BaseModel):
     def __init__(self, treeView, parent=None):
@@ -277,6 +284,9 @@ class ImagerItem(BaseItem):
     def selectImager(self):
         cmds.select(self.name, r=True)
 
+    def getNodeName(self):
+        return self.name
+
     def getNodeType(self):
         return aeUtils.getNodeType(self.name)
 
@@ -301,15 +311,16 @@ class ImagersUI(object):
     def __init__(self, parent=None):
         
         style = MtoAStyle.currentStyle()
-        
+        self.parent = parent
         # every time the attribute imagers in the options node is modified, we want to update the widget
         cmds.scriptJob(parent=parent, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
         self.imagerStack = None
-        cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
+        cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'left'])
         cmds.text(label='')
         addButton =  cmds.button(label='Add Imager')
         impopup = cmds.popupMenu(parent=addButton, button=1)
         cmds.popupMenu(impopup, edit=True, postMenuCommand=Callback(self.buildImagerMenu, impopup))
+        removeButton =  cmds.button(label='Remove Imager')
         cmds.setParent('..') # rowLayout
 
         cmds.setParent(parent)
@@ -321,9 +332,30 @@ class ImagersUI(object):
         self.imagerStack = ImagerStackView(None, self.currentWidget)
         self.imagerStack.setObjectName("ImagerStackWidget")
         self.frame.layout().addWidget(self.imagerStack)
+        self.imagerStack.itemSelected.connect(self.showItemProperties)
+        self.attributesFrame = QtWidgets.QFrame(self.currentWidget)
+        self.attributesFrame.setLayout(QtWidgets.QVBoxLayout(self.attributesFrame))
+        self.currentWidget.layout().addWidget(self.attributesFrame)
+        self.imagerAttributesFrame = None
+        self.imagerAttributesParentFrame = None
+        
         self.updateImagers()
         cmds.setParent('..')
 
+    @QtCore.Slot(str)
+    def showItemProperties(self, node):
+        if (self.imagerAttributesParentFrame):
+            cmds.deleteUI(self.imagerAttributesParentFrame)
+            self.imagerAttributesParentFrame = None
+        if cmds.nodeType(node) == "aiImagerExposure":
+            cmds.setParent(self.parent)
+            self.imagerAttributesParentFrame = cmds.frameLayout(label = "Attributes", collapsable=False, labelVisible=True, borderVisible=False)
+            self.imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame', numberOfColumns=1)
+            exposure = ImagerExposureUI(parent = self.imagerAttributesFrame,nodeName = node)
+            cmds.setParent('..')
+            cmds.setParent('..')
+
+        
     def updateImagers(self):
         self.imagerStack.model().refresh()
         

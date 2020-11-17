@@ -997,6 +997,13 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
    }
 }
 
+
+QWidget* CRenderViewMtoA::GetHostDCCWidgets()
+{
+
+QWidget* imager = MQtUtil::findLayout(MString ("FooBar|arnoldImagersFrame"));
+return imager;
+}
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 {
    if (node != AiUniverseGetOptions()) return;

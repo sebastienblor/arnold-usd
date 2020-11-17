@@ -537,7 +537,7 @@ class AERootMode(BaseMode):
         cmds.editorTemplate(endLayout=True)
 
     def beginScrollLayout(self):
-        cmds.editorTemplate(beginScrollLayout=True)
+        return cmds.editorTemplate(beginScrollLayout=True)
 
     def endScrollLayout(self):
         cmds.editorTemplate(endScrollLayout=True)
