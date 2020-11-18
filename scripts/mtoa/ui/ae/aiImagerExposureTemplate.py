@@ -8,8 +8,7 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
 
 class AEaiImagerExposureTemplate(ShaderAETemplate):
-    
-    
+
     def createNewExposureUI(self,nodeAttr):
         currentWidget = cmds.setParent(query=True)
         self.ui = ImagerExposureUI(parent = currentWidget,nodeName = self.nodeName)

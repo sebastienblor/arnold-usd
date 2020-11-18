@@ -6,6 +6,8 @@ import arnold as ai
 import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiImagerExposureTemplate import ImagerExposureUI
+from mtoa.ui.ae.aiImagerLensEffectsTemplate import ImagerLensEffectUI
+from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI 
 
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
@@ -344,18 +346,25 @@ class ImagersUI(object):
 
     @QtCore.Slot(str)
     def showItemProperties(self, node):
+        
         if (self.imagerAttributesParentFrame):
             cmds.deleteUI(self.imagerAttributesParentFrame)
             self.imagerAttributesParentFrame = None
-        if cmds.nodeType(node) == "aiImagerExposure":
-            cmds.setParent(self.parent)
-            self.imagerAttributesParentFrame = cmds.frameLayout(label = "Attributes", collapsable=False, labelVisible=True, borderVisible=False)
-            self.imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame', numberOfColumns=1)
-            exposure = ImagerExposureUI(parent = self.imagerAttributesFrame,nodeName = node)
-            cmds.setParent('..')
-            cmds.setParent('..')
 
+        cmds.setParent(self.parent)
+        self.imagerAttributesParentFrame = cmds.frameLayout(label = "Attributes", collapsable=False, labelVisible=True, borderVisible=False)
+        self.imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame', numberOfColumns=1)
+
+        if cmds.nodeType(node) == "aiImagerExposure":
+            exposure = ImagerExposureUI(parent = self.imagerAttributesFrame,nodeName = node)
+        elif cmds.nodeType(node) == "aiImagerLensEffects":
+            lensEffect = ImagerLensEffectUI(parent = self.imagerAttributesFrame,nodeName = node)
+        elif cmds.nodeType(node) == "aiImagerWhiteBalance":
+            whiteBalance = ImagerWhiteBalanceUI(parent = self.imagerAttributesFrame,nodeName = node)
         
+        cmds.setParent('..')
+        cmds.setParent('..')
+
     def updateImagers(self):
         self.imagerStack.model().refresh()
         

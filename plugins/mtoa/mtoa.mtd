@@ -3850,7 +3850,7 @@ desc STRING "Apply a gamma correction to the color."
         softmin             FLOAT     0
         softmax             FLOAT     100
     [attr layer_selection]
-        maya.hide               BOOL     TRUE
+        maya.hide               BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
     
@@ -3862,7 +3862,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB8
     [attr layer_selection]
-        maya.hide           BOOL     TRUE
+        maya.hide           BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr temperature]
