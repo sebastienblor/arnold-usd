@@ -1,14 +1,38 @@
+import maya.cmds as cmds
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+
 
 class AEaiImagerColorCorrectTemplate(ShaderAETemplate):
 
+    def createNewColorCorrectUI(self, nodeAttr):
+        currentWidget = cmds.setParent(query=True)
+        self.ui = ImagerColorCorrectUI(parent=currentWidget, nodeName=self.nodeName)
+
+    def replaceColorCorrectUI(self, nodeAttr):
+        currentWidget = cmds.setParent(query=True)
+        if self.ui:
+            for item in cmds.layout(currentWidget, query=True, childArray=True):
+                cmds.deleteUI(item)
+        self.ui = ImagerColorCorrectUI(currentWidget, self.nodeName)
+
     def setup(self):
-        #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
         self.beginScrollLayout()
-        self.addControl('enable', label='Enable', annotation='Enables this imager.')
+        self.addCustom('dummy', self.createNewColorCorrectUI, self.replaceColorCorrectUI)
+
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
+        self.addExtraControls()
+        self.endScrollLayout()
+
+
+class ImagerColorCorrectUI(ImagerBaseUI):
+    def __init__(self, parent=None, nodeName=None):
+        super(ImagerColorCorrectUI, self).__init__(parent, nodeName)
+
         self.addSeparator()
         self.beginLayout("Main", collapse=False)
         self.addControl('mainSaturation', label='Saturation', annotation='Saturation multiplier for all values.')
@@ -41,8 +65,3 @@ class AEaiImagerColorCorrectTemplate(ShaderAETemplate):
         self.addControl('highlightsGain', label='Gain', annotation='Gain color multiplier for brighter values.')
         self.addControl('highlightsOffset', label='Offset', annotation='Offset color amount for brighter values.')
         self.endLayout()
-        
-        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
-
-        self.addExtraControls()
-        self.endScrollLayout()

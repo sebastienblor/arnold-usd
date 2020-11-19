@@ -7,7 +7,8 @@ import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiImagerExposureTemplate import ImagerExposureUI
 from mtoa.ui.ae.aiImagerLensEffectsTemplate import ImagerLensEffectUI
-from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI 
+from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI
+from mtoa.ui.ae.aiImagerColorCorrectTemplate import ImagerColorCorrectUI
 
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
@@ -361,6 +362,8 @@ class ImagersUI(object):
             lensEffect = ImagerLensEffectUI(parent = self.imagerAttributesFrame,nodeName = node)
         elif cmds.nodeType(node) == "aiImagerWhiteBalance":
             whiteBalance = ImagerWhiteBalanceUI(parent = self.imagerAttributesFrame,nodeName = node)
+        elif cmds.nodeType(node) == "aiImagerColorCorrect":
+            colorCorrect = ImagerColorCorrectUI(parent = self.imagerAttributesFrame,nodeName = node)
         
         cmds.setParent('..')
         cmds.setParent('..')
