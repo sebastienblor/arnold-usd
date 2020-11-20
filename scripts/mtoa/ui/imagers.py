@@ -9,6 +9,7 @@ from mtoa.ui.ae.aiImagerExposureTemplate import ImagerExposureUI
 from mtoa.ui.ae.aiImagerLensEffectsTemplate import ImagerLensEffectUI
 from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI
 from mtoa.ui.ae.aiImagerColorCorrectTemplate import ImagerColorCorrectUI
+from mtoa.ui.ae.aiImagerTonemapTemplate import ImagerTonemapUI
 
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
@@ -364,6 +365,8 @@ class ImagersUI(object):
             whiteBalance = ImagerWhiteBalanceUI(parent = self.imagerAttributesFrame,nodeName = node)
         elif cmds.nodeType(node) == "aiImagerColorCorrect":
             colorCorrect = ImagerColorCorrectUI(parent = self.imagerAttributesFrame,nodeName = node)
+        elif cmds.nodeType(node) == "aiImagerTonemap":
+            toneMap = ImagerTonemapUI(parent = self.imagerAttributesFrame,nodeName = node)
         
         cmds.setParent('..')
         cmds.setParent('..')
