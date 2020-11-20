@@ -3869,7 +3869,7 @@ desc STRING "Apply a gamma correction to the color."
         softmin             FLOAT   0
         softmax             FLOAT   15000
         
-        
+
 [node imager_tonemap]
     maya.name              STRING "aiImagerTonemap"
     maya.classification     STRING  "imager"
@@ -3904,9 +3904,36 @@ desc STRING "Apply a gamma correction to the color."
     [attr gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
-    
-    
-    
-    
-        
-        
+
+[node imager_optix_denoiser]
+    maya.name              STRING "aiImagerOptixDenoise"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC0
+    [attr layer_selection]
+        maya.hide           BOOL     FALSE
+    [attr input]
+        maya.hide               BOOL     TRUE
+
+[node imager_light_mixer]
+    maya.name              STRING "aiImagerLightMixer"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC1
+    [attr layer_selection]
+        maya.hide           BOOL     FALSE
+    [attr input]
+        maya.hide               BOOL     TRUE
+
+[node imager_denoiser]
+    maya.name              STRING "aiImagerDenoiser"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC2
+    [attr layer_selection]
+        maya.hide           BOOL     FALSE
+    [attr input]
+        maya.hide               BOOL     TRUE
