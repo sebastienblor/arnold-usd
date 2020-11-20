@@ -2,7 +2,7 @@
 
 ## first we extend the module path to load our own modules
 import subprocess
-import sys, os
+import sys, os, re
 sys.path = ["tools/python"]  + sys.path
 
 import utils.system
@@ -165,8 +165,8 @@ vars.AddVariables(
     PathVariable('TARGET_PRESETS_PATH',
                  'Path for presets.',
                  os.path.join('$TARGET_MODULE_PATH', 'presets'), PathVariable.PathIsDirCreate),
-    PathVariable('TARGET_USD_DELEGATE_PATH', 
-                 'Path used for installation of arnold USD render delegate', 
+    PathVariable('TARGET_USD_PATH', 
+                 'Path used for installation of arnold USD modules', 
                  os.path.join('$TARGET_MODULE_PATH', 'usd'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
@@ -281,7 +281,7 @@ TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
 TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
-TARGET_USD_DELEGATE_PATH = env.subst(env['TARGET_USD_DELEGATE_PATH'])
+TARGET_USD_PATH = env.subst(env['TARGET_USD_PATH'])
 TARGET_PLUGINS_PATH = env.subst(env['TARGET_PLUGINS_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
@@ -678,12 +678,22 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     system.execute('git submodule sync')
     system.execute('git submodule update --init --recursive')
     print ('done')
-    USD_DELEGATE = env.SConscript(os.path.join('usd', 'SConscript'),
+    # get usd header info
+    USD_VERSION = ''
+    pxr_h = open(os.path.join(USD_PATH, 'include', 'pxr', 'pxr.h'), 'r').read()
+    r = re.search('PXR_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_VERSION = r.group(1)
+    env['USD_VERSION'] = USD_VERSION
+    
+    USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
                       variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
                       duplicate   = 0,
                       exports     = 'env')
-    if USD_DELEGATE:
-        env.Install(TARGET_MODULE_PATH, USD_DELEGATE[0])
+    if USD_MODULES:
+        USD_DELEGATE = USD_MODULES[0]
+        if USD_DELEGATE:
+            env.Install(TARGET_USD_PATH, USD_DELEGATE[0])
 
 if system.os == 'windows':
     maya_env = env.Clone()
@@ -1345,8 +1355,8 @@ if USD_DELEGATE:
     hydrafiles = find_files_recursive(os.path.join(hydrafolder), None)
     for p in hydrafiles:
         (d, f) = os.path.split(p)
-        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('hydra', d)]]
-        
+        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', env['USD_VERSION'], d)]]
+
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
@@ -1524,7 +1534,7 @@ def create_installer(target, source, env):
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installPath)
-        mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/hydra\n' % installPath)
+        mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/usd\n' % installPath)
         mtoaMod.close()
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
@@ -1649,7 +1659,7 @@ aliases.append(env.Alias('install-bin',     env['TARGET_BINARIES']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))
-aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_DELEGATE_PATH']))
+aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)
