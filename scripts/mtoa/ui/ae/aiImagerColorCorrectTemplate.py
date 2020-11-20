@@ -7,21 +7,11 @@ from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
 
 class AEaiImagerColorCorrectTemplate(ShaderAETemplate):
 
-    def createNewColorCorrectUI(self, nodeAttr):
-        currentWidget = cmds.setParent(query=True)
-        self.ui = ImagerColorCorrectUI(parent=currentWidget, nodeName=self.nodeName)
-
-    def replaceColorCorrectUI(self, nodeAttr):
-        currentWidget = cmds.setParent(query=True)
-        if self.ui:
-            for item in cmds.layout(currentWidget, query=True, childArray=True):
-                cmds.deleteUI(item)
-        self.ui = ImagerColorCorrectUI(currentWidget, self.nodeName)
-
     def setup(self):
 
         self.beginScrollLayout()
-        self.addCustom('dummy', self.createNewColorCorrectUI, self.replaceColorCorrectUI)
+        currentWidget = cmds.setParent(query=True)
+        self.ui = ImagerColorCorrectUI(parent=currentWidget, nodeName=self.nodeName, template=self)
 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
@@ -30,8 +20,11 @@ class AEaiImagerColorCorrectTemplate(ShaderAETemplate):
 
 
 class ImagerColorCorrectUI(ImagerBaseUI):
-    def __init__(self, parent=None, nodeName=None):
-        super(ImagerColorCorrectUI, self).__init__(parent, nodeName)
+    def __init__(self, parent=None, nodeName=None, template=None):
+        super(ImagerColorCorrectUI, self).__init__(parent, nodeName, template)
+
+    def setup(self):
+        super(ImagerColorCorrectUI, self).setup()
 
         self.addSeparator()
         self.beginLayout("Main", collapse=False)
