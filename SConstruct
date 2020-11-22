@@ -693,6 +693,8 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     if USD_MODULES:
         USD_DELEGATE = USD_MODULES[0]
         if USD_DELEGATE:
+            if isinstance(USD_DELEGATE, SCons.Node.NodeList):
+                USD_DELEGATE = USD_DELEGATE[0]
             env.Install(TARGET_USD_PATH, USD_DELEGATE)
 
 if system.os == 'windows':
@@ -1351,7 +1353,7 @@ for p in docfiles:
     ]
 
 if USD_DELEGATE:
-    hydrafolder = USD_DELEGATE[0].rstr()
+    hydrafolder = USD_DELEGATE.rstr()
     hydrafiles = find_files_recursive(os.path.join(hydrafolder), None)
     for p in hydrafiles:
         (d, f) = os.path.split(p)
