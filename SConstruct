@@ -693,7 +693,7 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     if USD_MODULES:
         USD_DELEGATE = USD_MODULES[0]
         if USD_DELEGATE:
-            env.Install(TARGET_USD_PATH, USD_DELEGATE[0].rstr())
+            env.Install(TARGET_USD_PATH, USD_DELEGATE)
 
 if system.os == 'windows':
     maya_env = env.Clone()
