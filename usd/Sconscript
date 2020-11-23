@@ -53,7 +53,7 @@ else:
 
 usd_delegate_folder = os.path.join(__target.abspath, 'hydra', env['USD_VERSION'])
 if not os.path.exists(usd_delegate_folder):
-    os.path.makedirs(usd_delegate_folder) 
+    os.makedirs(usd_delegate_folder) 
 
 usd_delegate = os.path.join(usd_delegate_folder, "hdArnold"+lib_extension)
 
