@@ -25,6 +25,11 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
 source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
 include_files = find_files_recursive(src_base_dir, ['.h'])
 
+mayaRoot = mayausd_env['MAYA_ROOT']
+if system.os == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
 local_env.Append(CPPPATH = ['.'])
 
 lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
@@ -41,14 +46,14 @@ boost_lib = os.path.join(usd_install_dir, 'lib')
 if platform.system().lower() == 'darwin':
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
     boost_lib_name = 'boost_%s37'
-    python_include = os.path.join(env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
-    python_lib = os.path.join(env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
+    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
+    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
     usd_lib_prefix = 'lib'
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
     boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
     python_include = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
-    python_lib = os.path.join(env['MAYA_ROOT'], 'lib')
+    python_lib = os.path.join(mayaRoot, 'lib')
     usd_lib_prefix = '""'
 
 usd_delegate_folder = os.path.join(__target.abspath, 'hydra', env['USD_VERSION'])
@@ -127,12 +132,6 @@ src_base_dir  = os.path.join(mayausd_env['ROOT_DIR'], 'usd')
 include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h']
 source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp']
 
-
-mayaRoot = mayausd_env['MAYA_ROOT']
-if system.os == 'darwin':
-    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
-    mayaRoot = mayaRoot.replace('//', '/')
-
 mayausd_include = os.path.join(env['MAYAUSD_PATH'], 'include')
 mayausd_lib = os.path.join(env['MAYAUSD_PATH'], 'lib')
 mayausd_env.Append(CPPDEFINES = Split('_BOOL'))
@@ -158,16 +157,14 @@ usd_libs = [
         'usdSkel',
         'usdRender',
     ]
-'''
-if platform.system().lower() == 'darwin':
-    usd_libs = ['%s%s' % (usd_lib_prefix, usd_lib) for usd_lib in usd_libs]
-'''
+
 mayausd_env.Append(CPPPATH = ['.'])
 mayausd_env.Append(LIBS = usd_libs)
 mayausd_env.Append(LIBS = ['mayaUsd'])
 if platform.system().lower() == 'darwin':
     mayausd_env['PYTHON_LIB_NAME'] = 'libpython3.7'
-    mayausd_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
+    mayausd_env.Append(LIBS = ['python3.7', boost_lib_name])
+    mayausd_env.Append(LIBPATH = [os.path.join(mayaRoot, 'MacOS')])
 
 if system.os =='windows':
     mayausd_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
