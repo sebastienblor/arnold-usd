@@ -25,7 +25,7 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
 source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
 include_files = find_files_recursive(src_base_dir, ['.h'])
 
-mayaRoot = mayausd_env['MAYA_ROOT']
+mayaRoot = env['MAYA_ROOT']
 if system.os == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
     mayaRoot = mayaRoot.replace('//', '/')
