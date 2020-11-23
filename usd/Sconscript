@@ -165,6 +165,7 @@ mayausd_env.Append(LIBS = usd_libs)
 mayausd_env.Append(LIBS = ['mayaUsd'])
 if platform.system().lower() == 'darwin':
     mayausd_env['PYTHON_LIB_NAME'] = 'libpython3.7'
+    mayausd_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
 
 if system.os =='windows':
     mayausd_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
