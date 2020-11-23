@@ -112,4 +112,62 @@ def _usd_delegate(target, source, env):
 usd_delegate_action  = SCons.Action.Action(_usd_delegate    , 'Building USD render delegate ...')
 USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action  )
 local_env.Alias('usd_delegate', USD_DELEGATE)
-Return('USD_DELEGATE')
+
+if not env['MAYAUSD_PATH']:
+    Return('USD_DELEGATE')
+
+##########################################################
+###### Now Maya USD registry 
+mayausd_env = env.Clone()
+
+src_base_dir  = os.path.join(mayausd_env['ROOT_DIR'], 'usd')
+include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h']
+source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp']
+
+
+mayaRoot = mayausd_env['MAYA_ROOT']
+if system.os == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+mayausd_include = os.path.join(env['MAYAUSD_PATH'], 'include')
+mayausd_lib = os.path.join(env['MAYAUSD_PATH'], 'lib')
+mayausd_env.Append(CPPDEFINES = Split('_BOOL'))
+maya_version_base = mayausd_env['MAYA_VERSION_BASE']
+mayausd_env.Append(CPPPATH = ['.'])
+mayausd_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include])
+mayausd_env.Append(CPPPATH = [env['MAYA_INCLUDE_PATH']])
+mayausd_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
+
+usd_libs = [
+        'arch',
+        'sdf',
+        'tf',
+        'usd',
+        'ar',
+        'usdGeom',
+        'usdShade',
+        'vt',
+        'usdLux',
+        'usdVol',
+        'usdSkel',
+        'usdRender',
+    ]
+
+if platform.system().lower() == 'darwin':
+    usd_libs = ['%s%s' % (usd_lib_prefix, usd_lib) for usd_lib in usd_libs]
+
+mayausd_env.Append(LIBS = usd_libs)
+mayausd_env.Append(LIBS = ['mayaUsd'])
+if platform.system().lower() == 'darwin':
+    mayausd_env['PYTHON_LIB_NAME'] = 'libpython3.7'
+
+if system.os =='windows':
+    mayausd_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
+else:
+    mayausd_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+
+MAYAUSD_REGISTRY = mayausd_env.SharedLibrary('mayaUsdRegistry', source_files, LIBPREFIX='')
+
+
+Return('USD_DELEGATE MAYAUSD_REGISTRY')

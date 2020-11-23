@@ -179,6 +179,7 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     StringVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
+    StringVariable('MAYAUSD_PATH', 'Maya-USD installation root', None),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
@@ -671,7 +672,10 @@ env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparin
 env['ROOT_DIR'] = os.getcwd()
 
 USD_DELEGATE = None
+MAYAUSD_REGISTRY = None
+
 USD_PATH = env.get('USD_PATH')
+MAYAUSD_PATH = env.get('MAYAUSD_PATH')
 if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     USD_PATH = env.subst(USD_PATH)
     print ('updating usd submodule...')
@@ -696,6 +700,23 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
             if isinstance(USD_DELEGATE, SCons.Node.NodeList):
                 USD_DELEGATE = USD_DELEGATE[0]
             env.Install(TARGET_USD_PATH, USD_DELEGATE)
+        if MAYAUSD_PATH:
+            MAYAUSD_REGISTRY = USD_MODULES[1]
+            if MAYAUSD_REGISTRY:
+                if isinstance(MAYAUSD_REGISTRY, SCons.Node.NodeList):
+                    MAYAUSD_REGISTRY = MAYAUSD_REGISTRY[0]
+                env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), MAYAUSD_REGISTRY)
+                registryResourceFolder = os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry', 'resources')
+                if not os.path.exists(registryResourceFolder):
+                    os.makedirs(registryResourceFolder)
+                registryResourceFile = os.path.join(registryResourceFolder, 'plugInfo.json')
+                file = open(registryResourceFile, 'w')
+                registryResource = "{\n\t\"Plugins\": [\n\t\t{\n\t\t\t\"Info\": {\n\t\t\t\t\"UsdMaya\": {\"ShadingModePlugin\": {\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"LibraryPath\": \"../"
+                registryResource += os.path.basename(str(MAYAUSD_REGISTRY))
+                registryResource += "\",\n\t\t\t\"Name\": \"mayaUsdRegistry\",\n\t\t\t\"ResourcePath\": \"resources\",\n\t\t\t\"Root\": \"..\",\n\t\t\t\"Type\": \"library\"\n\t\t}\n\t]\n}\n"
+                file.write(registryResource)
+                file.close()            
+                env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry'))
 
 if system.os == 'windows':
     maya_env = env.Clone()
@@ -1358,6 +1379,10 @@ if USD_DELEGATE:
     for p in hydrafiles:
         (d, f) = os.path.split(p)
         PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', env['USD_VERSION'], d)]]
+
+if MAYAUSD_REGISTRY:
+    PACKAGE_FILES += [[MAYAUSD_REGISTRY, os.path.join('usd', env['USD_VERSION'])]]
+    PACKAGE_FILES += [[os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry', 'resources', 'plugInfo.json'), os.path.join('usd', env['USD_VERSION'], 'mayaUsdRegistry', 'resources') ]]
 
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
