@@ -141,6 +141,8 @@ mayausd_env.Append(CPPPATH = ['.'])
 mayausd_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include])
 mayausd_env.Append(CPPPATH = [env['MAYA_INCLUDE_PATH']])
 mayausd_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
+mayausd_env['SHOW_CMDS']=True
+mayausd_env['BOOST_LIB_NAME']=boost_lib_name
 
 usd_libs = [
         'arch',
@@ -160,7 +162,7 @@ usd_libs = [
 if platform.system().lower() == 'darwin':
     usd_libs = ['%s%s' % (usd_lib_prefix, usd_lib) for usd_lib in usd_libs]
 '''
-
+mayausd_env.Append(CPPPATH = ['.'])
 mayausd_env.Append(LIBS = usd_libs)
 mayausd_env.Append(LIBS = ['mayaUsd'])
 if platform.system().lower() == 'darwin':
