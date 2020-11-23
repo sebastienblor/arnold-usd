@@ -156,9 +156,10 @@ usd_libs = [
         'usdSkel',
         'usdRender',
     ]
-
+'''
 if platform.system().lower() == 'darwin':
     usd_libs = ['%s%s' % (usd_lib_prefix, usd_lib) for usd_lib in usd_libs]
+'''
 
 mayausd_env.Append(LIBS = usd_libs)
 mayausd_env.Append(LIBS = ['mayaUsd'])
