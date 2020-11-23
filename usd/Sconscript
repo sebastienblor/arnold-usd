@@ -113,7 +113,7 @@ usd_delegate_action  = SCons.Action.Action(_usd_delegate    , 'Building USD rend
 USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action  )
 local_env.Alias('usd_delegate', USD_DELEGATE)
 
-if not env['MAYAUSD_PATH']:
+if not env.get('MAYAUSD_PATH'):
     Return('USD_DELEGATE')
 
 ##########################################################
