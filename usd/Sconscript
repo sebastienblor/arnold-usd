@@ -16,7 +16,7 @@ from utils.build_tools import find_files_recursive
 # import build env
 Import('maya_env')
 local_env = maya_env.Clone()
-__target = local_env.Dir('.')
+_targetPath = local_env.Dir('.')
 globals()['USD_DELEGATE'] = []
 
 
@@ -51,11 +51,11 @@ else:
     python_lib = os.path.join(mayaRoot, 'lib')
     usd_lib_prefix = '""'
 
-hydra_folder = os.path.join(__target.abspath, 'hydra')
+hydra_folder = os.path.join(_targetPath.abspath, 'hydra')
 if not os.path.exists(hydra_folder):
     os.makedirs(hydra_folder) 
 
-usd_delegate_folder = os.path.join(__target.abspath, 'hydra', local_env['USD_VERSION'])
+usd_delegate_folder = os.path.join(_targetPath.abspath, 'hydra', local_env['USD_VERSION'])
 #if not os.path.exists(usd_delegate_folder):
 #    os.makedirs(usd_delegate_folder) 
 
@@ -109,7 +109,7 @@ def _usd_delegate(target, source, env):
         args['PYTHON_LIB_NAME']   = 'libpython3.7'
       
       
-    usd_project = env.Dir(os.path.join(local_env['EXTERNAL_PATH'], 'arnold-usd')).abspath
+    usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
         raise SCons.Errors.UserError('arnold-usd subrepository not found')
 

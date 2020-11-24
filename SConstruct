@@ -774,7 +774,7 @@ else:
                                       variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                       duplicate   = 0,
                                       exports     = 'env')
-        USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
+        USD_MODULES = env.SConscript(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'),
                       variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
                       duplicate   = 0,
                       exports     = 'maya_env')
