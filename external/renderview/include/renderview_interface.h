@@ -55,15 +55,14 @@ public:
    // return the renderView Qt Window
    QMainWindow *GetRenderView();
 
-   // Get a Widget to display in the Options Tab of the ARV
-   virtual QWidget* GetHostDCCWidgets() =0;
-
-
    // Options Window doesn't show the render itself, only the menus
    void OpenOptionsWindow(int width, int height, float scaleFactor, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
    void CloseOptionsWindow();
    void DestroyOptionsWindow();
 
+   // Adds a DCC-custom tab in the display settings
+   void AddCustomTab(QWidget *widget, const char *tabName);
+   
    // Stops the rendering and clears the Arnold scene, but leave window visible
    void DisableRendering();
 
