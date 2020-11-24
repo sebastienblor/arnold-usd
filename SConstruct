@@ -779,12 +779,7 @@ else:
                                       exports     = 'env')
 
         if USD_VERSION:
-            # Attempt to fix Scons issues on linux. Shouldn't have to do this...
-            print 'Running {}'.format(os.path.abspath(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript')))
-            if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
-                os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
-            shutil.copyfile(os.path.abspath(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript')), os.path.join(BUILD_BASE_DIR, 'usd', 'Sconscript'))
-            USD_MODULES = env.SConscript(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'),
+            USD_MODULES = env.SConscript(os.path.abspath(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript')),
                           variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
                           duplicate   = 0,
                           exports     = 'maya_env')
