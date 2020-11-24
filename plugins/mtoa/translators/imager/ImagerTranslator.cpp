@@ -25,7 +25,7 @@ void CImagerTranslator::Export(AtNode *shader)
       const char* paramName = AiParamGetName(paramEntry);
       std::string paramNameStr(paramName);
 
-      if (paramNameStr != "name" && paramNameStr != "input" && paramNameStr != "layer_selection")
+      if (paramNameStr != "name" && paramNameStr != "input" ) //&& paramNameStr != "layer_selection")
          ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
@@ -47,7 +47,7 @@ void CImagerTranslator::ProcessImagerChanges()
       MMessage::removeCallback(m_idleCb);
       m_idleCb = 0;   
    }
-   static AtString request_imager_update("request_imager_update");   
+   static AtString request_imager_update("request_imager_update");
    Export(GetArnoldNode());
 
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
