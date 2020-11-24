@@ -174,7 +174,7 @@ mayausd_env.Append(LIBS = usd_libs)
 mayausd_env.Append(LIBS = ['mayaUsd'])
 if platform.system().lower() == 'darwin':
     mayausd_env['PYTHON_LIB_NAME'] = 'libpython3.7'
-    mayausd_env.Append(LIBS = ['python3.7', boost_lib_name])
+    mayausd_env.Append(LIBS = ['python3.7', boost_lib_name.replace('%s', 'python')])
     mayausd_env.Append(LIBPATH = [os.path.join(mayaRoot, 'MacOS')])
 
 if system.os =='windows':
