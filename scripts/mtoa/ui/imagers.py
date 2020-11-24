@@ -232,7 +232,6 @@ class ImagerStackModel(BaseModel):
         cmds.connectAttr(currentImager, otherImagerElemAttr)
         self.refresh()
 
-
     def executeAction(self, action, index):
         """User pressed by one of the actions."""
         item = index.internalPointer()
@@ -327,7 +326,6 @@ class ImagerStackModel(BaseModel):
             name = stream.readString()
             item = self.findProxyItem(name)
             items.append(item)
-            print(name)
 
         # Now do the drop
         i = 0
@@ -335,7 +333,7 @@ class ImagerStackModel(BaseModel):
             destinationPosition = row + i
             # if item._model.parent() == destinationModel and row > item.row():
             #     destinationPosition -= 1
-            print(item, destinationPosition)
+            self.moveItem(item, destinationPosition)
             i += 1
         return not self.dropMimeDataFailure
 
@@ -347,6 +345,63 @@ class ImagerStackModel(BaseModel):
             if name == item.name:
                 return item
         return None
+
+    def moveItem(self, item, position):
+
+        # get index for given item
+        itemIndex = self.imagers.index(item.getNodeName())
+        oldElemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(itemIndex)
+        oldElemConnection = cmds.listConnections(oldElemAttr, p=True, d=False, s=True)
+        movedImager = oldElemConnection[0]
+
+        # nothing to do the position is the same as before
+        if position == itemIndex:
+            return
+
+        # disconnect the current item at the given index
+        # cmds.disconnectAttr(currentImager, imagerElemAttr)
+        # disconnect the moved item from it's current index
+        cmds.disconnectAttr(movedImager, oldElemAttr)
+
+        # are we moveing down or up?
+        up = position < itemIndex
+        if not up:
+            position -= 1
+
+        # get the item currently in the given position
+        imagerElemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(position)
+        elemConnection = cmds.listConnections(imagerElemAttr, p=True, d=False, s=True)
+        if elemConnection is None or len(elemConnection) == 0:
+            return
+
+        # move the nodes below the given position up/down by one index starting
+        # at the index before the moved one
+        if up:
+            idx = itemIndex-1
+            while idx >= position:
+                imager = self.imagers[idx]
+                elemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx)
+                oldElemConnection = cmds.listConnections(elemAttr, p=True, d=False, s=True)
+                if oldElemConnection:
+                    cmds.disconnectAttr(oldElemConnection[0], elemAttr)
+                    targetAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx+1)
+                    cmds.connectAttr('{}.message'.format(imager), targetAttr)
+                idx -= 1
+        else:
+            idx = itemIndex+1
+            while idx <= position:
+                imager = self.imagers[idx]
+                elemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx)
+                oldElemConnection = cmds.listConnections(elemAttr, p=True, d=False, s=True)
+                if oldElemConnection:
+                    cmds.disconnectAttr(oldElemConnection[0], elemAttr)
+                    targetAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx-1)
+                    cmds.connectAttr('{}.message'.format(imager), targetAttr)
+                idx += 1
+
+        # reconnect the node in the new position
+        cmds.connectAttr(movedImager, imagerElemAttr)
+        self.refresh()
 
 
 class ImagerStackDelegate(BaseDelegate):
