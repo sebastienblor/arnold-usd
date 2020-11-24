@@ -38,18 +38,24 @@ usd_supported_modes = ['opt', 'debug', 'profile']
 
 usd_include_dir = os.path.join(usd_install_dir, 'include')
 boost_lib = os.path.join(usd_install_dir, 'lib')
+
+
 if platform.system().lower() == 'darwin':
-    boost_include = os.path.join(usd_install_dir, 'include', 'boost')
-    boost_lib_name = 'boost_%s37'
     python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
     python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
     usd_lib_prefix = 'lib'
 else:
-    boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-    boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
     python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
     python_lib = os.path.join(mayaRoot, 'lib')
     usd_lib_prefix = '""'
+
+if platform.system().lower() == 'windows':
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+    boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
+else:
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost')
+    boost_lib_name = 'boost_%s37'
+    
 
 hydra_folder = os.path.join(_targetPath.abspath, 'hydra')
 if not os.path.exists(hydra_folder):
