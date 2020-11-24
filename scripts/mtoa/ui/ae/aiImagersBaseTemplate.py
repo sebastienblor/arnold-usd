@@ -4,13 +4,43 @@ from mtoa.ui.qt import toMayaName
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.templates import AEChildMode
-from mtoa.ui.ae.utils import AttrControlGrp
+from mtoa.ui.ae.utils import AttrControlGrp, attrType
 from mtoa.utils import prettify
+
+
+class ImagerBoolCtl(object):
+    """docstring for ImagerBoolCtl"""
+    def __init__(self, attribute, parent=None, label=None, changeCommand=None, annotation=None,
+                 preventOverride=False, dynamic=False, enumeratedItem=None):
+        super(ImagerBoolCtl, self).__init__()
+        self._attr = None
+        self.checkbox = None
+        self.parent = parent
+
+        cmds.setParent(parent)
+        self.parentLayout = cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1, 100), (2, 100) , (3, 100) ])
+        cmds.text(label="")
+        cmds.text(label=label if label else "Enable")
+        cmds.setParent('..')
+        self.setAttribute(attribute)
+
+    def setAttribute(self, nodeAttr):
+        if nodeAttr == self._attr:
+            return
+        self._attr = nodeAttr
+        if self.checkbox and cmds.control(self.checkbox, q=True, exists=True):
+            cmds.deleteUI(self.checkbox)
+        cmds.setParent(self.parentLayout)
+        self.checkbox = cmds.checkBox(label='', parent=self.parentLayout)
+        cmds.setParent('..')
+        cmds.connectControl(self.checkbox, self._attr)
+
+    def edit(self, **kwargs):
+        cmds.checkBox(self.checkbox, edit=True, **kwargs)
 
 
 class ImagerBaseUI(object):
     def __init__(self, parent=None, nodeName=None, template=None):
-        self.parentLayout = cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1, 100), (2, 100) , (3, 100) ])
         self._controls = []
         self._layoutStack = [parent]
         self._nodeName = nodeName
@@ -81,8 +111,14 @@ class ImagerBaseUI(object):
             kwargs['attribute'] = self.nodeAttr(attr)
             parent = self._layoutStack[-1]
             cmds.setParent(parent)
-            control = AttrControlGrp(**kwargs)
-            self._controls.append((attr, control, control.setAttribute, parent))
+            control = None
+            if attrType(self.nodeAttr(attr)) == 'bool':
+                kwargs['parent'] = parent
+                control = ImagerBoolCtl(**kwargs)
+            else:
+                control = AttrControlGrp(**kwargs)
+            if control:
+                self._controls.append((attr, control, control.setAttribute, parent))
 
         return control
 
