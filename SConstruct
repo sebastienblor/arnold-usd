@@ -704,9 +704,6 @@ if system.os == 'windows':
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
 
-    if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
-            os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
-        shutil.copyfile(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'), os.path.join(BUILD_BASE_DIR, 'usd', 'Sconscript'))
     if env['PREBUILT_MTOA']:       
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
         MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.dll'), os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.lib')]
