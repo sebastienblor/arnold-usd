@@ -60,6 +60,16 @@ usd_delegate_folder = os.path.join(__target.abspath, 'hydra', env['USD_VERSION']
 if not os.path.exists(usd_delegate_folder):
     os.makedirs(usd_delegate_folder) 
 
+if not os.path.exists(python_include):
+    print("Python includes not found %s"% python_include)
+if not os.path.exists(python_lib):
+    print("Python libs not found %s"% python_lib)
+if not os.path.exists(boost_include):
+    print("Boost includes not found %s"% boost_include)
+if not os.path.exists(usd_include_dir):
+    print("USD includes not found %s"% usd_include_dir)
+    
+
 usd_delegate = os.path.join(usd_delegate_folder, "hdArnold"+lib_extension)
 
 def _usd_delegate(target, source, env):
