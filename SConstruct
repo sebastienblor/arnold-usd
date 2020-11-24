@@ -14,6 +14,7 @@ from utils.mtoa_build_tools import *
 from multiprocessing import cpu_count
 
 import SCons
+import shutil
 
 from colorama import init
 init()
@@ -745,6 +746,11 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+
+        # Attempt to fix Scons issues on linux. 
+        if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
+            os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
+        shutil.copyfile(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'), os.path.join(BUILD_BASE_DIR, 'usd', 'Sconscript'))
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
