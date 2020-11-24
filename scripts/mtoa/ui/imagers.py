@@ -405,3 +405,8 @@ class ImagersUI(object):
             cmds.menuItem(parent=popup, label=cmdsLbl,  command=Callback(self.createImager, imager))
 
 
+def createImagersWidgetForARV():
+    window = cmds.window("ImagersForARV")
+    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers')
+    ImagersUI(imagerShadersFrame)
+    return imagerShadersFrame

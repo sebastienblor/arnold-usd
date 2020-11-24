@@ -93,6 +93,7 @@ static CARVSequenceData *s_sequenceData = NULL;
 
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
+static MString s_ImagersLayoutName = "";
 static std::string s_lastCameraName = "";
 
 #if MAYA_API_VERSION >= 20190000
@@ -315,6 +316,13 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    QMainWindow *arv = GetRenderView();  
    arv->setWindowFlags(Qt::Widget);
+   
+   
+   MGlobal::executePythonCommand("from mtoa.ui import imagers;imagers.createImagersWidgetForARV()", s_ImagersLayoutName);
+   QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
+   
+   if (imager != nullptr)
+      AddCustomTab(imager,"Post Processing");
 
    
    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
@@ -997,13 +1005,6 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
    }
 }
 
-
-QWidget* CRenderViewMtoA::GetHostDCCWidgets()
-{
-
-QWidget* imager = MQtUtil::findLayout(MString ("FooBar|arnoldImagersFrame"));
-return imager;
-}
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 {
    if (node != AiUniverseGetOptions()) return;
