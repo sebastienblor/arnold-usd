@@ -3777,6 +3777,13 @@ desc STRING "Apply a gamma correction to the color."
 
 #### Imagers
 
+[node imager_autofill]
+    maya.hide BOOL TRUE
+
+[node imager_shader]
+    maya.hide BOOL TRUE
+
+
 [node imager_exposure]
     maya.name              STRING "aiImagerExposure"
     maya.classification     STRING  "imager"
@@ -3905,7 +3912,7 @@ desc STRING "Apply a gamma correction to the color."
         min                 FLOAT    0
         softmax             FLOAT    5
 
-[node imager_optix_denoiser]
+[node imager_denoiser_optix]
     maya.name              STRING "aiImagerOptixDenoise"
     maya.classification     STRING  "imager"
     maya.output_name        STRING  "out"
@@ -3926,6 +3933,12 @@ desc STRING "Apply a gamma correction to the color."
         maya.hide           BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
+    [attr mix]
+        min             FLOAT     0
+        max             FLOAT     1
+    [attr residual_mix]
+        min             FLOAT     0
+        max             FLOAT     1
 
 [node imager_denoiser]
     maya.name              STRING "aiImagerDenoiser"
