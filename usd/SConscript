@@ -47,7 +47,7 @@ if platform.system().lower() == 'darwin':
 else:
     python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
     python_lib = os.path.join(mayaRoot, 'lib')
-    usd_lib_prefix = '""'
+    usd_lib_prefix = ''
 
 if platform.system().lower() == 'windows':
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
