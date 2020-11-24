@@ -20,6 +20,10 @@ from mtoa.ui.qt import MtoAStyle
 
 from mtoa.ui.qt.treeView import *
 
+
+IMAGER_MIME_TYPE = "application/arnold/imager"
+
+
 class ImagerStackView(BaseTreeView):
     """docstring for ProceduralTree"""
 
@@ -36,9 +40,13 @@ class ImagerStackView(BaseTreeView):
         self.baseModel = model
         self.transverser = None
         self.setModel(model)
+
         self.setDragEnabled(True)
+
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.rightClickMenu)
 
@@ -96,6 +104,9 @@ class ImagerStackView(BaseTreeView):
         self.transverser = transverser
         self.model().setTransverser(transverser)
 
+    def dropEvent(self, event):
+        print("Drop Event")
+        super(ImagerStackView, self).dropEvent(event)
     # # Every time we select an imager element, we want to 
     # # select it in Maya
     def mousePressEvent(self, event):
@@ -108,13 +119,13 @@ class ImagerStackView(BaseTreeView):
                 self.itemSelected.emit(item.getNodeName())
 
 
-
 class ImagerStackModel(BaseModel):
     def __init__(self, treeView, parent=None):
 
         self.transverser = None
         self.imagers = []
         self.scriptJobList = []
+        self.dropMimeDataFailure = False
         super(ImagerStackModel, self).__init__(treeView, parent)
 
     def setTransverser(self, transverser):
@@ -221,7 +232,6 @@ class ImagerStackModel(BaseModel):
         cmds.connectAttr(currentImager, otherImagerElemAttr)
         self.refresh()
 
-
     def executeAction(self, action, index):
         """User pressed by one of the actions."""
         item = index.internalPointer()
@@ -231,7 +241,6 @@ class ImagerStackModel(BaseModel):
             wasEnabled = cmds.getAttr(enableAttr)
             item.enabled = not item.enabled
             cmds.setAttr(enableAttr, item.enabled)
-            
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         """
@@ -263,6 +272,136 @@ class ImagerStackModel(BaseModel):
             return item.getIndent()
         elif role == NODE_ENABLED:
             return item.isEnabled()
+
+    def supportedDropActions(self):
+        return QtCore.Qt.MoveAction
+
+    def mimeTypes(self):
+        return [ IMAGER_MIME_TYPE ]
+
+    def mimeData(self, indices):
+        ''' This method builds the mimeData if the selection is correct '''
+
+        # On drag start, prepare to pass the names of the dragged items to the drop mime data handler
+        self.dropMimeDataFailure = False
+
+        # Prepare the entries to move
+        mimeData = QtCore.QMimeData()
+        if not self.dropMimeDataFailure:
+            encodedData = QtCore.QByteArray()
+            stream = QtCore.QDataStream(encodedData, QtCore.QIODevice.WriteOnly)
+            for index in indices:
+                stream.writeString(self.data(index, QtCore.Qt.EditRole))
+            mimeData.setData(IMAGER_MIME_TYPE, encodedData)
+
+        return mimeData
+
+    def dropMimeData(self, mimeData, action, row, column, parentIndex):
+
+        if self.dropMimeDataFailure:
+            # The mimeData parsing faced a type mismatch
+            return False
+
+        self.dropMimeDataFailure = False
+
+        if action == QtCore.Qt.IgnoreAction:
+            return False
+
+        if not mimeData.hasFormat(IMAGER_MIME_TYPE) or column > 0:
+            self.dropMimeDataFailure = True
+            return False
+
+        # row is -1 when dropped on a parent item and not between rows.
+        #   In that case we want to insert at row 0
+        if row == -1:
+            row = 0
+
+        # Parse the mime data that was passed to us (a list of item string names)
+        encodedData = mimeData.data(IMAGER_MIME_TYPE)
+        stream = QtCore.QDataStream(encodedData, QtCore.QIODevice.ReadOnly)
+
+        # Is the drop allowed ?
+        items = []
+        while not stream.atEnd():
+            name = stream.readString()
+            item = self.findProxyItem(name)
+            items.append(item)
+
+        # Now do the drop
+        i = 0
+        for item in items:
+            destinationPosition = row + i
+            # if item._model.parent() == destinationModel and row > item.row():
+            #     destinationPosition -= 1
+            self.moveItem(item, destinationPosition)
+            i += 1
+        return not self.dropMimeDataFailure
+
+    def findProxyItem(self, name):
+        count = self.rowCount()
+        for i in range(0, count):
+            index = self.index(i, 0)
+            item = index.internalPointer()
+            if name == item.name:
+                return item
+        return None
+
+    def moveItem(self, item, position):
+
+        # get index for given item
+        itemIndex = self.imagers.index(item.getNodeName())
+        oldElemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(itemIndex)
+        oldElemConnection = cmds.listConnections(oldElemAttr, p=True, d=False, s=True)
+        movedImager = oldElemConnection[0]
+
+        # nothing to do the position is the same as before
+        if position == itemIndex:
+            return
+
+        # disconnect the current item at the given index
+        # cmds.disconnectAttr(currentImager, imagerElemAttr)
+        # disconnect the moved item from it's current index
+        cmds.disconnectAttr(movedImager, oldElemAttr)
+
+        # are we moveing down or up?
+        up = position < itemIndex
+        if not up:
+            position -= 1
+
+        # get the item currently in the given position
+        imagerElemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(position)
+        elemConnection = cmds.listConnections(imagerElemAttr, p=True, d=False, s=True)
+        if elemConnection is None or len(elemConnection) == 0:
+            return
+
+        # move the nodes below the given position up/down by one index starting
+        # at the index before the moved one
+        if up:
+            idx = itemIndex-1
+            while idx >= position:
+                imager = self.imagers[idx]
+                elemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx)
+                oldElemConnection = cmds.listConnections(elemAttr, p=True, d=False, s=True)
+                if oldElemConnection:
+                    cmds.disconnectAttr(oldElemConnection[0], elemAttr)
+                    targetAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx+1)
+                    cmds.connectAttr('{}.message'.format(imager), targetAttr)
+                idx -= 1
+        else:
+            idx = itemIndex+1
+            while idx <= position:
+                imager = self.imagers[idx]
+                elemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx)
+                oldElemConnection = cmds.listConnections(elemAttr, p=True, d=False, s=True)
+                if oldElemConnection:
+                    cmds.disconnectAttr(oldElemConnection[0], elemAttr)
+                    targetAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx-1)
+                    cmds.connectAttr('{}.message'.format(imager), targetAttr)
+                idx += 1
+
+        # reconnect the node in the new position
+        cmds.connectAttr(movedImager, imagerElemAttr)
+        self.refresh()
 
 
 class ImagerStackDelegate(BaseDelegate):
@@ -307,7 +446,10 @@ class ImagerItem(BaseItem):
 
     def isEnabled(self):
         return self.enabled
-       
+
+    def flags(self):
+        """The item's flags."""
+        return QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsDragEnabled
 
 
 class ImagersUI(object):

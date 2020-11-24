@@ -38,7 +38,7 @@ class TreeStyle(QtWidgets.QCommonStyle):
             painter.save()
             painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
             oldPen = painter.pen()
-            painter.setPen(QPen(self.DROP_INDICATOR_COLOR, self.DROP_INDICATOR_WIDTH))
+            painter.setPen(QtGui.QPen(self.DROP_INDICATOR_COLOR, self.DROP_INDICATOR_WIDTH))
             rect = option.rect
             rect.setLeft(rect.left() + self.DROP_INDICATOR_LEFT_OFFSET)
             if option.rect.height() == 0:

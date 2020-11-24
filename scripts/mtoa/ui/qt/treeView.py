@@ -665,6 +665,9 @@ class BaseItem(object):
         else:
             self.setParent(parentItem)
 
+    def __repr__(self):
+        return "BaseItem({})".format(self.name)
+
     def getExpanded(self):
         return self.expanded
 
