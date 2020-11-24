@@ -14,6 +14,7 @@ from utils.mtoa_build_tools import *
 from multiprocessing import cpu_count
 
 import SCons
+import shutil
 
 from colorama import init
 init()
