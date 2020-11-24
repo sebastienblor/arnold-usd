@@ -690,6 +690,10 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
         USD_VERSION = r.group(1)
     if USD_VERSION:
         env['USD_VERSION'] = USD_VERSION
+
+if USD_VERSION:
+    if not os.path.exists(os.path.join(TARGET_USD_PATH, USD_VERSION)):
+        os.makedirs(os.path.join(TARGET_USD_PATH, USD_VERSION))
     
  
 if system.os == 'windows':
