@@ -14,8 +14,8 @@ from utils.build_tools import find_files_recursive
 
 
 # import build env
-Import('env')
-local_env = env.Clone()
+Import('maya_env')
+local_env = maya_env.Clone()
 __target = local_env.Dir('.')
 globals()['USD_DELEGATE'] = []
 
@@ -25,19 +25,13 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
 source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
 include_files = find_files_recursive(src_base_dir, ['.h'])
 
-mayaRoot = env['MAYA_ROOT']
-'''
-if system.os == 'darwin':
-    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
-    mayaRoot = mayaRoot.replace('//', '/')
-'''
-local_env.Append(CPPPATH = ['.'])
+mayaRoot = local_env['MAYA_ROOT']
 
 lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
 lib_prefix = {'windows' : ''}.get(system.os, '')
 lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
 
-usd_install_dir = env['USD_PATH']
+usd_install_dir = local_env['USD_PATH']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
 
 usd_supported_modes = ['opt', 'debug', 'profile']
@@ -53,13 +47,17 @@ if platform.system().lower() == 'darwin':
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
     boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
-    python_include = os.path.join(env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
+    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
     python_lib = os.path.join(mayaRoot, 'lib')
     usd_lib_prefix = '""'
 
-usd_delegate_folder = os.path.join(__target.abspath, 'hydra', env['USD_VERSION'])
-if not os.path.exists(usd_delegate_folder):
-    os.makedirs(usd_delegate_folder) 
+hydra_folder = os.path.join(__target.abspath, 'hydra')
+if not os.path.exists(hydra_folder):
+    os.makedirs(hydra_folder) 
+
+usd_delegate_folder = os.path.join(__target.abspath, 'hydra', local_env['USD_VERSION'])
+#if not os.path.exists(usd_delegate_folder):
+#    os.makedirs(usd_delegate_folder) 
 
 if not os.path.exists(python_include):
     print("Python includes not found %s"% python_include)
@@ -77,8 +75,8 @@ def _usd_delegate(target, source, env):
     usd_env = env.Clone()
     #########
     args = dict(
-      COMPILER = 'msvc' if system.is_windows else env['COMPILER'],
-      ARNOLD_PATH         = env['ARNOLD'],
+      COMPILER = 'msvc' if system.is_windows else local_env['COMPILER'],
+      ARNOLD_PATH         = local_env['ARNOLD'],
       USD_PATH= usd_install_dir,
       USD_BIN= usd_lib_dir,
       TBB_LIB= usd_lib_dir,
@@ -94,7 +92,7 @@ def _usd_delegate(target, source, env):
       BOOST_LIB= boost_lib,
       BUILD_HOUDINI_TOOLS=False,
       BUILD_NDR_PLUGIN=False,
-      MODE= env['MODE'],
+      MODE= local_env['MODE'],
       WARN_LEVEL='warn-only',
       MSVC_VERSION='14.1',
       CXX_STANDARD='14',
@@ -105,13 +103,13 @@ def _usd_delegate(target, source, env):
       USD_LIB_PREFIX=usd_lib_prefix
     )
     if platform.system().lower() == 'darwin':
-        args['SDK_PATH']          = env['SDK_PATH']
-        args['SDK_VERSION']       = env['SDK_VERSION']
-        args['MACOS_VERSION_MIN'] = env['MACOS_VERSION_MIN']
+        args['SDK_PATH']          = local_env['SDK_PATH']
+        args['SDK_VERSION']       = local_env['SDK_VERSION']
+        args['MACOS_VERSION_MIN'] = local_env['MACOS_VERSION_MIN']
         args['PYTHON_LIB_NAME']   = 'libpython3.7'
       
       
-    usd_project = env.Dir(os.path.join(env['EXTERNAL_PATH'], 'arnold-usd')).abspath
+    usd_project = env.Dir(os.path.join(local_env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
         raise SCons.Errors.UserError('arnold-usd subrepository not found')
 
@@ -120,7 +118,7 @@ def _usd_delegate(target, source, env):
         raise SCons.Errors.UserError('arnold-usd scons file not found')
 
     usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
-    args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+    args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
    
     sub = subprocess.Popen([sys.executable] + args, cwd=usd_project)
     sub.communicate()
@@ -132,26 +130,22 @@ usd_delegate_action  = SCons.Action.Action(_usd_delegate    , 'Building USD rend
 USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action  )
 local_env.Alias('usd_delegate', USD_DELEGATE)
 
-if not env.get('MAYAUSD_PATH'):
+if not maya_env.get('MAYAUSD_PATH'):
     Return('USD_DELEGATE')
 
 ##########################################################
 ###### Now Maya USD registry 
-mayausd_env = env.Clone()
+mayausd_env = maya_env.Clone()
 
 src_base_dir  = os.path.join(mayausd_env['ROOT_DIR'], 'usd')
 include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h']
 source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp']
 
-mayausd_include = os.path.join(env['MAYAUSD_PATH'], 'include')
-mayausd_lib = os.path.join(env['MAYAUSD_PATH'], 'lib')
-mayausd_env.Append(CPPDEFINES = Split('_BOOL'))
-maya_version_base = mayausd_env['MAYA_VERSION_BASE']
-mayausd_env.Append(CPPPATH = ['.'])
+mayausd_include = os.path.join(local_env['MAYAUSD_PATH'], 'include')
+mayausd_lib = os.path.join(local_env['MAYAUSD_PATH'], 'lib')
 mayausd_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include])
-mayausd_env.Append(CPPPATH = [env['MAYA_INCLUDE_PATH']])
 mayausd_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
-mayausd_env['SHOW_CMDS']=True
+
 mayausd_env['BOOST_LIB_NAME']=boost_lib_name
 
 usd_libs = [
@@ -169,18 +163,11 @@ usd_libs = [
         'usdRender',
     ]
 
-mayausd_env.Append(CPPPATH = ['.'])
 mayausd_env.Append(LIBS = usd_libs)
 mayausd_env.Append(LIBS = ['mayaUsd'])
 if platform.system().lower() == 'darwin':
     mayausd_env['PYTHON_LIB_NAME'] = 'libpython3.7'
     mayausd_env.Append(LIBS = ['python3.7', boost_lib_name.replace('%s', 'python')])
-    mayausd_env.Append(LIBPATH = [os.path.join(mayaRoot, 'MacOS')])
-
-if system.os =='windows':
-    mayausd_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
-else:
-    mayausd_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
 MAYAUSD_REGISTRY = mayausd_env.SharedLibrary('mayaUsdRegistry', source_files, LIBPREFIX='')
 

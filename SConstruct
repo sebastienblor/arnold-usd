@@ -671,9 +671,10 @@ if env['MTOA_DISABLE_RV']:
 env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
 
+USD_MODULES = None
 USD_DELEGATE = None
 MAYAUSD_REGISTRY = None
-
+USD_VERSION = None
 USD_PATH = env.get('USD_PATH')
 MAYAUSD_PATH = env.get('MAYAUSD_PATH')
 if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
@@ -683,41 +684,14 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     system.execute('git submodule update --init --recursive')
     print ('done')
     # get usd header info
-    USD_VERSION = ''
     pxr_h = open(os.path.join(USD_PATH, 'include', 'pxr', 'pxr.h'), 'r').read()
     r = re.search('PXR_VERSION ([0-9]+)', pxr_h)
     if r:
         USD_VERSION = r.group(1)
-    env['USD_VERSION'] = USD_VERSION
+    if USD_VERSION:
+        env['USD_VERSION'] = USD_VERSION
     
-    USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
-                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
-                      duplicate   = 0,
-                      exports     = 'env')
-    if USD_MODULES:
-        USD_DELEGATE = USD_MODULES[0]
-        if USD_DELEGATE:
-            if isinstance(USD_DELEGATE, SCons.Node.NodeList):
-                USD_DELEGATE = USD_DELEGATE[0]
-            env.Install(TARGET_USD_PATH, USD_DELEGATE)
-        if MAYAUSD_PATH:
-            MAYAUSD_REGISTRY = USD_MODULES[1]
-            if MAYAUSD_REGISTRY:
-                if isinstance(MAYAUSD_REGISTRY, SCons.Node.NodeList):
-                    MAYAUSD_REGISTRY = MAYAUSD_REGISTRY[0]
-                env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), MAYAUSD_REGISTRY)
-                registryResourceFolder = os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry', 'resources')
-                if not os.path.exists(registryResourceFolder):
-                    os.makedirs(registryResourceFolder)
-                registryResourceFile = os.path.join(registryResourceFolder, 'plugInfo.json')
-                file = open(registryResourceFile, 'w')
-                registryResource = "{\n\t\"Plugins\": [\n\t\t{\n\t\t\t\"Info\": {\n\t\t\t\t\"UsdMaya\": {\"ShadingModePlugin\": {\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"LibraryPath\": \"../"
-                registryResource += os.path.basename(str(MAYAUSD_REGISTRY))
-                registryResource += "\",\n\t\t\t\"Name\": \"mayaUsdRegistry\",\n\t\t\t\"ResourcePath\": \"resources\",\n\t\t\t\"Root\": \"..\",\n\t\t\t\"Type\": \"library\"\n\t\t}\n\t]\n}\n"
-                file.write(registryResource)
-                file.close()            
-                env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry'))
-
+ 
 if system.os == 'windows':
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
@@ -745,6 +719,11 @@ if system.os == 'windows':
                                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                                     duplicate   = 0,
                                                     exports     = 'env')
+
+        USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
+                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
+                      duplicate   = 0,
+                      exports     = 'maya_env')
 
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
@@ -791,6 +770,11 @@ else:
                                       variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                       duplicate   = 0,
                                       exports     = 'env')
+        USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
+                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
+                      duplicate   = 0,
+                      exports     = 'maya_env')
+
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
@@ -819,6 +803,31 @@ else:
         env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Adjusting paths in mtoa.boundle ...'))
         #env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_shaders ...'))
         #env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
+
+# Install all USD modules (render delegate and shader registry)
+if USD_MODULES:
+    USD_DELEGATE = USD_MODULES[0]
+    if USD_DELEGATE:
+        if isinstance(USD_DELEGATE, SCons.Node.NodeList):
+            USD_DELEGATE = USD_DELEGATE[0]
+        env.Install(TARGET_USD_PATH, USD_DELEGATE)
+    if MAYAUSD_PATH:
+        MAYAUSD_REGISTRY = USD_MODULES[1]
+        if MAYAUSD_REGISTRY:
+            if isinstance(MAYAUSD_REGISTRY, SCons.Node.NodeList):
+                MAYAUSD_REGISTRY = MAYAUSD_REGISTRY[0]
+            env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), MAYAUSD_REGISTRY)
+            registryResourceFolder = os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry', 'resources')
+            if not os.path.exists(registryResourceFolder):
+                os.makedirs(registryResourceFolder)
+            registryResourceFile = os.path.join(registryResourceFolder, 'plugInfo.json')
+            file = open(registryResourceFile, 'w')
+            registryResource = "{\n\t\"Plugins\": [\n\t\t{\n\t\t\t\"Info\": {\n\t\t\t\t\"UsdMaya\": {\"ShadingModePlugin\": {\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"LibraryPath\": \"../"
+            registryResource += os.path.basename(str(MAYAUSD_REGISTRY))
+            registryResource += "\",\n\t\t\t\"Name\": \"mayaUsdRegistry\",\n\t\t\t\"ResourcePath\": \"resources\",\n\t\t\t\"Root\": \"..\",\n\t\t\t\"Type\": \"library\"\n\t\t}\n\t]\n}\n"
+            file.write(registryResource)
+            file.close()            
+            env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry'))
 
 Depends(MTOA, MTOA_API[0])
 Depends(MTOA, ARNOLD_API_LIB)
