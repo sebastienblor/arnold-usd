@@ -14,7 +14,6 @@ from utils.mtoa_build_tools import *
 from multiprocessing import cpu_count
 
 import SCons
-import shutil
 
 from colorama import init
 init()
@@ -705,6 +704,9 @@ if system.os == 'windows':
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
 
+    if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
+            os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
+        shutil.copyfile(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'), os.path.join(BUILD_BASE_DIR, 'usd', 'Sconscript'))
     if env['PREBUILT_MTOA']:       
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
         MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.dll'), os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.lib')]
@@ -725,10 +727,11 @@ if system.os == 'windows':
                                                     duplicate   = 0,
                                                     exports     = 'env')
 
-        USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
-                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
-                      duplicate   = 0,
-                      exports     = 'maya_env')
+        if USD_VERSION:
+            USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
 
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
@@ -747,10 +750,6 @@ else:
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
 
-        # Attempt to fix Scons issues on linux. 
-        if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
-            os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
-        shutil.copyfile(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'), os.path.join(BUILD_BASE_DIR, 'usd', 'Sconscript'))
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
@@ -780,13 +779,20 @@ else:
                                       variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                       duplicate   = 0,
                                       exports     = 'env')
-        USD_MODULES = env.SConscript(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'),
-                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
-                      duplicate   = 0,
-                      exports     = 'maya_env')
+
+        if USD_VERSION:
+            # Attempt to fix Scons issues on linux. Shouldn't have to do this...
+            print 'Running {}'.format(os.path.abspath(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript')))
+            if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
+                os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
+            shutil.copyfile(os.path.abspath(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript')), os.path.join(BUILD_BASE_DIR, 'usd', 'Sconscript'))
+            USD_MODULES = env.SConscript(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript'),
+                          variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
+                          duplicate   = 0,
+                          exports     = 'maya_env')
 
 
-    MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
+    MTOA_PROCS = env.SConscript(os.path.abspath(os.path.join('procedurals', 'SConscript')),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
                                 duplicate   = 0,
                                 exports     = 'env')
