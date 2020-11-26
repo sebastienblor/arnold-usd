@@ -5,7 +5,7 @@ from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 
 
 class AEaiImagerLightMixerTemplate(ShaderAETemplate):
@@ -28,3 +28,6 @@ class ImagerLightMixerUI(ImagerBaseUI):
     def setup(self):
         super(ImagerLightMixerUI, self).setup()
         self.addSeparator()
+
+
+registerImagerTemplate("aiImagerLightMixer", ImagerLightMixerUI)

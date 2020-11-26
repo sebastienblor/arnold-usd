@@ -2,7 +2,7 @@ import maya.cmds as cmds
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 
 
 class AEaiImagerColorCorrectTemplate(ShaderAETemplate):
@@ -58,3 +58,6 @@ class ImagerColorCorrectUI(ImagerBaseUI):
         self.addControl('highlightsGain', label='Gain', annotation='Gain color multiplier for brighter values.')
         self.addControl('highlightsOffset', label='Offset', annotation='Offset color amount for brighter values.')
         self.endLayout()
+
+
+registerImagerTemplate("aiImagerColorCorrect", ImagerColorCorrectUI)

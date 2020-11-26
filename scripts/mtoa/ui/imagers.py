@@ -5,11 +5,11 @@ import mtoa.core as core
 import arnold as ai
 import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
-from mtoa.ui.ae.aiImagerExposureTemplate import ImagerExposureUI
-from mtoa.ui.ae.aiImagerLensEffectsTemplate import ImagerLensEffectUI
-from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI
-from mtoa.ui.ae.aiImagerColorCorrectTemplate import ImagerColorCorrectUI
-from mtoa.ui.ae.aiImagerTonemapTemplate import ImagerTonemapUI
+from mtoa.ui.ae.aiImagersBaseTemplate import getImagerTemplate
+# from mtoa.ui.ae.aiImagerLensEffectsTemplate import ImagerLensEffectUI
+# from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI
+# from mtoa.ui.ae.aiImagerColorCorrectTemplate import ImagerColorCorrectUI
+# from mtoa.ui.ae.aiImagerTonemapTemplate import ImagerTonemapUI
 
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
@@ -525,16 +525,10 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.setParent(self.parentMayaName)
         self.imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame', numberOfColumns=1)
 
-        if cmds.nodeType(node) == "aiImagerExposure":
-            exposure = ImagerExposureUI(parent = self.imagerAttributesFrame,nodeName = node)
-        elif cmds.nodeType(node) == "aiImagerLensEffects":
-            lensEffect = ImagerLensEffectUI(parent = self.imagerAttributesFrame,nodeName = node)
-        elif cmds.nodeType(node) == "aiImagerWhiteBalance":
-            whiteBalance = ImagerWhiteBalanceUI(parent = self.imagerAttributesFrame,nodeName = node)
-        elif cmds.nodeType(node) == "aiImagerColorCorrect":
-            colorCorrect = ImagerColorCorrectUI(parent = self.imagerAttributesFrame,nodeName = node)
-        elif cmds.nodeType(node) == "aiImagerTonemap":
-            toneMap = ImagerTonemapUI(parent = self.imagerAttributesFrame,nodeName = node)
+        imagersUITemplate = getImagerTemplate(cmds.nodeType(node))
+
+        if imagersUITemplate:
+            imagersUITemplate(parent=self.imagerAttributesFrame, nodeName=node)
 
         self.scrollAreaLayout.addWidget(toQtObject(self.imagerAttributesFrame, QtWidgets.QWidget))
 

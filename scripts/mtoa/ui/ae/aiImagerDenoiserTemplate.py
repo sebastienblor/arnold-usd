@@ -1,7 +1,7 @@
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 import maya.cmds as cmds
 
 
@@ -11,6 +11,7 @@ class AEaiImagerDenoiserTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         self.ui = None
         self.baseLayout = self.beginLayout("Main", collapse=False)
+        currentWidget = cmds.setParent(query=True)
         self.ui = ImagerDenoiserUI(parent=currentWidget, nodeName=self.nodeName, template=self)
         self.endLayout()
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
@@ -19,8 +20,8 @@ class AEaiImagerDenoiserTemplate(ShaderAETemplate):
 
 
 class ImagerDenoiserUI(ImagerBaseUI):
-    def __init__(self, parent=None, nodeName = None):
-        super(ImagerDenoiserUI, self).__init__(parent,nodeName)
+    def __init__(self, parent=None, nodeName = None, template=None):
+        super(ImagerDenoiserUI, self).__init__(parent, nodeName,template)
 
     def setup(self):
         super(ImagerDenoiserUI, self).setup()
@@ -28,4 +29,6 @@ class ImagerDenoiserUI(ImagerBaseUI):
         self.addControl('searchRadius')
         self.addControl('tileSize')
         self.addControl('variance')
-        
+
+
+registerImagerTemplate("aiImagerDenoiser", ImagerDenoiserUI)

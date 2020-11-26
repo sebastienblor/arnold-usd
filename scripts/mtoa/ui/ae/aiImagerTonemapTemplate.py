@@ -2,7 +2,7 @@ import maya.cmds as cmds
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 
 
 class AEaiImagerTonemapTemplate(ShaderAETemplate):
@@ -57,3 +57,6 @@ class ImagerTonemapUI(ImagerBaseUI):
         self.dimControl('filmicShoulderAngle', state=modeValue != 0)
         self.dimControl('reinhardHighlights', state=modeValue != 1)
         self.dimControl('reinhardShadows', state=modeValue != 1)
+
+
+registerImagerTemplate("aiImagerTonemap", ImagerTonemapUI)

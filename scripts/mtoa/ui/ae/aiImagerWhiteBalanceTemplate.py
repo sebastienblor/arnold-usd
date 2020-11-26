@@ -2,7 +2,7 @@ import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import maya.cmds as cmds
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 
 
 class AEaiImagerWhiteBalanceTemplate(ShaderAETemplate):
@@ -38,3 +38,6 @@ class ImagerWhiteBalanceUI(ImagerBaseUI):
         self.dimControl('illuminant', state=modeValue != 0)
         self.dimControl('temperature', state=modeValue != 1)
         self.dimControl('custom', state=modeValue != 2)
+
+
+registerImagerTemplate("aiImagerWhiteBalance", ImagerWhiteBalanceUI)

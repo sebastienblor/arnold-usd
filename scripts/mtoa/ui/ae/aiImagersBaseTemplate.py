@@ -1,4 +1,5 @@
 import maya.mel
+import inspect
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
 import maya.cmds as cmds
@@ -6,6 +7,10 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.templates import AEChildMode
 from mtoa.ui.ae.utils import AttrControlGrp, attrType
 from mtoa.utils import prettify
+
+
+global _imagerTemplates
+_imagerTemplates = {}
 
 
 class ImagerBoolCtl(object):
@@ -178,3 +183,35 @@ class ImagerBaseUI(object):
                 return ctrl[1]
 
         return None
+
+
+def registerImagerTemplate(nodeType, templateClass, *args, **kwargs):
+    """
+    Register an `ImagerBaseUI` class to be used with the given nodeType.
+    """
+    assert inspect.isclass(templateClass) and issubclass(templateClass, ImagerBaseUI), \
+        "you must pass a subclass of ImagerBaseUI"
+    global _imagerTemplates
+    if nodeType not in _imagerTemplates:
+        try:
+            _imagerTemplates[nodeType] = templateClass
+        except:
+            arnold.AiMsgError("Failed to instantiate Imager UI Template %s" % templateClass)
+            import traceback
+            traceback.print_exc()
+
+
+def getImagerTemplate(nodeType):
+    """
+    Return an `AttributeTemplate` instance for the given nodeType or None if one has not been registered.
+    
+    This is the root template for the node type. Unlike translator UIs, there can be only one template per node type.
+    """
+    global _imagerTemplates
+    try:
+        # has one been explicitly registered?
+        templateClass = _imagerTemplates[nodeType]
+    except KeyError:
+        return
+    else:
+        return templateClass

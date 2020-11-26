@@ -1,7 +1,7 @@
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 import maya.cmds as cmds
 
 
@@ -26,3 +26,6 @@ class ImagerLensEffectUI(ImagerBaseUI):
         super(ImagerLensEffectUI, self).setup()
         self.addSeparator()
         self.addControl('vignetting', label='Vignetting', annotation='Vignetting amount')
+
+
+registerImagerTemplate("aiImagerLensEffects", ImagerLensEffectUI)

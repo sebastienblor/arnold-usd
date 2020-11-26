@@ -5,7 +5,7 @@ from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 
 
 class AEaiImagerExposureTemplate(ShaderAETemplate):
@@ -29,3 +29,6 @@ class ImagerExposureUI(ImagerBaseUI):
         super(ImagerExposureUI, self).setup()
         self.addSeparator()
         self.addControl('exposure')
+
+
+registerImagerTemplate("aiImagerExposure", ImagerExposureUI)
