@@ -28,7 +28,7 @@ class ImagerTonemapUI(ImagerBaseUI):
         super(ImagerTonemapUI, self).setup()
 
         self.addSeparator()
-        self.addControl('mode', label='Mode', changeCommand=lambda *args: self.updateParamsVisibility(self.nodeName), annotation='The mode used to perform tonemapping (filmic, reinhard')
+        self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='The mode used to perform tonemapping (filmic, reinhard')
         self.beginLayout("Filmic", collapse=False)
         self.addControl('filmicToeStrength', label='Toe Strength', annotation='Amount of curvature for the tonemap curve in the darker values.')
         self.addControl('filmicToeLength', label='Toe Length', annotation='Amount of darker values affected by the toe.')
@@ -47,8 +47,8 @@ class ImagerTonemapUI(ImagerBaseUI):
 
         self.updateParamsVisibility(self.nodeName)
 
-    def updateParamsVisibility(self, nodeName):
-        modeAttr = '%s.%s' % (nodeName, 'mode')
+    def updateParamsVisibility(self, *args):
+        modeAttr = '%s.%s' % (self.nodeName, 'mode')
         modeValue = cmds.getAttr(modeAttr)
         self.dimControl('filmicToeStrength', state=modeValue != 0)
         self.dimControl('filmicToeLength', state=modeValue != 0)

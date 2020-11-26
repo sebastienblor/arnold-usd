@@ -170,7 +170,7 @@ class ImagerBaseUI(object):
         else:
             control = self.getControl(attr)
             if control:
-                control.edit(enable=state)
+                control.edit(enable=not state)
 
     def getControl(self, attr):
         for ctrl in self._controls:

@@ -66,6 +66,9 @@ class ImagerStackView(BaseTreeView):
         self.contextMenu.clear()
         index = self.indexAt(pos)
         item = index.internalPointer()
+        if not item:
+            return
+
         self.actionDisable = self.contextMenu.addAction("Disable Imager" if item.enabled else "Enable Imager")
         self.actionDisable.triggered.connect(lambda arg=None: self.disableImager(pos))
         self.actionDelete = self.contextMenu.addAction("Remove Imager")
@@ -105,7 +108,6 @@ class ImagerStackView(BaseTreeView):
         self.model().setTransverser(transverser)
 
     def dropEvent(self, event):
-        print("Drop Event")
         super(ImagerStackView, self).dropEvent(event)
     # # Every time we select an imager element, we want to 
     # # select it in Maya
@@ -452,51 +454,75 @@ class ImagerItem(BaseItem):
         return QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsDragEnabled
 
 
-class ImagersUI(object):
+class ImagersUI(QtWidgets.QFrame):
 
     def __init__(self, parent=None):
-        
+        super(ImagersUI, self).__init__(parent)
+
         style = MtoAStyle.currentStyle()
         self.parent = parent
-        # every time the attribute imagers in the options node is modified, we want to update the widget
-        cmds.scriptJob(parent=parent, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
-        self.imagerStack = None
-        cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'left'])
+        self.parentMayaName = toMayaName(parent)
+
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.layout)
+
+        cmds.setParent(self.parentMayaName)
+        rowLayout = cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'left'])
         cmds.text(label='')
-        addButton =  cmds.button(label='Add Imager')
+        addButton = cmds.button(label='Add Imager')
         impopup = cmds.popupMenu(parent=addButton, button=1)
         cmds.popupMenu(impopup, edit=True, postMenuCommand=Callback(self.buildImagerMenu, impopup))
-        removeButton =  cmds.button(label='Remove Imager')
+        removeButton = cmds.button(label='Remove Imager')
         cmds.setParent('..') # rowLayout
 
-        cmds.setParent(parent)
+        cmds.setParent(self.parentMayaName)
 
-        self.currentWidget = toQtObject(cmds.setParent(query=True), QtWidgets.QWidget)
-        self.frame = QtWidgets.QFrame(self.currentWidget)
-        self.frame.setLayout(QtWidgets.QVBoxLayout(self.frame))
-        self.currentWidget.layout().addWidget(self.frame)
-        self.imagerStack = ImagerStackView(None, self.currentWidget)
+        self.rowLayoutQt = toQtObject(rowLayout, QtWidgets.QWidget)
+        # self.frame = QtWidgets.QFrame(self.currentWidget)
+
+        self.splitter = QtWidgets.QSplitter(self)
+        self.splitter.setOrientation(QtCore.Qt.Vertical)
+        self.splitter.setObjectName("splitter")
+
+        self.imagerStack = ImagerStackView(None, self.splitter)
         self.imagerStack.setObjectName("ImagerStackWidget")
-        self.frame.layout().addWidget(self.imagerStack)
-        self.imagerStack.itemSelected.connect(self.showItemProperties)
-        self.attributesFrame = QtWidgets.QFrame(self.currentWidget)
-        self.attributesFrame.setLayout(QtWidgets.QVBoxLayout(self.attributesFrame))
-        self.currentWidget.layout().addWidget(self.attributesFrame)
+        # self.imagerStack.setMinimumHeight(dpiScale(300))
+        # self.frame.layout().addWidget(self.imagerStack)
+
+        # self.attributesFrame = QtWidgets.QFrame(self.splitter)
+        # self.attributesFrame.setLayout(QtWidgets.QVBoxLayout(self.attributesFrame))
+        self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
+        self.attributeScrollArea.setObjectName("AttributeScrollArea")
+        self.attributeScrollArea.setWidgetResizable(True)
+        self.attributeScrollArea.setMinimumHeight(dpiScale(200))
+
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        # self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 816, 424))
+        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        self.scrollAreaLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
+
+        self.attributeScrollArea.setWidget(self.scrollAreaWidgetContents)
+
+        # self.frame.layout().addWidget(self.attributesFrame)
+        self.layout.addWidget(self.splitter)
+
         self.imagerAttributesFrame = None
-        self.imagerAttributesParentFrame = None
-        
+
+        self.imagerStack.itemSelected.connect(self.showItemProperties)
+
+        # every time the attribute imagers in the options node is modified, we want to update the widget
+        cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
         self.updateImagers()
         cmds.setParent('..')
 
     @QtCore.Slot(str)
     def showItemProperties(self, node):
-        
-        if (self.imagerAttributesParentFrame):
-            cmds.deleteUI(self.imagerAttributesParentFrame)
-            self.imagerAttributesParentFrame = None
 
-        cmds.setParent(self.parent)
-        self.imagerAttributesParentFrame = cmds.frameLayout(label = "Attributes", collapsable=False, labelVisible=True, borderVisible=False)
+        if (self.imagerAttributesFrame):
+            cmds.deleteUI(self.imagerAttributesFrame)
+            self.imagerAttributesFrame = None
+
+        cmds.setParent(self.parentMayaName)
         self.imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame', numberOfColumns=1)
 
         if cmds.nodeType(node) == "aiImagerExposure":
@@ -509,13 +535,14 @@ class ImagersUI(object):
             colorCorrect = ImagerColorCorrectUI(parent = self.imagerAttributesFrame,nodeName = node)
         elif cmds.nodeType(node) == "aiImagerTonemap":
             toneMap = ImagerTonemapUI(parent = self.imagerAttributesFrame,nodeName = node)
-        
-        cmds.setParent('..')
+
+        self.scrollAreaLayout.addWidget(toQtObject(self.imagerAttributesFrame, QtWidgets.QWidget))
+
         cmds.setParent('..')
 
     def updateImagers(self):
         self.imagerStack.model().refresh()
-        
+
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
         self.addImager(imager)
@@ -548,7 +575,17 @@ class ImagersUI(object):
 
 
 def createImagersWidgetForARV():
+    if (cmds.window("ImagersForARV", exists=True)):
+        return
+
     window = cmds.window("ImagersForARV")
-    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers')
-    ImagersUI(imagerShadersFrame)
+    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', borderVisible=False, labelVisible=False)
+    currentWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
+
+    imagersUI = ImagersUI(currentWidget)
+
+    currentWidget.layout().addWidget(imagersUI)
+
+    # imagersUI_maya = toMayaName(imagersUI)
+
     return imagerShadersFrame

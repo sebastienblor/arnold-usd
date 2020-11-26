@@ -35,6 +35,6 @@ class ImagerWhiteBalanceUI(ImagerBaseUI):
     def updateParamsVisibility(self, nodeName):
         modeAttr = '%s.%s' % (nodeName, 'mode')
         modeValue = cmds.getAttr(modeAttr)
-        self.dimControl('illuminant', state=modeValue == 0)
-        self.dimControl('temperature', state=modeValue == 1)
-        self.dimControl('custom', state=modeValue == 2)
+        self.dimControl('illuminant', state=modeValue != 0)
+        self.dimControl('temperature', state=modeValue != 1)
+        self.dimControl('custom', state=modeValue != 2)
