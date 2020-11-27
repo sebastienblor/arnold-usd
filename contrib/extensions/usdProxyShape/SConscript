@@ -32,18 +32,22 @@ if local_env.get('USD_PATH'):
     usd_include_dir = os.path.join(usd_install_dir, 'include')
 
     boost_lib = os.path.join(usd_install_dir, 'lib')
+    
     if platform.system().lower() == 'darwin':
-        boost_include = os.path.join(usd_install_dir, 'include', 'boost')
-        boost_lib_name = 'boost_%s37'
         python_include = os.path.join(local_env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
         python_lib = os.path.join(local_env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
-        usd_lib_prefix = 'lib'
     else:
-        boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-        boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
         python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
         python_lib = os.path.join(local_env['MAYA_ROOT'], 'lib')
-        usd_lib_prefix = '""'
+
+    if platform.system().lower() == 'windows':
+        boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+        boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
+        usd_lib_prefix = ''
+    else:
+        boost_include = os.path.join(usd_install_dir, 'include', 'boost')
+        boost_lib_name = 'boost_%s37'
+
 
     usd_libs = [
         'arch',
@@ -60,10 +64,7 @@ if local_env.get('USD_PATH'):
         'usdSkel',
         'usdRender',
     ]
-
-    if platform.system().lower() == 'darwin':
-        usd_libs = ['%s%s' % (usd_lib_prefix, usd_lib) for usd_lib in usd_libs]
-
+    
     local_env.Append(LIBS = usd_libs)
 
     local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include])
@@ -71,6 +72,9 @@ if local_env.get('USD_PATH'):
 
     if platform.system().lower() == 'darwin':
         local_env['PYTHON_LIB_NAME'] = 'libpython3.7'
+    elif platform.system().lower() == 'linux':
+        local_env['PYTHON_LIB_NAME']   = 'libpython3.7m'
+
 
 EXT = local_env.SharedLibrary('usdProxyShapeTranslator', source_files, LIBPREFIX= '')
 
