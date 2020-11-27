@@ -39,6 +39,7 @@ class ImagerStackView(BaseTreeView):
         model = ImagerStackModel(self)
         self.baseModel = model
         self.transverser = None
+        self.dragStartPosition = None
         self.setModel(model)
 
         self.setDragEnabled(True)
@@ -109,10 +110,23 @@ class ImagerStackView(BaseTreeView):
 
     def dropEvent(self, event):
         super(ImagerStackView, self).dropEvent(event)
-    # # Every time we select an imager element, we want to 
-    # # select it in Maya
+        self.dragStartPosition = None
+
+    def startDrag(self, actions):
+        if self.dragStartPosition:
+            index = self.indexAt(self.dragStartPosition)
+            item = index.internalPointer()
+            # onlly allow drag if we have an item at the drag start position
+            if item:
+                super(ImagerStackView, self).startDrag(actions)
+
     def mousePressEvent(self, event):
         super(ImagerStackView, self).mousePressEvent(event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.dragStartPosition = event.pos()
+
+    # # Every time we select an imager element, we want to
+    # # select it in Maya
         index = self.indexAt(event.pos())
         if index:
             item = index.internalPointer()
@@ -314,9 +328,9 @@ class ImagerStackModel(BaseModel):
             return False
 
         # row is -1 when dropped on a parent item and not between rows.
-        #   In that case we want to insert at row 0
+        #   In that case we want to do nothing
         if row == -1:
-            row = 0
+            return False
 
         # Parse the mime data that was passed to us (a list of item string names)
         encodedData = mimeData.data(IMAGER_MIME_TYPE)
@@ -349,6 +363,11 @@ class ImagerStackModel(BaseModel):
         return None
 
     def moveItem(self, item, position):
+        """
+        * Move item to position.
+        * Reorder the current item in position
+          to one index below position
+        """
 
         # get index for given item
         itemIndex = self.imagers.index(item.getNodeName())
