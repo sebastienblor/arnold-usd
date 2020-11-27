@@ -72,9 +72,10 @@ if local_env.get('USD_PATH'):
 
     if platform.system().lower() == 'darwin':
         local_env['PYTHON_LIB_NAME'] = 'libpython3.7'
+        local_env.Append(LIBS = ['python3.7', boost_lib_name.replace('%s', 'python')])
+
     elif platform.system().lower() == 'linux':
         local_env['PYTHON_LIB_NAME']   = 'libpython3.7m'
-
 
 EXT = local_env.SharedLibrary('usdProxyShapeTranslator', source_files, LIBPREFIX= '')
 
