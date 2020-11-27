@@ -61,9 +61,12 @@ hydra_folder = os.path.join(_targetPath.abspath, 'hydra')
 if not os.path.exists(hydra_folder):
     os.makedirs(hydra_folder) 
 
-usd_delegate_folder = os.path.join(_targetPath.abspath, 'hydra', local_env['USD_VERSION'])
-#if not os.path.exists(usd_delegate_folder):
-#    os.makedirs(usd_delegate_folder) 
+proc_folder = os.path.join(_targetPath.abspath, 'proc')
+if not os.path.exists(proc_folder):
+    os.makedirs(proc_folder)
+
+usd_delegate_folder = os.path.join(hydra_folder, local_env['USD_VERSION'])
+usd_procedural_folder = os.path.join(proc_folder, local_env['USD_VERSION'])
 
 if not os.path.exists(python_include):
     print("Python includes not found %s"% python_include)
@@ -76,6 +79,7 @@ if not os.path.exists(usd_include_dir):
     
 
 usd_delegate = os.path.join(usd_delegate_folder, "hdArnold"+lib_extension)
+usd_procedural = os.path.join(usd_procedural_folder, 'usd_cache_proc'+lib_extension)
 
 def _usd_delegate(target, source, env):
     usd_env = env.Clone()
@@ -86,7 +90,6 @@ def _usd_delegate(target, source, env):
       USD_PATH= usd_install_dir,
       USD_BIN= usd_lib_dir,
       TBB_LIB= usd_lib_dir,
-      TBB_STATIC=True,
       USD_BUILD_MODE = 'shared_libs',
       PREFIX_RENDER_DELEGATE= usd_delegate_folder,
       BUILD_SCHEMAS=False,
@@ -139,12 +142,80 @@ def _usd_delegate(target, source, env):
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
+def _usd_procedural(target, source, env):
+    usd_env = env.Clone()
+    #########
+    args = dict(
+      COMPILER = 'msvc' if system.is_windows else local_env['COMPILER'],
+      ARNOLD_PATH         = local_env['ARNOLD'],
+      USD_PATH= usd_install_dir,
+      USD_BIN= usd_lib_dir,
+      TBB_LIB= usd_lib_dir,
+      USD_BUILD_MODE = 'shared_libs',
+      PREFIX_PROCEDURAL= usd_procedural_folder,
+      BUILD_SCHEMAS=False,
+      BUILD_RENDER_DELEGATE=False,
+      BUILD_USD_WRITER=False,
+      BUILD_PROCEDURAL=True,
+      BUILD_TESTSUITE=False,
+      BUILD_DOCS=False,
+      BOOST_LIB= boost_lib,
+      BUILD_HOUDINI_TOOLS=False,
+      BUILD_NDR_PLUGIN=False,
+      MODE= local_env['MODE'],
+      WARN_LEVEL='warn-only',
+      MSVC_VERSION='14.1',
+      CXX_STANDARD='14',
+      BOOST_INCLUDE=boost_include,
+      BOOST_LIB_NAME=boost_lib_name,
+      PYTHON_INCLUDE=python_include,
+      PYTHON_LIB=python_lib,
+      USD_LIB_PREFIX=usd_lib_prefix,
+      PROC_SCENE_FORMAT=False,
+      USD_PROCEDURAL_NAME='usd_cache',
+    )
+    if platform.system().lower() == 'darwin':
+        args['SDK_PATH']          = local_env['SDK_PATH']
+        args['SDK_VERSION']       = local_env['SDK_VERSION']
+        args['MACOS_VERSION_MIN'] = local_env['MACOS_VERSION_MIN']
+        args['PYTHON_LIB_NAME']   = 'libpython3.7'
+
+    if platform.system().lower() == 'linux':
+        if local_env.get('SHCXX'):
+            args['SHCXX'] = local_env['SHCXX']
+        if local_env.get('CXX_STANDARD'):
+            args['CXX_STANDARD'] = local_env['CXX_STANDARD']
+        args['DISABLE_CXX11_ABI']=True 
+        args['PYTHON_LIB_NAME']   = 'libpython3.7m'
+      
+    usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
+    if not os.path.exists(usd_project):
+        raise SCons.Errors.UserError('arnold-usd subrepository not found')
+
+    usd_scons = os.path.join(usd_project, 'tools', 'scons', 'scons.py')
+    if not os.path.exists(usd_scons):
+        raise SCons.Errors.UserError('arnold-usd scons file not found')
+
+    usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
+    args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'procedural-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   
+    sub = subprocess.Popen([sys.executable] + args, cwd=usd_project)
+    sub.communicate()
+    if sub.returncode != 0:
+        raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+    return None
+
+
 usd_delegate_action  = SCons.Action.Action(_usd_delegate    , 'Building USD render delegate ...')
 USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action  )
 local_env.Alias('usd_delegate', USD_DELEGATE)
 
+usd_procedural_action  = SCons.Action.Action(_usd_procedural    , 'Building USD procedural ...')
+USD_PROCEDURAL = local_env.Command(usd_procedural, [], usd_procedural_action  )
+local_env.Alias('usd_procedural', USD_PROCEDURAL)
+
 if not maya_env.get('MAYAUSD_PATH'):
-    Return('USD_DELEGATE')
+    Return('USD_DELEGATE USD_PROCEDURAL')
 
 ##########################################################
 ###### Now Maya USD registry 
@@ -185,4 +256,4 @@ if platform.system().lower() == 'darwin':
 MAYAUSD_REGISTRY = mayausd_env.SharedLibrary('mayaUsdRegistry', source_files, LIBPREFIX='')
 
 
-Return('USD_DELEGATE MAYAUSD_REGISTRY')
+Return('USD_DELEGATE USD_PROCEDURAL MAYAUSD_REGISTRY')

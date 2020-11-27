@@ -674,6 +674,7 @@ env['ROOT_DIR'] = os.getcwd()
 
 USD_MODULES = None
 USD_DELEGATE = None
+USD_PROCEDURAL = None
 MAYAUSD_REGISTRY = None
 USD_VERSION = None
 USD_PATH = env.get('USD_PATH')
@@ -691,6 +692,8 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
         USD_VERSION = r.group(1)
     if USD_VERSION:
         env['USD_VERSION'] = USD_VERSION
+        # used by the proxy shape extension
+        env.Append(CPPDEFINES = Split('ENABLE_USD'))
 
 if USD_VERSION:
     if not os.path.exists(os.path.join(TARGET_USD_PATH, USD_VERSION)):
@@ -820,8 +823,16 @@ if USD_MODULES:
         if isinstance(USD_DELEGATE, SCons.Node.NodeList):
             USD_DELEGATE = USD_DELEGATE[0]
         env.Install(TARGET_USD_PATH, USD_DELEGATE)
+    USD_PROCEDURAL = USD_MODULES[1]
+    if USD_PROCEDURAL:
+        if isinstance(USD_PROCEDURAL, SCons.Node.NodeList):
+            USD_PROCEDURAL = USD_PROCEDURAL[0]
+        proc_folder = os.path.join(TARGET_EXTENSION_PATH, 'usd')
+        if not os.path.exists(proc_folder):
+            os.makedirs(proc_folder)
+        env.Install(proc_folder, USD_PROCEDURAL)
     if MAYAUSD_PATH:
-        MAYAUSD_REGISTRY = USD_MODULES[1]
+        MAYAUSD_REGISTRY = USD_MODULES[2]
         if MAYAUSD_REGISTRY:
             if isinstance(MAYAUSD_REGISTRY, SCons.Node.NodeList):
                 MAYAUSD_REGISTRY = MAYAUSD_REGISTRY[0]
@@ -1401,6 +1412,9 @@ if USD_DELEGATE:
 if MAYAUSD_REGISTRY:
     PACKAGE_FILES += [[MAYAUSD_REGISTRY, os.path.join('usd', env['USD_VERSION'])]]
     PACKAGE_FILES += [[os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry', 'resources', 'plugInfo.json'), os.path.join('usd', env['USD_VERSION'], 'mayaUsdRegistry', 'resources') ]]
+
+if USD_PROCEDURAL:
+    PACKAGE_FILES += [[USD_PROCEDURAL, os.path.join('extensions', 'usd')]]
 
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])

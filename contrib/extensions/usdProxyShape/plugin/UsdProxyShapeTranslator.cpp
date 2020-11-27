@@ -1,3 +1,20 @@
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4305 )
+
+#elif defined(_LINUX) || defined(_DARWIN)
+#include <dlfcn.h>
+#endif
+
+#include <algorithm>
+#include <string>
+
+
 #include "UsdProxyShapeTranslator.h"
 
 #include <maya/MRenderLineArray.h>
@@ -13,10 +30,87 @@
 #include <maya/MDGModifier.h>
 #include <maya/MDGMessage.h>
 #include <maya/MEventMessage.h>
+#include <maya/MGlobal.h>
 
-#include <algorithm>
-#include <string>
+#ifdef ENABLE_USD
+#include <pxr/usd/ar/resolver.h>
+#include <pxr/usd/usd/prim.h>
+#include <pxr/usd/usd/primRange.h>
+#include <pxr/usd/usd/stage.h>
+#include <pxr/usd/usd/stageCache.h>
+#include <pxr/usd/usd/stageCacheContext.h>
+#include <pxr/usd/usdGeom/camera.h>
+#include <pxr/usd/usdSkel/bakeSkinning.h>
+#include "pxr/usd/sdf/api.h"
+#include "pxr/usd/sdf/data.h"
+#include "pxr/usd/sdf/declareHandles.h"
+#include "pxr/usd/sdf/identity.h"
+#include "pxr/usd/sdf/layerOffset.h"
+#include "pxr/usd/sdf/namespaceEdit.h"
+#include "pxr/usd/sdf/path.h"
+#include "pxr/usd/sdf/proxyTypes.h"
+#include "pxr/usd/sdf/spec.h"
+#include "pxr/usd/sdf/types.h"
 
+#include "UsdProxyShapeListener.h"
+#include <pxr/usd/usdUtils/stageCache.h>
+
+PXR_NAMESPACE_USING_DIRECTIVE
+
+class CUsdProxyShapeTranslatorImpl
+{
+public:
+   CUsdProxyShapeTranslatorImpl(CUsdProxyShapeTranslator &tr) : m_translator(tr), m_stage(nullptr) {}
+   void InitStage(UsdStageRefPtr stage)
+   {
+      m_stage = stage;
+      m_listener.SetStage(stage);
+      if (stage == nullptr)
+         return;
+      
+      m_listener.SetStageContentsChangedCallback(
+         [this](const UsdNotice::StageContentsChanged& notice) {
+                return OnStageContentsChanged(notice);
+            });
+   }
+private:
+   CUsdProxyShapeTranslator &m_translator;
+   UsdStageRefPtr m_stage;
+   CUsdMtoAListener m_listener;
+
+   /*
+   void OnStageObjectsChanged(const UsdNotice::ObjectsChanged& notice)
+   {
+      m_translator.StageChanged();
+      UsdNotice::ObjectsChanged::PathRange range = notice.GetResyncedPaths();
+      for (UsdNotice::ObjectsChanged::PathRange::iterator it = range.begin(); it != range.end(); ++it)
+         std::cerr<<it->GetAsString()<<std::endl;
+   }*/
+
+   void OnStageContentsChanged(const UsdNotice::StageContentsChanged& notice)
+   {
+      m_translator.StageChanged();      
+   }
+};
+
+CUsdProxyShapeTranslator::CUsdProxyShapeTranslator() : CProceduralTranslator() 
+{
+   m_impl = new CUsdProxyShapeTranslatorImpl(*this);
+}
+CUsdProxyShapeTranslator::~CUsdProxyShapeTranslator()
+{
+   if (m_impl)
+      delete m_impl;
+}
+#else
+CUsdProxyShapeTranslator::CUsdProxyShapeTranslator() : CProceduralTranslator() 
+{
+   m_impl = nullptr;
+}
+CUsdProxyShapeTranslator::~CUsdProxyShapeTranslator()
+{
+}
+#endif
 void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "usd");
@@ -32,10 +126,32 @@ void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput(data);
 
 }
-
 AtNode* CUsdProxyShapeTranslator::CreateArnoldNodes()
 {
+   // If mode is export to ass, just export to usd
+#ifdef ENABLE_USD
+   // When exporting to .ass, we always want to export to the builtin core procedural.
+   // This way, it can be ported to other DCCs, or be kicked in standalone
+   if (GetSessionMode() == MTOA_SESSION_ASS)
+      return AddArnoldNode("usd");   
 
+   if (AiNodeEntryLookUp("usd_cache") == nullptr)
+   {
+      static MString s_mtoaExtPath;
+      if (s_mtoaExtPath.length() == 0) 
+          MGlobal::executeCommand("getenv MTOA_EXTENSIONS_PATH", s_mtoaExtPath);
+      
+      // FIXME replace by USD version
+      if (s_mtoaExtPath.length() > 0)
+      {
+         MString usdCachePath = s_mtoaExtPath + MString("/usd");
+         AiLoadPlugins(usdCachePath.asChar());
+         if (AiNodeEntryLookUp("usd_cache"))   
+            return AddArnoldNode("usd_cache");
+      }
+   } else 
+      return AddArnoldNode("usd_cache");
+#endif
    return AddArnoldNode("usd");
 }
 
@@ -84,7 +200,25 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
       MString filename = filenamePlug.asString().expandEnvironmentVariablesAndTilde();
       GetSessionOptions().FormatProceduralPath(filename);
       AiNodeSetStr(shape, "filename", filename.asChar());
+
    }
+
+#ifdef ENABLE_USD
+   if (AiNodeIs(shape, AtString("usd_cache")))
+   {
+      MPlug cacheIdPlug = FindMayaPlug("outStageCacheId");
+      if (!cacheIdPlug.isNull())
+      {
+         int cacheId = cacheIdPlug.asInt();
+         std::string cacheStr;
+         AiNodeSetInt(shape, "cache_id", cacheId);
+         UsdStageCache &stageCache = UsdUtilsStageCache::Get();
+         UsdStageCache::Id id = UsdStageCache::Id::FromLongInt(cacheId);
+         m_impl->InitStage((id.IsValid()) ? stageCache.Find(id) : nullptr);
+
+      }
+   }
+#endif
 
    MPlug geomPlug = FindMayaPlug("primPath");
    if (!geomPlug.isNull())
@@ -151,4 +285,9 @@ void CUsdProxyShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
 
    // we're calling directly the shape translator function, as we don't want to make it a AI_RECREATE_NODE
    CShapeTranslator::NodeChanged(node, plug);  
+}
+
+void CUsdProxyShapeTranslator::StageChanged()
+{
+   CProceduralTranslator::RequestUpdate();
 }
