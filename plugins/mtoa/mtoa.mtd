@@ -3918,8 +3918,6 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC0
-    [attr layer_selection]
-        maya.hide           BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
 
@@ -3929,8 +3927,6 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC1
-    [attr layer_selection]
-        maya.hide           BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr mix]
@@ -3946,7 +3942,5 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC2
-    [attr layer_selection]
-        maya.hide           BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
