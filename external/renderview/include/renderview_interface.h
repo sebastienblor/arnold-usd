@@ -60,6 +60,9 @@ public:
    void CloseOptionsWindow();
    void DestroyOptionsWindow();
 
+   // Adds a DCC-custom tab in the display settings
+   void AddCustomTab(QWidget *widget, const char *tabName);
+   
    // Stops the rendering and clears the Arnold scene, but leave window visible
    void DisableRendering();
 
