@@ -3786,8 +3786,6 @@ desc STRING "Apply a gamma correction to the color."
     [attr exposure]
         softmin             FLOAT     -10
         softmax             FLOAT     10
-    [attr layer_selection]
-        maya.hide               BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
        
@@ -3798,8 +3796,6 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB6
-    [attr layer_selection]
-        maya.hide           BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr main_saturation]
@@ -3849,8 +3845,6 @@ desc STRING "Apply a gamma correction to the color."
     [attr vignetting]
         softmin             FLOAT     0
         softmax             FLOAT     100
-    [attr layer_selection]
-        maya.hide               BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
     
@@ -3861,8 +3855,6 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB8
-    [attr layer_selection]
-        maya.hide           BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr temperature]
@@ -3876,8 +3868,6 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB9
-    [attr layer_selection]
-        maya.hide           BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr filmic_toe_strength]
