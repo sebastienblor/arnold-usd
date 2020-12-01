@@ -3919,7 +3919,7 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT     0
         max             FLOAT     1
 
-[node imager_denoiser]
+[node imager_denoiser_optix]
     maya.name              STRING "aiImagerDenoiser"
     maya.classification     STRING  "imager"
     maya.output_name        STRING  "out"
