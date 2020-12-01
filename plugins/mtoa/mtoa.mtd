@@ -3904,20 +3904,6 @@ desc STRING "Apply a gamma correction to the color."
     [attr input]
         maya.hide               BOOL     TRUE
 
-[node imager_light_mixer]
-    maya.name              STRING "aiImagerLightMixer"
-    maya.classification     STRING  "imager"
-    maya.output_name        STRING  "out"
-    maya.output_shortname   STRING  "out"
-    maya.id                 INT      0x00115DC1
-    [attr input]
-        maya.hide               BOOL     TRUE
-    [attr mix]
-        min             FLOAT     0
-        max             FLOAT     1
-    [attr residual_mix]
-        min             FLOAT     0
-        max             FLOAT     1
 
 [node imager_denoiser_optix]
     maya.name              STRING "aiImagerDenoiser"
