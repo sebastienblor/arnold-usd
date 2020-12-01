@@ -1344,9 +1344,12 @@ def createArnoldImagerSettings():
     cmds.columnLayout(adjustableColumn=True)
 
     imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', width=400, height=200,
-                        collapsable=True, collapse=True)
+                                          collapsable=True, collapse=True)
+    imagerShadersFrameWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
 
-    _imagerUI = imagers.ImagersUI(imagerShadersFrame)
+    _imagerUI = imagers.ImagersUI(imagerShadersFrameWidget)
+
+    imagerShadersFrameWidget.layout().addWidget(_imagerUI)
 
     cmds.setParent('..')
     cmds.setUITemplate(popTemplate=True)

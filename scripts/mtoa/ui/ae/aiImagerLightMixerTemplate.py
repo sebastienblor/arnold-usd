@@ -1,31 +1,33 @@
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
+from mtoa.ui.qt import toQtObject
+from mtoa.ui.qt import toMayaName
 import maya.cmds as cmds
+from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
 
 
-class AEaiImagerLensEffectsTemplate(ShaderAETemplate):
+class AEaiImagerLightMixerTemplate(ShaderAETemplate):
 
     def setup(self):
         self.beginScrollLayout()
         self.baseLayout = self.beginLayout("Main", collapse=False)
         currentWidget = cmds.setParent(query=True)
-        self.ui = ImagerLensEffectUI(parent=currentWidget, nodeName=self.nodeName, template=self)
+        self.ui = ImagerLightMixerUI(parent=currentWidget, nodeName=self.nodeName, template=self)
         self.endLayout()
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
         self.endScrollLayout()
 
 
-class ImagerLensEffectUI(ImagerBaseUI):
+class ImagerLightMixerUI(ImagerBaseUI):
     def __init__(self, parent=None, nodeName=None, template=None):
-        super(ImagerLensEffectUI, self).__init__(parent, nodeName, template)
+        super(ImagerLightMixerUI, self).__init__(parent, nodeName, template)
 
     def setup(self):
-        super(ImagerLensEffectUI, self).setup()
+        super(ImagerLightMixerUI, self).setup()
         self.addSeparator()
-        self.addControl('vignetting', label='Vignetting', annotation='Vignetting amount')
 
 
-registerImagerTemplate("aiImagerLensEffects", ImagerLensEffectUI)
+registerImagerTemplate("aiImagerLightMixer", ImagerLightMixerUI)

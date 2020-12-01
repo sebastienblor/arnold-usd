@@ -3777,6 +3777,13 @@ desc STRING "Apply a gamma correction to the color."
 
 #### Imagers
 
+[node imager_autofill]
+    maya.hide BOOL TRUE
+
+[node imager_shader]
+    maya.hide BOOL TRUE
+
+
 [node imager_exposure]
     maya.name              STRING "aiImagerExposure"
     maya.classification     STRING  "imager"
@@ -3787,7 +3794,7 @@ desc STRING "Apply a gamma correction to the color."
         softmin             FLOAT     -10
         softmax             FLOAT     10
     [attr layer_selection]
-        maya.hide               BOOL     TRUE
+        maya.hide               BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
        
@@ -3850,7 +3857,7 @@ desc STRING "Apply a gamma correction to the color."
         softmin             FLOAT     0
         softmax             FLOAT     100
     [attr layer_selection]
-        maya.hide               BOOL     TRUE
+        maya.hide               BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
     
@@ -3862,14 +3869,14 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB8
     [attr layer_selection]
-        maya.hide           BOOL     TRUE
+        maya.hide           BOOL     FALSE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr temperature]
         softmin             FLOAT   0
         softmax             FLOAT   15000
         
-        
+
 [node imager_tonemap]
     maya.name              STRING "aiImagerTonemap"
     maya.classification     STRING  "imager"
@@ -3904,9 +3911,36 @@ desc STRING "Apply a gamma correction to the color."
     [attr gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
-    
-    
-    
-    
-        
-        
+
+[node imager_denoiser_optix]
+    maya.name              STRING "aiImagerOptixDenoise"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC0
+    [attr input]
+        maya.hide               BOOL     TRUE
+
+[node imager_light_mixer]
+    maya.name              STRING "aiImagerLightMixer"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC1
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr mix]
+        min             FLOAT     0
+        max             FLOAT     1
+    [attr residual_mix]
+        min             FLOAT     0
+        max             FLOAT     1
+
+[node imager_denoiser]
+    maya.name              STRING "aiImagerDenoiser"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC2
+    [attr input]
+        maya.hide               BOOL     TRUE

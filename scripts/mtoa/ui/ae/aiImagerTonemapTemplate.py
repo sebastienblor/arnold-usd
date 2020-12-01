@@ -2,25 +2,31 @@ import maya.cmds as cmds
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
+
 
 class AEaiImagerTonemapTemplate(ShaderAETemplate):
 
-    def updateParamsVisibility(self, nodeName):
-        modeAttr = '%s.%s' % (nodeName, 'mode')
-        modeValue = cmds.getAttr(modeAttr)
-        cmds.editorTemplate(dimControl=(nodeName, 'filmicToeStrength', modeValue != 0))
-        cmds.editorTemplate(dimControl=(nodeName, 'filmicToeLength', modeValue != 0))
-        cmds.editorTemplate(dimControl=(nodeName, 'filmicShoulderStrength', modeValue != 0))
-        cmds.editorTemplate(dimControl=(nodeName, 'filmicShoulderLength', modeValue != 0))
-        cmds.editorTemplate(dimControl=(nodeName, 'filmicShoulderAngle', modeValue != 0))
-        cmds.editorTemplate(dimControl=(nodeName, 'reinhardHighlights', modeValue != 1))
-        cmds.editorTemplate(dimControl=(nodeName, 'reinhardShadows', modeValue != 1))
-    
     def setup(self):
-        #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
         self.beginScrollLayout()
-        self.addControl('enable', label='Enable', annotation='Enables this imager.')
+        self.baseLayout = self.beginLayout("Main", collapse=False)
+        currentWidget = cmds.setParent(query=True)
+        self.ui = ImagerTonemapUI(parent=currentWidget, nodeName=self.nodeName, template=self)
+        self.endLayout()
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
+        self.addExtraControls()
+        self.endScrollLayout()
+
+
+class ImagerTonemapUI(ImagerBaseUI):
+    def __init__(self, parent=None, nodeName=None, template=None):
+        super(ImagerTonemapUI, self).__init__(parent, nodeName, template)
+
+    def setup(self):
+        super(ImagerTonemapUI, self).setup()
+
         self.addSeparator()
         self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='The mode used to perform tonemapping (filmic, reinhard')
         self.beginLayout("Filmic", collapse=False)
@@ -38,7 +44,19 @@ class AEaiImagerTonemapTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('preserveSaturation', label='Preserve Saturation', annotation='Preserves color saturation for extreme bright values.')
         self.addControl('gamma', label='Gamma', annotation='Gamma curve exponent for midtones value control.')
-        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
-        self.addExtraControls()
-        self.endScrollLayout()
+        self.updateParamsVisibility(self.nodeName)
+
+    def updateParamsVisibility(self, *args):
+        modeAttr = '%s.%s' % (self.nodeName, 'mode')
+        modeValue = cmds.getAttr(modeAttr)
+        self.dimControl('filmicToeStrength', state=modeValue != 0)
+        self.dimControl('filmicToeLength', state=modeValue != 0)
+        self.dimControl('filmicShoulderStrength', state=modeValue != 0)
+        self.dimControl('filmicShoulderLength', state=modeValue != 0)
+        self.dimControl('filmicShoulderAngle', state=modeValue != 0)
+        self.dimControl('reinhardHighlights', state=modeValue != 1)
+        self.dimControl('reinhardShadows', state=modeValue != 1)
+
+
+registerImagerTemplate("aiImagerTonemap", ImagerTonemapUI)

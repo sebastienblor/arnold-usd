@@ -3,6 +3,7 @@
 from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
+from .utils import dpiScale
 
 
 class ItemStyle(QtWidgets.QCommonStyle):
@@ -13,8 +14,8 @@ class ItemStyle(QtWidgets.QCommonStyle):
 
     # Constants
     DROP_INDICATOR_COLOR = QtGui.QColor(255, 255, 255)
-    DROP_INDICATOR_WIDTH = 3
-    DROP_INDICATOR_LEFT_OFFSET = -25
+    DROP_INDICATOR_WIDTH = dpiScale(3)
+    DROP_INDICATOR_LEFT_OFFSET = dpiScale(-25)
 
     def __init__(self, parent):
         """Called after the instance has been created."""
@@ -66,25 +67,19 @@ class ItemStyle(QtWidgets.QCommonStyle):
         style options specified by option.
         """
         # Changes the way the drop indicator is drawn
-        if element == QtWidgets.QStyle.PE_IndicatorItemViewItemDrop:
-            if (not option.rect.isNull() and
-                    widget and
-                    widget.customIndicatorShown):
-                painter.save()
-                painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-                oldPen = painter.pen()
-                painter.setPen(
-                    QtGui.QPen(
-                        self.DROP_INDICATOR_COLOR, self.DROP_INDICATOR_WIDTH))
-                rect = option.rect
-                rect.setLeft(self.DROP_INDICATOR_WIDTH)
-                rect.setRight(widget.width() - 2 * self.DROP_INDICATOR_WIDTH)
-                if option.rect.height() == 0:
-                    painter.drawLine(rect.topLeft(), option.rect.topRight())
-                else:
-                    painter.drawRect(rect)
-                painter.setPen(oldPen)
-                painter.restore()
+        if element == QtWidgets.QStyle.PE_IndicatorItemViewItemDrop and not option.rect.isNull():
+            painter.save()
+            painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+            oldPen = painter.pen()
+            painter.setPen(QtGui.QPen(self.DROP_INDICATOR_COLOR, self.DROP_INDICATOR_WIDTH))
+            rect = option.rect
+            rect.setLeft(rect.left() + self.DROP_INDICATOR_LEFT_OFFSET)
+            if option.rect.height() == 0:
+                painter.drawLine(rect.topLeft(), option.rect.topRight())
+            else:
+                painter.drawRect(rect)
+            painter.setPen(oldPen)
+            painter.restore()
 
     def generatedIconPixmap(self, iconMode, pixmap, option):
         """

@@ -236,6 +236,10 @@ class AttributeTemplate(BaseTemplate):
         pass
 
     @modeMethod
+    def dimControl(self, attr, state=True):
+        pass
+
+    @modeMethod
     def addSeparator(self):
         pass
 
@@ -527,8 +531,8 @@ class AERootMode(BaseMode):
     def suppress(self, control):
         cmds.editorTemplate(suppress=control)
 
-    def dimControl(self, nodeName, control, state):
-        cmds.editorTemplate(dimControl=(nodeName, control, state))
+    def dimControl(self, control, state):
+        cmds.editorTemplate(dimControl=(self.nodeName, control, state))
 
     def beginLayout(self, name, collapse=True):
         cmds.editorTemplate(beginLayout=name, collapse=collapse)
@@ -537,7 +541,7 @@ class AERootMode(BaseMode):
         cmds.editorTemplate(endLayout=True)
 
     def beginScrollLayout(self):
-        cmds.editorTemplate(beginScrollLayout=True)
+        return cmds.editorTemplate(beginScrollLayout=True)
 
     def endScrollLayout(self):
         cmds.editorTemplate(endScrollLayout=True)

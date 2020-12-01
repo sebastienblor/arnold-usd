@@ -170,13 +170,16 @@ class BaseModel(QtCore.QAbstractItemModel):
 
     def flags(self, index):
         """The item's flags for the given index."""
+
+        if not index.isValid():
+            return QtCore.Qt.ItemIsDropEnabled
+
+        item = index.internalPointer()
+        if not item:
+            return QtCore.Qt.NoItemFlags
+
         defaultFlags = super(BaseModel, self).flags(index)
-
-        if index.isValid():
-            item = index.internalPointer()
-            return defaultFlags | item.flags()
-
-        return defaultFlags | QtCore.Qt.ItemIsDropEnabled
+        return defaultFlags | item.flags()
 
     def refresh(self):
         """Read the attributes and recreate the layers."""
@@ -646,7 +649,7 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         editor.setGeometry(rect)
 
 
-class BaseItem(object):
+class BaseItem(QtGui.QStandardItem):
     """
     A Python object used to store an item's data, and keep note of it's parents
     and/or children. It's a tree data structure with parent and children.
@@ -664,6 +667,19 @@ class BaseItem(object):
             self.setParent(parentItem, index)
         else:
             self.setParent(parentItem)
+
+    def __repr__(self):
+        return "BaseItem({})".format(self.name)
+
+    def __eq__(self, o):
+        # The default QStandardItem:__eq__() method is not implemented
+        # https://bugreports.qt.io/browse/PYSIDE-74
+        return id(self)==id(o)
+
+    def __ne__(self, o):
+        # The default QStandardItem:__ne__() method is not implemented
+        # https://bugreports.qt.io/browse/PYSIDE-74
+        return not self.__eq__(o)
 
     def getExpanded(self):
         return self.expanded
