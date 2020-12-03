@@ -2,7 +2,7 @@ import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.qt import toQtObject
-from mtoa.ui.qt import toMayaName
+from mtoa.ui.qt import toMayaName , dpiScale
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
@@ -33,11 +33,16 @@ class TintButton(QtWidgets.QPushButton):
         self.setStyleSheet("background-color:rgb(%d,%d,%d)" %(parsedcolor[0]*255, parsedcolor[1]*255, parsedcolor[2]*255))
         cmds.setAttr(self.attribute, parsedcolor[0] , parsedcolor[1], parsedcolor[2], type = 'float3')
 
+    def update(self, nodeName , index):
+        attribute = nodeName + '.tint[%d]'%(index)
+        bgc = cmds.getAttr(attribute)
+        self.setStyleSheet("background-color:rgb(%d,%d,%d)"%(bgc[0][0]*255,bgc[0][1]*255,bgc[0][2]*255 ))
 
-class LightGroupItem(QtWidgets.QFrame):
+class LightGroupItem(QtWidgets.QHBoxLayout):
     
     def __init__(self, parent = None, nodeName = None, index = -1, name = ""):
-        super(LightGroupItem, self).__init__(parent=parent)
+        super(LightGroupItem, self).__init__()
+
         self.parent = parent
         self.nodeName = nodeName
         self.itemIndex = index
@@ -47,7 +52,6 @@ class LightGroupItem(QtWidgets.QFrame):
         self.solo_button.setCheckable(True)
         self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layer_solo[%d]'%(self.itemIndex)))
         self.solo_button.clicked.connect(self.soloButtonClicked)
-
 
         self.enable_button = QtWidgets.QPushButton("E")
         self.enable_button.setStyleSheet(s_pushStyleButton)
@@ -59,18 +63,25 @@ class LightGroupItem(QtWidgets.QFrame):
         self.mix_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.mix_slider.setRange(0,100)
         self.mix_value = QtWidgets.QDoubleSpinBox()
+        self.mix_value.setRange(0.0,1.0)
         self.mix_slider.valueChanged.connect(self.sliderValueChanged)
         self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.mix[%d]'%(self.itemIndex))*100)
-        
         self.tint_button = TintButton(attribute = self.nodeName + '.tint[%d]'%(self.itemIndex))
-
-
         self.addWidget(self.solo_button)
         self.addWidget(self.enable_button)
         self.addWidget(self.label)
         self.addWidget(self.mix_slider)
         self.addWidget(self.mix_value)
         self.addWidget(self.tint_button)
+
+    def update(self, nodeName, index):
+        
+        self.nodeName = nodeName
+        self.itemIndex = index
+        self.enable_button.setChecked(cmds.getAttr(nodeName+'.layer_enable[%d]'%(index)))
+        self.solo_button.setChecked(cmds.getAttr(nodeName+'.layer_solo[%d]'%(index)))
+        self.mix_slider.setValue(cmds.getAttr(nodeName+'.mix[%d]'%(index))*100)
+        self.tint_button.update(nodeName, index)
 
     def soloButtonClicked(self):
         button_state = self.solo_button.isChecked()
@@ -87,25 +98,36 @@ class LightGroupItem(QtWidgets.QFrame):
         self.mix_value.setValue(value)
         cmds.setAttr(self.nodeName+'.mix[%d]' %(self.itemIndex), value)
 
-class LightMixer(QtWidgets.QWidget):
+class LightMixer(QtWidgets.QFrame):
 
     def __init__(self, parent = None, nodeName = None):
         super(LightMixer, self).__init__(parent=parent)
         self.mainLayout = QtWidgets.QGridLayout(parent)
         self.nodeName = nodeName
         lightGroups = getLightGroups()
-        for i in range(0,len(getLightGroups())):
-            if not cmds.attributeQuery( 'layerName[%d]'%(i), node=self.nodeName, exists=True ):
-                self.setDefaults(index = i, layerName = lightGroups[i])
+        self.lightGroupWidgets = []
+        if not cmds.getAttr(self.nodeName+'.layerName', size = True) > 0:
+            self.setDefaults( lightGroups = getLightGroups() )
+        for i in range(0,len(lightGroups)):
             self.item = LightGroupItem(parent = self.mainLayout, name = lightGroups[i], index = i , nodeName = self.nodeName)
+            self.lightGroupWidgets.append(self.item)
             self.mainLayout.addItem(self.item)
+        self.setLayout(self.mainLayout)
 
-    def setDefaults(self, index , layerName):
-        cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), "RGBA_"+layerName, type = "string")
-        cmds.setAttr(self.nodeName+'.layerEnable[%d]' %(index), True)
-        cmds.setAttr(self.nodeName+'.layerSolo[%d]' %(index), False)
-        cmds.setAttr(self.nodeName+'.tint[%d]' %(index), 1, 1, 1, type = "float3")
-        cmds.setAttr(self.nodeName+'.mix[%d]' %(index), 1)
+    # def addResidual()
+
+    def setDefaults(self, lightGroups):
+        for index in range(0,len(lightGroups)):
+            cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), "RGBA_"+lightGroups[index], type = "string")
+            cmds.setAttr(self.nodeName+'.layerEnable[%d]' %(index), True)
+            cmds.setAttr(self.nodeName+'.layerSolo[%d]' %(index), False)
+            cmds.setAttr(self.nodeName+'.tint[%d]' %(index), 1, 1, 1, type = "float3")
+            cmds.setAttr(self.nodeName+'.mix[%d]' %(index), 1)
+
+    def update(self, nodeName):
+
+        for i in range(0,len(self.lightGroupWidgets)):
+            self.lightGroupWidgets[i].update(nodeName,i)
 
 
 class AEaiImagerLightMixerTemplate(ShaderAETemplate):
@@ -134,10 +156,21 @@ class ImagerLightMixerUI(ImagerBaseUI):
     def setup(self):
         super(ImagerLightMixerUI, self).setup()
         self.addSeparator()
-        self.beginLayout("Light Mixer", collapse=True)
+        # self.beginLayout("Light Mixer", collapse=True)
+        # self.light_mixer = LightMixer(currentWidget,self.nodeName)
+        # currentWidget.layout().addWidget(self.light_mixer)
+        self.addCustom("BOO", self.createLightMixerWidget , self.updateLightMixerWidget)
+        # self.endLayout()
+    
+    def createLightMixerWidget(self, nodeName):
         currentWidget = self.__currentWidget()
-        self.light_mixer = LightMixer(currentWidget,self.nodeName)
-        currentWidget.layout().addWidget(self.light_mixer)
-        self.endLayout()
+        node = nodeName.split('.')[0]
+        self.code_widget = LightMixer(currentWidget, node)
+        currentWidget.layout().addWidget(self.code_widget)
+        # self.code_widget.setFixedHeight(dpiScale(400))
+
+    def updateLightMixerWidget(self, nodeName):
+        node = nodeName.split('.')[0]
+        self.code_widget.update(node)
 
 registerImagerTemplate("aiImagerLightMixer", ImagerLightMixerUI)
