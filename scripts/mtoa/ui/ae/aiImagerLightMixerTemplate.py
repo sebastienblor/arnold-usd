@@ -34,29 +34,36 @@ class TintButton(QtWidgets.QPushButton):
         cmds.setAttr(self.attribute, parsedcolor[0] , parsedcolor[1], parsedcolor[2], type = 'float3')
 
     def update(self, nodeName , index):
-        attribute = nodeName + '.tint[%d]'%(index)
+        
+        if index == -1:
+            attribute = nodeName + '.residualTint'
+        else:
+            attribute = nodeName + '.tint[%d]'%(index)
+        
         bgc = cmds.getAttr(attribute)
         self.setStyleSheet("background-color:rgb(%d,%d,%d)"%(bgc[0][0]*255,bgc[0][1]*255,bgc[0][2]*255 ))
 
-class LightGroupItem(QtWidgets.QHBoxLayout):
-    
+class LightGroupItem(QtWidgets.QWidget):
+
     def __init__(self, parent = None, nodeName = None, index = -1, name = ""):
         super(LightGroupItem, self).__init__()
 
         self.parent = parent
         self.nodeName = nodeName
         self.itemIndex = index
-
+        self.mainLayout = QtWidgets.QHBoxLayout(self)
+        self.setLayout(self.mainLayout)
         self.solo_button = QtWidgets.QPushButton("S")
         self.solo_button.setStyleSheet(s_pushStyleButton)
         self.solo_button.setCheckable(True)
-        self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layer_solo[%d]'%(self.itemIndex)))
-        self.solo_button.clicked.connect(self.soloButtonClicked)
+        
 
+        self.solo_button.clicked.connect(self.soloButtonClicked)
+        
         self.enable_button = QtWidgets.QPushButton("E")
         self.enable_button.setStyleSheet(s_pushStyleButton)
         self.enable_button.setCheckable(True)
-        self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.layer_enable[%d]'%(self.itemIndex)))
+        
         self.enable_button.clicked.connect(self.enableButtonClicked)
 
         self.label = QtWidgets.QLabel(name)
@@ -65,53 +72,113 @@ class LightGroupItem(QtWidgets.QHBoxLayout):
         self.mix_value = QtWidgets.QDoubleSpinBox()
         self.mix_value.setRange(0.0,1.0)
         self.mix_slider.valueChanged.connect(self.sliderValueChanged)
-        self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.mix[%d]'%(self.itemIndex))*100)
-        self.tint_button = TintButton(attribute = self.nodeName + '.tint[%d]'%(self.itemIndex))
-        self.addWidget(self.solo_button)
-        self.addWidget(self.enable_button)
-        self.addWidget(self.label)
-        self.addWidget(self.mix_slider)
-        self.addWidget(self.mix_value)
-        self.addWidget(self.tint_button)
+        
+
+        if self.itemIndex == -1 :
+            self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.residualSolo'))
+            self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.residualEnable'))
+            self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.residualMix')*100)
+            self.tint_button = TintButton(attribute = self.nodeName + '.residualTint')
+        else:
+            self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layerSolo[%d]'%(self.itemIndex)))
+            self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
+            self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.mix[%d]'%(self.itemIndex))*100)
+            self.tint_button = TintButton(attribute = self.nodeName + '.tint[%d]'%(self.itemIndex))
+
+        self.mainLayout.addWidget(self.solo_button)
+        self.mainLayout.addWidget(self.enable_button)
+        self.mainLayout.addWidget(self.label)
+        self.mainLayout.addWidget(self.mix_slider)
+        self.mainLayout.addWidget(self.mix_value)
+        self.mainLayout.addWidget(self.tint_button)
 
     def update(self, nodeName, index):
         
         self.nodeName = nodeName
         self.itemIndex = index
-        self.enable_button.setChecked(cmds.getAttr(nodeName+'.layer_enable[%d]'%(index)))
-        self.solo_button.setChecked(cmds.getAttr(nodeName+'.layer_solo[%d]'%(index)))
-        self.mix_slider.setValue(cmds.getAttr(nodeName+'.mix[%d]'%(index))*100)
-        self.tint_button.update(nodeName, index)
+        if self.itemIndex == -1:
+            self.enable_button.setChecked(cmds.getAttr(nodeName+'.residualEnable'))
+            self.solo_button.setChecked(cmds.getAttr(nodeName+'.residualSolo'))
+            self.mix_slider.setValue(cmds.getAttr(nodeName+'.residualMix')*100)
+            self.tint_button.update(nodeName, -1)
+        else:
+            self.enable_button.setChecked(cmds.getAttr(nodeName+'.layerEnable[%d]'%(index)))
+            self.solo_button.setChecked(cmds.getAttr(nodeName+'.layerSolo[%d]'%(index)))
+            self.mix_slider.setValue(cmds.getAttr(nodeName+'.mix[%d]'%(index))*100)
+            self.tint_button.update(nodeName, index)
 
     def soloButtonClicked(self):
         button_state = self.solo_button.isChecked()
-        attribute = self.nodeName + '.layerSolo[%d]' %(self.itemIndex)
+        if self.itemIndex == -1 :
+            attribute = self.nodeName + '.residualSolo' 
+        else:
+            attribute = self.nodeName + '.layerSolo[%d]' %(self.itemIndex)
         cmds.setAttr(attribute, button_state)
 
     def enableButtonClicked(self):
         button_state = self.enable_button.isChecked()
-        attribute = self.nodeName +'.layerEnable[%d]' %(self.itemIndex)
+        attribute = None
+        if self.itemIndex == -1:
+            attribute = self.nodeName +'.residualEnable' 
+        else:
+            attribute = self.nodeName +'.layerEnable[%d]' %(self.itemIndex)
         cmds.setAttr(attribute, button_state)
 
     def sliderValueChanged(self):
         value =float(self.mix_slider.value())/100.0
         self.mix_value.setValue(value)
-        cmds.setAttr(self.nodeName+'.mix[%d]' %(self.itemIndex), value)
+        attribute = None
+        
+        if self.itemIndex ==-1 :
+            attribute = self.nodeName+'.residualMix'
+        else:
+            attribute = self.nodeName+'.mix[%d]' %(self.itemIndex)
+        cmds.setAttr(attribute, value)
 
 class LightMixer(QtWidgets.QFrame):
 
+
     def __init__(self, parent = None, nodeName = None):
         super(LightMixer, self).__init__(parent=parent)
-        self.mainLayout = QtWidgets.QGridLayout(parent)
         self.nodeName = nodeName
+        self.mainLayout = QtWidgets.QVBoxLayout(self)
+
+        self.actionsFrame = QtWidgets.QFrame(self)
+        self.actionsLayout = QtWidgets.QHBoxLayout(self.actionsFrame)
+        self.actionsFrame.setLayout(self.actionsLayout)
+        self.addLayerButton = QtWidgets.QPushButton("Add Layer", self.actionsFrame)
+        self.removeLayerButton = QtWidgets.QPushButton("Remove Layer", self.actionsFrame)
+        self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
+        self.actionsLayout.addWidget(self.addLayerButton)
+        self.actionsLayout.addWidget(self.removeLayerButton)
+        self.actionsLayout.addWidget(self.refreshLayerButton)
+
+
+        self.layerFrame = QtWidgets.QFrame(self)
+        self.layerLayout = QtWidgets.QVBoxLayout(parent)
+        self.layerFrame.setLayout(self.layerLayout)
+        
+
+        self.residualLayerFrame = QtWidgets.QFrame(self)
+        self.residualLayerLayout = QtWidgets.QVBoxLayout(parent)
+        self.residualLayerFrame.setLayout(self.residualLayerLayout)
+
+
         lightGroups = getLightGroups()
         self.lightGroupWidgets = []
         if not cmds.getAttr(self.nodeName+'.layerName', size = True) > 0:
             self.setDefaults( lightGroups = getLightGroups() )
         for i in range(0,len(lightGroups)):
-            self.item = LightGroupItem(parent = self.mainLayout, name = lightGroups[i], index = i , nodeName = self.nodeName)
+            self.item = LightGroupItem(parent = self.mainLayout, name = 'RGBA_'+lightGroups[i], index = i , nodeName = self.nodeName)
             self.lightGroupWidgets.append(self.item)
-            self.mainLayout.addItem(self.item)
+            self.layerLayout.addWidget(self.item)
+
+        self.residualLayerLayout.addWidget(LightGroupItem(parent = self.mainLayout, name = "Residual", index = -1 , nodeName = self.nodeName))
+        self.residualLayerFrame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
+        self.layerFrame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
+        self.mainLayout.addWidget(self.actionsFrame)
+        self.mainLayout.addWidget(self.layerFrame)
+        self.mainLayout.addWidget(self.residualLayerFrame)
         self.setLayout(self.mainLayout)
 
     # def addResidual()
@@ -155,22 +222,21 @@ class ImagerLightMixerUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerLightMixerUI, self).setup()
+        self.addControl("outputName")
         self.addSeparator()
-        # self.beginLayout("Light Mixer", collapse=True)
-        # self.light_mixer = LightMixer(currentWidget,self.nodeName)
-        # currentWidget.layout().addWidget(self.light_mixer)
-        self.addCustom("BOO", self.createLightMixerWidget , self.updateLightMixerWidget)
-        # self.endLayout()
+        self.addSeparator()
+        self.addCustom("mixerWidget", self.createLightMixerWidget , self.updateLightMixerWidget)
+        
+
     
     def createLightMixerWidget(self, nodeName):
         currentWidget = self.__currentWidget()
         node = nodeName.split('.')[0]
-        self.code_widget = LightMixer(currentWidget, node)
-        currentWidget.layout().addWidget(self.code_widget)
-        # self.code_widget.setFixedHeight(dpiScale(400))
+        self.mixer = LightMixer(currentWidget, node)
+        currentWidget.layout().addWidget(self.mixer)
 
     def updateLightMixerWidget(self, nodeName):
         node = nodeName.split('.')[0]
-        self.code_widget.update(node)
+        self.mixer.update(node)
 
 registerImagerTemplate("aiImagerLightMixer", ImagerLightMixerUI)
