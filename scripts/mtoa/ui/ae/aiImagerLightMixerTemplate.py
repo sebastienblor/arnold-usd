@@ -53,6 +53,7 @@ class LightGroupItem(QtWidgets.QWidget):
         self.itemIndex = index
         self.mainLayout = QtWidgets.QHBoxLayout(self)
         self.setLayout(self.mainLayout)
+        self.layerName = name
 
         self.select_check_box = QtWidgets.QCheckBox()
 
@@ -69,7 +70,7 @@ class LightGroupItem(QtWidgets.QWidget):
         
         self.enable_button.clicked.connect(self.enableButtonClicked)
 
-        self.label = QtWidgets.QLabel(name)
+        self.label = QtWidgets.QLabel(name,self)
         self.mix_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.mix_slider.setRange(0,100)
         self.mix_value = QtWidgets.QDoubleSpinBox()
@@ -101,7 +102,6 @@ class LightGroupItem(QtWidgets.QWidget):
         return self.select_check_box.isChecked()
 
     def update(self, nodeName, index):
-        
         self.nodeName = nodeName
         self.itemIndex = index
         if self.itemIndex == -1:
@@ -153,9 +153,13 @@ class LightMixer(QtWidgets.QFrame):
         self.actionsFrame = QtWidgets.QFrame(self)
         self.actionsLayout = QtWidgets.QHBoxLayout(self.actionsFrame)
         self.actionsFrame.setLayout(self.actionsLayout)
-        self.addLayerButton = QtWidgets.QPushButton("Add Layer", self.actionsFrame)
-        self.removeLayerButton = QtWidgets.QPushButton("Remove Layer", self.actionsFrame)
-        self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
+
+        ## Commenting out the add remove actions until syncing between layers is sorted
+
+        # self.addLayerButton = QtWidgets.QPushButton("Add Layer(s)", self.actionsFrame)
+        # self.removeLayerButton = QtWidgets.QPushButton("Remove Layer(s)", self.actionsFrame)
+        # self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
+
         self.actionsLayout.addWidget(self.addLayerButton)
         self.actionsLayout.addWidget(self.removeLayerButton)
         self.actionsLayout.addWidget(self.refreshLayerButton)
@@ -197,9 +201,15 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.mix[%d]' %(index), 1)
 
     def update(self, nodeName):
+        
         for i in range(0,len(self.lightGroupWidgets)):
-            self.lightGroupWidgets[i].update(nodeName,i)
+            if self.lightGroupWidgets[i]:
+                self.lightGroupWidgets[i].update(nodeName,i)
 
+    def getWidgetLayers(self):
+        layers_in_widget = []
+        for item in self.lightGroupWidgets:
+            layers_in_widget.append(item.layerName)
 
     def getSelectedLayers(self):
         selectedIndices = []
@@ -210,15 +220,43 @@ class LightMixer(QtWidgets.QFrame):
 
 
     def addLayerAction(self):
-        print "Add Layer Action"
+        light_groups_in_scene = getLightGroups()
+        items_to_add = []
+        light_groups_in_widget = self.getWidgetLayers()
+        for item in self.light_groups_in_scene:
+            if item not in light_groups_in_widget:
+                items_to_add.append(item)
+        
+        print items_to_add
+        
+        # if not cmds.getAttr(self.nodeName+'.layerName', size = True) > 0:
+        #     self.setDefaults( lightGroups = getLightGroups() )
+        # for i in range(0,len(lightGroups)):
+        #     self.item = LightGroupItem(parent = self.mainLayout, name = lightGroups[i], index = i , nodeName = self.nodeName)
+        #     self.lightGroupWidgets[lightGroups[i]] = self.item
+        #     self.layerLayout.addWidget(self.item)
+
     
     def removeLayerAction(self):
-        print "Remove Layer Action"
-        print "Selected Layers are ", self.getSelectedLayers() , "For Node " , self.nodeName
-        current_values = {}
+        selectedLayers = self.getSelectedLayers()
 
+        print "Going to remove from node" , self.nodeName
 
-    
+        ## Remove the UI element
+        for index in selectedLayers:
+            item = self.layerLayout.itemAt(index)
+            item.widget().close()
+            self.layerLayout.removeItem(item)
+            self.lightGroupWidgets[index] = None
+        
+        for index in selectedLayers:
+            cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
+            cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
+            cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
+            cmds.removeMultiInstance( self.nodeName+'.mix[%d]'%(index))
+            cmds.removeMultiInstance( self.nodeName+'.tint[%d]'%(index))
+        
+
     def refreshLayerAction(self):
         print "Refresh Layer Action"
 

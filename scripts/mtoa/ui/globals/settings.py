@@ -1964,7 +1964,7 @@ def createArnoldRendererGlobalsTab():
     cmds.setParent('..')
     
     #cmds.frameLayout('arnoldImagerSettings', label="Post-process", cll= True, cl=1)
-    createArnoldImagerSettings()
+    # createArnoldImagerSettings()
     #cmds.setParent('..')
     
     cmds.formLayout(parentForm,
