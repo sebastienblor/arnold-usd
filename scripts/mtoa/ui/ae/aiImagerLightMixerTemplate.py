@@ -156,16 +156,16 @@ class LightMixer(QtWidgets.QFrame):
 
         ## Commenting out the add remove actions until syncing between layers is sorted
 
-        # self.addLayerButton = QtWidgets.QPushButton("Add Layer(s)", self.actionsFrame)
-        # self.removeLayerButton = QtWidgets.QPushButton("Remove Layer(s)", self.actionsFrame)
-        # self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
+        self.addLayerButton = QtWidgets.QPushButton("Add Layer(s)", self.actionsFrame)
+        self.removeLayerButton = QtWidgets.QPushButton("Remove Layer(s)", self.actionsFrame)
+        self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
 
         self.actionsLayout.addWidget(self.addLayerButton)
         self.actionsLayout.addWidget(self.removeLayerButton)
         self.actionsLayout.addWidget(self.refreshLayerButton)
-        self.addLayerButton.clicked.connect(self.addLayerAction)
-        self.removeLayerButton.clicked.connect(self.removeLayerAction)
-        self.refreshLayerButton.clicked.connect(self.refreshLayerAction)
+        # self.addLayerButton.clicked.connect(self.addLayerAction)
+        # self.removeLayerButton.clicked.connect(self.removeLayerAction)
+        # self.refreshLayerButton.clicked.connect(self.refreshLayerAction)
 
         self.layerFrame = QtWidgets.QFrame(self)
         self.layerLayout = QtWidgets.QVBoxLayout(parent)
