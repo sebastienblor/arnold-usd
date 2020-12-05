@@ -6,6 +6,7 @@ from mtoa.ui.qt import toMayaName , dpiScale
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
+from mtoa.ui.qt import BaseItem
 
 s_pushStyleButton = "QPushButton:pressed {background-color: rgb(150, 150, 150) ;} ";
 
@@ -34,7 +35,6 @@ class TintButton(QtWidgets.QPushButton):
         cmds.setAttr(self.attribute, parsedcolor[0] , parsedcolor[1], parsedcolor[2], type = 'float3')
 
     def update(self, nodeName , index):
-        
         if index == -1:
             attribute = nodeName + '.residualTint'
         else:
@@ -43,31 +43,32 @@ class TintButton(QtWidgets.QPushButton):
         bgc = cmds.getAttr(attribute)
         self.setStyleSheet("background-color:rgb(%d,%d,%d)"%(bgc[0][0]*255,bgc[0][1]*255,bgc[0][2]*255 ))
 
+
 class LightGroupItem(QtWidgets.QWidget):
 
     def __init__(self, parent = None, nodeName = None, index = -1, name = ""):
         super(LightGroupItem, self).__init__()
-
         self.parent = parent
         self.nodeName = nodeName
         self.itemIndex = index
         self.mainLayout = QtWidgets.QHBoxLayout(self)
         self.setLayout(self.mainLayout)
         self.layerName = name
+        
+        DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
+        SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
 
-        self.select_check_box = QtWidgets.QCheckBox()
-
-        self.solo_button = QtWidgets.QPushButton("S")
+        self.solo_button = QtWidgets.QPushButton()
         self.solo_button.setStyleSheet(s_pushStyleButton)
         self.solo_button.setCheckable(True)
-        
+        self.solo_button.setIcon(SOLO_ICON)
 
         self.solo_button.clicked.connect(self.soloButtonClicked)
         
-        self.enable_button = QtWidgets.QPushButton("E")
+        self.enable_button = QtWidgets.QPushButton()
         self.enable_button.setStyleSheet(s_pushStyleButton)
         self.enable_button.setCheckable(True)
-        
+        self.enable_button.setIcon(DISABLED_ICON)
         self.enable_button.clicked.connect(self.enableButtonClicked)
 
         self.label = QtWidgets.QLabel(name,self)
@@ -76,21 +77,30 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mix_value = QtWidgets.QDoubleSpinBox()
         self.mix_value.setRange(0.0,1.0)
         self.mix_slider.valueChanged.connect(self.sliderValueChanged)
-        
+        self.scriptJobList = []
 
         if self.itemIndex == -1 :
             self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.residualSolo'))
             self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.residualEnable'))
             self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.residualMix')*100)
             self.tint_button = TintButton(attribute = self.nodeName + '.residualTint')
-            self.select_check_box.setVisible(False)
+            
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualSolo', lambda *args: self.update(self.nodeName, -1)]))
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualEnable', lambda *args: self.update(self.nodeName, -1)]))
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualMix', lambda *args: self.update(self.nodeName, -1)]))
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualTint', lambda *args: self.update(self.nodeName, -1)]))
+        
         else:
             self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layerSolo[%d]'%(self.itemIndex)))
             self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
             self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.mix[%d]'%(self.itemIndex))*100)
             self.tint_button = TintButton(attribute = self.nodeName + '.tint[%d]'%(self.itemIndex))
 
-        self.mainLayout.addWidget(self.select_check_box)
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.mix', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.tint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+
         self.mainLayout.addWidget(self.solo_button)
         self.mainLayout.addWidget(self.enable_button)
         self.mainLayout.addWidget(self.label)
@@ -98,9 +108,11 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mainLayout.addWidget(self.mix_value)
         self.mainLayout.addWidget(self.tint_button)
 
-    def isLayerSelected(self):
-        return self.select_check_box.isChecked()
 
+    def __del__(self):
+        ## Clean up all scripts jobs created for this UI element 
+        for script in self.scriptJobList:
+            cmds.delete(script)
     def update(self, nodeName, index):
         self.nodeName = nodeName
         self.itemIndex = index
@@ -142,6 +154,8 @@ class LightGroupItem(QtWidgets.QWidget):
         else:
             attribute = self.nodeName+'.mix[%d]' %(self.itemIndex)
         cmds.setAttr(attribute, value)
+
+
 
 class LightMixer(QtWidgets.QFrame):
 
