@@ -486,12 +486,11 @@ class ImagersUI(QtWidgets.QFrame):
         self.setLayout(self.layout)
 
         cmds.setParent(self.parentMayaName)
-        rowLayout = cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'left'])
+        rowLayout = cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
         cmds.text(label='')
         addButton = cmds.button(label='Add Imager')
         impopup = cmds.popupMenu(parent=addButton, button=1)
         cmds.popupMenu(impopup, edit=True, postMenuCommand=Callback(self.buildImagerMenu, impopup))
-        removeButton = cmds.button(label='Remove Imager')
         cmds.setParent('..') # rowLayout
 
         cmds.setParent(self.parentMayaName)

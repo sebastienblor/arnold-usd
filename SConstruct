@@ -926,7 +926,8 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.pat
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(ARNOLD, 'license', '*')))
 
 env.Install(env['TARGET_BINARIES'], dylibs)
-env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
+
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'osl'), glob.glob(os.path.join(ARNOLD, 'osl', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 # install all arnold sdk headers
 env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
@@ -1301,7 +1302,7 @@ PACKAGE_FILES = [
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
-[os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
+# [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 [os.path.join(ARNOLD, 'include'), os.path.join('include', 'arnold')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
@@ -1311,6 +1312,13 @@ for p in materialx_files:
     (d, f) = os.path.split(p)
     PACKAGE_FILES += [
         [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
+    ]
+
+osl_files = find_files_recursive(os.path.join(ARNOLD, 'osl'), None)
+for p in osl_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'osl', p), os.path.join('osl', d)]
     ]
 
 if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
