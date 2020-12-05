@@ -58,6 +58,9 @@ class LightGroupItem(QtWidgets.QWidget):
         DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
         SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
 
+        self.delete_button = QtWidgets.QPushButton()
+        self.delete_button.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle,"SP_TrashIcon")))
+
         self.solo_button = QtWidgets.QPushButton()
         self.solo_button.setStyleSheet(s_pushStyleButton)
         self.solo_button.setCheckable(True)
@@ -84,6 +87,7 @@ class LightGroupItem(QtWidgets.QWidget):
             self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.residualEnable'))
             self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.residualMix')*100)
             self.tint_button = TintButton(attribute = self.nodeName + '.residualTint')
+            self.delete_button.setVisible(False)
             
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualSolo', lambda *args: self.update(self.nodeName, -1)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualEnable', lambda *args: self.update(self.nodeName, -1)]))
@@ -101,6 +105,8 @@ class LightGroupItem(QtWidgets.QWidget):
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.mix', lambda *args: self.update(self.nodeName, self.itemIndex)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.tint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
 
+
+        self.mainLayout.addWidget(self.delete_button)
         self.mainLayout.addWidget(self.solo_button)
         self.mainLayout.addWidget(self.enable_button)
         self.mainLayout.addWidget(self.label)
@@ -108,11 +114,11 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mainLayout.addWidget(self.mix_value)
         self.mainLayout.addWidget(self.tint_button)
 
-
     def __del__(self):
         ## Clean up all scripts jobs created for this UI element 
         for script in self.scriptJobList:
             cmds.delete(script)
+
     def update(self, nodeName, index):
         self.nodeName = nodeName
         self.itemIndex = index
@@ -171,11 +177,9 @@ class LightMixer(QtWidgets.QFrame):
         ## Commenting out the add remove actions until syncing between layers is sorted
 
         self.addLayerButton = QtWidgets.QPushButton("Add Layer(s)", self.actionsFrame)
-        self.removeLayerButton = QtWidgets.QPushButton("Remove Layer(s)", self.actionsFrame)
         self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
 
         self.actionsLayout.addWidget(self.addLayerButton)
-        self.actionsLayout.addWidget(self.removeLayerButton)
         self.actionsLayout.addWidget(self.refreshLayerButton)
         # self.addLayerButton.clicked.connect(self.addLayerAction)
         # self.removeLayerButton.clicked.connect(self.removeLayerAction)
@@ -215,9 +219,10 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.mix[%d]' %(index), 1)
 
     def update(self, nodeName):
-        
+        print "Light Mixer UI . Update"
         for i in range(0,len(self.lightGroupWidgets)):
             if self.lightGroupWidgets[i]:
+                print "Calling Update on each item ", i
                 self.lightGroupWidgets[i].update(nodeName,i)
 
     def getWidgetLayers(self):
@@ -302,10 +307,7 @@ class ImagerLightMixerUI(ImagerBaseUI):
         super(ImagerLightMixerUI, self).setup()
         self.addControl("outputName")
         self.addSeparator()
-        self.addSeparator()
         self.addCustom("mixerWidget", self.createLightMixerWidget , self.updateLightMixerWidget)
-        
-
     
     def createLightMixerWidget(self, nodeName):
         currentWidget = self.__currentWidget()
@@ -314,6 +316,7 @@ class ImagerLightMixerUI(ImagerBaseUI):
         currentWidget.layout().addWidget(self.mixer)
 
     def updateLightMixerWidget(self, nodeName):
+        print "Calling Update Light Mixer Widget"
         node = nodeName.split('.')[0]
         self.mixer.update(node)
 
