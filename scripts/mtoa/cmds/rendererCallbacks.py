@@ -6,12 +6,13 @@ from mtoa.ui.nodeTreeLister import aiHyperShadeCreateMenu_BuildMenu, createArnol
 import mtoa.ui.ae.templates as templates
 import ctypes
 import types
+import sys
 
 try:
     import mtoa.utils as utils
     from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
     from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
-    from mtoa.ui.globals.settings import createArnoldRendererDiagnosticsTab, updateArnoldRendererDiagnosticsTab, createArnoldRendererSystemTab, updateArnoldRendererSystemTab
+    from mtoa.ui.globals.settings import createArnoldRendererDiagnosticsTab, updateArnoldRendererDiagnosticsTab, createArnoldRendererSystemTab, updateArnoldRendererSystemTab, createArnoldRendererImagersTab, updateArnoldRendererImagersTab
     from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
 except:
     import traceback
@@ -631,6 +632,9 @@ def aiRenderSettingsBuiltCallback(currentRenderer):
     cmds.renderer('arnold', edit=True, addGlobalsTab=('System', 
                                                     utils.pyToMelProc(createArnoldRendererSystemTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldRendererSystemTab, useName=True)))
+    cmds.renderer('arnold', edit=True, addGlobalsTab=('Post', 
+                                                    utils.pyToMelProc(createArnoldRendererImagersTab, useName=True), 
+                                                    utils.pyToMelProc(updateArnoldRendererImagersTab, useName=True)))
     cmds.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
                                                     utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
