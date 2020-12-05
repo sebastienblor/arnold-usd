@@ -677,7 +677,9 @@ USD_DELEGATE = None
 USD_PROCEDURAL = None
 MAYAUSD_REGISTRY = None
 USD_VERSION = None
+USD_FULL_VERSION = None
 USD_PATH = env.get('USD_PATH')
+ENABLE_USD = False
 MAYAUSD_PATH = env.get('MAYAUSD_PATH')
 if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     USD_PATH = env.subst(USD_PATH)
@@ -685,20 +687,33 @@ if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
     system.execute('git submodule sync')
     system.execute('git submodule update --init --recursive')
     print ('done')
+    USD_MAJOR_VERSION = '0'
+    USD_MINOR_VERSION = '00'
+    USD_PATCH_VERSION = '00'
     # get usd header info
     pxr_h = open(os.path.join(USD_PATH, 'include', 'pxr', 'pxr.h'), 'r').read()
     r = re.search('PXR_VERSION ([0-9]+)', pxr_h)
     if r:
         USD_VERSION = r.group(1)
+    r = re.search('PXR_MAJOR_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_MAJOR_VERSION = r.group(1)
+    r = re.search('PXR_MINOR_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_MINOR_VERSION = r.group(1)
+    r = re.search('PXR_PATCH_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_PATCH_VERSION = r.group(1)
+
+    USD_FULL_VERSION = '{}.{}.{}'.format(USD_MAJOR_VERSION, USD_MINOR_VERSION, USD_PATCH_VERSION)
+
     if USD_VERSION:
         env['USD_VERSION'] = USD_VERSION
         # used by the proxy shape extension
         env.Append(CPPDEFINES = Split('ENABLE_USD'))
-
-if USD_VERSION:
-    if not os.path.exists(os.path.join(TARGET_USD_PATH, USD_VERSION)):
-        os.makedirs(os.path.join(TARGET_USD_PATH, USD_VERSION))
-    
+        ENABLE_USD = True
+        if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
+            os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
  
 if system.os == 'windows':
     maya_env = env.Clone()
@@ -728,12 +743,20 @@ if system.os == 'windows':
                                                     duplicate   = 0,
                                                     exports     = 'env')
 
-        if USD_VERSION:
-            USD_MODULES = env.SConscript(os.path.join('usd', 'SConscript'),
-                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
+        if ENABLE_USD:
+            USD_DELEGATE = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION),
                               duplicate   = 0,
                               exports     = 'maya_env')
-
+            USD_PROCEDURAL = env.SConscript(os.path.join('usd', 'procedural', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            if MAYAUSD_PATH:
+                MAYAUSD_REGISTRY = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION),
+                                  duplicate   = 0,
+                                  exports     = 'maya_env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
@@ -781,11 +804,20 @@ else:
                                       duplicate   = 0,
                                       exports     = 'env')
 
-        if USD_VERSION:
-            USD_MODULES = env.SConscript(os.path.abspath(os.path.join(env['ROOT_DIR'], 'usd', 'SConscript')),
-                          variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
-                          duplicate   = 0,
-                          exports     = 'maya_env')
+        if ENABLE_USD:
+            USD_DELEGATE = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            USD_PROCEDURAL = env.SConscript(os.path.join('usd', 'procedural', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            if MAYAUSD_PATH:
+                MAYAUSD_REGISTRY = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
 
 
     MTOA_PROCS = env.SConscript(os.path.abspath(os.path.join('procedurals', 'SConscript')),
@@ -817,13 +849,25 @@ else:
         #env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
 
 # Install all USD modules (render delegate and shader registry)
-if USD_MODULES:
-    USD_DELEGATE = USD_MODULES[0]
+if ENABLE_USD:
+    # create the file mayaUsdPlugInfo.json
+    jsonFileText = '{\n\t"MayaUsdIncludes":[\n'
+          
     if USD_DELEGATE:
         if isinstance(USD_DELEGATE, SCons.Node.NodeList):
             USD_DELEGATE = USD_DELEGATE[0]
-        env.Install(TARGET_USD_PATH, USD_DELEGATE)
-    USD_PROCEDURAL = USD_MODULES[1]
+        jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"hydra/"
+        jsonFileText += USD_VERSION
+        jsonFileText += "\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"3",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(USD_FULL_VERSION)
+        jsonFileText += '\t\t\t}\n\t\t}'
+        if not os.path.exists(os.path.join(TARGET_USD_PATH, 'hydra')):
+            os.makedirs(os.path.join(TARGET_USD_PATH, 'hydra'))
+
+        env.Install(os.path.join(TARGET_USD_PATH, 'hydra'), USD_DELEGATE)
+    
     if USD_PROCEDURAL:
         if isinstance(USD_PROCEDURAL, SCons.Node.NodeList):
             USD_PROCEDURAL = USD_PROCEDURAL[0]
@@ -831,23 +875,31 @@ if USD_MODULES:
         if not os.path.exists(proc_folder):
             os.makedirs(proc_folder)
         env.Install(proc_folder, USD_PROCEDURAL)
-    if MAYAUSD_PATH:
-        MAYAUSD_REGISTRY = USD_MODULES[2]
-        if MAYAUSD_REGISTRY:
-            if isinstance(MAYAUSD_REGISTRY, SCons.Node.NodeList):
-                MAYAUSD_REGISTRY = MAYAUSD_REGISTRY[0]
-            env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), MAYAUSD_REGISTRY)
-            registryResourceFolder = os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry', 'resources')
-            if not os.path.exists(registryResourceFolder):
-                os.makedirs(registryResourceFolder)
-            registryResourceFile = os.path.join(registryResourceFolder, 'plugInfo.json')
-            file = open(registryResourceFile, 'w')
-            registryResource = "{\n\t\"Plugins\": [\n\t\t{\n\t\t\t\"Info\": {\n\t\t\t\t\"UsdMaya\": {\"ShadingModePlugin\": {\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"LibraryPath\": \"../"
-            registryResource += os.path.basename(str(MAYAUSD_REGISTRY))
-            registryResource += "\",\n\t\t\t\"Name\": \"mayaUsdRegistry\",\n\t\t\t\"ResourcePath\": \"resources\",\n\t\t\t\"Root\": \"..\",\n\t\t\t\"Type\": \"library\"\n\t\t}\n\t]\n}\n"
-            file.write(registryResource)
-            file.close()            
-            env.Install(os.path.join(TARGET_USD_PATH, USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry'))
+    
+    if MAYAUSD_REGISTRY:
+        if isinstance(MAYAUSD_REGISTRY, SCons.Node.NodeList):
+            MAYAUSD_REGISTRY = MAYAUSD_REGISTRY[0]
+        if USD_DELEGATE:
+            jsonFileText += ',\n'
+        jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"mayaUsdRegistry/"
+        jsonFileText += USD_VERSION
+        jsonFileText += "\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"3",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(USD_FULL_VERSION)
+        jsonFileText += '\t\t\t}\n\t\t}'
+
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION), MAYAUSD_REGISTRY)
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION, 'plugInfo.json'))
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION, 'mayaUsdRegistry'))
+
+    jsonFileText += '\n\t]\n}'
+    jsonFilePath = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json')
+    jsonFile = open(jsonFilePath, 'w')
+    jsonFile.write(jsonFileText)
+    jsonFile.close()
+    env.Install(os.path.join(TARGET_USD_PATH), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json'))
+
 
 Depends(MTOA, MTOA_API[0])
 Depends(MTOA, ARNOLD_API_LIB)
@@ -1412,15 +1464,21 @@ for p in docfiles:
 
 if USD_DELEGATE:
     hydrafolder = USD_DELEGATE.rstr()
-    hydrafiles = find_files_recursive(os.path.join(hydrafolder), None)
+    hydrafiles = find_files_recursive(os.path.join(hydrafolder), ['.dll', '.so', '.dylib', '.json'])
     for p in hydrafiles:
         (d, f) = os.path.split(p)
-        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', env['USD_VERSION'], d)]]
+        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', 'hydra', env['USD_VERSION'], d)]]
 
 if MAYAUSD_REGISTRY:
-    PACKAGE_FILES += [[MAYAUSD_REGISTRY, os.path.join('usd', env['USD_VERSION'])]]
-    PACKAGE_FILES += [[os.path.join(BUILD_BASE_DIR, 'usd', USD_VERSION, 'mayaUsdRegistry', 'resources', 'plugInfo.json'), os.path.join('usd', env['USD_VERSION'], 'mayaUsdRegistry', 'resources') ]]
+    registryfolder = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', env['USD_VERSION'])
+    registryfiles = find_files_recursive(os.path.join(registryfolder), ['.dll', '.so', '.dylib', '.json'])
+    for p in registryfiles:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [[os.path.join(registryfolder, p), os.path.join('usd', 'mayaUsdRegistry', env['USD_VERSION'], d)]]
 
+if ENABLE_USD:
+    PACKAGE_FILES += [[os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json'), 'usd']]
+    
 if USD_PROCEDURAL:
     PACKAGE_FILES += [[USD_PROCEDURAL, os.path.join('extensions', 'usd')]]
 

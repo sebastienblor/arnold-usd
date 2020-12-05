@@ -201,7 +201,7 @@ static inline void InitShaderMaps()
             cmd += MString(mayaShaderTypes[j]);
             cmd += MString("\"");
             MGlobal::executeCommand(cmd, mayaShaders);
-            for (int i = 0; i < mayaShaders.length(); ++i)
+            for (unsigned int i = 0; i < mayaShaders.length(); ++i)
             {
                 std::string mayaShader = std::string(mayaShaders[i].asChar());
                 if (s_mayaToUsdNodes.find(mayaShader) != s_mayaToUsdNodes.end())
