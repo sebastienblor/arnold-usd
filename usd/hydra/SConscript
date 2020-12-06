@@ -19,6 +19,9 @@ local_env = maya_env.Clone()
 _targetPath = local_env.Dir('.')
 globals()['USD_DELEGATE'] = []
 
+pythonVersion = '3'
+if local_env.get('MTOA_USD_PYTHON'):
+    pythonVersion = local_env['MTOA_USD_PYTHON']
 
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
@@ -31,30 +34,30 @@ lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get
 lib_prefix = {'windows' : ''}.get(system.os, '')
 lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
 
-usd_install_dir = local_env['USD_PATH']
+usd_install_dir = local_env['USD_PATH'] if pythonVersion == '3' else local_env['USD_PATH_PYTHON2']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
 
 usd_supported_modes = ['opt', 'debug', 'profile']
 
 usd_include_dir = os.path.join(usd_install_dir, 'include')
-boost_lib = os.path.join(usd_install_dir, 'lib')
+boost_lib = os.path.join(usd_install_dir, 'lib' if pythonVersion == '3' else 'lib2')
 usd_lib_prefix = 'lib'
 
 if platform.system().lower() == 'darwin':
-    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
-    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
-    
+    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'include', 'python3.7m')
+    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'lib')
+  
 else:
-    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
+    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python{}7'.format(pythonVersion), 'Python')
     python_lib = os.path.join(mayaRoot, 'lib')
 
 if platform.system().lower() == 'windows':
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-    boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
+    boost_lib_name = 'boost_%s{}7-vc141-mt-x64-1_70'.format(pythonVersion)
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
-    boost_lib_name = 'boost_%s37'
+    boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
 
 usd_delegate_folder = _targetPath.abspath
 
@@ -104,7 +107,7 @@ def _usd_delegate(target, source, env):
         args['SDK_PATH']          = local_env['SDK_PATH']
         args['SDK_VERSION']       = local_env['SDK_VERSION']
         args['MACOS_VERSION_MIN'] = local_env['MACOS_VERSION_MIN']
-        args['PYTHON_LIB_NAME']   = 'libpython3.7'
+        args['PYTHON_LIB_NAME']   = 'libpython{}.7'.format(pythonVersion)
 
     if platform.system().lower() == 'linux':
         if local_env.get('SHCXX'):
@@ -112,7 +115,7 @@ def _usd_delegate(target, source, env):
         if local_env.get('CXX_STANDARD'):
             args['CXX_STANDARD'] = local_env['CXX_STANDARD']
         args['DISABLE_CXX11_ABI']=True 
-        args['PYTHON_LIB_NAME']   = 'libpython3.7m'
+        args['PYTHON_LIB_NAME']   = 'libpython{}.7m'.format(pythonVersion)
       
     usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
