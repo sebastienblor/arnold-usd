@@ -1,0 +1,130 @@
+import os, re
+import platform
+import sys
+import SCons.Action
+import subprocess
+
+import utils as sa
+
+# vim: filetype=python
+
+## load our own python modules
+import utils.system as system
+from utils.build_tools import find_files_recursive
+
+
+# import build env
+Import('maya_env')
+local_env = maya_env.Clone()
+_targetPath = local_env.Dir('.')
+globals()['MAYAUSD_REGISTRY'] = []
+
+pythonVersion = '3'
+if local_env.get('MTOA_USD_PYTHON'):
+    pythonVersion = local_env['MTOA_USD_PYTHON']
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
+source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
+include_files = find_files_recursive(src_base_dir, ['.h'])
+
+mayaRoot = local_env['MAYA_ROOT']
+
+lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
+lib_prefix = {'windows' : ''}.get(system.os, '')
+lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
+
+usd_install_dir = local_env['USD_PATH'] if pythonVersion == '3' else local_env['USD_PATH_PYTHON2']
+usd_lib_dir = os.path.join(usd_install_dir, 'lib')
+
+usd_supported_modes = ['opt', 'debug', 'profile']
+
+usd_include_dir = os.path.join(usd_install_dir, 'include')
+boost_lib = os.path.join(usd_install_dir, 'lib')
+usd_lib_prefix = 'lib'
+
+if platform.system().lower() == 'darwin':
+    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'include', 'python3.7m')
+    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'lib')
+    
+else:
+    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python{}7'.format(pythonVersion), 'Python')
+    python_lib = os.path.join(mayaRoot, 'lib')
+
+if platform.system().lower() == 'windows':
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+    boost_lib_name = 'boost_%s{}7-vc141-mt-x64-1_70'.format(pythonVersion)
+    usd_lib_prefix = ''
+else:
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost')
+    boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+
+if not os.path.exists(python_include):
+    print("Python includes not found %s"% python_include)
+if not os.path.exists(python_lib):
+    print("Python libs not found %s"% python_lib)
+if not os.path.exists(boost_include):
+    print("Boost includes not found %s"% boost_include)
+if not os.path.exists(usd_include_dir):
+    print("USD includes not found %s"% usd_include_dir)
+
+###### Now Maya USD registry 
+
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'usd')
+include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h']
+source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp']
+
+mayausd_path = local_env['MAYAUSD_PATH'] if pythonVersion == '3' else local_env['MAYAUSD_PATH_PYTHON2']
+mayausd_include = os.path.join(mayausd_path, 'include')
+mayausd_lib = os.path.join(mayausd_path, 'lib')
+local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include])
+local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
+
+local_env['BOOST_LIB_NAME']=boost_lib_name
+
+usd_libs = [
+        'arch',
+        'sdf',
+        'tf',
+        'usd',
+        'ar',
+        'usdGeom',
+        'usdShade',
+        'vt',
+        'usdLux',
+        'usdVol',
+        'usdSkel',
+        'usdRender',
+    ]
+
+local_env.Append(LIBS = usd_libs)
+local_env.Append(LIBS = ['mayaUsd'])
+if platform.system().lower() == 'darwin':
+    local_env['PYTHON_LIB_NAME'] = 'libpython{}.7'.format(pythonVersion)
+    local_env.Append(LIBS = ['python{}.7'.format(pythonVersion), boost_lib_name.replace('%s', 'python')])
+
+MAYAUSD_REGISTRY = local_env.SharedLibrary('mayaUsdRegistry', source_files, LIBPREFIX='')
+
+# Write the file plugInfo.json at the root of the registry folder
+plugInfoFile = os.path.join(_targetPath.abspath, 'plugInfo.json')
+if not os.path.exists(_targetPath.abspath):
+    os.makedirs(_targetPath.abspath)
+file = open(plugInfoFile, 'w')
+file.write("{\n\t\"Includes\": [ \"*/resources/\" ]\n}")
+file.close()
+
+registryResourceFolder = os.path.join(_targetPath.abspath, 'mayaUsdRegistry', 'resources')
+if not os.path.exists(registryResourceFolder):
+    os.makedirs(registryResourceFolder)
+registryResourceFile = os.path.join(registryResourceFolder, 'plugInfo.json')
+file = open(registryResourceFile, 'w')
+registryResource = "{\n\t\"Plugins\": [\n\t\t{\n\t\t\t\"Info\": {\n\t\t\t\t\"UsdMaya\": {\"ShadingModePlugin\": {\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"LibraryPath\": \"../"
+registryLib = MAYAUSD_REGISTRY
+if isinstance(registryLib, SCons.Node.NodeList):
+    registryLib = registryLib[0]
+registryResource += os.path.basename(str(registryLib))
+registryResource += "\",\n\t\t\t\"Name\": \"mayaUsdRegistry\",\n\t\t\t\"ResourcePath\": \"resources\",\n\t\t\t\"Root\": \"..\",\n\t\t\t\"Type\": \"library\"\n\t\t}\n\t]\n}\n"
+file.write(registryResource)
+file.close()
+
+Return('MAYAUSD_REGISTRY')

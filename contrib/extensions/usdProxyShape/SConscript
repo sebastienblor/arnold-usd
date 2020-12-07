@@ -26,7 +26,7 @@ src_base_dir  = os.path.join(ROOT_DIR, 'contrib', 'extensions', 'usdProxyShape',
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 
 #only to be done if USD_PATH is defined
-if local_env.get('USD_PATH'):
+if local_env.get('USD_PATH') and local_env.get('USD_VERSION'):
     usd_install_dir = local_env['USD_PATH']
     usd_lib_dir = os.path.join(usd_install_dir, 'lib')
     usd_include_dir = os.path.join(usd_install_dir, 'include')

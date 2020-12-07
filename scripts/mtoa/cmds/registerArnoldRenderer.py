@@ -213,7 +213,9 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
                           'createArnoldRendererCommonGlobalsTab',
                           'createArnoldRendererGlobalsTab',
                           'createArnoldRendererSystemTab',
-                          'createArnoldRendererDiagnosticsTab']
+                          'createArnoldRendererDiagnosticsTab',
+                          'createArnoldRendererImagersTab'
+                          ]
 
         if createProc in createProcs:
             mel.eval(createProc)
