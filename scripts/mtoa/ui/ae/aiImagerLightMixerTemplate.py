@@ -43,6 +43,11 @@ class TintButton(QtWidgets.QPushButton):
         bgc = cmds.getAttr(attribute)
         self.setStyleSheet("background-color:rgb(%d,%d,%d)"%(bgc[0][0]*255,bgc[0][1]*255,bgc[0][2]*255 ))
 
+class CustomDelete(QtCore.QObject):
+    sendDelete = QtCore.Signal(int)
+    def __init__(self):
+        super(CustomDelete, self).__init__()  
+
 
 class LightGroupItem(QtWidgets.QWidget):
 
@@ -54,13 +59,16 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mainLayout = QtWidgets.QHBoxLayout(self)
         self.setLayout(self.mainLayout)
         self.layerName = name
-        
+        print "MAYA NAME FOR ITEM", toMayaName(self)
+        self.itemDeleted = CustomDelete()
+
         DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
         SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
+        BIN_ICON = BaseItem.dpiScaledIcon(":/RS_delete.png")
 
         self.delete_button = QtWidgets.QPushButton()
-        self.delete_button.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle,"SP_TrashIcon")))
-
+        self.delete_button.setIcon(BIN_ICON)
+        self.delete_button.clicked.connect(self.deleteAction)
         self.solo_button = QtWidgets.QPushButton()
         self.solo_button.setStyleSheet(s_pushStyleButton)
         self.solo_button.setCheckable(True)
@@ -88,23 +96,20 @@ class LightGroupItem(QtWidgets.QWidget):
             self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.residualMix')*100)
             self.tint_button = TintButton(attribute = self.nodeName + '.residualTint')
             self.delete_button.setVisible(False)
-            
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualSolo', lambda *args: self.update(self.nodeName, -1)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualEnable', lambda *args: self.update(self.nodeName, -1)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualMix', lambda *args: self.update(self.nodeName, -1)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualTint', lambda *args: self.update(self.nodeName, -1)]))
-        
         else:
             self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layerSolo[%d]'%(self.itemIndex)))
             self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
             self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.mix[%d]'%(self.itemIndex))*100)
             self.tint_button = TintButton(attribute = self.nodeName + '.tint[%d]'%(self.itemIndex))
-
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.mix', lambda *args: self.update(self.nodeName, self.itemIndex)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.tint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-
+            self.scriptJobList.append(cmds.scriptJob( attributeDeleted=[self.nodeName+'.layerName[%d]'%(self.itemIndex), lambda *args: self.destroy()]))
 
         self.mainLayout.addWidget(self.delete_button)
         self.mainLayout.addWidget(self.solo_button)
@@ -119,6 +124,12 @@ class LightGroupItem(QtWidgets.QWidget):
         for script in self.scriptJobList:
             cmds.delete(script)
 
+    def deleteAction(self):
+        self.itemDeleted.sendDelete.emit(self.itemIndex)
+
+    def destroy(self):
+        self.close()
+    
     def update(self, nodeName, index):
         self.nodeName = nodeName
         self.itemIndex = index
@@ -174,8 +185,6 @@ class LightMixer(QtWidgets.QFrame):
         self.actionsLayout = QtWidgets.QHBoxLayout(self.actionsFrame)
         self.actionsFrame.setLayout(self.actionsLayout)
 
-        ## Commenting out the add remove actions until syncing between layers is sorted
-
         self.addLayerButton = QtWidgets.QPushButton("Add Layer(s)", self.actionsFrame)
         self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
 
@@ -201,6 +210,8 @@ class LightMixer(QtWidgets.QFrame):
             self.item = LightGroupItem(parent = self.mainLayout, name = lightGroups[i], index = i , nodeName = self.nodeName)
             self.lightGroupWidgets.append(self.item)
             self.layerLayout.addWidget(self.item)
+            self.item.itemDeleted.sendDelete.connect(self.removeLayerAction)
+
 
         self.residualLayerLayout.addWidget(LightGroupItem(parent = self.mainLayout, name = "Residual", index = -1 , nodeName = self.nodeName))
         self.residualLayerFrame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
@@ -219,11 +230,13 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.mix[%d]' %(index), 1)
 
     def update(self, nodeName):
-        print "Light Mixer UI . Update"
         for i in range(0,len(self.lightGroupWidgets)):
-            if self.lightGroupWidgets[i]:
-                print "Calling Update on each item ", i
+            if i in cmds.getAttr(self.nodeName+'.layerName', mi = True):
                 self.lightGroupWidgets[i].update(nodeName,i)
+            else:
+                print "Index probably deleted"
+                self.lightGroupWidgets[i].close()
+                self.lightGroupWidgets[i] = None
 
     def getWidgetLayers(self):
         layers_in_widget = []
@@ -256,25 +269,23 @@ class LightMixer(QtWidgets.QFrame):
         #     self.layerLayout.addWidget(self.item)
 
     
-    def removeLayerAction(self):
-        selectedLayers = self.getSelectedLayers()
+    def removeLayerAction(self,index):
+        # print "Going to remove from node" , self.nodeName
 
-        print "Going to remove from node" , self.nodeName
+        # ## Remove the UI element
+        # for index in selectedLayers:
+        #     item = self.layerLayout.itemAt(index)
+        #     item.widget().close()
+        #     self.layerLayout.removeItem(item)
+        #     self.lightGroupWidgets[index] = None
 
-        ## Remove the UI element
-        for index in selectedLayers:
-            item = self.layerLayout.itemAt(index)
-            item.widget().close()
-            self.layerLayout.removeItem(item)
-            self.lightGroupWidgets[index] = None
-        
-        for index in selectedLayers:
-            cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.mix[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.tint[%d]'%(index))
-        
+        cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.mix[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.tint[%d]'%(index))
+        self.lightGroupWidgets[index].close()
+        self.lightGroupWidgets[index] = None
 
     def refreshLayerAction(self):
         print "Refresh Layer Action"
@@ -286,7 +297,7 @@ class AEaiImagerLightMixerTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         self.baseLayout = self.beginLayout("Main", collapse=False)
         currentWidget = cmds.setParent(query=True)
-        self.ui = ImagerLightMixerUI(parent=currentWidget, nodeName=self.nodeName, template=self)
+        # self.ui = ImagerLightMixerUI(parent=currentWidget, nodeName=self.nodeName, template=self)
         self.endLayout()
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
@@ -316,7 +327,6 @@ class ImagerLightMixerUI(ImagerBaseUI):
         currentWidget.layout().addWidget(self.mixer)
 
     def updateLightMixerWidget(self, nodeName):
-        print "Calling Update Light Mixer Widget"
         node = nodeName.split('.')[0]
         self.mixer.update(node)
 
