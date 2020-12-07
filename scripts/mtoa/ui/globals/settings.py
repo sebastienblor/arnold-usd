@@ -1885,9 +1885,10 @@ def createArnoldRendererImagersTab():
     height = cmds.formLayout(parentForm, q = True , h = True)
     scroll = cmds.scrollLayout('arnoldPostScrollLayout', horizontalScrollBarThickness=0,
                                childResizable = True, h = height)
-    scrollWidget = toQtObject(scroll, QtWidgets.QWidget)
-    _imagerUI = imagers.ImagersUI(scrollWidget)
-    scrollWidget.layout().addWidget(_imagerUI)
+    imagerShadersColumn = cmds.columnLayout('imagerShadersColumn', adjustableColumn=True)
+    columWidget = toQtObject(imagerShadersColumn, QtWidgets.QWidget)
+    _imagerUI = imagers.ImagersUI(columWidget)
+    columWidget.layout().layout().addWidget(_imagerUI)
     _imagerUI.setMinimumSize(width,height)
     cmds.setParent('..')
     cmds.formLayout(parentForm,
