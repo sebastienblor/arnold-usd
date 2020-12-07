@@ -105,7 +105,9 @@ class LightGroupItem(QtWidgets.QWidget):
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.mix', lambda *args: self.update(self.nodeName, self.itemIndex)]))
             self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.tint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
 
+            self.scriptJobList.append(cmds.scriptJob( attributeDeleted=[self.nodeName+'.layerName[%d]'%(self.itemIndex), lambda *args: self.deleteSelf()]))
 
+        self.delete_button.clicked.connect(self.deleteClicked)
         self.mainLayout.addWidget(self.delete_button)
         self.mainLayout.addWidget(self.solo_button)
         self.mainLayout.addWidget(self.enable_button)
@@ -119,6 +121,8 @@ class LightGroupItem(QtWidgets.QWidget):
         for script in self.scriptJobList:
             cmds.delete(script)
 
+    def deleteSelf(self):
+        self.close()
     def update(self, nodeName, index):
         self.nodeName = nodeName
         self.itemIndex = index
@@ -161,6 +165,13 @@ class LightGroupItem(QtWidgets.QWidget):
             attribute = self.nodeName+'.mix[%d]' %(self.itemIndex)
         cmds.setAttr(attribute, value)
 
+    def deleteClicked(self):
+        cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(self.itemIndex))
+        cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(self.itemIndex))
+        cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(self.itemIndex))
+        cmds.removeMultiInstance( self.nodeName+'.mix[%d]'%(self.itemIndex))
+        cmds.removeMultiInstance( self.nodeName+'.tint[%d]'%(self.itemIndex))
+        self.close()
 
 
 class LightMixer(QtWidgets.QFrame):
@@ -181,8 +192,7 @@ class LightMixer(QtWidgets.QFrame):
 
         self.actionsLayout.addWidget(self.addLayerButton)
         self.actionsLayout.addWidget(self.refreshLayerButton)
-        # self.addLayerButton.clicked.connect(self.addLayerAction)
-        # self.removeLayerButton.clicked.connect(self.removeLayerAction)
+        self.addLayerButton.clicked.connect(self.addLayerAction)
         # self.refreshLayerButton.clicked.connect(self.refreshLayerAction)
 
         self.layerFrame = QtWidgets.QFrame(self)
@@ -219,11 +229,12 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.mix[%d]' %(index), 1)
 
     def update(self, nodeName):
-        print "Light Mixer UI . Update"
+        print "Has Update been called "
         for i in range(0,len(self.lightGroupWidgets)):
             if self.lightGroupWidgets[i]:
-                print "Calling Update on each item ", i
                 self.lightGroupWidgets[i].update(nodeName,i)
+            else:
+                print "Something needs to happen here ? "
 
     def getWidgetLayers(self):
         layers_in_widget = []
@@ -239,6 +250,7 @@ class LightMixer(QtWidgets.QFrame):
 
 
     def addLayerAction(self):
+        
         light_groups_in_scene = getLightGroups()
         items_to_add = []
         light_groups_in_widget = self.getWidgetLayers()
@@ -246,7 +258,6 @@ class LightMixer(QtWidgets.QFrame):
             if item not in light_groups_in_widget:
                 items_to_add.append(item)
         
-        print items_to_add
         
         # if not cmds.getAttr(self.nodeName+'.layerName', size = True) > 0:
         #     self.setDefaults( lightGroups = getLightGroups() )
@@ -257,23 +268,23 @@ class LightMixer(QtWidgets.QFrame):
 
     
     def removeLayerAction(self):
-        selectedLayers = self.getSelectedLayers()
+        # selectedLayers = self.getSelectedLayers()
 
         print "Going to remove from node" , self.nodeName
 
         ## Remove the UI element
-        for index in selectedLayers:
-            item = self.layerLayout.itemAt(index)
-            item.widget().close()
-            self.layerLayout.removeItem(item)
-            self.lightGroupWidgets[index] = None
+        # for index in selectedLayers:
+        #     item = self.layerLayout.itemAt(index)
+        #     item.widget().close()
+        #     self.layerLayout.removeItem(item)
+        #     self.lightGroupWidgets[index] = None
         
-        for index in selectedLayers:
-            cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.mix[%d]'%(index))
-            cmds.removeMultiInstance( self.nodeName+'.tint[%d]'%(index))
+        # for index in selectedLayers:
+        #     cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
+        #     cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
+        #     cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
+        #     cmds.removeMultiInstance( self.nodeName+'.mix[%d]'%(index))
+        #     cmds.removeMultiInstance( self.nodeName+'.tint[%d]'%(index))
         
 
     def refreshLayerAction(self):
@@ -316,7 +327,6 @@ class ImagerLightMixerUI(ImagerBaseUI):
         currentWidget.layout().addWidget(self.mixer)
 
     def updateLightMixerWidget(self, nodeName):
-        print "Calling Update Light Mixer Widget"
         node = nodeName.split('.')[0]
         self.mixer.update(node)
 
