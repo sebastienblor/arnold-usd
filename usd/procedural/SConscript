@@ -119,7 +119,10 @@ def _usd_procedural(target, source, env):
             args['CXX_STANDARD'] = local_env['CXX_STANDARD']
         args['DISABLE_CXX11_ABI']=True 
         args['PYTHON_LIB_NAME']   = 'libpython{}.7m'.format(pythonVersion)
-      
+    
+    if pythonVersion == '2':
+        args['BUILD_DIR'] = 'build_python2'
+
     usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
         raise SCons.Errors.UserError('arnold-usd subrepository not found')
@@ -137,8 +140,12 @@ def _usd_procedural(target, source, env):
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
+procedural_action_log = 'Building USD procedural '
+if pythonVersion == '2':
+    procedural_action_log += 'for Python 2'
+procedural_action_log += '....'
 
-usd_procedural_action  = SCons.Action.Action(_usd_procedural    , 'Building USD procedural ...')
+usd_procedural_action  = SCons.Action.Action(_usd_procedural    , procedural_action_log)
 USD_PROCEDURAL = local_env.Command(usd_procedural, [], usd_procedural_action  )
 local_env.Alias('usd_procedural', USD_PROCEDURAL)
 

@@ -778,7 +778,7 @@ if system.os == 'windows':
                                   duplicate   = 0,
                                   exports     = 'maya_env')
             if USD_PATH_PYTHON2:
-                env['MTOA_USD_PYTHON'] = '2'
+                maya_env['MTOA_USD_PYTHON'] = '2'
                 USD_DELEGATE_PYTHON2 = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
                               variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION + '_python2'),
                               duplicate   = 0,
@@ -867,7 +867,7 @@ else:
                               exports     = 'maya_env')
 
             if USD_PATH_PYTHON2:
-                env['MTOA_USD_PYTHON'] = '2'
+                maya_env['MTOA_USD_PYTHON'] = '2'
                 USD_DELEGATE_PYTHON2 = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
                               variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION + '_python2'),
                               duplicate   = 0,
