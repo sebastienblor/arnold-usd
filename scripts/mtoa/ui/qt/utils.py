@@ -78,6 +78,9 @@ def toQtObject(mayaUIName, pySideType=QtCore.QObject):
     return the corresponding QWidget or QAction.
     If the object does not exist, returns None
     '''
+    obj = None
+    isFrameLayout = cmds.frameLayout(mayaUIName, q=True, exists=True)
+
     ptr = OpenMayaUI.MQtUtil.findControl(mayaUIName)
     if ptr is None:
         ptr = OpenMayaUI.MQtUtil.findLayout(mayaUIName)
@@ -86,7 +89,20 @@ def toQtObject(mayaUIName, pySideType=QtCore.QObject):
 
     if ptr is not None:
         obj = shiboken.wrapInstance(long(ptr), pySideType)
-        return obj
+
+    # workaround for frameLayouts to get the layout widget inside the frame layout
+    if isFrameLayout and obj:
+        oldParent = cmds.setParent(query=True)
+        cmds.setParent(mayaUIName)
+        maya_empty_label = cmds.text("deleteme")  # tempory label to be deleted
+        layout = obj.layout()  # get the layout
+        item = layout.itemAt(0)  # get the empty label
+        obj = item.widget().parent()  # get the frame of the label
+
+        cmds.deleteUI(maya_empty_label)  # delete the label
+        cmds.setParent(oldParent)
+
+    return obj
 
 
 def toMayaName(qtObject):

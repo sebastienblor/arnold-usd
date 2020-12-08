@@ -592,8 +592,10 @@ def createImagersWidgetForARV():
 
     window = cmds.window("ImagersForARV")
     imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', borderVisible=False, labelVisible=False)
-    imagerShadersColumn = cmds.columnLayout('imagerShadersColumn', adjustableColumn=True)
-    currentWidget = toQtObject(imagerShadersColumn, QtWidgets.QWidget)
-    imagersUI = ImagersUI(currentWidget)
-    currentWidget.layout().layout().addWidget(imagersUI)
+
+    imagerShadersFrameWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
+
+    imagersUI = ImagersUI(imagerShadersFrameWidget)
+    imagerShadersFrameWidget.layout().addWidget(imagersUI)
+
     return imagerShadersFrame
