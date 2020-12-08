@@ -115,7 +115,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         self.networkAOVs = set(aovs.getBuiltinAOVs()) # builtins are always in network
         self.networkNodeTypes = set([])
         self.aovNodes = defaultdict(list)
-        for node, aovList in self.networkData.iteritems():
+        for node, aovList in self.networkData.items():
             self.networkAOVs.update(aovList)
             self.networkNodeTypes.add(cmds.nodeType(node))
             for aov in aovList:
