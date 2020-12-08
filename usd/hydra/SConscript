@@ -57,7 +57,11 @@ if platform.system().lower() == 'windows':
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
-    boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+    if pythonVersion == '2' and platform.system().lower() == 'linux':
+        boost_lib_name = 'boost_%s'
+    else:
+        boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+
 
 usd_delegate_folder = _targetPath.abspath
 
