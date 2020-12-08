@@ -453,7 +453,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def setLook(self, *args):
         look_name = args[0]
         if self.look_node:
-            looks = {y:x for x,y in self.getLooks().iteritems()}
+            looks = {y:x for x,y in self.getLooks().items()}
             cmds.setAttr("{}.index".format(self.look_node), looks[look_name])
         self.refreshAssignmentsUI()
 
