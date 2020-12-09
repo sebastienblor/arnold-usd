@@ -122,7 +122,7 @@ def _usd_delegate(target, source, env):
         if pythonVersion == '3':
             args['PYTHON_LIB_NAME']   = 'libpython3.7m'
         else:
-            args['PYTHON_LIB_NAME']   = 'libpython2.7'
+            args['PYTHON_LIB_NAME']   = 'libpython2.7.so.1.0'
 
     
     if pythonVersion == '2':
