@@ -1335,6 +1335,26 @@ def createArnoldSubdivSettings():
 
     cmds.setUITemplate(popTemplate=True)
 
+global _imagerUI
+_imagerUI = None
+def createArnoldImagerSettings():
+    global _imagerUI
+
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
+
+    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', width=400, height=200,
+                                          collapsable=True, collapse=True)
+    imagerShadersFrameWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
+
+    _imagerUI = imagers.ImagersUI(imagerShadersFrameWidget)
+
+    imagerShadersFrameWidget.layout().addWidget(_imagerUI)
+
+    cmds.setParent('..')
+    cmds.setUITemplate(popTemplate=True)
+
+
 def createArnoldTextureSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -1873,37 +1893,6 @@ def createArnoldRendererSystemTab():
 def updateArnoldRendererSystemTab(*args):
     updateRenderSettings()
 
-global _imagerUI
-_imagerUI = None
-
-def createArnoldRendererImagersTab():
-    global _imagerUI
-
-    parentForm = cmds.setParent(query=True)
-    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    width = cmds.formLayout(parentForm, q = True , w = True)
-    height = cmds.formLayout(parentForm, q = True , h = True)
-    scroll = cmds.scrollLayout('arnoldPostScrollLayout', horizontalScrollBarThickness=0,
-                               childResizable = True, h = height)
-    scrollWidget = toQtObject(scroll, QtWidgets.QWidget)
-    _imagerUI = imagers.ImagersUI(scrollWidget)
-    scrollWidget.layout().addWidget(_imagerUI)
-    _imagerUI.setMinimumSize(width,height)
-    cmds.setParent('..')
-    cmds.formLayout(parentForm,
-                    edit=True,
-                    af=[('arnoldPostScrollLayout', "top", 0),
-                        ('arnoldPostScrollLayout', "bottom", 0),
-                        ('arnoldPostScrollLayout', "left", 0),
-                        ('arnoldPostScrollLayout', "right", 0)])
-
-    cmds.setParent(parentForm)
-    updateRenderSettings()
-
-
-def updateArnoldRendererImagersTab():
-    updateRenderSettings()
-
 def createArnoldRendererGlobalsTab():
 
     # Make sure the aiOptions node exists
@@ -1973,7 +1962,11 @@ def createArnoldRendererGlobalsTab():
     cmds.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
     createArnoldSubdivSettings()
     cmds.setParent('..')
-
+    
+    #cmds.frameLayout('arnoldImagerSettings', label="Post-process", cll= True, cl=1)
+    createArnoldImagerSettings()
+    #cmds.setParent('..')
+    
     cmds.formLayout(parentForm,
                     edit=True,
                     af=[('arnoldGlobalsScrollLayout', "top", 0),

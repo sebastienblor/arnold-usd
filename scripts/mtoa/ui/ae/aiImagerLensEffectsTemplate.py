@@ -26,6 +26,11 @@ class ImagerLensEffectUI(ImagerBaseUI):
         super(ImagerLensEffectUI, self).setup()
         self.addSeparator()
         self.addControl('vignetting', label='Vignetting', annotation='Vignetting amount')
+        self.addControl('bloom_threshold', label='Bloom Threshold', annotation='')
+        self.addControl('bloom_tint', label='Bloom Tint', annotation='')
+        self.addControl('bloom_radius', label='Bloom Radius', annotation='')
+        self.addControl('bloom_strength', label='Bloom Strength', annotation='')
+
 
 
 registerImagerTemplate("aiImagerLensEffects", ImagerLensEffectUI)

@@ -10,6 +10,7 @@ from mtoa.ui.ae.aiImagersBaseTemplate import getImagerTemplate
 # from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI
 # from mtoa.ui.ae.aiImagerColorCorrectTemplate import ImagerColorCorrectUI
 # from mtoa.ui.ae.aiImagerTonemapTemplate import ImagerTonemapUI
+
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
@@ -472,7 +473,6 @@ class ImagerItem(BaseItem):
         return QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsDragEnabled
 
 
-
 class ImagersUI(QtWidgets.QFrame):
 
     def __init__(self, parent=None):
@@ -484,7 +484,7 @@ class ImagersUI(QtWidgets.QFrame):
 
         self.layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.layout)
-        
+
         cmds.setParent(self.parentMayaName)
         rowLayout = cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
         cmds.text(label='')
@@ -585,18 +585,15 @@ class ImagersUI(QtWidgets.QFrame):
             cmdsLbl = 'Create {}'.format(imager)
             cmds.menuItem(parent=popup, label=cmdsLbl,  command=Callback(self.createImager, imager))
 
+
 def createImagersWidgetForARV():
     if (cmds.window("ImagersForARV", exists=True)):
         return
 
     window = cmds.window("ImagersForARV")
     imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', borderVisible=False, labelVisible=False)
-    currentWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
-
+    imagerShadersColumn = cmds.columnLayout('imagerShadersColumn', adjustableColumn=True)
+    currentWidget = toQtObject(imagerShadersColumn, QtWidgets.QWidget)
     imagersUI = ImagersUI(currentWidget)
-
-    currentWidget.layout().addWidget(imagersUI)
-
-    # imagersUI_maya = toMayaName(imagersUI)
-
+    currentWidget.layout().layout().addWidget(imagersUI)
     return imagerShadersFrame

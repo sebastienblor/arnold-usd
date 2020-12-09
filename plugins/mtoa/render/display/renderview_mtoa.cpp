@@ -322,7 +322,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
    
    if (imager != nullptr)
-      AddCustomTab(imager,"Post Processing");
+      AddCustomTab(imager,"Post");
 
    
    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
