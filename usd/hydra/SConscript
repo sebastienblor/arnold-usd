@@ -119,7 +119,11 @@ def _usd_delegate(target, source, env):
         if local_env.get('CXX_STANDARD'):
             args['CXX_STANDARD'] = local_env['CXX_STANDARD']
         args['DISABLE_CXX11_ABI']=True 
-        args['PYTHON_LIB_NAME']   = 'libpython{}.7m'.format(pythonVersion)
+        if pythonVersion == '3':
+            args['PYTHON_LIB_NAME']   = 'libpython3.7m'
+        else:
+            args['PYTHON_LIB_NAME']   = 'libpython2.7'
+
     
     if pythonVersion == '2':
         args['BUILD_DIR'] = 'build_python2'
