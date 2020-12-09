@@ -59,7 +59,6 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mainLayout = QtWidgets.QHBoxLayout(self)
         self.setLayout(self.mainLayout)
         self.layerName = name
-        print "MAYA NAME FOR ITEM", toMayaName(self)
         self.itemDeleted = CustomDelete()
 
         DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
@@ -169,7 +168,6 @@ class LightGroupItem(QtWidgets.QWidget):
         value =float(self.mix_slider.value())/100.0
         self.mix_value.setValue(value)
         attribute = None
-        
         if self.itemIndex ==-1 :
             attribute = self.nodeName+'.residualMix'
         else:
@@ -179,7 +177,11 @@ class LightGroupItem(QtWidgets.QWidget):
 class LightGroupLayers(QtWidgets.QDialog):
     def __init__(self, parent=None, displayList = None  ):
         super(LightGroupLayers, self).__init__(parent)
-        
+        buttons = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        self.buttonBox = QtWidgets.QDialogButtonBox(buttons)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         self.setWindowTitle("Light Group Layer(s)")
         self.list = QtWidgets.QListWidget(self)
@@ -187,46 +189,36 @@ class LightGroupLayers(QtWidgets.QDialog):
         for item in displayList:
             self.list.addItem(item)
         self.setLayout(self.mainLayout)
-
-        self.frame = QtWidgets.QFrame(self)
-        self.hboxLayout = QtWidgets.QHBoxLayout(self)
-        self.frame.setLayout(self.hboxLayout)
-        self.okButton = QtWidgets.QPushButton("Add")
-        self.cancelButton = QtWidgets.QPushButton("Cancel")
-        
-        self.hboxLayout.addWidget(self.okButton)
-        self.hboxLayout.addWidget(self.cancelButton)
-
         self.mainLayout.addWidget(self.list)
-        self.mainLayout.addWidget(self.frame)
+        self.mainLayout.addWidget(self.buttonBox)
     
-
-
-
 
 class LightMixer(QtWidgets.QFrame):
 
     def __init__(self, parent = None, nodeName = None):
         super(LightMixer, self).__init__(parent=parent)
         self.nodeName = nodeName
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.mainLayout = QtWidgets.QVBoxLayout(self)
+        self.setSizePolicy(sizePolicy)
 
         self.actionsFrame = QtWidgets.QFrame(self)
         self.actionsLayout = QtWidgets.QHBoxLayout(self.actionsFrame)
         self.actionsFrame.setLayout(self.actionsLayout)
 
         ADD_LAYER_ICON =  BaseItem.dpiScaledIcon(":/RS_create_layer.png")
-
         self.addLayerButton = QtWidgets.QPushButton( self.actionsFrame)
         self.addLayerButton.setIcon(ADD_LAYER_ICON)
-        self.refreshLayerButton = QtWidgets.QPushButton("Refresh Layer", self.actionsFrame)
 
         self.actionsLayout.addWidget(self.addLayerButton)
-        self.actionsLayout.addWidget(self.refreshLayerButton)
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
         self.addLayerButton.clicked.connect(self.addLayerAction)
-        # self.refreshLayerButton.clicked.connect(self.refreshLayerAction)
 
         self.layerFrame = QtWidgets.QFrame(self)
+        self.layerFrame.setSizePolicy(sizePolicy)
         self.layerLayout = QtWidgets.QVBoxLayout(parent)
         self.layerFrame.setLayout(self.layerLayout)
 
@@ -239,7 +231,7 @@ class LightMixer(QtWidgets.QFrame):
         if not cmds.getAttr(self.nodeName+'.layerName', size = True) > 0:
             self.setDefaults( lightGroups = getLightGroups() )
         for i in range(0,len(lightGroups)):
-            self.item = LightGroupItem(parent = self.mainLayout, name = lightGroups[i], index = i , nodeName = self.nodeName)
+            self.item = LightGroupItem(parent = self.mainLayout, name = 'RGBA_'+lightGroups[i], index = i , nodeName = self.nodeName)
             self.lightGroupWidgets.append(self.item)
             self.layerLayout.addWidget(self.item)
             self.item.itemDeleted.sendDelete.connect(self.removeLayerAction)
@@ -253,7 +245,6 @@ class LightMixer(QtWidgets.QFrame):
         self.setLayout(self.mainLayout)
 
     def setDefaults(self, lightGroups):
-        print "Are you being called ??? "
         for index in range(0,len(lightGroups)):
             cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), "RGBA_"+lightGroups[index], type = "string")
             cmds.setAttr(self.nodeName+'.layerEnable[%d]' %(index), True)
@@ -263,12 +254,10 @@ class LightMixer(QtWidgets.QFrame):
 
     def update(self, nodeName):
         for i in range(0,len(self.lightGroupWidgets)):
-            print "Calling update for " , i 
             if i in cmds.getAttr(self.nodeName+'.layerName', mi = True):
                 # if self.lightGroupWidgets[i]: 
                 self.lightGroupWidgets[i].update(nodeName,i)
             else:
-                print "Index probably deleted"
                 # if self.lightGroupWidgets[i]: 
                 self.lightGroupWidgets[i].close()
                 self.lightGroupWidgets[i] = None
@@ -276,7 +265,8 @@ class LightMixer(QtWidgets.QFrame):
     def getWidgetLayers(self):
         layers_in_widget = []
         for item in self.lightGroupWidgets:
-            layers_in_widget.append(item.layerName)
+            if item:
+                layers_in_widget.append(item.layerName)
         return layers_in_widget
 
     def addLayerAction(self):
@@ -285,30 +275,29 @@ class LightMixer(QtWidgets.QFrame):
         items_to_add = []
         light_groups_in_widget = self.getWidgetLayers()
         for item in light_groups_in_scene:
-            if item not in light_groups_in_widget:
+            if 'RGBA_'+item not in light_groups_in_widget:
                 items_to_add.append(item)
         
+        selected_items = []
+        popup = LightGroupLayers(self, items_to_add)
+        if popup.exec_():
+            for item in popup.list.selectedItems():
+                selected_items.append(item.text())
+        else:
+            return
 
-        def getSelectedItems(wid):
-            print "Sub def is called"
-            print len(wid.list.selectedItems())
+        for newItem in selected_items:
+            index = cmds.getAttr(self.nodeName+'.layerName', mi = True)[-1]+1
+            cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), "RGBA_"+newItem, type = "string")
+            cmds.setAttr(self.nodeName+'.layerEnable[%d]' %(index), True)
+            cmds.setAttr(self.nodeName+'.layerSolo[%d]' %(index), False)
+            cmds.setAttr(self.nodeName+'.tint[%d]' %(index), 1, 1, 1, type = "float3")
+            cmds.setAttr(self.nodeName+'.mix[%d]' %(index), 1)
+            self.item = LightGroupItem(parent = self.mainLayout, name = 'RGBA_'+newItem, index = index , nodeName = self.nodeName)
+            self.lightGroupWidgets.append(self.item)
+            self.layerLayout.addWidget(self.item)
+            self.item.itemDeleted.sendDelete.connect(self.removeLayerAction)
 
-        new = LightGroupLayers(self, items_to_add)
-        new.show()
-        new.okButton.clicked.connect(getSelectedItems(new))
-        
-        # print new.getSelection() , "Is what i need to add"
-        # new.close()
-        
-
-        # if not cmds.getAttr(self.nodeName+'.layerName', size = True) > 0:
-        #     self.setDefaults( lightGroups = getLightGroups() )
-        # for i in range(0,len(lightGroups)):
-        #     self.item = LightGroupItem(parent = self.mainLayout, name = lightGroups[i], index = i , nodeName = self.nodeName)
-        #     self.lightGroupWidgets[lightGroups[i]] = self.item
-        #     self.layerLayout.addWidget(self.item)
-
-    
     def removeLayerAction(self,index):
 
         cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
@@ -318,10 +307,6 @@ class LightMixer(QtWidgets.QFrame):
         cmds.removeMultiInstance( self.nodeName+'.tint[%d]'%(index))
         self.lightGroupWidgets[index].close()
         self.lightGroupWidgets[index] = None
-
-    def refreshLayerAction(self):
-        print "Refresh Layer Action"
-
 
 class AEaiImagerLightMixerTemplate(ShaderAETemplate):
 
