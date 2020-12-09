@@ -60,7 +60,14 @@ class LightGroupItem(QtWidgets.QWidget):
         self.setLayout(self.mainLayout)
         self.layerName = name
         self.itemDeleted = CustomDelete()
-
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose) 
+        if self.itemIndex >=0 :
+            objectParent = 'LightGroupItem'+ str(self.itemIndex)
+        else:
+            objectParent = 'LightGroupItem' 
+        
+        self.setObjectName(objectParent)
+        
         DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
         SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
         BIN_ICON = BaseItem.dpiScaledIcon(":/RS_delete.png")
@@ -89,26 +96,27 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mix_slider.valueChanged.connect(self.sliderValueChanged)
         self.scriptJobList = []
 
+
         if self.itemIndex == -1 :
             self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.residualSolo'))
             self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.residualEnable'))
             self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.residualMix')*100)
             self.tint_button = TintButton(attribute = self.nodeName + '.residualTint')
             self.delete_button.setVisible(False)
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualSolo', lambda *args: self.update(self.nodeName, -1)]))
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualEnable', lambda *args: self.update(self.nodeName, -1)]))
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualMix', lambda *args: self.update(self.nodeName, -1)]))
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.residualTint', lambda *args: self.update(self.nodeName, -1)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.residualSolo', lambda *args: self.update(self.nodeName, -1)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.residualEnable', lambda *args: self.update(self.nodeName, -1)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.residualMix', lambda *args: self.update(self.nodeName, -1)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.residualTint', lambda *args: self.update(self.nodeName, -1)]))
         else:
             self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layerSolo[%d]'%(self.itemIndex)))
             self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
             self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.mix[%d]'%(self.itemIndex))*100)
             self.tint_button = TintButton(attribute = self.nodeName + '.tint[%d]'%(self.itemIndex))
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.mix', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-            self.scriptJobList.append(cmds.scriptJob( attributeChange=[self.nodeName+'.tint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-            self.scriptJobList.append(cmds.scriptJob( attributeDeleted=[self.nodeName+'.layerName[%d]'%(self.itemIndex), lambda *args: self.destroy()]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.mix', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.tint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+            self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeDeleted=[self.nodeName+'.layerName[%d]'%(self.itemIndex), lambda *args: self.destroy()]))
 
         self.mainLayout.addWidget(self.delete_button)
         self.mainLayout.addWidget(self.solo_button)
@@ -117,11 +125,6 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mainLayout.addWidget(self.mix_slider)
         self.mainLayout.addWidget(self.mix_value)
         self.mainLayout.addWidget(self.tint_button)
-
-    def __del__(self):
-        ## Clean up all scripts jobs created for this UI element 
-        for script in self.scriptJobList:
-            cmds.delete(script)
 
     def deleteAction(self):
         self.itemDeleted.sendDelete.emit(self.itemIndex)
@@ -192,7 +195,6 @@ class LightGroupLayers(QtWidgets.QDialog):
         self.mainLayout.addWidget(self.list)
         self.mainLayout.addWidget(self.buttonBox)
     
-
 class LightMixer(QtWidgets.QFrame):
 
     def __init__(self, parent = None, nodeName = None):
@@ -299,7 +301,6 @@ class LightMixer(QtWidgets.QFrame):
             self.item.itemDeleted.sendDelete.connect(self.removeLayerAction)
 
     def removeLayerAction(self,index):
-
         cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
