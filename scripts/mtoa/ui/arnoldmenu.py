@@ -32,15 +32,11 @@ defaultFolder = ""
 defaultOperatorsFolder = ""
 
 _maya_version = mutils.getMayaVersion()
-## Commenting out as thesre are removed from Arnold core API. 
-## TODO : Do we still need these components ? 
-# clmVersion = int(cmds.arnoldPlugins(getClmVersion=True))
-# if clmVersion > 1:
-#     import arnold.ai_license_clm
 
 def doCreateStandInFile():
     node = createStandIn()
     LoadStandInButtonPush('{}.dso'.format(node))
+
 
 
 def doExportStandIn(selected=True, fileFormat="ASS Export"):
@@ -227,52 +223,6 @@ def arnoldAboutDialog():
 def arnoldLicenseManager():
     mtoa.licensing.licenseManager()
 
-# def arnoldLicensingSignIn():
-#     ai.ai_license_clm.AiLicenseClmSignIn()
-
-# def arnoldLicensingSignOut():
-#     ai.ai_license_clm.AiLicenseClmSignOut()
-
-# def arnoldLicensingLicenseManager():
-#     ai.ai_license_clm.AiLicenseClmLicenseManager()
-        
-# def arnoldLicensingGetMacAddress():
-#     if (cmds.window("ArnoldLicenseGetMacAddress", ex=True)):
-#         cmds.deleteUI("ArnoldLicenseGetMacAddress")
-#     w = cmds.window("ArnoldLicenseGetMacAddress", sizeable=False, title="Get MAC Address")
-#     cmds.window("ArnoldLicenseGetMacAddress", edit=True, width=240, height=60)
-    
-#     cmds.columnLayout()
-
-#     cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1,10),(2,90),(3,140)] )
-#     cmds.text(align="left", label="")
-#     cmds.text(align="left", label="MAC Address")
-#     name = cmds.textField()
-#     mac = get_mac()
-#     mactext = ("%012X" % mac)
-#     cmds.textField(name,  edit=True, text=mactext, editable=False )
-#     cmds.setParent( '..' )
-#     cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,10),(2,70),(3,80), (4, 70), (5,10)])
-#     cmds.text(align="left",label="")
-#     commandStr = 'import maya.cmds as cmds;cmds.arnoldLicense(copyToClipboard=\"' + mactext+'\")'
-#     cmds.button( align="left", label='Copy', command=(commandStr))
-#     cmds.text(label="")
-#     cmds.button(align="right", label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
-#     cmds.text(align="right", label="")
-#     cmds.setParent( '..' )
-#     cmds.showWindow(w)
-
-# def arnoldLicensingConnectLicenseServer():
-#     win = mtoa.licensing.ConnectToLicenseServer()
-#     win.create()
-# def arnoldLicensingGetDiagnostics():
-#     win = mtoa.licensing.GetDiagnostics()
-#     win.create()
-
-# def arnoldLicensingNodeLocked():
-#     win = mtoa.licensing.NodeLocked()
-#     win.create()
-    
 def arnoldTxManager():
     core.createOptions()
     mtoa.txManager.show()
@@ -569,16 +519,3 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())
         cmds.menuItem(divider=1, parent='ArnoldMenu')
-
-        # clmVersion = cmds.arnoldPlugins(getClmVersion=True)
-        # if int(clmVersion) > 1:
-        #     cmds.menuItem('ArnoldLicensingLicenseManager', label='Manage License...', parent='ArnoldMenu',
-        #                 c=lambda *args: arnoldLicensingLicenseManager())
-
-        #     darkSite = int(os.getenv('ADLSDK_DARK_SITE') or 0)
-        #     if not darkSite:
-        #         cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldMenu',
-        #                     c=lambda *args: arnoldLicensingSignIn())
-        #         cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldMenu',
-        #                     c=lambda *args: arnoldLicensingSignOut())
-            
