@@ -473,11 +473,14 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    if (s_renderLayer.length() == 0)
       s_renderLayer = "masterLayer";
 
-   MGlobal::executePythonCommand("from mtoa.ui import imagers;imagers.createImagersWidgetForARV()", s_ImagersLayoutName);
-   QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
-   
-   if (imager != nullptr)
-      AddCustomTab(imager,"Post");
+   if (s_ImagersLayoutName.length() == 0)
+   {
+      MGlobal::executePythonCommand("from mtoa.ui import imagers;imagers.createImagersWidgetForARV()", s_ImagersLayoutName);
+      QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
+      
+      if (imager != nullptr)
+         AddCustomTab(imager,"Post");
+   }
 
 #if MAYA_API_VERSION >= 20190000
    if(!m_colorPickingCallback)
