@@ -1828,7 +1828,12 @@ def create_installer(target, source, env):
             pitregCommand = "cp /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod /Users/Shared/Autodesk/modules/maya/%sLT/mtoa.mod" % (maya_version, maya_version)
             pitregScript.write(pitregCommand)
 
+        ### Add the LicenseUpdater 
         pitregScript.write('\n')
+        pitregCommand = "  chmod +x $2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
+        pitregScript.write(pitregCommand)
+        pitregCommand = "$2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
+        pitregScript.write(pitregCommand)
         pitregScript.close()
 
         pitregScript = open(os.path.join(tempdir, 'empty_script.sh'), 'w')
