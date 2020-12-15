@@ -316,15 +316,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    QMainWindow *arv = GetRenderView();  
    arv->setWindowFlags(Qt::Widget);
-   
-   
-   MGlobal::executePythonCommand("from mtoa.ui import imagers;imagers.createImagersWidgetForARV()", s_ImagersLayoutName);
-   QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
-   
-   if (imager != nullptr)
-      AddCustomTab(imager,"Post");
-
-   
+      
    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
    
    if (firstCreation)
@@ -481,6 +473,14 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    if (s_renderLayer.length() == 0)
       s_renderLayer = "masterLayer";
 
+   if (s_ImagersLayoutName.length() == 0)
+   {
+      MGlobal::executePythonCommand("from mtoa.ui import imagers;imagers.createImagersWidgetForARV()", s_ImagersLayoutName);
+      QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
+      
+      if (imager != nullptr)
+         AddCustomTab(imager,"Post");
+   }
 
 #if MAYA_API_VERSION >= 20190000
    if(!m_colorPickingCallback)

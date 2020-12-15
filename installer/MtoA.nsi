@@ -218,7 +218,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
           StrCpy $R3 "Invalid PIT File"
         ${ElseIf} "$0" == "32"
           StrCpy $R3 "Unable to set write access for all user in Linux and MAC"
-        ${EndIf}    
+        ${EndIf}      
 
         ${If} "$0" > "0"
           MessageBox MB_TOPMOST|MB_OK  \
@@ -226,7 +226,14 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
         ${EndIf}
     ${EndIf}
 
-    
+
+    StrCpy $R7 "$INSTDIR\license\LicensingUpdater.exe"
+      ; run the updater tool
+      IfFileExists "$R7" 0 +5
+      ExecWait '"$R7"' $1
+      ${If} $1 != 0
+          DetailPrint "[WARNING] Failed to update Autodesk Licensing"
+      ${EndIf}
 
      
 SectionEnd

@@ -1347,7 +1347,7 @@ def createArnoldImagerSettings():
                                           collapsable=True, collapse=True)
     imagerShadersFrameWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
 
-    _imagerUI = imagers.ImagersUI(imagerShadersFrameWidget)
+    _imagerUI = imagers.ImagersUI(imagerShadersFrameWidget, True)
 
     imagerShadersFrameWidget.layout().addWidget(_imagerUI)
 

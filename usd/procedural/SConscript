@@ -58,7 +58,10 @@ if platform.system().lower() == 'windows':
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
-    boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+    if pythonVersion == '2' and platform.system().lower() == 'linux':
+        boost_lib_name = 'boost_%s'
+    else:
+        boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
 
 usd_procedural_folder = _targetPath.abspath
 
@@ -118,8 +121,14 @@ def _usd_procedural(target, source, env):
         if local_env.get('CXX_STANDARD'):
             args['CXX_STANDARD'] = local_env['CXX_STANDARD']
         args['DISABLE_CXX11_ABI']=True 
-        args['PYTHON_LIB_NAME']   = 'libpython{}.7m'.format(pythonVersion)
-      
+        if pythonVersion == '3':
+            args['PYTHON_LIB_NAME']   = 'libpython3.7m'
+        else:
+            args['PYTHON_LIB_NAME']   = 'libpython2.7.so.1.0'
+    
+    if pythonVersion == '2':
+        args['BUILD_DIR'] = 'build_python2'
+
     usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
         raise SCons.Errors.UserError('arnold-usd subrepository not found')
@@ -137,8 +146,12 @@ def _usd_procedural(target, source, env):
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
+procedural_action_log = 'Building USD procedural '
+if pythonVersion == '2':
+    procedural_action_log += 'for Python 2'
+procedural_action_log += '....'
 
-usd_procedural_action  = SCons.Action.Action(_usd_procedural    , 'Building USD procedural ...')
+usd_procedural_action  = SCons.Action.Action(_usd_procedural    , procedural_action_log)
 USD_PROCEDURAL = local_env.Command(usd_procedural, [], usd_procedural_action  )
 local_env.Alias('usd_procedural', USD_PROCEDURAL)
 

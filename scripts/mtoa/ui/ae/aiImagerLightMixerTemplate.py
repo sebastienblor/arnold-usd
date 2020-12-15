@@ -57,7 +57,14 @@ class LightGroupItem(QtWidgets.QWidget):
         self.setLayout(self.mainLayout)
         self.layerName = name
         self.itemDeleted = CustomDelete()
-
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose) 
+        if self.itemIndex >=0 :
+            objectParent = 'LightGroupItem'+ str(self.itemIndex)
+        else:
+            objectParent = 'LightGroupItem' 
+        
+        self.setObjectName(objectParent)
+        
         DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
         SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
         BIN_ICON = BaseItem.dpiScaledIcon(":/RS_delete.png")
@@ -115,11 +122,6 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mainLayout.addWidget(self.exposure_slider)
         self.mainLayout.addWidget(self.exposure_value)
         self.mainLayout.addWidget(self.tint_button)
-
-    def __del__(self):
-        ## Clean up all scripts jobs created for this UI element 
-        for script in self.scriptJobList:
-            cmds.delete(script)
 
     def deleteAction(self):
         self.itemDeleted.sendDelete.emit(self.itemIndex)
@@ -182,7 +184,6 @@ class LightGroupLayers(QtWidgets.QDialog):
         self.mainLayout.addWidget(self.list)
         self.mainLayout.addWidget(self.buttonBox)
     
-
 class LightMixer(QtWidgets.QFrame):
 
     def __init__(self, parent = None, nodeName = None):
@@ -291,7 +292,6 @@ class LightMixer(QtWidgets.QFrame):
             self.item.itemDeleted.sendDelete.connect(self.removeLayerAction)
 
     def removeLayerAction(self,index):
-
         cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))

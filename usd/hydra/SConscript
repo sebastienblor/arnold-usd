@@ -40,7 +40,7 @@ usd_lib_dir = os.path.join(usd_install_dir, 'lib')
 usd_supported_modes = ['opt', 'debug', 'profile']
 
 usd_include_dir = os.path.join(usd_install_dir, 'include')
-boost_lib = os.path.join(usd_install_dir, 'lib' if pythonVersion == '3' else 'lib2')
+boost_lib = os.path.join(usd_install_dir, 'lib')
 usd_lib_prefix = 'lib'
 
 if platform.system().lower() == 'darwin':
@@ -57,7 +57,11 @@ if platform.system().lower() == 'windows':
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
-    boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+    if pythonVersion == '2' and platform.system().lower() == 'linux':
+        boost_lib_name = 'boost_%s'
+    else:
+        boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+
 
 usd_delegate_folder = _targetPath.abspath
 
@@ -84,15 +88,16 @@ def _usd_delegate(target, source, env):
       TBB_LIB= usd_lib_dir,
       USD_BUILD_MODE = 'shared_libs',
       PREFIX_RENDER_DELEGATE= usd_delegate_folder,
+      PREFIX_NDR_PLUGIN = usd_delegate_folder,
       BUILD_SCHEMAS=False,
       BUILD_RENDER_DELEGATE=True,
       BUILD_USD_WRITER=False,
       BUILD_PROCEDURAL=False,
       BUILD_TESTSUITE=False,
+      BUILD_USD_IMAGING_PLUGIN=False,
       BUILD_DOCS=False,
+      BUILD_NDR_PLUGIN=True,
       BOOST_LIB= boost_lib,
-      BUILD_HOUDINI_TOOLS=False,
-      BUILD_NDR_PLUGIN=False,
       MODE= local_env['MODE'],
       WARN_LEVEL='warn-only',
       MSVC_VERSION='14.1',
@@ -115,8 +120,14 @@ def _usd_delegate(target, source, env):
         if local_env.get('CXX_STANDARD'):
             args['CXX_STANDARD'] = local_env['CXX_STANDARD']
         args['DISABLE_CXX11_ABI']=True 
-        args['PYTHON_LIB_NAME']   = 'libpython{}.7m'.format(pythonVersion)
-      
+        if pythonVersion == '3':
+            args['PYTHON_LIB_NAME']   = 'libpython3.7m'
+        else:
+            args['PYTHON_LIB_NAME']   = 'libpython2.7.so.1.0'
+
+    
+    if pythonVersion == '2':
+        args['BUILD_DIR'] = 'build_python2'
     usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
         raise SCons.Errors.UserError('arnold-usd subrepository not found')
@@ -126,15 +137,25 @@ def _usd_delegate(target, source, env):
         raise SCons.Errors.UserError('arnold-usd scons file not found')
 
     usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
-    args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+    delegate_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
    
-    sub = subprocess.Popen([sys.executable] + args, cwd=usd_project)
+    sub = subprocess.Popen([sys.executable] + delegate_args, cwd=usd_project)
+    sub.communicate()
+    if sub.returncode != 0:
+        raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+    ndr_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'ndrplugin-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   
+    sub = subprocess.Popen([sys.executable] + ndr_args, cwd=usd_project)
     sub.communicate()
     if sub.returncode != 0:
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
-usd_delegate_action  = SCons.Action.Action(_usd_delegate    , 'Building USD render delegate ...')
+delegate_action_log = 'Building USD render delegate '
+if pythonVersion == '2':
+    delegate_action_log += 'for Python 2'
+delegate_action_log += '....'
+usd_delegate_action  = SCons.Action.Action(_usd_delegate    , delegate_action_log)
 USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action  )
 local_env.Alias('usd_delegate', USD_DELEGATE)
 

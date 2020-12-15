@@ -475,8 +475,8 @@ class ImagerItem(BaseItem):
 
 class ImagersUI(QtWidgets.QFrame):
 
-    def __init__(self, parent=None):
-        super(ImagersUI, self).__init__(parent)
+    def __init__(self, parent=None,listOnly = False):
+        super(ImagersUI, self).__init__(parent )
 
         style = MtoAStyle.currentStyle()
         self.parent = parent
@@ -506,27 +506,26 @@ class ImagersUI(QtWidgets.QFrame):
         self.imagerStack.setObjectName("ImagerStackWidget")
         # self.imagerStack.setMinimumHeight(dpiScale(300))
         # self.frame.layout().addWidget(self.imagerStack)
-
-        # self.attributesFrame = QtWidgets.QFrame(self.splitter)
-        # self.attributesFrame.setLayout(QtWidgets.QVBoxLayout(self.attributesFrame))
-        self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
-        self.attributeScrollArea.setObjectName("AttributeScrollArea")
-        self.attributeScrollArea.setWidgetResizable(True)
-        self.attributeScrollArea.setMinimumHeight(dpiScale(200))
-
-        self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        # self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 816, 424))
-        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-        self.scrollAreaLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
-
-        self.attributeScrollArea.setWidget(self.scrollAreaWidgetContents)
-
-        # self.frame.layout().addWidget(self.attributesFrame)
         self.layout.addWidget(self.splitter)
+        if not listOnly:
+            # self.attributesFrame = QtWidgets.QFrame(self.splitter)
+            # self.attributesFrame.setLayout(QtWidgets.QVBoxLayout(self.attributesFrame))
+            self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
+            self.attributeScrollArea.setObjectName("AttributeScrollArea")
+            self.attributeScrollArea.setWidgetResizable(True)
+            self.attributeScrollArea.setMinimumHeight(dpiScale(200))
 
-        self.imagerAttributesFrame = None
+            self.scrollAreaWidgetContents = QtWidgets.QWidget()
+            # self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 816, 424))
+            self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+            self.scrollAreaLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
 
-        self.imagerStack.itemSelected.connect(self.showItemProperties)
+            self.attributeScrollArea.setWidget(self.scrollAreaWidgetContents)
+            # self.frame.layout().addWidget(self.attributesFrame)
+            
+            self.imagerAttributesFrame = None
+
+            self.imagerStack.itemSelected.connect(self.showItemProperties)
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
         cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
@@ -592,8 +591,7 @@ def createImagersWidgetForARV():
 
     window = cmds.window("ImagersForARV")
     imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', borderVisible=False, labelVisible=False)
-    imagerShadersColumn = cmds.columnLayout('imagerShadersColumn', adjustableColumn=True)
-    currentWidget = toQtObject(imagerShadersColumn, QtWidgets.QWidget)
-    imagersUI = ImagersUI(currentWidget)
-    currentWidget.layout().layout().addWidget(imagersUI)
+    currentWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
+    imagersUI = ImagersUI(currentWidget, False)
+    currentWidget.layout().addWidget(imagersUI)
     return imagerShadersFrame
