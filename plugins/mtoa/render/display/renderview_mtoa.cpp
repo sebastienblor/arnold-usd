@@ -1518,7 +1518,22 @@ void CRenderViewMtoA::UpdateColorManagement()
 
    MString ocioFilepath;
    MGlobal::executeCommand("colorManagementPrefs -q -configFilePath", ocioFilepath);
-
+   static const MString mayaResources = "<MAYA_RESOURCES>";
+   if (ocioFilepath.indexW(mayaResources) >= 0)
+   {
+      // This ocio path is relative to the maya resources folder,
+      // we need to expand itc (#4435)
+      MString baseFilePath;
+      static const MString mayaDir(getenv("MAYA_LOCATION"));
+      baseFilePath = mayaDir;
+#ifdef _DARWIN
+      baseFilePath += "/Resources";
+#else
+      baseFilePath += "/resources";
+#endif
+      ocioFilepath.substitute(mayaResources, baseFilePath);
+   }
+ 
    MString renderingSpace;
    MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);
 
