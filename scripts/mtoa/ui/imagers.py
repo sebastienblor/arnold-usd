@@ -491,7 +491,8 @@ class ImagerItem(BaseItem):
     DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
 
     BACKGROUND_COLOR = QtGui.QColor(82, 82, 82)
-    
+    BAR_COLOR = QtGui.QColor(144, 196, 222)
+
     (ACTION_EXPAND,  # Always first, even if not used
      ACTION_NONE,
      ACTION_SELECT,
@@ -511,7 +512,7 @@ class ImagerItem(BaseItem):
         return aeUtils.getNodeType(self.name)
 
     def getLabelColor(self):
-        return QtGui.QColor(0, 0, 0)
+        return self.BAR_COLOR
 
     def getBackgroundColor(self):
         return self.BACKGROUND_COLOR
@@ -560,7 +561,7 @@ class ImagersUI(QtWidgets.QFrame):
 
         self.imagerStack = ImagerStackView(None, self.splitter)
         self.imagerStack.setObjectName("ImagerStackWidget")
-        # self.imagerStack.setMinimumHeight(dpiScale(300))
+        self.imagerStack.setMinimumHeight(dpiScale(300))
         # self.frame.layout().addWidget(self.imagerStack)
         self.layout.addWidget(self.splitter)
         self.attributeScrollArea = None
@@ -568,8 +569,8 @@ class ImagersUI(QtWidgets.QFrame):
         if not listOnly:
             self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
             self.attributeScrollArea.setObjectName("AttributeScrollArea")
-            attributesSizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-            attributesSizePolicy.setVerticalStretch(1)
+            attributesSizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+            attributesSizePolicy.setVerticalStretch(3)
             self.attributeScrollArea.setSizePolicy(attributesSizePolicy)
             self.attributeScrollArea.setWidgetResizable(True)
             self.attributeScrollArea.setWidgetResizable(True)
@@ -635,7 +636,7 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.connectAttr("%s.message"%node, attrName, force=True)
         self.updateImagers()
         lastIndex = self.imagerStack.model().index(self.imagerStack.model().rowCount() - 1, 0)
-        # self.imagerStack.selectionModel().select(lastIndex, QtCore.QItemSelectionModel.ClearAndSelect|| QtCore.QItemSelectionModel.Rows)
+        self.imagerStack.selectionModel().select(lastIndex, QtCore.QItemSelectionModel.ClearAndSelect | QtCore.QItemSelectionModel.Rows)
         self.showItemProperties(node)
         cmds.select(node, r=True)
 
