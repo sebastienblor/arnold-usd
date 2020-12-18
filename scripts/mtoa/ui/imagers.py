@@ -1,8 +1,10 @@
 ﻿
+import os
+import arnold as ai
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
-import arnold as ai
+import mtoa.utils as mu
 import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiImagersBaseTemplate import getImagerTemplate
@@ -13,7 +15,8 @@ from mtoa.ui.ae.aiImagersBaseTemplate import getImagerTemplate
 
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
-from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
+from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui, shiboken
+
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale, Timer
 from mtoa.ui.qt import MtoAStyle
@@ -33,6 +36,7 @@ class ImagerStackView(BaseTreeView):
     MAX_VISIBLE_ENTRIES = 10
     
     itemSelected = QtCore.Signal(str)
+    itemRemoved = QtCore.Signal(str)
 
     def __init__(self, transverser = None, parent=None):
         super(ImagerStackView, self).__init__(parent)
@@ -97,7 +101,8 @@ class ImagerStackView(BaseTreeView):
         index = self.indexAt(pos)
         item = index.internalPointer()
         self.model().removeImager(item.name)
-        
+        self.itemRemoved.emit(item.name)
+
     def moveImagerUp(self, itemIndex):
         self.model().moveImagerUp(itemIndex)
 
@@ -133,6 +138,57 @@ class ImagerStackView(BaseTreeView):
             if item:
                 item.selectImager()
                 self.itemSelected.emit(item.getNodeName())
+
+    def paintEvent(self, event):
+        super(ImagerStackView, self).paintEvent(event)
+
+        if self.model().rowCount() == 0:
+            painter = QtGui.QPainter(self.viewport())
+            font = painter.font()
+
+            bigFontSize = 8
+            smallFontSize = 8
+            font.setPointSize(bigFontSize)
+            font.setBold(True)
+            painter.setFont(font)
+            textCol = QtGui.QColor(150, 150, 150)
+            painter.setPen(textCol)
+            pixMap = QtGui.QPixmap(os.path.join(mu.rootdir(), 'icons', "empty_box_dark-grey.svg"))
+            # iconSize = dpiScale(48)
+            iconSize = pixMap.size()
+            iconRect = QtCore.QRect(event.rect().center().x() - (iconSize.width() / 2),
+                                    event.rect().center().y() - (iconSize.height()) - dpiScale(32),
+                                    iconSize.width(), iconSize.height())
+
+            painter.drawPixmap(iconRect, pixMap)
+
+            metrics = QtGui.QFontMetrics(font)
+            listEmpty = "Imagers List is empty."
+            addImagers_1 = "Click Add to create Color Correct,"
+            addImagers_2 = "Light Mix or Effects Imagers."
+
+            # Draw the first line of text
+            textSize = metrics.size(QtCore.Qt.TextSingleLine, listEmpty)
+            p = event.rect().center()
+            p.setX(p.x() - textSize.width() / 2)
+            p.setY(p.y() + textSize.height() / 2)
+            painter.drawText(p, listEmpty)
+
+            # Draw the second line of text
+            font.setPointSize(smallFontSize)
+            font.setBold(False)
+            m = QtGui.QFontMetrics(font)
+            painter.setFont(font)
+            textSize = m.size(QtCore.Qt.TextSingleLine, addImagers_1)
+            p.setX(event.rect().center().x() - textSize.width() / 2)
+            p.setY(p.y() + metrics.lineSpacing() - dpiScale(2))
+            painter.drawText(p, addImagers_1)
+
+            # Draw the third line of text
+            textSize = m.size(QtCore.Qt.TextSingleLine, addImagers_2)
+            p.setX(event.rect().center().x() - textSize.width() / 2)
+            p.setY(p.y() + metrics.lineSpacing() - dpiScale(2))
+            painter.drawText(p, addImagers_2)
 
 
 class ImagerStackModel(BaseModel):
@@ -485,18 +541,18 @@ class ImagersUI(QtWidgets.QFrame):
         self.layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.layout)
 
-        cmds.setParent(self.parentMayaName)
-        rowLayout = cmds.rowLayout('arnoldImagerShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
-        cmds.text(label='')
-        addButton = cmds.button(label='Add Imager')
-        impopup = cmds.popupMenu(parent=addButton, button=1)
-        cmds.popupMenu(impopup, edit=True, postMenuCommand=Callback(self.buildImagerMenu, impopup))
-        cmds.setParent('..') # rowLayout
+        self.toolBar = QtWidgets.QFrame()
+        self.toolBar.setLayout(QtWidgets.QHBoxLayout())
+        self.layout.addWidget(self.toolBar)
 
-        cmds.setParent(self.parentMayaName)
+        self.addImagerButton = QtWidgets.QPushButton("Add Imager")
+        self.toolBar.layout().addWidget(self.addImagerButton)
+        self.imagerMenu = QtWidgets.QMenu()
+        self.addImagerButton.setMenu(self.imagerMenu)
 
-        self.rowLayoutQt = toQtObject(rowLayout, QtWidgets.QWidget)
-        # self.frame = QtWidgets.QFrame(self.currentWidget)
+        self.imagerMenu.triggered.connect(self.addImagerAction)
+
+        self.toolBar.layout().addItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
         self.splitter = QtWidgets.QSplitter(self)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
@@ -507,28 +563,33 @@ class ImagersUI(QtWidgets.QFrame):
         # self.imagerStack.setMinimumHeight(dpiScale(300))
         # self.frame.layout().addWidget(self.imagerStack)
         self.layout.addWidget(self.splitter)
+        self.attributeScrollArea = None
+        self.imagerAttributesFrame = None
         if not listOnly:
-            # self.attributesFrame = QtWidgets.QFrame(self.splitter)
-            # self.attributesFrame.setLayout(QtWidgets.QVBoxLayout(self.attributesFrame))
             self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
             self.attributeScrollArea.setObjectName("AttributeScrollArea")
+            attributesSizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+            attributesSizePolicy.setVerticalStretch(1)
+            self.attributeScrollArea.setSizePolicy(attributesSizePolicy)
+            self.attributeScrollArea.setWidgetResizable(True)
             self.attributeScrollArea.setWidgetResizable(True)
             self.attributeScrollArea.setMinimumHeight(dpiScale(200))
 
             self.scrollAreaWidgetContents = QtWidgets.QWidget()
-            # self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 816, 424))
             self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
             self.scrollAreaLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
 
             self.attributeScrollArea.setWidget(self.scrollAreaWidgetContents)
-            # self.frame.layout().addWidget(self.attributesFrame)
-            
+
             self.imagerAttributesFrame = None
 
             self.imagerStack.itemSelected.connect(self.showItemProperties)
+            self.imagerStack.itemRemoved.connect(self.updateImagers)
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
         cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
+        cmds.scriptJob(event=["NewSceneOpened", self.updateImagers])
+        cmds.scriptJob(event=["PostSceneRead", self.updateImagers])
         self.updateImagers()
         cmds.setParent('..')
 
@@ -538,6 +599,9 @@ class ImagersUI(QtWidgets.QFrame):
         if (self.imagerAttributesFrame):
             cmds.deleteUI(self.imagerAttributesFrame)
             self.imagerAttributesFrame = None
+
+        if not node or node not in self.imagerStack.model().imagers or len(self.imagerStack.model().imagers) == 0:
+            return
 
         cmds.setParent(self.parentMayaName)
         self.imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame', numberOfColumns=1)
@@ -552,7 +616,14 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.setParent('..')
 
     def updateImagers(self):
-        self.imagerStack.model().refresh()
+        if shiboken.isValid(self.imagerStack):
+            self.imagerStack.model().refresh()
+            # update the add imagers menu
+            self.buildImagerMenu()
+            # if there are no imagers selected clear the items panel
+            selection = self.imagerStack.selectedIndexes()
+            if not len(selection):
+                self.showItemProperties(None)
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
@@ -563,26 +634,40 @@ class ImagersUI(QtWidgets.QFrame):
         attrName = 'defaultArnoldRenderOptions.imagers[%d]' % imagersSize
         cmds.connectAttr("%s.message"%node, attrName, force=True)
         self.updateImagers()
+        lastIndex = self.imagerStack.model().index(self.imagerStack.model().rowCount() - 1, 0)
+        # self.imagerStack.selectionModel().select(lastIndex, QtCore.QItemSelectionModel.ClearAndSelect|| QtCore.QItemSelectionModel.Rows)
+        self.showItemProperties(node)
         cmds.select(node, r=True)
 
-    def buildImagerMenu(self, popup):
+    def addImagerAction(self, action):
+        imager_name = action.text()
+        # check if op exists, otherwise create it
+        creatable_imagers = cmds.arnoldPlugins(listImagers=True) or []
+
+        if not cmds.objExists(imager_name) and imager_name in creatable_imagers:
+            self.createImager(imager_name)
+        else:
+            self.addImager(imager_name)
+
+    def buildImagerMenu(self):
         if not self.imagerStack:
             return
 
-        cmds.popupMenu(popup, edit=True, deleteAllItems=True)
+        self.imagerMenu.clear()
+
         imagers = cmds.arnoldPlugins(listImagers=True) or []
 
         for imager in imagers:
             imagerNodes = cmds.ls(type=imager) or []
             for imagerNode in imagerNodes:
                 # don't display the nodes that are already in the stack
-                if not imagerNode in self.imagerStack.model().imagers:
-                    cmds.menuItem(parent=popup, label=imagerNode, command=Callback(self.addImager, imagerNode))
+                if imagerNode not in self.imagerStack.model().imagers:
+                    self.imagerMenu.addAction(imagerNode)
 
-        cmds.menuItem(parent=popup, divider=True)
+        self.imagerMenu.addSeparator()
         for imager in imagers:
-            cmdsLbl = 'Create {}'.format(imager)
-            cmds.menuItem(parent=popup, label=cmdsLbl,  command=Callback(self.createImager, imager))
+            cmdsLbl = '{}'.format(imager)
+            self.imagerMenu.addAction(cmdsLbl)
 
 
 def createImagersWidgetForARV():
