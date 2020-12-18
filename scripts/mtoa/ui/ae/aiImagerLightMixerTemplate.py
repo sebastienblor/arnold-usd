@@ -1,7 +1,7 @@
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-from mtoa.ui.qt import toQtObject
+from mtoa.ui.qt import toQtObject, clearWidget
 from mtoa.ui.qt import toMayaName , dpiScale
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
@@ -83,28 +83,29 @@ class LightGroupItem(QtWidgets.QWidget):
         self.enable_button.setStyleSheet(s_pushStyleButton)
         self.enable_button.setCheckable(True)
         self.enable_button.setIcon(DISABLED_ICON)
-        self.enable_button.clicked.connect(self.enableButtonClicked)
+        self.enable_button.toggled.connect(self.enableButtonClicked)
 
         self.label = QtWidgets.QLabel(name,self)
         self.mix_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.mix_slider.setRange(0,1000)
         self.mix_value = QtWidgets.QDoubleSpinBox()
         self.mix_value.setRange(0.0,10.0)
-        self.mix_slider.valueChanged.connect(self.sliderValueChanged)
+        self.mix_slider.valueChanged.connect(self.intensitySliderValueChanged)
+        self.mix_value.valueChanged.connect(self.intensityValueChanged)
         
         self.exposure_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.exposure_slider.setRange(-500,500)
         self.exposure_value = QtWidgets.QDoubleSpinBox()
         self.exposure_value.setRange(-5.0,5.0)
         self.exposure_slider.valueChanged.connect(self.exposureSliderValueChanged)
+        self.exposure_value.valueChanged.connect(self.exposureValueChanged)
 
-        
         self.scriptJobList = []
 
         self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layerSolo[%d]'%(self.itemIndex)))
-        self.enable_button.setChecked(cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
-        self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.layerIntensity[%d]'%(self.itemIndex))*100)
-        self.exposure_slider.setValue(cmds.getAttr(self.nodeName+'.layerExposure[%d]'%(self.itemIndex))*100)
+        self.enable_button.setChecked(not cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
+        self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.layerIntensity[%d]'%(self.itemIndex)) * 100)
+        self.exposure_slider.setValue(cmds.getAttr(self.nodeName+'.layerExposure[%d]'%(self.itemIndex)) * 100)
         self.tint_button = TintButton(attribute = self.nodeName + '.layerTint[%d]'%(self.itemIndex))
         self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
         self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
@@ -133,11 +134,13 @@ class LightGroupItem(QtWidgets.QWidget):
         
         self.nodeName = nodeName
         self.itemIndex = index
-        if index in cmds.getAttr(self.nodeName+'.layerName', mi = True):
-            self.enable_button.setChecked(cmds.getAttr(nodeName+'.layerEnable[%d]'%(index)))
+        multiIndices = cmds.getAttr(self.nodeName+'.layerName', mi=True) or []
+        if index in multiIndices:
+            enabled = cmds.getAttr(nodeName+'.layerEnable[%d]'%(index))
+            self.enable_button.setChecked(not enabled)
             self.solo_button.setChecked(cmds.getAttr(nodeName+'.layerSolo[%d]'%(index)))
-            self.mix_slider.setValue(cmds.getAttr(nodeName+'.layerIntensity[%d]'%(index))*100)
-            self.exposure_slider.setValue(cmds.getAttr(nodeName+'.layerExposure[%d]'%(index))*100)
+            self.mix_slider.setValue(cmds.getAttr(nodeName+'.layerIntensity[%d]'%(index)) * 100)
+            self.exposure_slider.setValue(cmds.getAttr(nodeName+'.layerExposure[%d]'%(index)) * 100)
             self.tint_button.update(nodeName, index)
         else:
             self.destroy()
@@ -147,24 +150,47 @@ class LightGroupItem(QtWidgets.QWidget):
         attribute = self.nodeName + '.layerSolo[%d]' %(self.itemIndex)
         cmds.setAttr(attribute, button_state)
 
-    def enableButtonClicked(self):
-        button_state = self.enable_button.isChecked()
+    def enableButtonClicked(self, disabled):
+        enabled = not disabled
+        self.mix_slider.setEnabled(enabled)
+        self.mix_value.setEnabled(enabled)
+        self.exposure_slider.setEnabled(enabled)
+        self.exposure_value.setEnabled(enabled)
+        self.tint_button.setEnabled(enabled)
+        self.label.setEnabled(enabled)
+
         attribute = None
         attribute = self.nodeName +'.layerEnable[%d]' %(self.itemIndex)
-        cmds.setAttr(attribute, button_state)
+        cmds.setAttr(attribute, enabled)
 
-    def sliderValueChanged(self):
-        value =float(self.mix_slider.value())/100.0
+    def intensityValueChanged(self, value):
+        self.mix_slider.setValue(value * 100)
+        self.setIntensityAttr(value)
+
+    def intensitySliderValueChanged(self, value):
+        value = value/100.0
         self.mix_value.setValue(value)
+        self.setIntensityAttr(value)
+
+    def setIntensityAttr(self, value):
         attribute = None
-        attribute = self.nodeName+'.layerIntensity[%d]' %(self.itemIndex)
+        attribute = '{}.layerIntensity[{}]'.format(self.nodeName, self.itemIndex)
         cmds.setAttr(attribute, value)
 
-    def exposureSliderValueChanged(self):
-        value =float(self.exposure_slider.value())/100.0
+    def exposureValueChanged(self, value):
+        self.exposure_slider.setValue(value * 100)
+        self.setExposureAttr(value)
+
+    def exposureSliderValueChanged(self, value):
+        value = value/100.0
         self.exposure_value.setValue(value)
-        attribute = self.nodeName+'.layerExposure[%d]' %(self.itemIndex)
+        self.setExposureAttr(value)
+
+    def setExposureAttr(self, value):
+        attribute = None
+        attribute = '{}.layerExposure[{}]'.format(self.nodeName, self.itemIndex)
         cmds.setAttr(attribute, value)
+
 
 class LightGroupLayers(QtWidgets.QDialog):
     def __init__(self, parent=None, displayList = None  ):
@@ -183,7 +209,8 @@ class LightGroupLayers(QtWidgets.QDialog):
         self.setLayout(self.mainLayout)
         self.mainLayout.addWidget(self.list)
         self.mainLayout.addWidget(self.buttonBox)
-    
+
+
 class LightMixer(QtWidgets.QFrame):
 
     def __init__(self, parent = None, nodeName = None):
@@ -210,23 +237,16 @@ class LightMixer(QtWidgets.QFrame):
 
         self.layerFrame = QtWidgets.QFrame(self)
         self.layerFrame.setSizePolicy(sizePolicy)
-        self.layerLayout = QtWidgets.QVBoxLayout(parent)
+        self.layerLayout = QtWidgets.QVBoxLayout(self.layerFrame)
         self.layerFrame.setLayout(self.layerLayout)
-
-        lightGroups = getLightGroups()
         self.lightGroupWidgets = []
-        if not cmds.getAttr(self.nodeName+'.layerName', size = True) > 0:
-            self.setDefaults( lightGroups = getLightGroups() )
-        for i in range(0,len(lightGroups)):
-            self.item = LightGroupItem(parent = self.mainLayout, name = 'RGBA_'+lightGroups[i], index = i , nodeName = self.nodeName)
-            self.lightGroupWidgets.append(self.item)
-            self.layerLayout.addWidget(self.item)
-            self.item.itemDeleted.sendDelete.connect(self.removeLayerAction)
 
         self.layerFrame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
         self.mainLayout.addWidget(self.actionsFrame)
         self.mainLayout.addWidget(self.layerFrame)
         self.setLayout(self.mainLayout)
+
+        self.update(self.nodeName)
 
     def setDefaults(self, lightGroups):
         for index in range(0,len(lightGroups)):
@@ -238,14 +258,24 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.layerExposure[%d]' %(index), 1)
 
     def update(self, nodeName):
-        for i in range(0,len(self.lightGroupWidgets)):
-            if i in cmds.getAttr(self.nodeName+'.layerName', mi = True):
-                # if self.lightGroupWidgets[i]: 
-                self.lightGroupWidgets[i].update(nodeName,i)
-            else:
-                # if self.lightGroupWidgets[i]: 
-                self.lightGroupWidgets[i].close()
-                self.lightGroupWidgets[i] = None
+        self.nodeName = nodeName
+
+        # clear the previous widgets
+        clearWidget(self.layerFrame)
+        self.lightGroupWidgets = []
+
+        lightGroups = getLightGroups()
+        if not cmds.getAttr(self.nodeName+'.layerName', size=True) > 0:
+            self.setDefaults(lightGroups=lightGroups)
+
+        multiIndices = cmds.getAttr(self.nodeName+'.layerName', mi=True) or []
+
+        for i in multiIndices:
+            layerName = cmds.getAttr('{}.layerName[{}]'.format(self.nodeName, i))
+            item = LightGroupItem(parent=self.mainLayout, name=layerName, index=i, nodeName=self.nodeName)
+            self.lightGroupWidgets.append(item)
+            self.layerLayout.addWidget(item)
+            item.itemDeleted.sendDelete.connect(self.removeLayerAction)
 
     def getWidgetLayers(self):
         layers_in_widget = []
@@ -286,10 +316,10 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.layerIntensity[%d]' %(index), 1)
             cmds.setAttr(self.nodeName+'.layerExposure[%d]' %(index), 1)
 
-            self.item = LightGroupItem(parent = self.mainLayout, name = 'RGBA_'+newItem, index = index , nodeName = self.nodeName)
-            self.lightGroupWidgets.append(self.item)
-            self.layerLayout.addWidget(self.item)
-            self.item.itemDeleted.sendDelete.connect(self.removeLayerAction)
+            item = LightGroupItem(parent = self.mainLayout, name = 'RGBA_'+newItem, index = index , nodeName = self.nodeName)
+            self.lightGroupWidgets.append(item)
+            self.layerLayout.addWidget(item)
+            item.itemDeleted.sendDelete.connect(self.removeLayerAction)
 
     def removeLayerAction(self,index):
         cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
