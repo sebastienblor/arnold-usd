@@ -131,7 +131,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             param_name = AiParamGetName(this_param)
             param_type = AiParamGetType(this_param)
 
-            # check this param is not in the black list
+            # check this param is not in the ignore list
             if param_name not in PARAM_IGNORELIST:
                 if param_type not in [AI_TYPE_ARRAY]:
                     self.user_attrs[node_type][param_name] = self._createControl(node_type, param_name, param_type, this_param)
@@ -251,7 +251,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 else:
                     param_default = self._getDefaultValue(this_param, param_type)
 
-                # check this param is not in the black list
+                # check this param is not in the ignore list
                 if param_name not in PARAM_IGNORELIST:
                     if param_type not in [AI_TYPE_ARRAY]:
                         cmds.setParent(subsections[node_type][sub_param])
