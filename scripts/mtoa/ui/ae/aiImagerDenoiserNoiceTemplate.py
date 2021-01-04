@@ -31,4 +31,4 @@ class ImagerDenoiserUI(ImagerBaseUI):
         self.addControl('variance')
 
 
-registerImagerTemplate("aiImagerDenoiser", ImagerDenoiserUI)
+registerImagerTemplate("aiImagerDenoiserNoice", ImagerDenoiserUI)

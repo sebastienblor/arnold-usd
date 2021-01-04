@@ -32,5 +32,4 @@ class ImagerDenoiserOptixUI(ImagerBaseUI):
         self.addControl('clampMax', annotation='')
         self.addControl('useFeatureAovs', annotation='')
 
-
 registerImagerTemplate("aiImagerDenoiserOptix", ImagerDenoiserOptixUI)
