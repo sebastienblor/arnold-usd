@@ -690,7 +690,7 @@ MAYAUSD_PATH = env.get('MAYAUSD_PATH')
 MAYAUSD_PATH_PYTHON2 = env.get('MAYAUSD_PATH_PYTHON2')
 
 env['MTOA_USD_PYTHON'] = '3'
-if USD_PATH and len(USD_PATH) > 0 and maya_version_base >= '2022':
+if USD_PATH and len(USD_PATH) > 0 and maya_version_base >= '2021':
     USD_PATH = env.subst(USD_PATH)
     print ('updating usd submodule...')
     system.execute('git submodule sync')
