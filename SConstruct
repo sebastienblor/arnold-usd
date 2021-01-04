@@ -184,7 +184,7 @@ vars.AddVariables(
     StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
     StringVariable('MAYAUSD_PATH_PYTHON2', 'Maya-USD installation root for python2', None),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
+    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline/master builds', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
@@ -324,7 +324,7 @@ else:
 if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
-    maya_version = '202100'
+    maya_version = '202200'
     env.Append(CPPDEFINES = Split('MAYA_MAINLINE')) 
 
 maya_version_base = maya_version[0:4]
@@ -478,7 +478,7 @@ if env['COMPILER'] == 'gcc':
         env.Append(LINKFLAGS = Split('-z origin') )
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
-    if env['MAYA_MAINLINE']:
+    if maya_version_base >= 2022:
         print '------ Setting C++14' 
         env.Append(CXXFLAGS = Split('-std=c++14'))
         env.Append(CCFLAGS = Split('-std=c++14'))
@@ -690,7 +690,7 @@ MAYAUSD_PATH = env.get('MAYAUSD_PATH')
 MAYAUSD_PATH_PYTHON2 = env.get('MAYAUSD_PATH_PYTHON2')
 
 env['MTOA_USD_PYTHON'] = '3'
-if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
+if USD_PATH and len(USD_PATH) > 0 and maya_version_base >= '2022':
     USD_PATH = env.subst(USD_PATH)
     print ('updating usd submodule...')
     system.execute('git submodule sync')
