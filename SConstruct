@@ -479,7 +479,7 @@ if env['COMPILER'] == 'gcc':
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
     if maya_version_base >= 2022:
-        print '------ Setting C++14' 
+        print('------ Setting C++14 for version {}'.format(maya_version_base))
         env.Append(CXXFLAGS = Split('-std=c++14'))
         env.Append(CCFLAGS = Split('-std=c++14'))
     else:
