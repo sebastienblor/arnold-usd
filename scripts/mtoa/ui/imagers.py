@@ -154,10 +154,10 @@ class ImagerStackView(BaseTreeView):
             textCol = QtGui.QColor(150, 150, 150)
             painter.setPen(textCol)
             pixMap = QtGui.QPixmap(os.path.join(mu.rootdir(), 'icons', "empty_box_dark-grey.svg"))
-            # iconSize = dpiScale(48)
+
             iconSize = pixMap.size()
             iconRect = QtCore.QRect(event.rect().center().x() - (iconSize.width() / 2),
-                                    event.rect().center().y() - (iconSize.height()) - dpiScale(32),
+                                    event.rect().center().y() - (iconSize.height() / 2) - dpiScale(16),
                                     iconSize.width(), iconSize.height())
 
             painter.drawPixmap(iconRect, pixMap)
@@ -171,7 +171,7 @@ class ImagerStackView(BaseTreeView):
             textSize = metrics.size(QtCore.Qt.TextSingleLine, listEmpty)
             p = event.rect().center()
             p.setX(p.x() - textSize.width() / 2)
-            p.setY(p.y() + textSize.height() / 2)
+            p.setY(p.y() + textSize.height() / 2 + (iconSize.height() / 2))
             painter.drawText(p, listEmpty)
 
             # Draw the second line of text
@@ -561,18 +561,13 @@ class ImagersUI(QtWidgets.QFrame):
 
         self.imagerStack = ImagerStackView(None, self.splitter)
         self.imagerStack.setObjectName("ImagerStackWidget")
-        self.imagerStack.setMinimumHeight(dpiScale(300))
-        # self.frame.layout().addWidget(self.imagerStack)
+        self.imagerStack.setMinimumHeight(dpiScale(100))
         self.layout.addWidget(self.splitter)
         self.attributeScrollArea = None
         self.imagerAttributesFrame = None
         if not listOnly:
             self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
             self.attributeScrollArea.setObjectName("AttributeScrollArea")
-            attributesSizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
-            attributesSizePolicy.setVerticalStretch(3)
-            self.attributeScrollArea.setSizePolicy(attributesSizePolicy)
-            self.attributeScrollArea.setWidgetResizable(True)
             self.attributeScrollArea.setWidgetResizable(True)
             self.attributeScrollArea.setMinimumHeight(dpiScale(200))
 
@@ -586,6 +581,8 @@ class ImagersUI(QtWidgets.QFrame):
 
             self.imagerStack.itemSelected.connect(self.showItemProperties)
             self.imagerStack.itemRemoved.connect(self.updateImagers)
+
+        self.splitter.setSizes([102888, 102888])
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
         cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
