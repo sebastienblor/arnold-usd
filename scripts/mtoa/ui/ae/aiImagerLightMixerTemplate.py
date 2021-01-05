@@ -72,10 +72,12 @@ class LightGroupItem(QtWidgets.QWidget):
         self.delete_button = QtWidgets.QPushButton()
         self.delete_button.setIcon(BIN_ICON)
         self.delete_button.clicked.connect(self.deleteAction)
+        self.delete_button.setToolTip("Delete Layer")
         self.solo_button = QtWidgets.QPushButton()
         self.solo_button.setStyleSheet(s_pushStyleButton)
         self.solo_button.setCheckable(True)
         self.solo_button.setIcon(SOLO_ICON)
+        self.solo_button.setToolTip("Solo Layer")
 
         self.solo_button.clicked.connect(self.soloButtonClicked)
         
@@ -84,12 +86,15 @@ class LightGroupItem(QtWidgets.QWidget):
         self.enable_button.setCheckable(True)
         self.enable_button.setIcon(DISABLED_ICON)
         self.enable_button.toggled.connect(self.enableButtonClicked)
+        self.enable_button.setToolTip("Enable/Disable Layer")
 
         self.label = QtWidgets.QLabel(name,self)
         self.mix_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.mix_slider.setRange(0,1000)
         self.mix_value = QtWidgets.QDoubleSpinBox()
         self.mix_value.setRange(0.0,10.0)
+        self.mix_value.setToolTip("Set the Intensity Value")
+        self.mix_slider.setToolTip("Set the Intensity Value")
         self.mix_slider.valueChanged.connect(self.intensitySliderValueChanged)
         self.mix_value.valueChanged.connect(self.intensityValueChanged)
         
@@ -97,6 +102,8 @@ class LightGroupItem(QtWidgets.QWidget):
         self.exposure_slider.setRange(-500,500)
         self.exposure_value = QtWidgets.QDoubleSpinBox()
         self.exposure_value.setRange(-5.0,5.0)
+        self.exposure_slider.setToolTip("Set the Exposure Value")
+        self.exposure_value.setToolTip("Set the Exposure Value")
         self.exposure_slider.valueChanged.connect(self.exposureSliderValueChanged)
         self.exposure_value.valueChanged.connect(self.exposureValueChanged)
 

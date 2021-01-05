@@ -8,10 +8,6 @@ import mtoa.utils as mu
 import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiImagersBaseTemplate import getImagerTemplate
-# from mtoa.ui.ae.aiImagerLensEffectsTemplate import ImagerLensEffectUI
-# from mtoa.ui.ae.aiImagerWhiteBalanceTemplate import ImagerWhiteBalanceUI
-# from mtoa.ui.ae.aiImagerColorCorrectTemplate import ImagerColorCorrectUI
-# from mtoa.ui.ae.aiImagerTonemapTemplate import ImagerTonemapUI
 
 from mtoa.ui.qt import toQtObject
 from mtoa.ui.qt import toMayaName
