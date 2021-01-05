@@ -144,7 +144,18 @@ AtNode* CUsdProxyShapeTranslator::CreateArnoldNodes()
       // FIXME replace by USD version
       if (s_mtoaExtPath.length() > 0)
       {
-         MString usdCachePath = s_mtoaExtPath + MString("/usd");
+         // Find if we're in python2 or python3
+         const char* envVar = getenv("MAYA_PYTHON_VERSION");
+         MString envVarStr = (envVar) ? MString(envVar) : MString("3");
+         MString usdFolder = (envVarStr == MString("2")) ? MString("/usd_python2") : MString("/usd");
+
+         /* When we'll need to get the usd version, we can call the 
+            following python code
+            
+            from pxr import Usd
+            return Usd.GetVersion()
+         */
+         MString usdCachePath = s_mtoaExtPath + usdFolder;
          AiLoadPlugins(usdCachePath.asChar());
          if (AiNodeEntryLookUp("usd_cache"))   
             return AddArnoldNode("usd_cache");
