@@ -255,7 +255,7 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.layerSolo[%d]' %(index), False)
             cmds.setAttr(self.nodeName+'.layerTint[%d]' %(index), 1, 1, 1, type = "float3")
             cmds.setAttr(self.nodeName+'.layerIntensity[%d]' %(index), 1)
-            cmds.setAttr(self.nodeName+'.layerExposure[%d]' %(index), 1)
+            cmds.setAttr(self.nodeName+'.layerExposure[%d]' %(index), 0)
 
     def update(self, nodeName):
         self.nodeName = nodeName
