@@ -312,7 +312,11 @@ class LightMixer(QtWidgets.QFrame):
             return
 
         for newItem in selected_items:
-            index = cmds.getAttr(self.nodeName+'.layerName', mi = True)[-1]+1
+            if cmds.getAttr(self.nodeName+'.layerName', mi = True):
+                index = cmds.getAttr(self.nodeName+'.layerName', mi = True)[-1]+1
+            else:
+                index = 0
+
             if '<residual_lights>' not in newItem:
                 cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), "RGBA_"+newItem, type = "string")
             else:
