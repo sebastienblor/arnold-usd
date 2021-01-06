@@ -386,8 +386,11 @@ void COptionsTranslator::ExportAOVs()
 
       }
       m_aovData.push_back(aovData);
+      
       if (denoise)
       {
+         // #4418 : Ignoring the attribute when it's set to keep older scenes compatible.
+         /*
          // If this AOV is denoised, we need to duplicate the output,
          // replace the  filter by a fresh new one (it must be unique for each AOV and not shared),
          // and append "_denoised" to the AOV name (thus image filename)
@@ -433,6 +436,7 @@ void COptionsTranslator::ExportAOVs()
          aovData.denoised = true;
          
          m_aovData.push_back(aovData);
+         */
       }
    }
    static AtString driver_exr_str("driver_exr");
