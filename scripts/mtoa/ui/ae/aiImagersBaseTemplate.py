@@ -89,7 +89,7 @@ class ImagerBaseUI(object):
         return self.parentLayout
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False, enumeratedItem=None):
+                   preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
 
         control = None
 
@@ -109,6 +109,8 @@ class ImagerBaseUI(object):
             kwargs['preventOverride'] = preventOverride
         if dynamic:
             kwargs['dynamic'] = dynamic
+        if hideMapButton:
+            kwargs['hideMapButton'] = hideMapButton
 
         if self._template:
             self._template.addControl(attr, **kwargs)

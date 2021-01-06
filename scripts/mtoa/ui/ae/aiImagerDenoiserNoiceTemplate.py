@@ -25,10 +25,11 @@ class ImagerDenoiserUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerDenoiserUI, self).setup()
-        self.addControl('patchRadius')
-        self.addControl('searchRadius')
-        self.addControl('tileSize')
-        self.addControl('variance')
+        self.addControl('outputSuffix', annotation='')
+        self.addControl('patchRadius', hideMapButton = True, annotation = "")
+        self.addControl('searchRadius', hideMapButton = True, annotation = "")
+        self.addControl('tileSize', hideMapButton = True, annotation = "")
+        self.addControl('variance', hideMapButton = True, annotation = "")
 
 
 registerImagerTemplate("aiImagerDenoiserNoice", ImagerDenoiserUI)

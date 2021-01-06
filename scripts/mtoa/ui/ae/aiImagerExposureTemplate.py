@@ -28,7 +28,7 @@ class ImagerExposureUI(ImagerBaseUI):
     def setup(self):
         super(ImagerExposureUI, self).setup()
         self.addSeparator()
-        self.addControl('exposure', label = "Exposure", annotation = "Exposure compensation amount in f-stops.")
+        self.addControl('exposure', label = "Exposure", annotation = "Exposure compensation amount in f-stops.", hideMapButton = True)
 
 
 registerImagerTemplate("aiImagerExposure", ImagerExposureUI)

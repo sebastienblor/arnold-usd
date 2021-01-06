@@ -227,7 +227,7 @@ class AttributeTemplate(BaseTemplate):
 
     @modeAttrMethod
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False, enumeratedItem=None):
+                   preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
         pass
         
             
@@ -361,7 +361,7 @@ class AEChildMode(BaseMode):
         self.addCustom(attr, template._doSetup, template._doUpdate)
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False, enumeratedItem=None):
+                   preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
         # TODO: lookup label and descr from metadata
         if not label:
             label = prettify(attr)
@@ -376,6 +376,8 @@ class AEChildMode(BaseMode):
             kwargs['changeCommand'] = changeCommand
         if enumeratedItem:
             kwargs['enumeratedItem'] = enumeratedItem
+        if hideMapButton:
+            kwargs['hideMapButton'] = hideMapButton
         parent = self._layoutStack[-1]
         cmds.setParent(parent)
         control = AttrControlGrp(**kwargs)
@@ -484,7 +486,7 @@ class AERootMode(BaseMode):
                                             template._doUpdate])
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False, enumeratedItem=None):
+                   preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
         if not label:
             label = prettify(attr)
             if label.startswith('Ai '):
@@ -504,6 +506,7 @@ class AERootMode(BaseMode):
             kwargs['label'] = label
         if annotation:
             kwargs['annotation'] = annotation
+
         cmds.editorTemplate(*args, **kwargs)
         
     def suppress(self, attr):

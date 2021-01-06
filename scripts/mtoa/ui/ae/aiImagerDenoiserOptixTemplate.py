@@ -26,10 +26,10 @@ class ImagerDenoiserOptixUI(ImagerBaseUI):
     def setup(self):
         super(ImagerDenoiserOptixUI, self).setup()
         self.addControl('outputSuffix', annotation='')
-        self.addControl('blend', annotation='')
+        self.addControl('blend', annotation='', hideMapButton = True)
         self.addControl('clamp', annotation='')
-        self.addControl('clampMin', annotation='')
-        self.addControl('clampMax', annotation='')
+        self.addControl('clampMin', annotation='', hideMapButton = True)
+        self.addControl('clampMax', annotation='', hideMapButton = True)
         self.addControl('useFeatureAovs', annotation='')
 
 registerImagerTemplate("aiImagerDenoiserOptix", ImagerDenoiserOptixUI)
