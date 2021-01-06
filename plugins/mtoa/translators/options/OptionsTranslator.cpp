@@ -389,7 +389,7 @@ void COptionsTranslator::ExportAOVs()
       
       if (denoise)
       {
-         AiMsgWarning("Optix Denoiser as a filter is deprecated, and will be removed in the future. Please use Optix Imagers instead ");
+         // #4418 : Ignoring the attribute when it's set to keep older scenes compatible.
          /*
          // If this AOV is denoised, we need to duplicate the output,
          // replace the  filter by a fresh new one (it must be unique for each AOV and not shared),
