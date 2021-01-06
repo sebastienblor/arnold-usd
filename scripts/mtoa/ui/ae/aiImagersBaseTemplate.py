@@ -24,7 +24,7 @@ class ImagerBoolCtl(object):
         self.label = label
 
         cmds.setParent(parent)
-        self.parentLayout = cmds.rowLayout("BoolLayout",
+        self.parentLayout = cmds.rowLayout("BoolLayout#",
                                            numberOfColumns=2,
                                            adjustableColumn=2,
                                            columnWidth=[1, 140])
