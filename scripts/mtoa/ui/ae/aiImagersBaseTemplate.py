@@ -21,11 +21,14 @@ class ImagerBoolCtl(object):
         self._attr = None
         self.checkbox = None
         self.parent = parent
+        self.label = label
 
         cmds.setParent(parent)
-        self.parentLayout = cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1, 100), (2, 100) , (3, 100) ])
-        cmds.text(label="")
-        cmds.text(label=label if label else "Enable")
+        self.parentLayout = cmds.rowLayout("BoolLayout",
+                                           numberOfColumns=2,
+                                           adjustableColumn=2,
+                                           columnWidth=[1, 140])
+        cmds.text("")
         cmds.setParent('..')
         self.setAttribute(attribute)
 
@@ -36,7 +39,7 @@ class ImagerBoolCtl(object):
         if self.checkbox and cmds.control(self.checkbox, q=True, exists=True):
             cmds.deleteUI(self.checkbox)
         cmds.setParent(self.parentLayout)
-        self.checkbox = cmds.checkBox(label='', parent=self.parentLayout)
+        self.checkbox = cmds.checkBox(label=self.label, parent=self.parentLayout)
         cmds.setParent('..')
         cmds.connectControl(self.checkbox, self._attr)
 
@@ -66,18 +69,6 @@ class ImagerBaseUI(object):
         return self._attr
 
     def setup(self):
-
-        # cmds.text(label = "")
-        # cmds.text(label = "Enable")
-        # checkbox = cmds.checkBox( label='', parent = self.parentLayout )
-        # cmds.connectControl( checkbox, '%s.enable' % nodeName )
-        # # self._controls.append((checkbox))
-        # cmds.text(label = "")
-        # cmds.text(label = "Layer Selection")
-        # textField = cmds.textField()
-        # cmds.connectControl( textField, '%s.layerSelection' % nodeName )
-        # # self._controls.append(textField)
-        # cmds.setParent('..')
         self.addControl("enable", label="Enable")
         if cmds.attributeQuery('layerSelection', n=self._nodeName, exists=True):
             self.addControl("layerSelection", label="Layer Selection")

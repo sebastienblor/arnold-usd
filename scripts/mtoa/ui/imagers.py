@@ -1,4 +1,4 @@
-﻿
+
 import os
 import arnold as ai
 from mtoa.ui.ae.templates import createTranslatorMenu
@@ -9,8 +9,7 @@ import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiImagersBaseTemplate import getImagerTemplate
 
-from mtoa.ui.qt import toQtObject
-from mtoa.ui.qt import toMayaName
+from mtoa.ui.qt import toQtObject, toMayaName, clearWidget
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui, shiboken
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
@@ -21,6 +20,7 @@ from mtoa.ui.qt.treeView import *
 
 
 IMAGER_MIME_TYPE = "application/arnold/imager"
+MAX_WIDTH = 16777215
 
 
 class ImagerStackView(BaseTreeView):
@@ -560,7 +560,8 @@ class ImagersUI(QtWidgets.QFrame):
         self.imagerStack.setMinimumHeight(dpiScale(100))
         self.layout.addWidget(self.splitter)
         self.attributeScrollArea = None
-        self.imagerAttributesFrame = None
+        self.scrollAreaWidgetContents = None
+
         if not listOnly:
             self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
             self.attributeScrollArea.setObjectName("AttributeScrollArea")
@@ -578,7 +579,7 @@ class ImagersUI(QtWidgets.QFrame):
             self.imagerStack.itemSelected.connect(self.showItemProperties)
             self.imagerStack.itemRemoved.connect(self.updateImagers)
 
-        self.splitter.setSizes([102888, 102888])
+        self.splitter.setSizes([MAX_WIDTH, MAX_WIDTH])
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
         cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
@@ -590,22 +591,39 @@ class ImagersUI(QtWidgets.QFrame):
     @QtCore.Slot(str)
     def showItemProperties(self, node):
 
-        if (self.imagerAttributesFrame):
-            cmds.deleteUI(self.imagerAttributesFrame)
-            self.imagerAttributesFrame = None
+        if self.scrollAreaWidgetContents:
+            # clear the scrollAreaLayout
+            clearWidget(self.scrollAreaWidgetContents)
 
         if not node or node not in self.imagerStack.model().imagers or len(self.imagerStack.model().imagers) == 0:
             return
 
         cmds.setParent(self.parentMayaName)
-        self.imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame', numberOfColumns=1)
+        imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame',
+                                                     numberOfColumns=1,
+                                                     columnAttach=[1, "both", 5])
+
+        frameQTWidget = toQtObject(imagerAttributesFrame, QtWidgets.QWidget)
+        frameQTWidget.setLayout(QtWidgets.QVBoxLayout())
 
         imagersUITemplate = getImagerTemplate(cmds.nodeType(node))
 
         if imagersUITemplate:
-            imagersUITemplate(parent=self.imagerAttributesFrame, nodeName=node)
+            imagersUITemplate(parent=imagerAttributesFrame, nodeName=node)
 
-        self.scrollAreaLayout.addWidget(toQtObject(self.imagerAttributesFrame, QtWidgets.QWidget))
+        frameQTWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        frameQTWidget.setMaximumWidth(MAX_WIDTH)
+        children = frameQTWidget.children()
+        for c in children:
+            if isinstance(c, QtWidgets.QWidget):
+                frameQTWidget.layout().removeWidget(c)
+                self.scrollAreaLayout.addWidget(c)
+                c.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+                c.setMaximumWidth(MAX_WIDTH)
+                c.updateGeometry()
+
+        cmds.deleteUI(imagerAttributesFrame)
+        self.scrollAreaLayout.addItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
 
         cmds.setParent('..')
 
@@ -661,6 +679,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.imagerMenu.addSeparator()
         for imager in imagers:
             cmdsLbl = '{}'.format(imager)
+            label = imager.strip("aiImager")
             self.imagerMenu.addAction(cmdsLbl)
 
 
