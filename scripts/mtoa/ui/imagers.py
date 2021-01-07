@@ -31,9 +31,10 @@ class ImagerStackView(BaseTreeView):
 
     MIN_VISIBLE_ENTRIES = 4
     MAX_VISIBLE_ENTRIES = 10
-    
+
     itemSelected = QtCore.Signal(str)
     itemRemoved = QtCore.Signal(str)
+    itemDropped = QtCore.Signal()
 
     def __init__(self, transverser = None, parent=None):
         super(ImagerStackView, self).__init__(parent)
@@ -115,6 +116,7 @@ class ImagerStackView(BaseTreeView):
     def dropEvent(self, event):
         super(ImagerStackView, self).dropEvent(event)
         self.dragStartPosition = None
+        self.itemDropped.emit()
 
     def startDrag(self, actions):
         if self.dragStartPosition:
@@ -209,21 +211,17 @@ class ImagerStackModel(BaseModel):
 
         self.rootItem = ImagerItem(None, "")
         # get all the imagers 
-        imagersSize = cmds.getAttr('defaultArnoldRenderOptions.imagers', s=True)
-        for i in range(imagersSize):
-            imagerShaderElem = 'defaultArnoldRenderOptions.imagers[%d]' % (i)
-            elemConnection = cmds.listConnections(imagerShaderElem,p=True, d=False,s=True)
+        imagers = cmds.listConnections('defaultArnoldRenderOptions.imagers') or []
 
-            if elemConnection and len(elemConnection) > 0:
-                imager = elemConnection[0].split('.')[0]
-                if cmds.objExists(imager) and cmds.attributeQuery('enable', node=imager, exists=True):
-                    enableAttr = '{}.enable'.format(imager)
-                    enabled = cmds.getAttr(enableAttr)
-                    ImagerItem(self.rootItem, imager, enabled)
-                    self.imagers.append(imager)
-                    if imager not in self.scriptJobList:
-                        self.scriptJobList.append(imager)
-                        cmds.scriptJob(attributeChange=[enableAttr, lambda *args: self.refresh()])
+        for imager in imagers:
+            if cmds.objExists(imager) and cmds.attributeQuery('enable', node=imager, exists=True):
+                enableAttr = '{}.enable'.format(imager)
+                enabled = cmds.getAttr(enableAttr)
+                ImagerItem(self.rootItem, imager, enabled)
+                self.imagers.append(imager)
+                if imager not in self.scriptJobList:
+                    self.scriptJobList.append(imager)
+                    cmds.scriptJob(attributeChange=[enableAttr, lambda *args: self.refresh()])
 
         self.endResetModel()
 
@@ -590,7 +588,10 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.scriptJob(attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
-        cmds.scriptJob(event=["SelectionChanged", self.updateImagers])
+        cmds.scriptJob(event=["SelectionChanged", self.updateSelection])
+
+        self.imagerStack.itemDropped.connect(self.updateSelection)
+
         self.updateImagers()
         cmds.setParent('..')
 
@@ -660,17 +661,27 @@ class ImagersUI(QtWidgets.QFrame):
                 self.showItemProperties(None)
 
             # select the imager that matches the current scene selection
-            if any(i in sceneSelection for i in nodes):
-                for s in sceneSelection:
-                    if s in nodes:
-                        self.imagerStack.setCurrentIndex(self.imagerStack.model().index(nodes.index(s), 0))
-                        self.showItemProperties(s)
+            if any(i in nodes for i in sceneSelection):
+                self.updateSelection()
             else:
                 # otherwise select was was selected previously
                 for idx in idxs:
                     self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
                     n = nodes[idx] if len(nodes) > idx else None
                     self.showItemProperties(n)
+
+    def updateSelection(self, node=None):
+
+        nodes = []
+        if shiboken.isValid(self.imagerStack):
+            nodes = self.imagerStack.model().imagers
+            sceneSelection = cmds.ls(sl=True)
+            # select the imager that matches the current scene selection
+            for s in sceneSelection:
+                if s in nodes:
+                    idx = nodes.index(s)
+                    self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
+                    self.showItemProperties(s)
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
