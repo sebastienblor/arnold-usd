@@ -46,7 +46,7 @@ def dpiScale(value):
     if type(value) in [QtCore.QPoint, QtCore.QPointF]:
         result = tuple([_DPI_SCALE * x for x in value.toTuple()])
         return type(value)(*result)
-    return int(_DPI_SCALE * value)
+    return _DPI_SCALE * value
 
 
 def dpiScaledIcon(path):

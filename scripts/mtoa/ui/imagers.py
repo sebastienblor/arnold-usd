@@ -1,5 +1,6 @@
-
+﻿
 import os
+import re
 import arnold as ai
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
@@ -41,6 +42,8 @@ class ImagerStackView(BaseTreeView):
         self.transverser = None
         self.dragStartPosition = None
         self.setModel(model)
+
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
         self.setDragEnabled(True)
 
@@ -561,6 +564,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.layout.addWidget(self.splitter)
         self.attributeScrollArea = None
         self.scrollAreaWidgetContents = None
+        self.scrollAreaLayout = None
 
         if not listOnly:
             self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
@@ -585,6 +589,7 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
         cmds.scriptJob(event=["NewSceneOpened", self.updateImagers])
         cmds.scriptJob(event=["PostSceneRead", self.updateImagers])
+        cmds.scriptJob(event=["SelectionChanged", self.updateImagers])
         self.updateImagers()
         cmds.setParent('..')
 
@@ -592,10 +597,13 @@ class ImagersUI(QtWidgets.QFrame):
     def showItemProperties(self, node):
 
         if self.scrollAreaWidgetContents:
-            # clear the scrollAreaLayout
+            # clear the scrollAreaWidgetContents
             clearWidget(self.scrollAreaWidgetContents)
+        else:
+            return
 
-        if not node or node not in self.imagerStack.model().imagers or len(self.imagerStack.model().imagers) == 0:
+        if not node or node not in self.imagerStack.model().imagers or \
+           len(self.imagerStack.model().imagers) == 0:
             return
 
         cmds.setParent(self.parentMayaName)
@@ -627,15 +635,36 @@ class ImagersUI(QtWidgets.QFrame):
 
         cmds.setParent('..')
 
-    def updateImagers(self):
+    def updateImagers(self, selectLast=False):
         if shiboken.isValid(self.imagerStack):
+
+            # get current selection
+            selection = self.imagerStack.selectedIndexes()
+            idxs = []
+            for s in selection:
+                idxs.append(s.row())
+
+            sceneSelection = cmds.ls(sl=True)
+
             self.imagerStack.model().refresh()
+            nodes = self.imagerStack.model().imagers
             # update the add imagers menu
             self.buildImagerMenu()
             # if there are no imagers selected clear the items panel
-            selection = self.imagerStack.selectedIndexes()
-            if not len(selection):
+            if not self.imagerStack.model().rowCount():
                 self.showItemProperties(None)
+
+            # select the imager that matches the current scene selection
+            if any(i in sceneSelection for i in nodes):
+                for s in sceneSelection:
+                    if s in nodes:
+                        self.imagerStack.setCurrentIndex(self.imagerStack.model().index(nodes.index(s), 0))
+                        self.showItemProperties(s)
+            else:
+                # otherwise select was was selected previously
+                for idx in idxs:
+                    self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
+                    self.showItemProperties(nodes[idx])
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
@@ -644,15 +673,14 @@ class ImagersUI(QtWidgets.QFrame):
     def addImager(self, node):
         imagersSize = cmds.getAttr('defaultArnoldRenderOptions.imagers', s=True)
         attrName = 'defaultArnoldRenderOptions.imagers[%d]' % imagersSize
+
         cmds.connectAttr("%s.message"%node, attrName, force=True)
-        self.updateImagers()
-        lastIndex = self.imagerStack.model().index(self.imagerStack.model().rowCount() - 1, 0)
-        self.imagerStack.selectionModel().select(lastIndex, QtCore.QItemSelectionModel.ClearAndSelect | QtCore.QItemSelectionModel.Rows)
-        self.showItemProperties(node)
-        cmds.select(node, r=True)
+        self.updateImagers(True)
 
     def addImagerAction(self, action):
         imager_name = action.text()
+        if not imager_name.startswith("aiImager"):
+            imager_name = "aiImager"+imager_name.replace(" ", "")
         # check if op exists, otherwise create it
         creatable_imagers = cmds.arnoldPlugins(listImagers=True) or []
 
@@ -679,7 +707,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.imagerMenu.addSeparator()
         for imager in imagers:
             cmdsLbl = '{}'.format(imager)
-            label = imager.strip("aiImager")
+            cmdsLbl = re.sub(r'((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))', r' \1', imager.replace("aiImager", ""))
             self.imagerMenu.addAction(cmdsLbl)
 
 
