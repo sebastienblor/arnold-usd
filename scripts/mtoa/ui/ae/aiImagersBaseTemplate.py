@@ -7,7 +7,7 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.templates import AEChildMode
 from mtoa.ui.ae.utils import AttrControlGrp, attrType
 from mtoa.utils import prettify
-
+import mtoa.aovs as aovs
 
 global _imagerTemplates
 _imagerTemplates = {}
@@ -46,6 +46,23 @@ class ImagerBoolCtl(object):
     def edit(self, **kwargs):
         cmds.checkBox(self.checkbox, edit=True, **kwargs)
 
+class LayersList(QtWidgets.QDialog):
+    def __init__(self, parent=None, displayList = None  ):
+        super(LayersList, self).__init__(toQtObject(parent))
+        buttons = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        self.buttonBox = QtWidgets.QDialogButtonBox(buttons)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.mainLayout = QtWidgets.QVBoxLayout(self)
+        self.setWindowTitle("Light Group Layer(s)")
+        self.list = QtWidgets.QListWidget(self)
+        self.list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        for item in displayList:
+            self.list.addItem(item)
+        self.setLayout(self.mainLayout)
+        self.mainLayout.addWidget(self.list)
+        self.mainLayout.addWidget(self.buttonBox)
 
 class ImagerBaseUI(object):
     def __init__(self, parent=None, nodeName=None, template=None):
@@ -68,10 +85,62 @@ class ImagerBaseUI(object):
     def attr(self):
         return self._attr
 
+    def layerSelectionChanged(self, nodeName):
+        full_path_control = cmds.control('layerSel',query = True, fullPathName = True)
+        layer_selection_text = cmds.textFieldButtonGrp(full_path_control, query = True , text = True)
+        if layer_selection_text != cmds.getAttr(nodeName):
+            cmds.setAttr(nodeName, layer_selection_text,type="string")
+        
+    
+    def layerSelectionButtonClicked(self, nodeName):
+        selected_items = []
+        scene_aovs = aovs.getAOVs()
+        aov_list = []
+        for item in scene_aovs:
+            aov_list.append(item.name)
+        aov_list += ['RGBA','Custom']
+        popup = LayersList(self, aov_list)
+        if popup.exec_():
+            for item in popup.list.selectedItems():
+                selected_items.append(item.text())
+        else:
+            return
+        if 'Custom' in selected_items:
+            layer_selection_string = " "
+        else:
+            layer_selection_string = ' or '.join(selected_items)
+        full_path_control = cmds.control('layerSel',query = True, fullPathName = True)
+        cmds.textFieldButtonGrp(full_path_control, edit = True , text = layer_selection_string)
+
+
+    def addLayerSelection(self, nodeName):
+        cmds.columnLayout()
+        layer_selection_text = cmds.getAttr(nodeName)
+        self.layerSelectionControl = cmds.textFieldButtonGrp( 'layerSel',label='Layer Selection',
+                                                              text=layer_selection_text,
+                                                              buttonLabel='Select AOVs',
+                                                              buttonCommand = lambda *args: self.layerSelectionButtonClicked(nodeName, *args),
+                                                              textChangedCommand = lambda *args: self.layerSelectionChanged(nodeName),
+                                                              ann = "The Imager will apply to the AOV's in this list. The field accepts an Arnold Selection Expression"
+                                                            )
+        cmds.setParent('..')
+
+    def updateLayerSelection(self, nodeName):
+
+        full_path_control = cmds.control('layerSel',query = True, fullPathName = True)
+        cmds.textFieldButtonGrp(full_path_control, edit = True,
+                                buttonCommand = lambda *args: self.layerSelectionButtonClicked(nodeName, *args),
+                                textChangedCommand = lambda *args: self.layerSelectionChanged(nodeName)
+                                )
+        layer_selection_text = cmds.getAttr(nodeName)
+        if layer_selection_text != cmds.textFieldButtonGrp(full_path_control, query = True , text = True):
+            cmds.textFieldButtonGrp(full_path_control, edit = True , text = layer_selection_text)
+            
+
     def setup(self):
         self.addControl("enable", label="Enable")
         if cmds.attributeQuery('layerSelection', n=self._nodeName, exists=True):
-            self.addControl("layerSelection", label="Layer Selection")
+            self.addCustom('layerSelection', self.addLayerSelection, self.updateLayerSelection)
 
     def nodeAttr(self, attr):
         return self.nodeName + '.' + attr
