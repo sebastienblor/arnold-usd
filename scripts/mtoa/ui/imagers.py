@@ -587,8 +587,8 @@ class ImagersUI(QtWidgets.QFrame):
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
         cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
-        cmds.scriptJob(event=["NewSceneOpened", self.updateImagers])
-        cmds.scriptJob(event=["PostSceneRead", self.updateImagers])
+        cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
+        cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
         cmds.scriptJob(event=["SelectionChanged", self.updateImagers])
         self.updateImagers()
         cmds.setParent('..')
@@ -634,6 +634,10 @@ class ImagersUI(QtWidgets.QFrame):
         self.scrollAreaLayout.addItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
 
         cmds.setParent('..')
+
+    def newSceneCallback(self):
+        cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
+        self.updateImagers()
 
     def updateImagers(self, selectLast=False):
         if shiboken.isValid(self.imagerStack):
