@@ -664,7 +664,8 @@ class ImagersUI(QtWidgets.QFrame):
                 # otherwise select was was selected previously
                 for idx in idxs:
                     self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
-                    self.showItemProperties(nodes[idx])
+                    n = nodes[idx] if len(nodes) > idx else None
+                    self.showItemProperties(n)
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
