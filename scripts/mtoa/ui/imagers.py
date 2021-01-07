@@ -636,6 +636,7 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.setParent('..')
 
     def newSceneCallback(self):
+        self.parentMayaName = toMayaName(self.parent)
         cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
         self.updateImagers()
 
