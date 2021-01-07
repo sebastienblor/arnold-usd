@@ -537,6 +537,7 @@ class ImagersUI(QtWidgets.QFrame):
         style = MtoAStyle.currentStyle()
         self.parent = parent
         self.parentMayaName = toMayaName(parent)
+        self.listOnly = listOnly
 
         self.layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.layout)
@@ -566,7 +567,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.scrollAreaWidgetContents = None
         self.scrollAreaLayout = None
 
-        if not listOnly:
+        if not self.listOnly:
             self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
             self.attributeScrollArea.setObjectName("AttributeScrollArea")
             self.attributeScrollArea.setWidgetResizable(True)
@@ -586,7 +587,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.splitter.setSizes([MAX_WIDTH, MAX_WIDTH])
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
-        cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
+        cmds.scriptJob(attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
         cmds.scriptJob(event=["SelectionChanged", self.updateImagers])
@@ -603,7 +604,7 @@ class ImagersUI(QtWidgets.QFrame):
             return
 
         if not node or node not in self.imagerStack.model().imagers or \
-           len(self.imagerStack.model().imagers) == 0:
+           len(self.imagerStack.model().imagers) == 0 or self.listOnly:
             return
 
         cmds.setParent(self.parentMayaName)
@@ -636,8 +637,7 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.setParent('..')
 
     def newSceneCallback(self):
-        self.parentMayaName = toMayaName(self.parent)
-        cmds.scriptJob(parent=self.parentMayaName, attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
+        cmds.scriptJob(attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
         self.updateImagers()
 
     def updateImagers(self, selectLast=False):
