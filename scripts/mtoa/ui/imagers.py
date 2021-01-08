@@ -700,7 +700,6 @@ class ImagersUI(QtWidgets.QFrame):
             imager_name = "aiImager"+imager_name.replace(" ", "")
         # check if op exists, otherwise create it
         creatable_imagers = cmds.arnoldPlugins(listImagers=True) or []
-
         if not cmds.objExists(imager_name) and imager_name in creatable_imagers:
             self.createImager(imager_name)
         else:
@@ -713,7 +712,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.imagerMenu.clear()
 
         imagers = cmds.arnoldPlugins(listImagers=True) or []
-
+        imagers.sort()
         for imager in imagers:
             imagerNodes = cmds.ls(type=imager) or []
             for imagerNode in imagerNodes:
