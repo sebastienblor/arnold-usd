@@ -22,6 +22,7 @@ from mtoa.ui.qt.treeView import *
 
 IMAGER_MIME_TYPE = "application/arnold/imager"
 MAX_WIDTH = 16777215
+IMAGERS_ATTR = "defaultArnoldRenderOptions.imagers"
 
 
 class ImagerStackView(BaseTreeView):
@@ -211,7 +212,7 @@ class ImagerStackModel(BaseModel):
 
         self.rootItem = ImagerItem(None, "")
         # get all the imagers 
-        imagers = cmds.listConnections('defaultArnoldRenderOptions.imagers') or []
+        imagers = cmds.listConnections(IMAGERS_ATTR) or []
 
         for imager in imagers:
             if cmds.objExists(imager) and cmds.attributeQuery('enable', node=imager, exists=True):
@@ -222,8 +223,28 @@ class ImagerStackModel(BaseModel):
                 if imager not in self.scriptJobList:
                     self.scriptJobList.append(imager)
                     cmds.scriptJob(attributeChange=[enableAttr, lambda *args: self.refresh()])
+                    cmds.scriptJob(nodeDeleted=[imager, lambda *args: self.remapImagersAttr()])
 
         self.endResetModel()
+
+    def remapImagersAttr(self):
+        imagers = cmds.listConnections(IMAGERS_ATTR, p=True, d=False,s=True)
+
+        if not imagers:
+            return
+
+        multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True)
+
+        for mi in multiIndices:
+            _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
+            cmds.removeMultiInstance(_attr , b=True)
+
+        i = 0
+        for imager in imagers:
+            cmds.connectAttr(imager, IMAGERS_ATTR+"[{}]".format(i))
+            i += 1
+
+        self.refresh()
 
     def removeImager(self, imager):
         if not self.imagers or len(self.imagers) == 0:
@@ -235,7 +256,7 @@ class ImagerStackModel(BaseModel):
             return 
         for i in range(index, imagersLength):
             # first disconnect the existing imagers connected at this index
-            imagerElemAttr = 'defaultArnoldRenderOptions.imagers[%d]' % i
+            imagerElemAttr = IMAGERS_ATTR+'[%d]' % i
             elemConnection = cmds.listConnections(imagerElemAttr,p=True, d=False,s=True)
             if (not elemConnection is None):
                 for elem in elemConnection:
@@ -243,14 +264,14 @@ class ImagerStackModel(BaseModel):
 
             # then, connect the following element to the current one
             if i < imagersLength - 1:
-                imagerNextElemAttr = 'defaultArnoldRenderOptions.imagers[%d]' % (i+1)
+                imagerNextElemAttr = IMAGERS_ATTR+'[%d]' % (i+1)
                 nextElemConnection = cmds.listConnections(imagerNextElemAttr,p=True, d=False,s=True)
                 if (not nextElemConnection is None) and len(nextElemConnection) > 0:
                     cmds.connectAttr(nextElemConnection[0], imagerElemAttr)
 
-        imagerElemAttr = 'defaultArnoldRenderOptions.imagers[%d]' % (imagersLength - 1)
+        imagerElemAttr = IMAGERS_ATTR+'[%d]' % (imagersLength - 1)
         cmds.removeMultiInstance(imagerElemAttr , b=True)
-        self.refresh()
+        self.remapImagersAttr()
 
     def moveImagerUp(self, itemIndex):
         if not self.imagers:
@@ -258,14 +279,14 @@ class ImagerStackModel(BaseModel):
         
         if itemIndex <= 0:
             return
-        imagerElemAttr = 'defaultArnoldRenderOptions.imagers[%d]' % (itemIndex)
+        imagerElemAttr = IMAGERS_ATTR+'[%d]' % (itemIndex)
         elemConnection = cmds.listConnections(imagerElemAttr,p=True, d=False,s=True)
         if elemConnection is None or len(elemConnection) == 0:
             return
         currentImager = elemConnection[0]
         cmds.disconnectAttr(currentImager, imagerElemAttr)
 
-        otherImagerElemAttr = 'defaultArnoldRenderOptions.imagers[%d]' % (itemIndex-1)
+        otherImagerElemAttr = IMAGERS_ATTR+'[%d]' % (itemIndex-1)
         elemConnection = cmds.listConnections(otherImagerElemAttr,p=True, d=False,s=True)
         if elemConnection is None or len(elemConnection) == 0:
             return
@@ -283,14 +304,14 @@ class ImagerStackModel(BaseModel):
         if itemIndex >= len(self.imagers) -1:
             return
 
-        imagerElemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(itemIndex)
+        imagerElemAttr = IMAGERS_ATTR+'[{}]'.format(itemIndex)
         elemConnection = cmds.listConnections(imagerElemAttr,p=True, d=False,s=True)
         if elemConnection is None or len(elemConnection) == 0:
             return
         currentImager = elemConnection[0]
         cmds.disconnectAttr(currentImager, imagerElemAttr)
 
-        otherImagerElemAttr = 'defaultArnoldRenderOptions.imagers[%d]' % (itemIndex+1)
+        otherImagerElemAttr = IMAGERS_ATTR+'[%d]' % (itemIndex+1)
         elemConnection = cmds.listConnections(otherImagerElemAttr,p=True, d=False,s=True)
         if elemConnection is None or len(elemConnection) == 0:
             return
@@ -421,10 +442,11 @@ class ImagerStackModel(BaseModel):
         * Reorder the current item in position
           to one index below position
         """
+        self.remapImagersAttr()
 
         # get index for given item
         itemIndex = self.imagers.index(item.getNodeName())
-        oldElemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(itemIndex)
+        oldElemAttr = IMAGERS_ATTR+'[{}]'.format(itemIndex)
         oldElemConnection = cmds.listConnections(oldElemAttr, p=True, d=False, s=True)
         movedImager = oldElemConnection[0]
 
@@ -443,7 +465,7 @@ class ImagerStackModel(BaseModel):
             position -= 1
 
         # get the item currently in the given position
-        imagerElemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(position)
+        imagerElemAttr = IMAGERS_ATTR+'[{}]'.format(position)
         elemConnection = cmds.listConnections(imagerElemAttr, p=True, d=False, s=True)
         if elemConnection is None or len(elemConnection) == 0:
             return
@@ -454,22 +476,22 @@ class ImagerStackModel(BaseModel):
             idx = itemIndex-1
             while idx >= position:
                 imager = self.imagers[idx]
-                elemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx)
+                elemAttr = IMAGERS_ATTR+'[{}]'.format(idx)
                 oldElemConnection = cmds.listConnections(elemAttr, p=True, d=False, s=True)
                 if oldElemConnection:
                     cmds.disconnectAttr(oldElemConnection[0], elemAttr)
-                    targetAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx+1)
+                    targetAttr = IMAGERS_ATTR+'[{}]'.format(idx+1)
                     cmds.connectAttr('{}.message'.format(imager), targetAttr)
                 idx -= 1
         else:
             idx = itemIndex+1
             while idx <= position:
                 imager = self.imagers[idx]
-                elemAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx)
+                elemAttr = IMAGERS_ATTR+'[{}]'.format(idx)
                 oldElemConnection = cmds.listConnections(elemAttr, p=True, d=False, s=True)
                 if oldElemConnection:
                     cmds.disconnectAttr(oldElemConnection[0], elemAttr)
-                    targetAttr = 'defaultArnoldRenderOptions.imagers[{}]'.format(idx-1)
+                    targetAttr = IMAGERS_ATTR+'[{}]'.format(idx-1)
                     cmds.connectAttr('{}.message'.format(imager), targetAttr)
                 idx += 1
 
@@ -585,7 +607,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.splitter.setSizes([MAX_WIDTH, MAX_WIDTH])
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
-        cmds.scriptJob(attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
+        cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True, per=True )
         cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
         cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
         cmds.scriptJob(event=["SelectionChanged", self.updateSelection])
@@ -638,7 +660,7 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.setParent('..')
 
     def newSceneCallback(self):
-        cmds.scriptJob(attributeChange=['defaultArnoldRenderOptions.imagers', self.updateImagers], dri=True, alc=True, per=True )
+        cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True, per=True )
         self.updateImagers()
 
     def updateImagers(self, selectLast=False):
@@ -677,19 +699,24 @@ class ImagersUI(QtWidgets.QFrame):
             nodes = self.imagerStack.model().imagers
             sceneSelection = cmds.ls(sl=True)
             # select the imager that matches the current scene selection
+            noSelection = True
             for s in sceneSelection:
                 if s in nodes:
                     idx = nodes.index(s)
                     self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
                     self.showItemProperties(s)
+                    noSelection = False
+
+            if noSelection:
+                self.showItemProperties(None)
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
         self.addImager(imager)
 
     def addImager(self, node):
-        imagersSize = cmds.getAttr('defaultArnoldRenderOptions.imagers', s=True)
-        attrName = 'defaultArnoldRenderOptions.imagers[%d]' % imagersSize
+        imagersSize = cmds.getAttr(IMAGERS_ATTR, s=True)
+        attrName = IMAGERS_ATTR+'[%d]' % imagersSize
 
         cmds.connectAttr("%s.message"%node, attrName, force=True)
         self.updateImagers(True)
