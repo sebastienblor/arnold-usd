@@ -5,7 +5,7 @@ from mtoa.ui.qt import toQtObject, clearWidget
 from mtoa.ui.qt import toMayaName , dpiScale
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
-from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate, LayersList
 from mtoa.ui.qt import BaseItem
 
 s_pushStyleButton = "QPushButton:pressed {background-color: rgb(150, 150, 150) ;} ";
@@ -19,6 +19,7 @@ def getLightGroups():
         if lightGroup != "" and not lightGroup in existingLightGroups:
             existingLightGroups.append(lightGroup)
     return existingLightGroups
+
 
 class TintButton(QtWidgets.QPushButton):
     def __init__(self, attribute, parent = None):
@@ -199,23 +200,23 @@ class LightGroupItem(QtWidgets.QWidget):
         cmds.setAttr(attribute, value)
 
 
-class LightGroupLayers(QtWidgets.QDialog):
-    def __init__(self, parent=None, displayList = None  ):
-        super(LightGroupLayers, self).__init__(parent)
-        buttons = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
-        self.buttonBox = QtWidgets.QDialogButtonBox(buttons)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
+# class LightGroupLayers(QtWidgets.QDialog):
+#     def __init__(self, parent=None, displayList = None  ):
+#         super(LightGroupLayers, self).__init__(parent)
+#         buttons = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+#         self.buttonBox = QtWidgets.QDialogButtonBox(buttons)
+#         self.buttonBox.accepted.connect(self.accept)
+#         self.buttonBox.rejected.connect(self.reject)
 
-        self.mainLayout = QtWidgets.QVBoxLayout(self)
-        self.setWindowTitle("Light Group Layer(s)")
-        self.list = QtWidgets.QListWidget(self)
-        self.list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        for item in displayList:
-            self.list.addItem(item)
-        self.setLayout(self.mainLayout)
-        self.mainLayout.addWidget(self.list)
-        self.mainLayout.addWidget(self.buttonBox)
+#         self.mainLayout = QtWidgets.QVBoxLayout(self)
+#         self.setWindowTitle("Light Group Layer(s)")
+#         self.list = QtWidgets.QListWidget(self)
+#         self.list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+#         for item in displayList:
+#             self.list.addItem(item)
+#         self.setLayout(self.mainLayout)
+#         self.mainLayout.addWidget(self.list)
+#         self.mainLayout.addWidget(self.buttonBox)
 
 
 class LightMixer(QtWidgets.QFrame):
@@ -304,7 +305,7 @@ class LightMixer(QtWidgets.QFrame):
             items_to_add.append('<residual_lights>')
         
         selected_items = []
-        popup = LightGroupLayers(self, items_to_add)
+        popup = LayersList(self, items_to_add)
         if popup.exec_():
             for item in popup.list.selectedItems():
                 selected_items.append(item.text())
