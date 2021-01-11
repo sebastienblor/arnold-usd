@@ -230,19 +230,18 @@ class ImagerStackModel(BaseModel):
     def remapImagersAttr(self):
         imagers = cmds.listConnections(IMAGERS_ATTR, p=True, d=False,s=True)
 
-        if not imagers:
-            return
+        if imagers:
+            multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True)
 
-        multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True)
+            for mi in multiIndices:
+                _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
+                cmds.removeMultiInstance(_attr , b=True)
 
-        for mi in multiIndices:
-            _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
-            cmds.removeMultiInstance(_attr , b=True)
+            i = 0
+            for imager in imagers:
+                cmds.connectAttr(imager, IMAGERS_ATTR+"[{}]".format(i))
 
-        i = 0
-        for imager in imagers:
-            cmds.connectAttr(imager, IMAGERS_ATTR+"[{}]".format(i))
-            i += 1
+                i += 1
 
         self.refresh()
 
@@ -558,6 +557,8 @@ class ImagersUI(QtWidgets.QFrame):
         self.parent = parent
         self.parentMayaName = toMayaName(parent)
         self.listOnly = listOnly
+        self.scriptJobs = []
+        self.nodes = []
 
         self.layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.layout)
@@ -607,10 +608,11 @@ class ImagersUI(QtWidgets.QFrame):
         self.splitter.setSizes([MAX_WIDTH, MAX_WIDTH])
 
         # every time the attribute imagers in the options node is modified, we want to update the widget
-        cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True, per=True )
-        cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
-        cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback])
-        cmds.scriptJob(event=["SelectionChanged", self.updateSelection])
+        self.scriptJobs.append(cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True))
+        self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
+        self.scriptJobs.append(cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback]))
+        self.scriptJobs.append(cmds.scriptJob(event=["PostSceneRead", self.newSceneCallback]))
+        self.scriptJobs.append(cmds.scriptJob(event=["SelectionChanged", self.updateSelection]))
 
         self.imagerStack.itemDropped.connect(self.updateSelection)
 
@@ -660,8 +662,47 @@ class ImagersUI(QtWidgets.QFrame):
         cmds.setParent('..')
 
     def newSceneCallback(self):
-        cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True, per=True )
+        for job in self.scriptJobs:
+            if not cmds.scriptJob(exists=job):
+                self.scriptJobs.pop(self.scriptJobs.index(job))
+
+        self.scriptJobs.append(cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True))
+        self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
         self.updateImagers()
+
+    def remapImagersAttr(self):
+        imagers = cmds.listConnections(IMAGERS_ATTR, p=True, d=False,s=True)
+        if not imagers:
+            return
+
+        multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True)
+        if not len(multiIndices) == len(imagers):
+            for mi in multiIndices:
+                _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
+                cmds.removeMultiInstance(_attr , b=True)
+
+            i = 0
+            for imager in imagers:
+                cmds.connectAttr(imager, IMAGERS_ATTR+"[{}]".format(i))
+                i += 1
+
+        self.updateImagers()
+
+    def connectionUpdate(self):
+        # get if we have an empty connection
+        dorefresh = False
+
+        _nodes = cmds.listConnections(IMAGERS_ATTR)
+        mi = cmds.getAttr(IMAGERS_ATTR, mi=True)
+        for i in mi:
+            _attr = IMAGERS_ATTR+"[{}]".format(int(i))
+            connection = cmds.listConnections(_attr)
+            if not connection:
+                dorefresh = True
+                break
+
+        if dorefresh or not all(i in self.nodes for i in _nodes):
+            self.remapImagersAttr()
 
     def updateImagers(self, selectLast=False):
         if shiboken.isValid(self.imagerStack):
@@ -675,7 +716,7 @@ class ImagersUI(QtWidgets.QFrame):
             sceneSelection = cmds.ls(sl=True)
 
             self.imagerStack.model().refresh()
-            nodes = self.imagerStack.model().imagers
+            self.nodes = self.imagerStack.model().imagers
             # update the add imagers menu
             self.buildImagerMenu()
             # if there are no imagers selected clear the items panel
@@ -683,14 +724,16 @@ class ImagersUI(QtWidgets.QFrame):
                 self.showItemProperties(None)
 
             # select the imager that matches the current scene selection
-            if any(i in nodes for i in sceneSelection):
+            if any(i in self.nodes for i in sceneSelection):
                 self.updateSelection()
             else:
                 # otherwise select was was selected previously
                 for idx in idxs:
                     self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
-                    n = nodes[idx] if len(nodes) > idx else None
+                    n = self.nodes[idx] if len(self.nodes) > idx else None
                     self.showItemProperties(n)
+
+            self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
 
     def updateSelection(self, node=None):
 
@@ -709,6 +752,8 @@ class ImagersUI(QtWidgets.QFrame):
 
             if noSelection:
                 self.showItemProperties(None)
+
+            self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
