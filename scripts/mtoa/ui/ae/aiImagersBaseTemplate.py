@@ -216,6 +216,7 @@ class ImagerBaseUI(object):
             self._template.beginLayout(label, **kwargs)
         else:
             kwargs['label'] = label
+            kwargs['collapsable'] = True
             cmds.setParent(self._layoutStack[-1])
             cmds.frameLayout(**kwargs)
             self._layoutStack.append(cmds.columnLayout(adjustableColumn=True))
