@@ -701,7 +701,7 @@ class ImagersUI(QtWidgets.QFrame):
                 dorefresh = True
                 break
 
-        if dorefresh or not all(i in self.nodes for i in _nodes):
+        if dorefresh or not self.nodes == _nodes:
             self.remapImagersAttr()
 
     def updateImagers(self, selectLast=False):
