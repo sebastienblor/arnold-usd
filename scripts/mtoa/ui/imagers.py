@@ -231,7 +231,7 @@ class ImagerStackModel(BaseModel):
         imagers = cmds.listConnections(IMAGERS_ATTR, p=True, d=False,s=True)
 
         if imagers:
-            multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True)
+            multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True) or []
 
             for mi in multiIndices:
                 _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
@@ -675,7 +675,7 @@ class ImagersUI(QtWidgets.QFrame):
         if not imagers:
             return
 
-        multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True)
+        multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True) or []
         if not len(multiIndices) == len(imagers):
             for mi in multiIndices:
                 _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
@@ -692,8 +692,8 @@ class ImagersUI(QtWidgets.QFrame):
         # get if we have an empty connection
         dorefresh = False
 
-        _nodes = cmds.listConnections(IMAGERS_ATTR)
-        mi = cmds.getAttr(IMAGERS_ATTR, mi=True)
+        _nodes = cmds.listConnections(IMAGERS_ATTR) or []
+        mi = cmds.getAttr(IMAGERS_ATTR, mi=True) or []
         for i in mi:
             _attr = IMAGERS_ATTR+"[{}]".format(int(i))
             connection = cmds.listConnections(_attr)
