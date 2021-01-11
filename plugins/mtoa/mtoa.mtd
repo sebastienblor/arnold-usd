@@ -3949,12 +3949,14 @@ desc STRING "Apply a gamma correction to the color."
     [attr layer_selection]
         default             STRING     "RGBA"
     [attr blend]
+        min                 FLOAT     0
         max                 FLOAT     1
         softmax             FLOAT     1
+        softmin             FLOAT     0
     [attr clamp_min]
         softmin             FLOAT     0
         softmax             FLOAT     1
-    [attr clam_max]
+    [attr clamp_max]
         softmin             FLOAT     0
         softmax             FLOAT     1
 
@@ -3979,3 +3981,4 @@ desc STRING "Apply a gamma correction to the color."
         maya.hide               BOOL     TRUE
     [attr layer_selection]
         default             STRING     "RGBA"
+
