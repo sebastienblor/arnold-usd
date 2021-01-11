@@ -46,6 +46,44 @@ class CustomDelete(QtCore.QObject):
     def __init__(self):
         super(CustomDelete, self).__init__()  
 
+class Titles(QtWidgets.QWidget):
+
+    def __init__(self, parent = None):
+        super(Titles, self).__init__()
+        self.mainLayout = QtWidgets.QHBoxLayout(self)
+        self.setLayout(self.mainLayout)
+        
+        self.label1 = QtWidgets.QLabel("<b>Del</b>   ",self)
+        self.label1.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label2 = QtWidgets.QLabel("<b>Solo</b>  ",self)
+        self.label2.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label3 = QtWidgets.QLabel("<b>On/Off</b>",self)
+        self.label3.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label4 = QtWidgets.QLabel(" <b>Light Group</b> ",self)
+        self.label4.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label4.setAlignment(QtCore.Qt.AlignCenter)
+        self.label5 = QtWidgets.QLabel("<b>Intensity</b>",self)
+        self.label5.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label5.setAlignment(QtCore.Qt.AlignCenter)
+        self.label6 = QtWidgets.QLabel("",self)
+        self.label6.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label7 = QtWidgets.QLabel("<b>Exposure</b>",self)
+        self.label7.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label7.setAlignment(QtCore.Qt.AlignCenter)
+        self.label8 = QtWidgets.QLabel("",self)
+        self.label8.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label9 = QtWidgets.QLabel("<b>Tint</b>",self)
+        self.label9.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        
+        self.mainLayout.addWidget(self.label1)
+        self.mainLayout.addWidget(self.label2)
+        self.mainLayout.addWidget(self.label3)
+        self.mainLayout.addWidget(self.label4)
+        self.mainLayout.addWidget(self.label5)
+        self.mainLayout.addWidget(self.label6)
+        self.mainLayout.addWidget(self.label7)
+        self.mainLayout.addWidget(self.label8)
+        self.mainLayout.addWidget(self.label9)
 
 class LightGroupItem(QtWidgets.QWidget):
 
@@ -55,6 +93,7 @@ class LightGroupItem(QtWidgets.QWidget):
         self.nodeName = nodeName
         self.itemIndex = index
         self.mainLayout = QtWidgets.QHBoxLayout(self)
+        
         self.setLayout(self.mainLayout)
         self.layerName = name
         self.itemDeleted = CustomDelete()
@@ -74,37 +113,45 @@ class LightGroupItem(QtWidgets.QWidget):
         self.delete_button.setIcon(BIN_ICON)
         self.delete_button.clicked.connect(self.deleteAction)
         self.delete_button.setToolTip("Delete Layer")
+        self.delete_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.solo_button = QtWidgets.QPushButton()
         self.solo_button.setStyleSheet(s_pushStyleButton)
         self.solo_button.setCheckable(True)
         self.solo_button.setIcon(SOLO_ICON)
         self.solo_button.setToolTip("Solo Layer")
-
         self.solo_button.clicked.connect(self.soloButtonClicked)
-        
+        self.solo_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.enable_button = QtWidgets.QPushButton()
         self.enable_button.setStyleSheet(s_pushStyleButton)
         self.enable_button.setCheckable(True)
         self.enable_button.setIcon(DISABLED_ICON)
         self.enable_button.toggled.connect(self.enableButtonClicked)
         self.enable_button.setToolTip("Enable/Disable Layer")
+        self.enable_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
 
         self.label = QtWidgets.QLabel(name,self)
+        self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+
         self.mix_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.mix_slider.setRange(0,1000)
+        self.mix_slider.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         self.mix_value = QtWidgets.QDoubleSpinBox()
         self.mix_value.setRange(0.0,10.0)
         self.mix_value.setToolTip("Set the Intensity Value")
+        self.mix_value.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.mix_slider.setToolTip("Set the Intensity Value")
         self.mix_slider.valueChanged.connect(self.intensitySliderValueChanged)
         self.mix_value.valueChanged.connect(self.intensityValueChanged)
         
         self.exposure_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.exposure_slider.setRange(-500,500)
+        self.exposure_slider.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         self.exposure_value = QtWidgets.QDoubleSpinBox()
         self.exposure_value.setRange(-5.0,5.0)
         self.exposure_slider.setToolTip("Set the Exposure Value")
         self.exposure_value.setToolTip("Set the Exposure Value")
+        self.exposure_value.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.exposure_slider.valueChanged.connect(self.exposureSliderValueChanged)
         self.exposure_value.valueChanged.connect(self.exposureValueChanged)
 
@@ -115,6 +162,7 @@ class LightGroupItem(QtWidgets.QWidget):
         self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.layerIntensity[%d]'%(self.itemIndex)) * 100)
         self.exposure_slider.setValue(cmds.getAttr(self.nodeName+'.layerExposure[%d]'%(self.itemIndex)) * 100)
         self.tint_button = TintButton(attribute = self.nodeName + '.layerTint[%d]'%(self.itemIndex))
+        self.tint_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
         self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
         self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerIntensity', lambda *args: self.update(self.nodeName, self.itemIndex)]))
@@ -200,23 +248,6 @@ class LightGroupItem(QtWidgets.QWidget):
         cmds.setAttr(attribute, value)
 
 
-# class LightGroupLayers(QtWidgets.QDialog):
-#     def __init__(self, parent=None, displayList = None  ):
-#         super(LightGroupLayers, self).__init__(parent)
-#         buttons = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
-#         self.buttonBox = QtWidgets.QDialogButtonBox(buttons)
-#         self.buttonBox.accepted.connect(self.accept)
-#         self.buttonBox.rejected.connect(self.reject)
-
-#         self.mainLayout = QtWidgets.QVBoxLayout(self)
-#         self.setWindowTitle("Light Group Layer(s)")
-#         self.list = QtWidgets.QListWidget(self)
-#         self.list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-#         for item in displayList:
-#             self.list.addItem(item)
-#         self.setLayout(self.mainLayout)
-#         self.mainLayout.addWidget(self.list)
-#         self.mainLayout.addWidget(self.buttonBox)
 
 
 class LightMixer(QtWidgets.QFrame):
@@ -248,12 +279,10 @@ class LightMixer(QtWidgets.QFrame):
         self.layerLayout = QtWidgets.QVBoxLayout(self.layerFrame)
         self.layerFrame.setLayout(self.layerLayout)
         self.lightGroupWidgets = []
-
         self.layerFrame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
         self.mainLayout.addWidget(self.actionsFrame)
         self.mainLayout.addWidget(self.layerFrame)
         self.setLayout(self.mainLayout)
-
         self.update(self.nodeName)
 
     def setDefaults(self, lightGroups):
@@ -267,9 +296,10 @@ class LightMixer(QtWidgets.QFrame):
 
     def update(self, nodeName):
         self.nodeName = nodeName
-
         # clear the previous widgets
         clearWidget(self.layerFrame)
+        item = Titles(parent=self.mainLayout)
+        self.layerLayout.addWidget(item)
         self.lightGroupWidgets = []
 
         lightGroups = getLightGroups()
@@ -349,7 +379,7 @@ class AEaiImagerLightMixerTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         self.baseLayout = self.beginLayout("Main", collapse=False)
         currentWidget = cmds.setParent(query=True)
-        # self.ui = ImagerLightMixerUI(parent=currentWidget, nodeName=self.nodeName, template=self)
+        self.ui = ImagerLightMixerUI(parent=currentWidget, nodeName=self.nodeName, template=self)
         self.endLayout()
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
