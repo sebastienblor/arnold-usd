@@ -1,27 +1,27 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20190200\\msvc_opt\\testsuite\\test_0267', 'ADCLMHUB_LOG_LEVEL': 'T', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2019', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'PATH': 'C:\\solidangle\\mtoadeploy\\2019\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2019\\bin;C:\\solidangle\\mtoadeploy\\2019\\lib;C:\\solidangle\\mtoadeploy\\2019\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2019', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt', 'ProgramW6432': 'C:\\Program Files'}
+ {'ARNOLD_TESTSUITE_COMMON': '/home/krishnan/dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/usr/autodesk/arnold/maya2020', 'PYMEL_SKIP_MEL_INIT': '1', 'ADCLMHUB_LOG_DIR': '/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0267', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0267', 'MAYA_RENDER_DESC_PATH': '/usr/autodesk/arnold/maya2020', 'PATH': '/usr/autodesk/arnold/maya2020/bin;/usr/autodesk/maya2020/bin;/usr/autodesk/arnold/maya2020/lib;/usr/autodesk/arnold/maya2020/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'MAYA_DISABLE_CER': '1'}
  
  ==== Exec cmd ==== 
  
-"C:\Python27\python.exe" post_script.py . D:\arnold\mtoa\external\OpenImageIO\bin\windows\oiiotool C:\solidangle\mtoadeploy\2019
+"/bin/python" post_script.py . /home/krishnan/dev/mtoa/external/OpenImageIO/bin/linux/oiiotool /usr/autodesk/arnold/maya2020
  
- noice 6.0.0.0 [0ae5888c] - the Arnold denoiser
-Using 40 threads.
+ noice 6.2.0.0 [8c46d7e7] - the Arnold denoiser
+Using 48 threads.
 Loading images...
-Loading file ".\original_beauty.exr".
-Loading file ".\original_diffuse_albedo_noice.exr".
-Loading file ".\original_Z_noice.exr".
-Loading file ".\original_N_noice.exr".
-Loading file ".\original_variance.exr".
+Loading file "./original_beauty.exr".
+Loading file "./original_diffuse_albedo_noice.exr".
+Loading file "./original_Z_noice.exr".
+Loading file "./original_N_noice.exr".
+Loading file "./original_variance.exr".
 Using feature AOV 'diffuse_albedo' with filter 'gaussian_filter'
 Using feature AOV 'N' with filter 'gaussian_filter'
 Using feature AOV 'Z' with filter 'gaussian_filter'
 Working with 1 frame at 160x120
 Will denoise AOV "RGBA", using associated variance
-   Output file will be ".\denoised.exr"
+   Output file will be "./denoised.exr"
 Start denoising (patch radius 3, search radius 9, variance 1)
 Denoising RGBA
 Finished denoising
-Saving image .\denoised.exr (160 x 120 x 4)
-C:\solidangle\mtoadeploy\2019\bin\noice -i .\original_beauty.exr -i .\original_diffuse_albedo_noice.exr -i .\original_Z_noice.exr -i .\original_N_noice.exr -i .\original_variance.exr -o .\denoised.exr -v 1
+Saving image ./denoised.exr (160 x 120 x 4)
+/usr/autodesk/arnold/maya2020/bin/noice -i ./original_beauty.exr -i ./original_diffuse_albedo_noice.exr -i ./original_Z_noice.exr -i ./original_N_noice.exr -i ./original_variance.exr -o ./denoised.exr -v 1
