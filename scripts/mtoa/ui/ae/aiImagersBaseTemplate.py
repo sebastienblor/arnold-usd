@@ -121,6 +121,7 @@ class ImagerBaseUI(object):
                                                               buttonLabel='Select AOVs',
                                                               buttonCommand = lambda *args: self.layerSelectionButtonClicked(nodeName, *args),
                                                               textChangedCommand = lambda *args: self.layerSelectionChanged(nodeName),
+                                                              columnWidth3=[150, 75, 100],
                                                               ann = "The Imager will apply to the AOV's in this list. The field accepts an Arnold Selection Expression"
                                                             )
         cmds.setParent('..')
