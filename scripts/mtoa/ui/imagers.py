@@ -79,7 +79,7 @@ class ImagerStackView(BaseTreeView):
         self.actionDisable = self.contextMenu.addAction("Disable Imager" if item.enabled else "Enable Imager")
         self.actionDisable.triggered.connect(lambda arg=None: self.disableImager(pos))
         self.actionDelete = self.contextMenu.addAction("Remove Imager")
-        self.actionDelete.triggered.connect(lambda arg=None: self.removeImager(pos))
+        self.actionDelete.triggered.connect(lambda arg=None: self.removeImagerAtPos(pos))
         self.actionMoveUp = None
         self.actionMoveDown = None
 
@@ -99,8 +99,15 @@ class ImagerStackView(BaseTreeView):
         index = self.indexAt(pos)
         self.model().executeAction(ImagerItem.ACTION_DISABLE, index)
 
-    def removeImager(self, pos):
+    def removeImagerAtPos(self, pos):
         index = self.indexAt(pos)
+        self.removeImager(index)
+
+    def removeSelectedImager(self):
+        index = self.currentIndex()
+        self.removeImager(index)
+
+    def removeImager(self, index):
         item = index.internalPointer()
         self.model().removeImager(item.name)
         self.itemRemoved.emit(item.name)
@@ -191,6 +198,10 @@ class ImagerStackView(BaseTreeView):
             p.setY(p.y() + metrics.lineSpacing() - dpiScale(2))
             painter.drawText(p, addImagers_2)
 
+    def remapImagersAttr(self):
+        if self.model():
+            self.model().remapImagersAttr()
+
 
 class ImagerStackModel(BaseModel):
     def __init__(self, treeView, parent=None):
@@ -222,16 +233,15 @@ class ImagerStackModel(BaseModel):
                 if imager not in self.scriptJobList:
                     self.scriptJobList.append(imager)
                     cmds.scriptJob(attributeChange=[enableAttr, lambda *args: self.refresh()])
-                    cmds.scriptJob(nodeDeleted=[imager, lambda *args: self.remapImagersAttr()])
+                    cmds.scriptJob(nodeDeleted=[imager, lambda *args: self.remapImagersAttr(True)])
 
         self.endResetModel()
 
-    def remapImagersAttr(self):
-        imagers = cmds.listConnections(IMAGERS_ATTR, p=True, d=False,s=True)
+    def remapImagersAttr(self, refresh=False):
+        imagers = cmds.listConnections(IMAGERS_ATTR, p=True, d=False,s=True) or []
 
-        if imagers:
-            multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True) or []
-
+        multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True) or []
+        if not len(multiIndices) == len(imagers):
             for mi in multiIndices:
                 _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
                 cmds.removeMultiInstance(_attr , b=True)
@@ -239,10 +249,10 @@ class ImagerStackModel(BaseModel):
             i = 0
             for imager in imagers:
                 cmds.connectAttr(imager, IMAGERS_ATTR+"[{}]".format(i))
-
                 i += 1
 
-        self.refresh()
+        if refresh:
+            self.refresh()
 
     def removeImager(self, imager):
         if not self.imagers or len(self.imagers) == 0:
@@ -573,13 +583,18 @@ class ImagersUI(QtWidgets.QFrame):
 
         self.imagerMenu.triggered.connect(self.addImagerAction)
 
+        self.removeImagerButton = QtWidgets.QPushButton("Remove Imager")
+        self.removeImagerButton.setDisabled(True)
+        self.toolBar.layout().addWidget(self.removeImagerButton)
+
+        self.removeImagerButton.pressed.connect(self.removeImagerAction)
+
         self.toolBar.layout().addItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
         self.splitter = QtWidgets.QSplitter(self)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.setObjectName("splitter")
 
-        self.imagerStack = ImagerStackView(None, self.splitter)
         self.imagerStack = ImagerStackView(None, self.splitter, showPlaceholder=not self.listOnly)
         self.imagerStack.setObjectName("ImagerStackWidget")
         self.imagerStack.setMinimumHeight(dpiScale(100))
@@ -615,6 +630,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.scriptJobs.append(cmds.scriptJob(event=["SelectionChanged", self.updateSelection]))
 
         self.imagerStack.itemDropped.connect(self.updateSelection)
+        self.imagerStack.selectionModel().selectionChanged.connect(self.selectionChanged)
 
         self.updateImagers()
         cmds.setParent('..')
@@ -661,6 +677,9 @@ class ImagersUI(QtWidgets.QFrame):
 
         cmds.setParent('..')
 
+    def selectionChanged(self, selected, deselected):
+        self.removeImagerButton.setDisabled(selected.isEmpty())
+
     def newSceneCallback(self):
         for job in self.scriptJobs:
             if not cmds.scriptJob(exists=job):
@@ -671,21 +690,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.updateImagers()
 
     def remapImagersAttr(self):
-        imagers = cmds.listConnections(IMAGERS_ATTR, p=True, d=False,s=True)
-        if not imagers:
-            return
-
-        multiIndices = cmds.getAttr(IMAGERS_ATTR, mi=True) or []
-        if not len(multiIndices) == len(imagers):
-            for mi in multiIndices:
-                _attr = IMAGERS_ATTR+"[{}]".format(int(mi))
-                cmds.removeMultiInstance(_attr , b=True)
-
-            i = 0
-            for imager in imagers:
-                cmds.connectAttr(imager, IMAGERS_ATTR+"[{}]".format(i))
-                i += 1
-
+        self.imagerStack.remapImagersAttr()
         self.updateImagers()
 
     def connectionUpdate(self):
@@ -733,6 +738,7 @@ class ImagersUI(QtWidgets.QFrame):
                     n = self.nodes[idx] if len(self.nodes) > idx else None
                     self.showItemProperties(n)
 
+            self.removeImagerButton.setDisabled(not len(self.imagerStack.selectedIndexes()))
             self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
 
     def updateSelection(self, node=None):
@@ -776,6 +782,10 @@ class ImagersUI(QtWidgets.QFrame):
             self.createImager(imager_name)
         else:
             self.addImager(imager_name)
+
+    def removeImagerAction(self):
+        self.imagerStack.removeSelectedImager()
+        self.showItemProperties(None)
 
     def buildImagerMenu(self):
         if not self.imagerStack:
