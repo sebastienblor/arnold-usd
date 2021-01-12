@@ -37,12 +37,13 @@ class ImagerStackView(BaseTreeView):
     itemRemoved = QtCore.Signal(str)
     itemDropped = QtCore.Signal()
 
-    def __init__(self, transverser = None, parent=None):
+    def __init__(self, transverser = None, parent=None, showPlaceholder=True):
         super(ImagerStackView, self).__init__(parent)
         model = ImagerStackModel(self)
         self.baseModel = model
         self.transverser = None
         self.dragStartPosition = None
+        self.showPlaceholder = showPlaceholder
         self.setModel(model)
 
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -143,11 +144,9 @@ class ImagerStackView(BaseTreeView):
 
     def paintEvent(self, event):
         super(ImagerStackView, self).paintEvent(event)
-
-        if self.model().rowCount() == 0:
+        if self.model().rowCount() == 0 and self.showPlaceholder:
             painter = QtGui.QPainter(self.viewport())
             font = painter.font()
-
             bigFontSize = 8
             smallFontSize = 8
             font.setPointSize(bigFontSize)
@@ -581,6 +580,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.splitter.setObjectName("splitter")
 
         self.imagerStack = ImagerStackView(None, self.splitter)
+        self.imagerStack = ImagerStackView(None, self.splitter, showPlaceholder=not self.listOnly)
         self.imagerStack.setObjectName("ImagerStackWidget")
         self.imagerStack.setMinimumHeight(dpiScale(100))
         self.layout.addWidget(self.splitter)
