@@ -82,7 +82,10 @@ if system.os == 'windows':
 if not local_env['MTOA_DISABLE_RV']:
     print 'Linking with Arnold RenderView'
     renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')
-    renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib')
+    if int(maya_version_base) >= 2021:
+        renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', '2022')
+    else:
+        renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib')
 
     local_env.Append(LIBPATH = [renderViewLibFolder])
     local_env.Append(CPPPATH = [renderViewIncludeFolder])
