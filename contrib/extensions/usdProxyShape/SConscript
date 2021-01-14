@@ -62,7 +62,7 @@ if local_env.get('USD_PATH') and local_env.get('USD_VERSION'):
         'usdLux',
         'usdVol',
         'usdSkel',
-        'usdRender',
+        # 'usdRender',
     ]
     
     local_env.Append(LIBS = usd_libs)
