@@ -91,15 +91,28 @@ for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  ( 
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH,x)
 
 if not mayaQtFolder or not mayaQtTarGz :
-    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
-    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
-
+    if (int(maya_version_base) < 2021):
+        mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
+        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+    else:
+        mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.15.2-include') 
+        if system.os == 'windows':
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2_vc14-include.zip')
+        else:
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2-include.tar.gz')
+    
 if not os.path.isdir(mayaQtFolder):
     if os.path.exists(mayaQtTarGz):
         print "Extracting Qt Files..."
-        import tarfile
-        tfile = tarfile.open(mayaQtTarGz, 'r:gz')
-        tfile.extractall(mayaQtFolder)
+        tmpFile, tmpExt = os.path.splitext(mayaQtTarGz)
+        if tmpExt == '.zip':
+            import zipfile
+            with zipfile.ZipFile(mayaQtTarGz, 'r') as zip_ref:
+                zip_ref.extractall(mayaQtFolder)
+        else:
+            import tarfile
+            tfile = tarfile.open(mayaQtTarGz, 'r:gz')
+            tfile.extractall(mayaQtFolder)
     else:
         print "Error : Qt Files not Found"
 
