@@ -685,9 +685,11 @@ class ImagersUI(QtWidgets.QFrame):
             if not cmds.scriptJob(exists=job):
                 self.scriptJobs.pop(self.scriptJobs.index(job))
 
-        self.scriptJobs.append(cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True))
-        self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
-        self.updateImagers()
+        # the options node might not exist anymore
+        if cmds.objExists('defaultArnoldRenderOptions'):
+            self.scriptJobs.append(cmds.scriptJob(attributeChange=[IMAGERS_ATTR, self.updateImagers], dri=True, alc=True))
+            self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
+            self.updateImagers()
 
     def remapImagersAttr(self):
         self.imagerStack.remapImagersAttr()
@@ -742,24 +744,22 @@ class ImagersUI(QtWidgets.QFrame):
             self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
 
     def updateSelection(self, node=None):
-
         nodes = []
-        if shiboken.isValid(self.imagerStack):
-            nodes = self.imagerStack.model().imagers
-            sceneSelection = cmds.ls(sl=True)
-            # select the imager that matches the current scene selection
+        if shiboken.isValid(self.imagerStack) and self.imagerStack.isVisible():
+            nodes = self.imagerStack.model().imagers or []
             noSelection = True
-            for s in sceneSelection:
-                if s in nodes:
-                    idx = nodes.index(s)
-                    self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
-                    self.showItemProperties(s)
-                    noSelection = False
+            if len(nodes) > 0:
+                sceneSelection = cmds.ls(sl=True)
+                # select the imager that matches the current scene selection
+                for s in sceneSelection:
+                    if s in nodes:
+                        idx = nodes.index(s)
+                        self.imagerStack.setCurrentIndex(self.imagerStack.model().index(idx, 0))
+                        self.showItemProperties(s)
+                        noSelection = False
 
-            if noSelection:
-                self.showItemProperties(None)
-
-            self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
+                if noSelection:
+                    self.showItemProperties(None)
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
