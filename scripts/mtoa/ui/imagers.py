@@ -691,6 +691,11 @@ class ImagersUI(QtWidgets.QFrame):
             self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
             self.updateImagers()
 
+    def enterEvent(self, event):
+        # ensure the list and selection is up-to-date    
+        self.connectionUpdate()
+        self.updateSelection()
+    
     def remapImagersAttr(self):
         self.imagerStack.remapImagersAttr()
         self.updateImagers()
@@ -741,9 +746,13 @@ class ImagersUI(QtWidgets.QFrame):
                     self.showItemProperties(n)
 
             self.removeImagerButton.setDisabled(not len(self.imagerStack.selectedIndexes()))
-            self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
+            #self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
 
     def updateSelection(self, node=None):
+        # we only want to update the selection if the UI is visible.
+        # Otherwise, this will be updated in the next mouse enter
+        if not self.isVisible():
+            return
         nodes = []
         if shiboken.isValid(self.imagerStack) and self.imagerStack.isVisible():
             nodes = self.imagerStack.model().imagers or []
