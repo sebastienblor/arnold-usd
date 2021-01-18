@@ -21,7 +21,7 @@ try:
 except ModuleNotFoundError as e:
     import urllib
 
-
+import arnold
 from uuid import getnode as get_mac
 import os
 import sys
@@ -156,9 +156,7 @@ def arnoldAboutDialog():
     except:
         pass
 
-    with open(pluginPath, "r", encoding="utf8") as fileHandle:
-        legaltext = fileHandle.read()
-
+    legaltext = arnold.AiGetCopyrightNotices(arnold.AI_COPYRIGHT_NOTICES_PLUGINS)
     arnoldAboutText =  u"Arnold for Maya\n\n"
     arnoldAboutText += "MtoA " + cmds.pluginInfo( 'mtoa', query=True, version=True)
     arnoldBuildID = cmds.arnoldPlugins(getBuildID=True)
