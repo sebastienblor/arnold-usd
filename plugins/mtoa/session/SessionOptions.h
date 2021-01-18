@@ -82,6 +82,9 @@ struct CMayaExportFilter
 #define MTOA_EXPORT_SEPARATOR_PIPES     0x0000
 #define MTOA_EXPORT_SEPARATOR_SLASHES   0x0001
 
+#define MTOA_EXPORT_DAG_SHAPE           0x0000
+#define MTOA_EXPORT_DAG_TRANSFORM       0x0001
+
 
 struct CMotionBlurOptions
 {
@@ -127,6 +130,7 @@ struct CSessionOptions
    inline bool GetExportFullPath() const {return m_exportFullPath;}
    inline const MString &GetExportPrefix() const {return m_exportPrefix;}
    inline bool GetExportAllShadingGroups() const {return m_exportAllShadingGroups;}
+   inline bool GetExportDagTransformNames() const {return m_exportDagTransformNames;}
 
    // if I don't inline this here, some contrib libs fail at linking
    inline void GetMotionRange(double &motion_start, double &motion_end) const {
@@ -218,7 +222,8 @@ private:
                         m_exportFullPath(true),
                         m_exportAllShadingGroups(false),
                         m_exportSlashSeparator(true),
-                        m_exportNamespace(MTOA_EXPORT_NAMESPACE_ON)
+                        m_exportNamespace(MTOA_EXPORT_NAMESPACE_ON),
+                        m_exportDagTransformNames(false)
                         
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
@@ -290,6 +295,5 @@ private:
    bool                 m_exportAllShadingGroups;
    bool                 m_exportSlashSeparator;
    unsigned char        m_exportNamespace;
-
-
+   bool                 m_exportDagTransformNames;
 };
