@@ -1410,7 +1410,12 @@ void COptionsTranslator::Export(AtNode *options)
          ExportConnectedNode(conns[0]) : nullptr;
       
       if (linkedNode)
-         imagersStack.push_back(linkedNode);
+      {
+         // When translating the stack to a graph, we need to start from last one, then 
+         // successively connect the imagers as input of the previous, until the first one.
+         // This will make it so that the last imager in the list is applied at the end by arnold
+         imagersStack.insert(imagersStack.begin(), linkedNode);
+      }
    }
 
    // Loop over all the output drivers, set the attribute input to the first imager 
