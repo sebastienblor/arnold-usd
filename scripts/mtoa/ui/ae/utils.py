@@ -197,6 +197,7 @@ def attrTextFieldGrp(*args, **kwargs):
             ctrl = cmds.textFieldGrp(label=labelText,
                                    text=cmds.getAttr(attribute),
                                    changeCommand=cc)
+        ctrl = ctrl.split('|')[-1]
         cmds.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
                                       lambda: cmds.textFieldGrp(ctrl, edit=True,
