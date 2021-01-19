@@ -183,8 +183,9 @@ class LightGroupItem(QtWidgets.QWidget):
         self.itemDeleted.sendDelete.emit(self.itemIndex)
 
     def destroy(self):
-        self.close()
-    
+        if shiboken.isValid(self):
+            self.close()
+
     def update(self, nodeName, index):
         
         self.nodeName = nodeName
@@ -372,17 +373,21 @@ class LightMixer(QtWidgets.QFrame):
         self.lightGroupWidgets[index].close()
         self.lightGroupWidgets[index] = None
 
+
 class AEaiImagerLightMixerTemplate(ShaderAETemplate):
 
     def setup(self):
+
         self.beginScrollLayout()
-        self.baseLayout = self.beginLayout("Main", collapse=False)
+
         currentWidget = cmds.setParent(query=True)
         self.ui = ImagerLightMixerUI(parent=currentWidget, nodeName=self.nodeName, template=self)
-        self.endLayout()
+
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
         self.addExtraControls()
         self.endScrollLayout()
+
 
 class ImagerLightMixerUI(ImagerBaseUI):
 
@@ -397,9 +402,10 @@ class ImagerLightMixerUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerLightMixerUI, self).setup()
+        self.beginLayout("Main", collapse=False)
         self.addControl("outputName")
-        self.addSeparator()
         self.addCustom("mixerWidget", self.createLightMixerWidget , self.updateLightMixerWidget)
+        self.endLayout()
     
     def createLightMixerWidget(self, nodeName):
         currentWidget = self.__currentWidget()

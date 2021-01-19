@@ -136,12 +136,15 @@ class ImagerBaseUI(object):
         layer_selection_text = cmds.getAttr(nodeName)
         if layer_selection_text != cmds.textFieldButtonGrp(full_path_control, query = True , text = True):
             cmds.textFieldButtonGrp(full_path_control, edit = True , text = layer_selection_text)
-            
 
     def setup(self):
+        self.beginLayout("Common", collapse=False)
+
         self.addControl("enable", label="Enable")
         if cmds.attributeQuery('layerSelection', n=self._nodeName, exists=True):
             self.addCustom('layerSelection', self.addLayerSelection, self.updateLayerSelection)
+
+        self.endLayout()
 
     def nodeAttr(self, attr):
         return self.nodeName + '.' + attr

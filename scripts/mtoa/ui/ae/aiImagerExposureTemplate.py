@@ -11,12 +11,13 @@ from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplat
 class AEaiImagerExposureTemplate(ShaderAETemplate):
 
     def setup(self):
+
         self.beginScrollLayout()
-        self.baseLayout = self.beginLayout("Main", collapse=False)
         currentWidget = cmds.setParent(query=True)
         self.ui = ImagerExposureUI(parent=currentWidget, nodeName=self.nodeName, template=self)
-        self.endLayout()
+
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
         self.addExtraControls()
         self.endScrollLayout()
 
@@ -27,8 +28,9 @@ class ImagerExposureUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerExposureUI, self).setup()
-        self.addSeparator()
+        self.beginLayout("Main", collapse=False)
         self.addControl('exposure', label = "Exposure", annotation = "Exposure compensation amount in f-stops.", hideMapButton = True)
+        self.endLayout()
 
 
 registerImagerTemplate("aiImagerExposure", ImagerExposureUI)

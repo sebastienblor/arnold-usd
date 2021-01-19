@@ -5,16 +5,16 @@ from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplat
 import maya.cmds as cmds
 
 
-class AEaiImagerDenoiserTemplate(ShaderAETemplate):
+class AEaiImagerDenoiserNoiceTemplate(ShaderAETemplate):
 
     def setup(self):
+
         self.beginScrollLayout()
-        self.ui = None
-        self.baseLayout = self.beginLayout("Main", collapse=False)
         currentWidget = cmds.setParent(query=True)
         self.ui = ImagerDenoiserUI(parent=currentWidget, nodeName=self.nodeName, template=self)
-        self.endLayout()
+
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
         self.addExtraControls()
         self.endScrollLayout()
 
@@ -25,11 +25,13 @@ class ImagerDenoiserUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerDenoiserUI, self).setup()
+        self.beginLayout("Main", collapse=False)
         self.addControl('outputSuffix', annotation='')
         self.addControl('patchRadius', hideMapButton = True, annotation = "")
         self.addControl('searchRadius', hideMapButton = True, annotation = "")
         self.addControl('tileSize', hideMapButton = True, annotation = "")
         self.addControl('variance', hideMapButton = True, annotation = "")
+        self.endLayout()
 
 
 registerImagerTemplate("aiImagerDenoiserNoice", ImagerDenoiserUI)

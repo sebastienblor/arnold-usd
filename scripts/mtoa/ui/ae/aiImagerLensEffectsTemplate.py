@@ -8,12 +8,14 @@ import maya.cmds as cmds
 class AEaiImagerLensEffectsTemplate(ShaderAETemplate):
 
     def setup(self):
+
         self.beginScrollLayout()
-        self.baseLayout = self.beginLayout("Main", collapse=False)
+
         currentWidget = cmds.setParent(query=True)
         self.ui = ImagerLensEffectUI(parent=currentWidget, nodeName=self.nodeName, template=self)
-        self.endLayout()
+
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
         self.addExtraControls()
         self.endScrollLayout()
 
@@ -24,7 +26,6 @@ class ImagerLensEffectUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerLensEffectUI, self).setup()
-        self.addSeparator()
         self.beginLayout("Vignetting", collapse=False)
         self.addControl('vignetting', label='Vignetting', annotation='Vignetting amount', hideMapButton = True)
         self.endLayout()

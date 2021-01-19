@@ -8,12 +8,14 @@ from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplat
 class AEaiImagerWhiteBalanceTemplate(ShaderAETemplate):
 
     def setup(self):
+
         self.beginScrollLayout()
-        self.baseLayout = self.beginLayout("Main", collapse=False)
+
         currentWidget = cmds.setParent(query=True)
         self.ui = ImagerWhiteBalanceUI(parent=currentWidget, nodeName=self.nodeName, template=self)
-        self.endLayout()
+
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
         self.addExtraControls()
         self.endScrollLayout()
 
@@ -25,10 +27,13 @@ class ImagerWhiteBalanceUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerWhiteBalanceUI, self).setup()
+        self.beginLayout("Main", collapse=False)        
         self.addControl('mode', label='Mode', changeCommand=lambda *args: self.updateParamsVisibility(self.nodeName), annotation='White balance mode. (illuminant, temperature, custom)')
+
         self.addControl('illuminant', annotation='Temperature for black body mode.')
         self.addControl('temperature', annotation='Standard illuminant name for illuminante mode.', hideMapButton = True)
         self.addControl('custom', annotation='Custom white balance color.')
+        self.endLayout()
 
         self.updateParamsVisibility(self.nodeName)
 

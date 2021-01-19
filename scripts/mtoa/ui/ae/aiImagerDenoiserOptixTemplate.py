@@ -8,13 +8,13 @@ import maya.cmds as cmds
 class AEaiImagerDenoiserOptixTemplate(ShaderAETemplate):
 
     def setup(self):
+
         self.beginScrollLayout()
-        self.ui = None
-        self.baseLayout = self.beginLayout("Main", collapse=False)
         currentWidget = cmds.setParent(query=True)
         self.ui = ImagerDenoiserOptixUI(parent=currentWidget, nodeName=self.nodeName, template=self)
-        self.endLayout()
+
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
         self.addExtraControls()
         self.endScrollLayout()
 
@@ -25,11 +25,14 @@ class ImagerDenoiserOptixUI(ImagerBaseUI):
 
     def setup(self):
         super(ImagerDenoiserOptixUI, self).setup()
+        self.beginLayout("Main", collapse=False)
         self.addControl('outputSuffix', annotation='')
         self.addControl('blend', annotation='', hideMapButton = True)
         self.addControl('clamp', annotation='')
         self.addControl('clampMin', annotation='', hideMapButton = True)
         self.addControl('clampMax', annotation='', hideMapButton = True)
         self.addControl('useFeatureAovs', annotation='')
+        self.endLayout()
+
 
 registerImagerTemplate("aiImagerDenoiserOptix", ImagerDenoiserOptixUI)
