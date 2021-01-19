@@ -1820,7 +1820,7 @@ def create_installer(target, source, env):
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
 
-        if env['MAYA_MAINLINE']:
+        if int(maya_version) >= 2021:
             pitregScript.write('\n')
             pitregCommand = "LT_FOLDER=/Users/Shared/Autodesk/modules/maya/%sLT\n" % maya_version
             pitregScript.write(pitregCommand)
