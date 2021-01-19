@@ -3969,7 +3969,8 @@ desc STRING "Apply a gamma correction to the color."
     [attr input]
         maya.hide               BOOL     TRUE
     [attr layer_selection]
-        default             STRING     "RGBA*"
+        default             STRING     "RGBA"
+        maya.hide           BOOL        TRUE
 
 [node imager_denoiser_noice]
     maya.name              STRING "aiImagerDenoiserNoice"
