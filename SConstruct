@@ -1820,17 +1820,6 @@ def create_installer(target, source, env):
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
 
-        if env['MAYA_MAINLINE']:
-            pitregScript.write('\n')
-            pitregCommand = "LT_FOLDER=/Users/Shared/Autodesk/modules/maya/%sLT\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregCommand = "if [ ! -e $LT_FOLDER ]; then\n"
-            pitregScript.write(pitregCommand)
-            pitregScript.write("mkdir $LT_FOLDER\n")
-            pitregScript.write('fi\n')
-            pitregCommand = "cp /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod /Users/Shared/Autodesk/modules/maya/%sLT/mtoa.mod" % (maya_version, maya_version)
-            pitregScript.write(pitregCommand)
-
         ### Add the LicenseUpdater 
         pitregScript.write('\n')
         pitregCommand = "  chmod +x $2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version

@@ -166,18 +166,6 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     FileWrite $0 "MAYA_PXR_PLUGINPATH_NAME += $INSTDIR\usd$\r$\n"
     FileClose $0
     
-    ${If} "$%MAYA_VERSION%" > "2020"
-    CreateDirectory "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%LT"
-    FileOpen $0 "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%LT\mtoa.mod" w
-    FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
-    FileWrite $0 "PATH +:= bin$\r$\n"
-    FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
-    FileWrite $0 "MAYA_SCRIPT_PATH +:= scripts/mtoa/mel$\r$\n"
-    FileWrite $0 "MAYA_RENDER_DESC_PATH += $INSTDIR$\r$\n"
-    FileWrite $0 "MAYA_PXR_PLUGINPATH_NAME += $INSTDIR\usd$\r$\n"
-    FileClose $0
-    ${EndIf}
-
     ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
     ${If} "$%MAYA_VERSION%" >= "2017"
     CreateDirectory "$R1\maya\RSTemplates"
