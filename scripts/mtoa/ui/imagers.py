@@ -199,7 +199,7 @@ class ImagerStackView(BaseTreeView):
             painter.drawText(p, addImagers_2)
 
     def remapImagersAttr(self):
-        if self.model():
+        if shiboken.isValid(self) and self.model():
             self.model().remapImagersAttr()
 
 
@@ -706,6 +706,7 @@ class ImagersUI(QtWidgets.QFrame):
             self.updateImagers()
 
     def enterEvent(self, event):
+        super(ImagersUI, self).enterEvent(event)
         # ensure the list and selection is up-to-date    
         self.connectionUpdate()
         self.updateSelection()
@@ -765,7 +766,7 @@ class ImagersUI(QtWidgets.QFrame):
     def updateSelection(self, node=None):
         # we only want to update the selection if the UI is visible.
         # Otherwise, this will be updated in the next mouse enter
-        if not self.isVisible():
+        if not shiboken.isValid(self) or not self.isVisible():
             return
         nodes = []
         if shiboken.isValid(self.imagerStack) and self.imagerStack.isVisible():
