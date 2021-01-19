@@ -2,7 +2,7 @@ import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.qt import toQtObject, clearWidget
-from mtoa.ui.qt import toMayaName , dpiScale
+from mtoa.ui.qt import toMayaName , dpiScale, shiboken
 import maya.cmds as cmds
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate, LayersList
@@ -19,7 +19,6 @@ def getLightGroups():
         if lightGroup != "" and not lightGroup in existingLightGroups:
             existingLightGroups.append(lightGroup)
     return existingLightGroups
-
 
 class TintButton(QtWidgets.QPushButton):
     def __init__(self, attribute, parent = None):
@@ -191,7 +190,7 @@ class LightGroupItem(QtWidgets.QWidget):
         self.nodeName = nodeName
         self.itemIndex = index
         multiIndices = cmds.getAttr(self.nodeName+'.layerName', mi=True) or []
-        if index in multiIndices:
+        if index in multiIndices and shiboken.isValid(self):
             enabled = cmds.getAttr(nodeName+'.layerEnable[%d]'%(index))
             self.enable_button.setChecked(not enabled)
             self.solo_button.setChecked(cmds.getAttr(nodeName+'.layerSolo[%d]'%(index)))
