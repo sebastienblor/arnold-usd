@@ -152,9 +152,12 @@ class LightGroupItem(QtWidgets.QWidget):
         self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layerSolo[%d]'%(self.itemIndex)))
         self.enable_button.setChecked(not cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
         self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.layerIntensity[%d]'%(self.itemIndex)) * 100)
+        self.mix_value.setValue(cmds.getAttr(self.nodeName+'.layerIntensity[%d]'%(self.itemIndex)))
         self.exposure_slider.setValue(cmds.getAttr(self.nodeName+'.layerExposure[%d]'%(self.itemIndex)) * 100)
+        self.exposure_value.setValue(cmds.getAttr(self.nodeName+'.layerExposure[%d]'%(self.itemIndex)))
         self.tint_button = TintButton(attribute = self.nodeName + '.layerTint[%d]'%(self.itemIndex))
         self.tint_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+
 
         self.exposure_slider.valueChanged.connect(self.exposureSliderValueChanged)
         self.exposure_value.valueChanged.connect(self.exposureValueChanged)
@@ -342,6 +345,7 @@ class LightMixer(QtWidgets.QFrame):
         
         selected_items = []
         popup = LayersList(self, items_to_add)
+        popup.setWindowTitle("Light Group Layer(s)")
         if popup.exec_():
             for item in popup.list.selectedItems():
                 selected_items.append(item.text())
