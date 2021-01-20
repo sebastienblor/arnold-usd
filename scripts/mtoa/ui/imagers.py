@@ -771,7 +771,7 @@ class ImagersUI(QtWidgets.QFrame):
         nodes = []
         if shiboken.isValid(self.imagerStack) and self.imagerStack.isVisible():
             nodes = self.imagerStack.model().imagers or []
-            noSelection = True
+            noSelection = len(self.imagerStack.selectedIndexes()) == 0
             if len(nodes) > 0:
                 sceneSelection = cmds.ls(sl=True)
                 # select the imager that matches the current scene selection
@@ -782,8 +782,8 @@ class ImagersUI(QtWidgets.QFrame):
                         self.showItemProperties(s)
                         noSelection = False
 
-                if noSelection:
-                    self.showItemProperties(None)
+            if noSelection:
+                self.showItemProperties(None)
 
     def createImager(self, nodeType):
         imager = cmds.createNode(nodeType)
