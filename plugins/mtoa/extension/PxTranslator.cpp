@@ -10,6 +10,7 @@
 #include "translators/filter/FilterTranslator.h"
 #include "translators/operator/OperatorTranslator.h"
 #include "translators/imager/ImagerTranslator.h"
+#include "translators/imager/ImagerLightMixerTranslator.h"
 
 // A translator proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -74,11 +75,17 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
       }
       else if (arnoldNodeTypeName == "driver")
       {
-         if (arnold.length() > 7 && arnold.substringW(0, 6) == MString("imager_")) 
+        if  (arnold == MString("imager_light_mixer") )
+        {
+            creator = CImagerLightMixer::creator;
+            initialize = CImagerLightMixer::NodeInitializer;
+        }
+         else if (arnold.length() > 7 && arnold.substringW(0, 6) == MString("imager_")) 
          {
             creator = CImagerTranslator::creator;
             initialize = CImagerTranslator::NodeInitializer;
-         } else
+         }
+         else
          {
             creator = CDriverTranslator::creator;
             initialize = CDriverTranslator::NodeInitializer;
