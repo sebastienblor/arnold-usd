@@ -4,6 +4,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.qt import toQtObject, clearWidget
 from mtoa.ui.qt import toMayaName , dpiScale, shiboken
 import maya.cmds as cmds
+import mtoa.callbacks as callbacks
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate, LayersList
 from mtoa.ui.qt import BaseItem
@@ -293,15 +294,6 @@ class LightMixer(QtWidgets.QFrame):
         self.setLayout(self.mainLayout)
         self.update(self.nodeName)
 
-    def setDefaults(self, lightGroups):
-        for index in range(0,len(lightGroups)):
-            cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), "RGBA_"+lightGroups[index], type = "string")
-            cmds.setAttr(self.nodeName+'.layerEnable[%d]' %(index), True)
-            cmds.setAttr(self.nodeName+'.layerSolo[%d]' %(index), False)
-            cmds.setAttr(self.nodeName+'.layerTint[%d]' %(index), 1, 1, 1, type = "float3")
-            cmds.setAttr(self.nodeName+'.layerIntensity[%d]' %(index), 1)
-            cmds.setAttr(self.nodeName+'.layerExposure[%d]' %(index), 0)
-
     def update(self, nodeName):
         self.nodeName = nodeName
         # clear the previous widgets
@@ -309,10 +301,6 @@ class LightMixer(QtWidgets.QFrame):
         item = Titles(parent=self.mainLayout)
         self.layerLayout.addWidget(item)
         self.lightGroupWidgets = []
-
-        lightGroups = getLightGroups()
-        if not cmds.getAttr(self.nodeName+'.layerName', size=True) > 0:
-            self.setDefaults(lightGroups=lightGroups)
 
         multiIndices = cmds.getAttr(self.nodeName+'.layerName', mi=True) or []
 
@@ -373,15 +361,17 @@ class LightMixer(QtWidgets.QFrame):
             self.layerLayout.addWidget(item)
             item.itemDeleted.sendDelete.connect(self.removeLayerAction)
 
-    def removeLayerAction(self,index):
+    def removeLayerAction(self, index):
         cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerIntensity[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerExposure[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerTint[%d]'%(index))
-        self.lightGroupWidgets[index].close()
-        self.lightGroupWidgets[index] = None
+        if len(self.lightGroupWidgets) > 0:
+            self.lightGroupWidgets[index]
+            self.lightGroupWidgets[index].close()
+            self.lightGroupWidgets[index] = None
 
 
 class AEaiImagerLightMixerTemplate(ShaderAETemplate):
@@ -428,4 +418,18 @@ class ImagerLightMixerUI(ImagerBaseUI):
             node = nodeName.split('.')[0]
             self.mixer.update(node)
 
+
+def setLightMixerDefaults(node):
+
+    lightGroups = getLightGroups()
+    for index in range(0, len(lightGroups)):
+        cmds.setAttr(node+'.layerName[%d]' %(index), "RGBA_"+lightGroups[index], type = "string")
+        cmds.setAttr(node+'.layerEnable[%d]' %(index), True)
+        cmds.setAttr(node+'.layerSolo[%d]' %(index), False)
+        cmds.setAttr(node+'.layerTint[%d]' %(index), 1, 1, 1, type = "float3")
+        cmds.setAttr(node+'.layerIntensity[%d]' %(index), 1)
+        cmds.setAttr(node+'.layerExposure[%d]' %(index), 0)
+
+
 registerImagerTemplate("aiImagerLightMixer", ImagerLightMixerUI)
+callbacks.addNodeAddedCallback(setLightMixerDefaults, "aiImagerLightMixer", applyToExisting=False)
