@@ -4,15 +4,14 @@
 
 
 class DLLEXPORT CImagerLightMixer
-   :  public CImagerTranslator
+   :  public CNodeTranslator
 {
 public:
    static void* creator()
    {
       return new CImagerLightMixer();
    }
-
-   static void NodeInitializer(CAbTranslator context);
+   // static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* atNode);
 
