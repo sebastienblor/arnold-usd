@@ -586,13 +586,6 @@ class ImagersUI(QtWidgets.QFrame):
         self.removeImagerButton = QtWidgets.QPushButton("Remove Imager")
         self.removeImagerButton.setDisabled(True)
         self.toolBar.layout().addWidget(self.removeImagerButton)
-        
-        self.progressiveCheckBox = QtWidgets.QCheckBox("Apply on Progressive Passes")
-        self.progressiveCheckBox.setEnabled(True)
-        self.toolBar.layout().addWidget(self.progressiveCheckBox)
-        self.progressiveCheckBox.stateChanged.connect(self.toggleImagersOnProgressive)
-
-        
 
         self.removeImagerButton.pressed.connect(self.removeImagerAction)
 
@@ -687,13 +680,6 @@ class ImagersUI(QtWidgets.QFrame):
     def selectionChanged(self, selected, deselected):
         self.removeImagerButton.setDisabled(selected.isEmpty())
 
-
-    def toggleImagersOnProgressive(self, state):
-        if state:
-            cmds.setAttr('defaultArnoldRenderOptions.applyImagersOnProgressive', True)
-        else:
-            cmds.setAttr('defaultArnoldRenderOptions.applyImagersOnProgressive', False)
-    
     def newSceneCallback(self):
         for job in self.scriptJobs:
             if not cmds.scriptJob(exists=job):
