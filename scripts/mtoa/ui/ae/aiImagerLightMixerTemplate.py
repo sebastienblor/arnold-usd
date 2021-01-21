@@ -368,8 +368,7 @@ class LightMixer(QtWidgets.QFrame):
         cmds.removeMultiInstance( self.nodeName+'.layerIntensity[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerExposure[%d]'%(index))
         cmds.removeMultiInstance( self.nodeName+'.layerTint[%d]'%(index))
-        if len(self.lightGroupWidgets) > 0:
-            self.lightGroupWidgets[index]
+        if index in range(-len(self.lightGroupWidgets), len(self.lightGroupWidgets)):
             self.lightGroupWidgets[index].close()
             self.lightGroupWidgets[index] = None
 
