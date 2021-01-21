@@ -9,9 +9,6 @@
 #include "render/RenderSession.h"
 #include "scene/MayaScene.h"
 
-// #include <ai_array.h>
-// #include <ai_universe.h>
-// #include <ai_params.h>
 
 AtNode* CImagerLightMixer::CreateArnoldNodes()
 {
@@ -101,9 +98,4 @@ void CImagerLightMixer::Export(AtNode *shader)
       }
    }
    AiParamIteratorDestroy(nodeParam);
-
 }
-void CImagerLightMixer::NodeInitializer(CAbTranslator context)
-{   
-}
-
