@@ -212,8 +212,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_denoiseBeauty = nAttr.create("denoiseBeauty", "opdenb", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_denoiseBeauty);
-
-
+   
    s_outputVarianceAOVs = nAttr.create("outputVarianceAOVs", "varaovs", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_outputVarianceAOVs);
@@ -610,7 +609,6 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(tempAttr);
 
    s_attributes.MakeInput("reference_time");
-   s_attributes.MakeInput("apply_imagers_on_progressive");
       
    s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -809,8 +807,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setHidden(true);   
    nAttr.setWritable(false);
    addAttribute(legacyTextureSpecularBlur);
-
-   
 
 //   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";
