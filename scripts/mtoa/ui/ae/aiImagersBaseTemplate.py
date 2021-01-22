@@ -85,12 +85,12 @@ class ImagerBaseUI(object):
         return self._attr
 
     def layerSelectionChanged(self, nodeName):
-        full_path_control = cmds.control('layerSel',query = True, fullPathName = True)
-        layer_selection_text = cmds.textFieldButtonGrp(full_path_control, query = True , text = True)
+        ctrl_name = self.layerSelectionControl.split('|')[-1]
+        layer_selection_text = cmds.textFieldButtonGrp(ctrl_name, query = True , text = True)
+
         if layer_selection_text != cmds.getAttr(nodeName):
             cmds.setAttr(nodeName, layer_selection_text,type="string")
-        
-    
+
     def layerSelectionButtonClicked(self, nodeName):
         selected_items = []
         scene_aovs = aovs.getAOVs()
@@ -106,33 +106,40 @@ class ImagerBaseUI(object):
         else:
             return
         layer_selection_string = ' or '.join(selected_items)
-        full_path_control = cmds.control('layerSel',query = True, fullPathName = True)
-        cmds.textFieldButtonGrp(full_path_control, edit = True , text = layer_selection_string)
-
+        cmds.setAttr(nodeName, layer_selection_string,type="string")
 
     def addLayerSelection(self, nodeName):
         cmds.columnLayout()
         layer_selection_text = cmds.getAttr(nodeName)
-        self.layerSelectionControl = cmds.textFieldButtonGrp( 'layerSel',label='Layer Selection',
-                                                              text=layer_selection_text,
-                                                              buttonLabel='Select AOVs',
-                                                              buttonCommand = lambda *args: self.layerSelectionButtonClicked(nodeName, *args),
-                                                              textChangedCommand = lambda *args: self.layerSelectionChanged(nodeName),
-                                                              columnWidth3=[150, 75, 100],
-                                                              ann = "The Imager will apply to the AOV's in this list. The field accepts an Arnold Selection Expression"
-                                                            )
+        self.layerSelectionControl = cmds.textFieldButtonGrp('layerSel#',label='Layer Selection',
+                                                             text=layer_selection_text,
+                                                             buttonLabel='Select AOVs',
+                                                             buttonCommand = lambda *args: self.layerSelectionButtonClicked(nodeName, *args),
+                                                             textChangedCommand = lambda *args: self.layerSelectionChanged(nodeName),
+                                                             columnWidth3=[150, 75, 100],
+                                                             ann = "The Imager will apply to the AOV's in this list. The field accepts an Arnold Selection Expression"
+                                                             )
+        ctrl_name = self.layerSelectionControl.split('|')[-1]
+        cmds.scriptJob(parent=ctrl_name,
+                       attributeChange=[nodeName,
+                                        lambda: cmds.textFieldGrp(ctrl_name, edit=True,
+                                                                  text=cmds.getAttr(nodeName))])
         cmds.setParent('..')
 
     def updateLayerSelection(self, nodeName):
-
-        full_path_control = cmds.control('layerSel',query = True, fullPathName = True)
-        cmds.textFieldButtonGrp(full_path_control, edit = True,
+        ctrl_name = self.layerSelectionControl.split('|')[-1]
+        cmds.textFieldButtonGrp(ctrl_name, edit = True,
                                 buttonCommand = lambda *args: self.layerSelectionButtonClicked(nodeName, *args),
                                 textChangedCommand = lambda *args: self.layerSelectionChanged(nodeName)
                                 )
+        cmds.scriptJob(parent=ctrl_name,
+                       replacePrevious=True,
+                       attributeChange=[nodeName,
+                                        lambda: cmds.textFieldGrp(ctrl_name, edit=True,
+                                                                  text=cmds.getAttr(nodeName))])
         layer_selection_text = cmds.getAttr(nodeName)
-        if layer_selection_text != cmds.textFieldButtonGrp(full_path_control, query = True , text = True):
-            cmds.textFieldButtonGrp(full_path_control, edit = True , text = layer_selection_text)
+        if layer_selection_text != cmds.textFieldButtonGrp(ctrl_name, query = True , text = True):
+            cmds.textFieldButtonGrp(ctrl_name, edit = True , text = layer_selection_text)
 
     def setup(self):
         self.beginLayout("Common", collapse=False)
