@@ -4,7 +4,7 @@
 
 
 class DLLEXPORT CImagerLightMixer
-   :  public CNodeTranslator
+   :  public CImagerTranslator
 {
 public:
    static void* creator()
