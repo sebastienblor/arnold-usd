@@ -4,6 +4,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.qt import toQtObject, clearWidget
 from mtoa.ui.qt import toMayaName , dpiScale, shiboken
 import maya.cmds as cmds
+from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 import mtoa.callbacks as callbacks
 from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate, LayersList
@@ -84,11 +85,10 @@ class Titles(QtWidgets.QWidget):
         self.mainLayout.addWidget(self.label8)
         self.mainLayout.addWidget(self.label9)
 
-class LightGroupItem(QtWidgets.QWidget):
+class LightGroupItem(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 
     def __init__(self, parent = None, nodeName = None, index = -1, name = ""):
-        super(LightGroupItem, self).__init__()
-        self.parent = parent
+        super(LightGroupItem, self).__init__(parent=parent)
         self.nodeName = nodeName
         self.itemIndex = index
         self.mainLayout = QtWidgets.QHBoxLayout(self)
@@ -97,12 +97,6 @@ class LightGroupItem(QtWidgets.QWidget):
         self.layerName = name
         self.itemDeleted = CustomDelete()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose) 
-        if self.itemIndex >=0 :
-            objectParent = 'LightGroupItem'+ str(self.itemIndex)
-        else:
-            objectParent = 'LightGroupItem' 
-        
-        self.setObjectName(objectParent)
         
         DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
         SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
@@ -168,12 +162,12 @@ class LightGroupItem(QtWidgets.QWidget):
         self.enable_button.toggled.connect(self.enableButtonClicked)
         self.delete_button.clicked.connect(self.deleteAction)
 
-        self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-        self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-        self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerIntensity', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-        self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerExposure', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-        self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeChange=[self.nodeName+'.layerTint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
-        self.scriptJobList.append(cmds.scriptJob(p = objectParent, attributeDeleted=[self.nodeName+'.layerName[%d]'%(self.itemIndex), lambda *args: self.destroy()]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerIntensity', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerExposure', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerTint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeDeleted=[self.nodeName+'.layerName[%d]'%(self.itemIndex), lambda *args: self.destroy()]))
 
         self.mainLayout.addWidget(self.delete_button)
         self.mainLayout.addWidget(self.solo_button)
