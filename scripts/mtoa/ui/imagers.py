@@ -1,7 +1,7 @@
 ﻿
 import os
 import re
-import arnold as ai
+import uuid
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
@@ -560,15 +560,15 @@ class ImagerItem(BaseItem):
 class ImagersUI(QtWidgets.QFrame):
 
     def __init__(self, parent=None,listOnly = False):
-        super(ImagersUI, self).__init__(parent )
+        super(ImagersUI, self).__init__(parent)
 
-        style = MtoAStyle.currentStyle()
         self.parent = parent
         self.parentMayaName = toMayaName(parent)
         self.listOnly = listOnly
         self.scriptJobs = []
         self.nodes = []
 
+        self.setObjectName("ImagerUI_{}".format(uuid.uuid4()))
         self.layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.layout)
 
@@ -596,7 +596,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.splitter.setObjectName("splitter")
 
         self.imagerStack = ImagerStackView(None, self.splitter, showPlaceholder=not self.listOnly)
-        self.imagerStack.setObjectName("ImagerStackWidget")
+        self.imagerStack.setObjectName("ImagerStackWidget_{}".format(uuid.uuid4()))
         self.imagerStack.setMinimumHeight(dpiScale(100))
         self.layout.addWidget(self.splitter)
         self.attributeScrollArea = None
@@ -605,12 +605,12 @@ class ImagersUI(QtWidgets.QFrame):
 
         if not self.listOnly:
             self.attributeScrollArea = QtWidgets.QScrollArea(self.splitter)
-            self.attributeScrollArea.setObjectName("AttributeScrollArea")
+            self.attributeScrollArea.setObjectName("AttributeScrollArea_{}".format(uuid.uuid4()))
             self.attributeScrollArea.setWidgetResizable(True)
             self.attributeScrollArea.setMinimumHeight(dpiScale(200))
 
             self.scrollAreaWidgetContents = QtWidgets.QWidget()
-            self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+            self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents_{}".format(uuid.uuid4()))
             self.scrollAreaLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
 
             self.attributeScrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -649,7 +649,7 @@ class ImagersUI(QtWidgets.QFrame):
             return
 
         cmds.setParent(self.parentMayaName)
-        imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame',
+        imagerAttributesFrame = cmds.rowColumnLayout('ImagersAttributeFrame#',
                                                      numberOfColumns=1,
                                                      columnAttach=[1, "both", 5])
 
@@ -824,7 +824,7 @@ def createImagersWidgetForARV():
         return
 
     window = cmds.window("ImagersForARV")
-    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame', label='Imagers', borderVisible=False, labelVisible=False)
+    imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame#', label='Imagers', borderVisible=False, labelVisible=False)
     currentWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
     imagersUI = ImagersUI(currentWidget, False)
     currentWidget.layout().addWidget(imagersUI)
