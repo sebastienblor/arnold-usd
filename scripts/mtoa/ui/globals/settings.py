@@ -729,6 +729,9 @@ def createArnoldRenderSettings():
     cmds.attrControlGrp('os_exportNamespace',
                         label='Export Namespace',
                         attribute='defaultArnoldRenderOptions.exportNamespace')
+    cmds.attrControlGrp('os_exportDagName',
+                        label='Export Dag Name',
+                        attribute='defaultArnoldRenderOptions.exportDagName')
     cmds.attrControlGrp('os_exportSeparator',
                         label='Export Separator',
                         attribute='defaultArnoldRenderOptions.exportSeparator')
