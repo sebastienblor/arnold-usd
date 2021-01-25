@@ -301,7 +301,7 @@ class LightMixer(QtWidgets.QFrame):
         for i in multiIndices:
             layerName = cmds.getAttr('{}.layerName[{}]'.format(self.nodeName, i))
             layerName = layerName.split('RGBA_')[-1]
-            item = LightGroupItem(parent=self.mainLayout, name=layerName, index=i, nodeName=self.nodeName)
+            item = LightGroupItem(parent=self, name=layerName, index=i, nodeName=self.nodeName)
             self.lightGroupWidgets.append(item)
             self.layerLayout.addWidget(item)
             item.itemDeleted.sendDelete.connect(self.removeLayerAction)
@@ -350,7 +350,7 @@ class LightMixer(QtWidgets.QFrame):
             cmds.setAttr(self.nodeName+'.layerIntensity[%d]' %(index), 1)
             cmds.setAttr(self.nodeName+'.layerExposure[%d]' %(index), 1)
 
-            item = LightGroupItem(parent = self.mainLayout, name = newItem, index = index , nodeName = self.nodeName)
+            item = LightGroupItem(parent = self, name = newItem, index = index , nodeName = self.nodeName)
             self.lightGroupWidgets.append(item)
             self.layerLayout.addWidget(item)
             item.itemDeleted.sendDelete.connect(self.removeLayerAction)
