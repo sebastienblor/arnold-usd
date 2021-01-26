@@ -40,12 +40,6 @@ def rootdir():
     except RuntimeError as e:
         return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-def rootdir():
-    try:
-        return cmds.getModulePath(moduleName='mtoa')
-    except RuntimeError as e:
-        return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
 def even(num):
     return bool(num % 2)
 

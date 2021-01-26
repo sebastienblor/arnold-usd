@@ -437,13 +437,6 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                case AI_TYPE_STRING:
                   std::string str = ConvertStringAttribute(node, paramName);
                   attrValue += "-type \"string\" \"";
-                  // convert any '\' to '\\' in the string
-                  std::string::size_type i = str.find('\\');
-                  while (i != std::string::npos)
-                  {
-                      str.replace(i, 1, "\\\\");
-                      i = str.find('\\', i+2);
-                  }
                   attrValue += str.c_str();
                   attrValue += "\"";
                break;

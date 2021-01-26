@@ -32,8 +32,6 @@ elif OS == "windows":
 env["XGEN_LOCATION"] = xgen_root_path
 env["MAYA_PROJECT"] = os.path.dirname(__file__)
 
-print "ENV is ", env
-
 kick = os.path.join(mtoa_root_path, 'bin', 'kick')
 cmd = '%s -v 2 -dp -dw scene.ass -l %s -l %s -r 160 120 -o testrender.tif' \
  % (kick, shaders_path, procedurals_path)
