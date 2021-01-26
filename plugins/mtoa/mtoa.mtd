@@ -3786,11 +3786,10 @@ desc STRING "Apply a gamma correction to the color."
     [attr exposure]
         softmin             FLOAT     -10
         softmax             FLOAT     10
-    [attr layer_selection]
-        maya.hide               BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
-       
+    [attr layer_selection]
+        default             STRING     "RGBA"
 
 [node imager_color_correct]
     maya.name              STRING "aiImagerColorCorrect"
@@ -3798,8 +3797,6 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB6
-    [attr layer_selection]
-        maya.hide           BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr main_saturation]
@@ -3811,6 +3808,13 @@ desc STRING "Apply a gamma correction to the color."
     [attr main_gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
+    [attr main_gain]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr main_offset]
+        softmin             FLOAT    -1
+        softmax             FLOAT    1
+
     [attr shadows_saturation]
         min                 FLOAT    0
         softmax             FLOAT    2
@@ -3820,6 +3824,13 @@ desc STRING "Apply a gamma correction to the color."
     [attr shadows_gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
+    [attr shadows_gain]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr shadows_offset]
+        softmin             FLOAT    -1
+        softmax             FLOAT    1
+
     [attr midtones_saturation]
         min                 FLOAT    0
         softmax             FLOAT    2
@@ -3829,6 +3840,13 @@ desc STRING "Apply a gamma correction to the color."
     [attr midtones_gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
+    [attr midtones_gain]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr midtones_offset]
+        softmin             FLOAT    -1
+        softmax             FLOAT    1
+
     [attr highlights_saturation]
         min                 FLOAT    0
         softmax             FLOAT    2
@@ -3838,7 +3856,14 @@ desc STRING "Apply a gamma correction to the color."
     [attr highlights_gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
-    
+    [attr highlights_gain]
+        min                 FLOAT    0
+        softmax             FLOAT    2
+    [attr highlights_offset]
+        softmin             FLOAT    -1
+        softmax             FLOAT    1
+    [attr layer_selection]
+        default             STRING     "RGBA"
 
 [node imager_lens_effects]
     maya.name              STRING "aiImagerLensEffect"
@@ -3849,11 +3874,20 @@ desc STRING "Apply a gamma correction to the color."
     [attr vignetting]
         softmin             FLOAT     0
         softmax             FLOAT     100
-    [attr layer_selection]
-        maya.hide               BOOL     TRUE
+    [attr bloom_threshold]
+        softmin             FLOAT     0
+        softmax             FLOAT     10
+    [attr bloom_radius]
+        min                 INT     1
+        softmin             INT     1
+        softmax             INT     12
+    [attr bloom_strength]
+        softmin             FLOAT     0
+        softmax             FLOAT     10
     [attr input]
         maya.hide               BOOL     TRUE
-    
+    [attr layer_selection]
+        default             STRING     "RGBA"
     
 [node imager_white_balance]
     maya.name              STRING "aiImagerWhiteBalance"
@@ -3861,23 +3895,20 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB8
-    [attr layer_selection]
-        maya.hide           BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr temperature]
         softmin             FLOAT   0
         softmax             FLOAT   15000
-        
-        
+    [attr layer_selection]
+        default             STRING     "RGBA"
+
 [node imager_tonemap]
     maya.name              STRING "aiImagerTonemap"
     maya.classification     STRING  "imager"
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB9
-    [attr layer_selection]
-        maya.hide           BOOL     TRUE
     [attr input]
         maya.hide               BOOL     TRUE
     [attr filmic_toe_strength]
@@ -3904,9 +3935,53 @@ desc STRING "Apply a gamma correction to the color."
     [attr gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
-    
-    
-    
-    
-        
-        
+    [attr layer_selection]
+        default             STRING     "RGBA"
+
+[node imager_denoiser_optix]
+    maya.name              STRING "aiImagerOptixDenoise"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC0
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr layer_selection]
+        default             STRING     "RGBA"
+    [attr blend]
+        min                 FLOAT     0
+        max                 FLOAT     1
+        softmax             FLOAT     1
+        softmin             FLOAT     0
+    [attr clamp_min]
+        softmin             FLOAT     0
+        softmax             FLOAT     1
+    [attr clamp_max]
+        softmin             FLOAT     0
+        softmax             FLOAT     1
+
+[node imager_light_mixer]
+    maya.name              STRING "aiImagerLightMixer"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC1
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr layer_selection]
+        default             STRING     "RGBA"
+        maya.hide           BOOL        TRUE
+
+[node imager_denoiser_noice]
+    maya.name              STRING "aiImagerDenoiserNoice"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC2
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr tile_size]
+        maya.hide               BOOL     TRUE
+    [attr layer_selection]
+        default             STRING     "RGBA"
+

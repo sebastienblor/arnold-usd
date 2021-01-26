@@ -1,0 +1,434 @@
+import maya.mel
+from mtoa.ui.ae.templates import TranslatorControl
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+from mtoa.ui.qt import toQtObject, clearWidget, setStaticSize
+from mtoa.ui.qt import toMayaName , dpiScale, shiboken
+import maya.cmds as cmds
+from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
+import mtoa.callbacks as callbacks
+from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
+from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate, LayersList
+from mtoa.ui.qt import BaseItem
+
+s_pushStyleButton = "QPushButton:pressed {background-color: rgb(150, 150, 150); border: none; } QPushButton:checked { background-color: rgb(113, 142, 184); border: none; }";
+
+BUTTON_SIZE = 32
+
+def getLightGroups():
+    # loop over all light groups in the scene
+    lights =cmds.ls(exactType=['pointLight', 'directionalLight', 'spotLight', 'areaLight', 'aiAreaLight', 'aiSkyDomeLight', 'aiMeshLight', 'aiPhotometricLight'])
+    existingLightGroups = []
+    for light in lights:
+        lightGroup = cmds.getAttr(light+".aiAov")
+        if lightGroup != "" and not lightGroup in existingLightGroups:
+            existingLightGroups.append(lightGroup)
+    return existingLightGroups
+
+class TintButton(QtWidgets.QPushButton):
+    def __init__(self, attribute, parent = None):
+        super(TintButton, self).__init__(parent)
+        self.attribute = attribute
+        self.bgc = cmds.getAttr(self.attribute)
+        self.setStyleSheet("background-color:rgb(%d,%d,%d)"%(self.bgc[0][0]*255,self.bgc[0][1]*255,self.bgc[0][2]*255 ))
+        self.clicked.connect(self.set_color)
+
+    def set_color(self):
+        color = cmds.colorEditor()
+        parsedcolor = [float(i) for i in color.split()]
+        self.setStyleSheet("background-color:rgb(%d,%d,%d)" %(parsedcolor[0]*255, parsedcolor[1]*255, parsedcolor[2]*255))
+        cmds.setAttr(self.attribute, parsedcolor[0] , parsedcolor[1], parsedcolor[2], type = 'float3')
+
+    def update(self, nodeName , index):
+        attribute = nodeName + '.layerTint[%d]'%(index)
+        bgc = cmds.getAttr(attribute)
+        self.setStyleSheet("background-color:rgb(%d,%d,%d)"%(bgc[0][0]*255,bgc[0][1]*255,bgc[0][2]*255 ))
+
+class CustomDelete(QtCore.QObject):
+    sendDelete = QtCore.Signal(int)
+    def __init__(self):
+        super(CustomDelete, self).__init__()  
+
+class Titles(QtWidgets.QWidget):
+
+    def __init__(self, parent = None):
+        super(Titles, self).__init__()
+        self.mainLayout = QtWidgets.QHBoxLayout(self)
+        self.setLayout(self.mainLayout)
+        
+        self.label1 = QtWidgets.QLabel("<b>Del</b>   ",self)
+        self.label1.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label2 = QtWidgets.QLabel("<b>Solo</b>  ",self)
+        self.label2.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label3 = QtWidgets.QLabel("<b>On/Off</b>",self)
+        self.label3.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label4 = QtWidgets.QLabel(" <b>Light Group</b> ",self)
+        self.label4.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label4.setAlignment(QtCore.Qt.AlignCenter)
+        self.label5 = QtWidgets.QLabel("<b>Intensity</b>",self)
+        self.label5.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label5.setAlignment(QtCore.Qt.AlignCenter)
+        self.label6 = QtWidgets.QLabel("",self)
+        self.label6.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label7 = QtWidgets.QLabel("<b>Exposure</b>",self)
+        self.label7.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label7.setAlignment(QtCore.Qt.AlignCenter)
+        self.label8 = QtWidgets.QLabel("",self)
+        self.label8.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.label9 = QtWidgets.QLabel("<b>Tint</b>",self)
+        self.label9.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        
+        self.mainLayout.addWidget(self.label1)
+        self.mainLayout.addWidget(self.label2)
+        self.mainLayout.addWidget(self.label3)
+        self.mainLayout.addWidget(self.label4)
+        self.mainLayout.addWidget(self.label5)
+        self.mainLayout.addWidget(self.label6)
+        self.mainLayout.addWidget(self.label7)
+        self.mainLayout.addWidget(self.label8)
+        self.mainLayout.addWidget(self.label9)
+
+class LightGroupItem(MayaQWidgetBaseMixin, QtWidgets.QWidget):
+
+    def __init__(self, parent = None, nodeName = None, index = -1, name = ""):
+        super(LightGroupItem, self).__init__(parent=parent)
+        self.nodeName = nodeName
+        self.itemIndex = index
+        self.mainLayout = QtWidgets.QHBoxLayout(self)
+        
+        self.setLayout(self.mainLayout)
+        self.layerName = name
+        self.itemDeleted = CustomDelete()
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose) 
+        
+        DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
+        SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
+        BIN_ICON = BaseItem.dpiScaledIcon(":/RS_delete.png")
+
+        self.setStyleSheet(s_pushStyleButton)
+
+        self.delete_button = QtWidgets.QPushButton()
+        self.delete_button.setIcon(BIN_ICON)
+        self.delete_button.setToolTip("Delete Layer")
+        setStaticSize(self.delete_button, BUTTON_SIZE, BUTTON_SIZE)
+        self.delete_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+
+        self.solo_button = QtWidgets.QPushButton()
+        self.solo_button.setCheckable(True)
+        self.solo_button.setIcon(SOLO_ICON)
+        self.solo_button.setToolTip("Solo Layer")
+        setStaticSize(self.solo_button, BUTTON_SIZE, BUTTON_SIZE)
+        self.solo_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+
+        self.enable_button = QtWidgets.QPushButton()
+        self.enable_button.setCheckable(True)
+        self.enable_button.setIcon(DISABLED_ICON)
+        self.enable_button.setToolTip("Enable/Disable Layer")
+        setStaticSize(self.enable_button, BUTTON_SIZE, BUTTON_SIZE)
+        self.enable_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+
+        self.label = QtWidgets.QLabel(name,self)
+        self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.mix_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.mix_slider.setRange(0,1000)
+        self.mix_slider.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.mix_value = QtWidgets.QDoubleSpinBox()
+        self.mix_value.setRange(0.0,10.0)
+        self.mix_value.setToolTip("Set the Intensity Value")
+        self.mix_value.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.mix_slider.setToolTip("Set the Intensity Value")
+
+        self.exposure_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.exposure_slider.setRange(-500,500)
+        self.exposure_slider.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.exposure_value = QtWidgets.QDoubleSpinBox()
+        self.exposure_value.setRange(-5.0,5.0)
+        self.exposure_slider.setToolTip("Set the Exposure Value")
+        self.exposure_value.setToolTip("Set the Exposure Value")
+        self.exposure_value.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+
+        self.scriptJobList = []
+        self.solo_button.setChecked(cmds.getAttr(self.nodeName+'.layerSolo[%d]'%(self.itemIndex)))
+        self.enable_button.setChecked(not cmds.getAttr(self.nodeName+'.layerEnable[%d]'%(self.itemIndex)))
+        self.mix_slider.setValue(cmds.getAttr(self.nodeName+'.layerIntensity[%d]'%(self.itemIndex)) * 100)
+        self.mix_value.setValue(cmds.getAttr(self.nodeName+'.layerIntensity[%d]'%(self.itemIndex)))
+        self.exposure_slider.setValue(cmds.getAttr(self.nodeName+'.layerExposure[%d]'%(self.itemIndex)) * 100)
+        self.exposure_value.setValue(cmds.getAttr(self.nodeName+'.layerExposure[%d]'%(self.itemIndex)))
+        self.tint_button = TintButton(attribute = self.nodeName + '.layerTint[%d]'%(self.itemIndex))
+        self.tint_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+
+
+        self.exposure_slider.valueChanged.connect(self.exposureSliderValueChanged)
+        self.exposure_value.valueChanged.connect(self.exposureValueChanged)
+        self.mix_slider.valueChanged.connect(self.intensitySliderValueChanged)
+        self.mix_value.valueChanged.connect(self.intensityValueChanged)
+        self.solo_button.clicked.connect(self.soloButtonClicked)
+        self.enable_button.toggled.connect(self.enableButtonClicked)
+        self.delete_button.clicked.connect(self.deleteAction)
+
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerSolo', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerEnable', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerIntensity', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerExposure', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeChange=[self.nodeName+'.layerTint', lambda *args: self.update(self.nodeName, self.itemIndex)]))
+        self.scriptJobList.append(cmds.scriptJob(p = self.objectName(), attributeDeleted=[self.nodeName+'.layerName[%d]'%(self.itemIndex), lambda *args: self.destroy()]))
+
+        self.mainLayout.addWidget(self.delete_button)
+        self.mainLayout.addWidget(self.solo_button)
+        self.mainLayout.addWidget(self.enable_button)
+        self.mainLayout.addWidget(self.label)
+        self.mainLayout.addWidget(self.mix_slider)
+        self.mainLayout.addWidget(self.mix_value)
+        self.mainLayout.addWidget(self.exposure_slider)
+        self.mainLayout.addWidget(self.exposure_value)
+        self.mainLayout.addWidget(self.tint_button)
+
+    def deleteAction(self):
+        self.itemDeleted.sendDelete.emit(self.itemIndex)
+
+    def destroy(self):
+        if shiboken.isValid(self):
+            self.close()
+
+    def update(self, nodeName, index):
+        self.nodeName = nodeName
+        self.itemIndex = index
+        multiIndices = cmds.getAttr(self.nodeName+'.layerName', mi=True) or []
+        if index in multiIndices and shiboken.isValid(self):
+            enabled = cmds.getAttr(nodeName+'.layerEnable[%d]'%(index))
+            self.enable_button.setChecked(not enabled)
+            self.solo_button.setChecked(cmds.getAttr(nodeName+'.layerSolo[%d]'%(index)))
+            self.mix_slider.setValue(cmds.getAttr(nodeName+'.layerIntensity[%d]'%(index)) * 100)
+            self.exposure_slider.setValue(cmds.getAttr(nodeName+'.layerExposure[%d]'%(index)) * 100)
+            self.tint_button.update(nodeName, index)
+        else:
+            self.destroy()
+
+    def soloButtonClicked(self):
+        button_state = self.solo_button.isChecked()
+        attribute = self.nodeName + '.layerSolo[%d]' %(self.itemIndex)
+        cmds.setAttr(attribute, button_state)
+        self.mix_slider.setEnabled(True)
+        self.mix_value.setEnabled(True)
+        self.exposure_slider.setEnabled(True)
+        self.exposure_value.setEnabled(True)
+        self.tint_button.setEnabled(True)
+        self.label.setEnabled(True)
+
+
+    def enableButtonClicked(self, disabled):
+        enabled = not disabled
+        self.mix_slider.setEnabled(enabled)
+        self.mix_value.setEnabled(enabled)
+        self.exposure_slider.setEnabled(enabled)
+        self.exposure_value.setEnabled(enabled)
+        self.tint_button.setEnabled(enabled)
+        self.label.setEnabled(enabled)
+
+        attribute = None
+        attribute = self.nodeName +'.layerEnable[%d]' %(self.itemIndex)
+        cmds.setAttr(attribute, enabled)
+
+    def intensityValueChanged(self, value):
+        self.mix_slider.setValue(value * 100)
+        self.setIntensityAttr(value)
+
+    def intensitySliderValueChanged(self, value):
+        value = value/100.0
+        self.mix_value.setValue(value)
+        self.setIntensityAttr(value)
+
+    def setIntensityAttr(self, value):
+        attribute = None
+        attribute = '{}.layerIntensity[{}]'.format(self.nodeName, self.itemIndex)
+        cmds.setAttr(attribute, value)
+
+    def exposureValueChanged(self, value):
+        self.exposure_slider.setValue(value * 100)
+        self.setExposureAttr(value)
+
+    def exposureSliderValueChanged(self, value):
+        value = value/100.0
+        self.exposure_value.setValue(value)
+        self.setExposureAttr(value)
+
+    def setExposureAttr(self, value):
+        attribute = None
+        attribute = '{}.layerExposure[{}]'.format(self.nodeName, self.itemIndex)
+        cmds.setAttr(attribute, value)
+
+class LightMixer(QtWidgets.QFrame):
+
+    def __init__(self, parent = None, nodeName = None):
+        super(LightMixer, self).__init__(parent=parent)
+        self.nodeName = nodeName
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.mainLayout = QtWidgets.QVBoxLayout(self)
+        self.setSizePolicy(sizePolicy)
+
+        self.actionsFrame = QtWidgets.QFrame(self)
+        self.actionsLayout = QtWidgets.QHBoxLayout(self.actionsFrame)
+        self.actionsFrame.setLayout(self.actionsLayout)
+
+        ADD_LAYER_ICON =  BaseItem.dpiScaledIcon(":/RS_create_layer.png")
+        self.addLayerButton = QtWidgets.QPushButton( self.actionsFrame)
+        self.setStyleSheet(s_pushStyleButton)
+        self.addLayerButton.setIcon(ADD_LAYER_ICON)
+
+        self.actionsLayout.addWidget(self.addLayerButton)
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.addLayerButton.clicked.connect(self.addLayerAction)
+
+        self.layerFrame = QtWidgets.QFrame(self)
+        self.layerFrame.setSizePolicy(sizePolicy)
+        self.layerLayout = QtWidgets.QVBoxLayout(self.layerFrame)
+        self.layerFrame.setLayout(self.layerLayout)
+        self.lightGroupWidgets = []
+        self.layerFrame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
+        self.mainLayout.addWidget(self.actionsFrame)
+        self.mainLayout.addWidget(self.layerFrame)
+        self.setLayout(self.mainLayout)
+        self.update(self.nodeName)
+
+    def update(self, nodeName):
+        self.nodeName = nodeName
+        # clear the previous widgets
+        clearWidget(self.layerFrame)
+        item = Titles(parent=self.mainLayout)
+        self.layerLayout.addWidget(item)
+        self.lightGroupWidgets = []
+
+        multiIndices = cmds.getAttr(self.nodeName+'.layerName', mi=True) or []
+
+        for i in multiIndices:
+            layerName = cmds.getAttr('{}.layerName[{}]'.format(self.nodeName, i))
+            layerName = layerName.split('RGBA_')[-1]
+            item = LightGroupItem(parent=self, name=layerName, index=i, nodeName=self.nodeName)
+            self.lightGroupWidgets.append(item)
+            self.layerLayout.addWidget(item)
+            item.itemDeleted.sendDelete.connect(self.removeLayerAction)
+
+    def getWidgetLayers(self):
+        layers_in_widget = []
+        for item in self.lightGroupWidgets:
+            if item:
+                layers_in_widget.append(item.layerName)
+        return layers_in_widget
+
+    def addLayerAction(self):
+        
+        light_groups_in_scene = getLightGroups()
+        items_to_add = []
+        light_groups_in_widget = self.getWidgetLayers()
+        for item in light_groups_in_scene:
+            if item not in light_groups_in_widget:
+                items_to_add.append(item)
+
+        if '<residual_lights>' not in light_groups_in_widget:
+            items_to_add.append('<residual_lights>')
+        
+        selected_items = []
+        popup = LayersList(self, items_to_add)
+        popup.setWindowTitle("Light Group Layer(s)")
+        if popup.exec_():
+            for item in popup.list.selectedItems():
+                selected_items.append(item.text())
+        else:
+            return
+
+        for newItem in selected_items:
+            if cmds.getAttr(self.nodeName+'.layerName', mi = True):
+                index = cmds.getAttr(self.nodeName+'.layerName', mi = True)[-1]+1
+            else:
+                index = 0
+
+            if '<residual_lights>' not in newItem:
+                cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), "RGBA_"+newItem, type = "string")
+            else:
+                cmds.setAttr(self.nodeName+'.layerName[%d]' %(index), newItem, type = "string")
+            cmds.setAttr(self.nodeName+'.layerEnable[%d]' %(index), True)
+            cmds.setAttr(self.nodeName+'.layerSolo[%d]' %(index), False)
+            cmds.setAttr(self.nodeName+'.layerTint[%d]' %(index), 1, 1, 1, type = "float3")
+            cmds.setAttr(self.nodeName+'.layerIntensity[%d]' %(index), 1)
+            cmds.setAttr(self.nodeName+'.layerExposure[%d]' %(index), 1)
+
+            item = LightGroupItem(parent = self, name = newItem, index = index , nodeName = self.nodeName)
+            self.lightGroupWidgets.append(item)
+            self.layerLayout.addWidget(item)
+            item.itemDeleted.sendDelete.connect(self.removeLayerAction)
+
+    def removeLayerAction(self, index):
+        cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.layerEnable[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.layerSolo[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.layerIntensity[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.layerExposure[%d]'%(index))
+        cmds.removeMultiInstance( self.nodeName+'.layerTint[%d]'%(index))
+        if index in range(-len(self.lightGroupWidgets), len(self.lightGroupWidgets)):
+            self.lightGroupWidgets[index].close()
+            self.lightGroupWidgets[index] = None
+
+
+class AEaiImagerLightMixerTemplate(ShaderAETemplate):
+
+    def setup(self):
+
+        self.beginScrollLayout()
+
+        currentWidget = cmds.setParent(query=True)
+        self.ui = ImagerLightMixerUI(parent=currentWidget, nodeName=self.nodeName, template=self)
+
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
+        self.addExtraControls()
+        self.endScrollLayout()
+
+
+class ImagerLightMixerUI(ImagerBaseUI):
+
+    def __currentWidget(self, pySideType=QtWidgets.QWidget):
+        """Cast and return the current widget."""
+        # Get the current widget Maya name.
+        currentWidgetName = cmds.setParent(query=True)
+        return toQtObject(currentWidgetName, pySideType)
+    
+    def __init__(self, parent=None, nodeName=None, template=None):
+        super(ImagerLightMixerUI, self).__init__(parent, nodeName, template)
+
+    def setup(self):
+        super(ImagerLightMixerUI, self).setup()
+        self.beginLayout("Main", collapse=False)
+        self.addControl("outputName")
+        self.addCustom("mixerWidget", self.createLightMixerWidget , self.updateLightMixerWidget)
+        self.endLayout()
+    
+    def createLightMixerWidget(self, nodeName):
+        currentWidget = self.__currentWidget()
+        node = nodeName.split('.')[0]
+        self.mixer = LightMixer(currentWidget, node)
+        currentWidget.layout().addWidget(self.mixer)
+
+    def updateLightMixerWidget(self, nodeName):
+        if self.mixer:
+            node = nodeName.split('.')[0]
+            self.mixer.update(node)
+
+
+def setLightMixerDefaults(node):
+
+    lightGroups = getLightGroups()
+    for index in range(0, len(lightGroups)):
+        cmds.setAttr(node+'.layerName[%d]' %(index), "RGBA_"+lightGroups[index], type = "string")
+        cmds.setAttr(node+'.layerEnable[%d]' %(index), True)
+        cmds.setAttr(node+'.layerSolo[%d]' %(index), False)
+        cmds.setAttr(node+'.layerTint[%d]' %(index), 1, 1, 1, type = "float3")
+        cmds.setAttr(node+'.layerIntensity[%d]' %(index), 1)
+        cmds.setAttr(node+'.layerExposure[%d]' %(index), 0)
+
+
+registerImagerTemplate("aiImagerLightMixer", ImagerLightMixerUI)
+callbacks.addNodeAddedCallback(setLightMixerDefaults, "aiImagerLightMixer", applyToExisting=False)

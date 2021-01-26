@@ -19,6 +19,7 @@ mtoa.kdev4
 /external/qt-4.8.6-include/*
 /external/qt-5.6.0-include/*
 /external/qt-5.6.1-include/*
+/external/qt-5.15.2-include/*
 /MtoA*.exe
 /MtoA*.run
 /*.zip

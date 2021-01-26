@@ -1,124 +1,59 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\16', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp\\16', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20200000\\msvc_opt\\testsuite\\test_0378', 'ADCLMHUB_LOG_LEVEL': 'T', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'LOCALAPPDATA': 'C:\\Users\\blaines\\AppData\\Local', 'PATH': 'C:\\solidangle\\mtoadeploy\\2020\\bin;C:\\Program Files\\Autodesk\\Maya2020\\bin;C:\\solidangle\\mtoadeploy\\2020\\lib;C:\\solidangle\\mtoadeploy\\2020\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2020', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt', 'ProgramW6432': 'C:\\Program Files'}
+ {'ARNOLD_TESTSUITE_COMMON': '/home/krishnan/dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/usr/autodesk/arnold/maya2020', 'PYMEL_SKIP_MEL_INIT': '1', 'ADCLMHUB_LOG_DIR': '/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378', 'MAYA_RENDER_DESC_PATH': '/usr/autodesk/arnold/maya2020', 'PATH': '/usr/autodesk/arnold/maya2020/bin;/usr/autodesk/maya2020/bin;/usr/autodesk/arnold/maya2020/lib;/usr/autodesk/arnold/maya2020/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'MAYA_DISABLE_CER': '1'}
  
  ==== Exec cmd ==== 
  
-mayabatch -file D:\arnold\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0378\test.ma -script "D:\arnold\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0378\test.mel" -proj "D:\arnold\mtoa\build\windows_x86_64\20200000\msvc_opt\testsuite\test_0378"
+/usr/autodesk/maya2020/bin/maya -batch -file /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378/test.ma -script "/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378/test.mel" -proj "/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378"
  
- Initialized VP2.0 renderer {
-
-  Version : 2016.11.53.12. Feature Level 5.
-
-  Adapter : Quadro K620/PCIe/SSE2
-
-  Vendor ID: 4318. Device ID : 5051
-
-  Driver : .
-
-  API : OpenGL V.4.6.
-
-  Max texture size : 16384 * 16384.
-
-  Max tex coords : 32
-
-  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
-
-  Shader compiler profile : (Best card profile)
-
-  Active stereo support available : 0
-
-  GPU Memory Limit : 4095 MB.
-
-  CPU Memory Limit: 62183.6 MB.
-
-  MultiDraw consolidation: enabled
-
-}
-
-OpenCL evaluator is attempting to initialize OpenCL.
-
-Detected 1 OpenCL Platforms: 
-
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.2.108.
-
- Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics cl_kernel_attribute_nv 
-
-OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
-
-OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-
-###############################################################################
-
-Begin attempted read of a shade fragment XML file.
-
-Attempting to read fragment XML code from: aiRectangleAreaLight.xml
-
-Errors loading XML:
-
--------------------------------------------------------------------------------
-
-Could not find file: aiRectangleAreaLight.xml
-
--------------------------------------------------------------------------------
-
-End attempted read of fragment XML.
-
-###############################################################################
-
-qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
-
-qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
-
-qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
-
-qt.svg: Cannot open file ':/expression.svg', because: No such file or directory
-
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/20200000/msvc_opt/testsuite/test_0378/test.ma line 222: Unrecognized node type 'nodeGraphEditorInfo'; preserving node information during this session.
-
-Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-
-File read in  0.036 seconds.
-
-Result: D:/arnold/mtoa/build/windows_x86_64/20200000/msvc_opt/testsuite/test_0378/test.ma
-
+ QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/usr/tmp/runtime-krishnan'
+00:00:00   373MB         | log started Tue Jan 12 15:15:11 2021
+00:00:00   373MB         | Arnold 6.2.0.0 [8c46d7e7] linux clang-10.0.1 oiio-2.2.1 osl-1.11.6 vdb-7.1.1 clm-2.0.0.235 rlm-12.4.2 optix-6.6.0 2021/01/12 02:56:27
+00:00:00   373MB         | running on ip-192-168-0-45.eu-west-1.compute.internal, pid=171124
+00:00:00   373MB         |  2 x Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz (24 cores, 48 logical) with 63847MB
+00:00:00   373MB         |  NVIDIA driver version 455.38 (Optix 60700)
+00:00:00   373MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 7982MB (7978MB available) (NVLink:0)
+00:00:00   373MB         |  GPU 1: Quadro GP100 @ 1442MHz (compute 6.0) with 16278MB (15205MB available) (NVLink:0)
+00:00:00   373MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1062.1.2.el7.x86_64
+00:00:00   373MB         |  soft limit for open files raised from 4096 to 4094
+00:00:00   373MB         |  
+00:00:00   373MB         | loading plugins from /usr/autodesk/arnold/maya2020/plug-ins/../bin/../plugins ...
+00:00:00   374MB         |  alembic_proc.so: alembic uses Arnold 6.2.0.0
+00:00:00   374MB         |  cryptomatte.so: cryptomatte uses Arnold 6.2.0.0
+00:00:00   374MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 6.2.0.0
+00:00:00   374MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 6.2.0.0
+00:00:00   377MB         |  usd_proc.so: usd uses Arnold 6.2.0.0
+00:00:00   377MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 6.2.0.0
+00:00:00   377MB         | loaded 6 plugins from 4 lib(s) in 0:00.01
+Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378/2020/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378/2020/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378/2020/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+00:00:00   381MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgenSpline_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
+00:00:00   381MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgen_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+libai.so already loaded
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+File read in  3 seconds.
+Result: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0378/test.ma
 Running Export Selected shadersImporting file ./data/exported_shaders.ass
-
 Warning: line 1: Removing invalid characters from name.
-
 Warning: line 1: Removing invalid characters from name.
-
 Warning: line 1: Removing invalid characters from name.
-
 Warning: line 1: Removing invalid characters from name.
-
 connectAttr -f aiMultiply1.outColor aiStandardSurface1.baseColor
-
 connectAttr -f aiFlakes1.outColor aiStandardSurface1.specularColor
-
 connectAttr -f bump3d1.outValue aiStandardSurface1.normalCamera
-
 connectAttr -f aiNoise1.outColor aiMultiply1.input1
-
 connectAttr -f remapColor1.outColor aiMultiply1.input2
-
 connectAttr -f importArnold_0rgb_to_float.outValue remapColor1_R_ramp.input
-
 connectAttr -f importArnold_1rgb_to_float.outValue remapColor1_G_ramp.input
-
 connectAttr -f importArnold_2rgb_to_float.outValue remapColor1_B_ramp.input
-
 connectAttr -f importArnold_3rgb_to_float.outValue bump3d1.bumpMap
-
 connectAttr -f remapColor1_inRemapRange.outColor importArnold_0rgb_to_float.input
-
 connectAttr -f remapColor1_inRemapRange.outColor importArnold_1rgb_to_float.input
-
 connectAttr -f remapColor1_inRemapRange.outColor importArnold_2rgb_to_float.input
-
 connectAttr -f aiCellNoise1.outColor importArnold_3rgb_to_float.input
-
-CRenderViewInterface::SetOption Camera /persp/perspShape
-
-CRenderViewInterface::SetOption Save Image ./testrender.tif
-

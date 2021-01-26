@@ -6,7 +6,7 @@ extern "C"
     DLLEXPORT void initializeExtension ( CExtension& extension )
     {
         MStatus status;
-        extension.Requires ( "mayaUsdPlugin" );
+        //extension.Requires ( "mayaUsdPlugin" ); -> handled in the mtd file
         extension.RegisterTranslator("mayaUsdProxyShape",
                                     "usd",
                                     CUsdProxyShapeTranslator::creator,

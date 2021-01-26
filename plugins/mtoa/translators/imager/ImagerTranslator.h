@@ -2,8 +2,6 @@
 
 #include "translators/NodeTranslator.h"
 
-//--------------- OperatorTranslator ------------------------------------------
-
 class DLLEXPORT CImagerTranslator
    :  public CNodeTranslator
 {

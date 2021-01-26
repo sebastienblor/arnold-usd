@@ -197,6 +197,7 @@ def attrTextFieldGrp(*args, **kwargs):
             ctrl = cmds.textFieldGrp(label=labelText,
                                    text=cmds.getAttr(attribute),
                                    changeCommand=cc)
+        ctrl = ctrl.split('|')[-1]
         cmds.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
                                       lambda: cmds.textFieldGrp(ctrl, edit=True,
@@ -290,7 +291,10 @@ class AttrControlGrp(object):
         kwargs['edit'] = True
         if self.type not in self.UI_TYPES:
             return
-        self.UI_TYPES[self.type](self.control, **kwargs)
+        if cmds.layout(self.control, q=True, exists=True):
+            cmds.layout(self.control, **kwargs)
+        else:
+            self.UI_TYPES[self.type](self.control, **kwargs)
 
     def setAttribute(self, attribute):
         self.attribute = attribute

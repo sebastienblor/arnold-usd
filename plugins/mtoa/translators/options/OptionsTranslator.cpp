@@ -386,8 +386,11 @@ void COptionsTranslator::ExportAOVs()
 
       }
       m_aovData.push_back(aovData);
+      
       if (denoise)
       {
+         // #4418 : Ignoring the attribute when it's set to keep older scenes compatible.
+         /*
          // If this AOV is denoised, we need to duplicate the output,
          // replace the  filter by a fresh new one (it must be unique for each AOV and not shared),
          // and append "_denoised" to the AOV name (thus image filename)
@@ -433,6 +436,7 @@ void COptionsTranslator::ExportAOVs()
          aovData.denoised = true;
          
          m_aovData.push_back(aovData);
+         */
       }
    }
    static AtString driver_exr_str("driver_exr");
@@ -1406,7 +1410,12 @@ void COptionsTranslator::Export(AtNode *options)
          ExportConnectedNode(conns[0]) : nullptr;
       
       if (linkedNode)
-         imagersStack.push_back(linkedNode);
+      {
+         // When translating the stack to a graph, we need to start from last one, then 
+         // successively connect the imagers as input of the previous, until the first one.
+         // This will make it so that the last imager in the list is applied at the end by arnold
+         imagersStack.insert(imagersStack.begin(), linkedNode);
+      }
    }
 
    // Loop over all the output drivers, set the attribute input to the first imager 
@@ -1605,23 +1614,12 @@ void COptionsTranslator::Export(AtNode *options)
    // Process the imagers tree, by connecting them through the attribute "input"
    if (!imagersStack.empty())
    {  
-      MString layerSelection = beautyName;
-      if (optixDenoiser)
-      {
-         layerSelection +=  MString(" or ");
-         layerSelection += beautyName;
-         layerSelection += MString("_denoise");    
-      }
-
       for (size_t i = 0; i < imagersStack.size() - 1; ++i)
       {
          AiNodeSetPtr(imagersStack[i], "input", (void*)imagersStack[i+1]); 
-         AiNodeSetStr(imagersStack[i], "layer_selection", layerSelection.asChar());
       }
-      
       // Ensure the last imager in the stack doesn't have any input from a previous render
       AiNodeResetParameter(imagersStack.back(), "input");
-      AiNodeSetStr(imagersStack.back(), "layer_selection", layerSelection.asChar());
    }
 
    if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)

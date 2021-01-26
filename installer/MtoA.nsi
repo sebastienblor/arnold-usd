@@ -118,7 +118,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
   FileWrite $0 "MAYA_SCRIPT_PATH +:= scripts/mtoa/mel$\r$\n"
   FileWrite $0 "MAYA_RENDER_DESC_PATH += $INSTDIR$\r$\n"
-  FileWrite $0 "MAYA_PXR_PLUGINPATH_NAME += $INSTDIR\hydra$\r$\n"
+  FileWrite $0 "MAYA_PXR_PLUGINPATH_NAME += $INSTDIR\usd$\r$\n"
   FileClose $0
   
   ;Store installation folder
@@ -163,17 +163,9 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
     FileWrite $0 "MAYA_SCRIPT_PATH +:= scripts/mtoa/mel$\r$\n"
     FileWrite $0 "MAYA_RENDER_DESC_PATH += $INSTDIR$\r$\n"
-    FileWrite $0 "MAYA_PXR_PLUGINPATH_NAME += $INSTDIR\hydra$\r$\n"
+    FileWrite $0 "MAYA_PXR_PLUGINPATH_NAME += $INSTDIR\usd$\r$\n"
     FileClose $0
     
-    ${If} "$%MAYA_VERSION%" < "2018"
-    SetRegView 64
-    ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
-    StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
-    CopyFiles "$INSTDIR\arnoldRenderer.xml" "$R1$R2"
-    ${EndIf}
-
-
     ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
     ${If} "$%MAYA_VERSION%" >= "2017"
     CreateDirectory "$R1\maya\RSTemplates"
@@ -214,7 +206,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
           StrCpy $R3 "Invalid PIT File"
         ${ElseIf} "$0" == "32"
           StrCpy $R3 "Unable to set write access for all user in Linux and MAC"
-        ${EndIf}    
+        ${EndIf}      
 
         ${If} "$0" > "0"
           MessageBox MB_TOPMOST|MB_OK  \
@@ -222,7 +214,14 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
         ${EndIf}
     ${EndIf}
 
-    
+
+    StrCpy $R7 "$INSTDIR\license\LicensingUpdater.exe"
+      ; run the updater tool
+      IfFileExists "$R7" 0 +5
+      ExecWait '"$R7"' $1
+      ${If} $1 != 0
+          DetailPrint "[WARNING] Failed to update Autodesk Licensing"
+      ${EndIf}
 
      
 SectionEnd

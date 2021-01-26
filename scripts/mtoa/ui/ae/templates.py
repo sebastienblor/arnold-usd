@@ -227,12 +227,16 @@ class AttributeTemplate(BaseTemplate):
 
     @modeAttrMethod
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False, enumeratedItem=None):
+                   preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
         pass
         
             
     @modeMethod
     def suppress(self, attr):
+        pass
+
+    @modeMethod
+    def dimControl(self, attr, state=True):
         pass
 
     @modeMethod
@@ -357,7 +361,7 @@ class AEChildMode(BaseMode):
         self.addCustom(attr, template._doSetup, template._doUpdate)
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False, enumeratedItem=None):
+                   preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
         # TODO: lookup label and descr from metadata
         if not label:
             label = prettify(attr)
@@ -372,6 +376,8 @@ class AEChildMode(BaseMode):
             kwargs['changeCommand'] = changeCommand
         if enumeratedItem:
             kwargs['enumeratedItem'] = enumeratedItem
+        if hideMapButton:
+            kwargs['hideMapButton'] = hideMapButton
         parent = self._layoutStack[-1]
         cmds.setParent(parent)
         control = AttrControlGrp(**kwargs)
@@ -480,7 +486,7 @@ class AERootMode(BaseMode):
                                             template._doUpdate])
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False, enumeratedItem=None):
+                   preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
         if not label:
             label = prettify(attr)
             if label.startswith('Ai '):
@@ -500,6 +506,7 @@ class AERootMode(BaseMode):
             kwargs['label'] = label
         if annotation:
             kwargs['annotation'] = annotation
+
         cmds.editorTemplate(*args, **kwargs)
         
     def suppress(self, attr):
@@ -527,8 +534,8 @@ class AERootMode(BaseMode):
     def suppress(self, control):
         cmds.editorTemplate(suppress=control)
 
-    def dimControl(self, nodeName, control, state):
-        cmds.editorTemplate(dimControl=(nodeName, control, state))
+    def dimControl(self, control, state):
+        cmds.editorTemplate(dimControl=(self.nodeName, control, state))
 
     def beginLayout(self, name, collapse=True):
         cmds.editorTemplate(beginLayout=name, collapse=collapse)
@@ -537,7 +544,7 @@ class AERootMode(BaseMode):
         cmds.editorTemplate(endLayout=True)
 
     def beginScrollLayout(self):
-        cmds.editorTemplate(beginScrollLayout=True)
+        return cmds.editorTemplate(beginScrollLayout=True)
 
     def endScrollLayout(self):
         cmds.editorTemplate(endScrollLayout=True)

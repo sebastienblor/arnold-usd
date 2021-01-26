@@ -383,7 +383,7 @@ class CallbackQueue(object):
                 else:
                     raise TypeError("If passing a list or tuple, must be a list of functions or of key, function pairs")
         elif isinstance(callbacks, dict):
-            for key, func in callbacks.iteritems():
+            for key, func in callbacks.items():
                 self.addCallback(func, key)
         elif hasattr(callbacks, '__call__'):
             self.addCallback(callbacks)

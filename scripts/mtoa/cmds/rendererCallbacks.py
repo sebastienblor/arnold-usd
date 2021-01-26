@@ -301,7 +301,7 @@ try:
         def _getAOVNameFromJSON(self, aovsJSON, aiAOVName):
             aovs = aovsJSON["aovs"]
             for aov in aovs:
-                for key, value in aov.iteritems():
+                for key, value in aov.items():
                     if key == aiAOVName:
                         return value[aiAOVName + ".name"]
             return None
@@ -375,7 +375,7 @@ try:
             filterNewNameMap = {} # Used when we're doing a merge
             driverNewNameMap = {} # Used when we're doing a merge
             for output in outputs:
-                for key, value in output.iteritems():
+                for key, value in output.items():
 
                     # If we're doing a merge, we need to delete the nodes that overlap with the nodes we are importing.
                     aovName = self._getAOVNameFromJSON(aovsJSON, key)
@@ -415,7 +415,7 @@ try:
             # Iterate over our AOVs and decode them
             aovs = aovsJSON["aovs"]
             for aov in aovs:
-                for aovName, aovJSON in aov.iteritems():
+                for aovName, aovJSON in aov.items():
                     arnoldNodeExporter.decode(aovJSON)
                     self.AOVDefaultValuesNotImported.extend(arnoldNodeExporter.AOVDefaultValuesNotImported)
             # Should we start listening on node creation?
@@ -426,7 +426,7 @@ try:
             for outputType, outputNewNameMap in ["filters", filterNewNameMap], ["drivers", driverNewNameMap]:
                 outputs = aovsJSON[outputType]
                 for output in outputs:
-                    for outputName, outputJSON in output.iteritems():
+                    for outputName, outputJSON in output.items():
                         # If you have an existing scene of AOV nodes and are doing a merge import,
                         # then you may have a name collision as the saved out node names may be
                         # the same as nodes existing in the scene. In this case the nodes we are

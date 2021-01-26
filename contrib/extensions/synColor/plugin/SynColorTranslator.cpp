@@ -22,8 +22,25 @@ void CSynColorTranslator::Export(AtNode* node)
 
       const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled", true).asBool();
       if(cmOCIOEnabled)
-      {
-         AiNodeSetStr (node, "config",             defaultColorSettings.findPlug("configFilePath", true).asString().asChar());
+      {         
+         MString configFile = defaultColorSettings.findPlug("configFilePath", true).asString();
+         static const MString mayaResources = "<MAYA_RESOURCES>";
+         if (configFile.indexW(mayaResources) >= 0)
+         {
+            // This ocio path is relative to the maya resources folder,
+            // we need to expand it (#4435)
+            MString baseFilePath;
+            static const MString mayaDir(getenv("MAYA_LOCATION"));
+            baseFilePath = mayaDir;
+#ifdef _DARWIN
+            baseFilePath += "/Resources";
+#else
+            baseFilePath += "/resources";
+#endif
+            configFile.substitute(mayaResources, baseFilePath);
+         }
+ 
+         AiNodeSetStr (node, "config", configFile.asChar());
          AiNodeSetStr (node, "color_space_linear", renderingSpace.asChar());
       }
       else

@@ -2,6 +2,7 @@
 
 import utils.system as system
 import os
+import platform
 from utils.build_tools import find_files_recursive
 from utils.mtoa_build_tools import get_library_extension
 
@@ -23,6 +24,59 @@ if system.os !='windows':
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(ROOT_DIR, 'contrib', 'extensions', 'usdProxyShape', 'plugin')
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+
+#only to be done if USD_PATH is defined
+if local_env.get('USD_PATH') and local_env.get('USD_VERSION'):
+    usd_install_dir = local_env['USD_PATH']
+    usd_lib_dir = os.path.join(usd_install_dir, 'lib')
+    usd_include_dir = os.path.join(usd_install_dir, 'include')
+
+    boost_lib = os.path.join(usd_install_dir, 'lib')
+    
+    if platform.system().lower() == 'darwin':
+        python_include = os.path.join(local_env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'include', 'python3.7m')
+        python_lib = os.path.join(local_env['MAYA_ROOT'], 'Frameworks', 'Python.framework', 'Versions', '3.7', 'lib')
+    else:
+        python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python37', 'Python')
+        python_lib = os.path.join(local_env['MAYA_ROOT'], 'lib')
+
+    if platform.system().lower() == 'windows':
+        boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+        boost_lib_name = 'boost_%s37-vc141-mt-x64-1_70'
+        usd_lib_prefix = ''
+    else:
+        boost_include = os.path.join(usd_install_dir, 'include', 'boost')
+        boost_lib_name = 'boost_%s37'
+
+
+    usd_libs = [
+        'arch',
+        'sdf',
+        'tf',
+        'usd',
+        'ar',
+        'usdGeom',
+        'usdShade',
+        'usdUtils',
+        'vt',
+        'usdLux',
+        'usdVol',
+        'usdSkel',
+        # 'usdRender',
+    ]
+    
+    local_env.Append(LIBS = usd_libs)
+
+    local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include])
+    local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib])
+
+    if platform.system().lower() == 'darwin':
+        local_env['PYTHON_LIB_NAME'] = 'libpython3.7'
+        local_env.Append(LIBS = ['python3.7', boost_lib_name.replace('%s', 'python')])
+
+    elif platform.system().lower() == 'linux':
+        local_env['PYTHON_LIB_NAME']   = 'libpython3.7m'
+
 EXT = local_env.SharedLibrary('usdProxyShapeTranslator', source_files, LIBPREFIX= '')
 
 if (system.os == 'windows'):

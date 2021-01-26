@@ -1,0 +1,162 @@
+import os, re
+import platform
+import sys
+import SCons.Action
+import subprocess
+
+import utils as sa
+
+# vim: filetype=python
+
+## load our own python modules
+import utils.system as system
+from utils.build_tools import find_files_recursive
+
+
+# import build env
+Import('maya_env')
+local_env = maya_env.Clone()
+_targetPath = local_env.Dir('.')
+globals()['USD_DELEGATE'] = []
+
+pythonVersion = '3'
+if local_env.get('MTOA_USD_PYTHON'):
+    pythonVersion = local_env['MTOA_USD_PYTHON']
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
+source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
+include_files = find_files_recursive(src_base_dir, ['.h'])
+
+mayaRoot = local_env['MAYA_ROOT']
+
+lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
+lib_prefix = {'windows' : ''}.get(system.os, '')
+lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
+
+usd_install_dir = local_env['USD_PATH'] if pythonVersion == '3' else local_env['USD_PATH_PYTHON2']
+usd_lib_dir = os.path.join(usd_install_dir, 'lib')
+
+usd_supported_modes = ['opt', 'debug', 'profile']
+
+usd_include_dir = os.path.join(usd_install_dir, 'include')
+boost_lib = os.path.join(usd_install_dir, 'lib')
+usd_lib_prefix = 'lib'
+
+if platform.system().lower() == 'darwin':
+    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'include', 'python3.7m')
+    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'lib')
+  
+else:
+    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python{}7'.format(pythonVersion), 'Python')
+    python_lib = os.path.join(mayaRoot, 'lib')
+
+if platform.system().lower() == 'windows':
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+    boost_lib_name = 'boost_%s{}7-vc141-mt-x64-1_70'.format(pythonVersion)
+    usd_lib_prefix = ''
+else:
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost')
+    if pythonVersion == '2' and platform.system().lower() == 'linux':
+        boost_lib_name = 'boost_%s'
+    else:
+        boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+
+
+usd_delegate_folder = _targetPath.abspath
+
+if not os.path.exists(python_include):
+    print("Python includes not found %s"% python_include)
+if not os.path.exists(python_lib):
+    print("Python libs not found %s"% python_lib)
+if not os.path.exists(boost_include):
+    print("Boost includes not found %s"% boost_include)
+if not os.path.exists(usd_include_dir):
+    print("USD includes not found %s"% usd_include_dir)
+    
+
+usd_delegate = os.path.join(usd_delegate_folder, "hdArnold"+lib_extension)
+
+def _usd_delegate(target, source, env):
+    usd_env = env.Clone()
+    #########
+    args = dict(
+      COMPILER = 'msvc' if system.is_windows else local_env['COMPILER'],
+      ARNOLD_PATH         = local_env['ARNOLD'],
+      USD_PATH= usd_install_dir,
+      USD_BIN= usd_lib_dir,
+      TBB_LIB= usd_lib_dir,
+      USD_BUILD_MODE = 'shared_libs',
+      PREFIX_RENDER_DELEGATE= usd_delegate_folder,
+      PREFIX_NDR_PLUGIN = usd_delegate_folder,
+      BUILD_SCHEMAS=False,
+      BUILD_RENDER_DELEGATE=True,
+      BUILD_USD_WRITER=False,
+      BUILD_PROCEDURAL=False,
+      BUILD_TESTSUITE=False,
+      BUILD_USD_IMAGING_PLUGIN=False,
+      BUILD_DOCS=False,
+      BUILD_NDR_PLUGIN=True,
+      BOOST_LIB= boost_lib,
+      MODE= local_env['MODE'],
+      WARN_LEVEL='warn-only',
+      MSVC_VERSION='14.1',
+      CXX_STANDARD='14',
+      BOOST_INCLUDE=boost_include,
+      BOOST_LIB_NAME=boost_lib_name,
+      PYTHON_INCLUDE=python_include,
+      PYTHON_LIB=python_lib,
+      USD_LIB_PREFIX=usd_lib_prefix
+    )
+    if platform.system().lower() == 'darwin':
+        args['SDK_PATH']          = local_env['SDK_PATH']
+        args['SDK_VERSION']       = local_env['SDK_VERSION']
+        args['MACOS_VERSION_MIN'] = local_env['MACOS_VERSION_MIN']
+        args['PYTHON_LIB_NAME']   = 'libpython{}.7'.format(pythonVersion)
+
+    if platform.system().lower() == 'linux':
+        if local_env.get('SHCXX'):
+            args['SHCXX'] = local_env['SHCXX']
+        if local_env.get('CXX_STANDARD'):
+            args['CXX_STANDARD'] = local_env['CXX_STANDARD']
+        args['DISABLE_CXX11_ABI']=True 
+        if pythonVersion == '3':
+            args['PYTHON_LIB_NAME']   = 'libpython3.7m'
+        else:
+            args['PYTHON_LIB_NAME']   = 'libpython2.7'
+
+    
+    if pythonVersion == '2':
+        args['BUILD_DIR'] = 'build_python2'
+    usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
+    if not os.path.exists(usd_project):
+        raise SCons.Errors.UserError('arnold-usd subrepository not found')
+
+    usd_scons = os.path.join(usd_project, 'tools', 'scons', 'scons.py')
+    if not os.path.exists(usd_scons):
+        raise SCons.Errors.UserError('arnold-usd scons file not found')
+
+    usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
+    delegate_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   
+    sub = subprocess.Popen([sys.executable] + delegate_args, cwd=usd_project)
+    sub.communicate()
+    if sub.returncode != 0:
+        raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+    ndr_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'ndrplugin-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   
+    sub = subprocess.Popen([sys.executable] + ndr_args, cwd=usd_project)
+    sub.communicate()
+    if sub.returncode != 0:
+        raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+    return None
+
+delegate_action_log = 'Building USD render delegate '
+if pythonVersion == '2':
+    delegate_action_log += 'for Python 2'
+delegate_action_log += '....'
+usd_delegate_action  = SCons.Action.Action(_usd_delegate    , delegate_action_log)
+USD_DELEGATE = local_env.Command(usd_delegate_folder, [], usd_delegate_action  )
+local_env.Alias('usd_delegate', USD_DELEGATE)
+
+Return('USD_DELEGATE')

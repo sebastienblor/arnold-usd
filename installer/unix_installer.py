@@ -296,11 +296,22 @@ mtoaMod.write('PATH +:= bin\n')
 mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
 mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
 mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
-mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/hydra\n' % installDir)
+mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/usd\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
-exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'), os.path.join('bin', 'rlmutil'), os.path.join('bin', 'ArnoldLicenseManager'), os.path.join('license', 'pitreg'), os.path.join('license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run')]
+exList = [  os.path.join('bin', 'kick'),
+            os.path.join('bin', 'maketx'),
+            os.path.join('bin', 'noice'),
+            os.path.join('bin', 'oslc'),
+            os.path.join('bin', 'oslinfo'),
+            os.path.join('bin', 'lmutil'),
+            os.path.join('bin', 'rlmutil'),
+            os.path.join('bin', 'ArnoldLicenseManager'),
+            os.path.join('license', 'pitreg'),
+            os.path.join('license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run'),
+            os.path.join('license', 'LicensingUpdater')
+            ]
 for ex in exList:
     if os.path.exists(os.path.join(installDir, ex)):
         try:
@@ -311,13 +322,14 @@ for ex in exList:
             sys.exit(0)
 
 licInstallerFiles = glob.glob(os.path.join(installDir, 'license', 'installer', '*'))
+licInstallerFiles.append(os.path.join(installDir, 'license', 'LicensingUpdater'))
+
 for licInstallerFile in licInstallerFiles:
     try:
         subprocess.call(['chmod', '+x', licInstallerFile])
     except:
         if not silent:
             print('Error adding +x to executable %s' % licInstallerFile)
-
 
 # stop relying on pitreg
 #subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
@@ -348,6 +360,7 @@ if installMode == 1: # do the proper installation
         subprocess.call(['chown', sudoUser, os.path.join(modulesDir, 'mtoa.mod')])
     except:
         pass
+
     # install the renderer description file in the maya dir
     mayaInstallDir = ''
     if sys.platform == 'darwin':
@@ -401,6 +414,8 @@ if installMode == 1: # do the proper installation
             os.system('clear')    
             print(pitreg_msg)        
             sys.exit(1)
+    if os.path.exists(os.path.join(installDir, 'license', 'LicensingUpdater')):
+        os.system(os.path.join(installDir, 'license', 'LicensingUpdater '))
 
 if not silent:
     os.system('clear')

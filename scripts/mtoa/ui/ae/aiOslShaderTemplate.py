@@ -2,6 +2,10 @@ import maya.mel
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.ae.utils import AttrControlGrp
+from mtoa.ui.qt import toQtObject, dpiScale
+from mtoa.ui.qt.Qt import QtWidgets
+from mtoa.ui.qt.codeEditor import BaseCodeEditor
+from mtoa.ui.qt.syntaxhighlighter import OSLHighlighter
 import re
 import os
 import mtoa.osl
@@ -14,8 +18,15 @@ defaultFolder = ""
 
 class AEaiOslShaderTemplate(ShaderAETemplate):
 
+    def __currentWidget(self, pySideType=QtWidgets.QWidget):
+        """Cast and return the current widget."""
+        # Get the current widget Maya name.
+        currentWidgetName = cmds.setParent(query=True)
+        return toQtObject(currentWidgetName, pySideType)
+
     def setup(self):
-        self.compileEnum = {0: 'Needs (Re)Compile', 1: 'Compile Success', 2: 'Compile Failure'}
+        self.codeAttr = ''
+        self.compileEnum = ['Needs (Re)Compile', 'Compile Success', 'Compile Warnings', 'Compile Failure']
         self._controls = []
         self.addSwatch()
         self.beginScrollLayout()
@@ -48,7 +59,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def codeStatusCreate(self, attrName):
         if not cmds.attributeQuery("compileStatus", node=self.nodeName, ex=True):
-            cmds.addAttr(self.nodeName, ln="compileStatus", sn="cmpSts", at="enum", enumName="Needs Compile:Compile Success:Compile Failure", hidden=True)
+            cmds.addAttr(self.nodeName, ln="compileStatus", sn="cmpSts", at="enum", enumName=':'.join(self.compileEnum), hidden=True)
         cmds.rowLayout(numberOfColumns=2, columnWidth2=(100, 100), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
         cmds.text(" Compile Status", al="left", fn="smallBoldLabelFont")
         compileStatusText = self.compileEnum[cmds.getAttr(attrName)]
@@ -57,7 +68,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def codeStatusUpdate(self, attrName):
         if not cmds.attributeQuery("compileStatus", node=self.nodeName, ex=True):
-            cmds.addAttr(self.nodeName, ln="compileStatus", sn="cmpSts", at="enum", enumName="Needs Compile:Compile Success:Compile Failure", hidden=True)
+            cmds.addAttr(self.nodeName, ln="compileStatus", sn="cmpSts", at="enum", enumName=':'.join(self.compileEnum), hidden=True)
 
         compileStatus = cmds.getAttr(attrName)
         bg_color = [0.0, 0.0, 0.0]
@@ -65,7 +76,9 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             bg_color = [0.0, 1.0, 1.0]
         elif compileStatus == 1:
             bg_color = [0.0, 1.0, 0.0]
-        else:
+        elif compileStatus == 2:
+            bg_color = [1.0, 1.0, 0.0]
+        elif compileStatus == 3:
             bg_color = [1.0, 0.0, 0.0]
         cmds.text(self.compile_control, e=True, l=self.compileEnum[compileStatus], bgc=bg_color)
 
@@ -94,44 +107,56 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         cmds.setParent("..")
 
     def codeWidgetCreate(self, attrName):
-        self.code_widget_path = cmds.scrollField(editable=True, wordWrap=True,
-                                                 font="fixedWidthFont",
-                                                 w=200, h=400,
-                                                 cc=lambda *args: self.setShaderCode(attrName))
+        currentWidget = self.__currentWidget()
+
+        self.code_widget = BaseCodeEditor(currentWidget, OSLHighlighter)
+        currentWidget.layout().addWidget(self.code_widget)
+        self.code_widget.setFixedHeight(dpiScale(400))
+
+        self.code_widget.textChanged.connect(self.setShaderCode)
         self.codeWidgetUpdate(attrName)
 
     def codeWidgetUpdate(self, attrName):
-        cmds.scrollField(self.code_widget_path, edit=True, tx=cmds.getAttr(attrName), cc=lambda *args: self.setShaderCode(attrName))
+        self.codeAttr = attrName
+        osl_code = cmds.getAttr(attrName)
+        self.code_widget.setPlainText(osl_code)
 
     def compileButtonCreate(self, attrName):
-        cmds.button('compileButtonPath', label='Compile OSL Code', command=lambda *args: self.compiler(attrName, self.code_widget_path))
+        cmds.button('compileButtonPath', label='Compile OSL Code', command=lambda *args: self.compiler(attrName))
 
     def compileButonUpdate(self, attrName):
-        cmds.button('compileButtonPath', e=True, label='Compile OSL Code', command=lambda *args: self.compiler(attrName, self.code_widget_path))
+        cmds.button('compileButtonPath', e=True, label='Compile OSL Code', command=lambda *args: self.compiler(attrName))
 
-    def compiler(self, attrName, path):
+    def compiler(self, attrName):
         nodeName = attrName.split('.')[0]
-        compileText = cmds.scrollField(path, q=True, tx=True)
+        compileText = self.code_widget.toPlainText()
 
         if compileText != cmds.getAttr(nodeName + '.code'):
-            self.setShaderCode(nodeName + '.code')
+            self.setShaderCode()
 
         oslMayaScene = mtoa.osl.OSLSceneModel(compileText, nodeName)
         if oslMayaScene.compileState:
-            self.setCodeStatus(attrName, 1)
-            om.MGlobal.displayInfo(" Code compiled successfully ")
+            if len(oslMayaScene.compilationWarnings):
+                om.MGlobal.displayInfo(" Code compiled with Warnings ")
+                for warn in oslMayaScene.compilationWarnings:
+                    cmds.warning(warn)
+                self.setCodeStatus(attrName, 2)
+            else:
+                om.MGlobal.displayInfo(" Code compiled successfully ")
+                self.setCodeStatus(attrName, 1)
         else:
-            self.setCodeStatus(attrName, 2)
+            self.setCodeStatus(attrName, 3)
             om.MGlobal.displayError(" Compilation Failed")
-            cmds.error(oslMayaScene.compilationErrors)
+            for error in oslMayaScene.compilationErrors:
+                om.MGlobal.displayError(error)
 
-    def setShaderCode(self, attrName):
-        nodeName = attrName.split('.')[0]
-        compileText = cmds.scrollField(self.code_widget_path, q=True, tx=True)
-        if compileText == cmds.getAttr(attrName):
+    def setShaderCode(self):
+        nodeName = self.codeAttr.split('.')[0]
+        compileText = self.code_widget.toPlainText()
+        if compileText == cmds.getAttr(self.codeAttr):
             return
-        cmds.setAttr(attrName, compileText, type="string")
-        self.setCodeStatus(attrName, 0)
+        cmds.setAttr(self.codeAttr, compileText, type="string")
+        self.setCodeStatus(self.codeAttr, 0)
 
     def setCodeStatus(self, attrName, status):
         nodeName = attrName.split('.')[0]
@@ -167,7 +192,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             codeAttr = attrName.split('.')[0] + '.code'
             if code_string != cmds.getAttr(codeAttr):
                 cmds.setAttr(codeAttr, code_string, type="string")
-                cmds.scrollField(self.code_widget_path, edit=True, tx=code_string)
+                self.code_widget.setPlainText(code_string)
                 self.setCodeStatus(attrName, 1)
 
     def exportOSL(self, attrName):

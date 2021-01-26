@@ -200,7 +200,6 @@ MStatus CExtensionsManager::LoadExtensionLibrary(CExtension *extension)
       MString msg = MString("[mtoa] Error loading extension library: ")+ MString(LibraryLastError());
       AiMsgWarning(msg.asChar());
 
-      DeleteExtension(extension);
       return MStatus::kFailure;
    }
    extension->m_impl->m_library = pluginLib;
@@ -211,7 +210,6 @@ MStatus CExtensionsManager::LoadExtensionLibrary(CExtension *extension)
       AiMsgWarning(msg.asChar());
 
       LibraryUnload(pluginLib);
-      DeleteExtension(extension);
       return MStatus::kFailure;
    }
    const char* (*apiVersionFunction)() = (const char* (*)())LibrarySymbol(pluginLib, "getAPIVersion");
@@ -1200,7 +1198,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
    // start up the arnold universe so that attribute helpers can query arnold nodes
 
    ExtensionsList::iterator extIt;
-   
+   MStatus status;
    if (plugin_str == "mtoa")
    {
       // we're first called when MtoA finished loading.
@@ -1250,10 +1248,19 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          if (extension->m_impl->m_library == nullptr)
          {
             AiMsgInfo("[mtoa] Delayed loading Extension: %s", extension->GetExtensionFile().asChar());
-            LoadExtensionLibrary(extension);
+            status  = LoadExtensionLibrary(extension);
          }
-         
-         RegisterExtension(extension);
+         if (status == MS::kSuccess)
+         { 
+            RegisterExtension(extension);
+         }
+         else
+         {
+            AiMsgError("[mtoa] Deleting Extension %s .Unable to load library: (%s)",
+               extension->GetExtensionName().asChar(),extension->GetExtensionFile().asChar());
+            s_extensions.erase(extIt);
+            extension = NULL;
+         }
       }
    }
    if (universeCreated) ArnoldUniverseEnd();

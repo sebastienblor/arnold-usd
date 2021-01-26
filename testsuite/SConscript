@@ -925,7 +925,7 @@ while True:
 IGNORELIST     = {'ignore':[], 'os':[]}
 SKIPPED_TESTS = {'ignore':0, 'os':0, 'other':0}
 
-# Tests in 'ignore' group are always added to the black list
+# Tests in 'ignore' group are always added to the ignore list
 IGNORELIST['ignore'] = find_test_group('ignore', env)
 
 # We also want to ignore the tests specific to this maya version
@@ -940,7 +940,7 @@ IGNORELIST['ignore'] |= find_test_group('gui', env)
 
 # Tests intended for this platform
 OSTESTLIST = find_test_group(sa.system.os, env)
-# Add tests intended for other platforms to the black list
+# Add tests intended for other platforms to the ignore list
 for o in sa.system.allowed.os:
    if o != sa.system.os:
       for atest in find_test_group(o, env):
@@ -957,11 +957,11 @@ for target in sorted(TEST_NAMES, reverse=(env['TEST_ORDER']=='normal')):
    if skip_ignored_tests and len(TEST_NAMES) > 1:
       if target in IGNORELIST['ignore']:
          SKIPPED_TESTS['ignore'] += 1
-         print_safe('skipping test %s -- found in black list' % (target))
+         print_safe('skipping test %s -- found in ignore list' % (target))
          continue
    if target in IGNORELIST['os']:
       SKIPPED_TESTS['os'] += 1
-      print_safe('skipping test %s -- found in black list' % (target))
+      print_safe('skipping test %s -- found in ignore list' % (target))
       continue
    
    if not os.path.exists(os.path.abspath(os.path.join('testsuite', target, 'README'))):

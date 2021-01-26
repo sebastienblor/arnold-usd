@@ -2,7 +2,7 @@
 
 ## first we extend the module path to load our own modules
 import subprocess
-import sys, os
+import sys, os, re
 sys.path = ["tools/python"]  + sys.path
 
 import utils.system
@@ -14,6 +14,7 @@ from utils.mtoa_build_tools import *
 from multiprocessing import cpu_count
 
 import SCons
+import shutil
 
 from colorama import init
 init()
@@ -165,8 +166,8 @@ vars.AddVariables(
     PathVariable('TARGET_PRESETS_PATH',
                  'Path for presets.',
                  os.path.join('$TARGET_MODULE_PATH', 'presets'), PathVariable.PathIsDirCreate),
-    PathVariable('TARGET_USD_DELEGATE_PATH', 
-                 'Path used for installation of arnold USD render delegate', 
+    PathVariable('TARGET_USD_PATH', 
+                 'Path used for installation of arnold USD modules', 
                  os.path.join('$TARGET_MODULE_PATH', 'usd'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
@@ -179,8 +180,11 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     StringVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
+    StringVariable('MAYAUSD_PATH', 'Maya-USD installation root', None),
+    StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
+    StringVariable('MAYAUSD_PATH_PYTHON2', 'Maya-USD installation root for python2', None),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2021', False),
+    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline/master builds', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
@@ -281,7 +285,7 @@ TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
 TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
-TARGET_USD_DELEGATE_PATH = env.subst(env['TARGET_USD_DELEGATE_PATH'])
+TARGET_USD_PATH = env.subst(env['TARGET_USD_PATH'])
 TARGET_PLUGINS_PATH = env.subst(env['TARGET_PLUGINS_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
@@ -320,7 +324,7 @@ else:
 if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
-    maya_version = '202100'
+    maya_version = '202200'
     env.Append(CPPDEFINES = Split('MAYA_MAINLINE')) 
 
 maya_version_base = maya_version[0:4]
@@ -474,8 +478,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(LINKFLAGS = Split('-z origin') )
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
-    if env['MAYA_MAINLINE']:
-        print '------ Setting C++14' 
+    if int(maya_version_base) >= 2021:
+        print('------ Setting C++14 for version {}'.format(maya_version_base))
         env.Append(CXXFLAGS = Split('-std=c++14'))
         env.Append(CCFLAGS = Split('-std=c++14'))
     else:
@@ -674,21 +678,56 @@ if env['MTOA_DISABLE_RV']:
 env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
 
+USD_MODULES = None
 USD_DELEGATE = None
+USD_DELEGATE_PYTHON2 = None
+USD_PROCEDURAL = None
+USD_PROCEDURAL_PYTHON2 = None
+MAYAUSD_REGISTRY = None
+MAYAUSD_REGISTRY_PYTHON2 = None
+USD_VERSION = None
+USD_FULL_VERSION = None
 USD_PATH = env.get('USD_PATH')
-if USD_PATH and len(USD_PATH) > 0 and env['MAYA_MAINLINE']:
+USD_PATH_PYTHON2 = env.get('USD_PATH_PYTHON2')
+ENABLE_USD = False
+MAYAUSD_PATH = env.get('MAYAUSD_PATH')
+MAYAUSD_PATH_PYTHON2 = env.get('MAYAUSD_PATH_PYTHON2')
+
+env['MTOA_USD_PYTHON'] = '3'
+if USD_PATH and len(USD_PATH) > 0 and int(maya_version_base) >= 2021:
     USD_PATH = env.subst(USD_PATH)
     print ('updating usd submodule...')
     system.execute('git submodule sync')
     system.execute('git submodule update --init --recursive')
     print ('done')
-    USD_DELEGATE = env.SConscript(os.path.join('usd', 'SConscript'),
-                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd'),
-                      duplicate   = 0,
-                      exports     = 'env')
-    if USD_DELEGATE:
-        env.Install(TARGET_MODULE_PATH, USD_DELEGATE[0])
+    USD_MAJOR_VERSION = '0'
+    USD_MINOR_VERSION = '00'
+    USD_PATCH_VERSION = '00'
+    # get usd header info
+    pxr_h = open(os.path.join(USD_PATH, 'include', 'pxr', 'pxr.h'), 'r').read()
+    r = re.search('PXR_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_VERSION = r.group(1)
+    r = re.search('PXR_MAJOR_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_MAJOR_VERSION = r.group(1)
+    r = re.search('PXR_MINOR_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_MINOR_VERSION = r.group(1)
+    r = re.search('PXR_PATCH_VERSION ([0-9]+)', pxr_h)
+    if r:
+        USD_PATCH_VERSION = r.group(1)
 
+    USD_FULL_VERSION = '{}.{}.{}'.format(USD_MAJOR_VERSION, USD_MINOR_VERSION, USD_PATCH_VERSION)
+
+    if USD_VERSION:
+        env['USD_VERSION'] = USD_VERSION
+        # used by the proxy shape extension
+        env.Append(CPPDEFINES = Split('ENABLE_USD'))
+        ENABLE_USD = True
+        if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
+            os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
+ 
 if system.os == 'windows':
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
@@ -701,6 +740,17 @@ if system.os == 'windows':
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
         MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.dll'), os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.lib')]
         MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders.dll')]
+        if ENABLE_USD:
+            USD_DELEGATE = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', '2011')
+            USD_PROCEDURAL = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', '2011', 'usd_cache_proc.dll')
+            if MAYAUSD_PATH:
+                MAYAUSD_REGISTRY = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', '2011', 'mayaUsdRegistry.dll')
+            if USD_PATH_PYTHON2:
+                USD_DELEGATE_PYTHON2 = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', '2011_python2')
+                USD_PROCEDURAL_PYTHON2 = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', '2011_python2', 'usd_cache_proc.dll')
+                if MAYAUSD_PATH_PYTHON2:
+                    MAYAUSD_REGISTRY_PYTHON2 = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', '2011_python2', 'mayaUsdRegistry.dll')
+
     else:
         MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
@@ -717,6 +767,36 @@ if system.os == 'windows':
                                                     duplicate   = 0,
                                                     exports     = 'env')
 
+        if ENABLE_USD:
+            USD_DELEGATE = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            USD_PROCEDURAL = env.SConscript(os.path.join('usd', 'procedural', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            if MAYAUSD_PATH:
+                MAYAUSD_REGISTRY = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION),
+                                  duplicate   = 0,
+                                  exports     = 'maya_env')
+            if USD_PATH_PYTHON2:
+                maya_env['MTOA_USD_PYTHON'] = '2'
+                USD_DELEGATE_PYTHON2 = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION + '_python2'),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+                USD_PROCEDURAL_PYTHON2 = env.SConscript(os.path.join('usd', 'procedural', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', USD_VERSION + '_python2'),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            
+                if MAYAUSD_PATH_PYTHON2:
+                    MAYAUSD_REGISTRY_PYTHON2 = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION + '_python2'),
+                                  duplicate   = 0,
+                                  exports     = 'maya_env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
@@ -733,6 +813,7 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
@@ -747,6 +828,17 @@ else:
         else:
             MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.so')]
         MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders' + get_library_extension())]
+        if ENABLE_USD:
+            USD_DELEGATE = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', '2011')
+            USD_PROCEDURAL = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', '2011', 'usd_cache_proc' + get_library_extension())
+            if MAYAUSD_PATH:
+                MAYAUSD_REGISTRY = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', '2011', 'mayaUsdRegistry'+ get_library_extension())
+            if USD_PATH_PYTHON2:
+                USD_DELEGATE_PYTHON2 = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', '2011_python2')
+                USD_PROCEDURAL_PYTHON2 = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', '2011_python2', 'usd_cache_proc'+ get_library_extension())
+                if MAYAUSD_PATH_PYTHON2:
+                    MAYAUSD_REGISTRY_PYTHON2 = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', '2011_python2', 'mayaUsdRegistry'+ get_library_extension())
+
     else:
         MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                   variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
@@ -763,7 +855,40 @@ else:
                                       duplicate   = 0,
                                       exports     = 'env')
 
-    MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
+        if ENABLE_USD:
+            USD_DELEGATE = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            USD_PROCEDURAL = env.SConscript(os.path.join('usd', 'procedural', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            if MAYAUSD_PATH:
+                MAYAUSD_REGISTRY = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+
+            if USD_PATH_PYTHON2:
+                maya_env['MTOA_USD_PYTHON'] = '2'
+                USD_DELEGATE_PYTHON2 = env.SConscript(os.path.join('usd', 'hydra', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', USD_VERSION + '_python2'),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+                USD_PROCEDURAL_PYTHON2 = env.SConscript(os.path.join('usd', 'procedural', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', USD_VERSION + '_python2'),
+                              duplicate   = 0,
+                              exports     = 'maya_env')
+            
+                if MAYAUSD_PATH_PYTHON2:
+                    MAYAUSD_REGISTRY_PYTHON2 = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION + '_python2'),
+                                  duplicate   = 0,
+                                  exports     = 'maya_env')
+
+
+    MTOA_PROCS = env.SConscript(os.path.abspath(os.path.join('procedurals', 'SConscript')),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
                                 duplicate   = 0,
                                 exports     = 'env')
@@ -790,6 +915,102 @@ else:
         env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Adjusting paths in mtoa.boundle ...'))
         #env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_shaders ...'))
         #env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
+
+# Install all USD modules (render delegate and shader registry)
+if ENABLE_USD:
+    # create the file mayaUsdPlugInfo.json
+    jsonFileText = '{\n\t"MayaUsdIncludes":[\n'
+    modulesFound = False  
+    if not os.path.exists(os.path.join(TARGET_USD_PATH, 'hydra')):
+        os.makedirs(os.path.join(TARGET_USD_PATH, 'hydra'))
+
+    if USD_DELEGATE:
+        modulesFound = True
+        if isinstance(USD_DELEGATE, SCons.Node.NodeList):
+            USD_DELEGATE = USD_DELEGATE[0]
+        jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"hydra/"
+        jsonFileText += USD_VERSION
+        jsonFileText += "\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"3",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(USD_FULL_VERSION)
+        jsonFileText += '\t\t\t}\n\t\t}'
+        env.Install(os.path.join(TARGET_USD_PATH, 'hydra'), USD_DELEGATE)
+
+    if USD_DELEGATE_PYTHON2:
+        if modulesFound:
+            jsonFileText += ',\n'
+        modulesFound = True
+        if isinstance(USD_DELEGATE_PYTHON2, SCons.Node.NodeList):
+            USD_DELEGATE_PYTHON2 = USD_DELEGATE_PYTHON2[0]
+        jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"hydra"
+        jsonFileText += USD_VERSION
+        jsonFileText += "_python2/\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"2",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(USD_FULL_VERSION)
+        jsonFileText += '\t\t\t}\n\t\t}'
+        env.Install(os.path.join(TARGET_USD_PATH, 'hydra'), USD_DELEGATE_PYTHON2)
+
+    if MAYAUSD_REGISTRY:
+        if isinstance(MAYAUSD_REGISTRY, SCons.Node.NodeList):
+            MAYAUSD_REGISTRY = MAYAUSD_REGISTRY[0]
+        if modulesFound:
+            jsonFileText += ',\n'
+        modulesFound = True
+        jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"mayaUsdRegistry/"
+        jsonFileText += USD_VERSION
+        jsonFileText += "\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"3",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(USD_FULL_VERSION)
+        jsonFileText += '\t\t\t}\n\t\t}'
+
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION), MAYAUSD_REGISTRY)
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION, 'plugInfo.json'))
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION, 'mayaUsdRegistry'))
+
+    if MAYAUSD_REGISTRY_PYTHON2:
+        if isinstance(MAYAUSD_REGISTRY_PYTHON2, SCons.Node.NodeList):
+            MAYAUSD_REGISTRY_PYTHON2 = MAYAUSD_REGISTRY_PYTHON2[0]
+        if modulesFound:
+            jsonFileText += ',\n'
+        modulesFound = True
+        jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"mayaUsdRegistry"
+        jsonFileText += USD_VERSION
+        jsonFileText += "_python2/\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"2",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(USD_FULL_VERSION)
+        jsonFileText += '\t\t\t}\n\t\t}'
+
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION + '_python2'), MAYAUSD_REGISTRY_PYTHON2)
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION + '_python2'), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION + '_python2', 'plugInfo.json'))
+        env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', USD_VERSION + '_python2'), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', USD_VERSION + '_python2', 'mayaUsdRegistry'))
+
+    if USD_PROCEDURAL:
+        if isinstance(USD_PROCEDURAL, SCons.Node.NodeList):
+            USD_PROCEDURAL = USD_PROCEDURAL[0]
+        proc_folder = os.path.join(TARGET_EXTENSION_PATH, 'usd')
+        if not os.path.exists(proc_folder):
+            os.makedirs(proc_folder)
+        env.Install(proc_folder, USD_PROCEDURAL)
+
+    if USD_PROCEDURAL_PYTHON2:
+        if isinstance(USD_PROCEDURAL_PYTHON2, SCons.Node.NodeList):
+            USD_PROCEDURAL_PYTHON2 = USD_PROCEDURAL_PYTHON2[0]
+        proc_folder = os.path.join(TARGET_EXTENSION_PATH, 'usd_python2')
+        if not os.path.exists(proc_folder):
+            os.makedirs(proc_folder)
+        env.Install(proc_folder, USD_PROCEDURAL_PYTHON2)
+
+    jsonFileText += '\n\t]\n}'
+    jsonFilePath = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json')
+    jsonFile = open(jsonFilePath, 'w')
+    jsonFile.write(jsonFileText)
+    jsonFile.close()
+    env.Install(os.path.join(TARGET_USD_PATH), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json'))
+
 
 Depends(MTOA, MTOA_API[0])
 Depends(MTOA, ARNOLD_API_LIB)
@@ -868,7 +1089,8 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.pat
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(ARNOLD, 'license', '*')))
 
 env.Install(env['TARGET_BINARIES'], dylibs)
-env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
+
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'osl'), glob.glob(os.path.join(ARNOLD, 'osl', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 # install all arnold sdk headers
 env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
@@ -883,7 +1105,10 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
+    if int(maya_version_base) >= 2021:
+        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2022', RENDERVIEW_DYLIB)
+    else:
+        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
@@ -891,7 +1116,7 @@ if not env['MTOA_DISABLE_RV']:
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
-scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml', '.qss', '.txt'])
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml', '.qss', '.txt', '.json', 'README'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
@@ -1244,7 +1469,7 @@ PACKAGE_FILES = [
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
-[os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
+# [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 [os.path.join(ARNOLD, 'include'), os.path.join('include', 'arnold')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
@@ -1254,6 +1479,13 @@ for p in materialx_files:
     (d, f) = os.path.split(p)
     PACKAGE_FILES += [
         [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
+    ]
+
+osl_files = find_files_recursive(os.path.join(ARNOLD, 'osl'), None)
+for p in osl_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'osl', p), os.path.join('osl', d)]
     ]
 
 if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
@@ -1348,12 +1580,42 @@ for p in docfiles:
     ]
 
 if USD_DELEGATE:
-    hydrafolder = USD_DELEGATE[0].rstr()
-    hydrafiles = find_files_recursive(os.path.join(hydrafolder), None)
+    hydrafolder = str(USD_DELEGATE)
+    hydrafiles = find_files_recursive(hydrafolder, ['.dll', '.so', '.dylib', '.json'])
     for p in hydrafiles:
         (d, f) = os.path.split(p)
-        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('hydra', d)]]
-        
+        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', 'hydra', env['USD_VERSION'], d)]]
+
+if USD_DELEGATE_PYTHON2:
+    hydrafolder = str(USD_DELEGATE_PYTHON2)
+    hydrafiles = find_files_recursive(hydrafolder, ['.dll', '.so', '.dylib', '.json'])
+    for p in hydrafiles:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', 'hydra', env['USD_VERSION'] + '_python2', d)]]
+
+if MAYAUSD_REGISTRY:
+    registryfolder = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', env['USD_VERSION'])
+    registryfiles = find_files_recursive(registryfolder, ['.dll', '.so', '.dylib', '.json'])
+    for p in registryfiles:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [[os.path.join(registryfolder, p), os.path.join('usd', 'mayaUsdRegistry', env['USD_VERSION'], d)]]
+
+if MAYAUSD_REGISTRY_PYTHON2:
+    registryfolder = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', env['USD_VERSION'] + '_python2')
+    registryfiles = find_files_recursive(registryfolder, ['.dll', '.so', '.dylib', '.json'])
+    for p in registryfiles:
+        (d, f) = os.path.split(p)
+        PACKAGE_FILES += [[os.path.join(registryfolder, p), os.path.join('usd', 'mayaUsdRegistry', env['USD_VERSION'] + '_python2', d)]]
+
+if ENABLE_USD:
+    PACKAGE_FILES += [[os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json'), 'usd']]
+    
+if USD_PROCEDURAL:
+    PACKAGE_FILES += [[USD_PROCEDURAL, os.path.join('extensions', 'usd')]]
+
+if USD_PROCEDURAL_PYTHON2:
+    PACKAGE_FILES += [[USD_PROCEDURAL_PYTHON2, os.path.join('extensions', 'usd_python2')]]
+
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
@@ -1370,6 +1632,8 @@ PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPh
 PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdProxyShape', 'usdProxyShapeTranslator%s' % get_library_extension()), 'extensions'])
+PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'usdProxyShape', 'plugin', '*.mtd'), 'extensions'])
+
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'usdPreviewSurface', 'usdPreviewSurfaceTranslator%s' % get_library_extension()), 'extensions'])
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
@@ -1532,7 +1796,7 @@ def create_installer(target, source, env):
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installPath)
-        mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/hydra\n' % installPath)
+        mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/usd\n' % installPath)
         mtoaMod.close()
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
@@ -1563,9 +1827,13 @@ def create_installer(target, source, env):
             pitregCommand = "  $3/Applications/Autodesk/Arnold/mtoa/%s/license/pitreg\n" % maya_version
             pitregScript.write(pitregCommand)
             pitregScript.write('fi\n')
-        
 
+        ### Add the LicenseUpdater 
         pitregScript.write('\n')
+        pitregCommand = "  chmod +x $2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
+        pitregScript.write(pitregCommand)
+        pitregCommand = "$2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
+        pitregScript.write(pitregCommand)
         pitregScript.close()
 
         pitregScript = open(os.path.join(tempdir, 'empty_script.sh'), 'w')
@@ -1647,7 +1915,7 @@ aliases.append(env.Alias('install-bin',     env['TARGET_BINARIES']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))
-aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_DELEGATE_PATH']))
+aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)
