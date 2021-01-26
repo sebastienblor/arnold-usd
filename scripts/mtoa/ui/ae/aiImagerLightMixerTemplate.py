@@ -1,7 +1,7 @@
 import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-from mtoa.ui.qt import toQtObject, clearWidget
+from mtoa.ui.qt import toQtObject, clearWidget, setStaticSize
 from mtoa.ui.qt import toMayaName , dpiScale, shiboken
 import maya.cmds as cmds
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
@@ -10,7 +10,9 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate, LayersList
 from mtoa.ui.qt import BaseItem
 
-s_pushStyleButton = "QPushButton:pressed {background-color: rgb(150, 150, 150) ;} ";
+s_pushStyleButton = "QPushButton:pressed {background-color: rgb(150, 150, 150); border: none; } QPushButton:checked { background-color: rgb(113, 142, 184); border: none; }";
+
+BUTTON_SIZE = 32
 
 def getLightGroups():
     # loop over all light groups in the scene
@@ -102,23 +104,26 @@ class LightGroupItem(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         SOLO_ICON = BaseItem.dpiScaledIcon(":/RS_isolate.png")
         BIN_ICON = BaseItem.dpiScaledIcon(":/RS_delete.png")
 
+        self.setStyleSheet(s_pushStyleButton)
+
         self.delete_button = QtWidgets.QPushButton()
         self.delete_button.setIcon(BIN_ICON)
         self.delete_button.setToolTip("Delete Layer")
+        setStaticSize(self.delete_button, BUTTON_SIZE, BUTTON_SIZE)
         self.delete_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
 
         self.solo_button = QtWidgets.QPushButton()
-        self.solo_button.setStyleSheet(s_pushStyleButton)
         self.solo_button.setCheckable(True)
         self.solo_button.setIcon(SOLO_ICON)
         self.solo_button.setToolTip("Solo Layer")
+        setStaticSize(self.solo_button, BUTTON_SIZE, BUTTON_SIZE)
         self.solo_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
 
         self.enable_button = QtWidgets.QPushButton()
-        self.enable_button.setStyleSheet(s_pushStyleButton)
         self.enable_button.setCheckable(True)
         self.enable_button.setIcon(DISABLED_ICON)
         self.enable_button.setToolTip("Enable/Disable Layer")
+        setStaticSize(self.enable_button, BUTTON_SIZE, BUTTON_SIZE)
         self.enable_button.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
 
         self.label = QtWidgets.QLabel(name,self)
@@ -268,6 +273,7 @@ class LightMixer(QtWidgets.QFrame):
 
         ADD_LAYER_ICON =  BaseItem.dpiScaledIcon(":/RS_create_layer.png")
         self.addLayerButton = QtWidgets.QPushButton( self.actionsFrame)
+        self.setStyleSheet(s_pushStyleButton)
         self.addLayerButton.setIcon(ADD_LAYER_ICON)
 
         self.actionsLayout.addWidget(self.addLayerButton)
