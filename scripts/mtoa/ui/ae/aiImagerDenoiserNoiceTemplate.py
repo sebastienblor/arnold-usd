@@ -29,7 +29,6 @@ class ImagerDenoiserUI(ImagerBaseUI):
         self.addControl('outputSuffix', annotation='')
         self.addControl('patchRadius', hideMapButton = True, annotation = "")
         self.addControl('searchRadius', hideMapButton = True, annotation = "")
-        self.addControl('tileSize', hideMapButton = True, annotation = "")
         self.addControl('variance', hideMapButton = True, annotation = "")
         self.endLayout()
 

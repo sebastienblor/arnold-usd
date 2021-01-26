@@ -3980,6 +3980,8 @@ desc STRING "Apply a gamma correction to the color."
     maya.id                 INT      0x00115DC2
     [attr input]
         maya.hide               BOOL     TRUE
+    [attr tile_size]
+        maya.hide               BOOL     TRUE
     [attr layer_selection]
         default             STRING     "RGBA"
 
