@@ -89,6 +89,3 @@ void MtoAADPPayloads::ADPPostShaderUsed(const std::string shader_name)
         AiParamValueMapDestroy(param_value_map);
     }
 }
-
-MTOA.ARV.UPDATE_FULL_SCENE = [NODES_TO_PROCESS]
-
