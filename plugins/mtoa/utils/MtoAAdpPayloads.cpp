@@ -64,13 +64,10 @@ std::unordered_map<std::string, std::string> shaders_map = {
 {"marble","AS_MTOA_SHADER"},
 {"mountain","AS_MTOA_SHADER"},
 {"noise","AS_MTOA_SHADER"},
-{"noiseUtils","AS_MTOA_SHADER"},
 {"rock","AS_MTOA_SHADER"},
 {"snow","AS_MTOA_SHADER"},
 {"solidFractal","AS_MTOA_SHADER"},
 {"stucco","AS_MTOA_SHADER"},
-{"switchUtils","AS_MTOA_SHADER"},
-{"switchUti","AS_MTOA_SHADER"},
 {"volumeNoise","AS_MTOA_SHADER"},
 {"water","AS_MTOA_SHADER"}
 };
@@ -86,10 +83,12 @@ void MtoAADPPayloads::ADPPostShaderUsed(const std::string shader_name)
     AtParamValueMap* param_value_map = AiParamValueMap();
     if (param_value_map != nullptr )
     {
-    // send the extension type
         AiParamValueMapSetStr(param_value_map, AtString("SHADER_NAME"), AtString(shader_name.c_str()));
         AiParamValueMapSetStr(param_value_map, AtString("EXPORT_TYPE"), AtString(shaders_map[shader_name].c_str()));
-        AiADPSendPayload("MTOA.SHADEREXPORT", param_value_map);
+        AiADPSendPayload("MTOA.MAYA.SHADER.EXPORT", param_value_map);
         AiParamValueMapDestroy(param_value_map);
     }
 }
+
+MTOA.ARV.UPDATE_FULL_SCENE = [NODES_TO_PROCESS]
+
