@@ -56,8 +56,8 @@ public:
    bool LoadBoundingBox();
    MStatus LoadFile();
 
-   virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
- 
+   void NodeChanged(MPlug &plug) override;
+   
    static void* creator();
    static MStatus initialize();
    virtual void updateGeometry();

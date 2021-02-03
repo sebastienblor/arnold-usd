@@ -238,7 +238,7 @@ MStatus CArnoldProceduralNode::initialize()
    return MS::kSuccess;
 }
 
-MStatus CArnoldProceduralNode::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
+void CArnoldProceduralNode::NodeChanged(MPlug &plug)
 {
    if (m_data)
       m_data->m_isDirty = true;
@@ -246,7 +246,6 @@ MStatus CArnoldProceduralNode::setDependentsDirty( const MPlug& plug, MPlugArray
    // Signal to VP2 that we require an update. By default, do it for any attribute
    MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
 
-   return MS::kSuccess;
 }
 
 void CArnoldProceduralNode::updateGeometry()
