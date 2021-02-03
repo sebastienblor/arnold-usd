@@ -25,8 +25,6 @@ public:
 
    virtual void postConstructor();
 
-   void NodeChanged(MPlug &plug) override;
-   
    CAbMayaNode m_abstract;
 
    static void* creator();

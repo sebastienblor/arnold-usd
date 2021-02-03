@@ -238,16 +238,6 @@ MStatus CArnoldProceduralNode::initialize()
    return MS::kSuccess;
 }
 
-void CArnoldProceduralNode::NodeChanged(MPlug &plug)
-{
-   if (m_data)
-      m_data->m_isDirty = true;
-
-   // Signal to VP2 that we require an update. By default, do it for any attribute
-   MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
-
-}
-
 void CArnoldProceduralNode::updateGeometry()
 {
    bool universeCreated = ArnoldUniverseBegin();

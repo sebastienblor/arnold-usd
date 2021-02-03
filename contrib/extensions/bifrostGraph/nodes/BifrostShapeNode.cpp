@@ -125,10 +125,15 @@ void CBifrostShapeNode::updateGeometry()
       if (conns.length() > 0)
       {
          connectedNode = conns[0].node();
-         foundBifrostGraph = true; // FIXME verify that it's really a bifrost graph
+         foundBifrostGraph = true; 
+         MFnDependencyNode bifrostNode(connectedNode);
+         if (bifrostNode.typeName() != MString("bifrostGraphShape"))
+            return;
       }
    }
 
+   if (!foundBifrostGraph)
+      return;
 
    bool universeCreated = ArnoldUniverseBegin();
    
