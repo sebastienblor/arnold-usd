@@ -9,30 +9,36 @@
  
 Starting "/usr/autodesk/maya2020/bin/maya"
 QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/usr/tmp/runtime-krishnan'
-00:00:00   385MB         | log started Wed Feb  3 11:55:16 2021
-00:00:00   385MB         | Arnold 6.2.0.0 [cbe64981] linux clang-10.0.1 oiio-2.2.1 osl-1.11.6 vdb-7.1.1 clm-2.0.0.235 rlm-12.4.2 optix-6.6.0 2021/01/21 22:46:22
-00:00:00   385MB         | running on ip-192-168-0-45.eu-west-1.compute.internal, pid=13164
-00:00:00   385MB         |  2 x Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz (24 cores, 48 logical) with 63847MB
-00:00:00   385MB         |  NVIDIA driver version 455.38 (Optix 60700)
-00:00:00   385MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 7982MB (7978MB available) (NVLink:0)
-00:00:00   385MB         |  GPU 1: Quadro GP100 @ 1442MHz (compute 6.0) with 16278MB (14494MB available) (NVLink:0)
-00:00:00   385MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1062.1.2.el7.x86_64
-00:00:00   385MB         |  soft limit for open files raised from 4096 to 4094
-00:00:00   385MB         |  
-00:00:00   385MB         | loading plugins from /usr/autodesk/arnold/maya2020/plug-ins/../bin/../plugins ...
-00:00:00   386MB         |  alembic_proc.so: alembic uses Arnold 6.2.0.0
-00:00:00   386MB         |  cryptomatte.so: cryptomatte uses Arnold 6.2.0.0
-00:00:00   386MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 6.2.0.0
-00:00:00   386MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 6.2.0.0
-00:00:00   389MB         |  usd_proc.so: usd uses Arnold 6.2.0.0
-00:00:00   389MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 6.2.0.0
-00:00:00   389MB         | loaded 6 plugins from 4 lib(s) in 0:00.01
-00:00:00   393MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgenSpline_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
-00:00:00   393MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgen_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
+00:00:00   390MB         | log started Wed Feb  3 13:45:45 2021
+00:00:00   390MB         | Arnold 6.2.0.0 [cbe64981] linux clang-10.0.1 oiio-2.2.1 osl-1.11.6 vdb-7.1.1 clm-2.0.0.235 rlm-12.4.2 optix-6.6.0 2021/01/21 22:46:22
+00:00:00   390MB         | running on ip-192-168-0-45.eu-west-1.compute.internal, pid=132536
+00:00:00   390MB         |  2 x Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz (24 cores, 48 logical) with 63847MB
+00:00:00   390MB         |  NVIDIA driver version 455.38 (Optix 60700)
+00:00:00   390MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 7982MB (7978MB available) (NVLink:0)
+00:00:00   390MB         |  GPU 1: Quadro GP100 @ 1442MHz (compute 6.0) with 16278MB (14542MB available) (NVLink:0)
+00:00:00   390MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1062.1.2.el7.x86_64
+00:00:00   390MB         |  soft limit for open files raised from 4096 to 4094
+00:00:00   390MB         |  
+00:00:00   390MB         | loading plugins from /usr/autodesk/arnold/maya2020/plug-ins/../bin/../plugins ...
+00:00:00   390MB         |  alembic_proc.so: alembic uses Arnold 6.2.0.0
+00:00:00   391MB         |  cryptomatte.so: cryptomatte uses Arnold 6.2.0.0
+00:00:00   391MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 6.2.0.0
+00:00:00   391MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 6.2.0.0
+00:00:00   395MB         |  usd_proc.so: usd uses Arnold 6.2.0.0
+00:00:00   396MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 6.2.0.0
+00:00:00   396MB         | loaded 6 plugins from 4 lib(s) in 0:00.01
+Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_debug/testsuite/test_0391/2020/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_debug/testsuite/test_0391/2020/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_debug/testsuite/test_0391/2020/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+00:00:00   400MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgenSpline_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
+00:00:00   400MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgen_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
 libai.so already loaded
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
 Successfully registered renderer 'arnold'
-File read in  3.1 seconds.
+File read in  3.4 seconds.
 Result: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_debug/testsuite/test_0391/test.ma
 Scene /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_debug/testsuite/test_0391/test.ma completed.
