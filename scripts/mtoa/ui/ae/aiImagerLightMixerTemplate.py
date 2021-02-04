@@ -272,16 +272,24 @@ class LightMixer(QtWidgets.QFrame):
         self.actionsFrame.setLayout(self.actionsLayout)
 
         ADD_LAYER_ICON =  BaseItem.dpiScaledIcon(":/RS_create_layer.png")
+        REFRESH_ICON = BaseItem.dpiScaledIcon(":/refresh.png")
         self.addLayerButton = QtWidgets.QPushButton( self.actionsFrame)
         self.setStyleSheet(s_pushStyleButton)
         self.addLayerButton.setIcon(ADD_LAYER_ICON)
+        self.addLayerButton.setToolTip("Add new light layer")
+
+        self.refreshButton = QtWidgets.QPushButton(self.actionsFrame)
+        self.setStyleSheet(s_pushStyleButton)
+        self.refreshButton.setIcon(REFRESH_ICON)
+        self.refreshButton.setToolTip("Refresh all light layers")
 
         self.actionsLayout.addWidget(self.addLayerButton)
-        self.actionsLayout.addWidget(QtWidgets.QLabel())
+        self.actionsLayout.addWidget(self.refreshButton)
         self.actionsLayout.addWidget(QtWidgets.QLabel())
         self.actionsLayout.addWidget(QtWidgets.QLabel())
         self.actionsLayout.addWidget(QtWidgets.QLabel())
         self.addLayerButton.clicked.connect(self.addLayerAction)
+        self.refreshButton.clicked.connect(self.refreshAction)
 
         self.layerFrame = QtWidgets.QFrame(self)
         self.layerFrame.setSizePolicy(sizePolicy)
@@ -360,6 +368,14 @@ class LightMixer(QtWidgets.QFrame):
             self.lightGroupWidgets.append(item)
             self.layerLayout.addWidget(item)
             item.itemDeleted.sendDelete.connect(self.removeLayerAction)
+
+    def refreshAction(self):
+        
+        multiIndices = cmds.getAttr(self.nodeName+'.layerName', mi=True) or []
+        for i in multiIndices:
+            self.removeLayerAction(i)
+        setLightMixerDefaults(self.nodeName)
+        self.update(self.nodeName)
 
     def removeLayerAction(self, index):
         cmds.removeMultiInstance( self.nodeName+'.layerName[%d]'%(index))
