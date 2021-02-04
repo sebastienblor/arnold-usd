@@ -836,9 +836,16 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
          }
       }
 
-      // ARV is already visible -> set the options right away
-      renderViewMtoA->UpdateColorManagement();
+      // We used to call directly UpdateColorManager() , but we could get into
+      // situations where the color management data would be invalid #4477
+      //renderViewMtoA->UpdateColorManagement();
 
+      // So instead we're going through an idle callback, to let other "listeners" process everything 
+      // after this scene was loaded
+      MObject dummyObj;
+      MPlug dummyPlug;
+      ColorMgtCallback(dummyObj, dummyPlug, (void*) renderViewMtoA);
+      
       renderViewMtoA->m_convertOptionsParam = false;      
    }
 
