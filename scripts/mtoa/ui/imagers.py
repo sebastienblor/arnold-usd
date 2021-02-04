@@ -66,6 +66,7 @@ class ImagerStackView(BaseTreeView):
         delegate = ImagerStackDelegate(self)
         self.setItemDelegate(delegate)
         self.setTransverser(transverser)
+        
 
     def rightClickMenu(self, pos):
         if not self.contextMenu:
@@ -202,6 +203,8 @@ class ImagerStackView(BaseTreeView):
         if shiboken.isValid(self) and self.model():
             self.model().remapImagersAttr()
 
+    def hasLightMixer(self):
+        return self.baseModel.hasLightMixer()
 
 class ImagerStackModel(BaseModel):
     def __init__(self, treeView, parent=None):
@@ -210,16 +213,20 @@ class ImagerStackModel(BaseModel):
         self.imagers = []
         self.scriptJobList = []
         self.dropMimeDataFailure = False
+        self.__lightMixerAdded = False
         super(ImagerStackModel, self).__init__(treeView, parent)
 
     def setTransverser(self, transverser):
         self.transverser = transverser
         self.refresh()
 
+    def hasLightMixer(self):
+        return self.__lightMixerAdded
+    
     def refresh(self):
+        
         self.beginResetModel()
         self.imagers = []
-
         self.rootItem = ImagerItem(None, "")
         # get all the imagers 
         imagers = cmds.listConnections(IMAGERS_ATTR) or []
@@ -229,6 +236,8 @@ class ImagerStackModel(BaseModel):
                 enableAttr = '{}.enable'.format(imager)
                 enabled = cmds.getAttr(enableAttr)
                 ImagerItem(self.rootItem, imager, enabled)
+                if cmds.nodeType(imager) == 'aiImagerLightMixer':
+                    self.__lightMixerAdded = True
                 self.imagers.append(imager)
                 if imager not in self.scriptJobList:
                     self.scriptJobList.append(imager)
@@ -279,6 +288,8 @@ class ImagerStackModel(BaseModel):
 
         imagerElemAttr = IMAGERS_ATTR+'[%d]' % (imagersLength - 1)
         cmds.removeMultiInstance(imagerElemAttr , b=True)
+        if cmds.nodeType(imager) == 'aiImagerLightMixer':
+            self.__lightMixerAdded = False
         self.remapImagersAttr()
 
     def moveImagerUp(self, itemIndex):
@@ -779,8 +790,16 @@ class ImagersUI(QtWidgets.QFrame):
         imagersSize = cmds.getAttr(IMAGERS_ATTR, s=True)
         attrName = IMAGERS_ATTR+'[%d]' % imagersSize
 
-        cmds.connectAttr("%s.message"%node, attrName, force=True)
-        self.updateImagers(True)
+        if cmds.nodeType(node) == "aiImagerLightMixer":
+            nodes = []
+            for i in range(0,imagersSize):
+                nodes.append(cmds.listConnections(IMAGERS_ATTR+'[%d]'%(i), d = False, s = True)[0])
+            cmds.connectAttr("%s.message"%node, IMAGERS_ATTR+'[0]', force=True)
+            for i in range(0,len(nodes)):
+                cmds.connectAttr("%s.message"%nodes[i], IMAGERS_ATTR+'[%d]'%(i+1), force=True)
+        else:
+            cmds.connectAttr("%s.message"%node, attrName, force=True)
+            self.updateImagers(True)
 
     def addImagerAction(self, action):
         imager_name = action.text()
@@ -788,9 +807,14 @@ class ImagersUI(QtWidgets.QFrame):
             imager_name = "aiImager"+imager_name.replace(" ", "")
         # check if op exists, otherwise create it
         creatable_imagers = cmds.arnoldPlugins(listImagers=True) or []
+        warningText = "Creating more than one aiLightMixerImager nodes can lead to some unexpected results. Please check the documentation page for clarifications https://docs.arnoldrenderer.com/x/QoTnBw"
         if not cmds.objExists(imager_name) and imager_name in creatable_imagers:
+            if imager_name == "aiImagerLightMixer" and self.imagerStack.hasLightMixer():
+                cmds.warning(warningText)
             self.createImager(imager_name)
         else:
+            if imager_name == "aiImagerLightMixer" and self.imagerStack.hasLightMixer():
+                cmds.warning(warningText)
             self.addImager(imager_name)
 
     def removeImagerAction(self):
