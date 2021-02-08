@@ -256,6 +256,9 @@ bool CArnoldBaseProcedural::isBounded() const
 MBoundingBox CArnoldBaseProcedural::boundingBox() const
 {
    // Returns the bounding box for the shape.
+   if (m_data == nullptr)
+      MBoundingBox(MPoint(-1.0f, -1.0f, -1.0f), MPoint(1.0f, 1.0f, 1.0f));
+
    CArnoldBaseProcedural* nonConstThis = const_cast<CArnoldBaseProcedural*> (this);
    CArnoldProceduralData* geom = nonConstThis->geometry();
    MPoint bbMin = m_data->m_bbox.min();
