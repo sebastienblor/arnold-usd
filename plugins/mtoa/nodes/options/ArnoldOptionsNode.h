@@ -124,6 +124,8 @@ public:
    static MObject s_export_shading_engine;
    static MObject s_export_separator;
    static MObject s_export_namespace;
+   static MObject s_export_dag_name;
+
 
    static MObject s_version;
    static MObject s_enable_standin_draw;

@@ -25,8 +25,6 @@ public:
 
    virtual void postConstructor();
 
-   virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
-
    CAbMayaNode m_abstract;
 
    static void* creator();

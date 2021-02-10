@@ -5,6 +5,7 @@
 #include "attributes/Components.h"
 #include "common/UtilityFunctions.h"
 #include "scene/MayaScene.h"
+#include <utils/MtoAAdpPayloads.h>
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -173,6 +174,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
 void CNodeTranslatorImpl::DoCreateArnoldNodes()
 {   
+   
    // m_atRoot is what's at the root of this translator
    // It is not necessarily the main node (which happens with aov_write shaders)
    m_atRoot = m_tr.CreateArnoldNodes();
@@ -220,6 +222,7 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
       }
       MtoaDebugLog(log);
    }
+   MtoAADPPayloads::ADPPostShaderUsed(GetMayaNodeTypeName().asChar());
    ExportDccName();
 }
 

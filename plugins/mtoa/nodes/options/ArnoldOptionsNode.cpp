@@ -108,6 +108,7 @@ MObject CArnoldOptionsNode::s_export_shading_engine;
 MObject CArnoldOptionsNode::s_export_full_paths;
 MObject CArnoldOptionsNode::s_export_separator;
 MObject CArnoldOptionsNode::s_export_namespace;
+MObject CArnoldOptionsNode::s_export_dag_name;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
 MObject CArnoldOptionsNode::s_postTranslationCallback;
@@ -696,6 +697,12 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("On", MTOA_EXPORT_NAMESPACE_ON);
    eAttr.addField("Root", MTOA_EXPORT_NAMESPACE_ROOT);
    addAttribute(s_export_namespace);
+
+   s_export_dag_name = eAttr.create("exportDagName", "export_dag_name", MTOA_EXPORT_DAG_SHAPE);
+   eAttr.setKeyable(false);
+   eAttr.addField("Shape", MTOA_EXPORT_DAG_SHAPE);
+   eAttr.addField("Transform", MTOA_EXPORT_DAG_TRANSFORM);
+   addAttribute(s_export_dag_name);
    
 
    s_export_shading_engine = nAttr.create("exportShadingEngine", "export_shading_engine", MFnNumericData::kBoolean);

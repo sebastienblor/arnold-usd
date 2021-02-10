@@ -65,7 +65,6 @@ void CImagerLightMixer::Export(AtNode *shader)
          }
          if ( numElems == plug.numElements() )
          {
-
             for (unsigned int i = 0; i < numElems; i++)
             {
                if ( AiArrayGetType(interpArray) == AI_TYPE_BOOLEAN )
@@ -98,4 +97,51 @@ void CImagerLightMixer::Export(AtNode *shader)
       }
    }
    AiParamIteratorDestroy(nodeParam);
+   
+
+
+   // // Always export residual layer (#4474)
+   bool export_residual = true;
+   AtArray *name_array = AiNodeGetArray(shader, "layer_name");
+   unsigned int numElems = AiArrayGetNumElements(name_array);
+
+   // Searching from the back because there's a higer chance for this 
+   // to be the last item in the list
+   for (unsigned int i = numElems ; i-- > 0;)
+   {
+      if (std::string(AiArrayGetStr(name_array, i)) == "<residual_lights>")
+      {
+         export_residual = false;
+         break;
+      }
+   }
+
+   // Using the numElems from one array for everything
+   // There should never be a case where these arrays are not the same
+   
+   if (export_residual)
+   {   
+      AiArrayResize(name_array, numElems+1, AiArrayGetNumKeys(name_array));
+      AiArraySetStr(name_array, numElems, "<residual_lights>");
+
+      AtArray* enable_array = AiNodeGetArray(shader, "layer_enable");
+      AiArrayResize(enable_array, numElems+1, AiArrayGetNumKeys(enable_array));
+      AiArraySetBool(enable_array, numElems, 1);
+      
+      AtArray* solo_array = AiNodeGetArray(shader, "layer_solo");
+      AiArrayResize(solo_array, numElems+1, AiArrayGetNumKeys(solo_array));
+      AiArraySetBool(solo_array, numElems, 0);
+      
+      AtArray* intensity_array = AiNodeGetArray(shader, "layer_intensity");
+      AiArrayResize(intensity_array, numElems+1, AiArrayGetNumKeys(intensity_array));
+      AiArraySetFlt(intensity_array, numElems, 1.0f);
+      
+      AtArray* exposure_array = AiNodeGetArray(shader, "layer_exposure");
+      AiArrayResize(exposure_array, numElems+1, AiArrayGetNumKeys(exposure_array));
+      AiArraySetFlt(exposure_array, numElems, 0.0f);
+      AtArray* tint_array = AiNodeGetArray(shader, "layer_tint");
+      AiArrayResize(tint_array, numElems+1, AiArrayGetNumKeys(tint_array));
+      AtRGB rgb = AtRGB(1.0f,1.0f,1.0f);
+      AiArraySetRGB(tint_array, numElems, rgb);
+   }
 }

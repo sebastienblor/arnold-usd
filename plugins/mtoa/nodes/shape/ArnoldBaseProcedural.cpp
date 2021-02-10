@@ -197,14 +197,14 @@ size_t CArnoldProceduralData::VisibleGeometryCount(StandinSelectionFilter filter
     return total;
 }
 
-CArnoldBaseProcedural::CArnoldBaseProcedural() : m_attrChangeId(0), m_data(NULL)
+CArnoldBaseProcedural::CArnoldBaseProcedural() : m_nodeDirtyId(0), m_data(NULL)
 {
 }
 
 CArnoldBaseProcedural::~CArnoldBaseProcedural()
 {
-   if (m_attrChangeId != 0)
-      MMessage::removeCallback(m_attrChangeId);
+   if (m_nodeDirtyId != 0)
+      MMessage::removeCallback(m_nodeDirtyId);
 
    delete m_data;
    m_data = NULL;
@@ -216,7 +216,7 @@ void CArnoldBaseProcedural::postConstructor()
    // This call allows the shape to have shading groups assigned
    setRenderable(true);
    MObject me = thisMObject();
-   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, AttrChangedCallback, this);
+   m_nodeDirtyId = MNodeMessage::addNodeDirtyCallback(me, NodeDirtyCallback, this);
 }
 
 MStatus CArnoldBaseProcedural::compute(const MPlug& plug, MDataBlock& data)
@@ -308,7 +308,9 @@ CArnoldProceduralData* CArnoldBaseProcedural::geometry()
          return m_data;
       }
       updateGeometry();
-      m_data->m_isDirty = false;
+      // at this point m_data should have been allocated
+      if (m_data)
+         m_data->m_isDirty = false;
    }
 
    return m_data;
@@ -378,21 +380,24 @@ void CArnoldBaseProcedural::updateGeometry()
    if (m_data == NULL)
       m_data = new CArnoldProceduralData;
 }
-void CArnoldBaseProcedural::AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
-{
-   CArnoldBaseProcedural *node = static_cast<CArnoldBaseProcedural*>(clientData);
-   if (!node)
-      return; 
 
+void CArnoldBaseProcedural::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   CArnoldBaseProcedural *baseProc = static_cast<CArnoldBaseProcedural*>(clientData);
+   if (baseProc)
+      baseProc->NodeChanged(plug);
+}
+
+void CArnoldBaseProcedural::NodeChanged(MPlug &plug)
+{
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   if (node->m_data)
-      node->m_data->m_isDirty = true;
+   if (m_data)
+      m_data->m_isDirty = true;
    if (plugName == "selectedItems")
-   {
-      node->UpdateSelectedItems();
-   }
+      UpdateSelectedItems();
 }
+
 
 void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
 {

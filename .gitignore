@@ -22,5 +22,6 @@ mtoa.kdev4
 /external/qt-5.15.2-include/*
 /MtoA*.exe
 /MtoA*.run
+/MtoA*.pdb
 /*.zip
 /.vscode*

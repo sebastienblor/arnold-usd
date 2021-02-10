@@ -308,7 +308,6 @@ exList = [  os.path.join('bin', 'kick'),
             os.path.join('bin', 'lmutil'),
             os.path.join('bin', 'rlmutil'),
             os.path.join('bin', 'ArnoldLicenseManager'),
-            os.path.join('license', 'pitreg'),
             os.path.join('license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run'),
             os.path.join('license', 'LicensingUpdater')
             ]
@@ -330,9 +329,6 @@ for licInstallerFile in licInstallerFiles:
     except:
         if not silent:
             print('Error adding +x to executable %s' % licInstallerFile)
-
-# stop relying on pitreg
-#subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
 
 if installMode == 1: # do the proper installation
     homeDir = os.path.expanduser(userString)
@@ -393,27 +389,6 @@ if installMode == 1: # do the proper installation
     print("Installing CLM Licensing Components....")
     if os.path.exists(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run')):
         os.system(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run --silent')) # register pit file
-    elif os.path.exists(os.path.join(installDir, 'license', 'pitreg')):
-        pitreg_result = os.system(os.path.join(installDir, 'license', 'pitreg'))
-        if int(pitreg_result) > 0:                
-            os.system('clear')
-
-            pitreg_msg = "Error %s" % pitreg_result
-            if int(pitreg_result) == 2:
-                pitreg_msg = "File could not be opened"
-            elif int(pitreg_result) == 24:
-                pitreg_msg = "File not found"
-            elif int(pitreg_result) == 25:
-                pitreg_msg = "Error while parsing .pit file"
-            elif int(pitreg_result) == 27:
-                pitreg_msg = "Invalid .pit file"
-            elif int(pitreg_result) == 32:
-                pitreg_msg = "Unable to set write access for all user in Linux and MAC"
-            
-            pitreg_msg = "Couldn't register Arnold renderer in Maya PIT file (%s). Please contact support@arnoldrenderer.com" % pitreg_msg
-            os.system('clear')    
-            print(pitreg_msg)        
-            sys.exit(1)
     if os.path.exists(os.path.join(installDir, 'license', 'LicensingUpdater')):
         os.system(os.path.join(installDir, 'license', 'LicensingUpdater '))
 

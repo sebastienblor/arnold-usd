@@ -77,16 +77,18 @@ public:
    static void* creator();
 
    void DrawUniverse(const AtUniverse *unverse);
+   virtual void NodeChanged(MPlug &plug);
 
    
    int drawMode();
-   static void  AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
+   static void  NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
+
    void UpdateSelectedItems();
 
 protected:
 
 
    CArnoldProceduralData *m_data;
-   MCallbackId m_attrChangeId;
+   MCallbackId m_nodeDirtyId;
 
 };

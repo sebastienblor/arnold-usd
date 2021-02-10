@@ -1,0 +1,5 @@
+Export Dag nodes with their transform name
+
+See trac#4442
+
+author: sebastien.ortega

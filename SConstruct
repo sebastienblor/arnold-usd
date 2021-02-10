@@ -1779,9 +1779,6 @@ def create_installer(target, source, env):
                 
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
         
-        if os.path.exists(os.path.join(tempdir, maya_version, 'license', 'pitreg')):
-            subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'pitreg')])
-
         installerFiles = glob.glob(os.path.join(tempdir, maya_version, 'license', 'installer', '*'))
         for installerFile in installerFiles:
             subprocess.call(['chmod', 'a+x', installerFile])
@@ -1795,46 +1792,35 @@ def create_installer(target, source, env):
         mtoaMod.write('MAYA_PXR_PLUGINPATH_NAME += %s/usd\n' % installPath)
         mtoaMod.close()
 
-        pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
-        pitregScript.write('#!/usr/bin/env bash\n')
+        postScript = open(os.path.join(tempdir, 'post_install.sh'), 'w')
+        postScript.write('#!/usr/bin/env bash\n')
         
 
-        if clm_version == 2:
-            pitregCommand = "PITREG_FILE=$2/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-            pitregCommand = "  hdiutil attach $2/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('else\n')
-            pitregCommand = "  hdiutil attach $3/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('fi\n')
-            pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC6-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.1084_RC6-darwin --silent\n"
-            pitregScript.write(pitregCommand)
-            pitregCommand = "hdiutil detach /Volumes/ArnoldLicensing"
-            pitregScript.write(pitregCommand)        
-        else:
-            pitregCommand = "PITREG_FILE=$2/Applications/Autodesk/Arnold/mtoa/%s/license/pitreg\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-            pitregCommand = "  $2/Applications/Autodesk/Arnold/mtoa/%s/license/pitreg\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('else\n')
-            pitregCommand = "  $3/Applications/Autodesk/Arnold/mtoa/%s/license/pitreg\n" % maya_version
-            pitregScript.write(pitregCommand)
-            pitregScript.write('fi\n')
-
+        postCommand = "POST_FILE=$2/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+        postScript.write(postCommand)
+        postScript.write('if [ -e $POST_FILE ]; then\n')
+        postCommand = "  hdiutil attach $2/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+        postScript.write(postCommand)
+        postScript.write('else\n')
+        postCommand = "  hdiutil attach $3/Applications/Autodesk/Arnold/mtoa/%s/license/ArnoldLicensing-8.1.0.1084_RC6-darwin.dmg\n" % maya_version
+        postScript.write(postCommand)
+        postScript.write('fi\n')
+        postCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC6-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.1084_RC6-darwin --silent\n"
+        postScript.write(postCommand)
+        postCommand = "hdiutil detach /Volumes/ArnoldLicensing"
+        postScript.write(postCommand)        
+        
         ### Add the LicenseUpdater 
-        pitregScript.write('\n')
-        pitregCommand = "  chmod +x $2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
-        pitregScript.write(pitregCommand)
-        pitregCommand = "$2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
-        pitregScript.write(pitregCommand)
-        pitregScript.close()
+        postScript.write('\n')
+        postCommand = "  chmod +x $2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
+        postScript.write(postCommand)
+        postCommand = "$2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
+        postScript.write(postCommand)
+        postScript.close()
 
-        pitregScript = open(os.path.join(tempdir, 'empty_script.sh'), 'w')
-        pitregScript.write('#!/usr/bin/env bash\n')
-        pitregScript.close()
+        postScript = open(os.path.join(tempdir, 'empty_script.sh'), 'w')
+        postScript.write('#!/usr/bin/env bash\n')
+        postScript.close()
 
 
         signed_extensions = ['.dylib', '.pkg', '.exe', '.bundle']

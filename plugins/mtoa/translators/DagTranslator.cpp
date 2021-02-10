@@ -79,9 +79,16 @@ MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
 {
    const CSessionOptions& options = GetSessionOptions();
    
+   MDagPath dag(dagPath);
+
+   // Check if we want to export the parent transform name
+   if (options.GetExportDagTransformNames())
+      dag.pop();
+
+
    // Use either the "short" name or the "full path" name depending on the option
    MString name = options.GetExportFullPath() ? 
-      dagPath.fullPathName() : dagPath.partialPathName();
+      dag.fullPathName() : dag.partialPathName();
 
    CDagTranslatorImpl::AddNamingOptions(name);
    return name;

@@ -858,8 +858,8 @@ void CArnoldStandInShape::updateGeometry()
    }
 }
 
-MStatus CArnoldStandInShape::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
-{
+void CArnoldStandInShape::NodeChanged(MPlug &plug)
+{ 
    CArnoldStandInData *data = GetStandinData();
    if (data)
    {
@@ -886,6 +886,6 @@ MStatus CArnoldStandInShape::setDependentsDirty( const MPlug& plug, MPlugArray& 
          }
       }
    }
-   CArnoldBaseProcedural::setDependentsDirty(plug, plugArray);
-   return MS::kSuccess;
+   CArnoldBaseProcedural::NodeChanged(plug);
+
 }

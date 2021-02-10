@@ -1,0 +1,5 @@
+Light_mixer always exports <residual_lights>
+
+See trac#4474
+
+author: krishnan
