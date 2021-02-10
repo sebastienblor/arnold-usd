@@ -27,6 +27,7 @@
 #include <maya/MFnDoubleArrayData.h>
 #include <maya/MFnStringArrayData.h>
 #include <maya/MDrawRegistry.h>
+#include <maya/MEventMessage.h>
 
 #include "BifrostShapeNode.h"
 #include "../plugin/BifrostUtils.h"
@@ -42,9 +43,9 @@
 MTypeId CBifrostShapeNode::id(0x00115DBD);
 MString CBifrostShapeNode::s_classification("drawdb/subscene/arnold/procedural/bifrostGraphStandin"); 
 CAbMayaNode CBifrostShapeNode::s_abstract;
-MObject CBifrostShapeNode::s_outputBifrostDataStream;
 MObject CBifrostShapeNode::s_input;
-
+MCallbackId CBifrostShapeNode::s_NewNodeCallbackId = 0;
+MCallbackId CBifrostShapeNode::s_idleCallbackId = 0;
 
 CBifrostShapeNode::CBifrostShapeNode() : CArnoldBaseProcedural()
 {
@@ -54,7 +55,6 @@ CBifrostShapeNode::CBifrostShapeNode() : CArnoldBaseProcedural()
 void CBifrostShapeNode::postConstructor()
 {
    // FIXME do we want to set the "mode" attribute to something else than "Bounding box" ?
-
    CArnoldBaseProcedural::postConstructor();
    // This call allows the shape to have shading groups assigned
    setRenderable(true);
@@ -86,33 +86,90 @@ MStatus CBifrostShapeNode::initialize()
    mAttr.setWritable(true);
    addAttribute(s_input);
 
-   s_outputBifrostDataStream = tAttr.create("outputBifrostDataStream", "os", MFnData::kDoubleArray, MObject::kNullObj);
-   tAttr.setHidden(false);
-   tAttr.setStorable(true);
-   tAttr.setWritable(true);
-   addAttribute(s_outputBifrostDataStream);
-
    CArnoldBaseProcedural::initializeCommonAttributes();
 
-   MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
-      s_classification,
-      MString("aiBifrostGraphStandinOverride"),
-      CArnoldProceduralSubSceneOverride::Creator);
+   // If the env variable BIFROST_EXPERIMENTAL is set, 
+   // we automatically create an arnoldBifrostShape node for 
+   // every bifrostGraph in the scene. We need to add it to existing nodes
+   // (unless they already have such a connection), and to all bifrost graphs that 
+   // will be created later one.
+   const char* envVar = getenv("BIFROST_EXPERIMENTAL");
+   MString envVarStr = (envVar) ? MString(envVar) : MString("");
+   if (envVarStr == MString("1"))
+   {
+      // First update the connections for existing bifrost graphs.
+      // This can happen if MtoA is loaded after having created bifrost graphs.
+      UpdateBifrostGraphConnections();
+      // Now add a callback to be told every time a new "bifrostGraphShape" node is created 
+      // in the scene
+      MStatus status;
+      MCallbackId id = MDGMessage::addNodeAddedCallback(NewNodeCallback, "bifrostGraphShape", NULL, &status);
+      if (status == MS::kSuccess)
+         s_NewNodeCallbackId = id;
+         
+   }
 
    return MS::kSuccess;
 }
 
-MStatus CBifrostShapeNode::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
+void CBifrostShapeNode::NewNodeCallback(MObject & node, void *)
+{  
+   // When a scene is opened with an already existing connection, 
+   // we won't see this connection if we call "UpdateBifrostGraphConnections"
+   // right away. We need to let maya finish what it's doing before checking for
+   // existing connections. So we use an "idle" callback
+   if (s_idleCallbackId == 0)
+      s_idleCallbackId = MEventMessage::addEventCallback("idle",
+                                    IdleCallback, nullptr);
+}
+
+void CBifrostShapeNode::IdleCallback(void *)
 {
-   if (m_data)
-      m_data->m_isDirty = true;
+   if (s_idleCallbackId)
+   {
+      MMessage::removeCallback(s_idleCallbackId);
+      s_idleCallbackId = 0;
+   }
 
-   // Signal to VP2 that we require an update. By default, do it for any attribute
-   MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
-
-   return MS::kSuccess;
+   UpdateBifrostGraphConnections();
 }
+void CBifrostShapeNode::UpdateBifrostGraphConnections()
+{
+   MStringArray bifrostNodes;
+   MGlobal::executeCommand("ls -typ bifrostGraphShape", bifrostNodes); // get selected shading groups and export them
+   for (unsigned int i = 0; i < bifrostNodes.length(); ++i)
+   {      
+      MStringArray connections; 
+      MString connectionsCmd = MString("listConnections -d 1 -s 0 -type \"arnoldBifrostShape\" \"") + bifrostNodes[i] + MString(".message\"");
+      MGlobal::executeCommand(connectionsCmd, connections);
+      if (connections.length() > 0)
+         continue;
+      
+      // At this point, no connection to an arnoldBifrostShape was found, let's add one
+      MString arnoldNodeName;
+      MString createCmd = MString("createNode \"arnoldBifrostShape\" -name \"arnold") + bifrostNodes[i] + MString("\"");
+      MGlobal::executeCommand(createCmd, arnoldNodeName);
 
+      // get the transform for both the bifrost graph and the arnold node, to parent 
+      // the transforms and not the shapes
+      MString listRelativesCmd = MString("listRelatives -p ") + arnoldNodeName;
+      MStringArray arnoldTransformName;
+      MGlobal::executeCommand(listRelativesCmd, arnoldTransformName);
+
+      listRelativesCmd = MString("listRelatives -p ") + bifrostNodes[i];
+      MStringArray bifrostTransformName;
+      MGlobal::executeCommand(listRelativesCmd, bifrostTransformName);
+
+      if (arnoldTransformName.length() > 0 && bifrostTransformName.length() > 0)
+      {
+         MString parentCmd = MString ("parent -r ") + arnoldTransformName[0] + MString(" ") + bifrostTransformName[0];
+         MGlobal::executeCommand(parentCmd);
+      }
+      MString connectCmd = MString("connectAttr -f ") + bifrostNodes[i] + MString(".message ") + arnoldNodeName + MString(".inputData");
+      MGlobal::executeCommand(connectCmd);
+
+   }
+}
 void CBifrostShapeNode::updateGeometry()
 {
    MObject connectedNode;
@@ -178,11 +235,6 @@ void CBifrostShapeNode::updateGeometry()
    AiNodeSetArray(proc, "bifrost:input0", dataArray);
    AiNodeSetArray(proc, "input_interpretations", interpsArray);
 
-/*
-   MObject me = thisMObject();   
-   CNodeTranslator *translator = CMayaScene::GetArnoldSession()->ExportNodeToUniverse(me, proc_universe);
-   
-   AtNode *proc = (translator) ? translator->GetArnoldNode() : NULL;*/
    AtProcViewportMode viewport_mode = AI_PROC_BOXES;
    switch (m_data->m_mode)
    {

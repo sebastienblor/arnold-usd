@@ -1366,9 +1366,16 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
    const MString *classificationPtr = (mayaNode.classification == "") ? NULL : &mayaNode.classification;
 
    // FIXME find a better way to do this (add flag in mayaNode ?)
-   if (mayaNode.creator == CArnoldProceduralNode::creator)
+   static const MString customProcStr("drawdb/subscene/arnold/procedural/");
+   bool isCustomProc = (mayaNode.creator == CArnoldProceduralNode::creator);
+   bool hasProcClassification = ((mayaNode.classification.length() > customProcStr.length()) && 
+      (mayaNode.classification.substringW(0, customProcStr.length() - 1) == customProcStr));
+
+   if (isCustomProc || hasProcClassification)
    {
-      MString proceduralClassification = "drawdb/subscene/arnold/procedural/" + mayaNode.arnold; 
+      MString proceduralClassification = hasProcClassification ? 
+         mayaNode.classification : customProcStr + mayaNode.arnold; 
+
       status = MFnPlugin(s_plugin, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION).registerShape(mayaNode.name, mayaNode.id,
             mayaNode.creator, mayaNode.initialize, nullptr,
             &proceduralClassification);
