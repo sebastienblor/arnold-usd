@@ -103,12 +103,23 @@ namespace // <anonymous>
    }
 }
 template <class T>
-static void ChangeCurrentFrame(T time, int sessionMode)
+static void ChangeCurrentFrame(T time, int sessionMode, bool forceViewport = false)
 {   
+   // time can be either MTime or double
+
+   // Ensure we don't do anything for AVP
    if (sessionMode == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
       return;
    
-   MGlobal::viewFrame(time); // time can be either MTime or double
+   // viewFrame will force the refresh of the viewport. This seems to be needed in batch render
+   // to ensure that the DG data is properly set to the "current" frame. Otherwise, in some test scenes, 
+   // we can get wrong data (see #4447). So we want to keep using viewFrame for the main current frame.
+   // However, for other "motion" frames, it's better to use "setCurrentTime" which doesn't force a refresh 
+   // of the viewport (until next maya "idle").
+   if (forceViewport)
+      MGlobal::viewFrame(time); 
+   else
+      MAnimControl::setCurrentTime(time); 
 }
 
 
@@ -689,7 +700,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    ExportOptions();  // inside loop so that we're on the proper frame
 
    // First "real" export
-   ChangeCurrentFrame(m_sessionOptions.m_frame, GetSessionMode());
+   ChangeCurrentFrame(m_sessionOptions.m_frame, GetSessionMode(), true);
    if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || 
       exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW || exportMode == MTOA_SESSION_SEQUENCE)
    {
