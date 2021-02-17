@@ -106,6 +106,16 @@ if platform.system().lower() == 'darwin':
     local_env['PYTHON_LIB_NAME'] = 'libpython{}.7'.format(pythonVersion)
     local_env.Append(LIBS = ['python{}.7'.format(pythonVersion), boost_lib_name.replace('%s', 'python')])
 
+if platform.system().lower() == 'linux':
+    if pythonVersion == '3':
+        local_env['PYTHON_LIB_NAME']   = 'libpython3.7m'
+    else:
+        local_env['PYTHON_LIB_NAME']   = 'libpython2.7'
+
+if platform.system().lower() == 'windows':
+    local_env['PYTHON_LIB_NAME']   = 'python{}7'.format(pythonVersion)  
+
+
 MAYAUSD_REGISTRY = local_env.SharedLibrary('mayaUsdRegistry', source_files, LIBPREFIX='')
 
 # Write the file plugInfo.json at the root of the registry folder
