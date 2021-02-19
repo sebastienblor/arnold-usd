@@ -600,6 +600,8 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
 
 bool CBifShapeTranslator::RequiresMotionData()
 {
+   if (FindMayaPlug("aiMotionBlurMode").asInt() == 1)
+      return false;  
    return CProceduralTranslator::RequiresMotionData();
 }
 
