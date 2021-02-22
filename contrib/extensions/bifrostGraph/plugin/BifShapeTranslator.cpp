@@ -217,9 +217,10 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
 void CBifShapeTranslator::Export( AtNode *shape )
 {
 
-   unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
+   unsigned int step = velocityOnly ? 0 : GetMotionStep();
+   
    m_vpRenderSelect = -1;
    MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
    if (!vpRenderPlug.isNull())
@@ -600,8 +601,6 @@ void CBifShapeTranslator::ExportShaders(AtNode *shape)
 
 bool CBifShapeTranslator::RequiresMotionData()
 {
-   if (FindMayaPlug("aiMotionBlurMode").asInt() == 1)
-      return false;  
    return CProceduralTranslator::RequiresMotionData();
 }
 
@@ -618,6 +617,12 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
+   bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
+   // velocity onmly mode, we don't need to do trigger the bifrost graph anymore
+   if (velocityOnly)
+      return;
+
+
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
    {
@@ -627,8 +632,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-   bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
-   unsigned int numMotionSteps = velocityOnly ? 1 : GetNumMotionSteps();
+   unsigned int numMotionSteps = GetNumMotionSteps();
    if (step >= numMotionSteps)
       return;
 
