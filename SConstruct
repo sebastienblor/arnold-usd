@@ -468,6 +468,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-fvisibility=hidden'))
         env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
         env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+        # need to add extra padding for the rpath #4488
+        env.Append(LINKFLAGS = Split('-headerpad_max_install_names'))
 
     env.Append(CXXFLAGS = Split('-Wno-reorder'))
     env.Append(CCFLAGS = Split('-Wno-reorder'))
