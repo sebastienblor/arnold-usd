@@ -221,17 +221,6 @@ void CBifShapeTranslator::Export( AtNode *shape )
    bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
    unsigned int step = velocityOnly ? 0 : GetMotionStep();
    
-   m_vpRenderSelect = -1;
-   MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
-   if (!vpRenderPlug.isNull())
-   {
-      m_vpRenderSelect = vpRenderPlug.asInt();
-      if (m_vpRenderSelect == 0)
-         vpRenderPlug.setValue(1);
-      else if (m_vpRenderSelect == 2)
-         vpRenderPlug.setValue(3);
-   }   
-
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
@@ -987,18 +976,4 @@ void CBifShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
       return; // we don't want to update IPR when this attribute changes
 
    CProceduralTranslator::NodeChanged(node, plug);
-}
-
-void CBifShapeTranslator::PostExport(AtNode *node)
-{
-   if (m_vpRenderSelect < 0)
-      return;
-
-   MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
-   if (vpRenderPlug.isNull())
-      return;
-
-   // restore the original attribute value
-   vpRenderPlug.setInt(m_vpRenderSelect); 
-   m_vpRenderSelect = -1;
 }
