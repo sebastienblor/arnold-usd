@@ -1811,7 +1811,18 @@ def create_installer(target, source, env):
         postScript.write(postCommand)
         postCommand = "hdiutil detach /Volumes/ArnoldLicensing"
         postScript.write(postCommand)        
-        
+       
+        if int(maya_version) >= 2021:
+            postScript.write('\n')
+            postCommand = "LT_FOLDER=/Users/Shared/Autodesk/modules/maya/%sLT\n" % maya_version
+            postScript.write(postCommand)
+            postCommand = "if [ ! -e $LT_FOLDER ]; then\n"
+            postScript.write(postCommand)
+            postScript.write("mkdir $LT_FOLDER\n")
+            postScript.write('fi\n')
+            postCommand = "cp /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod /Users/Shared/Autodesk/modules/maya/%sLT/mtoa.mod" % (maya_version, maya_version)
+            postScript.write(postCommand)
+
         ### Add the LicenseUpdater 
         postScript.write('\n')
         postCommand = "  chmod +x $2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
