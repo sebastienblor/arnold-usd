@@ -1015,17 +1015,14 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       }
    }
 
-   // Only export displacement attributes if a displacement is applied
-   if (m_displaced)
-   {
-      // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
-      // it only influences the computation of the displacement bounds
-      AiNodeSetFlt(polymesh, "disp_height",  FindMayaPlug("aiDispHeight").asFloat());
-      AiNodeSetFlt(polymesh, "disp_padding", AiMax(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
-      AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaPlug("aiDispZeroValue").asFloat());
-      AiNodeSetBool(polymesh, "disp_autobump", FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
-      AiNodeSetByte(polymesh, "autobump_visibility", FindMayaPlug("aiAutobumpVisibility").asInt());
-   }
+   // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
+   // it only influences the computation of the displacement bounds
+   AiNodeSetFlt(polymesh, "disp_height",  FindMayaPlug("aiDispHeight").asFloat());
+   AiNodeSetFlt(polymesh, "disp_padding", AiMax(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
+   AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaPlug("aiDispZeroValue").asFloat());
+   AiNodeSetBool(polymesh, "disp_autobump", FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
+   AiNodeSetByte(polymesh, "autobump_visibility", FindMayaPlug("aiAutobumpVisibility").asInt());
+
 }
 
 void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)

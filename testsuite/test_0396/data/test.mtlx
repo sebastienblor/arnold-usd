@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<materialx version="1.37">
+  <look name="default">
+    <materialassign name="materialassign1" material="default_aiStandardSurface1_material_shader" geom="/pPlane1/pPlaneShape1" />
+    <materialassign name="materialassign2" material="default_displacementShader1_material_disp_map" geom="/pPlane1/pPlaneShape1" />
+    <propertysetassign name="/pPlane1/pPlaneShape1_default_propertyset" geom="/pPlane1/pPlaneShape1" />
+  </look>
+  <material name="default_aiStandardSurface1_material_shader">
+    <shaderref name="aiStandardSurface1" node="standard_surface" />
+  </material>
+  <material name="default_displacementShader1_material_disp_map">
+    <shaderref name="displacementShader1" node="range" context="displacementshader">
+      <bindinput name="input" type="color3" nodegraph="NG_default_aiNoise1" output="output1" />
+      <bindinput name="contrast" type="float" value="0.5" />
+      <bindinput name="contrast_pivot" type="float" value="0" />
+    </shaderref>
+  </material>
+  <nodegraph name="NG_default_aiNoise1">
+    <noise name="aiNoise1" type="color3">
+      <input name="octaves" type="integer" value="5" />
+      <input name="distortion" type="float" value="3.18493" />
+      <input name="lacunarity" type="float" value="3.89041" />
+      <input name="amplitude" type="float" value="0.592466" />
+    </noise>
+    <output name="output1" type="color3" nodename="aiNoise1" channels="r" />
+  </nodegraph>
+  <propertyset name="/pPlane1/pPlaneShape1_default_propertyset">
+    <property name="disp_height" value="0.5" type="float" />
+    <property name="disp_autobump" value="true" type="boolean" />
+  </propertyset>
+</materialx>
