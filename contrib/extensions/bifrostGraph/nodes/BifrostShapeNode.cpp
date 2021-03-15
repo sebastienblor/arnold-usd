@@ -254,9 +254,10 @@ void CBifrostShapeNode::updateGeometry()
    }
 
    // get the proc geo in a new universe
-   // add param value for "procedural_only" (what for ?)AD8e33
+   // add param value for "procedural_only" as we only want to gather objects
+   // for the viewport that Bifrost's Maya plugin can't display directly
    AtParamValueMap* paramValues = AiParamValueMap();
-   AiParamValueMapSetBool(paramValues, AtString("procedural_only"), true);  
+   AiParamValueMapSetBool(paramValues, AtString("procedurals_only"), true);  
    AiParamValueMapSetInt(paramValues, AtString("recursion_level"), 0);  
    AiProceduralViewport(proc, universe, viewport_mode, paramValues);
    DrawUniverse(universe);

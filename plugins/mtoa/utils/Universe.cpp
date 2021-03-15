@@ -75,12 +75,6 @@ bool ArnoldUniverseBegin(int logFlags)
       bool isInteractiveSession = (renderSession == NULL || renderSession->IsInteractiveSession());
       AtSessionMode mode = (isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH;
 
-      AiADPAddProductMetadata(AI_ADP_PLUGINNAME, AtString("mtoa"));
-      AiADPAddProductMetadata(AI_ADP_PLUGINVERSION, AtString(MTOA_VERSION));
-      AiADPAddProductMetadata(AI_ADP_HOSTNAME, AtString("Maya"));
-      AiADPAddProductMetadata(AI_ADP_HOSTVERSION, AtString(std::to_string(MAYA_API_VERSION).c_str()));
-
-
       AiBegin(mode);
       MtoaSetupLogging(logFlags);
       LoadPlugins();

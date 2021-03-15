@@ -640,6 +640,8 @@ AtNode *CArnoldSession::ExportColorManager()
 MStatus CArnoldSession::Export(MSelectionList* selected)
 {
    MStatus status;
+   // Report MtoA product usage to ADP
+   MtoAADPPayloads::ADPPostProductMetadata();
 
    if (!AiUniverseIsActive())
    {
