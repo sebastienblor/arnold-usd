@@ -224,7 +224,6 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    }
    
    MtoAADPPayloads::ADPPostShaderUsed(GetMayaNodeTypeName().asChar());
-   MtoAADPPayloads::ADPPostProductMetadata();
    ExportDccName();
 }
 
