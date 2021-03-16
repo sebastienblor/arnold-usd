@@ -12,7 +12,7 @@
 #include "translators/NodeTranslatorImpl.h"
 #include "utils/MakeTx.h"
 #include "utils/MtoaLog.h"
-#include "utils/MtoAAdpPayloads.h"
+
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -641,9 +641,6 @@ AtNode *CArnoldSession::ExportColorManager()
 MStatus CArnoldSession::Export(MSelectionList* selected)
 {
    MStatus status;
-   // Report MtoA product usage to ADP
-   MtoAADPPayloads::ADPPostProductMetadata();
-
    if (!AiUniverseIsActive())
    {
       AiMsgError("[mtoa] Need an active Arnold universe to export to.");

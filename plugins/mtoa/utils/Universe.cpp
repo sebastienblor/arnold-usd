@@ -2,6 +2,7 @@
 #include "extension/Extension.h"
 #include "render/RenderSession.h"
 #include "scene/MayaScene.h"
+#include "utils/MtoAAdpPayloads.h"
 
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -74,6 +75,9 @@ bool ArnoldUniverseBegin(int logFlags)
       CRenderSession *renderSession = CMayaScene::GetRenderSession();
       bool isInteractiveSession = (renderSession == NULL || renderSession->IsInteractiveSession());
       AtSessionMode mode = (isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH;
+      
+      // Report MtoA product usage to ADP
+      MtoAADPPayloads::ADPPostProductMetadata();
 
       AiBegin(mode);
       MtoaSetupLogging(logFlags);
@@ -92,10 +96,8 @@ bool ArnoldUniverseOnlyBegin()
       bool isInteractiveSession = (renderSession == NULL || renderSession->IsInteractiveSession());
       AtSessionMode mode = (isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH;
 
-      AiADPAddProductMetadata(AI_ADP_PLUGINNAME, AtString("mtoa"));
-      AiADPAddProductMetadata(AI_ADP_PLUGINVERSION, AtString(MTOA_VERSION));
-      AiADPAddProductMetadata(AI_ADP_HOSTNAME, AtString("Maya"));
-      AiADPAddProductMetadata(AI_ADP_HOSTVERSION, AtString(std::to_string(MAYA_API_VERSION).c_str()));
+      // Report MtoA product usage to ADP
+      MtoAADPPayloads::ADPPostProductMetadata();
 
       AiBegin(mode);
       return true;
