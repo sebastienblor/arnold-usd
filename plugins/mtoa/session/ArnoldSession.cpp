@@ -12,6 +12,7 @@
 #include "translators/NodeTranslatorImpl.h"
 #include "utils/MakeTx.h"
 #include "utils/MtoaLog.h"
+#include "utils/MtoAAdpPayloads.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
