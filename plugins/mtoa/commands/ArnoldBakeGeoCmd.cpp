@@ -1,6 +1,7 @@
 #include "ArnoldBakeGeoCmd.h"
 #include "../scene/MayaScene.h"
 #include "../common/UnorderedContainer.h"
+#include "utils/MtoAAdpPayloads.h"
 #include <ai.h>
 
 #include <maya/MStatus.h>
@@ -139,7 +140,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    static const AtString polymesh_str("polymesh");
    static const AtString procedural_str("procedural");
 
-
+   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
    AiRender(AI_RENDER_MODE_FREE);
    AtNodeIterator *nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
    AtShaderGlobals* sg = AiShaderGlobals();

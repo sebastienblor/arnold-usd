@@ -19,6 +19,7 @@
 #include "translators/DagTranslator.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
+#include "utils/MtoAAdpPayloads.h"
 
 #include "display/renderview_mtoa.h"
 
@@ -525,6 +526,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
          MtoaDebugLog(log);
       }
       CMayaScene::ExecuteScript(IPRStepStarted, false, true);
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
       CMayaScene::ExecuteScript(IPRStepFinished, false, true);
 
@@ -550,6 +552,7 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
    else
    {
       renderSession->SetRendering(true);
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
       AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
@@ -612,6 +615,7 @@ int CRenderSession::DoInteractiveRender()
 
 int CRenderSession::DoBatchRender()
 {
+   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_BATCH);
    return AiRender(AI_RENDER_MODE_CAMERA);
 }
 
@@ -1156,6 +1160,7 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    InterruptRender();
 
    // Start the render on the current thread.
+   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
    AiRender(AI_RENDER_MODE_CAMERA);
 }
 void CRenderSession::SetRenderViewOption(const MString &option, const MString &value)
