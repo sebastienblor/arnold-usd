@@ -1,6 +1,7 @@
 #include "utils/Version.h"
 #include "ArnoldExportToMaterialXCmd.h"
 #include "scene/MayaScene.h"
+#include "utils/MtoAAdpPayloads.h"
 
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
@@ -148,7 +149,7 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    arnoldSession->SetExportFilterMask(AI_NODE_ALL);
    
    CMayaScene::Export(&selected);
-
+   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
    AiRender(AI_RENDER_MODE_FREE);
    AiRenderAbort();
    
