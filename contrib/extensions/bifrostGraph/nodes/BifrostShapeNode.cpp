@@ -88,12 +88,12 @@ MStatus CBifrostShapeNode::initialize()
 
    CArnoldBaseProcedural::initializeCommonAttributes();
 
-   // If the env variable BIFROST_EXPERIMENTAL is set, 
+   // If the env variable MTOA_BIFROST_STANDIN_DISPLAY is set, 
    // we automatically create an arnoldBifrostShape node for 
    // every bifrostGraph in the scene. We need to add it to existing nodes
    // (unless they already have such a connection), and to all bifrost graphs that 
    // will be created later one.
-   const char* envVar = getenv("BIFROST_EXPERIMENTAL");
+   const char* envVar = getenv("MTOA_BIFROST_STANDIN_DISPLAY");
    MString envVarStr = (envVar) ? MString(envVar) : MString("");
    if (envVarStr == MString("1"))
    {
