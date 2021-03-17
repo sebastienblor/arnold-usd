@@ -3,6 +3,9 @@
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/driver/DriverTranslator.h"
 #include "translators/camera/ImagePlaneTranslator.h"
+#include "render/RenderSession.h"
+#include "session/ArnoldSession.h"
+#include "scene/MayaScene.h"
 
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
@@ -1394,51 +1397,7 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetPtr(options, "operator", NULL);
    }
 
-   MPlug pImg = FindMayaPlug("imagers");
-   unsigned numImagers = pImg.numElements();
-   
-   std::vector<AtNode*> imagersStack;
-   imagersStack.reserve(numImagers);
-
-   // Process the stack of imagers that need to be rendered
-   for (unsigned int i = 0; i < numImagers; ++i)
-   {
-      MPlug imagerPlug = pImg[i];
-      conns.clear();
-      imagerPlug.connectedTo(conns, true, false);
-      AtNode* linkedNode = (conns.length() > 0) ?
-         ExportConnectedNode(conns[0]) : nullptr;
-      
-      if (linkedNode)
-      {
-         // When translating the stack to a graph, we need to start from last one, then 
-         // successively connect the imagers as input of the previous, until the first one.
-         // This will make it so that the last imager in the list is applied at the end by arnold
-         imagersStack.insert(imagersStack.begin(), linkedNode);
-      }
-   }
-
-   // Loop over all the output drivers, set the attribute input to the first imager 
-   MString beautyName = "RGBA";
-   for (auto aovData : m_aovData)
-   {
-      if (aovData.name == "beauty" || aovData.name == "RGBA" || aovData.name == "RGB")
-         beautyName = aovData.name;   
-      else if (aovData.name != "RGBA_denoise" && aovData.name != "RGB_denoise" )
-         continue;     
-      
-      for (auto output : aovData.outputs)
-      {
-         AtNode *driver = output.driver;
-         if (driver)
-         {
-            if (!imagersStack.empty())
-               AiNodeSetPtr(driver, "input", (void*)imagersStack[0]);
-            else
-               AiNodeResetParameter(driver, "input");
-         }
-      }
-   }
+   ExportImagers();
 
    // subdivision dicing camera
    //
@@ -1611,17 +1570,6 @@ void COptionsTranslator::Export(AtNode *options)
          AiNodeSetBool(options, "enable_progressive_render", true);
    }
 
-   // Process the imagers tree, by connecting them through the attribute "input"
-   if (!imagersStack.empty())
-   {  
-      for (size_t i = 0; i < imagersStack.size() - 1; ++i)
-      {
-         AiNodeSetPtr(imagersStack[i], "input", (void*)imagersStack[i+1]); 
-      }
-      // Ensure the last imager in the stack doesn't have any input from a previous render
-      AiNodeResetParameter(imagersStack.back(), "input");
-   }
-
    if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
       CNodeTranslator::ProcessParameter(options, "gpu_default_names", AI_TYPE_STRING);
@@ -1685,7 +1633,66 @@ void COptionsTranslator::Export(AtNode *options)
          AiDeviceAutoSelect();
    }
 }
+void COptionsTranslator::ExportImagers()
+{
+   MPlugArray conns;
+   MPlug pImg = FindMayaPlug("imagers");
+   unsigned numImagers = pImg.numElements();
+   
+   std::vector<AtNode*> imagersStack;
+   imagersStack.reserve(numImagers);
 
+   // Process the stack of imagers that need to be rendered
+   for (unsigned int i = 0; i < numImagers; ++i)
+   {
+      MPlug imagerPlug = pImg[i];
+      conns.clear();
+      imagerPlug.connectedTo(conns, true, false);
+      CNodeTranslator *imagerTr = nullptr;
+      AtNode* linkedNode = (conns.length() > 0) ?
+         m_impl->ExportConnectedNode(conns[0], true, &imagerTr) : nullptr;
+      
+      if (linkedNode)
+      {
+         // When translating the stack to a graph, we need to start from last one, then 
+         // successively connect the imagers as input of the previous, until the first one.
+         // This will make it so that the last imager in the list is applied at the end by arnold
+         imagersStack.insert(imagersStack.begin(), linkedNode);
+      }
+   }
+
+   // Loop over all the output drivers, set the attribute input to the first imager 
+   MString beautyName = "RGBA";
+   for (auto aovData : m_aovData)
+   {
+      if (aovData.name == "beauty" || aovData.name == "RGBA" || aovData.name == "RGB")
+         beautyName = aovData.name;   
+      else if (aovData.name != "RGBA_denoise" && aovData.name != "RGB_denoise" )
+         continue;     
+      
+      for (auto output : aovData.outputs)
+      {
+         AtNode *driver = output.driver;
+         if (driver)
+         {
+            if (!imagersStack.empty())
+               AiNodeSetPtr(driver, "input", (void*)imagersStack[0]);
+            else
+               AiNodeResetParameter(driver, "input");
+         }
+      }
+   }
+      // Process the imagers tree, by connecting them through the attribute "input"
+   if (!imagersStack.empty())
+   {  
+      for (size_t i = 0; i < imagersStack.size() - 1; ++i)
+      {
+         AiNodeSetPtr(imagersStack[i], "input", (void*)imagersStack[i+1]); 
+      }
+      // Ensure the last imager in the stack doesn't have any input from a previous render
+      AiNodeResetParameter(imagersStack.back(), "input");
+   }
+}
 void COptionsTranslator::ExportAtmosphere(AtNode *options)
 {
    MPlugArray conns;
@@ -1745,6 +1752,30 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    {
       // Need to re-export all the nodes that Require Motion
       m_impl->m_session->RequestUpdateMotion();
+   } else if (plugName == "imagers")
+   {
+      // Only update imagers list if the render has finished, since arnold
+      // currently doesn't support interactive changes in the list while the render is in progress
+      // FIXME: we should not do this for some imagers that require a render restart !
+      if (AiRenderGetStatus() != AI_RENDER_STATUS_RENDERING)
+      {
+         // Update the imagers list in the options
+         ExportImagers();
+         // Ensure the newly created imagers have their callbacks properly set
+         // as if we had gone through CArnoldSession::DoUpdate()
+         CArnoldSession *session = CMayaScene::GetArnoldSession();
+         if (session)
+            session->AddCallbacksToUpdateNodes();
+
+         // Tell ARV to update the list of imagers
+         CRenderSession *renderSession = CMayaScene::GetRenderSession();
+         if (renderSession)
+            renderSession->SetRenderViewOption("Update Imagers", "Rewire Imagers");
+
+         static AtString request_imager_update("request_imager_update");
+         AiRenderSetHintBool(request_imager_update, true);
+         return;
+      }
    } else if ((attrNameLength > 4 && plugName.substringW(0, 3) == "log_") || 
       (attrNameLength > 6 && plugName.substringW(0, 5) == "stats_") || 
       (attrNameLength > 8 && plugName.substringW(0, 7) == "profile_"))

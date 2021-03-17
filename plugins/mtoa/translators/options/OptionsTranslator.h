@@ -93,7 +93,7 @@ protected:
    AtNode* ExportDriver(const MPlug& driverPlug,
                         CAOVOutput &output);
    AtNode* ExportFilter(const MPlug& filterPlug);
-
+   void ExportImagers();
    virtual void NodeChanged(MObject& node, MPlug& plug);
 protected:
    AOVSet m_aovs;
