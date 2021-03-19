@@ -91,7 +91,7 @@ MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName) const
       return m_prefix + paramName;
 }
 
-bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
+bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool isOutput)
 {
    if (m_nodeEntry == NULL)
    {
@@ -100,8 +100,17 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    }
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
+   const AtParamEntry* paramEntry;
+   if (isOutput)
+   {
+      paramEntry = AiNodeEntryLookUpOutput(m_nodeEntry, AtString(paramName));
+   }
+   else
+   {
+      paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+   }
    
-   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+    
    if (paramEntry == NULL)
    {
       AiMsgError("[mtoa.attr] Arnold parameter \"%s.%s\" does not exist.", nodeName, paramName);
@@ -978,11 +987,14 @@ void CBaseAttrHelper::MakeOutputFloat(MObject& attrib, CAttrData& data)
    MAKE_OUTPUT(nAttr, attrib);
 }
 
-void CBaseAttrHelper::MakeOutputRGB(MObject& attrib, CAttrData& data)
+void CBaseAttrHelper::MakeOutputRGB(MObject& attrib, CAttrData& data, bool isCustom)
 {
    MFnNumericAttribute nAttr;
-
-   attrib = nAttr.createColor(OUT_COLOR_NAME, data.shortName);
+   if (!isCustom)
+      attrib = nAttr.createColor(OUT_COLOR_NAME, data.shortName);
+   else
+      attrib = nAttr.createColor(data.name, data.shortName);
+   
    nAttr.setArray(data.isArray);
    MAKE_OUTPUT(nAttr, attrib);
 }
@@ -1050,6 +1062,90 @@ void CBaseAttrHelper::MakeOutputNode(MObject& attrib, CAttrData& data)
    attrib = msgAttr.create(data.name, data.shortName);
    msgAttr.setArray(data.isArray);
    MAKE_OUTPUT(msgAttr, attrib);
+}
+
+
+// TODO : This fucntion needs to be merged with MakeOutput. 
+// There is no need for this to be separate and needs to be factorized
+
+MObject CBaseAttrHelper::MakeMultipleOutput(CAttrData& data)
+{
+   MObject output;
+   switch (data.type)
+   {
+      case AI_TYPE_UINT:
+      {
+         MakeOutputInt(output, data);
+         break;
+      }
+      case AI_TYPE_BOOLEAN:
+      {
+         MakeOutputBoolean(output, data);
+         break;
+      }
+      case AI_TYPE_FLOAT:
+      {
+         MakeOutputFloat(output, data);
+         break;
+      }
+      case AI_TYPE_RGB:
+      {
+         MakeOutputRGB(output, data, true);
+         break;
+      }
+      case AI_TYPE_CLOSURE: // do we want to do something different for closures ?
+      case AI_TYPE_RGBA:
+      {
+         MObject outputA;
+         MakeOutputRGBA(output, outputA, data);
+         m_attributes[OUT_ALPHA_NAME.asChar()] = outputA;
+         break;
+      }
+      case AI_TYPE_VECTOR:
+      {
+         MakeOutputVector(output, data);
+         break;
+      }
+      case AI_TYPE_VECTOR2:
+      {
+         MObject outputX;
+         MObject outputY;
+
+         MakeOutputVector2(output, outputX, outputY, data);
+         m_attributes[std::string(data.name.asChar()) + "X"] = outputX;
+         m_attributes[std::string(data.name.asChar()) + "Y"] = outputY;
+         break;
+      }
+      case AI_TYPE_STRING:
+      {
+         MakeOutputString(output, data);
+         break;
+      }
+      case AI_TYPE_NONE:
+      case AI_TYPE_NODE:
+      {
+         MakeOutputNode(output, data);
+         break;
+      }
+      case AI_TYPE_MATRIX:
+      {
+         MakeOutputMatrix(output, data);
+         break;
+      }
+      case AI_TYPE_ENUM:
+      case AI_TYPE_BYTE:
+      case AI_TYPE_POINTER:
+      {
+         AiMsgWarning("[mtoa.attr] Unable to create output attribute \"%s\": parameters of this type are not supported", data.name.asChar());
+         return MObject::kNullObj;
+      }
+      default:
+      {
+         AiMsgError("[mtoa.attr] Unable to create output attribute \"%s\": unknown parameter type", data.name.asChar());
+         return MObject::kNullObj;
+      }
+   } // switch
+return output;
 }
 
 MObject CBaseAttrHelper::MakeOutput()
