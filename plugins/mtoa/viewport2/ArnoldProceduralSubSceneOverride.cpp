@@ -685,16 +685,14 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
             break;
         }
     }
-
+    
     // create the vertex buffer and index buffers (TODO: Should get the existing ones if they already exists)
     MHWRender::MVertexBuffer verticesBuffer(
         MHWRender::MVertexBufferDescriptor("", MHWRender::MGeometry::kPosition, MHWRender::MGeometry::kFloat, 3));
     MHWRender::MIndexBuffer  indexBuffer(MHWRender::MGeometry::kUnsignedInt32);
-
     // acquire the streams for write
     float* vertices = (float*)verticesBuffer.acquire(totalCount, true);
     unsigned int* indices = (unsigned int*)indexBuffer.acquire(totalIndexCount, true);
-
     // create a vertex buffer for normals if required
     MHWRender::MVertexBuffer normalBuffer(
         MHWRender::MVertexBufferDescriptor("", MHWRender::MGeometry::kNormal, MHWRender::MGeometry::kFloat, 3));
@@ -704,7 +702,6 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
         // acquire the vertex stream for write
         normals = (float*)normalBuffer.acquire(totalCount, true);
     }
-
     // Process each of the stand-in geometry items
     size_t startIndex = 0, pointOffset = 0;
     for (CArnoldProceduralData::geometryListIterType it = geom->m_geometryList.begin();
@@ -719,18 +716,7 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
                 item->primitive(), wantNormals, boxMode);
         }
     }
-
-    // process each of the instances
-    for (CArnoldProceduralData::instanceListIterType it = geom->m_instanceList.begin();
-        it != geom->m_instanceList.end(); ++it)
-    {
-        // We don't want to test the source geometry visibility, as we can have visible ginstances
-        // pointing at an invisible source node
-        // fill the index, vertex, and optionally the normal streams with data from the geometry
-        fillBuffers((*it)->GetGeometry(), indices, vertices, normals, startIndex, pointOffset, 
-            item->primitive(), wantNormals, boxMode, &(*it)->GetMatrix());
-    }
-
+    
     // commit the index and vertex buffers for completion
     indexBuffer.commit(indices);
     verticesBuffer.commit(vertices);
@@ -751,11 +737,13 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
     unsigned int* indices, float* vertices, float* normals, size_t& startIndex, size_t& pointOffset,
     const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode, const AtMatrix *matrix)
 {
+    // virer matrix
+
     if (boxMode)
     {
         // Add the cube into the vertex and index buffer.
         MBoundingBox box = standIn.GetBBox();
-
+/*
         if (matrix)
         {
             AtVector minBox ((float)box.min().x, (float)box.min().y, (float)box.min().z);
@@ -763,7 +751,7 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
             minBox = AiM4PointByMatrixMult(*matrix, minBox);
             maxBox = AiM4PointByMatrixMult(*matrix, maxBox);
             box = MBoundingBox(MPoint(minBox.x, minBox.y, minBox.z), MPoint(maxBox.x, maxBox.y, maxBox.z));
-        }
+        }*/
 
         for (int currentVertex = 0 ; currentVertex < kCubeCount; ++currentVertex)
         {
@@ -778,7 +766,6 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
     {
         // get the triangle, wire, or point indexing based on the primitive type.
         startIndex += getIndexing(standIn, indices+startIndex, pointOffset, primitive, wantNormals);
-
         // get the vertex streams (normals are optional)
         pointOffset += getVertexStreams(standIn, vertices+(pointOffset*3), (normals ? normals+(pointOffset*3) : NULL), matrix);
     }
@@ -797,7 +784,7 @@ size_t CArnoldProceduralSubSceneOverride::getIndexing(
         break;
     case MHWRender::MGeometry::kLines:
         indexCount = standIn.WireIndexCount();
-        standIn.GetWireIndexing(indices, pointOffset);
+        standIn.GetWireIndexing(indices, pointOffset, wantNormals);
         break;
     case MHWRender::MGeometry::kPoints:
         indexCount = standIn.PointCount();
@@ -812,20 +799,17 @@ size_t CArnoldProceduralSubSceneOverride::getIndexing(
 
 size_t CArnoldProceduralSubSceneOverride::getVertexStreams(const CArnoldDrawGeometry& standIn, float* vertices, float* normals, const AtMatrix *matrix)
 {
-    // transform and add the points
-    const AtMatrix *itemMatrix = (matrix) ? matrix : &standIn.GetMatrix();
-    
     if (normals)
     {
         // get the vertices and normals as single indexed streams
         // (must have the same counts)
-        standIn.GetSharedVertices(vertices, itemMatrix);
-        standIn.GetSharedNormals(normals, itemMatrix);
+        standIn.GetSharedVertices(vertices);
+        standIn.GetSharedNormals(normals);
         return standIn.SharedVertexCount();
     }
     else
     {
-        standIn.GetPoints(vertices, itemMatrix);
+        standIn.GetPoints(vertices);
         return standIn.PointCount();
     }
 }

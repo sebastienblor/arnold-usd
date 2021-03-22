@@ -78,27 +78,8 @@ void CArnoldProceduralData::Clear()
         it != m_geometryList.end(); ++it)
       delete it->second;
    m_geometryList.clear();
-
-   for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-      delete (*it);
-   m_instanceList.clear();
    m_isSelected = false;
    m_isDirty = true;
-}
-
-void CArnoldProceduralData::Draw(int DrawMode)
-{
-   for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-   {
-      if (it->second->Visible())
-         it->second->Draw(DrawMode);
-   }
-
-   for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-      (*it)->Draw(DrawMode);
 }
 
 size_t CArnoldProceduralData::PointCount(StandinSelectionFilter filter) const
@@ -113,11 +94,6 @@ size_t CArnoldProceduralData::PointCount(StandinSelectionFilter filter) const
         }
     }
 
-    for (instanceListIterType it = m_instanceList.begin();
-         it != m_instanceList.end(); ++it)
-    {
-        totalPoints += (*it)->GetGeometry().PointCount();
-    }
     return totalPoints;
 }
 
@@ -131,9 +107,6 @@ size_t CArnoldProceduralData::SharedVertexCount(StandinSelectionFilter filter) c
             totalPoints += it->second->SharedVertexCount();
     }
 
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-        totalPoints += (*it)->GetGeometry().SharedVertexCount();
     return totalPoints;
 }
 
@@ -147,13 +120,6 @@ size_t CArnoldProceduralData::WireIndexCount(StandinSelectionFilter filter) cons
         {
             total += it->second->WireIndexCount();
         }
-    }
-
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-    {
-        total += (*it)->GetGeometry().WireIndexCount();
-        
     }
     return total;
 }
@@ -169,13 +135,6 @@ size_t CArnoldProceduralData::TriangleIndexCount(bool sharedVertices, StandinSel
             total += it->second->TriangleIndexCount(sharedVertices);
         }
     }
-
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-    {
-        total += (*it)->GetGeometry().TriangleIndexCount(sharedVertices);
-        
-    }
     return total;
 }
 
@@ -187,12 +146,6 @@ size_t CArnoldProceduralData::VisibleGeometryCount(StandinSelectionFilter filter
     {
         if (it->second->Visible(filter))
             total++;
-    }
-
-    for (instanceListIterType it = m_instanceList.begin();
-        it != m_instanceList.end(); ++it)
-    {
-        total++;
     }
     return total;
 }
@@ -416,99 +369,111 @@ void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
    static const AtString procedural_str("procedural");
    static const AtString box_str("box");
    static const AtString ginstance_str("ginstance");
+   static const AtString node_str("node");
    
+   // Set the viewport mode in case we find nested procedurals
+   AtProcViewportMode viewport_mode = AI_PROC_BOXES;
+   switch (m_data->m_mode)
+   {
+      case DM_BOUNDING_BOX:
+      case DM_PER_OBJECT_BOUNDING_BOX:
+         viewport_mode = AI_PROC_BOXES;
+         break;
+      case DM_POLYWIRE: // filled polygon
+      case DM_WIREFRAME: // wireframe
+      case DM_SHADED_POLYWIRE: // shaded polywire
+      case DM_SHADED: // shaded
+         viewport_mode = AI_PROC_POLYGONS;
+         break;
+      case DM_POINT_CLOUD: // points
+         viewport_mode = AI_PROC_POINTS;
+         break;
+   }
+
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
+   std::vector<std::pair<CArnoldDrawGInstance *, std::string> > instances;
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode* node = AiNodeIteratorGetNext(iter);
-      // Note: the procedural node itself isn't supposed to be in this universe
-      //if (node == procedural)
-      //   continue;
-      if (node)
-      {  
-         MString nodeName = MString(AiNodeGetName(node));
-         CArnoldDrawGeometry* g = 0;
-         if (AiNodeIs(node, polymesh_str))
-            g = new CArnoldDrawPolymesh(node);
-         else if (AiNodeIs(node, points_str))
-            g = new CArnoldDrawPoints(node);
-         else if(AiNodeIs(node, procedural_str))
-            g = new CArnoldDrawProcedural(node);
-         else if(AiNodeIs(node, box_str))
-            g = new CArnoldDrawBox(node);
-         else
+      if (node == nullptr)
+         continue;
+   
+      MString nodeName = MString(AiNodeGetName(node));
+      CArnoldDrawGeometry* g = 0;
+      bool isInstance = false;
+      if (AiNodeIs(node, polymesh_str))
+         g = new CArnoldDrawPolymesh(node);
+      else if (AiNodeIs(node, points_str))
+         g = new CArnoldDrawPoints(node);
+      else if(AiNodeIs(node, procedural_str))
+         g = new CArnoldDrawProcedural(node, viewport_mode);
+      else if(AiNodeIs(node, box_str))
+         g = new CArnoldDrawBox(node);
+      else if (AiNodeIs(node, ginstance_str))
+      {
+         AtNode *source = (AtNode*)AiNodeGetPtr(node, node_str);
+         if (!source)
             continue;
-         if (g->Invalid())
-         {
-            delete g;
-            continue;
+         AtMatrix total_matrix = AiNodeGetMatrix(node, "matrix");
+         bool inherit_xform = AiNodeGetBool(node, "inherit_xform");
+         AtNode *instanceNode = (AtNode*)AiNodeGetPtr(node, "node");
+         while(AiNodeIs(instanceNode, ginstance_str))
+         {                  
+            AtMatrix current_matrix = AiNodeGetMatrix(instanceNode, "matrix");
+            if (inherit_xform)
+               total_matrix = AiM4Mult(total_matrix, current_matrix);
+            
+            inherit_xform = AiNodeGetBool(instanceNode, "inherit_xform");
+            instanceNode = (AtNode*)AiNodeGetPtr(instanceNode, "node");
          }
-         if (g->Visible())
-            m_data->m_bbox.expand(g->GetBBox());  
 
-          
-         bool selected = (m_data->m_selectedMap.find(std::string(nodeName.asChar())) != m_data->m_selectedMap.end());
-         if (!selected)
-         {
-            for (unsigned int i = 0; i < m_data->m_xformSelections.length(); ++i)
-            {
-               const MString &sel = m_data->m_xformSelections[i];
-               if (nodeName.length() > sel.length() && nodeName.substringW(0, sel.length() - 1) == sel)
-                  selected = true;
-            }
-         }
-         if (selected)
-            m_data->m_isSelected = true;
-         
-         g->SetSelected(selected);
-         m_data->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
+         std::pair<CArnoldDrawGInstance *, std::string> instance(new CArnoldDrawGInstance(node, total_matrix, inherit_xform), AiNodeGetName(source));
+         g = instance.first;
+         instances.push_back(instance);
+         isInstance = true;
       }
+      else
+         continue;
+      if (g->Invalid())
+      {
+         delete g;
+         continue;
+      }
+      if (!isInstance && g->Visible())
+         m_data->m_bbox.expand(g->GetBBox());  
+
+       
+      bool selected = (m_data->m_selectedMap.find(std::string(nodeName.asChar())) != m_data->m_selectedMap.end());
+      if (!selected)
+      {
+         for (unsigned int i = 0; i < m_data->m_xformSelections.length(); ++i)
+         {
+            const MString &sel = m_data->m_xformSelections[i];
+            if (nodeName.length() > sel.length() && nodeName.substringW(0, sel.length() - 1) == sel)
+               selected = true;
+         }
+      }
+      if (selected)
+         m_data->m_isSelected = true;
+      
+      g->SetSelected(selected);
+      m_data->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
    }
 
    AiNodeIteratorDestroy(iter);
    
-
-   iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
-
-   while (!AiNodeIteratorFinished(iter))
+   for (auto instance : instances)
    {
-      AtNode* node = AiNodeIteratorGetNext(iter);
-      // the procedural is supposed to be in its own universe, not in this one
-      // if (node == procedural)
-      //   continue;
-      if (node)
-      {
-         if (AiNodeGetByte(node, "visibility") == 0)
-            continue;
-         AtMatrix total_matrix = AiM4Identity();
-         bool inherit_xform = true;
-         bool isInstance = false;
-         while(AiNodeIs(node, ginstance_str))
-         {                  
-            isInstance = true;
-            AtMatrix current_matrix = AiNodeGetMatrix(node, "matrix");
-            if (inherit_xform)
-            {
-               total_matrix = AiM4Mult(total_matrix, current_matrix);
-            }
-            inherit_xform = AiNodeGetBool(node, "inherit_xform");
-            node = (AtNode*)AiNodeGetPtr(node, "node");
-         }
-         if (!isInstance)
-            continue;
-         if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
-         {
-            std::string nodeName(AiNodeGetName(node));
-            CArnoldProceduralData::geometryListIterType giter = m_data->m_geometryList.find(nodeName);
-            if (giter != m_data->m_geometryList.end())
-            {
-               CArnoldDrawGInstance* gi = new CArnoldDrawGInstance(giter->second, total_matrix, inherit_xform);
-               m_data->m_instanceList.push_back(gi);
-               m_data->m_bbox.expand(gi->GetBBox());
-            }
-         }               
-      }
-   }
+      CArnoldDrawGInstance *g = instance.first;
+      if (instance.first == nullptr)
+         continue;
+      
+      CArnoldProceduralData::geometryListIterType srcIter = m_data->m_geometryList.find(instance.second);
+      if (srcIter == m_data->m_geometryList.end() || srcIter->second == nullptr)
+         continue;
 
-   AiNodeIteratorDestroy(iter);
+      g->SetGeometryNode(srcIter->second);
+      if (g->Visible())
+         m_data->m_bbox.expand(g->GetBBox());
+   }
 }

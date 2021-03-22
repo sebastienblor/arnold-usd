@@ -33,13 +33,10 @@ public:
    
    typedef unordered_map<std::string, CArnoldDrawGeometry*> geometryListType;
    typedef geometryListType::const_iterator geometryListIterType;
-   typedef std::vector<CArnoldDrawGInstance*> instanceListType;
-   typedef instanceListType::const_iterator instanceListIterType;
-
+   
    MBoundingBox m_bbox;   
    int m_mode;
    geometryListType m_geometryList;
-   instanceListType m_instanceList;
    bool m_isSelected;
    bool m_isDirty;
    MStringArray m_xformSelections;
@@ -47,7 +44,6 @@ public:
 
    
    void Clear();
-   void Draw(int DrawMode);
    size_t PointCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
    size_t SharedVertexCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
    size_t VisibleGeometryCount(StandinSelectionFilter selected = STANDIN_GEOM_ALL) const;
