@@ -72,10 +72,10 @@ protected:
 
     void fillBuffers(const CArnoldDrawGeometry& standIn, unsigned int* indices, float* vertices, float* normals, 
                      size_t& startIndex, size_t& pointOffset, const MHWRender::MGeometry::Primitive& primitive, 
-                     bool wantNormals, bool boxMode, const AtMatrix *matrix = NULL);
+                     bool wantNormals, bool boxMode);
     size_t getIndexing(const CArnoldDrawGeometry& standIn, unsigned int* indices, unsigned int pointOffset, 
                        const MHWRender::MGeometry::Primitive& primitive, bool wantNormals);
-    size_t getVertexStreams(const CArnoldDrawGeometry& standIn, float* vertices, float* normals, const AtMatrix *matrix);
+    size_t getVertexStreams(const CArnoldDrawGeometry& standIn, float* vertices, float* normals);
 
     int getDrawOverride();
     void updateShaderFromNode();

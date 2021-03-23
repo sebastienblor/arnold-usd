@@ -735,23 +735,12 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
 
 void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& standIn, 
     unsigned int* indices, float* vertices, float* normals, size_t& startIndex, size_t& pointOffset,
-    const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode, const AtMatrix *matrix)
+    const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode)
 {
-    // virer matrix
-
     if (boxMode)
     {
         // Add the cube into the vertex and index buffer.
         MBoundingBox box = standIn.GetBBox();
-/*
-        if (matrix)
-        {
-            AtVector minBox ((float)box.min().x, (float)box.min().y, (float)box.min().z);
-            AtVector maxBox ((float)box.max().x, (float)box.max().y, (float)box.max().z);
-            minBox = AiM4PointByMatrixMult(*matrix, minBox);
-            maxBox = AiM4PointByMatrixMult(*matrix, maxBox);
-            box = MBoundingBox(MPoint(minBox.x, minBox.y, minBox.z), MPoint(maxBox.x, maxBox.y, maxBox.z));
-        }*/
 
         for (int currentVertex = 0 ; currentVertex < kCubeCount; ++currentVertex)
         {
@@ -767,7 +756,7 @@ void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& s
         // get the triangle, wire, or point indexing based on the primitive type.
         startIndex += getIndexing(standIn, indices+startIndex, pointOffset, primitive, wantNormals);
         // get the vertex streams (normals are optional)
-        pointOffset += getVertexStreams(standIn, vertices+(pointOffset*3), (normals ? normals+(pointOffset*3) : NULL), matrix);
+        pointOffset += getVertexStreams(standIn, vertices+(pointOffset*3), (normals ? normals+(pointOffset*3) : NULL));
     }
 }
 
@@ -797,7 +786,7 @@ size_t CArnoldProceduralSubSceneOverride::getIndexing(
     return indexCount;
 }
 
-size_t CArnoldProceduralSubSceneOverride::getVertexStreams(const CArnoldDrawGeometry& standIn, float* vertices, float* normals, const AtMatrix *matrix)
+size_t CArnoldProceduralSubSceneOverride::getVertexStreams(const CArnoldDrawGeometry& standIn, float* vertices, float* normals)
 {
     if (normals)
     {
