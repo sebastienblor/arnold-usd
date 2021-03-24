@@ -528,8 +528,6 @@ void CBifShapeTranslator::Export( AtNode *shape )
    // prevent it from being exported. The best way to deal with this now is simply to reset the attribute here
    AiNodeResetParameter(shape, "receive_shadows");
 
-   // restore the attribute "viewportRenderSelect" to its original value
-   
 }
 
 
@@ -972,8 +970,5 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 void CBifShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.partialName(false, false, false, false, false, true);
-   if (plugName == "viewportRenderSelect")
-      return; // we don't want to update IPR when this attribute changes
-
    CProceduralTranslator::NodeChanged(node, plug);
 }

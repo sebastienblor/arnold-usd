@@ -44,14 +44,22 @@ MTypeId CBifrostShapeNode::id(0x00115DBD);
 MString CBifrostShapeNode::s_classification("drawdb/subscene/arnold/procedural/bifrostGraphStandin"); 
 CAbMayaNode CBifrostShapeNode::s_abstract;
 MObject CBifrostShapeNode::s_input;
+MObject CBifrostShapeNode::s_dirtyFlag;
 MCallbackId CBifrostShapeNode::s_NewNodeCallbackId = 0;
 MCallbackId CBifrostShapeNode::s_idleCallbackId = 0;
 
 CBifrostShapeNode::CBifrostShapeNode() : CArnoldBaseProcedural()
 {
    m_data = new CArnoldProceduralData();
+   m_graphChangedId = 0;
 }
+CBifrostShapeNode::~CBifrostShapeNode()
+{
+   if (m_graphChangedId)
+      MNodeMessage::removeCallback(m_graphChangedId);
+   m_graphChangedId = 0;
 
+}
 void CBifrostShapeNode::postConstructor()
 {
    // FIXME do we want to set the "mode" attribute to something else than "Bounding box" ?
@@ -79,6 +87,7 @@ MStatus CBifrostShapeNode::initialize()
 {
    MFnMessageAttribute mAttr;
    MFnTypedAttribute tAttr;
+   MFnNumericAttribute nAttr;
 
    s_input = mAttr.create("inputData", "inputData");
    mAttr.setStorable(true);
@@ -86,6 +95,15 @@ MStatus CBifrostShapeNode::initialize()
    mAttr.setWritable(true);
    addAttribute(s_input);
 
+   // internal parameter to port changes from the bifrost graph to this node, 
+   // so that viewport display can update
+   s_dirtyFlag = nAttr.create("dirtyFlag", "dirtyFlag", MFnNumericData::kInt, 0);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   addAttribute(s_dirtyFlag);
+  
    CArnoldBaseProcedural::initializeCommonAttributes();
 
    // If the env variable MTOA_BIFROST_STANDIN_DISPLAY is set, 
@@ -170,6 +188,17 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
 
    }
 }
+void CBifrostShapeNode::GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   CBifrostShapeNode *proc = static_cast<CBifrostShapeNode*>(clientData);
+   MPlug inputPlug(proc->thisMObject(), s_dirtyFlag);
+   if (inputPlug.isNull())
+      return;
+   // increase the value of the "dirtyFlag" internal attribute, 
+   // so that the viewport display is forced for this node
+   inputPlug.setInt(inputPlug.asInt() + 1);
+}
+
 void CBifrostShapeNode::updateGeometry()
 {
    MObject connectedNode;
@@ -192,6 +221,9 @@ void CBifrostShapeNode::updateGeometry()
    if (!foundBifrostGraph)
       return;
 
+   if (m_graphChangedId == 0) 
+      m_graphChangedId = MNodeMessage::addNodeDirtyCallback(connectedNode, GraphDirtyCallback, this);   
+   
    bool universeCreated = ArnoldUniverseBegin();
    
    AtUniverse *universe = AiUniverse();
@@ -208,15 +240,6 @@ void CBifrostShapeNode::updateGeometry()
    AtNode *proc = AiNode(proc_universe,"bifrost_graph", name().asChar());
    MFnDependencyNode fnNode(connectedNode);
 
-   MPlug vpRenderPlug = fnNode.findPlug("viewportRenderSelect", true);
-   if (!vpRenderPlug.isNull())
-   {
-      int vpRenderValue = vpRenderPlug.asInt();
-      if (vpRenderValue == 0)
-         vpRenderPlug.setValue(2);
-      else if (vpRenderValue == 1)
-         vpRenderPlug.setValue(3);
-   }
 
    MPlug bifrostData  = fnNode.findPlug("outputBifrostDataStream", true);
    MDataHandle dataStreamHandle;

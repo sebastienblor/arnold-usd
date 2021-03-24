@@ -17,7 +17,7 @@ class CBifrostShapeNode
 
 public:
    CBifrostShapeNode();
-   virtual ~CBifrostShapeNode() {}
+   virtual ~CBifrostShapeNode();
 
    virtual void postConstructor();
 
@@ -32,14 +32,17 @@ public:
    static MString s_classification;   
 
    static MObject s_input;
-   static MObject s_outputBifrostDataStream;
+   static MObject s_dirtyFlag;
 
    static MCallbackId s_NewNodeCallbackId;
    static MCallbackId s_idleCallbackId;
    static void NewNodeCallback(MObject & node, void *);
    static void IdleCallback(void *);
    static void UpdateBifrostGraphConnections();
-   
+
+   static void  GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData);
+   MCallbackId m_graphChangedId;
+
 };  // class CArnoldShaderNode
 
 
