@@ -2,8 +2,9 @@
 #include "Version.h"
 #include <ai_adp.h>
 #include <maya/MGlobal.h>
-#include <unordered_map>
 
+#include <unordered_map>
+#include <string>
 
 namespace MtoAADPPayloads
 {
