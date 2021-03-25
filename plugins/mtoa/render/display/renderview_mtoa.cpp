@@ -684,13 +684,13 @@ void CRenderViewMtoA::UpdateFullScene()
       CMayaScene::GetRenderSession()->SetCamera(renderCamera);
    }
 
-   if (s_arvWorkspaceControl)
+   if (m_viewportRendering)
    {
-      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_VIEWPORT);
    }
    else
    {
-      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_VIEWPORT);
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
    }
 
    UpdateRenderCallbacks();
