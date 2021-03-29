@@ -2884,4 +2884,23 @@ CNodeTranslator *CArnoldSession::ExportNodeToUniverse(const MObject &object, AtU
    return translator;
 }
    
+void CArnoldSession::AddCallbacksToUpdateNodes()
+{
+   if (!IsInteractiveRender())
+      return;
 
+   for(size_t i = 0; i < m_objectsToUpdate.size(); ++i)
+   {
+      CNodeTranslator *tr = m_objectsToUpdate[i].second;
+      if (tr == nullptr)
+         continue;
+
+      if (tr->m_impl->m_mayaCallbackIDs.length() == 0) 
+         tr->AddUpdateCallbacks();
+      
+      tr->m_impl->m_inUpdateQueue = false; // I'm allowed to receive updates once again
+      tr->m_impl->m_isExported = true;
+      // restore the update mode to "update Only"
+      tr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+   }
+}
