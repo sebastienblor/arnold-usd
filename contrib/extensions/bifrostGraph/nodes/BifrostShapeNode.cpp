@@ -52,12 +52,17 @@ CBifrostShapeNode::CBifrostShapeNode() : CArnoldBaseProcedural()
 {
    m_data = new CArnoldProceduralData();
    m_graphChangedId = 0;
+   m_graphIdleId = 0;
 }
 CBifrostShapeNode::~CBifrostShapeNode()
 {
    if (m_graphChangedId)
       MNodeMessage::removeCallback(m_graphChangedId);
    m_graphChangedId = 0;
+
+   if (m_graphIdleId)
+      MNodeMessage::removeCallback(m_graphIdleId);
+   m_graphIdleId = 0;
 
 }
 void CBifrostShapeNode::postConstructor()
@@ -188,15 +193,31 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
 
    }
 }
-void CBifrostShapeNode::GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData)
+
+void CBifrostShapeNode::GraphIdleCallback(void *clientData)
 {
    CBifrostShapeNode *proc = static_cast<CBifrostShapeNode*>(clientData);
-   MPlug inputPlug(proc->thisMObject(), s_dirtyFlag);
-   if (inputPlug.isNull())
+   MPlug dirtyFlagPlug(proc->thisMObject(), s_dirtyFlag);
+   if (dirtyFlagPlug.isNull())
       return;
+
+   if (proc->m_graphIdleId)
+   {
+      MMessage::removeCallback(proc->m_graphIdleId);
+      proc->m_graphIdleId = 0;
+   }
+   
    // increase the value of the "dirtyFlag" internal attribute, 
    // so that the viewport display is forced for this node
-   inputPlug.setInt(inputPlug.asInt() + 1);
+   dirtyFlagPlug.setInt(dirtyFlagPlug.asInt() + 1);
+}
+
+void CBifrostShapeNode::GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData)
+{ 
+   CBifrostShapeNode *proc = static_cast<CBifrostShapeNode*>(clientData);
+   if (proc->m_graphIdleId == 0)
+      proc->m_graphIdleId = MEventMessage::addEventCallback("idle",
+                                    GraphIdleCallback, clientData);
 }
 
 void CBifrostShapeNode::updateGeometry()

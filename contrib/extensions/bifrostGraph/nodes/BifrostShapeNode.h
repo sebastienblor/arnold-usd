@@ -40,8 +40,11 @@ public:
    static void IdleCallback(void *);
    static void UpdateBifrostGraphConnections();
 
+   static void GraphIdleCallback(void *clientData);
    static void  GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData);
+   
    MCallbackId m_graphChangedId;
+   MCallbackId m_graphIdleId;
 
 };  // class CArnoldShaderNode
 
