@@ -53,6 +53,7 @@ CBifrostShapeNode::CBifrostShapeNode() : CArnoldBaseProcedural()
    m_data = new CArnoldProceduralData();
    m_graphChangedId = 0;
    m_graphIdleId = 0;
+   m_updateStamp = -1;
 }
 CBifrostShapeNode::~CBifrostShapeNode()
 {
@@ -194,30 +195,59 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
    }
 }
 
-void CBifrostShapeNode::GraphIdleCallback(void *clientData)
+static void IncrementDirtyFlagPlug(CBifrostShapeNode *node)
 {
-   CBifrostShapeNode *proc = static_cast<CBifrostShapeNode*>(clientData);
-   MPlug dirtyFlagPlug(proc->thisMObject(), s_dirtyFlag);
+   MPlug dirtyFlagPlug(node->thisMObject(), CBifrostShapeNode::s_dirtyFlag);
    if (dirtyFlagPlug.isNull())
       return;
-
-   if (proc->m_graphIdleId)
-   {
-      MMessage::removeCallback(proc->m_graphIdleId);
-      proc->m_graphIdleId = 0;
-   }
-   
+  
    // increase the value of the "dirtyFlag" internal attribute, 
    // so that the viewport display is forced for this node
    dirtyFlagPlug.setInt(dirtyFlagPlug.asInt() + 1);
 }
+void CBifrostShapeNode::GraphIdleCallback(void *clientData)
+{
+   CBifrostShapeNode *node = static_cast<CBifrostShapeNode*>(clientData);
+   if (node->m_graphIdleId)
+   {
+      MMessage::removeCallback(node->m_graphIdleId);
+      node->m_graphIdleId = 0;
+   } 
 
+   MPlug dirtyFlagPlug(node->thisMObject(), s_dirtyFlag);
+   if (!dirtyFlagPlug.isNull())
+   {
+      if (dirtyFlagPlug.asInt() > node->m_updateStamp)
+         IncrementDirtyFlagPlug(node);
+   }
+
+   
+}
+
+// The bifrost graph was modified, we need to increment the "dirty flag" plug 
+// so that it updates the viewport.
 void CBifrostShapeNode::GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData)
 { 
    CBifrostShapeNode *proc = static_cast<CBifrostShapeNode*>(clientData);
+   // Immediately increment the dirtyFlag plug
+   IncrementDirtyFlagPlug(proc);
+
+   MPlug dirtyFlagPlug(proc->thisMObject(), s_dirtyFlag);
+   if (dirtyFlagPlug.isNull())
+      return;
+   
+   // The above call to incrementDirtyFlagPlug has updated our attribute
+   // value, and apparently the geometry was updated right away.
+   // We don't need to do anything else here.
+   if (proc->m_updateStamp == dirtyFlagPlug.asInt())
+      return;
+
+   // Sometimes, the above increment gets lost if maya is busy with other stuff
+   // (e.g. changing the current frame). So we run a
    if (proc->m_graphIdleId == 0)
       proc->m_graphIdleId = MEventMessage::addEventCallback("idle",
                                     GraphIdleCallback, clientData);
+   
 }
 
 void CBifrostShapeNode::updateGeometry()
@@ -242,6 +272,12 @@ void CBifrostShapeNode::updateGeometry()
    if (!foundBifrostGraph)
       return;
 
+   // Store the value of the dirty flag plug for each geometry update
+   // so that we can know if we are up-to-date
+   MPlug dirtyFlagPlug(thisMObject(), s_dirtyFlag);
+   if (!dirtyFlagPlug.isNull())
+      m_updateStamp = dirtyFlagPlug.asInt();
+   
    if (m_graphChangedId == 0) 
       m_graphChangedId = MNodeMessage::addNodeDirtyCallback(connectedNode, GraphDirtyCallback, this);   
    

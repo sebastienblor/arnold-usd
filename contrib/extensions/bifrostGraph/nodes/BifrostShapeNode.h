@@ -45,6 +45,7 @@ public:
    
    MCallbackId m_graphChangedId;
    MCallbackId m_graphIdleId;
+   int m_updateStamp;
 
 };  // class CArnoldShaderNode
 
