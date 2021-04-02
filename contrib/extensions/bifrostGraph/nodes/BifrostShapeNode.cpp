@@ -44,27 +44,15 @@ MTypeId CBifrostShapeNode::id(0x00115DBD);
 MString CBifrostShapeNode::s_classification("drawdb/subscene/arnold/procedural/bifrostGraphStandin"); 
 CAbMayaNode CBifrostShapeNode::s_abstract;
 MObject CBifrostShapeNode::s_input;
-MObject CBifrostShapeNode::s_dirtyFlag;
 MCallbackId CBifrostShapeNode::s_NewNodeCallbackId = 0;
 MCallbackId CBifrostShapeNode::s_idleCallbackId = 0;
 
 CBifrostShapeNode::CBifrostShapeNode() : CArnoldBaseProcedural()
 {
    m_data = new CArnoldProceduralData();
-   m_graphChangedId = 0;
-   m_graphIdleId = 0;
-   m_updateStamp = -1;
 }
 CBifrostShapeNode::~CBifrostShapeNode()
 {
-   if (m_graphChangedId)
-      MNodeMessage::removeCallback(m_graphChangedId);
-   m_graphChangedId = 0;
-
-   if (m_graphIdleId)
-      MNodeMessage::removeCallback(m_graphIdleId);
-   m_graphIdleId = 0;
-
 }
 void CBifrostShapeNode::postConstructor()
 {
@@ -95,21 +83,12 @@ MStatus CBifrostShapeNode::initialize()
    MFnTypedAttribute tAttr;
    MFnNumericAttribute nAttr;
 
-   s_input = mAttr.create("inputData", "inputData");
-   mAttr.setStorable(true);
-   mAttr.setReadable(true);
-   mAttr.setWritable(true);
+   s_input = tAttr.create("inputData", "inputData", MFnData::kDoubleArray, MObject::kNullObj);
+   tAttr.setStorable(true);
+   tAttr.setReadable(true);
+   tAttr.setWritable(true);
    addAttribute(s_input);
-
-   // internal parameter to port changes from the bifrost graph to this node, 
-   // so that viewport display can update
-   s_dirtyFlag = nAttr.create("dirtyFlag", "dirtyFlag", MFnNumericData::kInt, 0);
-   nAttr.setStorable(false);
-   nAttr.setHidden(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(false);
-   addAttribute(s_dirtyFlag);
-  
+   
    CArnoldBaseProcedural::initializeCommonAttributes();
 
    // If the env variable MTOA_BIFROST_STANDIN_DISPLAY is set, 
@@ -164,7 +143,7 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
    for (unsigned int i = 0; i < bifrostNodes.length(); ++i)
    {      
       MStringArray connections; 
-      MString connectionsCmd = MString("listConnections -d 1 -s 0 -type \"arnoldBifrostShape\" \"") + bifrostNodes[i] + MString(".message\"");
+      MString connectionsCmd = MString("listConnections -d 1 -s 0 -type \"arnoldBifrostShape\" \"") + bifrostNodes[i] + MString(".outputBifrostDataStream\"");
       MGlobal::executeCommand(connectionsCmd, connections);
       if (connections.length() > 0)
          continue;
@@ -189,98 +168,29 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
          MString parentCmd = MString ("parent -r ") + arnoldTransformName[0] + MString(" ") + bifrostTransformName[0];
          MGlobal::executeCommand(parentCmd);
       }
-      MString connectCmd = MString("connectAttr -f ") + bifrostNodes[i] + MString(".message ") + arnoldNodeName + MString(".inputData");
+      MString connectCmd = MString("connectAttr -f ") + bifrostNodes[i] + MString(".outputBifrostDataStream ") + arnoldNodeName + MString(".inputData");
       MGlobal::executeCommand(connectCmd);
 
    }
 }
 
-static void IncrementDirtyFlagPlug(CBifrostShapeNode *node)
-{
-   MPlug dirtyFlagPlug(node->thisMObject(), CBifrostShapeNode::s_dirtyFlag);
-   if (dirtyFlagPlug.isNull())
-      return;
-  
-   // increase the value of the "dirtyFlag" internal attribute, 
-   // so that the viewport display is forced for this node
-   dirtyFlagPlug.setInt(dirtyFlagPlug.asInt() + 1);
-}
-void CBifrostShapeNode::GraphIdleCallback(void *clientData)
-{
-   CBifrostShapeNode *node = static_cast<CBifrostShapeNode*>(clientData);
-   if (node->m_graphIdleId)
-   {
-      MMessage::removeCallback(node->m_graphIdleId);
-      node->m_graphIdleId = 0;
-   } 
-
-   MPlug dirtyFlagPlug(node->thisMObject(), s_dirtyFlag);
-   if (!dirtyFlagPlug.isNull())
-   {
-      if (dirtyFlagPlug.asInt() > node->m_updateStamp)
-         IncrementDirtyFlagPlug(node);
-   }
-
-   
-}
-
-// The bifrost graph was modified, we need to increment the "dirty flag" plug 
-// so that it updates the viewport.
-void CBifrostShapeNode::GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData)
-{ 
-   CBifrostShapeNode *proc = static_cast<CBifrostShapeNode*>(clientData);
-   // Immediately increment the dirtyFlag plug
-   IncrementDirtyFlagPlug(proc);
-
-   MPlug dirtyFlagPlug(proc->thisMObject(), s_dirtyFlag);
-   if (dirtyFlagPlug.isNull())
-      return;
-   
-   // The above call to incrementDirtyFlagPlug has updated our attribute
-   // value, and apparently the geometry was updated right away.
-   // We don't need to do anything else here.
-   if (proc->m_updateStamp == dirtyFlagPlug.asInt())
-      return;
-
-   // Sometimes, the above increment gets lost if maya is busy with other stuff
-   // (e.g. changing the current frame). So we run a
-   if (proc->m_graphIdleId == 0)
-      proc->m_graphIdleId = MEventMessage::addEventCallback("idle",
-                                    GraphIdleCallback, clientData);
-   
-}
-
 void CBifrostShapeNode::updateGeometry()
 {
    MObject connectedNode;
+   MPlug outputPlug;
    bool foundBifrostGraph = false;
    MPlug inputPlug(thisMObject(), s_input);
-   if (!inputPlug.isNull())
-   {
-      MPlugArray conns;
-      inputPlug.connectedTo(conns, true, false);
-      if (conns.length() > 0)
-      {
-         connectedNode = conns[0].node();
-         foundBifrostGraph = true; 
-         MFnDependencyNode bifrostNode(connectedNode);
-         if (bifrostNode.typeName() != MString("bifrostGraphShape"))
-            return;
-      }
-   }
-
-   if (!foundBifrostGraph)
+   
+   MDataHandle dataStreamHandle;
+   inputPlug.getValue(dataStreamHandle);
+   
+   MFnDoubleArrayData arrData(dataStreamHandle.data());
+   MDoubleArray streamData = arrData.array();
+   unsigned int nEle = streamData.length();
+   
+   if (nEle == 0)
       return;
 
-   // Store the value of the dirty flag plug for each geometry update
-   // so that we can know if we are up-to-date
-   MPlug dirtyFlagPlug(thisMObject(), s_dirtyFlag);
-   if (!dirtyFlagPlug.isNull())
-      m_updateStamp = dirtyFlagPlug.asInt();
-   
-   if (m_graphChangedId == 0) 
-      m_graphChangedId = MNodeMessage::addNodeDirtyCallback(connectedNode, GraphDirtyCallback, this);   
-   
    bool universeCreated = ArnoldUniverseBegin();
    
    AtUniverse *universe = AiUniverse();
@@ -289,21 +199,8 @@ void CBifrostShapeNode::updateGeometry()
    if (!BifrostUtils::LoadBifrostProcedural())
       AiMsgError("Bifrost procedural could not be found");
    
-   // This is an exact replica of what's happening when in the BifShapeTranslator
-   // Only difference being, I'm not setting any motion steps
-   
-   // TODO : Factorize the bit below 
-
    AtNode *proc = AiNode(proc_universe,"bifrost_graph", name().asChar());
-   MFnDependencyNode fnNode(connectedNode);
-
-
-   MPlug bifrostData  = fnNode.findPlug("outputBifrostDataStream", true);
-   MDataHandle dataStreamHandle;
-   bifrostData.getValue(dataStreamHandle);
-   MFnDoubleArrayData arrData(dataStreamHandle.data());
-   MDoubleArray streamData = arrData.array();
-   unsigned int nEle = streamData.length();
+   
    size_t nBytes = static_cast<size_t>(nEle) * sizeof(double);
    AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
    AiNodeSetArray(proc, "input_names", inputsArray);

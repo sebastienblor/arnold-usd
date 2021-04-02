@@ -32,21 +32,13 @@ public:
    static MString s_classification;   
 
    static MObject s_input;
-   static MObject s_dirtyFlag;
 
    static MCallbackId s_NewNodeCallbackId;
    static MCallbackId s_idleCallbackId;
    static void NewNodeCallback(MObject & node, void *);
    static void IdleCallback(void *);
    static void UpdateBifrostGraphConnections();
-
-   static void GraphIdleCallback(void *clientData);
-   static void  GraphDirtyCallback(MObject& node, MPlug& plug, void* clientData);
    
-   MCallbackId m_graphChangedId;
-   MCallbackId m_graphIdleId;
-   int m_updateStamp;
-
 };  // class CArnoldShaderNode
 
 
