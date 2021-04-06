@@ -234,8 +234,10 @@ Section "Uninstall"
   SetRegView 32
   DeleteRegKey /ifempty HKCU "Software\MtoA$%MAYA_VERSION%"
   ReadRegStr $R1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" CommonW6432Dir
-  
+
+  ; uninstall begin  
   Delete "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%\mtoa.mod"
+  ; uninstall end
   
   SetRegView 64
   ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION

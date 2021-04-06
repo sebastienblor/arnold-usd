@@ -1753,11 +1753,20 @@ def create_installer(target, source, env):
             editedNsiData = nsiFileData[:modEnd]
             modSection = nsiFileData[modBegin:modEnd]
             editedNsiData += modSection.replace('AYA_VERSION%', 'AYA_VERSION%{}'.format(MOD_SUFFIX))
-            editedNsiData += nsiFileData[modEnd:]          
+            editedNsiData += nsiFileData[modEnd:]
+            nsiFileData = editedNsiData
 
+            uninstallBegin = nsiFileData.find('; uninstall begin')
+            uninstallEnd = nsiFileData.find('; uninstall end')
+            editedNsiData = nsiFileData[:uninstallEnd]
+            uninstallSection = nsiFileData[uninstallBegin:uninstallEnd]
+            editedNsiData += uninstallSection.replace('AYA_VERSION%', 'AYA_VERSION%{}'.format(MOD_SUFFIX))
+            editedNsiData += nsiFileData[uninstallEnd:]
+
+            nsiFileData = editedNsiData
             nsiFile.close()
             nsiFile = open(copiedNsi, "wt")
-            nsiFile.write(editedNsiData)
+            nsiFile.write(nsiFileData)
             nsiFile.close()
             
         zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(tempdir)
