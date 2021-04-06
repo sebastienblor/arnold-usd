@@ -143,7 +143,7 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
    for (unsigned int i = 0; i < bifrostNodes.length(); ++i)
    {      
       MStringArray connections; 
-      MString connectionsCmd = MString("listConnections -d 1 -s 0 -type \"arnoldBifrostShape\" \"") + bifrostNodes[i] + MString(".outputBifrostDataStream\"");
+      MString connectionsCmd = MString("listConnections -d 1 -s 0 -type \"arnoldBifrostShape\" \"") + bifrostNodes[i] + MString(".outputBifrostViewportDataStream\"");
       MGlobal::executeCommand(connectionsCmd, connections);
       if (connections.length() > 0)
          continue;
@@ -168,7 +168,7 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
          MString parentCmd = MString ("parent -r ") + arnoldTransformName[0] + MString(" ") + bifrostTransformName[0];
          MGlobal::executeCommand(parentCmd);
       }
-      MString connectCmd = MString("connectAttr -f ") + bifrostNodes[i] + MString(".outputBifrostDataStream ") + arnoldNodeName + MString(".inputData");
+      MString connectCmd = MString("connectAttr -f ") + bifrostNodes[i] + MString(".outputBifrostViewportDataStream ") + arnoldNodeName + MString(".inputData");
       MGlobal::executeCommand(connectCmd);
 
    }
