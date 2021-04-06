@@ -147,7 +147,7 @@ CArnoldProceduralSubSceneOverride::CArnoldProceduralSubSceneOverride(const MObje
 , mAttribChangedID(0)
 , mGlobalOptionsChangedID(0)
 , mGlobalOptionsCreatedID(0)
-, fLastTimeInvisible(false)
+, mInvisible(false)
 {
     MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
     if (!renderer)
@@ -260,25 +260,18 @@ bool CArnoldProceduralSubSceneOverride::anyChanges(const MHWRender::MSubSceneCon
     MDagPathArray instances;
     if (!node.getAllPaths(instances) || instances.length() == 0) return false;
 
-	// Check to see if there are any invisible instances.
-	// If there are then we need to recompute.
-	bool invisibleInstance = false;
-	for(unsigned int i=0; i<instances.length(); i++) {		
-		MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[i]);
-		if(displayStatus == MHWRender::kInvisible)
-		{
-			invisibleInstance = true;
-			break;
-		}
-	}
-	if(invisibleInstance)
-	{
-		fLastTimeInvisible = true;
-	}
-	else if(fLastTimeInvisible)
-	{
-		fLastTimeInvisible = false;
-	}
+    // Check if all geometries are invisible, in which case we can skip some calculations
+    mInvisible = true;
+    for(unsigned int i=0; i<instances.length(); i++)
+    {
+        MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[i]);
+        if(displayStatus != MHWRender::kInvisible)
+        {
+            // we have at least one visible instance
+            mInvisible = false;
+            break;
+        }
+    }
 
     // there was a change to one or more instances, update required.
     if (updateInstanceData(instances))
@@ -320,10 +313,21 @@ namespace {
 void CArnoldProceduralSubSceneOverride::update(
     MHWRender::MSubSceneContainer& container, const MHWRender::MFrameContext& frameContext)
 {
-    /*
-    if (!anyChanges(container))
+    if (mInvisible)
+    {
+        // This node is marked as invisible, so we just need to hide all the render items
+        // from this container, and we can skip the rest of this method (#MTOA-574)
+        MHWRender::MSubSceneContainer::Iterator *iter = container.getIterator();
+        while(true)
+        {
+            MRenderItem *item = iter->next();
+            if (item == nullptr)
+                break;
+            item->enable(false);
+        }
         return;
-        */
+    }
+
     // initialize
     mOneTimeUpdate = false;
     //container.clear();

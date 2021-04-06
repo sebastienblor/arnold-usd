@@ -114,6 +114,6 @@ protected:
     };
     typedef unordered_map<unsigned int, InstanceInfo> InstanceInfoMap;
     InstanceInfoMap fInstanceInfoCache;
-	bool fLastTimeInvisible;
+	bool mInvisible;
 };
 
