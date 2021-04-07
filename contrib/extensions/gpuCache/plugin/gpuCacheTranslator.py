@@ -159,8 +159,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                     t = AiEnumGetString(enum_param, i)
                     if t:
                         cmds.menuItem( label=t )
+                    else:
+                        # empty string, let's consider we finished the list
+                        break
                 except UnicodeDecodeError as e:
                     t = None
+                    break
                 i += 1
             control = enum_ctrl
         return control
