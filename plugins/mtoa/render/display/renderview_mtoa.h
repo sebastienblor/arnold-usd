@@ -93,6 +93,7 @@ public:
    static void SceneOpenCallback(void *);
    static void ColorMgtRefreshed(void *);
    static void ColorMgtChangedCallback(void *);
+   static void CreateOptionsTabCallback(void *);
    static void ColorMgtCallback(MObject& node, MPlug& plug, void* clientData);
    static void ResolutionCallback(MObject& node, MPlug& plug, void* clientData);
    static void ResolutionChangedCallback(void *);
