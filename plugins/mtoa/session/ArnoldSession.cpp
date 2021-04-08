@@ -611,9 +611,12 @@ AtNode* CArnoldSession::ExportOptions()
 
    MPlug optPlug = fnNode.findPlug("message", true);
    m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, false);
-
+   if (m_optionsTranslator == nullptr)
+   {
+      AiMsgError("[mtoa] No translator found for the options node");
+      return NULL;
+   }
    ExportColorManager();
-
    return m_optionsTranslator->GetArnoldNode();
 }
 
