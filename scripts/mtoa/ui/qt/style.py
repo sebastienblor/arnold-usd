@@ -39,7 +39,7 @@ class MtoAStyle(object):
 
         # style = QtWidgets.QStyleFactory.create("CleanLooks")
         style = ItemStyle(widget.style())
-        stylesheet = file(styleobject.FILE_PATH, "r")
+        stylesheet = open(styleobject.FILE_PATH, "r")
 
         style_string = cls.replaceColors(styleobject, stylesheet)
 
