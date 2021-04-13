@@ -44,7 +44,7 @@ def testMayaNode(nodeName):
 		if fullAttr in acceptlist:
 			continue
 
-		print 'WARNING: Parameter {} might appear in the channel Box'.format(fullAttr)
+		print('WARNING: Parameter {} might appear in the channel Box'.format(fullAttr))
 		success = False
 		
 	return success
@@ -108,10 +108,10 @@ post_script = 'import sys\nimport os\ntest_root_path = sys.argv[1]\noiiotool_pat
 post_script += 'cmd = oiiotool_path\n'
 post_script += 'cmd += " --create 160x120 3 -d uint8 --fill:color={} 160x120 -o "\n'.format(resultColor)
 post_script += 'cmd += os.path.join(test_root_path, "testrender.tif")\n'
-post_script += 'print cmd\n'
+post_script += 'print(cmd)\n'
 post_script += '\nos.system(cmd)'
 
-print 'post_script'
+print('post_script')
 with open('post_script.py','w') as f:
     f.write(post_script)
 

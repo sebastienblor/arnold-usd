@@ -39,7 +39,7 @@ ignore_windows: test_0318 test_0209 test_0235 test_0240 test_0309 test_0314 test
 ignore_linux: test_0248 test_0260
 ignore_darwin: test_0248 test_0318
 
-ignore_2018: test_0098_Maya2020          test_0242
+ignore_2018: test_0098_Maya2020 test_0242
 ignore_2019: test_0098_Maya2020
 ignore_2020: test_0098
 
