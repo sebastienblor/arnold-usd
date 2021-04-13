@@ -3,6 +3,6 @@ Spectral effects in wide-gamut rendering space
 author: sebastien.ortega
 
 PARAMS: {
-   'diff_fail': 0.005,
-   'diff_hardfail': 0.005
+   'diff_fail': 0.05,
+   'diff_hardfail': 0.05
 }

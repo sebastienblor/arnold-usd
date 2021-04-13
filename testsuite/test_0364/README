@@ -1,2 +1,7 @@
 convert 8bit non-linear textures using dwaa compress half exr based .tx
 author: Ashley Handscomb Retallack
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}
