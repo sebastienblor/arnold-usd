@@ -1848,7 +1848,7 @@ def create_installer(target, source, env):
             postScript.write(postCommand)
             postScript.write("mkdir $SUFFIX_FOLDER\n")
             postScript.write('fi\n')
-            postCommand = "cp /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod" % (mod_suffix_folder, mod_suffix_folder)
+            postCommand = "cp /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod" % (maya_version, mod_suffix_folder)
             postScript.write(postCommand)
 
         ### Add the LicenseUpdater 
