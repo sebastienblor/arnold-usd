@@ -1857,6 +1857,8 @@ def create_installer(target, source, env):
         postScript.write(postCommand)
         postCommand = "$2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
         postScript.write(postCommand)
+        postCommand = 'mkdir "/Library/Application Support/Reprise"'
+        postScript.write(postCommand)
         postScript.close()
 
         postScript = open(os.path.join(tempdir, 'empty_script.sh'), 'w')
