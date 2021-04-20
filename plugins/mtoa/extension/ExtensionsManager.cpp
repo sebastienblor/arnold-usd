@@ -1258,7 +1258,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          {
             AiMsgError("[mtoa] Deleting Extension %s .Unable to load library: (%s)",
                extension->GetExtensionName().asChar(),extension->GetExtensionFile().asChar());
-            s_extensions.erase(extIt);
+            extIt = s_extensions.erase(extIt); 
             extension = NULL;
          }
       }
