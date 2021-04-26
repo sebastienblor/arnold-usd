@@ -28,7 +28,7 @@
  * What happens is that some render payloads get a render context attribute with the
  * context provided. The context is then used to filter and segment the data.
  */
-#define AI_ADP_RENDER_CONTEXT                 AtString("render_context")   // hint name
+#define AI_ADP_RENDER_CONTEXT                 AtString("RENDER_CONTEXT")   // hint name
 #define AI_ADP_RENDER_CONTEXT_INTERACTIVE     AtString("interactive")      // default IPR framebuffer
 #define AI_ADP_RENDER_CONTEXT_BATCH           AtString("batch")            // default batch framebuffer
 #define AI_ADP_RENDER_CONTEXT_HEADLESS        AtString("headless")         // script, command line

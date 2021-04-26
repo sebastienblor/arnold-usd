@@ -3,3 +3,8 @@ Repeating texture on custom UV set
 See trac#3722
 
 author: Ashley Handscomb Retallack
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}

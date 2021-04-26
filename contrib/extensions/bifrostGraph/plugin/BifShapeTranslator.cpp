@@ -221,6 +221,17 @@ void CBifShapeTranslator::Export( AtNode *shape )
    bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
    unsigned int step = velocityOnly ? 0 : GetMotionStep();
    
+   m_vpRenderSelect = -1;
+   MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
+   if (!vpRenderPlug.isNull())
+   {
+      m_vpRenderSelect = vpRenderPlug.asInt();
+      if (m_vpRenderSelect == 0)
+         vpRenderPlug.setValue(1);
+      else if (m_vpRenderSelect == 2)
+         vpRenderPlug.setValue(3);
+   }   
+
    // export BifShape parameters
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
@@ -528,8 +539,6 @@ void CBifShapeTranslator::Export( AtNode *shape )
    // prevent it from being exported. The best way to deal with this now is simply to reset the attribute here
    AiNodeResetParameter(shape, "receive_shadows");
 
-   // restore the attribute "viewportRenderSelect" to its original value
-   
 }
 
 
@@ -972,8 +981,19 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 void CBifShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.partialName(false, false, false, false, false, true);
-   if (plugName == "viewportRenderSelect")
-      return; // we don't want to update IPR when this attribute changes
-
    CProceduralTranslator::NodeChanged(node, plug);
+}
+
+void CBifShapeTranslator::PostExport(AtNode *node)
+{
+   if (m_vpRenderSelect < 0)
+      return;
+
+   MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
+   if (vpRenderPlug.isNull())
+      return;
+
+   // restore the original attribute value
+   vpRenderPlug.setInt(m_vpRenderSelect); 
+   m_vpRenderSelect = -1;
 }

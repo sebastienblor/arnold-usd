@@ -154,6 +154,10 @@ public:
    void RequestUpdate();
    void EraseActiveTranslator(CNodeTranslator *translator);
 
+   // This function is used for imagers that can be created while a render is in progress.
+   // Since we don't go through DoUpdate, we need to add the update callbacks for interactive renders
+   void AddCallbacksToUpdateNodes();
+
    // Instances
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
    inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};

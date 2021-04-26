@@ -1,3 +1,8 @@
 Instance lights using MASH (#2079)
 
 author: sebastien.ortega
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}

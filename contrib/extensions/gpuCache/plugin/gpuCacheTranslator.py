@@ -125,9 +125,9 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def populateParams(self, node_type):
         # iterate over params
         node_entry = AiNodeEntryLookUp(node_type)
-        parmaIter = AiNodeEntryGetParamIterator(node_entry)
-        while not AiParamIteratorFinished(parmaIter):
-            this_param = AiParamIteratorGetNext(parmaIter)
+        paramIter = AiNodeEntryGetParamIterator(node_entry)
+        while not AiParamIteratorFinished(paramIter):
+            this_param = AiParamIteratorGetNext(paramIter)
             param_name = AiParamGetName(this_param)
             param_type = AiParamGetType(this_param)
 
@@ -135,6 +135,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if param_name not in PARAM_IGNORELIST:
                 if param_type not in [AI_TYPE_ARRAY]:
                     self.user_attrs[node_type][param_name] = self._createControl(node_type, param_name, param_type, this_param)
+        AiParamIteratorDestroy(paramIter)
 
     def _createControl(self, node_type, param_name, param_type, param_entry):
         control_name = '{}_{}_ctrl'.format(node_type,param_name)
@@ -159,8 +160,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                     t = AiEnumGetString(enum_param, i)
                     if t:
                         cmds.menuItem( label=t )
+                    else:
+                        # empty string, let's consider we finished the list
+                        break
                 except UnicodeDecodeError as e:
                     t = None
+                    break
                 i += 1
             control = enum_ctrl
         return control
@@ -232,10 +237,10 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             subsections[node_type] = self.createSubSections(node_type)
             cmds.setParent('..')
             node_entry = AiNodeEntryLookUp(node_type)
-            parmaIter = AiNodeEntryGetParamIterator(node_entry)
+            paramIter = AiNodeEntryGetParamIterator(node_entry)
             param_default = None
-            while not AiParamIteratorFinished(parmaIter):
-                this_param = AiParamIteratorGetNext(parmaIter)
+            while not AiParamIteratorFinished(paramIter):
+                this_param = AiParamIteratorGetNext(paramIter)
                 param_name = AiParamGetName(this_param)
                 param_type = AiParamGetType(this_param)
                 sub_param = 'common'
@@ -259,6 +264,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                                                   'type': AiParamGetTypeName(param_type),
                                                                   'default': param_default}
                         cmds.setParent('..')
+            AiParamIteratorDestroy(paramIter)
             cmds.setParent('..')
         if AiUniverseCreated: ArnoldUniverseEnd()
 

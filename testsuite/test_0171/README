@@ -1,3 +1,8 @@
 Test Arnold 5 visibility settings
 
 author: sebastien.ortega
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}

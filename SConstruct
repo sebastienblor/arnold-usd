@@ -183,6 +183,7 @@ vars.AddVariables(
     StringVariable('MAYAUSD_PATH', 'Maya-USD installation root', None),
     StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
     StringVariable('MAYAUSD_PATH_PYTHON2', 'Maya-USD installation root for python2', None),
+    StringVariable('MOD_SUFFIX', 'Install another mod file with a given suffix', None),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline/master builds', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
@@ -295,6 +296,7 @@ TARGET_VP2_PATH = env.subst(env['TARGET_VP2_PATH'])
 TARGET_PRESETS_PATH = env.subst(env['TARGET_PRESETS_PATH'])
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
+MOD_SUFFIX = env.get('MOD_SUFFIX')
 env['ENABLE_BIFROST'] = 0
 env['ENABLE_BIFROST_GRAPH'] = 0
 env['ENABLE_GPU_CACHE'] = 1
@@ -1738,8 +1740,35 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
-        shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
+        copiedNsi = os.path.join(tempdir, 'MtoA.nsi')
+        shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), copiedNsi)
 
+        if MOD_SUFFIX:
+            # edit the Mtoa.nsi installer to add an additional mod installation suffix
+            nsiFile = open(copiedNsi, "rt")
+            nsiFileData = nsiFile.read()
+            modBegin = nsiFileData.find('; mod begin')
+            modEnd = nsiFileData.find('; mod end')
+
+            editedNsiData = nsiFileData[:modEnd]
+            modSection = nsiFileData[modBegin:modEnd]
+            editedNsiData += modSection.replace('AYA_VERSION%', 'AYA_VERSION%{}'.format(MOD_SUFFIX))
+            editedNsiData += nsiFileData[modEnd:]
+            nsiFileData = editedNsiData
+
+            uninstallBegin = nsiFileData.find('; uninstall begin')
+            uninstallEnd = nsiFileData.find('; uninstall end')
+            editedNsiData = nsiFileData[:uninstallEnd]
+            uninstallSection = nsiFileData[uninstallBegin:uninstallEnd]
+            editedNsiData += uninstallSection.replace('AYA_VERSION%', 'AYA_VERSION%{}'.format(MOD_SUFFIX))
+            editedNsiData += nsiFileData[uninstallEnd:]
+
+            nsiFileData = editedNsiData
+            nsiFile.close()
+            nsiFile = open(copiedNsi, "wt")
+            nsiFile.write(nsiFileData)
+            nsiFile.close()
+            
         zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(tempdir)
         NSIS_PATH = env.subst(env['NSIS_PATH'])
         os.environ['NSISDIR'] = NSIS_PATH
@@ -1748,9 +1777,7 @@ def create_installer(target, source, env):
         mtoaVersionString = mtoaVersionString.replace('.dev', ' Dev')
         mtoaVersionString = mtoaVersionString.replace('.RC', ' RC')
         mayaVersionString = maya_base_version
-        mayaVersionString = mayaVersionString.replace('20135', '2013.5')
-        mayaVersionString = mayaVersionString.replace('20165', '2016.5')
-
+        
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
 
@@ -1759,7 +1786,7 @@ def create_installer(target, source, env):
         excluded_files = [] #['OpenColorIO.dll']
         sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
 
-        subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
+        subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', copiedNsi])
         sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA.exe'), signed_extensions)
 
         shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
@@ -1812,15 +1839,16 @@ def create_installer(target, source, env):
         postCommand = "hdiutil detach /Volumes/ArnoldLicensing"
         postScript.write(postCommand)        
        
-        if int(maya_version) >= 2021:
+        if MOD_SUFFIX:
+            mod_suffix_folder = maya_version + MOD_SUFFIX
             postScript.write('\n')
-            postCommand = "LT_FOLDER=/Users/Shared/Autodesk/modules/maya/%sLT\n" % maya_version
+            postCommand = "SUFFIX_FOLDER=/Users/Shared/Autodesk/modules/maya/%s\n" % mod_suffix_folder
             postScript.write(postCommand)
-            postCommand = "if [ ! -e $LT_FOLDER ]; then\n"
+            postCommand = "if [ ! -e $SUFFIX_FOLDER ]; then\n"
             postScript.write(postCommand)
-            postScript.write("mkdir $LT_FOLDER\n")
+            postScript.write("mkdir $SUFFIX_FOLDER\n")
             postScript.write('fi\n')
-            postCommand = "cp /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod /Users/Shared/Autodesk/modules/maya/%sLT/mtoa.mod" % (maya_version, maya_version)
+            postCommand = "cp /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod /Users/Shared/Autodesk/modules/maya/%s/mtoa.mod" % (maya_version, mod_suffix_folder)
             postScript.write(postCommand)
 
         ### Add the LicenseUpdater 
@@ -1828,6 +1856,8 @@ def create_installer(target, source, env):
         postCommand = "  chmod +x $2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
         postScript.write(postCommand)
         postCommand = "$2/Applications/Autodesk/Arnold/mtoa/%s/license/LicensingUpdater\n" % maya_version
+        postScript.write(postCommand)
+        postCommand = 'mkdir -p -m 777 "/Library/Application Support/Reprise"'
         postScript.write(postCommand)
         postScript.close()
 

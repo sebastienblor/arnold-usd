@@ -17,7 +17,7 @@ class CBifrostShapeNode
 
 public:
    CBifrostShapeNode();
-   virtual ~CBifrostShapeNode() {}
+   virtual ~CBifrostShapeNode();
 
    virtual void postConstructor();
 
@@ -32,7 +32,6 @@ public:
    static MString s_classification;   
 
    static MObject s_input;
-   static MObject s_outputBifrostDataStream;
 
    static MCallbackId s_NewNodeCallbackId;
    static MCallbackId s_idleCallbackId;

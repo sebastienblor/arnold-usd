@@ -72,12 +72,12 @@ tmp_scene = cmds.file(force=True, save=True, type='mayaAscii')
 
 resultColor = '0,1,0'
 if cmds.pluginInfo( 'mtoa', query=True, loaded=True ):
-	print "MTOA DIDN'T UNLOAD"
+	print("MTOA DIDN'T UNLOAD")
 	resultColor='1,1,0'
 else:
 	cmds.file(tmp_scene, o=True, f=True)
 	if cmds.pluginInfo( 'mtoa', query=True, loaded=True ):
-		print "REQUIRES MTOA PRESENT"
+		print("REQUIRES MTOA PRESENT")
 		resultColor='1,0,0'
 	else:
 
@@ -86,17 +86,17 @@ else:
 		for obj in objects:
 			nodeType = cmds.nodeType(obj)
 			if nodeType in arnoldNodes:
-				print "ERROR ARNOLD NODE REMAINING %s "%nodeType
+				print("ERROR ARNOLD NODE REMAINING %s "%nodeType)
 				resultColor = '1,0,1'
 				continue
 
 			if cmds.attributeQuery('aiUserOptions', node=obj, exists=True):
 				resultColor = '0,1,1'
-				print "ERROR MAYA NODE REMAINING ATTRs"
+				print("ERROR MAYA NODE REMAINING ATTRs")
 
 			if cmds.attributeQuery('aiTranslator', node=obj, exists=True):
 				resultColor = '0,1,1'
-				print "ERROR MAYA NODE REMAINING ATTRs"
+				print("ERROR MAYA NODE REMAINING ATTRs")
 
 
 
@@ -104,10 +104,10 @@ post_script = 'import sys\nimport os\ntest_root_path = sys.argv[1]\noiiotool_pat
 post_script += 'cmd = oiiotool_path\n'
 post_script += 'cmd += " --create 160x120 3 -d uint8 --fill:color={} 160x120 -o "\n'.format(resultColor)
 post_script += 'cmd += os.path.join(test_root_path, "testrender.tif")\n'
-post_script += 'print cmd\n'
+post_script += 'print (cmd)\n'
 post_script += '\nos.system(cmd)'
 
-print 'post_script'
+print('post_script')
 with open('post_script.py','w') as f:
     f.write(post_script)
 

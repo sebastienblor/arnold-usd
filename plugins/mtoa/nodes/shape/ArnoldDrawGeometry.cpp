@@ -47,79 +47,6 @@ CArnoldDrawGeometry::~CArnoldDrawGeometry()
    AiArrayDestroy(p_matrices);
 }
 
-void CArnoldDrawGeometry::DrawBoundingBox() const
-{
-   glBegin(GL_LINES);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
-   
-   glEnd();
-}
-
-void CArnoldDrawGeometry::Draw(int drawMode, bool applyTransform)
-{
-   if (applyTransform)
-   {
-      glPushMatrix();
-      glMultMatrixf(&m_matrix[0][0]);
-   }
-   switch (drawMode)
-   {
-      case GM_BOUNDING_BOX:
-         DrawBoundingBox();
-         break;
-      case GM_POLYGONS:
-         DrawPolygons();
-         break;
-      case GM_WIREFRAME:
-         DrawWireframe();
-         break;
-      case GM_POINTS:
-         DrawPoints();
-         break;
-      case GM_NORMAL_AND_POLYGONS:
-         DrawNormalAndPolygons();
-         break;
-      default:
-         break;
-   }
-   if (applyTransform)
-      glPopMatrix();
-}
 
 MBoundingBox CArnoldDrawGeometry::GetBBox(bool transformed) const
 {
@@ -291,75 +218,6 @@ CArnoldDrawPolymesh::~CArnoldDrawPolymesh()
        delete m_polyTriangulator;
 }
 
-void CArnoldDrawPolymesh::DrawPolygons() const
-{
-   if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
-      return;
-   for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
-   {
-      const unsigned int ns = m_nsides[i];
-      glBegin(GL_POLYGON);
-      for (unsigned int j = 0; j < ns; ++j)
-      {
-         const unsigned int vid = m_vidxs[id++];
-         glVertex3fv(&m_vlist[vid].x);
-      }
-      glEnd();
-   }
-}
-
-void CArnoldDrawPolymesh::DrawWireframe() const
-{
-   if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
-      return;
-   for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
-   {
-      const unsigned int ns = m_nsides[i];
-      glBegin(GL_LINE_STRIP);
-      for (unsigned int j = 0; j < ns; ++j, ++id)
-      {
-         const unsigned int vid = m_vidxs[id];
-         glVertex3fv(&m_vlist[vid].x);
-      }
-      glEnd();
-   }
-}
-
-void CArnoldDrawPolymesh::DrawPoints() const
-{
-    if (m_vlist.size() == 0)
-        return;
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    glVertexPointer(3, GL_FLOAT, 0, &m_vlist[0]);
-    glDrawArrays(GL_POINTS, 0, (GLsizei)m_vlist.size());
-
-    glDisableClientState(GL_VERTEX_ARRAY);
-}
-
-void CArnoldDrawPolymesh::DrawNormalAndPolygons() const
-{
-    if ((m_nlist.size() == 0) || (m_nidxs.size() == 0))
-    {
-        DrawPolygons();
-        return;
-    }
-
-    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
-    {
-        const unsigned int ns = m_nsides[i];
-        glBegin(GL_POLYGON);
-        for (unsigned int j = 0; j < ns; ++j, ++id)
-        {
-            const unsigned int vid = m_vidxs[id];
-            const unsigned int nid = m_nidxs[id];
-            glNormal3fv(&m_nlist[nid].x);
-            glVertex3fv(&m_vlist[vid].x);         
-        }
-        glEnd();
-    }
-}
-
 size_t CArnoldDrawPolymesh::WireIndexCount() const
 {
     if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
@@ -374,7 +232,7 @@ size_t CArnoldDrawPolymesh::WireIndexCount() const
     return total;
 }
 
-void CArnoldDrawPolymesh::GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset) const
+void CArnoldDrawPolymesh::GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices) const
 {
     if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
         return;
@@ -470,49 +328,37 @@ size_t CArnoldDrawPolymesh::PointCount() const { return m_vlist.size(); }
 
 void CArnoldDrawPolymesh::GetPoints(float* vertices, const AtMatrix* matrix) const
 {
-    if (matrix)
+    const AtMatrix *m = (matrix) ? matrix : &m_matrix;
+    for (unsigned int i = 0; i < m_vlist.size(); ++i)
     {
-        for (unsigned int i = 0; i < m_vlist.size(); ++i)
-        {
-            AtVector* to = reinterpret_cast<AtVector*>(&vertices[i*3]);
-            *to = AiM4PointByMatrixMult( *matrix, m_vlist[i]);
-        }
+        AtVector* to = reinterpret_cast<AtVector*>(&vertices[i*3]);
+        *to = AiM4PointByMatrixMult( *m, m_vlist[i]);
     }
-    else
-        memcpy(&vertices[0], &m_vlist[0][0], m_vlist.size()*3*sizeof(float));
 }
 
 
 void CArnoldDrawPolymesh::GetSharedNormals(float* outNormals, const AtMatrix* matrix) const
 {
-    if (matrix)
+    const AtMatrix *m = (matrix) ? matrix : &m_matrix;
+    //transform each normal by the matrix.
+    for (size_t i = 0, size = SharedVertexCount(); i < size; ++i)
     {
-        //transform each normal by the matrix.
-        for (size_t i = 0, size = SharedVertexCount(); i < size; ++i)
-        {
-            AtVector* to = reinterpret_cast<AtVector*>(&outNormals[i*3]);
-            AtVector* from = reinterpret_cast<AtVector*>(&triangulator().fMappedNormals[i*3]);        
-            *to = AiM4VectorByMatrixMult(*matrix, *from);
-        }
+        AtVector* to = reinterpret_cast<AtVector*>(&outNormals[i*3]);
+        AtVector* from = reinterpret_cast<AtVector*>(&triangulator().fMappedNormals[i*3]);
+        *to = AiM4VectorByMatrixMult(*m, *from);
     }
-    else
-        memcpy(&outNormals[0], &triangulator().fMappedNormals[0], triangulator().fMappedNormals.size()*sizeof(float));
 }
 
 void CArnoldDrawPolymesh::GetSharedVertices(float* outVertices, const AtMatrix* matrix) const
 {
-    if (matrix)
+    const AtMatrix *m = (matrix) ? matrix : &m_matrix;
+    // transform each vertex by the matrix.
+    for (size_t i = 0, size = SharedVertexCount(); i < size; ++i)
     {
-        // transform each vertex by the matrix.
-        for (size_t i = 0, size = SharedVertexCount(); i < size; ++i)
-        {
-            AtVector* to = reinterpret_cast<AtVector*>(&outVertices[i*3]);
-            AtVector* from = reinterpret_cast<AtVector*>(&triangulator().fMappedPositions[i*3]);
-            *to = AiM4PointByMatrixMult( *matrix, *from);
-        }
-    }
-    else
-        memcpy(&outVertices[0], &triangulator().fMappedPositions[0], triangulator().fMappedPositions.size()*sizeof(float));
+        AtVector* to = reinterpret_cast<AtVector*>(&outVertices[i*3]);
+        AtVector* from = reinterpret_cast<AtVector*>(&triangulator().fMappedPositions[i*3]);
+        *to = AiM4PointByMatrixMult( *m, *from);
+    }    
 }
 
 size_t CArnoldDrawPolymesh::SharedVertexCount() const
@@ -551,139 +397,18 @@ CArnoldDrawPoints::~CArnoldDrawPoints()
    
 }
 
-void CArnoldDrawPoints::DrawPolygons() const
-{
-   DrawPoints();
-}
-
-void CArnoldDrawPoints::DrawWireframe() const
-{
-   DrawPoints();
-}
-
-void CArnoldDrawPoints::DrawPoints() const
-{
-   glEnableClientState(GL_VERTEX_ARRAY);
-   
-   glVertexPointer(3, GL_FLOAT, 0, &m_points[0]);
-   glDrawArrays(GL_POINTS, 0, (GLsizei)m_points.size());
-   
-   glDisableClientState(GL_VERTEX_ARRAY);
-}
-
-void CArnoldDrawPoints::DrawNormalAndPolygons() const
-{
-   DrawPoints();
-}
-
 size_t CArnoldDrawPoints::PointCount() const { return m_points.size(); }
 
 void CArnoldDrawPoints::GetPoints(float* vertices, const AtMatrix* matrix) const
 {
-    if (matrix)
+    const AtMatrix *m = (matrix) ? matrix : &m_matrix;
+    for (unsigned int i = 0; i < m_points.size(); ++i)
     {
-        for (unsigned int i = 0; i < m_points.size(); ++i)
-        {
-            AtVector* vertex = reinterpret_cast<AtVector*>(&vertices[i*3]);
-            *vertex = AiM4PointByMatrixMult(*matrix, m_points[i]);   
-        }
+        AtVector* to = reinterpret_cast<AtVector*>(&vertices[i*3]);
+        *to = AiM4PointByMatrixMult( *m, m_points[i]);
     }
-    else
-        memcpy(&vertices[0], &m_points[0][0], m_points.size()*3*sizeof(float));
 }
 
-CArnoldDrawGInstance::CArnoldDrawGInstance(CArnoldDrawGeometry* g, const AtMatrix &m, bool i) :
-   p_geom(g), m_matrix(m), m_inheritXForm(i)
-{}
-
-CArnoldDrawGInstance::~CArnoldDrawGInstance()
-{
-
-}
-
-void CArnoldDrawGInstance::Draw(int DrawMode)
-{
-   glPushMatrix();
-   glMultMatrixf(&m_matrix[0][0]);
-   p_geom->Draw(DrawMode, m_inheritXForm);
-   glPopMatrix();
-}
-
-MBoundingBox CArnoldDrawGInstance::GetBBox() const
-{
-   MMatrix mmtx = AtMatrixToMMatrix(m_matrix);
-
-   if (m_inheritXForm)
-   {
-      MBoundingBox bbox = p_geom->GetBBox();
-      bbox.transformUsing(mmtx);
-      return bbox;
-   }
-   else
-   {
-      MBoundingBox bbox = p_geom->GetBBox(false);
-      bbox.transformUsing(mmtx);
-      return bbox;
-   }
-}
-
-const AtMatrix& CArnoldDrawGInstance::GetMatrix() const
-{
-    return m_matrix;
-}
-
-const CArnoldDrawGeometry& CArnoldDrawGInstance::GetGeometry() const
-{
-    return *p_geom;
-}
-
-CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* node) : CArnoldDrawGeometry(node)
-{
-   AtUniverse *universe = AiUniverse();
-   AiProceduralViewport(node, universe, AI_PROC_BOXES);
-   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
-   static AtString box_str("box");
-   AtBBox totalBox;
-   totalBox.init();
-
-   while (!AiNodeIteratorFinished(iter))
-   {      
-      AtNode* node = AiNodeIteratorGetNext(iter);
-      if (!AiNodeIs(node, box_str))
-         continue;
-      AtMatrix m = AiNodeGetMatrix(node, "matrix");
-      totalBox.expand(AiM4PointByMatrixMult(m, AiNodeGetVec(node, "min")));
-      totalBox.expand(AiM4PointByMatrixMult(m, AiNodeGetVec(node, "max")));
-   }
-   m_BBMin = totalBox.min;
-   m_BBMax = totalBox.max;
-   AiUniverseDestroy(universe);
-}
-
-CArnoldDrawProcedural::~CArnoldDrawProcedural()
-{
-   
-}
-
-void CArnoldDrawProcedural::DrawPolygons() const
-{
-   DrawBoundingBox();
-}
-
-void CArnoldDrawProcedural::DrawWireframe() const
-{
-   DrawBoundingBox();
-}
-
-void CArnoldDrawProcedural::DrawPoints() const
-{
-   DrawBoundingBox();
-}
-
-void CArnoldDrawProcedural::DrawNormalAndPolygons() const
-{
-   DrawBoundingBox();
-}
 
 CArnoldDrawBox::CArnoldDrawBox(AtNode* node) : CArnoldDrawGeometry(node)
 {
@@ -696,22 +421,258 @@ CArnoldDrawBox::~CArnoldDrawBox()
    
 }
 
-void CArnoldDrawBox::DrawPolygons() const
+/** Instance
+ *
+ **/
+CArnoldDrawGInstance::CArnoldDrawGInstance(AtNode *node, const AtMatrix &m, bool inheritXForm) : 
+
+                                          CArnoldDrawGeometry(node),
+                                          m_matrix(m),
+                                          m_inheritXForm(m_inheritXForm)
 {
-   DrawBoundingBox();
 }
 
-void CArnoldDrawBox::DrawWireframe() const
+CArnoldDrawGInstance::~CArnoldDrawGInstance()
 {
-   DrawBoundingBox();
 }
 
-void CArnoldDrawBox::DrawPoints() const
+
+MBoundingBox CArnoldDrawGInstance::GetBBox(bool transformed) const
 {
-   DrawBoundingBox();
+   if (!m_geom)
+      return MBoundingBox();
+
+   MBoundingBox bbox = m_geom->GetBBox(m_inheritXForm && transformed);
+   if (transformed)
+      bbox.transformUsing(AtMatrixToMMatrix(m_matrix));
+
+   return bbox;
 }
 
-void CArnoldDrawBox::DrawNormalAndPolygons() const
+const AtMatrix& CArnoldDrawGInstance::GetMatrix() const
 {
-   DrawBoundingBox();
+    return m_matrix;
 }
+
+void CArnoldDrawGInstance::GetPoints(float* points, const AtMatrix* matrix) const
+{
+    if (m_geom)
+        m_geom->GetPoints(points, &m_matrix);
+}
+void CArnoldDrawGInstance::GetSharedVertices(float* outVertices, const AtMatrix* matrix) const
+{
+    if (m_geom)
+        m_geom->GetSharedVertices(outVertices, &m_matrix);
+}
+void CArnoldDrawGInstance::GetSharedNormals(float* outNormals, const AtMatrix* matrix) const
+{
+    if (m_geom) 
+        m_geom->GetSharedNormals(outNormals, &m_matrix);
+}
+
+
+
+/** Procedurals display
+ *
+ **/
+CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* procNode, AtProcViewportMode mode) :
+                       CArnoldDrawGeometry(procNode)
+{
+   AtUniverse *universe = AiUniverse();
+   AiProceduralViewport(procNode, universe, mode);
+   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
+
+   m_bbox.clear();
+
+   static const AtString polymesh_str("polymesh");
+   static const AtString points_str("points");
+   static const AtString procedural_str("procedural");
+   static const AtString box_str("box");
+   static const AtString ginstance_str("ginstance");
+   static const AtString node_str("node");
+
+   std::vector<std::pair<CArnoldDrawGInstance *, std::string> > instances;
+   while (!AiNodeIteratorFinished(iter))
+   {
+      AtNode* node = AiNodeIteratorGetNext(iter);
+      if (node == nullptr)
+         continue;
+
+      MString nodeName = MString(AiNodeGetName(node));
+      CArnoldDrawGeometry* g = 0;
+      bool isInstance = false;
+      if (AiNodeIs(node, polymesh_str))
+         g = new CArnoldDrawPolymesh(node);
+      else if (AiNodeIs(node, points_str))
+         g = new CArnoldDrawPoints(node);
+      else if(AiNodeIs(node, procedural_str))
+         g = new CArnoldDrawProcedural(node, mode);
+      else if(AiNodeIs(node, box_str))
+         g = new CArnoldDrawBox(node);
+      else if (AiNodeIs(node, ginstance_str))
+      {
+         AtNode *source = (AtNode*)AiNodeGetPtr(node, node_str);
+         if (!source)
+            continue;
+         AtMatrix total_matrix = AiNodeGetMatrix(node, "matrix");
+         bool inherit_xform = AiNodeGetBool(node, "inherit_xform");
+         AtNode *instanceNode = (AtNode*)AiNodeGetPtr(node, "node");
+         while(AiNodeIs(instanceNode, ginstance_str))
+         {                  
+            AtMatrix current_matrix = AiNodeGetMatrix(instanceNode, "matrix");
+            if (inherit_xform)
+               total_matrix = AiM4Mult(total_matrix, current_matrix);
+            
+            inherit_xform = AiNodeGetBool(instanceNode, "inherit_xform");
+            instanceNode = (AtNode*)AiNodeGetPtr(instanceNode, "node");
+         }
+
+         std::pair<CArnoldDrawGInstance *, std::string> instance(new CArnoldDrawGInstance(node, total_matrix, inherit_xform), AiNodeGetName(source));
+         g = instance.first;
+         instances.push_back(instance);
+         isInstance = true;
+      }
+      else
+         continue;
+      if (g->Invalid())
+      {
+         delete g;
+         continue;
+      }
+      if (!isInstance && g->Visible())
+         m_bbox.expand(g->GetBBox());  
+
+      m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
+   }
+   AiNodeIteratorDestroy(iter);
+   
+   for (auto instance : instances)
+   {
+      CArnoldDrawGInstance *g = instance.first;
+      if (instance.first == nullptr)
+         continue;
+      
+      geometryListIterType srcIter = m_geometryList.find(instance.second);
+      if (srcIter == m_geometryList.end() || srcIter->second == nullptr)
+         continue;
+
+      g->SetGeometryNode(srcIter->second);
+      if (g->Visible())
+         m_bbox.expand(g->GetBBox());
+   }
+   m_BBMin = AtVector((float)m_bbox.min().x, (float)m_bbox.min().y, (float)m_bbox.min().z);
+   m_BBMax = AtVector((float)m_bbox.max().x, (float)m_bbox.max().y, (float)m_bbox.max().z);
+   AiUniverseDestroy(universe);
+}
+
+CArnoldDrawProcedural::~CArnoldDrawProcedural()
+{
+   
+}
+
+size_t CArnoldDrawProcedural::PointCount() const
+{
+   size_t count = 0;
+   for (const auto &geom : m_geometryList)
+   {
+      count += geom.second->PointCount();
+   }
+   return count;
+}
+void CArnoldDrawProcedural::GetPoints(float* points, const AtMatrix* matrix) const
+{
+    const AtMatrix *procMatrix = (matrix) ? matrix : &m_matrix;
+    AtMatrix m;
+    int offset = 0;
+    for (const auto &geom : m_geometryList)
+    {   
+        float* to = reinterpret_cast<float*>(&points[offset*3]);
+        m = AiM4Mult(geom.second->GetMatrix(), *procMatrix);
+        geom.second->GetPoints(to, &m);
+        offset += geom.second->PointCount();
+    }
+}
+size_t CArnoldDrawProcedural::SharedVertexCount() const
+{
+    size_t count = 0;
+    for (const auto &geom : m_geometryList)
+    {
+        count += geom.second->SharedVertexCount();
+    }
+    return count;
+}
+void CArnoldDrawProcedural::GetSharedVertices(float* outVertices, const AtMatrix* matrix) const
+{
+    const AtMatrix *procMatrix = (matrix) ? matrix : &m_matrix;
+    AtMatrix m;
+    int offset = 0;
+    for (const auto &geom : m_geometryList)
+    {   
+        float* to = reinterpret_cast<float*>(&outVertices[offset*3]);
+        m = AiM4Mult(geom.second->GetMatrix(), *procMatrix);
+        geom.second->GetSharedVertices(to, &m);
+        offset += geom.second->SharedVertexCount();
+    }
+}
+void CArnoldDrawProcedural::GetSharedNormals(float* outNormals, const AtMatrix* matrix) const
+{
+    const AtMatrix *procMatrix = (matrix) ? matrix : &m_matrix;
+    AtMatrix m;
+    int offset = 0;
+    for (const auto &geom : m_geometryList)
+    {   
+        float* to = reinterpret_cast<float*>(&outNormals[offset*3]);
+        m = AiM4Mult(geom.second->GetMatrix(), *procMatrix);
+        geom.second->GetSharedNormals(to, &m);
+        offset += geom.second->SharedVertexCount();
+    }
+}
+size_t CArnoldDrawProcedural::WireIndexCount() const
+{
+    size_t count = 0;
+    for (const auto &geom : m_geometryList)
+    {
+        count += geom.second->WireIndexCount();
+    }
+    return count;
+}
+void CArnoldDrawProcedural::GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices) const
+{
+    int procOffset = 0;
+    for (const auto &geom : m_geometryList)
+    {
+        geom.second->GetWireIndexing(outIndices + procOffset, vertexOffset, sharedVertices);
+        procOffset += geom.second->WireIndexCount();
+
+        if (sharedVertices) 
+            vertexOffset += geom.second->SharedVertexCount();
+        else 
+            vertexOffset += geom.second->PointCount();
+    }
+
+}
+size_t CArnoldDrawProcedural::TriangleIndexCount(bool sharedVertices) const
+{
+   size_t count = 0;
+    for (const auto &geom : m_geometryList)
+    {
+        count += geom.second->TriangleIndexCount(sharedVertices);
+    }
+    return count;
+}
+void CArnoldDrawProcedural::GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices) const
+{
+    int procOffset = 0;
+    for (const auto &geom : m_geometryList)
+    {
+        geom.second->GetTriangleIndexing(outIndices + procOffset, vertexOffset, sharedVertices);
+        procOffset += geom.second->TriangleIndexCount();
+
+        if (sharedVertices) 
+            vertexOffset += geom.second->SharedVertexCount();
+        else 
+            vertexOffset += geom.second->PointCount();
+    }
+
+}
+

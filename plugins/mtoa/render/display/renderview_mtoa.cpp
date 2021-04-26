@@ -52,6 +52,7 @@ static QWidget *s_optWorkspaceControl = NULL;
 // Arnold RenderView is defined
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
+#include "utils/AiAdpPayload.h"
 //#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
@@ -473,15 +474,6 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    if (s_renderLayer.length() == 0)
       s_renderLayer = "masterLayer";
 
-   if (s_ImagersLayoutName.length() == 0)
-   {
-      MGlobal::executePythonCommand("from mtoa.ui import imagers;imagers.createImagersWidgetForARV()", s_ImagersLayoutName);
-      QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
-      
-      if (imager != nullptr)
-         AddCustomTab(imager,"Post");
-   }
-
 #if MAYA_API_VERSION >= 20190000
    if(!m_colorPickingCallback)
    {
@@ -489,6 +481,38 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MColorPickerUtilities::doRegisterToColorPicking(GetRenderView(), m_colorPickingCallback);
    }
 #endif
+
+   if (s_ImagersLayoutName.length() == 0)
+   {
+      // We don't want to create the options tab right away as it can cause issues
+      // when this is happening at maya startup (see #ARNOLD-487). 
+      // So we'll use an idle callback here and add it only when maya finished processing
+      // everything
+      m_rvIdleCb = MEventMessage::addEventCallback("idle",
+                          CRenderViewMtoA::CreateOptionsTabCallback,
+                          this,
+                          &status);
+   }
+}
+
+void CRenderViewMtoA::CreateOptionsTabCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   
+   if(renderViewMtoA->m_rvIdleCb)
+   {
+      MMessage::removeCallback(renderViewMtoA->m_rvIdleCb);
+      renderViewMtoA->m_rvIdleCb = 0;   
+   }
+   if (s_ImagersLayoutName.length() == 0)
+   {
+      MGlobal::executePythonCommand("from mtoa.ui import imagers;imagers.createImagersWidgetForARV()", s_ImagersLayoutName);
+      QWidget* imager = MQtUtil::findLayout(s_ImagersLayoutName);
+      
+      if (imager != nullptr)
+         renderViewMtoA->AddCustomTab(imager,"Post");
+   }
 }
 
 void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
@@ -681,6 +705,15 @@ void CRenderViewMtoA::UpdateFullScene()
       // Set resolution and camera as passed in.
       CMayaScene::GetRenderSession()->SetResolution(-1, -1);
       CMayaScene::GetRenderSession()->SetCamera(renderCamera);
+   }
+
+   if (m_viewportRendering)
+   {
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_VIEWPORT);
+   }
+   else
+   {
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
    }
 
    UpdateRenderCallbacks();

@@ -51,7 +51,9 @@ CBifrostShapeNode::CBifrostShapeNode() : CArnoldBaseProcedural()
 {
    m_data = new CArnoldProceduralData();
 }
-
+CBifrostShapeNode::~CBifrostShapeNode()
+{
+}
 void CBifrostShapeNode::postConstructor()
 {
    // FIXME do we want to set the "mode" attribute to something else than "Bounding box" ?
@@ -79,13 +81,14 @@ MStatus CBifrostShapeNode::initialize()
 {
    MFnMessageAttribute mAttr;
    MFnTypedAttribute tAttr;
+   MFnNumericAttribute nAttr;
 
-   s_input = mAttr.create("inputData", "inputData");
-   mAttr.setStorable(true);
-   mAttr.setReadable(true);
-   mAttr.setWritable(true);
+   s_input = tAttr.create("inputData", "inputData", MFnData::kDoubleArray, MObject::kNullObj);
+   tAttr.setStorable(true);
+   tAttr.setReadable(true);
+   tAttr.setWritable(true);
    addAttribute(s_input);
-
+   
    CArnoldBaseProcedural::initializeCommonAttributes();
 
    // If the env variable MTOA_BIFROST_STANDIN_DISPLAY is set, 
@@ -140,7 +143,7 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
    for (unsigned int i = 0; i < bifrostNodes.length(); ++i)
    {      
       MStringArray connections; 
-      MString connectionsCmd = MString("listConnections -d 1 -s 0 -type \"arnoldBifrostShape\" \"") + bifrostNodes[i] + MString(".message\"");
+      MString connectionsCmd = MString("listConnections -d 1 -s 0 -type \"arnoldBifrostShape\" \"") + bifrostNodes[i] + MString(".outputBifrostViewportDataStream\"");
       MGlobal::executeCommand(connectionsCmd, connections);
       if (connections.length() > 0)
          continue;
@@ -165,31 +168,27 @@ void CBifrostShapeNode::UpdateBifrostGraphConnections()
          MString parentCmd = MString ("parent -r ") + arnoldTransformName[0] + MString(" ") + bifrostTransformName[0];
          MGlobal::executeCommand(parentCmd);
       }
-      MString connectCmd = MString("connectAttr -f ") + bifrostNodes[i] + MString(".message ") + arnoldNodeName + MString(".inputData");
+      MString connectCmd = MString("connectAttr -f ") + bifrostNodes[i] + MString(".outputBifrostViewportDataStream ") + arnoldNodeName + MString(".inputData");
       MGlobal::executeCommand(connectCmd);
 
    }
 }
+
 void CBifrostShapeNode::updateGeometry()
 {
    MObject connectedNode;
+   MPlug outputPlug;
    bool foundBifrostGraph = false;
    MPlug inputPlug(thisMObject(), s_input);
-   if (!inputPlug.isNull())
-   {
-      MPlugArray conns;
-      inputPlug.connectedTo(conns, true, false);
-      if (conns.length() > 0)
-      {
-         connectedNode = conns[0].node();
-         foundBifrostGraph = true; 
-         MFnDependencyNode bifrostNode(connectedNode);
-         if (bifrostNode.typeName() != MString("bifrostGraphShape"))
-            return;
-      }
-   }
-
-   if (!foundBifrostGraph)
+   
+   MDataHandle dataStreamHandle;
+   inputPlug.getValue(dataStreamHandle);
+   
+   MFnDoubleArrayData arrData(dataStreamHandle.data());
+   MDoubleArray streamData = arrData.array();
+   unsigned int nEle = streamData.length();
+   
+   if (nEle == 0)
       return;
 
    bool universeCreated = ArnoldUniverseBegin();
@@ -200,30 +199,8 @@ void CBifrostShapeNode::updateGeometry()
    if (!BifrostUtils::LoadBifrostProcedural())
       AiMsgError("Bifrost procedural could not be found");
    
-   // This is an exact replica of what's happening when in the BifShapeTranslator
-   // Only difference being, I'm not setting any motion steps
-   
-   // TODO : Factorize the bit below 
-
    AtNode *proc = AiNode(proc_universe,"bifrost_graph", name().asChar());
-   MFnDependencyNode fnNode(connectedNode);
-
-   MPlug vpRenderPlug = fnNode.findPlug("viewportRenderSelect", true);
-   if (!vpRenderPlug.isNull())
-   {
-      int vpRenderValue = vpRenderPlug.asInt();
-      if (vpRenderValue == 0)
-         vpRenderPlug.setValue(2);
-      else if (vpRenderValue == 1)
-         vpRenderPlug.setValue(3);
-   }
-
-   MPlug bifrostData  = fnNode.findPlug("outputBifrostDataStream", true);
-   MDataHandle dataStreamHandle;
-   bifrostData.getValue(dataStreamHandle);
-   MFnDoubleArrayData arrData(dataStreamHandle.data());
-   MDoubleArray streamData = arrData.array();
-   unsigned int nEle = streamData.length();
+   
    size_t nBytes = static_cast<size_t>(nEle) * sizeof(double);
    AtArray *inputsArray = AiArray(1, 1, AI_TYPE_STRING, "input0");
    AiNodeSetArray(proc, "input_names", inputsArray);

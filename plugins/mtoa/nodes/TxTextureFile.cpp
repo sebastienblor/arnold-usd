@@ -28,6 +28,14 @@ void* CTxTextureFile::creator()
 
 MStatus CTxTextureFile::open( MString pathname, MImageFileInfo* info)
 {
+   int startOfExtension = pathname.rindex('.');
+   if (startOfExtension > 0)
+   {
+      MString extension = pathname.substring(startOfExtension + 1, pathname.length()).toLowerCase();
+      if (extension != MString("tx") && extension != MString("tex"))
+         return MS::kFailure;
+   }
+   
    unsigned int res_x, res_y, channels;
    if(!AiTextureGetResolution(pathname.asChar(), &res_x, &res_y))
       return MS::kFailure;

@@ -1,3 +1,8 @@
 Fixed issue with indirect diffuse and chained bump (#2986)
 
 author: sebastien.ortega
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}
