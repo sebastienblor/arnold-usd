@@ -248,7 +248,6 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
                                                 const char* arnoldParamName,
                                                 int arnoldParamType)
 {
-   std::cout << " Process Parameter Inputs " << plug.name().asChar() <<  std::endl;
    MPlugArray connections;
    plug.connectedTo(connections, true, false);
 
@@ -307,7 +306,6 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          if (num_outputs > 0)
          {
             component = srcMayaPlug.partialName();
-            // AiNodeLinkOutput(srcArnoldNode,  srcMayaPlug.partialName().asChar(), arnoldNode, arnoldParamName);
          }
          else
          {
