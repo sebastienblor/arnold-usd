@@ -815,6 +815,16 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setWritable(false);
    addAttribute(legacyTextureSpecularBlur);
 
+   // internal parameter, so that we can trigger a mayaUSD export without re-exporting 
+   // the builtin parameters on builtin shapes (e.g. vertex positions, etc...)
+   MObject mayaUsdExport = nAttr.create("exportMayaUsd", "export_maya_usd", MFnNumericData::kBoolean);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(false);
+   addAttribute(mayaUsdExport);
+
 //   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_refraction_samples\" ;";

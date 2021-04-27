@@ -30,9 +30,11 @@
 #include <mayaUsd/fileio/shaderWriterRegistry.h>
 #include <mayaUsd/fileio/shading/shadingModeRegistry.h>
 
+
 #include "mayaUsdRegistry.h"
 #include "usdArnoldShaderWriter.h"
 #include "usdArnoldShaderReader.h"
+#include "usdArnoldChaser.h"
 
 #include <pxr/base/tf/registryManager.h>
 #include <pxr/base/tf/staticTokens.h>
@@ -251,5 +253,17 @@ TF_REGISTRY_FUNCTION(UsdMayaShaderReaderRegistry)
     _RegisterMayaNodes(UsdArnoldShaderReader::RegisterReader);
 }
 
+/*
+The chaser can be executed with a command like :
+cmds.mayaUSDExport(
+    file="output.usd",
+    frameRange=[1, 10],
+    chaser=['arnold'])
+*/
+
+PXRUSDMAYA_DEFINE_EXPORT_CHASER_FACTORY(arnold, ctx)
+{
+    return new ArnoldUsdChaser(ctx.GetStage(), ctx.GetDagToUsdMap());
+}
 
 PXR_NAMESPACE_CLOSE_SCOPE

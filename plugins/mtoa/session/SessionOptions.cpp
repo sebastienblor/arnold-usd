@@ -117,6 +117,9 @@ MStatus CSessionOptions::GetFromMaya()
       if (!plug.isNull())
          m_exportDagTransformNames = (plug.asInt() == MTOA_EXPORT_DAG_TRANSFORM);
 
+      plug = fnArnoldRenderOptions.findPlug("exportMayaUsd", true);
+      m_mayaUsd = plug.isNull() ? false : plug.asBool();
+      
       plug = fnArnoldRenderOptions.findPlug("texture_searchpath", true);
       if (!plug.isNull())
       {

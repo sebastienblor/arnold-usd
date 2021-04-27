@@ -83,11 +83,14 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    if (IsExportingMotion())
    {
       // for motion steps, only set the matrix at current step
-      AtMatrix matrix;
-      GetMatrix(matrix);
+      if (!GetSessionOptions().IsMayaUsd())
+      {
+         AtMatrix matrix;
+         GetMatrix(matrix);
 
-      AtArray* matrices = AiNodeGetArray(camera, "matrix");
-      AiArraySetMtx(matrices, GetMotionStep(), matrix);
+         AtArray* matrices = AiNodeGetArray(camera, "matrix");
+         AiArraySetMtx(matrices, GetMotionStep(), matrix);
+      }
       return;
    }
    AtMatrix matrix;
@@ -121,18 +124,22 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    
    ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
 
-   GetMatrix(matrix);
+   if (!GetSessionOptions().IsMayaUsd())
+   {
+      GetMatrix(matrix);
+      
+      if (RequiresMotionData())
+      {
+         AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+         AiArraySetMtx(matrices, GetMotionStep(), matrix);
+         AiNodeSetArray(camera, "matrix", matrices);
+      }
+      else
+      {
+         AiNodeSetMatrix(camera, "matrix", matrix);
+      }
+   }
    
-   if (RequiresMotionData())
-   {
-      AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-      AiArraySetMtx(matrices, GetMotionStep(), matrix);
-      AiNodeSetArray(camera, "matrix", matrices);
-   }
-   else
-   {
-      AiNodeSetMatrix(camera, "matrix", matrix);
-   }
    MPlug plug = FindMayaPlug("aiFiltermap");
    if (!plug.isNull())
    {

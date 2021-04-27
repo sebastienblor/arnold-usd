@@ -198,9 +198,11 @@ struct CSessionOptions
 
    bool IsBatch() const { return (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS); }
    bool IsInteractiveRender() const {return (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_IPR); }
+   bool IsMayaUsd() const {return m_mayaUsd;}
 
    unsigned int GetExportSeparator() const {return (m_exportSlashSeparator) ? MTOA_EXPORT_SEPARATOR_SLASHES : MTOA_EXPORT_SEPARATOR_PIPES;}
    unsigned int GetExportNamespace() const {return (unsigned int) m_exportNamespace;}
+   
 
 private:
 
@@ -223,7 +225,8 @@ private:
                         m_exportAllShadingGroups(false),
                         m_exportSlashSeparator(true),
                         m_exportNamespace(MTOA_EXPORT_NAMESPACE_ON),
-                        m_exportDagTransformNames(false)
+                        m_exportDagTransformNames(false),
+                        m_mayaUsd(false)
                         
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
@@ -296,4 +299,5 @@ private:
    bool                 m_exportSlashSeparator;
    unsigned char        m_exportNamespace;
    bool                 m_exportDagTransformNames;
+   bool                 m_mayaUsd;
 };

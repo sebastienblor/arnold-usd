@@ -1034,14 +1034,17 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    
    //
    // GEOMETRY
-   //   
+   //  
+   bool mayaUsdExport = GetSessionOptions().IsMayaUsd();
+   
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
    unsigned int numFaceVertices = fnMesh.numFaceVertices();
 
    const float* vertices = 0;
    // Get all vertices
-   bool exportVertices = GetVertices(geometry, vertices);
+   
+   bool exportVertices = (mayaUsdExport) ? false : GetVertices(geometry, vertices);
 
    const float* normals = 0;
    // Get all normals
@@ -1144,7 +1147,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       }
 
       // Declare user parameters for color sets
-      if (exportColors)
+      if (exportColors && !mayaUsdExport)
       {
 
          unordered_map<std::string, std::vector<float> >::iterator it = vcolors.begin();
@@ -1491,35 +1494,11 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    }
 }
 
-// Note that this function is only called by CMeshTranslator
-void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
-{
-   ExportMatrix(polymesh);
-   // Visibility options
-   ProcessRenderFlags(polymesh);
-
-   if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
-   else
-   {
-      AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetByte(polymesh, "sidedness", 0);
-   }
-
-   if (RequiresShaderExport())
-      ExportMeshShaders(polymesh, m_dagPath);
-   ExportLightLinking(polymesh);
-
-   MFnMesh fnMesh(m_geometry);
-   MBoundingBox bbox = fnMesh.boundingBox();
-   AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
-   AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
-   //AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
-}
-
 AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {   
-   ExportMatrix(polymesh);   
+   if (!GetSessionOptions().IsMayaUsd())
+      ExportMatrix(polymesh);
+
    ExportMeshParameters(polymesh);
    if (RequiresShaderExport())
       ExportMeshShaders(polymesh, m_dagPath);
@@ -1545,7 +1524,8 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    int instanceNum = m_dagPath.instanceNumber();
    int masterInstanceNum = masterInstance.instanceNumber();
 
-   ExportMatrix(instance);
+   if (!GetSessionOptions().IsMayaUsd())
+      ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
