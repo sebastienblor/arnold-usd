@@ -299,13 +299,12 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
       }
       else
       {
-         
          int num_outputs = AiNodeEntryGetNumOutputs(AiNodeGetNodeEntry(srcArnoldNode));
          int outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
          MString component;
          if (num_outputs > 0)
          {
-            component = srcMayaPlug.partialName();
+            component = srcMayaPlug.partialName(false, false, false, false, false, true);
          }
          else
          {
