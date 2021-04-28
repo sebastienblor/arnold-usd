@@ -156,6 +156,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     SetRegView 32
     ReadRegStr $R1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" CommonW6432Dir
     
+    ; mod begin
     CreateDirectory "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%"
     FileOpen $0 "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%\mtoa.mod" w
     FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
@@ -165,7 +166,9 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     FileWrite $0 "MAYA_RENDER_DESC_PATH += $INSTDIR$\r$\n"
     FileWrite $0 "MAYA_PXR_PLUGINPATH_NAME += $INSTDIR\usd$\r$\n"
     FileClose $0
-    
+    ; mod end
+
+
     ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
     ${If} "$%MAYA_VERSION%" >= "2017"
     CreateDirectory "$R1\maya\RSTemplates"
@@ -231,8 +234,10 @@ Section "Uninstall"
   SetRegView 32
   DeleteRegKey /ifempty HKCU "Software\MtoA$%MAYA_VERSION%"
   ReadRegStr $R1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" CommonW6432Dir
-  
+
+  ; uninstall begin  
   Delete "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%\mtoa.mod"
+  ; uninstall end
   
   SetRegView 64
   ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION

@@ -1866,7 +1866,7 @@ void CProjectionTranslator::Export(AtNode* shader)
 
       AiNodeSetVec(shader, "scale", float(0.5f/scale[0]), float(0.5f/scale[1]), float(0.5f/scale[2]));
       AiNodeSetVec(shader, "offset", (float)trans.x, (float)trans.y, (float)trans.z);
-      AiNodeSetVec(shader, "rotate", (float)rot.x, (float)rot.y, (float)rot.z);
+      AiNodeSetVec(shader, "rotate", (float)rot.x*AI_RTOD, (float)rot.y*AI_RTOD, (float)rot.z*AI_RTOD);
 
    } else if (AiNodeIs(shader, AtString("camera_projection")))
    {

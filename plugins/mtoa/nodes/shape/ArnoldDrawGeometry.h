@@ -37,27 +37,12 @@ protected:
    bool m_selected;
 
   
-
-   // simple polygons, without normals
-   virtual void DrawPolygons() const = 0;
-   
-   // wireframe cage
-   virtual void DrawWireframe() const = 0;
-   
-   // points from vertices
-   virtual void DrawPoints() const = 0;
-   
-   // polygons and normals for shaded mode
-   virtual void DrawNormalAndPolygons() const = 0;
-   
-   // bounding box mode
-   virtual void DrawBoundingBox() const;
 public:
+
    virtual ~CArnoldDrawGeometry();
 
-   virtual void Draw(int drawMode, bool applyTransform = true);   
-   MBoundingBox GetBBox(bool transformed = true) const;
-   const AtMatrix& GetMatrix() const;
+   virtual MBoundingBox GetBBox(bool transformed = true) const;
+   virtual const AtMatrix& GetMatrix() const;
 
    bool Visible(StandinSelectionFilter filter = STANDIN_GEOM_ALL) const;
    bool Invalid() const;
@@ -76,7 +61,7 @@ public:
 
    // get the wireframe indexing information
    virtual size_t WireIndexCount() const { return 0; }
-   virtual void GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0) const {}
+   virtual void GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const {}
 
    // get the triangle indexing information
    virtual size_t TriangleIndexCount(bool sharedVertices = false) const { return 0; }
@@ -95,11 +80,6 @@ private:
    PolyTriangulator<unsigned int>* m_polyTriangulator;
    Triangulator* mTriangulator;
 
-   void DrawPolygons() const;
-   void DrawWireframe() const;
-   void DrawPoints() const;
-   void DrawNormalAndPolygons() const;
-
    void createPolyTriangulator();
    PolyTriangulator<unsigned int>& polyTriangulator() const;
 
@@ -111,69 +91,98 @@ public:
    ~CArnoldDrawPolymesh();  
 
    // get the raw points
-   virtual size_t PointCount() const;
-   virtual void GetPoints(float* points, const AtMatrix* matrix = NULL) const;
+   size_t PointCount() const override;
+   void GetPoints(float* points, const AtMatrix* matrix = NULL) const override;
 
-   virtual size_t SharedVertexCount() const;
-   virtual void GetSharedVertices(float* outVertices, const AtMatrix* matrix) const;
-   virtual void GetSharedNormals(float* outNormals, const AtMatrix* matrix) const;
+   size_t SharedVertexCount() const override;
+   void GetSharedVertices(float* outVertices, const AtMatrix* matrix) const override;
+   void GetSharedNormals(float* outNormals, const AtMatrix* matrix) const override;
 
-   virtual size_t WireIndexCount() const;
-   virtual void GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset) const;
-   virtual size_t TriangleIndexCount(bool sharedVertices = false) const;
-   virtual void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices = false) const;
+   size_t WireIndexCount() const override;
+   void GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override;
+   size_t TriangleIndexCount(bool sharedVertices = false) const override;
+   void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset, bool sharedVertices = false) const override;
 };
 
 class DLLEXPORT CArnoldDrawPoints : public CArnoldDrawGeometry{
 private:
    std::vector<AtVector> m_points;
 
-   void DrawPolygons() const;
-   void DrawWireframe() const;
-   void DrawPoints() const;
-   void DrawNormalAndPolygons() const;
-
 public:
    CArnoldDrawPoints(AtNode* node);
    ~CArnoldDrawPoints();  
 
-   virtual size_t PointCount() const;
-   virtual void GetPoints(float* points, const AtMatrix* matrix = NULL) const;
+   size_t PointCount() const override;
+   void GetPoints(float* points, const AtMatrix* matrix = NULL) const override;
 };
 
-class DLLEXPORT CArnoldDrawGInstance {
-private:
-   CArnoldDrawGeometry* p_geom;   
-   AtMatrix m_matrix;
-   bool m_inheritXForm;
+class DLLEXPORT CArnoldDrawGInstance : public CArnoldDrawGeometry {
+
 public:
-   CArnoldDrawGInstance(CArnoldDrawGeometry* g, const AtMatrix &m, bool i);
+   CArnoldDrawGInstance(AtNode *node, const AtMatrix &m, bool m_inheritXForm);
    ~CArnoldDrawGInstance();
 
-   void Draw(int drawMode);
-   MBoundingBox GetBBox() const;
-   const AtMatrix& GetMatrix() const;
-   const CArnoldDrawGeometry& GetGeometry() const;
+   void SetGeometryNode(CArnoldDrawGeometry* g) {m_geom = g;}
+
+   MBoundingBox GetBBox(bool transformed = true) const override;
+   const AtMatrix& GetMatrix() const override;
+   const CArnoldDrawGeometry* GetGeometry() const {return m_geom;}
+
+   // get the raw points
+   size_t PointCount() const override {return (m_geom) ? m_geom->PointCount() : 0;}
+   void GetPoints(float* points, const AtMatrix* matrix = NULL) const override;
+
+   // get the vertices and normals after combining multiple index streams
+   size_t SharedVertexCount() const override { return (m_geom) ? m_geom->SharedVertexCount() : 0; }
+   void GetSharedVertices(float* outVertices, const AtMatrix* matrix = NULL) const override;
+   void GetSharedNormals(float* outNormals, const AtMatrix* matrix = NULL) const override;
+
+   // get the wireframe indexing information
+   size_t WireIndexCount() const override { return (m_geom) ? m_geom->WireIndexCount() : 0; }
+   void GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override 
+      {if (m_geom) m_geom->GetWireIndexing(outIndices, vertexOffset, sharedVertices);}
+
+   // get the triangle indexing information
+   size_t TriangleIndexCount(bool sharedVertices = false) const override { return (m_geom) ? m_geom->TriangleIndexCount(sharedVertices) : 0; }
+   void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override 
+      {if (m_geom) m_geom->GetTriangleIndexing(outIndices, vertexOffset, sharedVertices);}
+
+private:
+   CArnoldDrawGeometry* m_geom;   
+   AtMatrix m_matrix;
+   bool m_inheritXForm;
 };
 
 class DLLEXPORT CArnoldDrawProcedural : public CArnoldDrawGeometry {
-private:
-   void DrawPolygons() const;
-   void DrawWireframe() const;
-   void DrawPoints() const;
-   void DrawNormalAndPolygons() const;
+
 public:
-   CArnoldDrawProcedural(AtNode* node);
+   CArnoldDrawProcedural(AtNode* node, AtProcViewportMode mode);
    ~CArnoldDrawProcedural();
+
+   typedef unordered_map<std::string, CArnoldDrawGeometry*> geometryListType;
+   typedef geometryListType::const_iterator geometryListIterType;
+
+  // bounding box mode
+   size_t PointCount() const override;
+   void GetPoints(float* points, const AtMatrix* matrix = NULL) const override;
+   size_t SharedVertexCount() const override;
+   void GetSharedVertices(float* outVertices, const AtMatrix* matrix = NULL) const override;
+   void GetSharedNormals(float* outNormals, const AtMatrix* matrix = NULL) const override;
+   size_t WireIndexCount() const override;
+   void GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override;
+   size_t TriangleIndexCount(bool sharedVertices = false) const override;
+   void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override;
+
+private:  
+
+   geometryListType m_geometryList;
+   MBoundingBox m_bbox;
 };
 
 class DLLEXPORT CArnoldDrawBox : public CArnoldDrawGeometry {
-private:
-   void DrawPolygons() const;
-   void DrawWireframe() const;
-   void DrawPoints() const;
-   void DrawNormalAndPolygons() const;
+
 public:
    CArnoldDrawBox(AtNode* node);
    ~CArnoldDrawBox();
+   
 };

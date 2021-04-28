@@ -17,11 +17,9 @@ class CBifrostShapeNode
 
 public:
    CBifrostShapeNode();
-   virtual ~CBifrostShapeNode() {}
+   virtual ~CBifrostShapeNode();
 
    virtual void postConstructor();
-
-   virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
 
    CAbMayaNode m_abstract;
    static MTypeId id;
@@ -34,8 +32,13 @@ public:
    static MString s_classification;   
 
    static MObject s_input;
-   static MObject s_outputBifrostDataStream;
 
+   static MCallbackId s_NewNodeCallbackId;
+   static MCallbackId s_idleCallbackId;
+   static void NewNodeCallback(MObject & node, void *);
+   static void IdleCallback(void *);
+   static void UpdateBifrostGraphConnections();
+   
 };  // class CArnoldShaderNode
 
 

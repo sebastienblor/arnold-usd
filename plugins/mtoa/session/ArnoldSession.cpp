@@ -13,6 +13,7 @@
 #include "utils/MakeTx.h"
 #include "utils/MtoaLog.h"
 
+
 #include <ai_msg.h>
 #include <ai_nodes.h>
 #include <ai_ray.h>
@@ -103,12 +104,23 @@ namespace // <anonymous>
    }
 }
 template <class T>
-static void ChangeCurrentFrame(T time, int sessionMode)
+static void ChangeCurrentFrame(T time, int sessionMode, bool forceViewport = false)
 {   
+   // time can be either MTime or double
+
+   // Ensure we don't do anything for AVP
    if (sessionMode == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
       return;
    
-   MGlobal::viewFrame(time); // time can be either MTime or double
+   // viewFrame will force the refresh of the viewport. This seems to be needed in batch render
+   // to ensure that the DG data is properly set to the "current" frame. Otherwise, in some test scenes, 
+   // we can get wrong data (see #4447). So we want to keep using viewFrame for the main current frame.
+   // However, for other "motion" frames, it's better to use "setCurrentTime" which doesn't force a refresh 
+   // of the viewport (until next maya "idle").
+   if (forceViewport)
+      MGlobal::viewFrame(time); 
+   else
+      MAnimControl::setCurrentTime(time); 
 }
 
 
@@ -599,9 +611,12 @@ AtNode* CArnoldSession::ExportOptions()
 
    MPlug optPlug = fnNode.findPlug("message", true);
    m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, false);
-
+   if (m_optionsTranslator == nullptr)
+   {
+      AiMsgError("[mtoa] No translator found for the options node");
+      return NULL;
+   }
    ExportColorManager();
-
    return m_optionsTranslator->GetArnoldNode();
 }
 
@@ -629,7 +644,6 @@ AtNode *CArnoldSession::ExportColorManager()
 MStatus CArnoldSession::Export(MSelectionList* selected)
 {
    MStatus status;
-
    if (!AiUniverseIsActive())
    {
       AiMsgError("[mtoa] Need an active Arnold universe to export to.");
@@ -689,7 +703,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    ExportOptions();  // inside loop so that we're on the proper frame
 
    // First "real" export
-   ChangeCurrentFrame(m_sessionOptions.m_frame, GetSessionMode());
+   ChangeCurrentFrame(m_sessionOptions.m_frame, GetSessionMode(), true);
    if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || 
       exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW || exportMode == MTOA_SESSION_SEQUENCE)
    {
@@ -2873,4 +2887,23 @@ CNodeTranslator *CArnoldSession::ExportNodeToUniverse(const MObject &object, AtU
    return translator;
 }
    
+void CArnoldSession::AddCallbacksToUpdateNodes()
+{
+   if (!IsInteractiveRender())
+      return;
 
+   for(size_t i = 0; i < m_objectsToUpdate.size(); ++i)
+   {
+      CNodeTranslator *tr = m_objectsToUpdate[i].second;
+      if (tr == nullptr)
+         continue;
+
+      if (tr->m_impl->m_mayaCallbackIDs.length() == 0) 
+         tr->AddUpdateCallbacks();
+      
+      tr->m_impl->m_inUpdateQueue = false; // I'm allowed to receive updates once again
+      tr->m_impl->m_isExported = true;
+      // restore the update mode to "update Only"
+      tr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+   }
+}

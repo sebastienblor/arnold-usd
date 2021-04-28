@@ -217,9 +217,10 @@ AtNode* CBifShapeTranslator::CreateArnoldNodes()
 void CBifShapeTranslator::Export( AtNode *shape )
 {
 
-   unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
+   unsigned int step = velocityOnly ? 0 : GetMotionStep();
+   
    m_vpRenderSelect = -1;
    MPlug vpRenderPlug = FindMayaPlug("viewportRenderSelect");
    if (!vpRenderPlug.isNull())
@@ -538,8 +539,6 @@ void CBifShapeTranslator::Export( AtNode *shape )
    // prevent it from being exported. The best way to deal with this now is simply to reset the attribute here
    AiNodeResetParameter(shape, "receive_shadows");
 
-   // restore the attribute "viewportRenderSelect" to its original value
-   
 }
 
 
@@ -616,6 +615,12 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
+   bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
+   // velocity onmly mode, we don't need to do trigger the bifrost graph anymore
+   if (velocityOnly)
+      return;
+
+
    MPlug filenamePlug = FindMayaPlug("aiFilename");
    if (!filenamePlug.isNull() && !filenamePlug.isDefaultValue())
    {
@@ -625,8 +630,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
    unsigned int step = GetMotionStep();
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-   bool velocityOnly = FindMayaPlug("aiMotionBlurMode").asInt() == 1;
-   unsigned int numMotionSteps = velocityOnly ? 1 : GetNumMotionSteps();
+   unsigned int numMotionSteps = GetNumMotionSteps();
    if (step >= numMotionSteps)
       return;
 
@@ -977,9 +981,6 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 void CBifShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.partialName(false, false, false, false, false, true);
-   if (plugName == "viewportRenderSelect")
-      return; // we don't want to update IPR when this attribute changes
-
    CProceduralTranslator::NodeChanged(node, plug);
 }
 

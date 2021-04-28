@@ -3,6 +3,7 @@
 #include "../extension/ExtensionsManager.h"
 #include "../translators/shader/ShaderTranslator.h"
 #include "../utils/BuildID.h"
+#include "utils/MtoAAdpPayloads.h"
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -454,6 +455,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       // Dirty hack... this is initializing all the polymeshes triangles
       // which is necessary for CameraUvMapper to work correctly
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
       AiRender(AI_RENDER_MODE_FREE);
       AiRenderAbort();
 
@@ -702,7 +704,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   aovFilename += ".exr";
                   AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.asChar());
                }
-
+               AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
                AiRender();
                MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + MString(filename.c_str()));
 
@@ -769,7 +771,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                aovFilename += ".exr";
                AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.asChar());
             }
-
+            AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
             AiRender();
 
             MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + filename);

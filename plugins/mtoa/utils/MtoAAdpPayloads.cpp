@@ -1,6 +1,15 @@
 #include "MtoAAdpPayloads.h"
+#include "Version.h"
+#include <ai_adp.h>
+#include <maya/MGlobal.h>
 
 #include <unordered_map>
+#include <string>
+
+namespace MtoAADPPayloads
+{
+    bool product_metadata_posted = false;
+}
 
 std::unordered_map<std::string, std::string> shaders_map = {
 {"lambert","AS_ARNOLD_SHADER"},
@@ -87,5 +96,18 @@ void MtoAADPPayloads::ADPPostShaderUsed(const std::string shader_name)
         AiParamValueMapSetStr(param_value_map, AtString("EXPORT_TYPE"), AtString(shaders_map[shader_name].c_str()));
         AiADPSendPayload("MTOA.MAYA.SHADER.EXPORT", param_value_map);
         AiParamValueMapDestroy(param_value_map);
+    }
+}
+
+void MtoAADPPayloads::ADPPostProductMetadata()
+{
+    if (!MtoAADPPayloads::product_metadata_posted)
+    {
+        AiADPAddProductMetadata(AI_ADP_PLUGINNAME, AtString("mtoa"));
+        AiADPAddProductMetadata(AI_ADP_PLUGINVERSION, AtString(MTOA_VERSION));
+        AiADPAddProductMetadata(AI_ADP_HOSTNAME, AtString("Maya"));
+        AiADPAddProductMetadata(AI_ADP_HOSTVERSION, AtString(std::to_string(MAYA_API_VERSION).c_str()));
+        MtoAADPPayloads::product_metadata_posted = true;
+        return;
     }
 }

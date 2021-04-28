@@ -2,6 +2,7 @@
 
 #include "platform/Platform.h"
 #include "utils/Universe.h"
+#include "utils/MtoAAdpPayloads.h"
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
 #include "translators/DagTranslator.h"
@@ -106,7 +107,7 @@ MStatus CMaterialView::startAsync(const JobParams& params)
    AiRenderSetHintBool(AtString("progressive"), true);
    AiRenderSetHintBool(AtString("progressive_show_all_outputs"), false);
    AiRenderSetHintInt(AtString("progressive_min_AA_samples"), -3);
-
+   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
    AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
 
    ScheduleRefresh();
@@ -414,7 +415,10 @@ MStatus CMaterialView::setResolution(unsigned int width, unsigned int height)
 MStatus CMaterialView::endSceneUpdate()
 {
    if (AiRenderGetStatus() == AI_RENDER_STATUS_NOT_STARTED)
+   {
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
       AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
+   }
    else
       AiRenderRestart();
    return MStatus::kSuccess;

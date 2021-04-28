@@ -52,6 +52,7 @@ static QWidget *s_optWorkspaceControl = NULL;
 // Arnold RenderView is defined
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
+#include "utils/AiAdpPayload.h"
 //#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
@@ -681,6 +682,15 @@ void CRenderViewMtoA::UpdateFullScene()
       // Set resolution and camera as passed in.
       CMayaScene::GetRenderSession()->SetResolution(-1, -1);
       CMayaScene::GetRenderSession()->SetCamera(renderCamera);
+   }
+
+   if (m_viewportRendering)
+   {
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_VIEWPORT);
+   }
+   else
+   {
+      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
    }
 
    UpdateRenderCallbacks();

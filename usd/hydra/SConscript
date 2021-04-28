@@ -125,6 +125,8 @@ def _usd_delegate(target, source, env):
         else:
             args['PYTHON_LIB_NAME']   = 'libpython2.7'
 
+    if platform.system().lower() == 'windows':
+        args['PYTHON_LIB_NAME']   = 'python{}7'.format(pythonVersion)
     
     if pythonVersion == '2':
         args['BUILD_DIR'] = 'build_python2'

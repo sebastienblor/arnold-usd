@@ -3,3 +3,8 @@ Light_mixer always exports <residual_lights>
 See trac#4474
 
 author: krishnan
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}

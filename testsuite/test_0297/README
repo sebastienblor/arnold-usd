@@ -1,3 +1,8 @@
 Export Standin instances as duplicated procedurals #3592
 
 author: sebastien.ortega
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}
