@@ -1477,6 +1477,9 @@ def createArnoldOverrideSettings():
     cmds.attrControlGrp('force_translate_shading_engines',
                        attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
 
+    cmds.attrControlGrp('ignore_imagers',
+                       attribute='defaultArnoldRenderOptions.ignore_imagers', label='Ignore Imagers')
+
     cmds.attrControlGrp('ignore_list',
                        attribute='defaultArnoldRenderOptions.ignore_list', label='Ignore List')
 
