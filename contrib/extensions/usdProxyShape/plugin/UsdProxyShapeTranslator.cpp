@@ -244,7 +244,10 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
 
    MTime curTime = MAnimControl::currentTime();
 
-   AiNodeSetFlt(shape, "frame", float(FindMayaPlug("time").asFloat()));
+   MTime::Unit unit = curTime.unit();
+
+   MTime time(FindMayaPlug("time").asFloat(), MTime::kSeconds);
+   AiNodeSetFlt(shape, "frame", float(time.as(unit)));
   
    ExportProcedural(shape);
 }
