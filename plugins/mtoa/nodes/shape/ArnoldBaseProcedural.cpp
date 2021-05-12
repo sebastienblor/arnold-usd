@@ -428,7 +428,7 @@ void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
          g = new CArnoldDrawPolymesh(node);
       else if (AiNodeIs(node, points_str))
          g = new CArnoldDrawPoints(node);
-      else if(AiNodeIs(node, procedural_str))
+      else if(AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(node)) == AI_NODE_SHAPE_PROCEDURAL)
          g = new CArnoldDrawProcedural(node, viewport_mode);
       else if(AiNodeIs(node, box_str))
          g = new CArnoldDrawBox(node);
