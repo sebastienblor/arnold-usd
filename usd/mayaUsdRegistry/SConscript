@@ -47,7 +47,7 @@ if system.os == 'windows' and local_env['MODE'] == 'opt':
     MSVC_FLAGS = " /Zi"
     MSVC_FLAGS += " /FS"
     MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\mayaUsdRegistry_tmp.pdb"
-    proc_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 
 if platform.system().lower() == 'darwin':
