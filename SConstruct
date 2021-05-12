@@ -552,8 +552,6 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /GL"     # enables whole program optimization
         MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
         MSVC_FLAGS += " /Ox"     # selects maximum optimization
-        MSVC_FLAGS += " /Zi"
-        MSVC_FLAGS += " /FS"
         LINK_FLAGS += " /DEBUG"
         LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
     else:  ## Debug mode

@@ -15,12 +15,18 @@ source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_bas
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
 EXT = local_env.SharedLibrary('lookdevkit', source_files, LIBPREFIX='')
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\lookdevkit_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 if system.os == 'windows':
    local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')   
    local_env.Append(CPPPATH = ['.'])
 else:
    local_env.Append(CPPPATH = ['.'])
+
 
 
 # import build env
@@ -31,6 +37,13 @@ shader_env = env.Clone()
 src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'lookdevkit', 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\lookdevkitShader_tmp.pdb"
+    shader_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 
 if system.os =='windows':
    shader_env.Append(CPPPATH = ['.'])

@@ -17,6 +17,11 @@ source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_bas
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
 plugin_env.Append(CPPPATH = ['.'])
+if system.os == 'windows' and plugin_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+plugin_env['BUILD_BASE_DIR']+"\\synColorTranslator_tmp.pdb"
+    plugin_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 EXT = plugin_env.SharedLibrary('synColorTranslator', source_files, LIBPREFIX='')
 
@@ -49,6 +54,12 @@ shader_env.Append(CPPPATH = [syncolor_include_path])
 shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 
 shader_env.Append(LIBPATH = [syncolor_library_path])
+
+if system.os == 'windows' and shader_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+shader_env['BUILD_BASE_DIR']+"\\synColor_shaders_tmp.pdb"
+    plugin_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 # Add platform specific paths
 if system.os =='windows':

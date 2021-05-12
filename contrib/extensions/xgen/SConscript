@@ -95,6 +95,12 @@ maya_version_base = ext_env['MAYA_VERSION_BASE']
     
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\xgenTranslator_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 if system.os =='windows':
     local_env.Append(CPPPATH = ['.'])   
     local_env.Append(LIBS=Split('ai.lib'))
@@ -167,6 +173,11 @@ include_files =  [os.path.join('procedural', x) for x in find_files_recursive(sr
 source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 source_files.append(common_xgen_expand)
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\xgen_procedural_tmp.pdb"
+    proc_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 mayaRoot = proc_env['MAYA_ROOT']
 if system.os == 'darwin':

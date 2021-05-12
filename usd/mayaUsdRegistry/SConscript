@@ -43,6 +43,13 @@ usd_include_dir = os.path.join(usd_install_dir, 'include')
 boost_lib = os.path.join(usd_install_dir, 'lib')
 usd_lib_prefix = 'lib'
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\mayaUsdRegistry_tmp.pdb"
+    proc_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
+
 if platform.system().lower() == 'darwin':
     python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'include', 'python3.7m')
     python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'lib')
