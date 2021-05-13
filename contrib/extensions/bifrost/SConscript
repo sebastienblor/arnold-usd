@@ -12,6 +12,12 @@ local_env = ext_env.Clone()
 BUILD_BASE_DIR = local_env['BUILD_BASE_DIR']
 ROOT_DIR = local_env['ROOT_DIR']
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\bifrost_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 mayaRoot = local_env['MAYA_ROOT']
 if system.os == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')

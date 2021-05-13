@@ -39,6 +39,12 @@ for dir in PROCEDURALS:
             proc_inc_files = [os.path.join(dir, name) for name in find_files_recursive(base_dir, ['.h'])]
             source_files  += proc_src_files
             include_files += proc_inc_files
+
+            if system.os == 'windows' and local_env['MODE'] == 'opt':
+                MSVC_FLAGS = " /Zi"
+                MSVC_FLAGS += " /FS"
+                MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\"
+                local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
             # Name of the final dll will be "mtoa_<directory>_proc"
             MTOA_PROCS    += local_env.SharedLibrary(os.path.join(dir, 'mtoa_%s_proc' % dir), proc_src_files)
 

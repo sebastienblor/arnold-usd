@@ -65,7 +65,11 @@ source_files += source_files_add
 
 local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
 
-
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\mtoa_api_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 MAYA_ROOT = local_env.subst(local_env['MAYA_ROOT'])
 MAYA_INCLUDE_PATH = local_env.subst(local_env['MAYA_INCLUDE_PATH'])
