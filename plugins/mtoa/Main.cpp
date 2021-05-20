@@ -1581,11 +1581,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
          "arnoldVolumeNodeOverride");
       CHECK_MSTATUS(status);
 
-      status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-         AI_PROCEDURAL_CLASSIFICATION,
-         "arnoldProceduralNodeOverride");
-      CHECK_MSTATUS(status);
-
       // Register a custom selection mask
       MSelectionMask::deregisterSelectionType("arnoldLightSelection");
 
