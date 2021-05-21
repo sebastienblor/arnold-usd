@@ -97,9 +97,6 @@
     [attr ignore_bump]
         maya.keyable        BOOL    false
         linkable            BOOL    false
-    [attr ignore_imagers]
-        maya.keyable        BOOL    false
-        linkable            BOOL    false
     [attr auto_transparency_depth]
         maya.keyable        BOOL    false
         min                 INT     0
