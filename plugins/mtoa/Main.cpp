@@ -26,6 +26,7 @@
 #include <maya/MApiVersion.h>
 
 #include "utils/Version.h"
+#include "utils/MayaUtils.h"
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 
@@ -466,7 +467,7 @@ namespace // <anonymous>
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
-      bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
+      bool isBatch = IsBatch();
 
       MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
@@ -1134,7 +1135,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    returnStatus = MStatus::kSuccess;
    connectionCallback = 0;
 
-   bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
+   bool isBatch = IsBatch();
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
@@ -1465,7 +1466,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    returnStatus = MStatus::kSuccess;
 
    MFnPlugin plugin(object);
-   bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
+   bool isBatch = IsBatch();
    // Should be done when render finishes
    CMayaScene::End();
 
