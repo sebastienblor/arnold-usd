@@ -463,7 +463,6 @@ namespace // <anonymous>
    {
       MStatus status;
       bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
-      std::cout << " We are doing this corerct" << std::endl;
       MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
       // STANDINS
@@ -486,16 +485,14 @@ namespace // <anonymous>
                            &AI_VOLUME_CLASSIFICATION);
       CHECK_MSTATUS(status);
 
-      std::cout << " What is the size of the mayaNodeList " << sizeOfArray(mayaNodeList) << std::endl;
       for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
       {
          const mayaNode& node = mayaNodeList[i];
-         std::cout << " I'm trying to register node " << node.name << std::endl;
          status = plugin.registerNode(node.name, node.id, node.creator,
                      node.initialize, node.type, node.classification);
          CHECK_MSTATUS(status);
       }
-      std::cout << " We are outside the Loop" << std::endl;
+
       // Get a CExtension for the builtin nodes
       CExtensionsManager::SetMayaPlugin(object);
       CExtensionsManager::CreatePluginLoadedCallback();
@@ -1010,7 +1007,6 @@ namespace // <anonymous>
       for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
       {
          const mayaNode& node = mayaNodeList[i];
-         std::cout << " De Registering Node " << node.name << std::endl;
          status = plugin.deregisterNode(node.id);
          CHECK_MSTATUS(status);
       }
