@@ -32,85 +32,22 @@
 #include <maya/MEventMessage.h>
 #include <maya/MGlobal.h>
 
-#ifdef ENABLE_USD
-#include <pxr/usd/ar/resolver.h>
-#include <pxr/usd/usd/prim.h>
-#include <pxr/usd/usd/primRange.h>
-#include <pxr/usd/usd/stage.h>
-#include <pxr/usd/usd/stageCache.h>
-#include <pxr/usd/usd/stageCacheContext.h>
-#include <pxr/usd/usdGeom/camera.h>
-#include <pxr/usd/usdSkel/bakeSkinning.h>
-#include "pxr/usd/sdf/api.h"
-#include "pxr/usd/sdf/data.h"
-#include "pxr/usd/sdf/declareHandles.h"
-#include "pxr/usd/sdf/identity.h"
-#include "pxr/usd/sdf/layerOffset.h"
-#include "pxr/usd/sdf/namespaceEdit.h"
-#include "pxr/usd/sdf/path.h"
-#include "pxr/usd/sdf/proxyTypes.h"
-#include "pxr/usd/sdf/spec.h"
-#include "pxr/usd/sdf/types.h"
+CUsdProxyShapeTranslator::CUsdProxyShapeTranslator() : CProceduralTranslator(),
+                                                       m_cacheId(0) 
+{}
 
-#include "UsdProxyShapeListener.h"
-#include <pxr/usd/usdUtils/stageCache.h>
-
-PXR_NAMESPACE_USING_DIRECTIVE
-
-class CUsdProxyShapeTranslatorImpl
-{
-public:
-   CUsdProxyShapeTranslatorImpl(CUsdProxyShapeTranslator &tr) : m_translator(tr), m_stage(nullptr) {}
-   void InitStage(UsdStageRefPtr stage)
-   {
-      m_stage = stage;
-      m_listener.SetStage(stage);
-      if (stage == nullptr)
-         return;
-      
-      m_listener.SetStageContentsChangedCallback(
-         [this](const UsdNotice::StageContentsChanged& notice) {
-                return OnStageContentsChanged(notice);
-            });
-   }
-private:
-   CUsdProxyShapeTranslator &m_translator;
-   UsdStageRefPtr m_stage;
-   CUsdMtoAListener m_listener;
-
-   /*
-   void OnStageObjectsChanged(const UsdNotice::ObjectsChanged& notice)
-   {
-      m_translator.StageChanged();
-      UsdNotice::ObjectsChanged::PathRange range = notice.GetResyncedPaths();
-      for (UsdNotice::ObjectsChanged::PathRange::iterator it = range.begin(); it != range.end(); ++it)
-         std::cerr<<it->GetAsString()<<std::endl;
-   }*/
-
-   void OnStageContentsChanged(const UsdNotice::StageContentsChanged& notice)
-   {
-      m_translator.StageChanged();      
-   }
-};
-
-CUsdProxyShapeTranslator::CUsdProxyShapeTranslator() : CProceduralTranslator() 
-{
-   m_impl = new CUsdProxyShapeTranslatorImpl(*this);
-}
 CUsdProxyShapeTranslator::~CUsdProxyShapeTranslator()
-{
-   if (m_impl)
-      delete m_impl;
+{   
+   if (m_cacheId)
+   {
+      MString cmd("import usdProxyShapeTranslator;usdProxyShapeTranslator.UsdArnoldUnregisterListener(");
+      cmd += m_cacheId;
+      cmd += ")";
+      MGlobal::executePythonCommand(cmd);
+      m_cacheId = 0;
+   }
 }
-#else
-CUsdProxyShapeTranslator::CUsdProxyShapeTranslator() : CProceduralTranslator() 
-{
-   m_impl = nullptr;
-}
-CUsdProxyShapeTranslator::~CUsdProxyShapeTranslator()
-{
-}
-#endif
+
 void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "usd");
@@ -223,10 +160,19 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
          int cacheId = cacheIdPlug.asInt();
          std::string cacheStr;
          AiNodeSetInt(shape, "cache_id", cacheId);
-         UsdStageCache &stageCache = UsdUtilsStageCache::Get();
-         UsdStageCache::Id id = UsdStageCache::Id::FromLongInt(cacheId);
-         m_impl->InitStage((id.IsValid()) ? stageCache.Find(id) : nullptr);
-
+         
+         // Run a python command that will ping us every time there is a change on this USD stage.
+         // This will be needed to update the IPR
+         if (GetSessionOptions().IsInteractiveRender())
+         {
+            m_cacheId = cacheId;
+            MString cmd("import usdProxyShapeTranslator;usdProxyShapeTranslator.UsdArnoldListener(");
+            cmd += cacheId;
+            cmd += ",'";
+            cmd += GetMayaNodeName();
+            cmd += "')";
+            MGlobal::executePythonCommand(cmd);
+         }
       }
    }
 #endif
@@ -301,7 +247,3 @@ void CUsdProxyShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
    CShapeTranslator::NodeChanged(node, plug);  
 }
 
-void CUsdProxyShapeTranslator::StageChanged()
-{
-   CProceduralTranslator::RequestUpdate();
-}
