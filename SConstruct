@@ -833,6 +833,7 @@ if system.os == 'windows':
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
             maya_env['MTOA_USD_PYTHON'] = usd_version[USD_CUT_PYTHON]
+            maya_env['USD_VERSION'] = usd_version[USD_CUT_VERSION]
             usd_folder = usd_version[USD_CUT_VERSION]
             if usd_version[USD_CUT_PYTHON] == '2':
                 usd_folder += '_python2'
@@ -910,6 +911,7 @@ else:
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
             maya_env['MTOA_USD_PYTHON'] = usd_version[USD_CUT_PYTHON]
+            maya_env['USD_VERSION'] = usd_version[USD_CUT_VERSION]
             usd_folder = usd_version[USD_CUT_VERSION]
             if usd_version[USD_CUT_PYTHON] == '2':
                 usd_folder += '_python2'

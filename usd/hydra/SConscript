@@ -153,7 +153,7 @@ def _usd_delegate(target, source, env):
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
-delegate_action_log = 'Building USD render delegate '
+delegate_action_log = 'Building USD {} render delegate '.format(local_env.get('USD_VERSION'))
 if pythonVersion == '2':
     delegate_action_log += 'for Python 2'
 delegate_action_log += '....'

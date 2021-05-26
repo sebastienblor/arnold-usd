@@ -150,7 +150,7 @@ def _usd_procedural(target, source, env):
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
-procedural_action_log = 'Building USD procedural '
+procedural_action_log = 'Building USD {} procedural '.format(local_env.get('USD_VERSION'))
 if pythonVersion == '2':
     procedural_action_log += 'for Python 2'
 procedural_action_log += '....'
