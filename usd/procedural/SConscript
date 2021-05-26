@@ -97,6 +97,7 @@ def _usd_procedural(target, source, env):
       BOOST_LIB= boost_lib,
       BUILD_HOUDINI_TOOLS=False,
       BUILD_NDR_PLUGIN=False,
+      BUILD_USD_IMAGING_PLUGIN=False,
       MODE= local_env['MODE'],
       WARN_LEVEL='warn-only',
       MSVC_VERSION='14.1',
