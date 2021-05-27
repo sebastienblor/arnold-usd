@@ -76,7 +76,7 @@ if not os.path.exists(usd_include_dir):
     
 
 usd_procedural = os.path.join(usd_procedural_folder, 'usd_cache_proc'+lib_extension)
-prefix_folder = local_env.get('USD_VERSION')
+prefix_folder = 'tmp_proc_{}'.format(local_env.get('USD_VERSION'))
 if pythonVersion == '2':
     prefix_folder += '_python2'
 def _usd_procedural(target, source, env):
@@ -133,7 +133,7 @@ def _usd_procedural(target, source, env):
     if platform.system().lower() == 'windows':
        args['PYTHON_LIB_NAME']   = 'python{}7'.format(pythonVersion)  
 
-    build_dir = 'build_{}'.format(local_env.get('USD_VERSION'))
+    build_dir = 'build_proc_{}'.format(local_env.get('USD_VERSION'))
     if pythonVersion == '2':
         build_dir += '_python2'
     args['BUILD_DIR'] = build_dir
