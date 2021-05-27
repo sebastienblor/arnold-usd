@@ -34,7 +34,7 @@ lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get
 lib_prefix = {'windows' : ''}.get(system.os, '')
 lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
 
-usd_install_dir = local_env['USD_PATH'] if pythonVersion == '3' else local_env['USD_PATH_PYTHON2']
+usd_install_dir = local_env['USD_PATH']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
 
 usd_supported_modes = ['opt', 'debug', 'profile']
@@ -76,6 +76,9 @@ if not os.path.exists(usd_include_dir):
     
 
 usd_delegate = os.path.join(usd_delegate_folder, "hdArnold"+lib_extension)
+prefix_folder = 'tmp_hydra_{}'.format(local_env.get('USD_VERSION'))
+if pythonVersion == '2':
+    prefix_folder += '_python2'
 
 def _usd_delegate(target, source, env):
     usd_env = env.Clone()
@@ -89,6 +92,7 @@ def _usd_delegate(target, source, env):
       USD_BUILD_MODE = 'shared_libs',
       PREFIX_RENDER_DELEGATE= usd_delegate_folder,
       PREFIX_NDR_PLUGIN = usd_delegate_folder,
+      PREFIX=prefix_folder,
       BUILD_SCHEMAS=False,
       BUILD_RENDER_DELEGATE=True,
       BUILD_USD_WRITER=False,
@@ -128,8 +132,11 @@ def _usd_delegate(target, source, env):
     if platform.system().lower() == 'windows':
         args['PYTHON_LIB_NAME']   = 'python{}7'.format(pythonVersion)
     
+    build_dir = 'build_hydra_{}'.format(local_env.get('USD_VERSION'))
     if pythonVersion == '2':
-        args['BUILD_DIR'] = 'build_python2'
+        build_dir += '_python2'
+    args['BUILD_DIR'] = build_dir
+
     usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
         raise SCons.Errors.UserError('arnold-usd subrepository not found')
@@ -153,7 +160,7 @@ def _usd_delegate(target, source, env):
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
-delegate_action_log = 'Building USD render delegate '
+delegate_action_log = 'Building USD {} render delegate '.format(local_env.get('USD_VERSION'))
 if pythonVersion == '2':
     delegate_action_log += 'for Python 2'
 delegate_action_log += '....'
