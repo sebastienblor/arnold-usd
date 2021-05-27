@@ -923,12 +923,17 @@ else:
                               variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', usd_folder),
                               duplicate   = 0,
                               exports     = 'maya_env')
+            # FIXME: this is not strictly needed, it's meant to avoid excessive USD-related jobs in parallel
+            Depends(usd_version[USD_CUT_DELEGATE], usd_version[USD_CUT_PROCEDURAL])
             if usd_version[USD_CUT_MAYAUSD_PATH]:
                 maya_env['MAYAUSD_PATH'] = usd_version[USD_CUT_MAYAUSD_PATH]
                 usd_version[USD_CUT_REGISTRY] = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
                               variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder),
                               duplicate   = 0,
                               exports     = 'maya_env')
+                # FIXME: this is not strictly needed, it's meant to avoid excessive USD-related jobs in parallel
+                Depends(usd_version[USD_CUT_REGISTRY], usd_version[USD_CUT_PROCEDURAL])
+            
 
     MTOA_PROCS = env.SConscript(os.path.abspath(os.path.join('procedurals', 'SConscript')),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
