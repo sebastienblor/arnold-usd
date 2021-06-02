@@ -35,7 +35,7 @@ lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get
 lib_prefix = {'windows' : ''}.get(system.os, '')
 lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
 
-usd_install_dir = local_env['USD_PATH'] if pythonVersion == '3' else local_env['USD_PATH_PYTHON2']
+usd_install_dir = local_env['USD_PATH']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
 
 usd_supported_modes = ['opt', 'debug', 'profile']
@@ -76,7 +76,9 @@ if not os.path.exists(usd_include_dir):
     
 
 usd_procedural = os.path.join(usd_procedural_folder, 'usd_cache_proc'+lib_extension)
-
+prefix_folder = 'tmp_proc_{}'.format(local_env.get('USD_VERSION'))
+if pythonVersion == '2':
+    prefix_folder += '_python2'
 def _usd_procedural(target, source, env):
     usd_env = env.Clone()
     #########
@@ -88,6 +90,7 @@ def _usd_procedural(target, source, env):
       TBB_LIB= usd_lib_dir,
       USD_BUILD_MODE = 'shared_libs',
       PREFIX_PROCEDURAL= usd_procedural_folder,
+      PREFIX=prefix_folder,
       BUILD_SCHEMAS=False,
       BUILD_RENDER_DELEGATE=False,
       BUILD_USD_WRITER=False,
@@ -97,6 +100,7 @@ def _usd_procedural(target, source, env):
       BOOST_LIB= boost_lib,
       BUILD_HOUDINI_TOOLS=False,
       BUILD_NDR_PLUGIN=False,
+      BUILD_USD_IMAGING_PLUGIN=False,
       MODE= local_env['MODE'],
       WARN_LEVEL='warn-only',
       MSVC_VERSION='14.1',
@@ -128,9 +132,11 @@ def _usd_procedural(target, source, env):
     
     if platform.system().lower() == 'windows':
        args['PYTHON_LIB_NAME']   = 'python{}7'.format(pythonVersion)  
-       
+
+    build_dir = 'build_proc_{}'.format(local_env.get('USD_VERSION'))
     if pythonVersion == '2':
-        args['BUILD_DIR'] = 'build_python2'
+        build_dir += '_python2'
+    args['BUILD_DIR'] = build_dir
 
     usd_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-usd')).abspath
     if not os.path.exists(usd_project):
@@ -149,7 +155,7 @@ def _usd_procedural(target, source, env):
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
-procedural_action_log = 'Building USD procedural '
+procedural_action_log = 'Building USD {} procedural '.format(local_env.get('USD_VERSION'))
 if pythonVersion == '2':
     procedural_action_log += 'for Python 2'
 procedural_action_log += '....'

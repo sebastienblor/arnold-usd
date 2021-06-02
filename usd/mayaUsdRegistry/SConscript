@@ -34,7 +34,7 @@ lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get
 lib_prefix = {'windows' : ''}.get(system.os, '')
 lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
 
-usd_install_dir = local_env['USD_PATH'] if pythonVersion == '3' else local_env['USD_PATH_PYTHON2']
+usd_install_dir = local_env['USD_PATH']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
 
 usd_supported_modes = ['opt', 'debug', 'profile']
@@ -84,7 +84,7 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'usd')
 include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h']
 source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp']
 
-mayausd_path = local_env['MAYAUSD_PATH'] if pythonVersion == '3' else local_env['MAYAUSD_PATH_PYTHON2']
+mayausd_path = local_env['MAYAUSD_PATH']
 mayausd_include = os.path.join(mayausd_path, 'include')
 mayausd_lib = os.path.join(mayausd_path, 'lib')
 local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include])
