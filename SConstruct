@@ -1913,6 +1913,7 @@ fi
         commandFile.write("exit 0")
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
+        shutil.copyfile(commandFilePath, './unix_installer.sh')
         installerPath = os.path.abspath('./%s' % (installer_name))
         subprocess.call(['installer/makeself.sh', tempdir, installerPath,
                          'MtoA for Linux Installer', './unix_installer.sh'])
