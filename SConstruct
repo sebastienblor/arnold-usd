@@ -1907,6 +1907,9 @@ fi
 """
         commandFile.write(python3Check)
         commandFile.write('$cmd $ABSDIR/unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
+        # we don't need the line below, but it allows to ensure this script is modified for
+        # each new version and allows ODIS to understand this is a new version
+        commandFile.write('mtoa_version= "%s"' % (MTOA_VERSION)) 
         commandFile.write("exit 0")
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
