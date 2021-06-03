@@ -1899,6 +1899,9 @@ ABSDIR=$(dirname "$ABSPATH")
 cd $ABSDIR
 """
         commandFile.write(absPathCD)
+        # we don't need the line below, but it allows to ensure this script is modified for
+        # each new release and allows ODIS to understand this is a new version #MTOA-663
+        commandFile.write('# MtoA %s\n' % (MTOA_VERSION)) 
         python3Check = """
 cmd="python3";
 if ! command -v $cmd &> /dev/null;then
@@ -1907,9 +1910,11 @@ fi
 """
         commandFile.write(python3Check)
         commandFile.write('$cmd $ABSDIR/unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
+        
         commandFile.write("exit 0")
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
+        shutil.copyfile(commandFilePath, './unix_installer.sh')
         installerPath = os.path.abspath('./%s' % (installer_name))
         subprocess.call(['installer/makeself.sh', tempdir, installerPath,
                          'MtoA for Linux Installer', './unix_installer.sh'])
