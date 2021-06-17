@@ -3985,3 +3985,16 @@ desc STRING "Apply a gamma correction to the color."
     [attr layer_selection]
         default             STRING     "RGBA"
 
+[node imager_denoiser_oidn]
+    maya.name              STRING "aiImagerDenoiserOIDN"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC3
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr tile_size]
+        maya.hide               BOOL     TRUE
+    [attr layer_selection]
+        default             STRING     "RGBA"
+
