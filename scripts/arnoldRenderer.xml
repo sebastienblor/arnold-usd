@@ -166,6 +166,7 @@
     <attr n="ai:fomb" s="defaultArnoldRenderOptions.ignoreMotionBlur" t="boolean" h="Ignore motion blur."/>
     <attr n="ai:fosss" s="defaultArnoldRenderOptions.ignoreSss" t="boolean" h="Ignore SSS."/>
     <attr n="ai:fodof" s="defaultArnoldRenderOptions.ignoreDof" t="boolean" h="Ignore DOF."/>
+    <attr n="ai:foimg" s="defaultArnoldRenderOptions.ignoreImagers" t="boolean" h="Ignore imagers."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Search Path"/>

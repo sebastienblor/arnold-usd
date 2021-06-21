@@ -14,6 +14,11 @@ source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
 include_files = find_files_recursive(src_base_dir, ['.h'])
 
 EXT = local_env.SharedLibrary('apiShape', source_files, LIBPREFIX='')
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\api_shape_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 if system.os == 'windows':
    local_env['MSVSSCONSCRIPT'] = ext_env.File('SConscript')

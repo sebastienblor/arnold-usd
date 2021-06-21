@@ -12,6 +12,12 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'ex
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\extension_test_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 mayaRoot = local_env['MAYA_ROOT']
 if system.os == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')

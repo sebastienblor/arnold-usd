@@ -9,6 +9,8 @@
 
 #include "ArnoldAreaLightNode.h"
 
+#include "utils/MayaUtils.h"
+
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
 
@@ -164,7 +166,7 @@ void CArnoldAreaLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage ms
 MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
    // no need for GL stuff in the batch mode
-   if (plug != s_update || MGlobal::mayaState() == MGlobal::kBatch)
+   if (plug != s_update || IsBatch())
       return MS::kUnknownParameter;
 
    // do this calculation every time if

@@ -17,6 +17,14 @@ if system.os == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
     mayaRoot = mayaRoot.replace('//', '/')
 
+
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\gpuCache_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
+
 if system.os !='windows':
     local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 

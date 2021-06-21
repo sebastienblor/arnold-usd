@@ -30,10 +30,6 @@ class BaseCodeEditor(QtWidgets.QPlainTextEdit):
 
         self.lineNumberArea = LineNumberArea(self)
 
-        if not style:
-            style = MtoAStyle.currentStyle()
-        style.apply(self)
-
         font = QtGui.QFont()
         font.setFamily("Courier")
         font.setFixedPitch(True)
