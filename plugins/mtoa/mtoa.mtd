@@ -3986,7 +3986,7 @@ desc STRING "Apply a gamma correction to the color."
         default             STRING     "RGBA"
 
 [node imager_denoiser_oidn]
-    maya.name              STRING "aiImagerDenoiserOIDN"
+    maya.name              STRING "aiImagerDenoiserOidn"
     maya.classification     STRING  "imager"
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
