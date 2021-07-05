@@ -28,7 +28,7 @@ class ImagerTonemapUI(ImagerBaseUI):
         super(ImagerTonemapUI, self).setup()
 
         self.beginLayout("Main", collapse=False)
-        self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='The mode used to perform tonemapping (filmic, reinhard,lut')
+        self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='The mode used to perform tonemapping (filmic, reinhard,lut)')
         self.addControl('preserveSaturation', label='Preserve Saturation', annotation='Preserves color saturation for extreme bright values.')
         self.addControl('gamma', label='Gamma', annotation='Gamma curve exponent for midtones value control.')
         self.endLayout()
