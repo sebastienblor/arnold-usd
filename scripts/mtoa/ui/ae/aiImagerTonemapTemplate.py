@@ -3,7 +3,6 @@ import maya.mel
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
-import os
 
 
 class AEaiImagerTonemapTemplate(ShaderAETemplate):
@@ -97,38 +96,33 @@ class ImagerTonemapUI(ImagerBaseUI):
         cmds.setAttr(attrName, mPath, type='string')
 
     def looksListEdit(self, attrName) :
-
         lookValue = cmds.optionMenu(self.colorSpaces, q = True , value = True)
         cmds.setAttr(attrName, lookValue, type='string')
-        # cmds.textField(self.lookTextField, edit=True, text=lookValue)
 
     def colorSpaceNew(self, attrName) :
         cmds.rowColumnLayout( numberOfColumns=1, columnWidth=[(1,220)], columnAlign=[(1, 'left')], columnAttach=[(1, 'left', 0)]) 
-        self.colorSpaces = cmds.optionMenu( label='Working Color Space', changeCommand = lambda *args: self.looksListEdit(attrName))
-        # self.lookTextField = cmds.textField( 'lutWorkingColorSpace', changeCommand = lambda *args: self.lookEdit(attrName), width = 200)
+        self.colorSpaces = cmds.optionMenu( label='Process Color Space', changeCommand = lambda *args: self.looksListEdit(attrName))
         cmds.setParent('..')
         self.colorSpaceReplace(attrName)
-        
-        
+
     def colorSpaceReplace(self, attrName) :
         lutAttrName = attrName.replace('.lutWorkingColorSpace', '.lutFilename')
-        # cmds.textField(self.lookTextField, edit=True, changeCommand=lambda *args: self.lookEdit(attrName, *args))
         cmds.optionMenu(self.colorSpaces , edit=True, changeCommand = lambda *args: self.looksListEdit(attrName))
         for m in cmds.optionMenu(self.colorSpaces, q=True, itemListLong=True) or []:
             cmds.deleteUI(m)
         filename = cmds.getAttr(lutAttrName)
-
         color_space_value = cmds.getAttr(attrName)
         color_spaces = cmds.colorManagementPrefs(q=True, inputSpaceNames=True)
         index = 1
         count = 1
         for color in color_spaces:
-            if (str(color) == str(color_space_value)):
+            if (not color_space_value):
+                if (str(color) == str("ACES2065-1")):
+                    index = count
+            elif (str(color) == str(color_space_value)):
                 index = count
             cmds.menuItem(parent=self.colorSpaces, label=str(color))
             count +=1
         cmds.optionMenu(self.colorSpaces, edit=True, sl = index)
-        # cmds.textField(self.lookTextField, edit=True, text=cmds.getAttr(attrName))
-
 
 registerImagerTemplate("aiImagerTonemap", ImagerTonemapUI)
