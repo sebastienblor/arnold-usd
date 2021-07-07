@@ -704,6 +704,9 @@ def createArnoldRenderSettings():
                         label="Threads",
                         attribute='defaultArnoldRenderOptions.threads')
 
+    cmds.attrControlGrp('imager_threads',
+                        label="Imager Threads Ratio",
+                        attribute='defaultArnoldRenderOptions.imager_threads_ratio')
     cmds.separator()
 
     cmds.attrControlGrp('os_binary_ass',

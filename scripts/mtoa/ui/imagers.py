@@ -598,17 +598,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.removeImagerButton.setDisabled(True)
         self.toolBar.layout().addWidget(self.removeImagerButton)
 
-        threads_value = int(cmds.getAttr('defaultArnoldRenderOptions.imagerThreadsRatio')*100)
-        label_text = "Imager Threads {0}%".format(threads_value)
-        self.imagersRatioLabel = QtWidgets.QLabel(label_text)
-        self.imagersRatioSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.imagersRatioSlider.setRange(0,100)
-        self.imagersRatioSlider.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        self.toolBar.layout().addWidget(self.imagersRatioLabel)
-        self.toolBar.layout().addWidget(self.imagersRatioSlider)
-
         self.removeImagerButton.pressed.connect(self.removeImagerAction)
-        self.imagersRatioSlider.valueChanged.connect(self.imagersSliderChanged)
 
         self.toolBar.layout().addItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
@@ -655,11 +645,6 @@ class ImagersUI(QtWidgets.QFrame):
 
         self.updateImagers()
         cmds.setParent('..')
-
-    def imagersSliderChanged(self, value):
-        cmds.setAttr('defaultArnoldRenderOptions.imagerThreadsRatio', value/100)
-        label_text = "Imager Threads {0}%".format(value)
-        self.imagersRatioLabel.setText(label_text)
 
     @QtCore.Slot(str)
     def showItemProperties(self, node):
