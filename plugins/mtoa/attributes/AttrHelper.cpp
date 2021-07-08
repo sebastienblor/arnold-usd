@@ -101,13 +101,14 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
    const AtParamEntry* paramEntry;
+   // If the attribute is an output that is not the default use a different lookup call
    if (isOutput)
    {
       paramEntry = AiNodeEntryLookUpOutput(m_nodeEntry, AtString(paramName));
    }
    else
    {
-      paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+      paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, AtString(paramName));
    }
    
     
@@ -990,6 +991,8 @@ void CBaseAttrHelper::MakeOutputFloat(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeOutputRGB(MObject& attrib, CAttrData& data, bool isCustom)
 {
    MFnNumericAttribute nAttr;
+   // With multiple shader ouputs, we cannot assume that any RGB output made on a node is
+   // the default color output
    if (!isCustom)
       attrib = nAttr.createColor(OUT_COLOR_NAME, data.shortName);
    else
@@ -1065,7 +1068,7 @@ void CBaseAttrHelper::MakeOutputNode(MObject& attrib, CAttrData& data)
 }
 
 
-// TODO : This fucntion needs to be merged with MakeOutput. 
+// TODO (MTOA-694) : This fucntion needs to be merged with MakeOutput. 
 // There is no need for this to be separate and needs to be factorized
 
 MObject CBaseAttrHelper::MakeMultipleOutput(CAttrData& data)

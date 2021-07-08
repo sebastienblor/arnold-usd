@@ -84,7 +84,8 @@ MStatus CArnoldShaderNode::initialize()
    if (!AiMetaDataGetBool(nodeEntry, NULL, "maya.attrs", &createAttrs) || createAttrs)
    {
       int num_outputs = AiNodeEntryGetNumOutputs(nodeEntry);
-      // Create Multiple outputs 
+      // Create Multiple outputs. Note that the default output for every arnold node is not considered 
+      // to be an explicit output. This currently returns 0 for our standard set of shaders. 
       if (num_outputs > 0 )
       {
          for (int i = 0; i< num_outputs; i++)
@@ -188,7 +189,10 @@ MStatus CArnoldShaderNode::initialize()
                MObject attr = helper.MakeInput(attrData);
                if (outputExists)
                {
-                  // attributeAffects(attr, outputAttr);
+                  for(const auto& output: output_attrs) 
+                  {
+                     attributeAffects(attr, output);
+                  }
                   // Even though outTransparency isn't really "used", it will "work"
                   // if the user hooks it up into an arnold graph, because at
                   // translation time, mtoa will automatically replace any outgoing

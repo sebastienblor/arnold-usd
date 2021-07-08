@@ -145,12 +145,12 @@ class OSLSceneModel():
                 for i in range(num_outputs):
                     param = AiNodeEntryGetOutput(osl_node_entry,i)
                     paramName = AiParamGetName(param)
-                    param_type = AiParamGetType(param)
-                    param_default = AiParamGetDefault(param)
+                    paramType = AiParamGetType(param)
+                    paramDefault = AiParamGetDefault(param)
                     self.outputAttributes[paramName] = {}
                     self.outputAttributes[paramName]['paramName'] = paramName
-                    self.outputAttributes[paramName]['paramType'] = param_type
-                    self.outputAttributes[paramName]['paramDefaultValue'] = param_default
+                    self.outputAttributes[paramName]['paramType'] = paramType
+                    self.outputAttributes[paramName]['paramDefaultValue'] = paramDefault
             else:
                 self.outputAttributes['output'] = {}
                 self.outputAttributes['output']['outputType'] = AiNodeEntryGetOutputType(osl_node_entry)
