@@ -15,57 +15,65 @@ def to_camelcase(s):
     return re.sub(r'(?!^)_([a-zA-Z])', lambda m: m.group(1).upper(), s)
 
 
-def createMayaAttributeForArnoldAttributes(mayaNodeName, mayaAttributeName, arnoldAttributeType, defaultValue):
+def createMayaAttributeForArnoldAttributes(mayaNodeName, mayaAttributeName, arnoldAttributeType, defaultValue, isOutputAttr):
     '''
     Create maya attributes for all Arnold-OSL attributes with their default values.
     We dont support AI_TYPE_ARRAY AI_TYPE_POINTER AI_TYPE_NODE AI_TYPE_MATRIX attribute types yet.
     '''
 
-    mayaAttributeLongName = mayaAttributeName.split('param_')[-1]
-    mayaAttributeName = to_camelcase(mayaAttributeName)
+    ## Default values are for an input attribute
+    write = True
+    read = False
+
+    if (isOutputAttr):
+        write = False
+        read = True
+
+    mayaAttributeLongName = mayaAttributeName
+    mayaAttributeShortName = to_camelcase(mayaAttributeName)
 
     if arnoldAttributeType == AI_TYPE_BYTE:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at='byte', w=True, r=False, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at='byte', w=write, r=read, ct="oslAttribute")
     elif arnoldAttributeType == AI_TYPE_INT:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
             attrDefaultValue = defaultValue.contents.INT
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at='long', dv=attrDefaultValue, w=True, r=False, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at='long', dv=attrDefaultValue, w=write, r=read, ct="oslAttribute")
     elif arnoldAttributeType == AI_TYPE_UINT:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
             attrDefaultValue = defaultValue.contents.INT
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at='long', dv=attrDefaultValue, w=True, r=False, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at='long', dv=attrDefaultValue, w=write, r=read, ct="oslAttribute")
     elif arnoldAttributeType == AI_TYPE_BOOLEAN:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
             attrDefaultValue = defaultValue.contents.BOOL
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at='bool', dv=attrDefaultValue, w=True, r=False, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at='bool', dv=attrDefaultValue, w=write, r=read, ct="oslAttribute")
     elif arnoldAttributeType == AI_TYPE_FLOAT:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
             attrDefaultValue = defaultValue.contents.FLT
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at="float", dv=attrDefaultValue, w=True, r=False, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at="float", dv=attrDefaultValue, w=write, r=read, ct="oslAttribute")
     elif arnoldAttributeType == AI_TYPE_RGB or arnoldAttributeType == AI_TYPE_RGBA or arnoldAttributeType == AI_TYPE_CLOSURE:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
             dv_x, dv_y, dv_z = (defaultValue.contents.RGB.r, defaultValue.contents.RGB.g, defaultValue.contents.RGB.b)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at="float3", uac=True, w=True, r=False, ct="oslAttribute")
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'R', longName=mayaAttributeLongName + 'R', at="float", parent=mayaAttributeLongName, dv=dv_x, w=True, r=False)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'G', longName=mayaAttributeLongName + 'G', at="float", parent=mayaAttributeLongName, dv=dv_y, w=True, r=False)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'B', longName=mayaAttributeLongName + 'B', at="float", parent=mayaAttributeLongName, dv=dv_z, w=True, r=False)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at="float3", uac=True, w=write, r=read, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'R', longName=mayaAttributeLongName + 'R', at="float", parent=mayaAttributeLongName, dv=dv_x, w=write, r=read)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'G', longName=mayaAttributeLongName + 'G', at="float", parent=mayaAttributeLongName, dv=dv_y, w=write, r=read)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'B', longName=mayaAttributeLongName + 'B', at="float", parent=mayaAttributeLongName, dv=dv_z, w=write, r=read)
     elif arnoldAttributeType == AI_TYPE_VECTOR:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
             dv_x, dv_y, dv_z = (defaultValue.contents.VEC.x, defaultValue.contents.VEC.y, defaultValue.contents.VEC.z)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at="float3", w=True, r=False, ct="oslAttribute")
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'X', longName=mayaAttributeLongName + 'X', at="float", parent=mayaAttributeLongName, dv=dv_x, w=True, r=False)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'Y', longName=mayaAttributeLongName + 'Y', at="float", parent=mayaAttributeLongName, dv=dv_y, w=True, r=False)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'Z', longName=mayaAttributeLongName + 'Z', at="float", parent=mayaAttributeLongName, dv=dv_z, w=True, r=False)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at="float3", w=write, r=read, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'X', longName=mayaAttributeLongName + 'X', at="float", parent=mayaAttributeLongName, dv=dv_x, w=write, r=read)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'Y', longName=mayaAttributeLongName + 'Y', at="float", parent=mayaAttributeLongName, dv=dv_y, w=write, r=read)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'Z', longName=mayaAttributeLongName + 'Z', at="float", parent=mayaAttributeLongName, dv=dv_z, w=write, r=read)
     elif arnoldAttributeType == AI_TYPE_VECTOR2:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
             dv_x, dv_y, dv_z = (defaultValue.contents.VEC.x, defaultValue.contents.VEC.y, defaultValue.contents.VEC.z)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, at="float2", w=True, r=False, ct="oslAttribute")
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'U', longName=mayaAttributeLongName + 'U', at="float", parent=mayaAttributeLongName, w=True, r=False)
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName + 'V', longName=mayaAttributeLongName + 'V', at="float", parent=mayaAttributeLongName, w=True, r=False)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, at="float2", w=write, r=read, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'U', longName=mayaAttributeLongName + 'U', at="float", parent=mayaAttributeLongName, w=write, r=read)
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'V', longName=mayaAttributeLongName + 'V', at="float", parent=mayaAttributeLongName, w=write, r=read)
     elif arnoldAttributeType == AI_TYPE_STRING:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
-            cmds.addAttr(mayaNodeName, sn=mayaAttributeName, longName=mayaAttributeLongName, dt="string", w=True, r=False, ct="oslAttribute")
+            cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, dt="string", w=write, r=read, ct="oslAttribute")
     elif arnoldAttributeType == AI_TYPE_ARRAY or arnoldAttributeType == AI_TYPE_POINTER or arnoldAttributeType == AI_TYPE_NODE or arnoldAttributeType == AI_TYPE_MATRIX:
         pass
     else:
@@ -132,8 +140,20 @@ class OSLSceneModel():
             self.compileState = True
             # get the morphed node entry
             osl_node_entry = AiNodeGetNodeEntry(osl_node)
-            self.outputAttributes['output'] = {}
-            self.outputAttributes['output']['outputType'] = AiNodeEntryGetOutputType(osl_node_entry)
+            num_outputs = AiNodeEntryGetNumOutputs(osl_node_entry)
+            if num_outputs > 0 :
+                for i in range(num_outputs):
+                    param = AiNodeEntryGetOutput(osl_node_entry,i)
+                    paramName = AiParamGetName(param)
+                    paramType = AiParamGetType(param)
+                    paramDefault = AiParamGetDefault(param)
+                    self.outputAttributes[paramName] = {}
+                    self.outputAttributes[paramName]['paramName'] = paramName
+                    self.outputAttributes[paramName]['paramType'] = paramType
+                    self.outputAttributes[paramName]['paramDefaultValue'] = paramDefault
+            else:
+                self.outputAttributes['output'] = {}
+                self.outputAttributes['output']['outputType'] = AiNodeEntryGetOutputType(osl_node_entry)
             it = AiNodeEntryGetParamIterator(osl_node_entry)
             while not AiParamIteratorFinished(it):
                 pentry = AiParamIteratorGetNext(it)
@@ -162,7 +182,7 @@ class OSLSceneModel():
             nodeAttrs = cmds.listAttr(self._mayaNodeName, userDefined=True, write=True, ct="oslAttribute", sn=True)
             if nodeAttrs:
                 for attr in nodeAttrs:
-                    if attr in self.inputAttributes.keys():
+                    if attr in self.inputAttributes.keys() or attr in self.outputAttributes.keys():
                         pass
                     else:
                         cmds.deleteAttr(self._mayaNodeName + '.' + attr)
@@ -171,6 +191,14 @@ class OSLSceneModel():
                 createMayaAttributeForArnoldAttributes(self._mayaNodeName,  # The Maya node to which attributes need to be added
                                                        self.inputAttributes[key]['paramName'],  # The name of attribute
                                                        self.inputAttributes[key]['paramType'],  # The type of the attribute
-                                                       self.inputAttributes[key]['paramDefaultValue']  # The default value
+                                                       self.inputAttributes[key]['paramDefaultValue'],  # The default value
+                                                       False ## Is not an output attribute
                                                        )
 
+            for key in self.outputAttributes.keys():
+                createMayaAttributeForArnoldAttributes(self._mayaNodeName,  # The Maya node to which attributes need to be added
+                                                       self.outputAttributes[key]['paramName'],  # The name of attribute
+                                                       self.outputAttributes[key]['paramType'],  # The type of the attribute
+                                                       self.outputAttributes[key]['paramDefaultValue'],  # The default value
+                                                       True ## Is an output attribute
+                                                       )
