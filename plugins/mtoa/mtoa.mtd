@@ -4001,3 +4001,13 @@ desc STRING "Apply a gamma correction to the color."
     [attr layer_selection]
         default             STRING     "RGBA"
 
+[node imager_color_curves]
+    maya.name              STRING "aiImagerColorCurves"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC4
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr layer_selection]
+        default             STRING     "RGBA"
