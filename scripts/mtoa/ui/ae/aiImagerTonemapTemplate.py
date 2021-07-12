@@ -30,7 +30,8 @@ class ImagerTonemapUI(ImagerBaseUI):
         self.beginLayout("Main", collapse=False)
         self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='The mode used to perform tonemapping (filmic, reinhard,lut)')
         self.addControl('preserveSaturation', label='Preserve Saturation', annotation='Preserves color saturation for extreme bright values.')
-        self.addControl('gamma', label='Gamma', annotation='Gamma curve exponent for midtones value control.')
+        self.addControl('gamma', label='Gamma', annotation='Gamma curve exponent for midtones value control.', hideMapButton = True)
+        self.addControl('mix', label='Mix', annotation='Controls how much of the tonemapping to apply. 1 applies the full effect', hideMapButton = True)
         self.endLayout()
 
         self.beginLayout("Filmic", collapse=False)

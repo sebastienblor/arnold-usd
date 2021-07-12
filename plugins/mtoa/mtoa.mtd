@@ -3935,6 +3935,9 @@ desc STRING "Apply a gamma correction to the color."
     [attr gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
+    [attr mix]
+        min                 FLOAT    0
+        max                 FLOAT    1
     [attr layer_selection]
         default             STRING     "RGBA"
 
