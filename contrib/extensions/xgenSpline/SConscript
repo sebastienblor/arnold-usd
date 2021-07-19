@@ -103,6 +103,13 @@ maya_version_base = ext_env['MAYA_VERSION_BASE']
 if int(maya_version_base) >= 2018:
     local_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\xgenSplineTranslator_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
+
 if system.os =='windows':
     local_env.Append(CPPPATH = ['.'])   
     local_env.Append(LIBS=Split('ai.lib'))
@@ -149,6 +156,12 @@ else:
    shader_env.Append(CPPPATH = ['.'])
    shader_env.Append(LIBS=Split('ai'))
    shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\xgenSpline_shaders_tmp.pdb"
+    shader_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 EXT_SHADERS = shader_env.SharedLibrary('xgenSpline_shaders', source_files, LIBPREFIX='')
 
@@ -202,6 +215,12 @@ else:
     if system.os == 'darwin':
         proc_env.Append(CCFLAGS = Split('-stdlib=libc++'))
         proc_env.Append(LINKFLAGS = Split('-lc++'))
+
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\xgenSpline_procedural_tmp.pdb"
+    proc_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 EXT_PROCS = proc_env.SharedLibrary('xgenSpline_procedural', source_files, LIBPREFIX='')
 EXT_PROCS.target_type = 'shader'

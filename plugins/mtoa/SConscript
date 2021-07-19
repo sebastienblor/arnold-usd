@@ -15,7 +15,6 @@ GLEW_INCLUDES = local_env.subst(local_env['GLEW_INCLUDES'])
 GLEW_LIB = local_env.subst(local_env['GLEW_LIB'])
 
 
-
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
@@ -23,6 +22,12 @@ subdirs = ['commands', 'nodes', 'translators','viewport2']
 for subdir in subdirs:
     dir = os.path.join(src_base_dir, subdir)
     source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
+
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\mtoa_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
 #Remove files to be exported by the API from 'nodes' and 'translators' folder
 source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),

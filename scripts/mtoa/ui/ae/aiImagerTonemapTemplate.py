@@ -28,9 +28,10 @@ class ImagerTonemapUI(ImagerBaseUI):
         super(ImagerTonemapUI, self).setup()
 
         self.beginLayout("Main", collapse=False)
-        self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='The mode used to perform tonemapping (filmic, reinhard')
+        self.addControl('mode', label='Mode', changeCommand=self.updateParamsVisibility, annotation='The mode used to perform tonemapping (filmic, reinhard,lut)')
         self.addControl('preserveSaturation', label='Preserve Saturation', annotation='Preserves color saturation for extreme bright values.')
-        self.addControl('gamma', label='Gamma', annotation='Gamma curve exponent for midtones value control.')
+        self.addControl('gamma', label='Gamma', annotation='Gamma curve exponent for midtones value control.', hideMapButton = True)
+        self.addControl('mix', label='Mix', annotation='Controls how much of the tonemapping to apply. 1 applies the full effect', hideMapButton = True)
         self.endLayout()
 
         self.beginLayout("Filmic", collapse=False)
@@ -46,6 +47,11 @@ class ImagerTonemapUI(ImagerBaseUI):
         self.addControl('reinhardShadows', label='Shadows', annotation='Additional tonemapping control for darker values.', hideMapButton = True)
         self.endLayout()
 
+        self.beginLayout("LUT", collapse=False)
+        self.addCustom('lutFilename', self.filenameNew, self.filenameReplace)
+        self.addCustom('lutWorkingColorSpace', self.colorSpaceNew, self.colorSpaceReplace)
+        self.endLayout()
+
         self.updateParamsVisibility(self.nodeName)
 
     def updateParamsVisibility(self, *args):
@@ -58,6 +64,66 @@ class ImagerTonemapUI(ImagerBaseUI):
         self.dimControl('filmicShoulderAngle', state=modeValue != 0)
         self.dimControl('reinhardHighlights', state=modeValue != 1)
         self.dimControl('reinhardShadows', state=modeValue != 1)
+        self.dimControl('lutFilename', state=modeValue != 2)
+        self.dimControl('lutWorkingColorSpace', state=modeValue != 2)
 
+    def filenameEdit(self, newFilename) :
+        attr = self.nodeAttr('lutFilename')
+        cmds.setAttr(attr, newFilename, type="string")
+    
+    def LoadFilenameButtonPush(self, *args):
+        defaultFolder = cmds.workspace(q=True, rd=True)
+
+        basicFilter = 'All Files (*.*)'
+        ret = cmds.fileDialog2(fileFilter=basicFilter,
+                               cap='Load LUT File',
+                               okc='Load', fm=4,
+                               dir=defaultFolder)
+        if ret is not None and len(ret):
+            defaultFolder = ret[0]
+            self.filenameEdit(ret[0])
+            cmds.textFieldGrp("filenameImageGrp", edit=True, text=ret[0])
+
+    def filenameNew(self, nodeName):
+        cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
+        path = cmds.textFieldGrp("filenameImageGrp", label="LUT Filename", changeCommand=self.filenameEdit)
+        cmds.textFieldGrp(path, edit=True, text=cmds.getAttr(nodeName))
+        cmds.symbolButton( image='navButtonBrowse.png', command=self.LoadFilenameButtonPush)
+
+    def filenameReplace(self, nodeName):
+        cmds.textFieldGrp( "filenameImageGrp", edit=True, text=cmds.getAttr(nodeName) )
+
+    def lookEdit(self, attrName, mPath) :
+        cmds.setAttr(attrName, mPath, type='string')
+
+    def looksListEdit(self, attrName) :
+        lookValue = cmds.optionMenu(self.colorSpaces, q = True , value = True)
+        cmds.setAttr(attrName, lookValue, type='string')
+
+    def colorSpaceNew(self, attrName) :
+        cmds.rowColumnLayout( numberOfColumns=1, columnWidth=[(1,220)], columnAlign=[(1, 'left')], columnAttach=[(1, 'left', 0)]) 
+        self.colorSpaces = cmds.optionMenu( label='Process Color Space', changeCommand = lambda *args: self.looksListEdit(attrName))
+        cmds.setParent('..')
+        self.colorSpaceReplace(attrName)
+
+    def colorSpaceReplace(self, attrName) :
+        lutAttrName = attrName.replace('.lutWorkingColorSpace', '.lutFilename')
+        cmds.optionMenu(self.colorSpaces , edit=True, changeCommand = lambda *args: self.looksListEdit(attrName))
+        for m in cmds.optionMenu(self.colorSpaces, q=True, itemListLong=True) or []:
+            cmds.deleteUI(m)
+        filename = cmds.getAttr(lutAttrName)
+        color_space_value = cmds.getAttr(attrName)
+        color_spaces = cmds.colorManagementPrefs(q=True, inputSpaceNames=True)
+        index = 1
+        count = 1
+        for color in color_spaces:
+            if (not color_space_value):
+                if (str(color) == str("ACES2065-1")):
+                    index = count
+            elif (str(color) == str(color_space_value)):
+                index = count
+            cmds.menuItem(parent=self.colorSpaces, label=str(color))
+            count +=1
+        cmds.optionMenu(self.colorSpaces, edit=True, sl = index)
 
 registerImagerTemplate("aiImagerTonemap", ImagerTonemapUI)

@@ -172,6 +172,53 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
          
       }
    }
+   else if (mode == "update_selected") 
+   {
+      if (!CMayaScene::IsActive())
+         return MS::kFailure;
+      CArnoldSession *session = CMayaScene::GetArnoldSession();
+      if (session == nullptr)
+         return MS::kFailure;
+
+      MSelectionList sList;
+      MStringArray sListStrings;
+      args.getObjects(sListStrings);   
+      const unsigned int sListStringsLength = sListStrings.length();
+
+      sList.clear();
+      if (sListStringsLength > 0)
+      {
+         for (unsigned int i = 0; i < sListStringsLength; ++i)
+         {
+            sList.add(sListStrings[i]);
+         }
+      }
+      else
+         MGlobal::getActiveSelectionList(sList);
+
+      MSelectionList sel(sList);
+
+      for (unsigned int i = 0; i < sel.length(); ++i)
+      {
+         MStatus listStatus;
+         MDagPath dag;
+         MObject objNode;
+         CNodeTranslator *tr = NULL;
+         if (sel.getDagPath(i, dag) == MS::kSuccess)
+         {
+            dag.extendToShape();
+            tr = session->GetActiveTranslator(CNodeAttrHandle(dag));
+         } else if (sel.getDependNode(i, objNode) == MS::kSuccess)
+         {
+            tr = session->GetActiveTranslator(CNodeAttrHandle(objNode));
+         }
+
+         if (tr)
+         {
+            tr->RequestUpdate();
+         }            
+      }
+   }
    if (listAllNewNodes || listAllNodes)
    {
       AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);

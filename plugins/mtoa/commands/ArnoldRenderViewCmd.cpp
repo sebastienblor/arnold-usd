@@ -25,7 +25,7 @@
 #endif
 */
 static bool s_wasVisible = false;
-static bool s_arvExists = false;
+//static bool s_arvExists = false;
 
 // Return the default camera
 static MDagPath GetDefaultCamera()
@@ -207,7 +207,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          renderSession->FillRenderViewCameras();
          
          renderSession->StartRenderView();
-         s_arvExists = true;
+         //s_arvExists = true;
          renderSession->SetRenderViewOption("Run IPR", "0");
 // (why were we calling this function ?) renderSession->SetRenderViewOption("Full IPR Update", "1");
          renderSession->CloseRenderViewWithSession(false); // but DON't close ARV with CMayaScene::End()
@@ -308,11 +308,11 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
 {   
    // only set the default (view) camera when we run ARV
    // for the first time
-   bool setDefaultCamera = !s_arvExists;
+   bool setDefaultCamera = true;// !s_arvExists;
 
    bool wasViewportRendering = CRenderSession::IsViewportRendering();
 
-   s_arvExists = true;
+   //s_arvExists = true;
    CMayaScene::End();
    
    MCommonRenderSettingsData renderGlobals;
@@ -347,6 +347,7 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
       // because ARV_options parameter will be parsed then, and a camera will
       // eventually be set. We want this other camera to have priority over the 
       // one we're setting here.
+      renderSession->SetRenderViewOption("Add Camera", renderCamera);
       renderSession->SetRenderViewOption("Camera", renderCamera);
    }
    

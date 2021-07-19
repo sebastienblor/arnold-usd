@@ -29,7 +29,7 @@ class CRenderViewZoomManipulator;
 class CRenderViewRotateManipulator;
 class QWidget;
 class QMainWindow;
-
+struct CRenderViewInterfaceImpl;
 /**
  *   CRenderViewInterface plays the role of an Interface between the "Host" (Plugin / Application)
  *   and the RenderView itself. Several functions are required, that can be invoked in both directions
@@ -39,9 +39,15 @@ class QMainWindow;
 class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
+   
+   CRenderViewInterface();
+   virtual ~CRenderViewInterface();
 
-   CRenderViewInterface() {};
-   virtual ~CRenderViewInterface() {DestroyRenderView();}
+   // Currently this method needs to be called BEFORE OpenRenderView
+   void SetUniverse(AtUniverse *universe);
+   AtUniverse *GetUniverse();
+   AtRenderSession *GetRenderSession();
+   
 
 /**
  *   Functions to be invoked by the Host
@@ -145,6 +151,8 @@ public:
    // A value of 0 means that every bucket that is rendered can trigger a GL display   
    void SetDrawFPS(float fps);
 
+   // Tell the RenderView that next render update should trigger a full scene export
+   void RequestFullSceneUpdate();
 /**  
  *    Functions that may be invoked by the RenderView depending 
  *    user actions. They need to be overridden to define what
@@ -216,7 +224,7 @@ public:
    AtRGBA GetWidgetColorAtPosition(unsigned posX, unsigned posY, bool viewTransform, QWidget* pickedWidget = NULL);
 
 private:
-   
+   CRenderViewInterfaceImpl *m_impl;   
    // internal usage only, we need these functions to avoid linking issues on *nix
    void UpdateGlWidget();
    void ResizeMainWindow(int w, int h, bool drawableArea = false);
@@ -233,7 +241,10 @@ public:
    virtual ~CRenderViewPanManipulator() {}
 
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
-   
+   void SetUniverse(AtUniverse *universe) {m_universe = universe;}
+   AtUniverse *GetUniverse() {return m_universe;}
+protected:
+   AtUniverse *m_universe;
 };
 
 class AI_RV_DLLEXPORT CRenderViewZoomManipulator
@@ -245,7 +256,10 @@ public:
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
    virtual void WheelDelta(float delta) = 0;
    virtual void FrameSelection() = 0;
-
+   void SetUniverse(AtUniverse *universe) {m_universe = universe;}
+   AtUniverse *GetUniverse() {return m_universe;}
+protected:
+   AtUniverse *m_universe;
 };
 
 class AI_RV_DLLEXPORT CRenderViewRotateManipulator
@@ -253,8 +267,11 @@ class AI_RV_DLLEXPORT CRenderViewRotateManipulator
 public:
    CRenderViewRotateManipulator() {}
    virtual ~CRenderViewRotateManipulator() {}
-
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
+   void SetUniverse(AtUniverse *universe) {m_universe = universe;}
+   AtUniverse *GetUniverse() {return m_universe;}
+protected:
+   AtUniverse *m_universe;
 };
 
 

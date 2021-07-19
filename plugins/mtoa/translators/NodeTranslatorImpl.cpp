@@ -299,10 +299,19 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
       }
       else
       {
-         // Check for success
-         // get component name: "r", "g", "b", "x", etc
+         int num_outputs = AiNodeEntryGetNumOutputs(AiNodeGetNodeEntry(srcArnoldNode));
          int outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
-         MString component = GetComponentName(outputType,srcMayaPlug);
+         MString component;
+         if (num_outputs > 0)
+         {
+            component = srcMayaPlug.partialName(false, false, false, false, false, true);
+         }
+         else
+         {
+            // Check for success
+            // get component name: "r", "g", "b", "x", etc
+            component = GetComponentName(outputType,srcMayaPlug);
+         }
          if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))
          {
             AiMsgWarning("[mtoa] Could not link %s to %s.%s.",

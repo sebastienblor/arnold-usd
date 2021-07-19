@@ -74,7 +74,7 @@ CArnoldProceduralData::~CArnoldProceduralData()
 
 void CArnoldProceduralData::Clear()
 {
-   for (geometryListIterType it = m_geometryList.begin();
+   for (CArnoldDrawGeometry::geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
       delete it->second;
    m_geometryList.clear();
@@ -85,7 +85,7 @@ void CArnoldProceduralData::Clear()
 size_t CArnoldProceduralData::PointCount(StandinSelectionFilter filter) const
 {
     size_t totalPoints = 0;
-    for (geometryListIterType it = m_geometryList.begin();
+    for (CArnoldDrawGeometry::geometryListIterType it = m_geometryList.begin();
          it != m_geometryList.end(); ++it)
     {
         if (it->second->Visible(filter))
@@ -100,7 +100,7 @@ size_t CArnoldProceduralData::PointCount(StandinSelectionFilter filter) const
 size_t CArnoldProceduralData::SharedVertexCount(StandinSelectionFilter filter) const
 {
     size_t totalPoints = 0;
-    for (geometryListIterType it = m_geometryList.begin();
+    for (CArnoldDrawGeometry::geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
         if (it->second->Visible(filter))
@@ -113,7 +113,7 @@ size_t CArnoldProceduralData::SharedVertexCount(StandinSelectionFilter filter) c
 size_t CArnoldProceduralData::WireIndexCount(StandinSelectionFilter filter) const
 {
     size_t total = 0;
-    for (geometryListIterType it = m_geometryList.begin();
+    for (CArnoldDrawGeometry::geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
         if (it->second->Visible(filter))
@@ -127,7 +127,7 @@ size_t CArnoldProceduralData::WireIndexCount(StandinSelectionFilter filter) cons
 size_t CArnoldProceduralData::TriangleIndexCount(bool sharedVertices, StandinSelectionFilter filter) const
 {
     size_t total = 0;
-    for (geometryListIterType it = m_geometryList.begin();
+    for (CArnoldDrawGeometry::geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
         if (it->second->Visible(filter))
@@ -138,16 +138,30 @@ size_t CArnoldProceduralData::TriangleIndexCount(bool sharedVertices, StandinSel
     return total;
 }
 
-size_t CArnoldProceduralData::VisibleGeometryCount(StandinSelectionFilter filter) const
+static inline size_t ComputeVisibleGeometries(StandinSelectionFilter filter, 
+                           const CArnoldDrawGeometry::geometryListType *geometries)
 {
-    size_t total = 0;
-    for (geometryListIterType it = m_geometryList.begin();
-        it != m_geometryList.end(); ++it)
-    {
-        if (it->second->Visible(filter))
-            total++;
+   if (geometries == nullptr)
+      return 0;
+   size_t total = 0;
+
+   for (CArnoldDrawGeometry::geometryListIterType it = geometries->begin();
+      it != geometries->end(); ++it)
+   {
+      auto geom = it->second;
+      if (!geom->Visible(filter))
+         continue;
+
+      if (geom->HasChildGeometry()) 
+         total += ComputeVisibleGeometries(filter, geom->GetChildGeometry());
+      else 
+         total++;
     }
     return total;
+}
+size_t CArnoldProceduralData::VisibleGeometryCount(StandinSelectionFilter filter) const
+{
+   return ComputeVisibleGeometries(filter, &m_geometryList);
 }
 
 CArnoldBaseProcedural::CArnoldBaseProcedural() : m_nodeDirtyId(0), m_data(NULL)
@@ -304,7 +318,7 @@ void CArnoldBaseProcedural::UpdateSelectedItems()
    CArnoldBaseProcedural* nonConstThis = const_cast<CArnoldBaseProcedural*> (this);
    CArnoldProceduralData* geom = nonConstThis->geometry();
    m_data->m_isSelected = false;
-   for (CArnoldProceduralData::geometryListIterType it = m_data->m_geometryList.begin(); it != m_data->m_geometryList.end(); ++it)
+   for (CArnoldDrawGeometry::geometryListIterType it = m_data->m_geometryList.begin(); it != m_data->m_geometryList.end(); ++it)
    {
       CArnoldDrawGeometry* g = it->second;
       MString nodeName(it->first.c_str());
@@ -392,6 +406,7 @@ void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
 
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
    std::vector<std::pair<CArnoldDrawGInstance *, std::string> > instances;
+   int idx = 0;
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode* node = AiNodeIteratorGetNext(iter);
@@ -399,13 +414,21 @@ void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
          continue;
    
       MString nodeName = MString(AiNodeGetName(node));
+
+      if (nodeName.length() == 0)
+      {
+         nodeName = "__unnamed_proc_";
+         nodeName += idx++;
+         AiNodeSetStr(node, AtString("name"), nodeName.asChar());
+      }
+
       CArnoldDrawGeometry* g = 0;
       bool isInstance = false;
       if (AiNodeIs(node, polymesh_str))
          g = new CArnoldDrawPolymesh(node);
       else if (AiNodeIs(node, points_str))
          g = new CArnoldDrawPoints(node);
-      else if(AiNodeIs(node, procedural_str))
+      else if(AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(node)) == AI_NODE_SHAPE_PROCEDURAL)
          g = new CArnoldDrawProcedural(node, viewport_mode);
       else if(AiNodeIs(node, box_str))
          g = new CArnoldDrawBox(node);
@@ -468,7 +491,7 @@ void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
       if (instance.first == nullptr)
          continue;
       
-      CArnoldProceduralData::geometryListIterType srcIter = m_data->m_geometryList.find(instance.second);
+      CArnoldDrawGeometry::geometryListIterType srcIter = m_data->m_geometryList.find(instance.second);
       if (srcIter == m_data->m_geometryList.end() || srcIter->second == nullptr)
          continue;
 

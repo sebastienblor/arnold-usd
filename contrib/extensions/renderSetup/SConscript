@@ -14,6 +14,12 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 're
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\renderSetup_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 EXT = local_env.SharedLibrary('renderSetup', source_files, LIBPREFIX='')
 
 if system.os == 'windows':
@@ -31,6 +37,13 @@ shader_env = env.Clone()
 src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'renderSetup', 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\renderSetupShaders_tmp.pdb"
+    shader_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 
 if system.os =='windows':
    shader_env.Append(CPPPATH = ['.'])

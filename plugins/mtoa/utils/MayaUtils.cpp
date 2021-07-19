@@ -158,3 +158,8 @@ bool IsRGBAttrDefault(MPlug plug, float valueR, float valueG, float valueB)
            IsFloatAttrDefault(plug.child(1), valueB));
 
 }
+
+bool IsBatch()
+{
+   return (MGlobal::mayaState() == MGlobal::kBatch || MGlobal::mayaState() == MGlobal::kLibraryApp);
+}
