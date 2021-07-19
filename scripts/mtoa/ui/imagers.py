@@ -626,8 +626,6 @@ class ImagersUI(QtWidgets.QFrame):
 
             self.attributeScrollArea.setWidget(self.scrollAreaWidgetContents)
 
-            self.imagerAttributesFrame = None
-
             self.imagerStack.itemSelected.connect(self.showItemProperties)
             self.imagerStack.itemRemoved.connect(self.updateImagers)
 
@@ -666,6 +664,7 @@ class ImagersUI(QtWidgets.QFrame):
 
         frameQTWidget = toQtObject(imagerAttributesFrame, QtWidgets.QWidget)
         frameQTWidget.setLayout(QtWidgets.QVBoxLayout())
+        # frameQTWidget.setObjectName("ImagersAttributeFrame_{}".format(uuid.uuid4()))
 
         imagersUITemplate = getImagerTemplate(cmds.nodeType(node))
 

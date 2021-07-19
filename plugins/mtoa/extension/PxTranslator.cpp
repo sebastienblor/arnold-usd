@@ -11,6 +11,7 @@
 #include "translators/operator/OperatorTranslator.h"
 #include "translators/imager/ImagerTranslator.h"
 #include "translators/imager/ImagerLightMixerTranslator.h"
+#include "translators/imager/ImagerColorCurvesTranslator.h"
 
 // A translator proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -79,6 +80,11 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
         {
             creator = CImagerLightMixer::creator;
             initialize = CImagerLightMixer::NodeInitializer;
+        }
+        else if (arnold == MString("imager_color_curves") )
+        {
+            creator = CImagerColorCurvesTranslator::creator;
+            initialize = CImagerColorCurvesTranslator::NodeInitializer;
         }
          else if (arnold.length() > 7 && arnold.substringW(0, 6) == MString("imager_")) 
          {
