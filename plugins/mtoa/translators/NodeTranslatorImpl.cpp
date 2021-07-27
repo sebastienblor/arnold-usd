@@ -301,16 +301,24 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
       {
          int num_outputs = AiNodeEntryGetNumOutputs(AiNodeGetNodeEntry(srcArnoldNode));
          int outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
-         MString component;
-         if (num_outputs > 0)
+         MString component = GetComponentName(outputType,srcMayaPlug);
+
+         // num_outputs is 0 for all standard C Shaders and 1 for OSL shader with a single output 
+         // We want to treat any outputs > 1 in a special way 
+         if (num_outputs > 1 )
          {
-            component = srcMayaPlug.partialName(false, false, false, false, false, true);
-         }
-         else
-         {
-            // Check for success
-            // get component name: "r", "g", "b", "x", etc
-            component = GetComponentName(outputType,srcMayaPlug);
+            // If it's multiple output and a component connection 
+            // we setup the 2nd argument to AiNodeLinkOutput to be 
+            // outputAttr.component 
+            if (component.length() != 0 && srcMayaPlug.isChild()) 
+            {
+               MString parent = srcMayaPlug.parent().partialName(false, false, false, false, false, true);
+               component = parent + MString(".") + component;
+            }
+            else
+            {
+               component = srcMayaPlug.partialName(false, false, false, false, false, true);
+            }
          }
          if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))
          {
