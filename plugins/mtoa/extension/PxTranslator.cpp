@@ -44,6 +44,11 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
          SetName(provider);
       }
    }
+   
+   // get the maya.isdefault metadata, this tells us if this translator should be the default one
+   // when multiple translators are set for a given maya node 
+   AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.isdefault", &isdefault);
+
    // If no explicit translator was specified, choose a default one using Arnold node type
    // TODO : use metadata for a finer choice of base translator classes ?
    if (NULL == creator)

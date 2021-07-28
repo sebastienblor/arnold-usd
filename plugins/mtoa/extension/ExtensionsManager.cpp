@@ -661,12 +661,14 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             CExtensionAttrHelper helper(mayaNode->name);
             if (helper.GetMayaNodeTypeId() != MTypeId(MFn::kInvalid))
             {
+               MString defaultTranslator = GetDefaultTranslator(mayaNode->name);
                if (MtoaTranslationInfo())
-                  MtoaDebugLog("[mtoa] ["+extName+"] [maya "+mayaNode->name+"] Multiple translators, adding \"aiTranslator\" attribute to Maya node");
+                  MtoaDebugLog("[mtoa] ["+extName+"] [maya "+mayaNode->name+"] Multiple translators, adding \"aiTranslator\" attribute to Maya node (default : "+defaultTranslator+")");
                   
                CAttrData data;
                data.name = "aiTranslator";
                data.shortName = "ai_translator";
+               data.defaultValue.STR() = AtString(defaultTranslator.asChar());
                data.keyable = false;
                data.channelBox = false;
                helper.MakeInputString(data);

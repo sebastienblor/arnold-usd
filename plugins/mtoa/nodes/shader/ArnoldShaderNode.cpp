@@ -79,17 +79,45 @@ MStatus CArnoldShaderNode::initialize()
    // maya.attrs is a metadata (true by default) used to prevent the creation of attributes in the existing maya nodes
    // It avoids to set maya.hide on each of the parameters #2085
    bool createAttrs = true;
+   std::vector<MObject> output_attrs;
+   bool outputExists = false;
    if (!AiMetaDataGetBool(nodeEntry, NULL, "maya.attrs", &createAttrs) || createAttrs)
    {
-      // outputs
-      MObject outputAttr = helper.MakeOutput();
-      bool outputExists = (outputAttr != MObject::kNullObj);
-      if (outputExists)
+      int num_outputs = AiNodeEntryGetNumOutputs(nodeEntry);
+      // Create Multiple outputs. Note that the default output for every arnold node is not considered 
+      // to be an explicit output. This currently returns 0 for our standard set of shaders. 
+      if (num_outputs > 0 )
       {
-         // TODO: determine when it is appropriate to make outTransparency.
-         // currently maya crashes when it does not exist
-         MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
-         MAKE_OUTPUT(nAttr, s_OUT_transparency);
+         for (int i = 0; i< num_outputs; i++)
+         {
+            CAttrData data;
+            const AtParamEntry* param = AiNodeEntryGetOutput(nodeEntry,i);
+            const char* paramName = AiParamGetName(param);
+            int param_type = AiParamGetType(param);
+            data.isArray = false;
+            data.type = param_type;
+            data.name = MString(paramName);
+            data.shortName = MString(paramName);
+            MObject attr = helper.MakeMultipleOutput(data);
+            outputExists = (attr != MObject::kNullObj);
+            addAttribute(attr);
+            output_attrs.push_back(attr);
+         }
+      }
+      else // Create the default output
+      {
+         // outputs
+         MObject outputAttr = helper.MakeOutput();
+         output_attrs.push_back(outputAttr);
+         outputExists = (outputAttr != MObject::kNullObj);
+         if (outputExists)
+         {
+            // TODO: determine when it is appropriate to make outTransparency.
+            // currently maya crashes when it does not exist
+            MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
+            MAKE_OUTPUT(nAttr, s_OUT_transparency);
+            output_attrs.push_back(s_OUT_transparency);
+         }
       }
 
       // bump
@@ -125,10 +153,13 @@ MStatus CArnoldShaderNode::initialize()
 
          if (outputExists)
          {
-            // If it is a surface, make default outColor gray
-            attributeAffects(attrib, outputAttr);
-            MFnNumericAttribute nAttrTmp(outputAttr);
-            nAttrTmp.setDefault(float(0.5), float(0.5), float(0.5));
+            for(const auto& output: output_attrs) 
+            {
+               // If it is a surface, make default outColor gray
+               attributeAffects(attrib, output);
+               MFnNumericAttribute nAttrTmp(output);
+               nAttrTmp.setDefault(float(0.5), float(0.5), float(0.5));
+            }
          }
 
          // Make default hardware color gray
@@ -158,7 +189,10 @@ MStatus CArnoldShaderNode::initialize()
                MObject attr = helper.MakeInput(attrData);
                if (outputExists)
                {
-                  attributeAffects(attr, outputAttr);
+                  for(const auto& output: output_attrs) 
+                  {
+                     attributeAffects(attr, output);
+                  }
                   // Even though outTransparency isn't really "used", it will "work"
                   // if the user hooks it up into an arnold graph, because at
                   // translation time, mtoa will automatically replace any outgoing
@@ -168,7 +202,7 @@ MStatus CArnoldShaderNode::initialize()
                   // used in artist's shader networks, we should make the attribute
                   // connections "work", so that things like, ie, exportSelected
                   // (with connections=True) will correctly gather dependencies.
-                  attributeAffects(attr, s_OUT_transparency);
+                  // attributeAffects(attr, s_OUT_transparency);
                }
                /*
                // AOVs

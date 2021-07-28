@@ -28,6 +28,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         self.codeAttr = ''
         self.compileEnum = ['Needs (Re)Compile', 'Compile Success', 'Compile Warnings', 'Compile Failure']
         self._controls = []
+        self.code_widget = None
         self.addSwatch()
         self.beginScrollLayout()
         self.beginLayout(' OSL Code ', collapse=False)
@@ -119,7 +120,10 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
     def codeWidgetUpdate(self, attrName):
         self.codeAttr = attrName
         osl_code = cmds.getAttr(attrName)
-        self.code_widget.setPlainText(osl_code)
+        if self.code_widget:
+            self.code_widget.setPlainText(osl_code)
+        else:
+            self.codeStatusCreate(attrName)
 
     def compileButtonCreate(self, attrName):
         cmds.button('compileButtonPath', label='Compile OSL Code', command=lambda *args: self.compiler(attrName))

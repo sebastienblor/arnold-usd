@@ -445,6 +445,7 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 
    if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
 
+   if (plugName == "bookmarks") return;
    if (plugName == "panZoomEnabled" || plugName == "horizontalPan" || plugName == "verticalPan" || plugName == "zoom")
    {
       if (!FindMayaPlug("renderPanZoom").asBool())

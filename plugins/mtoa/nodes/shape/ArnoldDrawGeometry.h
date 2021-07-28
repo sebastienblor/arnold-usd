@@ -39,6 +39,9 @@ protected:
   
 public:
 
+   typedef unordered_map<std::string, CArnoldDrawGeometry*> geometryListType;
+   typedef geometryListType::const_iterator geometryListIterType;
+
    virtual ~CArnoldDrawGeometry();
 
    virtual MBoundingBox GetBBox(bool transformed = true) const;
@@ -66,6 +69,9 @@ public:
    // get the triangle indexing information
    virtual size_t TriangleIndexCount(bool sharedVertices = false) const { return 0; }
    virtual void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const {}
+
+   virtual bool HasChildGeometry() const {return  false;}
+   virtual geometryListType *GetChildGeometry() {return nullptr;}
 };
 
 class DLLEXPORT CArnoldDrawPolymesh : public CArnoldDrawGeometry{
@@ -147,6 +153,8 @@ public:
    void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override 
       {if (m_geom) m_geom->GetTriangleIndexing(outIndices, vertexOffset, sharedVertices);}
 
+   bool HasChildGeometry() const override {return (m_geom) ? m_geom->HasChildGeometry() : false;}
+   geometryListType *GetChildGeometry() override {return (m_geom) ? m_geom->GetChildGeometry() : nullptr;}
 private:
    CArnoldDrawGeometry* m_geom;   
    AtMatrix m_matrix;
@@ -159,9 +167,6 @@ public:
    CArnoldDrawProcedural(AtNode* node, AtProcViewportMode mode);
    ~CArnoldDrawProcedural();
 
-   typedef unordered_map<std::string, CArnoldDrawGeometry*> geometryListType;
-   typedef geometryListType::const_iterator geometryListIterType;
-
   // bounding box mode
    size_t PointCount() const override;
    void GetPoints(float* points, const AtMatrix* matrix = NULL) const override;
@@ -172,6 +177,9 @@ public:
    void GetWireIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override;
    size_t TriangleIndexCount(bool sharedVertices = false) const override;
    void GetTriangleIndexing(unsigned int* outIndices, unsigned int vertexOffset = 0, bool sharedVertices = false) const override;
+
+   bool HasChildGeometry() const override {return  !m_geometryList.empty();}
+   geometryListType *GetChildGeometry() override {return &m_geometryList;}
 
 private:  
 

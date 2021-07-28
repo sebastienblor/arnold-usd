@@ -159,7 +159,7 @@ public:
       ReadPrefixMetadata();
    }
    virtual ~CBaseAttrHelper() {};
-   bool GetAttrData(const char* paramName, CAttrData& data);
+   bool GetAttrData(const char* paramName, CAttrData& data, bool isOutput = false);
 
    virtual void MakeInputByte(MObject& attrib, const char* paramName);
    virtual void MakeInputByte(CAttrData& data);
@@ -199,7 +199,7 @@ public:
    void MakeOutputInt(MObject& attrib, CAttrData& data);
    void MakeOutputBoolean(MObject& attrib, CAttrData& data);
    void MakeOutputFloat(MObject& attrib, CAttrData& data);
-   void MakeOutputRGB(MObject& attrib, CAttrData& data);
+   void MakeOutputRGB(MObject& attrib, CAttrData& data, bool isCustom = false);
    void MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
    void MakeOutputVector(MObject& attrib, CAttrData& data);
    void MakeOutputVector2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
@@ -209,6 +209,7 @@ public:
    void MakeOutputNode(MObject& attrib, CAttrData& data);
 
    MObject MakeOutput();
+   MObject MakeMultipleOutput(CAttrData& data);
 
    void SetNode(const char* arnoldNodeName);
    void GetMObject(const char* attrName) const;

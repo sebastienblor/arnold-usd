@@ -97,6 +97,9 @@
     [attr ignore_bump]
         maya.keyable        BOOL    false
         linkable            BOOL    false
+    [attr ignore_imagers]
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr auto_transparency_depth]
         maya.keyable        BOOL    false
         min                 INT     0
@@ -561,6 +564,7 @@
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
+    maya.isdefault          BOOL    true
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -944,6 +948,7 @@
     maya.name               STRING  "camera"
     maya.id                 INT     0x4443414d
     maya.translator         STRING  "perspective"
+    maya.isdefault          BOOL    true
     [attr focus_distance]
         maya.name           STRING  "aiFocusDistance"
         maya.label          STRING  "Focus Distance"
@@ -1977,6 +1982,7 @@
     
 [node driver_exr]
     maya.translator         STRING  "exr"
+    maya.isdefault          BOOL    true
     [attr filename]
         maya.hide           BOOL    true
     [attr compression]
@@ -2106,6 +2112,7 @@
 [node gaussian_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "gaussian"
+    maya.isdefault          BOOL    true
     [attr width]
         default             FLOAT   2.0
 
@@ -2115,9 +2122,6 @@
     [attr width]
         default             FLOAT   2.0
 
-# We don't want to expose the optix filter, as this is controlled by the AOV parameter ""
-[node denoise_optix_filter]
-    maya.hide               BOOL    true
         
 # COMMON SHADERS
 
@@ -3935,6 +3939,9 @@ desc STRING "Apply a gamma correction to the color."
     [attr gamma]
         min                 FLOAT    0
         softmax             FLOAT    5
+    [attr mix]
+        min                 FLOAT    0
+        max                 FLOAT    1
     [attr layer_selection]
         default             STRING     "RGBA"
 
@@ -3978,6 +3985,19 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC2
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr tile_size]
+        maya.hide               BOOL     TRUE
+    [attr layer_selection]
+        default             STRING     "RGBA"
+
+[node imager_denoiser_oidn]
+    maya.name              STRING "aiImagerDenoiserOidn"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC3
     [attr input]
         maya.hide               BOOL     TRUE
     [attr tile_size]

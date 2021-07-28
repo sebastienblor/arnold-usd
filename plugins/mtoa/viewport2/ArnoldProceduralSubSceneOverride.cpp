@@ -708,7 +708,7 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
     }
     // Process each of the stand-in geometry items
     size_t startIndex = 0, pointOffset = 0;
-    for (CArnoldProceduralData::geometryListIterType it = geom->m_geometryList.begin();
+    for (CArnoldDrawGeometry::geometryListIterType it = geom->m_geometryList.begin();
         it != geom->m_geometryList.end(); ++it)
     {
         // we weren't testing IsVisible before, but it sounds like we should. 
@@ -717,7 +717,7 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
         {            
             // fill the index, vertex, and optionally the normal streams with data from the geometry
             fillBuffers(*it->second, indices, vertices, normals, startIndex, pointOffset, 
-                item->primitive(), wantNormals, boxMode);
+                item->primitive(), wantNormals, boxMode, selectionFilter);
         }
     }
     
@@ -739,21 +739,55 @@ void CArnoldProceduralSubSceneOverride::updateRenderItem(MHWRender::MSubSceneCon
 
 void CArnoldProceduralSubSceneOverride::fillBuffers(const CArnoldDrawGeometry& standIn, 
     unsigned int* indices, float* vertices, float* normals, size_t& startIndex, size_t& pointOffset,
-    const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode)
+    const MHWRender::MGeometry::Primitive& primitive, bool wantNormals, bool boxMode, StandinSelectionFilter selectionFilter)
 {
     if (boxMode)
     {
         // Add the cube into the vertex and index buffer.
-        MBoundingBox box = standIn.GetBBox();
-
-        for (int currentVertex = 0 ; currentVertex < kCubeCount; ++currentVertex)
+        if (!standIn.HasChildGeometry())
         {
-            indices[currentVertex+startIndex] = currentVertex+pointOffset;
-            for (int elem = 0; elem < 3; ++elem)
-                vertices[(currentVertex+pointOffset)*3+elem] = cube[currentVertex][elem] * float(box.max()[elem] - box.min()[elem]) + float(box.min()[elem]);
+            MBoundingBox box = standIn.GetBBox();
+    
+            for (int currentVertex = 0 ; currentVertex < kCubeCount; ++currentVertex)
+            {
+                indices[currentVertex+startIndex] = currentVertex+pointOffset;
+                for (int elem = 0; elem < 3; ++elem)
+                    vertices[(currentVertex+pointOffset)*3+elem] = cube[currentVertex][elem] * float(box.max()[elem] - box.min()[elem]) + float(box.min()[elem]);
+            }
+            pointOffset += kCubeCount;
+            startIndex += kCubeCount;
+        } else
+        {
+            const AtMatrix m = standIn.GetMatrix();
+            MMatrix mtx;
+            for (int j = 0; j < 4; ++j)
+               for (int i = 0; i < 4; ++i)
+                   mtx[i][j] = m[i][j];
+
+
+            CArnoldDrawGeometry::geometryListType *childGeometries = const_cast<CArnoldDrawGeometry*>(&standIn)->GetChildGeometry();
+            if (childGeometries)
+            {
+                for (CArnoldDrawGeometry::geometryListIterType it = childGeometries->begin();
+                                                            it != childGeometries->end(); ++it)
+                {
+                    if (!it->second->Visible(selectionFilter))
+                        continue;
+
+                    MBoundingBox box = it->second->GetBBox();
+                    box.transformUsing(mtx);
+    
+                    for (int currentVertex = 0 ; currentVertex < kCubeCount; ++currentVertex)
+                    {
+                        indices[currentVertex+startIndex] = currentVertex+pointOffset;
+                        for (int elem = 0; elem < 3; ++elem)
+                            vertices[(currentVertex+pointOffset)*3+elem] = cube[currentVertex][elem] * float(box.max()[elem] - box.min()[elem]) + float(box.min()[elem]);
+                    }
+                    pointOffset += kCubeCount;
+                    startIndex += kCubeCount;
+                }
+            }
         }
-        pointOffset += kCubeCount;
-        startIndex += kCubeCount;
     }
     else
     {

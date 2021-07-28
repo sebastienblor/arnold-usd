@@ -399,6 +399,9 @@ def get_scanned_files(scan_attributes):
 def build_texture_data(textures, expand=True):
     '''Builds the texture's dictionary. If the expand flag is enabled, it will
     attempt to expand the variables in the path.'''
+    arnoldUniverseActive = ai.AiUniverseIsActive()
+    if not arnoldUniverseActive:
+        ai.AiBegin()
 
     for texture, texture_data in textures.items():
         if expand:
@@ -446,6 +449,8 @@ def build_texture_data(textures, expand=True):
         for k,v in iinfo.items():
             textures[texture][k] = v
 
+    if not arnoldUniverseActive:
+        ai.AiEnd()
     return textures
 
 

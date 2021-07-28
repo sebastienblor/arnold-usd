@@ -500,6 +500,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
    s_attributes.MakeInput("ignore_operators");
+   s_attributes.MakeInput("ignore_imagers");
+   s_attributes.MakeInput("imager_threads_ratio");
    
    s_ignore_list = tAttr.create("ignore_list", "igl", MFnData::kString);
    tAttr.setKeyable(false);

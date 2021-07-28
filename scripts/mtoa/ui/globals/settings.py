@@ -704,6 +704,9 @@ def createArnoldRenderSettings():
                         label="Threads",
                         attribute='defaultArnoldRenderOptions.threads')
 
+    cmds.attrControlGrp('imager_threads',
+                        label="Imager Threads Ratio",
+                        attribute='defaultArnoldRenderOptions.imager_threads_ratio')
     cmds.separator()
 
     cmds.attrControlGrp('os_binary_ass',
@@ -1476,6 +1479,9 @@ def createArnoldOverrideSettings():
 
     cmds.attrControlGrp('force_translate_shading_engines',
                        attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
+
+    cmds.attrControlGrp('ignore_imagers',
+                       attribute='defaultArnoldRenderOptions.ignore_imagers', label='Ignore Imagers')
 
     cmds.attrControlGrp('ignore_list',
                        attribute='defaultArnoldRenderOptions.ignore_list', label='Ignore List')

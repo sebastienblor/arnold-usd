@@ -29,7 +29,7 @@ lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get
 lib_prefix = {'windows' : ''}.get(system.os, '')
 lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(system.os)
 
-usd_install_dir = local_env['USD_PATH'] if pythonVersion == '3' else local_env['USD_PATH_PYTHON2']
+usd_install_dir = local_env['USD_PATH']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
 
 usd_supported_modes = ['opt', 'debug', 'profile']
@@ -37,6 +37,13 @@ usd_supported_modes = ['opt', 'debug', 'profile']
 usd_include_dir = os.path.join(usd_install_dir, 'include')
 boost_lib = os.path.join(usd_install_dir, 'lib')
 usd_lib_prefix = 'lib'
+
+if system.os == 'windows' and local_env['MODE'] == 'opt':
+    MSVC_FLAGS = " /Zi"
+    MSVC_FLAGS += " /FS"
+    MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\mayaUsdRegistry_tmp.pdb"
+    local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
+
 
 if platform.system().lower() == 'darwin':
     python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'include', 'python3.7m')
@@ -80,7 +87,7 @@ for writer_src in writer_srcs:
 for writer_include in writer_includes:
     include_files.append(os.path.join(writer_dir, writer_include))
 
-mayausd_path = local_env['MAYAUSD_PATH'] if pythonVersion == '3' else local_env['MAYAUSD_PATH_PYTHON2']
+mayausd_path = local_env['MAYAUSD_PATH']
 mayausd_include = os.path.join(mayausd_path, 'include')
 mayausd_lib = os.path.join(mayausd_path, 'lib')
 local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include, writer_dir])

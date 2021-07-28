@@ -97,6 +97,7 @@ void CImagerLightMixer::Export(AtNode *shader)
       }
    }
    AiParamIteratorDestroy(nodeParam);
+   
 
 
    // // Always export residual layer (#4474)

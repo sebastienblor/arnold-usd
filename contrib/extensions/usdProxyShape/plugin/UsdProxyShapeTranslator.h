@@ -2,8 +2,6 @@
 
 #include "translators/shape/ProceduralTranslator.h"
 
-//#include "UsdProxyShapeListener.h"
-
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
 #include <maya/MRenderLineArray.h>
@@ -29,10 +27,8 @@ public:
    }
    virtual void ExportShaders();
    virtual void NodeChanged(MObject& node, MPlug& plug);
-
-   void StageChanged();
-
+   
 private:
-   CUsdProxyShapeTranslatorImpl *m_impl;
+   int m_cacheId;
 
 };

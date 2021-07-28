@@ -31,12 +31,9 @@ public:
    CArnoldProceduralData();
    ~CArnoldProceduralData();
    
-   typedef unordered_map<std::string, CArnoldDrawGeometry*> geometryListType;
-   typedef geometryListType::const_iterator geometryListIterType;
-   
    MBoundingBox m_bbox;   
    int m_mode;
-   geometryListType m_geometryList;
+   CArnoldDrawGeometry::geometryListType m_geometryList;
    bool m_isSelected;
    bool m_isDirty;
    MStringArray m_xformSelections;
