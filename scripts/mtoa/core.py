@@ -351,15 +351,18 @@ def getDefaultTranslator(obj):
         selList.getDependNode(0, obj)
         
     mfn = om.MFnDependencyNode(obj)
+    nodeType = mfn.typeName()
     global _defaultTranslators
-    try:
-        default = _defaultTranslators[mfn.typeName()]
-        if callable(default):
-            return default(obj)
-        else:
-            return default
-    except KeyError:
-        pass
+    default = _defaultTranslators.get(nodeType, "")
+    if callable(default):
+        return default(obj)
+    else:
+        if not default:
+            # get the default from the translator directly
+            # we may want to really solely on this in future
+            default = cmds.arnoldPlugins(gdt=nodeType)
+        return default
+
 
 def _rendererChanged(*args):
     if cmds.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold':

@@ -27,6 +27,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("lop", "listOperators", MSyntax::kNoArg);
    syntax.addFlag("lim", "listImagers", MSyntax::kNoArg);
    syntax.addFlag("sdt", "setDefaultTranslator", MSyntax::kString, MSyntax::kString);
+   syntax.addFlag("gdt", "getDefaultTranslator", MSyntax::kString);
    syntax.addFlag("lnm", "listNodeMetadatas", MSyntax::kString);
    syntax.addFlag("gnm", "getNodeMetadata", MSyntax::kString, MSyntax::kString);
    syntax.addFlag("lmm", "listMatchMetadata", MSyntax::kString, MSyntax::kString);
@@ -197,6 +198,12 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       args.getFlagArgument("setDefaultTranslator", 0, mayaTypeName);
       args.getFlagArgument("setDefaultTranslator", 1, translatorName);
       CExtensionsManager::SetDefaultTranslator(mayaTypeName, translatorName);
+   }
+   else if(args.isFlagSet("getDefaultTranslator"))
+   {
+      MString mayaTypeName;
+      args.getFlagArgument("getDefaultTranslator", 0, mayaTypeName);
+      setResult(CExtensionsManager::GetDefaultTranslator(mayaTypeName));
    }
    else if(args.isFlagSet("listLoadedExtensions"))
    {

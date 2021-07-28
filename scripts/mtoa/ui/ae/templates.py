@@ -660,12 +660,6 @@ class TranslatorControl(AttributeTemplate):
                     cmds.warning("cannot find default translator for %s" % nodeName)
                     return
                 transName = translators[0]
-            try :
-                cmds.setAttr(nodeName + ".aiTranslator", transName, type="string")
-            except:
-                cmds.warning("cannot set default translator for %s" % nodeName)
-                import traceback
-                traceback.print_exc()
         return transName
 
     def updateChildrenCallback(self, attr):
@@ -675,7 +669,7 @@ class TranslatorControl(AttributeTemplate):
         """
         # attr should be aiTranslator. do we need to split?
         nodeName = attr.split('.')[0]
-        self.updateChildren(nodeName, cmds.getAttr(nodeName + ".aiTranslator", asString=True))
+        self.updateChildren(nodeName, self.getCurrentTranslator(nodeName))
 
     def updateChildren(self, nodeName, currentTranslator):
         """

@@ -810,7 +810,9 @@ MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
    else
    {
       MString defaultTranslator = CExtensionsManager::GetDefaultTranslator(mayaNode.name);
-      if (defaultTranslator == "")
+      // check if the default has been set and set it if it was empty 
+      // or if the current translater has been set as default with the maya.isdefault metadata 
+      if (defaultTranslator == "" || translator.isdefault)
          CExtensionsManager::SetDefaultTranslator(mayaNode.name, translator.name);
    }
    return status;
