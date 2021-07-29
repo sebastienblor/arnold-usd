@@ -436,7 +436,6 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
 templates.registerTranslatorUI(ProceduralTemplate, "mesh", "procedural")
-core.registerDefaultTranslator("mesh", "polymesh")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
@@ -994,24 +993,28 @@ def cameraOrthographicChanged(orthoPlug, *args):
     if not core.arnoldIsCurrentRenderer(): return
     fnCam = om.MFnCamera(orthoPlug.node())
     transPlug = fnCam.findPlug('aiTranslator')
-    if not transPlug.isNull():
-        isOrtho = orthoPlug.asBool()
-        currTrans = transPlug.asString()
-        newTrans = None
-        if isOrtho:
-            # We're setting orthographic checkbox to True, but the 
-            # current translator is known to be perspective. Let's
-            # switch to orthographic translator
-            if currTrans == 'perspective' or currTrans == 'fisheye':
-                newTrans = 'orthographic'
-        else:
-            # We're disabling the orthographic checkbox, but the 
-            # current translator is still orthographic. Let's switch it 
-            # to perspective
-            if currTrans == 'orthographic':
-                newTrans = 'perspective'
-        if newTrans:
-            transPlug.setString(newTrans)
+    # if not transPlug.isNull():
+    isOrtho = orthoPlug.asBool()
+    currTrans = transPlug.asString()
+    nodeName = fnCam.fullPathName()
+    if not currTrans:
+        # if the current translator is not set get the default for this node
+        currTrans = core.getDefaultTranslator(nodeName)
+    newTrans = None
+    if isOrtho:
+        # We're setting orthographic checkbox to True, but the 
+        # current translator is known to be perspective. Let's
+        # switch to orthographic translator
+        if currTrans == 'perspective' or currTrans == 'fisheye' or not currTrans:
+            newTrans = 'orthographic'
+    else:
+        # We're disabling the orthographic checkbox, but the 
+        # current translator is still orthographic. Let's switch it 
+        # to perspective
+        if currTrans == 'orthographic':
+            newTrans = 'perspective'
+    if newTrans:
+        transPlug.setString(newTrans)
 
 def cameraTranslatorChanged(transPlug, *args):
     # The translator attribute is being changed, we must eventually
@@ -1019,6 +1022,10 @@ def cameraTranslatorChanged(transPlug, *args):
     if not core.arnoldIsCurrentRenderer(): return
     fnCam = om.MFnCamera(transPlug.node())
     currTrans = transPlug.asString()
+    nodeName = fnCam.fullPathName()
+    if not currTrans:
+        # if the current translator is not set get the default for this node
+        currTrans = core.getDefaultTranslator(nodeName)
     orthoPlug = fnCam.findPlug('orthographic')
     isOrtho = orthoPlug.asBool()
     builtinPerspectiveCams = ['perspective', 'fisheye', 'cylindrical', 'spherical', 'vr_camera']
@@ -1058,10 +1065,6 @@ def getCameraDefault(obj):
     isOrtho = om.MFnDependencyNode(obj).findPlug("orthographic").asBool()
     default = 'orthographic' if isOrtho else 'perspective'
     return default
-
-# FIXME: this is modifying the scene on plugin load and it shouldn't
-templates.registerDefaultTranslator('camera', getCameraDefault)
-templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 
 callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),

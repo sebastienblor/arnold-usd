@@ -47,6 +47,7 @@ private:
    MString provider;
    MString file;
    MString arnold;
+   bool isdefault = false;
    TCreatorFunction creator;
    TNodeInitFunction initialize;
 };

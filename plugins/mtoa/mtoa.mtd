@@ -561,6 +561,7 @@
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
+    maya.isdefault          BOOL    true
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -944,6 +945,7 @@
     maya.name               STRING  "camera"
     maya.id                 INT     0x4443414d
     maya.translator         STRING  "perspective"
+    maya.isdefault          BOOL    true
     [attr focus_distance]
         maya.name           STRING  "aiFocusDistance"
         maya.label          STRING  "Focus Distance"
@@ -1977,6 +1979,7 @@
     
 [node driver_exr]
     maya.translator         STRING  "exr"
+    maya.isdefault          BOOL    true
     [attr filename]
         maya.hide           BOOL    true
     [attr compression]
@@ -2106,6 +2109,7 @@
 [node gaussian_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "gaussian"
+    maya.isdefault          BOOL    true
     [attr width]
         default             FLOAT   2.0
 
