@@ -6,7 +6,7 @@
 #define MTOA_VENDOR "Autodesk"
 #define MTOA_ARCH_VERSION_NUM 4
 #define MTOA_MAJOR_VERSION_NUM 2
-#define MTOA_MINOR_VERSION_NUM 3
+#define MTOA_MINOR_VERSION_NUM 4
 //#define MTOA_FIX_VERSION "rc1"
 
 
