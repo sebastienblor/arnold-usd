@@ -90,46 +90,27 @@ class ImagerColorCurvesARVUI(ImagerBaseUI):
         super(ImagerColorCurvesARVUI, self).setup()
         self.addSeparator()
         self.beginLayout("Color Curves", collapse=True)
-        self.buildUI()
+        self.buildUI('rampRGB')
+        self.buildUI('rampR')
+        self.buildUI('rampG')
+        self.buildUI('rampB')
         self.endLayout()
 
-    def buildUI(self):
+    def buildUI(self, attributeName):
         # Prepare
-        print ("***********")
         parent = maya.cmds.setParent(q=True)
         maya.cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-        niceName = maya.cmds.attributeName(self.nodeName + '.rampRGB', nice=True)
+        niceName = maya.cmds.attributeName(self.nodeName + '.' + attributeName, nice=True)
         frm = maya.cmds.frameLayout( label=niceName, collapsable=True, collapse=False, parent=parent )
         # Widgets
         maya.cmds.columnLayout(rowSpacing=2)
         rampForm = maya.cmds.formLayout()
-        print("Ramp Form", rampForm)
         spc =  maya.cmds.attrFieldSliderGrp("spc#",label=maya.stringTable[u'y_maya_internal_common_ae_ramp.kPos' ], cw=(1,123), parent = rampForm)
-        print ("SPC", spc)
         scc =  maya.cmds.attrFieldSliderGrp("scc#",label=maya.stringTable[u'y_maya_internal_common_ae_ramp.kVal' ], cw=(1,123), parent = rampForm)
-        print ("SCC", scc)
         interp = maya.cmds.attrEnumOptionMenuGrp("interp#",label=maya.stringTable[ u'y_maya_internal_common_ae_ramp.kInterp' ], cw=(1,123), parent = rampForm)
-        print ("Interp", interp)
         editButton = maya.cmds.button(label=maya.stringTable[u'y_maya_internal_common_ae_ramp.kLabelEditRamp' ], width=23, parent = rampForm)
-        print ("Edit Button", editButton)
-
         rframe = maya.cmds.frameLayout(lv=0, cll=0, parent=rampForm)
-        # spc = spc.split("|")[-1]
-        # print ("SPC", spc)
-        # scc = scc.split("|")[-1]
-        # print ("SCC", scc)
-        # interp = interp.split("|")[-1]
-        # print ("Interp", interp)
-
-        # spc = cmds.control(spc, q = True, fpn = True)
-        # print ("SPC Again", spc)
-        # scc = cmds.control(scc, q = True, fpn = True)
-        # print ("SCC Again", scc)
-        # interp = cmds.control(interp, q = True, fpn = True)
-        # print ("Interp Again", interp)
-
-        self.rampGrad = maya.cmds.gradientControl(snc=0, sp=0, w=135, h=74, at=self.nodeName + '.rampRGB')
-        currentWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
+        self.rampGrad = maya.cmds.gradientControl(snc=0, sp=0, w=135, h=74, at=self.nodeName + '.' + attributeName)
         maya.cmds.formLayout(rampForm, edit=True,
                     attachForm=[
                     (spc, LEFT,  0),
@@ -155,31 +136,13 @@ class ImagerColorCurvesARVUI(ImagerBaseUI):
                     (rframe, BOTTOM),
                     (editButton, RIGHT)]
                 )
-
+        ## TODO : These three lines are where the errors are happening
+        ## Need to figure out a better solution for these
         # maya.cmds.gradientControl(self.rampGrad, edit=True, scc=scc)
-        # print(" Setting SCC of gradient Control ")
         # maya.cmds.gradientControl(self.rampGrad, edit=True, spc=spc)
-        # print(" Setting SPC of gradient Control ")
         # maya.cmds.gradientControl(self.rampGrad, edit=True, sic=interp)
-        # print(" Setting SIC of gradient Control ")
-        # # Finish
         maya.cmds.setUITemplate(popTemplate=True)
         maya.cmds.setParent(parent)
-        print ("***********")
-        print ()
 
 
 registerImagerTemplate("aiImagerColorCurves", ImagerColorCurvesARVUI)
-
-
-## self.addCustom('rampRGB', self.rampUpdateRGB, self.rampUpdateRGB)
-#print("Parent Before is ",cmds.setParent(query=True))
-## cmds.setParent(cmds.setParent(query=True))
-## cmds.columnLayout( adjustableColumn=True )
-#print("Parent After is ",cmds.setParent(query=True))
-## self.rampWidget = aeramp.RampWidget(attribute=self.nodeName + '.rampRGB')
-## self.rampWidget.buildUI()
-# cmds.setParent('..')
-
-
-    
