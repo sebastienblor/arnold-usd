@@ -1,5 +1,5 @@
 #include "CurveCollectorTranslator.h"
-
+#include "../NodeTranslatorImpl.h"
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
 #include <maya/MDagPathArray.h>
@@ -69,15 +69,16 @@ static void ChildCurvesDeletedCallback(MObject& node, MDGModifier& modifier, voi
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
    translator->RequestUpdate();
 }
-static void ChildParentingChangedCallback(MDagPath &child, MDagPath &parent, void *clientData)
+void CCurveCollectorTranslator::ChildParentingChangedCallback(MDagPath &child, MDagPath &parent, void *clientData)
 {
    CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
-   CDagTranslator::ExportDagPath(child);
+ 
+   translator->m_impl->m_session->ExportDagPath(child);
    translator->RequestUpdate();
 }
 
-static void ChildAddedCallback(MDagPath &child, MDagPath &parent, void *clientData)
+void CCurveCollectorTranslator::ChildAddedCallback(MDagPath &child, MDagPath &parent, void *clientData)
 {
    CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
@@ -89,18 +90,19 @@ static void ChildAddedCallback(MDagPath &child, MDagPath &parent, void *clientDa
    {
       if (dagIterator.getPath(path))
       {
-         CDagTranslator *oldTranslator = (CDagTranslator *)CNodeTranslator::GetTranslator(path);
+         CDagTranslator *oldTranslator = (CDagTranslator *)translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path));
          if (oldTranslator)
             oldTranslator->SetUpdateMode(CNodeTranslator::AI_DELETE_NODE);
       }
    }
    translator->RequestUpdate();
 }
-static void ChildRemovedCallback(MDagPath &child, MDagPath &parent, void *clientData)
+void CCurveCollectorTranslator::ChildRemovedCallback(MDagPath &child, MDagPath &parent, void *clientData)
 {
    CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
-   CDagTranslator::ExportDagPath(child);
+   
+   translator->m_impl->m_session->ExportDagPath(child);
    translator->RequestUpdate();
 }
 
@@ -137,7 +139,7 @@ void CCurveCollectorTranslator::AddUpdateCallbacks()
          if (node != MObject::kNullObj)
          {
             // We can use the normal NodeDirtyCallback here.
-            MCallbackId id = MNodeMessage::addNodeDirtyCallback(node,
+            MCallbackId id = MNodeMessage::addNodeDirtyPlugCallback(node,
                                                                 ChildCurvesDirtyCallback,
                                                                 this,
                                                                 &status);

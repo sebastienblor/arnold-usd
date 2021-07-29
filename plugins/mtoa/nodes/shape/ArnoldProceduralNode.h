@@ -23,13 +23,14 @@ public:
    CArnoldProceduralNode();
    virtual ~CArnoldProceduralNode() {}
 
-   virtual void postConstructor();
+   void postConstructor() override;
 
    CAbMayaNode m_abstract;
 
    static void* creator();
    static MStatus initialize();
-   virtual void updateGeometry();
+   void updateGeometry() override;
+   SchedulingType schedulingType()const override {return kSerial;}
    
    static CAbMayaNode s_abstract;
 

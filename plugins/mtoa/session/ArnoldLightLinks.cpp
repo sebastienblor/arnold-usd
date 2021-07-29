@@ -66,7 +66,7 @@ static const AtString mesh_light_str("mesh_light");
  **/
 void CArnoldLightLinks::ParseLights()
 {
-   AtNodeIterator* niter = AiUniverseGetNodeIterator(AI_NODE_LIGHT);
+   AtNodeIterator* niter = AiUniverseGetNodeIterator(m_universe, AI_NODE_LIGHT);
    // loop over all lights
 
    while(!AiNodeIteratorFinished(niter))
@@ -144,7 +144,7 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                if (!status)
                   continue;
                MFnDependencyNode linkedLight(childPath.node(), &status);
-               MString lightName = CDagTranslator::GetArnoldNaming(childPath);
+               MString lightName = (m_options) ? m_options->GetArnoldNaming(childPath) : childPath.partialPathName();
                unordered_map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(lightName.asChar());
                if (it2 == m_arnoldLights.end())
                   it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
@@ -248,7 +248,7 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::ve
    {
       MDagPath dgPath;
       MDagPath::getAPathTo(targetNode.object(), dgPath);
-      std::string lightName = CDagTranslator::GetArnoldNaming(dgPath).asChar();
+      std::string lightName = (m_options) ? m_options->GetArnoldNaming(dgPath).asChar() : dgPath.partialPathName().asChar();
       if(lightName.empty()) return; // can this happen ?
 
       if (std::find(nodeList.begin(), nodeList.end(), lightName) == nodeList.end())

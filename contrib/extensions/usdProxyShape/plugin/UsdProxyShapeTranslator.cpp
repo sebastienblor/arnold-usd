@@ -69,8 +69,9 @@ AtNode* CUsdProxyShapeTranslator::CreateArnoldNodes()
 #ifdef ENABLE_USD
    // When exporting to .ass, we always want to export to the builtin core procedural.
    // This way, it can be ported to other DCCs, or be kicked in standalone
-   if (GetSessionMode() == MTOA_SESSION_ASS)
+   if (IsFileExport())
       return AddArnoldNode("usd");   
+      
 
    if (AiNodeEntryLookUp("usd_cache") == nullptr)
    {
@@ -183,7 +184,7 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
          
          // Run a python command that will ping us every time there is a change on this USD stage.
          // This will be needed to update the IPR
-         if (GetSessionOptions().IsInteractiveRender())
+         if (IsInteractiveSession())
          {
             m_cacheId = cacheId;
             MString cmd("import usdProxyShapeTranslator;usdProxyShapeTranslator.UsdArnoldListener(");

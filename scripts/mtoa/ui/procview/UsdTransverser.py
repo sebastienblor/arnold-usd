@@ -158,9 +158,7 @@ class UsdTransverser(ProceduralTransverser):
             ai.AiParamValueMapDestroy(paramMap)
             ai.AiNodeIteratorDestroy(iter)
             ai.AiUniverseDestroy(universe)
-            if beginSession:
-                ai.AiEnd()
-
+            
         if len(self.items) == 1:
             # populate the items
             for item in FILE_CACHE[self.proceduralFilename][1:]:

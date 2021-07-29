@@ -22,6 +22,7 @@ public:
    virtual bool            isBounded() const;
    virtual MBoundingBox    boundingBox() const;
    virtual bool            excludeAsLocator() const;
+   SchedulingType schedulingType()const override {return kParallel;}
 
    static MTypeId id;
    MBoundingBox         m_boundingBox;

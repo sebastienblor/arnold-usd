@@ -38,8 +38,6 @@ public:
 
 protected:
 
-    void startRenderView(const MDagPath &camera, int width, int height);
-
     static void stopExistingOverrides(const MString & destination);
 
     // UI name 
@@ -62,7 +60,9 @@ protected:
         void* clientData);
     static void sPreFileOpen(
         void* clientData);
-
+    static void sPlayblasting(
+        bool state, void* clientData);
+    
 
     std::map<std::string, MCallbackId> callbackIdMap;
 

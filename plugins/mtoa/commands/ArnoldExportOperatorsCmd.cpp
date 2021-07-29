@@ -1,7 +1,8 @@
 #include "utils/Version.h"
 #include "ArnoldExportOperatorsCmd.h"
-#include "scene/MayaScene.h"
 #include "translators/NodeTranslator.h"
+#include "session/ArnoldExportSession.h"
+#include "session/SessionManager.h"
 
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
@@ -23,6 +24,8 @@
 //#include <ai_materialx.h>
 #include <math.h>
 #include <algorithm>
+
+static const std::string s_exportOperatorsSessionId("exportOperators");
 
 MSyntax CArnoldExportOperatorsCmd::newSyntax()
 {
@@ -78,14 +81,17 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
       }
    }
 
-   CMayaScene::End();
-   // Cannot export while a render is active
-   if (AiUniverseIsActive())
+   //CArnoldSession *session = CSessionManager::FindActiveSession(exportSessionName);
+   // FIXME check what happens if an existing session is there
+   CArnoldExportSession * session = new CArnoldExportSession();
+
+   if (!CSessionManager::AddActiveSession(s_exportOperatorsSessionId, session))
    {
-      AiMsgError("[mtoa] Cannot Export Operator Graph while rendering");
+      delete session;
       return MS::kFailure;
    }
-
+   CSessionOptions &options = session->GetOptions();
+   AtUniverse *universe = session->GetUniverse();
    MString filename = "";
    argDB.getFlagArgument("filename", 0, filename);
 
@@ -93,10 +99,6 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
    if (argDB.isFlagSet("shaders")) 
       argDB.getFlagArgument("shaders", 0, exportShaders);
 
-   CMayaScene::Begin(MTOA_SESSION_ASS);
-   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   arnoldSession->SetExportFilterMask(AI_NODE_ALL);
    std::vector<AtNode *> targets;
 
    if (!exportSelected)
@@ -117,7 +119,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
             if (conns.length() > 0)
             {
 
-               CNodeTranslator *opTranslator = arnoldSession->ExportNode(conns[0]);
+               CNodeTranslator *opTranslator = session->ExportNode(conns[0]);
                if (opTranslator)
                   targets.push_back(opTranslator->GetArnoldNode());
             }
@@ -139,7 +141,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
             MFnDependencyNode fnShape(dag.node(), &tmpStatus);
             if (tmpStatus == MS::kSuccess)
             {
-               MPlug ops = fnShape.findPlug("operators");
+               MPlug ops = fnShape.findPlug("operators", true);
                if (!ops.isNull())
                {
                   std::vector<AtNode *> procOps;
@@ -154,14 +156,14 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      if (connections.length() > 0)
                      {
                         MObject opNode = connections[0].node();
-                        MString name = CNodeTranslator::GetArnoldNaming(opNode);
-                        AtNode *op = AiNodeLookUpByName(name.asChar());
+                        MString name = options.GetArnoldNaming(opNode);
+                        AtNode *op = AiNodeLookUpByName(universe, name.asChar());
 
                         if (op)
                            procOps.push_back(op);
                         else
                         {
-                           CNodeTranslator *tr = arnoldSession->ExportNode(connections[0]);
+                           CNodeTranslator *tr = session->ExportNode(connections[0]);
                            op = (tr) ? tr->GetArnoldNode() : NULL;
                            if (op)
                               procOps.push_back(op); // append the operator node to the list 
@@ -176,7 +178,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      // need to insert a merge op
                      MString mergeOpName = fnShape.name();
                      mergeOpName += "/input_merge_op";
-                     AtNode *mergeOp = AiNode(NULL, "merge", mergeOpName.asChar());
+                     AtNode *mergeOp = AiNode(universe, "merge", mergeOpName.asChar());
                      AtArray* opArray = AiArrayAllocate(procOps.size(), 1, AI_TYPE_NODE);
                      for (unsigned int i = 0; i < procOps.size(); ++i)
                         AiArraySetPtr(opArray, i, (void*)procOps[i]);
@@ -191,10 +193,10 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
             MFnDependencyNode fnNode(objNode);
             MPlug opPlug = fnNode.findPlug("message", true);
 
-            MString name = CNodeTranslator::GetArnoldNaming(objNode);
-            if (!AiNodeLookUpByName(name.asChar()))
+            MString name = options.GetArnoldNaming(objNode);
+            if (!AiNodeLookUpByName(universe, name.asChar()))
             {
-               CNodeTranslator *tr = arnoldSession->ExportNode(opPlug, false, 0);
+               CNodeTranslator *tr = session->ExportNode(opPlug, false, 0);
                AtNode *opNode = (tr) ? tr->GetArnoldNode() : NULL;
 
                // Get if this maya node is a aiLookSwitch node,
@@ -217,7 +219,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      MString mergNodeName = name;
                      mergNodeName += "/";
                      mergNodeName += look_str;
-                     AtNode *mergeNode = AiNodeLookUpByName(mergNodeName.asChar());
+                     AtNode *mergeNode = AiNodeLookUpByName(universe, mergNodeName.asChar());
                      if (mergeNode)
                      {
                         AiNodeSetStr(mergeNode, "name", look_str.asChar());
@@ -243,10 +245,10 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
 
    AtParamValueMap* params = AiParamValueMap();
    AiParamValueMapSetInt(params, AtString("mask"), (exportShaders) ? AI_NODE_OPERATOR | AI_NODE_SHADER : AI_NODE_OPERATOR);
-   AiSceneWrite(NULL, filename.asChar(), params);
+   AiSceneWrite(universe, filename.asChar(), params);
    AiParamValueMapDestroy(params);
 
-   CMayaScene::End();
+   CSessionManager::DeleteActiveSession(s_exportOperatorsSessionId);   
    return MS::kSuccess;
 }
 

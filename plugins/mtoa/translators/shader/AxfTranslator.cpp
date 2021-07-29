@@ -55,7 +55,7 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    // This also need to be exposed to the user and set based on user action
    AxFtoAMaterialSetColorSpace(material, "Rec709,E");
    
-   AxFtoAMaterialSetUniverse(material, NULL);
+   AxFtoAMaterialSetUniverse(material, GetUniverse());
    AxFtoAMaterialSetTextureNamePrefix(material, maya_node_name.asChar());
    AxFtoAMaterialSetNodeNamePrefix(material, maya_node_name.asChar());
    AtNode* root_node = AxFtoAMaterialGetRootNode(material);

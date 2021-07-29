@@ -10,8 +10,8 @@ public:
    CTxTextureFile();
    virtual ~CTxTextureFile();
    static void* creator();
-   virtual MStatus open( MString pathname, MImageFileInfo* info);
-   virtual MStatus load( MImage& image, unsigned int idx);
+   MStatus open( MString pathname, MImageFileInfo* info) override;
+   MStatus load( MImage& image, unsigned int idx) override;
    
    static const char* fileName;
    

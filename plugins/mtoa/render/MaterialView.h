@@ -1,13 +1,14 @@
 #pragma once
 
 // Maya's material viewer is not availabe in versions older than 2016
+#include <ai_render.h> 
 #include <maya/MTypes.h> 
 
-
 #include <maya/MPxRenderer.h> 
-#include "render/RenderSession.h"
 #include "translators/NodeTranslator.h"
 #include "platform/Platform.h"
+
+class CArnoldSession;
 
 /** Material View
  * 
@@ -69,9 +70,9 @@ private:
       MV_UPDATE_RECREATE
    };
 
-   AtNode* TranslateNode(const MUuid& id, const MObject& node, int updateMode = MV_UPDATE_DEFAULT);
+   AtNode* TranslateNode(const MUuid& id, const MObject& node, int updateMode = MV_UPDATE_DEFAULT, bool updateConnections = false);
    AtNode* TranslateDagNode(const MUuid& id, const MObject& node, int updateMode = MV_UPDATE_DEFAULT);
-   AtNode* UpdateNode(CNodeTranslator* translator, int updateMode = MV_UPDATE_DEFAULT);
+   AtNode* UpdateNode(CNodeTranslator* translator, int updateMode = MV_UPDATE_DEFAULT, bool updateConnections = false);
 
    static unsigned int RenderThread(void* data);
 
@@ -85,16 +86,19 @@ private:
    typedef std::map<Uuid, CNodeTranslator*> TranslatorLookup;
    typedef std::vector<CNodeTranslator*>    TranslatorVector;
 
-   TranslatorVector m_deletables;
    TranslatorLookup m_translatorLookup;
+   CArnoldSession  *m_arnoldSession;
+   AtRenderSession *m_renderSession;
    AtNode*          m_activeShader;
    AtNode*          m_dummyShader;
    AtNode*          m_environmentLight;
    AtNode*          m_environmentImage;
 
-   CCritSec      m_sceneLock;
-   CCritSec      m_runningLock;
-   CCritSec      m_refreshLock;
+   AtMutex      m_sceneLock;
+   AtMutex      m_runningLock;
+   AtMutex      m_refreshLock;
+
+
    void*         m_renderThread;
    volatile bool m_active;
    volatile bool m_running;

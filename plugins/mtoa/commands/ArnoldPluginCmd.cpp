@@ -1,7 +1,6 @@
 #include "ArnoldPluginCmd.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/AttrHelper.h"
-#include "scene/MayaScene.h"
 #include "utils/Universe.h"
 #include "utils/BuildID.h"
 
@@ -19,8 +18,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
 
    syntax.addFlag("aov", "listAOVs", MSyntax::kNoArg);
    syntax.addFlag("nt", "nodeType", MSyntax::kString);
-   syntax.addFlag("n", "nodePlug", MSyntax::kSelectionItem);
-
+   
    syntax.addFlag("lnt", "listAOVNodeTypes", MSyntax::kNoArg);
    syntax.addFlag("las", "listAOVShaders", MSyntax::kNoArg);
    syntax.addFlag("lcs", "listCustomShapes", MSyntax::kNoArg);
@@ -94,7 +92,6 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    else if (args.isFlagSet("getAttrData", 0))
    {
       MString nodeName = args.flagArgumentString("getAttrData", 0);
-      bool AiUniverseCreated = ArnoldUniverseBegin();
       MStringArray result;
       const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(nodeName.asChar());
       if (nodeEntry == NULL)
@@ -124,7 +121,6 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       }
       AiParamIteratorDestroy(nodeParam);
       setResult(result);
-      if (AiUniverseCreated) ArnoldUniverseEnd();
    }
    else if (args.isFlagSet("listAOVs"))
    {
@@ -134,29 +130,6 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          MString nodeType;
          args.getFlagArgument("nodeType", 0, nodeType);
          CExtensionsManager::GetNodeAOVs(nodeType, result);
-      }
-      else if (args.isFlagSet("nodePlug"))
-      {
-         MSelectionList sel;
-         args.getFlagArgument("nodePlug", 0, sel);
-         MPlug plug;
-         MStatus status = sel.getPlug(0, plug);
-         CHECK_MSTATUS(status);
-         //MGlobal::displayError(MString("Could not find extension "));
-
-         AOVSet aovs;
-         CMayaScene::Begin(MTOA_SESSION_SWATCH);
-         CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-         arnoldSession->ExportOptions();
-         arnoldSession->ExportNode(plug, true, -1, &status);
-
-         CHECK_MSTATUS(status);
-         CMayaScene::End();
-
-         for (AOVSet::iterator it=aovs.begin(); it!=aovs.end(); ++it)
-         {
-            result.append(it->GetName());
-         }
       }
       else
          CExtensionsManager::GetAOVs(result);

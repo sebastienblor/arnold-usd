@@ -7,11 +7,11 @@
 
 class CArnoldSkinShaderNode : public MPxNode{
 public:
-    virtual void postConstructor();
+    void postConstructor() override;
 
     static void* creator();
     static MStatus initialize();
-
+   SchedulingType schedulingType()const override {return kSerial;}
     static const MTypeId id;
 
     CAbMayaNode m_abstract;

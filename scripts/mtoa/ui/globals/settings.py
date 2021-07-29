@@ -575,17 +575,12 @@ def createGpuSettings():
     cmds.columnLayout(adjustableColumn=True)
 
     isGPU = False
-    universeCreated = False
     if not ai.AiUniverseIsActive():
         ai.AiBegin()
-        universeCreated = True
 
     if ai.AiNodeEntryLookUpParameter(ai.AiNodeGetNodeEntry(ai.AiUniverseGetOptions()), "render_device"):
         isGPU = True
         
-    if universeCreated:
-        ai.AiEnd()
-
     if isGPU:
         cmds.attrControlGrp('renderDevice', 
                     label="Render Device ", 

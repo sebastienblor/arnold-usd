@@ -21,13 +21,14 @@
 #include <maya/MPlugArray.h>
 #include <maya/MFnNumericAttribute.h>
 #include "translators/NodeTranslatorImpl.h"
+#include "session/ArnoldSession.h"
 
 #include <vector>
 #include <string>
 
 bool CLightTranslator::RequiresMotionData()
 {
-   return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
+   return m_impl->m_session->GetOptions().IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
 }
 
 void CLightTranslator::Export(AtNode* light)
@@ -60,7 +61,7 @@ void CLightTranslator::Export(AtNode* light)
       m_session->ScaleArea(intensity);
       AiNodeSetFlt(light, "intensity", intensity);*/
       float exposure = AiNodeGetFlt(light, "exposure");
-      m_impl->m_session->ScaleLightExposure(exposure);
+      m_impl->m_session->GetOptions().ScaleLightExposure(exposure);
       AiNodeSetFlt(light, "exposure", exposure);
    }
 

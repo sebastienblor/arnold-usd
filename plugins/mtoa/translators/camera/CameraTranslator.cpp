@@ -3,7 +3,7 @@
 #include "../NodeTranslatorImpl.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
-#include "render/RenderSession.h"
+#include "session/ArnoldSession.h"
 
 #include <ai_cameras.h>
 #include <ai_constants.h>
@@ -39,12 +39,12 @@ bool CCameraTranslator::RequiresMotionData()
 {
    MPlug motionBlurOverridePlug = FindMayaPlug("motionBlurOverride");
    if (motionBlurOverridePlug.isNull())
-      return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+      return m_impl->m_session->GetOptions().IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
    else
    {
       const short motionBlurOverride = motionBlurOverridePlug.asShort();
       if (motionBlurOverride == 0)
-         return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+         return m_impl->m_session->GetOptions().IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
       else
          return (motionBlurOverride == 1) ? true : false;
    }      
@@ -53,13 +53,14 @@ bool CCameraTranslator::RequiresMotionData()
 
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
+   CSessionOptions &options = m_impl->m_session->GetOptions();
    // FIXME: focus_distance and aperture_size are animated and should be exported with motion blur
    if (FindMayaPlug("aiEnableDOF").asBool())
    {
       float distance = FindMayaPlug("aiFocusDistance").asFloat();
-      m_impl->m_session->ScaleDistance(distance);      
+      options.ScaleDistance(distance);      
       float apertureSize = FindMayaPlug("aiApertureSize").asFloat();
-      m_impl->m_session->ScaleDistance(apertureSize);
+      options.ScaleDistance(apertureSize);
       AiNodeSetFlt(camera, "focus_distance",          distance);
       AiNodeSetFlt(camera, "aperture_size",           apertureSize);
       AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
@@ -158,11 +159,12 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 double CCameraTranslator::GetDeviceAspect()
 {
    double deviceAspect = 0;
-   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
+   // FIXME if (GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
+   if (false)
    {
       // We do an exception for AVP, since the resolution isn't taken from defaultRenderGlobals.resolution.
       // It depends on the viewport resolution. We assume that ArnoldViewOverride has set the option's xres/yres at this point
-      AtNode *options = AiUniverseGetOptions();
+      AtNode *options = AiUniverseGetOptions(m_impl->m_session->GetUniverse());
       int width = AiNodeGetInt(options, "xres");
       int height = AiNodeGetInt(options, "yres");
 
@@ -391,12 +393,13 @@ void CCameraTranslator::GetMatrix(AtMatrix& matrix)
    {
       if (m_impl->m_session)
       {
+         CSessionOptions &options = m_impl->m_session->GetOptions();
          MTransformationMatrix trMat = mayaMatrix;
-         trMat.addTranslation((-1.0) * m_impl->m_session->GetOrigin(), MSpace::kWorld);
+         trMat.addTranslation((-1.0) * options.GetOrigin(), MSpace::kWorld);
          MMatrix copyMayaMatrix = trMat.asMatrix();
-         copyMayaMatrix[3][0] = m_impl->m_session->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
-         copyMayaMatrix[3][1] = m_impl->m_session->ScaleDistance(copyMayaMatrix[3][1]);
-         copyMayaMatrix[3][2] = m_impl->m_session->ScaleDistance(copyMayaMatrix[3][2]);
+         copyMayaMatrix[3][0] = options.ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
+         copyMayaMatrix[3][1] = options.ScaleDistance(copyMayaMatrix[3][1]);
+         copyMayaMatrix[3][2] = options.ScaleDistance(copyMayaMatrix[3][2]);
 
          for (int J = 0; (J < 4); ++J)
          {
@@ -424,7 +427,7 @@ void CCameraTranslator::RequestUpdate()
    // we should not request an update
 
    AtNode *node = GetArnoldNode();
-   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(m_impl->m_session->GetUniverse()), "camera");
    if (node == renderCam || !m_impl->m_backReferences.empty())
       CDagTranslator::RequestUpdate();
    else
@@ -434,7 +437,8 @@ void CCameraTranslator::RequestUpdate()
 void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.partialName(false, false, false, false, false, true);
-   if (plugName == "overscan" && !((GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering()))) return; // don't skip this in viewport rendering
+   
+   // FIXME !!!! WHY ?????? if (plugName == "overscan" && !((GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering()))) return; // don't skip this in viewport rendering
 
    if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
 
@@ -450,6 +454,7 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 
 float CCameraTranslator::GetFocalFactor() const
 {
+   /* FIXME why ????
    if (GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
    {
       MPlug overscanPlug = FindMayaPlug("overscan");
@@ -457,5 +462,6 @@ float CCameraTranslator::GetFocalFactor() const
          return 1.f / AiMax(overscanPlug.asFloat(), AI_EPSILON);
 
    }
+   */
    return 1.f;
 }

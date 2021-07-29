@@ -1,5 +1,7 @@
 #include "ShaderTranslators.h"
+#include "../../session/ArnoldSession.h"
 #include "platform/Platform.h"
+#include "../NodeTranslatorImpl.h"
 #include "../../common/UnorderedContainer.h"
 
 #include <ai_msg.h>
@@ -514,12 +516,16 @@ void CFileTranslator::Export(AtNode* shader)
 
       // only set the color_space if the texture isn't a TX
       AiNodeSetStr(shader, "color_space", "");
-      if (resolvedFilename.length() > 4)
+      // if the export option for color managers is turned off, consider that color management is disabled #2995
+      if (!m_impl->m_session->IsFileExport() || (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) != 0)
       {
-         MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
+         if (resolvedFilename.length() > 4)
+         {
+            MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
 
-         if (extension != ".tx" && extension !=  ".TX")
-            AiNodeSetStr(shader, "color_space", colorSpace.asChar());
+            if (extension != ".tx" && extension !=  ".TX")
+               AiNodeSetStr(shader, "color_space", colorSpace.asChar());
+         }
       }
 
       if (requestUpdateTx) RequestTxUpdate();
@@ -2588,7 +2594,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 
             // we don't want to export additional geometries, just get the already-exported 
             // geometries associated to this dagPath
-            CNodeTranslator *translator2 = GetTranslator(dagPath); 
+            CNodeTranslator *translator2 = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(dagPath)); 
             if (translator2 == NULL)
                continue;
 
@@ -3018,14 +3024,16 @@ void CAiImageTranslator::Export(AtNode* image)
 
       // only set the color_space if the texture isn't a TX
       AiNodeSetStr(image, "color_space", "");
-      if (filename.length() > 4)
+      if (!m_impl->m_session->IsFileExport() || (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) != 0)
       {
-         MString extension = filename.substring(filename.length() - 3, filename.length() - 1);
-         // set the color space only if texture isn't a TX
-         if (extension != ".tx" && extension !=  ".TX")
-            AiNodeSetStr(image, "color_space", colorSpace.asChar());         
+         if (filename.length() > 4)
+         {
+            MString extension = filename.substring(filename.length() - 3, filename.length() - 1);
+            // set the color space only if texture isn't a TX
+            if (extension != ".tx" && extension !=  ".TX")
+               AiNodeSetStr(image, "color_space", colorSpace.asChar());         
+         }
       }
-
       // let Arnold Session know that image files have changed and it's necessary to update them
       if (requestUpdateTx) RequestTxUpdate();
    }
@@ -3544,7 +3552,7 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shader)
       if (shapes.empty())
          continue;
       
-      AtNode *shapeShader = AiNodeLookUpByName(it->first.c_str());
+      AtNode *shapeShader = AiNodeLookUpByName(GetUniverse(), it->first.c_str());
       if (shapeShader == NULL)
          continue;
       

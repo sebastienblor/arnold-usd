@@ -1,14 +1,15 @@
 #include "platform/Platform.h"
 #include "utils/Universe.h"
-#include "scene/MayaScene.h"
-#include "render/RenderSession.h"
 #include "RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
+#include "session/SessionManager.h"
 #include "utils/time.h"
-
+#include "utils/AiAdpPayload.h"
+#include "utils/MayaUtils.h"
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
+
 
 #include <maya/MImage.h>
 #include <ai_msg.h>
@@ -17,6 +18,7 @@
 #include <assert.h>
 #include <string.h> // for memset.
 #include <string>
+#include <sstream>
 #include <algorithm>
 #include <cctype>
 
@@ -39,8 +41,15 @@ CRenderSwatchGenerator::CRenderSwatchGenerator(MObject dependNode,
                                                                     imageResolution)
 {
    m_iteration = 0;
+   const void * address = static_cast<const void*>(this);
+   std::stringstream ss;
+   ss << address;  
+   m_sessionId = "swatch_";
+   m_sessionId += ss.str(); 
    ClearSwatch();
    SetSwatchClass(dependNode);
+   m_initialized = false;
+   
 
 }
 
@@ -49,7 +58,7 @@ CRenderSwatchGenerator::~CRenderSwatchGenerator()
 }
 
 void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
-{
+{  
    m_nodeClass = "";
    m_swatchClass = SWATCH_NONE;
    if (node.isNull())
@@ -127,14 +136,15 @@ bool returnResult(MStatus status)
 }
 
 
-MStatus CRenderSwatchGenerator::BuildArnoldScene()
+MStatus CRenderSwatchGenerator::BuildArnoldScene(CArnoldSession *session)
 {
    MStatus status;
-
+   
    MObject mayaNode = swatchNode();
    
    // What is this? Seem to always get the same node
    // MObject renderNode = node();
+   AtUniverse *universe = session->GetUniverse();
 
    MString mayaNodeName = "";
    MString mayaNodeType = MFnDependencyNode(mayaNode).typeName();
@@ -143,187 +153,93 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    else
       mayaNodeName = MFnDependencyNode(mayaNode).name();
 
-   // Load basic swatch scene (additions will be done depending on what is previewed)
-   /*
-   if (MStatus::kSuccess != LoadAssForNode()
-         && MStatus::kSuccess != DefaultArnoldScene())
+   if (!m_initialized)
    {
-      ErrorSwatch("Could not create Arnold swatch scene");
-      return MStatus::kFailure;
+      m_initialized = true;
+
+      AtNode *geometry = NULL;
+      MString typeName = MFnDependencyNode(swatchNode()).typeName();
+
+      if (typeName == "aiHair" || typeName == "aiStandardHair")
+      {
+
+         geometry = AiNode(universe, "sphere");
+         if (NULL != geometry)
+         {
+            AiNodeSetStr(geometry, "name", "geometry");
+            AiNodeSetBool(geometry, "opaque", false);
+            AtMatrix matrix = {{ { 1.0f, 0.0f, 0.0f, 0.0f },
+                               { 0.0f, -1.0f, 0.0f, 0.0f },
+                               { 0.0f, 0.0f, 1.0f, 0.0f },
+                               { 0.0f, 0.0f, 0.0f, 1.0f } }};
+            AiNodeSetMatrix(geometry, "matrix", matrix);
+         }
+      }
+      else
+      {
+         geometry = PolySphere(universe);
+         if (NULL != geometry)
+         {
+            AiNodeSetStr(geometry, "name", "geometry");
+            AiNodeSetByte(geometry, "subdiv_iterations", 1);
+            AiNodeSetBool(geometry, "opaque", false);
+         }
+      }
+      AtNode* camera = AiNode(universe, "persp_camera");
+      AiNodeSetStr(camera, "name", "camera");
+      AiNodeSetVec(camera, "position", 0.f, 0.f, 1.14f);
    }
-   */
-   if (MStatus::kSuccess != DefaultArnoldScene())
-   {
-      ErrorSwatch("Could not create Arnold swatch scene");
-      return MStatus::kFailure;
-   }
+
    // Export the swatched shading node
    AtNode* arnoldNode = NULL;
    CNodeTranslator* translator = NULL;
-   status = ExportNode(arnoldNode, translator);
-
-   if (MStatus::kSuccess != status)
-   {
-      ErrorSwatch("Could not export \"" + mayaNodeName + "\" of type \"" + mayaNodeType + "\"");
-   }
-   else
-   {
-      MString arnoldNodeName(AiNodeGetName(arnoldNode));
-      if (NULL != arnoldNode) {
-         const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(arnoldNode);
-         if (MtoaTranslationInfo())
-            MtoaDebugLog("[mtoa.swatch] "+ mayaNodeName +" | Exported as "+ MString(AiNodeGetName(arnoldNode))+"("+MString(AiNodeEntryGetTypeName(nodeEntry))+")");
-               
-      }
-
-      // Assign it in the scene, depending on what it is
-      status = AssignNode(arnoldNode, translator);
-      if (MStatus::kSuccess != status)
-      {
-         ErrorSwatch("Could not assign \"" + mayaNodeName + "\" exported as \"" + arnoldNodeName + "\"");
-      }
-      // Add a camera
-      // TODO : would it be possible / interesting to allow preview of cameras?
-      AtNode* camera = AiNode("persp_camera");
-      AiNodeSetStr(camera, "name", "camera");
-      AiNodeSetVec(camera, "position", 0.f, 0.f, 1.14f);
-      // Apply any swatch options (overrides) that are present on mayaNode
-      if (MStatus::kSuccess != ApplyOverrides(translator))
-      {
-         ErrorSwatch("Could not apply overrides present on \"" + mayaNodeName + "\"");
-      }
-   }
-
-   if (translator != NULL) delete translator;
-   return MStatus::kSuccess;
-
-}
-
-// This will try and find an ass file based on the classification
-// of the shader. e.g. shader_surface.ass. It will try and find these
-// ass files in a path pointed to by $MTOA_SWATCH_ASS_PATH.
-MStatus CRenderSwatchGenerator::LoadAssForNode()
-{
-   const MString ass = MString("$MTOA_SWATCH_ASS_PATH/").expandFilePath();
-   std::string c_ass(m_nodeClass.asChar());
-   std::replace(c_ass.begin(), c_ass.end(), '/', '_');
-   c_ass = ass.asChar() + c_ass + ".ass";
-
-   if (AiASSLoad(c_ass.c_str()) == AI_SUCCESS)
-   {
-      if (NULL != AiNodeLookUpByName("geometry"))
-         return MStatus::kSuccess;
-      else
-         ErrorSwatch("There should be at least one geometry named \"geometry\" in the swatch ass file.");
-   }
-
-   return MStatus::kFailure;
-}
-
-// Default scene when none was loaded
-MStatus CRenderSwatchGenerator::DefaultArnoldScene()
-{
-   // FIXME : temp fix, add attributes on shading nodes swatch tab
-   // to choose geometry / optional ground plane
-   AtNode *geometry = NULL;
-   MString typeName = MFnDependencyNode(swatchNode()).typeName();
-
-   if (typeName == "aiHair")
-   {
-      geometry = AiNode("sphere");
-      if (NULL != geometry)
-      {
-         AiNodeSetStr(geometry, "name", "geometry");
-         AiNodeSetBool(geometry, "opaque", false);
-         AtMatrix matrix = {{ { 1.0f, 0.0f, 0.0f, 0.0f },
-                            { 0.0f, -1.0f, 0.0f, 0.0f },
-                            { 0.0f, 0.0f, 1.0f, 0.0f },
-                            { 0.0f, 0.0f, 0.0f, 1.0f } }};
-         AiNodeSetMatrix(geometry, "matrix", matrix);
-         return MStatus::kSuccess;
-      }
-   }
-   else
-   {
-      geometry = PolySphere();
-      if (NULL != geometry)
-      {
-         AiNodeSetStr(geometry, "name", "geometry");
-         AiNodeSetByte(geometry, "subdiv_iterations", 1);
-         AiNodeSetBool(geometry, "opaque", false);
-         return MStatus::kSuccess;
-      }
-   }
-   
-   return MStatus::kFailure;
-}
-
-MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
-                                           CNodeTranslator* & translator)
-{
-   MStatus status;
-   MObject mayaNode = swatchNode();
-
-   CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
-
    if (mayaNode.hasFn(MFn::kDagNode))
    {
       MDagPath dagPath;
       MDagPath::getAPathTo(mayaNode, dagPath);
-      CDagTranslator* dagTranslator = CExtensionsManager::GetTranslator(dagPath);
-      if (NULL != dagTranslator)
-      {
-         translator = (CNodeTranslator*) dagTranslator;
-      }
-      else
-      {
-         translator = CExtensionsManager::GetTranslator(mayaNode);
-         dagTranslator = (CDagTranslator*) translator;
-      }
-      if (NULL != dagTranslator)
-      {
-         dagTranslator->m_impl->Init(exportSession, dagPath, "");
-         arnoldNode = dagTranslator->m_impl->DoExport();
-      }
+      translator = session->ExportDagPath(dagPath);
    } 
-   else {
-      translator = CExtensionsManager::GetTranslator(mayaNode);
-      if (NULL != translator)
-      {
-         translator->m_impl->Init(exportSession, mayaNode, "");
-         arnoldNode = translator->m_impl->DoExport();
-      }
-   }
-   if (NULL != arnoldNode)
-   {
-      status = MStatus::kSuccess;
-   }
-   else
-   {
-      status = MStatus::kFailure;
-   }
+   else 
+      translator = session->ExportNode(mayaNode);
+   
+   if (translator)
+      arnoldNode = translator->GetArnoldNode();
 
-   return status;
+   if (arnoldNode == nullptr)
+      return MS::kFailure;
+
+   MString arnoldNodeName(AiNodeGetName(arnoldNode));
+   
+   // Assign it in the scene, depending on what it is
+   status = AssignNode(arnoldNode, translator);
+   
+   
+   // Apply any swatch options (overrides) that are present on mayaNode
+   /*
+   if (MStatus::kSuccess != ApplyOverrides(translator))
+   {
+      ErrorSwatch("Could not apply overrides present on \"" + mayaNodeName + "\"");
+   }*/
+
+   return MStatus::kSuccess;
+
 }
 
 MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* translator)
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
-
+   AtUniverse *universe = AiNodeGetUniverse(arnoldNode);
    // Assign what needs to be on geometry
 
-   AtNode* geometry = AiNodeLookUpByName("geometry");
+   AtNode* geometry = AiNodeLookUpByName(universe, "geometry");
 
    // Assign exported geometry shader or use default one
    if (m_swatchClass == SWATCH_SHADER)
    {
       AiNodeSetPtr(geometry, "shader", arnoldNode);
    } else {
-      AtNode* defaultShader = AiNode("standard");
-      AiNodeSetStr(defaultShader, "name", "default");
-      AiNodeSetFlt(defaultShader, "Ks", 0.35f);
-      AiNodeSetBool(defaultShader, "reflection_exit_use_environment", true);
+      AtNode* defaultShader = AiNode(universe, "standard_surface", "default");
       AiNodeSetPtr(geometry, "shader", defaultShader);
    }
 
@@ -347,7 +263,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
          // Special case for mesh lights.
          // The mesh can be of any size and shape and will not give a consistent 
          // result. So instead use a quad light stand-in with the same properties.
-         AtNode *light = AiNode("quad_light");
+         AtNode *light = AiNode(universe, "quad_light");
          AiNodeSetStr(light, "name", "light");
          AiNodeSetMatrix(light, "matrix", matrix);
          AtRGB color = AiNodeGetRGB(arnoldNode, "color");
@@ -361,7 +277,9 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
 
          // Hide original mesh light
          AtNode* meshNode = translator->GetArnoldNode("mesh");
-         AiNodeSetDisabled(meshNode, true);
+         if (meshNode)
+            AiNodeSetDisabled(meshNode, true);
+
          AiNodeSetDisabled(arnoldNode, true);
       }
       else
@@ -373,7 +291,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    {
       // Use a spot light at -1, 1, 1 looking at 0, 0, 0
       // to preview light filters and atmosphere effects
-      AtNode *light = AiNode("spot_light");
+      AtNode *light = AiNode(universe, "spot_light");
       AiNodeSetStr(light, "name", "light");
       AiNodeSetFlt(light, "intensity", 1.f);
       AiNodeSetVec(light, "position", -1.f, 1.f, 1.f);
@@ -392,14 +310,14 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    else
    {
       // Default light for swatching shaders etc
-      AtNode *light = AiNode("distant_light");
+      AtNode *light = AiNode(universe, "distant_light");
       AiNodeSetStr(light, "name", "light");
       AiNodeSetVec(light, "direction", 1.0f, -1.f, -1.0f);
    }
 
    // Set the global options for background and atmosphere
    
-   AtNode * const options = AiUniverseGetOptions();
+   AtNode * const options = AiUniverseGetOptions(universe);
    
    MTime ct = MAnimControl::currentTime();
    AiNodeSetFlt(options, "frame", (float)ct.value());
@@ -413,7 +331,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    {
       // Add a default sky shader to get solid alpha
       // TODO : options to use a custom environment for swatches or use render setting's?
-      AtNode* background = AiNode("sky");
+      AtNode* background = AiNode(universe, "sky");
       AiNodeSetStr(background, "name", "background");
       AiNodeSetRGB (background, "color", 0.0f, 0.0f, 0.0f);
       AiNodeSetPtr(options, "background", background);
@@ -424,17 +342,18 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    {
       AiNodeSetPtr(options, "atmosphere", arnoldNode);
    }
+   AiNodeSetBool(options, "skip_license_check", true);
+   AiNodeSetBool(options, "texture_automip", false);
 
    return MStatus::kSuccess;
 }
 
+/* FIXME should we restore this ?
 MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
 {
    // Temporary until it is exposed somewhere
    AtNode * const options = AiUniverseGetOptions();
-   AiNodeSetBool(options, "skip_license_check", true);
-   AiNodeSetBool(options, "texture_automip", false);
-
+   
    // Commenting this as it was causing crashes (#2482)
    // when this value has changed since last render, but 
    // a texture is still in the texture cache
@@ -474,6 +393,7 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
 
    return MStatus::kSuccess;
 }
+*/
 
 // Output driver writes a float image, but we reset it as byte here
 // as it is what Maya expects (it is converted if render succeeds)
@@ -494,42 +414,108 @@ void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 
 bool CRenderSwatchGenerator::DoSwatchRender()
 {
-   MStatus status ;
-   status = CMayaScene::Begin(MTOA_SESSION_SWATCH);
-   MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
-   status = BuildArnoldScene();
-   if (MStatus::kSuccess == status)
+   CArnoldSession *session = nullptr;
+   session = new CArnoldSession(false); // don't init the sessionOptions here
+   if (!CSessionManager::AddActiveSession(m_sessionId, session))
    {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.swatch] " + MFnDependencyNode(swatchNode()).name() + " | Rendering");
-
-      image().create(resolution(),
-                     resolution(),
-                  4,                               // RGBA
+      delete session;
+      return false;
+   }
+   
+   MObject ArnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions();
+   AtUniverse *universe = session->GetUniverse();
+   AtRenderSession *renderSession = session->GetRenderSession();
+   CSessionOptions &sessionOptions = session->GetOptions();
+   sessionOptions.SetSupportGpu(false);
+   BuildArnoldScene(session);
+   int res = resolution();
+ 
+   image().create(res, res,
+                  4,                              // RGBA
                   MImage::kFloat);                // Has to be for swatches it seems.
 
-      // if use tx is enabled, call exportTx that will *not* try to convert the mipmaps
-      // but will check for existing tx for sake of optimization
-      if (ArnoldRenderOptionsNode.isNull() || MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("use_existing_tiled_textures", true).asBool())
-         CMayaScene::GetArnoldSession()->ExportTxFiles();
-
-      CMayaScene::GetRenderSession()->DoSwatchRender(image(), resolution());
-      #ifndef NDEBUG
-      // Catch this as it would lead to a Maya UI crash
-      // with no proper stack info on what caused it
-      unsigned int iWidth, iHeight;
-      image().getSize(iWidth, iHeight);
-      assert(resolution() == (int)iWidth);
-      assert(resolution() == (int)iHeight);
-      assert(MImage::kFloat == image().pixelType());
-      #endif
-      image().convertPixelFormat(MImage::kByte);
-      // Stop being called/iterated.
-      CMayaScene::End();
-      return true;
+   // if use tx is enabled, call exportTx that will *not* try to convert the mipmaps
+   // but will check for existing tx for sake of optimization
+      
+   // Here the session options haven't been updated (for optimization reasons), so we need
+   // to look for the render options node parameters and fill the options before calling ExportTxFiles
+   MStatus stat;
+   MFnDependencyNode fnOptions(sessionOptions.GetArnoldRenderOptions(), &stat);
+   if (stat != MS::kSuccess || fnOptions.findPlug("use_existing_tiled_textures", true).asBool())
+   {
+      sessionOptions.SetAutoTx(false);
+      sessionOptions.SetUseExistingTx(true);
+      session->ExportTxFiles();
    }
-   CMayaScene::End();
-   return returnResult(status);
+
+   // Use the render view output driver. It will *not* be displayed
+   // in the render view, we're just using the Arnold Node.
+   // See DisplayUpdateQueueToMImage() for how we get the image.
+   AtNode* render_view = AiNode(universe, "renderview_display", "swatch_renderview_display");
+   
+   AiNodeSetPtr(render_view, "swatch", image().floatPixels());
+
+
+   AtNode* filter = AiNode(universe, "gaussian_filter");
+   AiNodeSetStr(filter, "name", "swatch_renderview_filter");
+   AiNodeSetFlt(filter, "width", 2.0f);
+
+   AtNode* options = AiUniverseGetOptions(universe);
+
+   COptionsTranslator::AddProjectFoldersToSearchPaths(options);
+   AiNodeDeclare(options, "is_swatch", "constant BOOL");
+   AiNodeSetBool(options, "is_swatch", true);
+   AiNodeSetStr(options, "pin_threads", "off");
+   AiNodeSetInt(options, "threads", 4);
+
+   // Create the single output line. No AOVs or anything.
+   AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
+   std::string outputsStr ("RGBA RGBA ");
+   outputsStr += AiNodeGetName(filter);
+   outputsStr += " ";
+   outputsStr += AiNodeGetName(render_view);
+   
+   AiArraySetStr(outputs, 0, outputsStr.c_str());
+   AiNodeSetArray(options, "outputs", outputs);
+
+   // Most options should be read from an ass so just need to set the res and
+   // guess a reasonable bucket size.
+   AiNodeSetInt(options, "xres", res);
+   AiNodeSetInt(options, "yres", res);
+   AiNodeSetInt(options, "bucket_size", res/4);
+   AiNodeSetInt(options, "GI_sss_samples", 4);
+
+
+   // Start the render on the current thread.
+   AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
+   AiRenderSetHintBool(renderSession, AtString("progressive"), false);
+   AiRenderBegin(renderSession);
+   
+   while (true)
+   {
+      AtRenderStatus status = AiRenderGetStatus(renderSession);
+      if (status == AI_RENDER_STATUS_FINISHED || status == AI_RENDER_STATUS_FAILED)
+         break;
+   }
+
+   #ifndef NDEBUG
+   // Catch this as it would lead to a Maya UI crash
+   // with no proper stack info on what caused it
+   unsigned int iWidth, iHeight;
+   image().getSize(iWidth, iHeight);
+   assert(resolution() == (int)iWidth);
+   assert(resolution() == (int)iHeight);
+   assert(MImage::kFloat == image().pixelType());
+   #endif
+   image().convertPixelFormat(MImage::kByte);
+   // Stop being called/iterated.
+
+   AiRenderInterrupt(renderSession, AI_BLOCKING);   
+   AiRenderEnd(renderSession);
+  
+   CSessionManager::DeleteActiveSession(m_sessionId);
+ 
+   return true;
 }
 
 bool CRenderSwatchGenerator::DoNoGPUImage()
@@ -557,25 +543,24 @@ bool CRenderSwatchGenerator::DoStaticImage()
 
 bool CRenderSwatchGenerator::doIteration()
 {
-   if (CMayaScene::GetSessionMode() == MTOA_SESSION_BATCH )
-      return true; // shouldn't even be here in batch
-   
+   if (IsBatch())
+      return false;
+
    MObject mayaNode = swatchNode();
-   MObject arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+   MObject arnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions();
 
    if (arnoldRenderOptionsNode.isNull())
    {
       MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
-      arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+      arnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions();
    }
    MFnDependencyNode depNode(mayaNode);
    MString nodeType = depNode.typeName();
+   
    const ArnoldNodeMetadataStore *metadataStore = CExtensionsManager::FindNodeMetadatas(nodeType, true);
-   
    bool sceneSwatch = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
-   
    bool gpuRenderCompatibility = true;
-   bool doSwatch = false;
+   bool doSwatch = true;
 
    if (metadataStore)
    {
@@ -596,24 +581,24 @@ bool CRenderSwatchGenerator::doIteration()
    {
       // If GPU isn't supported for this node, we always show the no-gpu icon
       DoNoGPUImage();
-   } else if (doSwatch && !AiUniverseIsActive())
+   } else if (doSwatch && sceneSwatch)
    {
-      CMayaScene::Begin(MTOA_SESSION_SWATCH);
-      // if swatch is enabled AND no render is in progress, we can start a swatch rendering
+      // if swatch is enabled, we can start a swatch rendering
       DoSwatchRender();
-      CMayaScene::End();
    } else
    {
       // fallback behaviour, show a static image
       DoStaticImage();
    }
+
+
    return true;
 }
 
 // This will create a polygon sphere for swatching
-AtNode* CRenderSwatchGenerator::PolySphere()
+AtNode* CRenderSwatchGenerator::PolySphere(AtUniverse *universe)
 {
-   AtNode *sph = AiNode("polymesh");
+   AtNode *sph = AiNode(universe, "polymesh");
 
    AtArray *nsides = AiArray( 64, 1, AI_TYPE_UINT,
                               4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,

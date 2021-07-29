@@ -16,12 +16,13 @@ private:
 public:
 
    ~CArnoldMaterialXShaderNode();
-   virtual void postConstructor();
+   void postConstructor() override;
    
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
+   MStatus compute(const MPlug& plug, MDataBlock& data) override;
 
    static void* creator();
    static MStatus initialize();
+   SchedulingType schedulingType()const override {return kSerial;}
 
    static MTypeId id;
    

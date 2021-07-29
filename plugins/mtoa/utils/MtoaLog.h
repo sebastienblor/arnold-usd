@@ -23,6 +23,8 @@ DLLEXPORT void MtoaSetupLogging(int logflags = DEFAULT_LOG_FLAGS);
 
 // this could be in MtoaDebugLog, but we want to avoid useless creations/copies of MStrings
 DLLEXPORT bool MtoaTranslationInfo();
-
+DLLEXPORT void UpdateMtoaTranslationInfo();
 // we use a copy of the MString so that we can do MtoaDebugLog(MString("blablabla")) safely
 DLLEXPORT void MtoaDebugLog(MString log); 
+
+

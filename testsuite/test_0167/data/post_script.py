@@ -16,7 +16,7 @@ AiBegin()
 AiASSLoad('test.ass')
 success = True
 
-textMesh = AiNodeLookUpByName('typeMeshShape1')
+textMesh = AiNodeLookUpByName('/typeMesh1/typeMeshShape1')
 if textMesh is None:
     success = False
     print 'No mesh has been exported with the expected name'

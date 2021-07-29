@@ -5,13 +5,16 @@
 #include <ai_msg.h>
 #include <ai_universe.h>
 
+#include <vector>
 #include <maya/MSelectionList.h>
 #include <maya/MImage.h>
 #include <maya/MRenderView.h>
+#include <maya/MItDag.h>
 
 #include <maya/MEventMessage.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MTimerMessage.h>
+#include "common/MTBlockingQueue.h"
 
 // This value has a huge impact on the render view performance.
 // A figure too low on linux causes the render view to receive updates too slowly.
@@ -22,22 +25,8 @@
 #define DISPLAY_QUEUE_WAIT 10
 #endif
 
-struct COutputDriverData
-{
-   std::vector<RV_PIXEL>   oldPixels;
-   AtBBox2                 refresh_bbox;
-   float*                  swatchPixels;
-   float                   gamma;
-   unsigned int            imageWidth;
-   unsigned int            imageHeight;
-   unsigned int            swatchImageWidth;
-   unsigned int            renderedPixels;
-   unsigned int            totalPixels;
-   bool                    isRegion;
-   bool                    isProgressive;  
-   bool                    rendering;
-   bool                    clearBeforeRender;
-};
+
+
 
 enum EDisplayUpdateMessageType
 {
@@ -77,20 +66,68 @@ struct CDisplayUpdateMessage
    }
 };
 
+struct COutputDriverData
+{
+   COutputDriverData() 
+   {
+      FPS = 6.0;
+      firstOpen = false;
+      newRender = false;
+      finishedRendering = false;
+      AA_Samples = GI_diffuse_samples = GI_specular_samples = GI_transmission_samples = GI_sss_samples = GI_volume_samples = 1;
+      start_time = 0;
+      swatchPixels = nullptr;
+      gamma = 1.f;
+      imageWidth = imageHeight = swatchImageWidth = renderedPixels = totalPixels = 1;
+      isRegion = isProgressive = rendering = clearBeforeRender = false;
+   }
+
+
+   CMTBlockingQueue<CDisplayUpdateMessage> displayUpdateQueue;
+   bool                                    finishedRendering;
+   MString                                 camera_name;
+   MString                                 layer_name;
+   MString                                 panel_name;
+   
+   int AA_Samples;
+   int GI_diffuse_samples;
+   int GI_specular_samples;
+   int GI_transmission_samples;
+   int GI_sss_samples;
+   int GI_volume_samples;
+   bool firstOpen;
+   bool newRender;
+   AtMutex driverLock;
+   double FPS;
+   time_t start_time;   
+
+   std::vector<RV_PIXEL>   oldPixels;
+   AtBBox2                 refresh_bbox;
+   float*                  swatchPixels;
+   float                   gamma;
+   unsigned int            imageWidth;
+   unsigned int            imageHeight;
+   unsigned int            swatchImageWidth;
+   unsigned int            renderedPixels;
+   unsigned int            totalPixels;
+   bool                    isRegion;
+   bool                    isProgressive;  
+   bool                    rendering;
+   bool                    clearBeforeRender;
+};
+
 /// Initialize the display queue for a new render.
-void InitializeDisplayUpdateQueue(const MString& camera, const MString& layer, const MString& panel);
+void InitializeDisplayUpdateQueue(const MString& camera, const MString& layer, const MString& panel, COutputDriverData *data);
 
 /// Process a message on the queue from Arnold.
 /// \param refresh the render view is slow to refresh, so pass false if possible.
-bool ProcessUpdateMessage();
+bool ProcessUpdateMessage(AtNode *);
 void UpdateBucket(RV_PIXEL* pixels, int minx, int miny, int maxx, int maxy, const bool refresh);
-void RefreshRenderViewBBox();
-void CopyBucketToBuffer(float * to_pixels,
+void RefreshRenderViewBBox(AtNode *);
+void CopyBucketToBuffer(COutputDriverData *data,
                         CDisplayUpdateMessage & msg);
 
 /// Clear the queue.
-void ClearDisplayUpdateQueue();
-void TransferTilesToRenderView();
+void ClearDisplayUpdateQueue(COutputDriverData *data);
+void TransferTilesToRenderView(AtNode *);
 
-/// Get the last used command for setting the render view caption
-DLLEXPORT const MString& GetLastRenderViewCaptionCommand();

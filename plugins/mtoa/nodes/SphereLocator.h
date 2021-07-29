@@ -33,15 +33,15 @@ public:
    
    static MTypeId id;
 
-   virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
+   void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status) override;
    virtual void OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
-   virtual bool isBounded() const;
-   virtual bool drawLast() const;
-   virtual bool isTransparent() const;
-   virtual bool excludeAsLocator() const;
-   virtual MBoundingBox boundingBox() const;
-   virtual bool setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context);
-   virtual MSelectionMask getShapeSelectionMask() const;
+   bool isBounded() const override;
+   bool drawLast() const override;
+   bool isTransparent() const override;
+   bool excludeAsLocator() const override;
+   MBoundingBox boundingBox() const override;
+   bool setInternalValue(const MPlug &plug, const MDataHandle &handle) override;
+   MSelectionMask getShapeSelectionMask() const override;
 
    static void* creator();
 
@@ -88,7 +88,7 @@ public:
    int    m_cachedFormat;
 
    
-   virtual void postConstructor()
+   void postConstructor() override
    {
       // Initialize colorData
       m_goSample        = true;

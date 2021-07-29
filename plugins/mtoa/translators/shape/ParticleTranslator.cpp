@@ -1674,7 +1674,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    int masterInstanceNum =  masterInstance.instanceNumber();
    int instanceNum =  m_dagPath.instanceNumber();
 
-   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
+   AiNodeSetStr(instance, "name", GetSessionOptions().GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
 

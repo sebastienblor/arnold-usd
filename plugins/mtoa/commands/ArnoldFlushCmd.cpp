@@ -2,12 +2,21 @@
 
 #include <maya/MArgList.h>
 #include <maya/MArgDatabase.h>
+#include <maya/MStringArray.h>
+#include <maya/MSelectionList.h>
+#include <maya/MGlobal.h>
+#include <maya/MDagPath.h>
+#include <maya/MFnDependencyNode.h>
+
 
 #include <ai_universe.h>
+#include <ai_nodes.h>
+#include <ai_texture.h>
+
+
+
 #include "utils/MakeTx.h"
 #include "utils/MtoaLog.h"
-
-#include "scene/MayaScene.h"
 
 
 static const AtString image_str("image");
@@ -58,8 +67,10 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
    AiParamIteratorDestroy(nodeParam);
 }
 
+// FIXME !! how to deal with multiple universes
 MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 {
+   
    // Initialize command syntax and get flags
    MSyntax syntax = newSyntax();
    // we must use an MArgParser because MArgList is not python compatible, and we
@@ -147,9 +158,6 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
       }
       
    }
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   if (renderSession != NULL && AiUniverseIsActive())
-      renderSession->InterruptRender();
 
    return MS::kSuccess;
 }

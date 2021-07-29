@@ -3,11 +3,10 @@
 #include "NodeTranslatorImpl.h"
 
 #include "DagTranslator.h"
-#include "render/RenderOptions.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/Components.h"
 #include "common/UtilityFunctions.h"
-#include "scene/MayaScene.h"
+#include "session/ArnoldSession.h"
 #include "utils/MtoaLog.h"
 
 #include <ai_ray.h>
@@ -120,7 +119,10 @@ AtNode* CNodeTranslator::ExportConnectedNode(const MPlug& outputPlug)
    return m_impl->ExportConnectedNode(outputPlug);
 }
 
-
+AtUniverse *CNodeTranslator::GetUniverse()
+{
+   return m_impl->m_session->GetUniverse();
+}
 
 MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStatus) const
 {
@@ -163,6 +165,11 @@ void CNodeTranslator::Export(AtNode* node)
 bool CNodeTranslator::IsExported() const
 {
    return m_impl->m_isExported;
+}
+
+const std::vector<CNodeTranslator*> &CNodeTranslator::GetConnectedTranslators() const
+{
+   return m_impl->m_references;
 }
 
 void CNodeTranslator::Delete()
@@ -214,34 +221,19 @@ void CNodeTranslator::Delete()
 
 void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
 {
-   const CArnoldSession* session = CMayaScene::GetArnoldSession();
 
-   if (session)
+   MTransformationMatrix trMat = mayaMatrix;
+   trMat.addTranslation((-1.0) * m_impl->m_session->GetOptions().GetOrigin(), MSpace::kWorld);
+   MMatrix copyMayaMatrix = trMat.asMatrix();
+
+   m_impl->m_session->GetOptions().ScaleMatrix(copyMayaMatrix);
+   for (int J = 0; (J < 4); ++J)
    {
-      MTransformationMatrix trMat = mayaMatrix;
-      trMat.addTranslation((-1.0) * session->GetOrigin(), MSpace::kWorld);
-      MMatrix copyMayaMatrix = trMat.asMatrix();
-
-      session->ScaleMatrix(copyMayaMatrix);
-      for (int J = 0; (J < 4); ++J)
+      for (int I = 0; (I < 4); ++I)
       {
-         for (int I = 0; (I < 4); ++I)
-         {
-            matrix[I][J] = (float) copyMayaMatrix[I][J];
-         }
+         matrix[I][J] = (float) copyMayaMatrix[I][J];
       }
    }
-   else
-   {
-      for (int J = 0; (J < 4); ++J)
-      {
-         for (int I = 0; (I < 4); ++I)
-         {
-            matrix[I][J] = (float) mayaMatrix[I][J];
-         }
-      }      
-   }
-   
 }
 
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
@@ -271,7 +263,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
    MString nodeName = m_impl->MakeArnoldName(type, tag);
    AtString nodeNameStr(nodeName.asChar());
-   AtNode* node = AiNode(m_impl->m_universe, type, nodeNameStr);
+   AtNode* node = AiNode(m_impl->m_session->GetUniverse(), type, nodeNameStr);
    AddExistingArnoldNode(node, tag);
    return node;
 }
@@ -303,11 +295,11 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
    // but we want to ignore them
    // FIXME should we test this in RequestUpdate ?
    
-   if (m_impl->m_session->IsExportingMotion() && m_impl->m_session->IsInteractiveRender()) return;
+   if (m_impl->m_session->IsExportingMotion() && m_impl->m_session->IsInteractiveSession()) return;
 
    if (MtoaTranslationInfo())
       MtoaDebugLog("[mtoa.translator.ipr] "+GetMayaNodeName()+" | NodeChanged: translator "+GetTranslatorName()+", providing Arnold "+m_impl->GetArnoldNodeName()+"("+m_impl->GetArnoldTypeName()+")");
-
+   
    // name of the attribute that emitted a signal
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
@@ -333,7 +325,7 @@ void CNodeTranslator::AddUpdateCallbacks()
 
    MObject object = GetMayaObject();
    // So we update on attribute/input changes.
-   id = MNodeMessage::addNodeDirtyCallback(object,
+   id = MNodeMessage::addNodeDirtyPlugCallback(object,
                                            NodeDirtyCallback,
                                            this,
                                            &status);
@@ -353,12 +345,6 @@ void CNodeTranslator::AddUpdateCallbacks()
                                              &status);
    if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
-   /* We shouldn't need this callback anymore as we already queue the node for deletion in NodeAboutToBeDeleted
-   
-   id = MNodeMessage::addNodeDestroyedCallback(object,
-                                               NodeDestroyedCallback,
-                                               this,
-                                               &status);*/
    if (MS::kSuccess == status) RegisterUpdateCallback(id);
 }
 
@@ -374,11 +360,13 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    MFnDependencyNode dnode(node);
    if (MtoaTranslationInfo())
       MtoaDebugLog("[mtoa.translator.ipr] "+dnode.name()+" | NodeDirtyCallback from plug "+ plug.name());
-
+ 
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-      if (translator->m_impl->m_session->IsExportingMotion() && translator->m_impl->m_session->IsInteractiveRender()) return;
+      if (translator->m_impl->m_session->IsExportingMotion() && translator->m_impl->m_session->IsInteractiveSession()) 
+         return;
+
       translator->NodeChanged(node, plug);
    }
    else
@@ -407,8 +395,7 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    {
       AiMsgWarning("[mtoa.translator.ipr] %-30s | NameChangedCallback: no translator in client data: %p.", translator->GetMayaNodeName().asChar(), clientData);
    }
-
-   CMayaScene::GetRenderSession()->ObjectNameChanged(node, str);
+   translator->m_impl->m_session->ObjectNameChanged(node, str);
 }
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
@@ -458,13 +445,12 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
 
 void CNodeTranslator::RequestUpdate()
 {
-
    // if hold updates is enabled, don't ask for updates
    if (m_impl->m_inUpdateQueue) return;
 
    // we're changing the frame to evaluate motion blur, so we don't want more 
    // updates now
-   if (m_impl->m_session->IsInteractiveRender() && m_impl->m_session->IsExportingMotion()) return;
+   if (m_impl->m_session->IsInteractiveSession() && m_impl->m_session->IsExportingMotion()) return;
 
    m_impl->m_session->QueueForUpdate(this);   
    
@@ -1131,11 +1117,11 @@ MString CNodeTranslator::GetMayaOutputAttributeName() const { return m_impl->m_h
 
 double CNodeTranslator::GetExportFrame()
 {
-   return CMayaScene::GetArnoldSession()->GetExportFrame();
+   return m_impl->m_session->GetOptions().GetExportFrame();
 }
 bool CNodeTranslator::IsMotionBlurEnabled(int type)
 {
-   return CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(type); 
+   return m_impl->m_session->GetOptions().IsMotionBlurEnabled(type); 
 }
 
 bool CNodeTranslator::IsLocalMotionBlurEnabled() const
@@ -1148,78 +1134,59 @@ bool CNodeTranslator::IsLocalMotionBlurEnabled() const
 }
 unsigned int CNodeTranslator::GetMotionStep()
 {   
-   return (m_impl->m_session->IsExportingMotion() || RequiresMotionData()) ? CMayaScene::GetArnoldSession()->GetMotionStep() : 0;
+   return (m_impl->m_session->IsExportingMotion() || RequiresMotionData()) ? m_impl->m_session->GetMotionStep() : 0;
 }
 
 unsigned int CNodeTranslator::GetNumMotionSteps()
 {
-   return (m_impl->m_session->IsExportingMotion() || RequiresMotionData()) ? CMayaScene::GetArnoldSession()->GetNumMotionSteps() : 1;
+   return m_impl->m_session->IsExportingMotion() || RequiresMotionData() ? m_impl->m_session->GetOptions().GetNumMotionSteps() : 1;
 }
 const CSessionOptions& CNodeTranslator::GetSessionOptions()
 {
-   return CMayaScene::GetArnoldSession()->GetSessionOptions(); 
+   return m_impl->m_session->GetOptions(); 
 }
-ArnoldSessionMode CNodeTranslator::GetSessionMode()
-{
-   return CMayaScene::GetArnoldSession()->GetSessionMode();
-}
+
 const MObject& CNodeTranslator::GetArnoldRenderOptions()
 {
-   return CMayaScene::GetArnoldSession()->GetArnoldRenderOptions(); 
+   return m_impl->m_session->GetOptions().GetArnoldRenderOptions(); 
 }
 
 double CNodeTranslator::GetMotionByFrame()
 {
-   return CMayaScene::GetArnoldSession()->GetMotionByFrame(); 
+   return m_impl->m_session->GetOptions().GetMotionByFrame(); 
 }
 
 MString CNodeTranslator::GetTranslatorName() {return m_impl->m_abstract.name;}
 
 const double *CNodeTranslator::GetMotionFrames(unsigned int &count)
 {
-   const std::vector<double> &motionFrames = CMayaScene::GetArnoldSession()->GetMotionFrames();
+   const std::vector<double> &motionFrames = m_impl->m_session->GetOptions().GetMotionFrames();
    count = motionFrames.size();
    
    return (count == 0) ? NULL : &motionFrames[0];
 }
 
-CNodeTranslator *CNodeTranslator::GetTranslator(const MDagPath &dagPath)
-{
-   CArnoldSession *session = CMayaScene::GetArnoldSession();
-   if(session == NULL) return NULL;
-   std::vector<CNodeTranslator*> translators;
-   CNodeAttrHandle handle(dagPath);
-   return session->GetActiveTranslator(handle);
-}
-
-CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
-{
-   CArnoldSession *session = CMayaScene::GetArnoldSession();
-   if(session == NULL) return NULL;
-   std::vector<CNodeTranslator*> translators;
-   CNodeAttrHandle handle(object);
-   return session->GetActiveTranslator(handle);
-}
-
-
-void CNodeTranslator::RequestLightLinksUpdate()
-{
-   CMayaScene::GetArnoldSession()->FlagLightLinksDirty(true);
-
-}
 void CNodeTranslator::RequestTxUpdate()
 {
-   CMayaScene::GetArnoldSession()->RequestUpdateTx();
+   m_impl->m_session->RequestUpdateTx();
 }
-MString CNodeTranslator::GetArnoldNaming(const MObject &object)
-{
-   MString name = MFnDependencyNode(object).name();
-   CNodeTranslatorImpl::AddNamingOptions(name);
-   return name;
-}
-
 
 bool CNodeTranslator::IsExportingMotion() const
 {
    return m_impl->m_session->IsExportingMotion();
+}
+
+bool CNodeTranslator::IsFileExport() const
+{
+   return m_impl->m_session->IsFileExport();
+}
+
+bool CNodeTranslator::IsBatchSession() const
+{
+   return m_impl->m_session->IsBatchSession();
+}
+
+bool CNodeTranslator::IsInteractiveSession() const
+{
+   return m_impl->m_session->IsInteractiveSession();
 }

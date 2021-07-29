@@ -4,7 +4,6 @@
 #include "ArnoldNodeLinkSanitizer.h"
 
 
-#include "scene/MayaScene.h"
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_render.h>
@@ -215,14 +214,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    if (args.isFlagSet("mask"))
       args.getFlagArgument("mask", 0, mask);
 
-   bool universeCreated = false;
-
-   if (!AiUniverseIsActive())
-   {
-      universeCreated = true;
-      ArnoldUniverseBegin();
-   }
-
+   
    AtUniverse *universe = AiUniverse();
 
 
@@ -609,8 +601,6 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       }
    }
    AiUniverseDestroy(universe);
-   if (universeCreated)
-      ArnoldUniverseEnd();
-
+   
    return status;
 }

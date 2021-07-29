@@ -513,15 +513,15 @@ void BifrostTranslator::ExportBifrostShader(MFnDagNode& dagNode){
       {
          // Foam may have both a surface and a volume, so export them both directly
          MFnDependencyNode sgNode(shadingGroupPlug.node());
-         AtNode *rootSurfaceShader = GetConnectedShader(sgNode.findPlug("aiSurfaceShader"));
+         AtNode *rootSurfaceShader = GetConnectedShader(sgNode.findPlug("aiSurfaceShader", true));
          if (rootSurfaceShader == NULL)
-            rootSurfaceShader = GetConnectedShader(sgNode.findPlug("surfaceShader"));
+            rootSurfaceShader = GetConnectedShader(sgNode.findPlug("surfaceShader", true));
 
          AiNodeSetPtr(GetArnoldNode(), "surfaceShader", rootSurfaceShader);
 
-         AtNode *rootVolumeShader = GetConnectedShader(sgNode.findPlug("aiVolumeShader"));
+         AtNode *rootVolumeShader = GetConnectedShader(sgNode.findPlug("aiVolumeShader", true));
          if (rootVolumeShader == NULL)
-            rootVolumeShader = GetConnectedShader(sgNode.findPlug("volumeShader"));
+            rootVolumeShader = GetConnectedShader(sgNode.findPlug("volumeShader", true));
 
          AiNodeSetPtr(GetArnoldNode(), "volumeShader", rootVolumeShader);
       }

@@ -19,7 +19,6 @@ void CArnoldSkinShaderNode::postConstructor()
 {
     setExistWithoutInConnections(true);
     setExistWithoutOutConnections(true);
-    setMPSafe(false);
     // Copy the abstract so that it can accessed on instances
     // (this replicates behaviour of CArnoldShaderNode)
     m_abstract = s_abstract;

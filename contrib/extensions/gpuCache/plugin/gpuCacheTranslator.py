@@ -228,7 +228,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         return section
 
     def userAttrsNew(self, nodeAttrName):
-        AiUniverseCreated = ArnoldUniverseOnlyBegin()
         subsections = {}
         for node_type in NODE_TYPES:
             layout = cmds.frameLayout(label=node_type.title(), collapse=True)
@@ -266,8 +265,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                         cmds.setParent('..')
             AiParamIteratorDestroy(paramIter)
             cmds.setParent('..')
-        if AiUniverseCreated: ArnoldUniverseEnd()
-
+        
         self.userAttrsReplace(nodeAttrName)
 
     def userAttrsReplace(self, nodeAttrName):

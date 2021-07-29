@@ -227,8 +227,6 @@ void CArnoldSkyDomeLightNode::postConstructor()
 
    // Call parent postConstructor as it is not done automatically as the parent constructor
    CSphereLocator::postConstructor();
-
-   setMPSafe(true);
 }
 
 MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)

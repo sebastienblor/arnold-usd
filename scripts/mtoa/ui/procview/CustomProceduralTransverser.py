@@ -162,8 +162,6 @@ class CustomProceduralTransverser(ProceduralTransverser):
                 self.buildTree(0, nameSplit, startIndex, entryName, entryType)
 
             ai.AiNodeIteratorDestroy(iter)
-            if beginSession:
-                ai.AiEnd()
 
         if len(self.items) == 1:
             # populate the items

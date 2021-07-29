@@ -234,15 +234,16 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
 
 def _register():
     args = {}
+    
     args['renderProcedure'] = utils.pyToMelProc(arnoldRender.arnoldRender,
                                           [('int', 'width'), ('int', 'height'),
                                            ('int', 'doShadows'), ('int', 'doGlowPass'),
                                            ('string', 'camera'), ('string', 'options')])
     args['renderRegionProcedure'] = 'mayaRenderRegion'
+    
 
     maya_version = utils.getMayaVersion()
-    if maya_version >= 2017:
-        args['renderSequenceProcedure'] = utils.pyToMelProc(arnoldRender.arnoldSequenceRender,
+    args['renderSequenceProcedure'] = utils.pyToMelProc(arnoldRender.arnoldSequenceRender,
                                           [('int', 'width'), ('int', 'height'),
                                            ('string', 'camera'), ('string', 'saveToRenderView')])
 
@@ -283,10 +284,9 @@ def _register():
     #
     mel.eval('source "createMayaSoftwareCommonGlobalsTab.mel"')
     
-    if maya_version < 2018:
-        utils.pyToMelProc(addOneTabToGlobalsWindow,
-                          [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
-                          useName=True)
+    utils.pyToMelProc(addOneTabToGlobalsWindow,
+                      [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
+                      useName=True)
     utils.pyToMelProc(renderSettingsTabLabel_melToUI,
                       [('string', 'mel')],
                       useName=True)

@@ -28,9 +28,9 @@ public:
    CArnoldAreaLightNode();
    virtual ~CArnoldAreaLightNode();
 
-   virtual void            postConstructor();
+   void                    postConstructor() override;
    static void             attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
-   virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
+   MStatus                 compute(const MPlug& plug, MDataBlock& data) override;
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
    virtual bool            isBounded() const;
    virtual MBoundingBox    boundingBox() const;

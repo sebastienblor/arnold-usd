@@ -11,7 +11,6 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "translators/DagTranslator.h"
 #include "utils/Universe.h"
-#include "scene/MayaScene.h"
 #include "utils/MayaUtils.h"
 
 #include <ai_render.h>

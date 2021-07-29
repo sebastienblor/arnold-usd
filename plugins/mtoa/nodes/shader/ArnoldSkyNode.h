@@ -23,7 +23,8 @@ public:
    static void* creator();
    static MStatus initialize();
 
-   virtual void            postConstructor();
+   void postConstructor() override;
+   SchedulingType schedulingType()const override {return kParallel;}
 
    static MTypeId id;
 

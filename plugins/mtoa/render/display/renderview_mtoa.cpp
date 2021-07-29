@@ -1,13 +1,15 @@
 
 #include "renderview_mtoa.h"
+#include "session/ArnoldRenderViewSession.h"
 
+#include <maya/MItDag.h>
 
 #ifdef MTOA_DISABLE_RV
 
 // define the functions in case we disabled the RenderView
 // so that we don't have to uncomment all the places where CRenderViewMtoA is used
 
-CRenderViewMtoA::CRenderViewMtoA() {}
+CRenderViewMtoA::CRenderViewMtoA(CArnoldRenderViewSession *s) : m_session(s) {}
 CRenderViewMtoA::~CRenderViewMtoA() {}
 
 void CRenderViewMtoA::UpdateSceneChanges(){}
@@ -50,7 +52,6 @@ static QWidget *s_arvWorkspaceControl = NULL;
 static QWidget *s_optWorkspaceControl = NULL;
 
 // Arnold RenderView is defined
-#include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
 #include "utils/AiAdpPayload.h"
 //#include <maya/MQtUtil.h>
@@ -127,7 +128,8 @@ private:
 #endif
 
 
-CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
+CRenderViewMtoA::CRenderViewMtoA(CArnoldRenderViewSession *s) : CRenderViewInterface(),
+   m_session(s),
    m_rvSelectionCb(0),
    m_rvSceneSaveCb(0),
    m_rvSceneOpenCb(0),
@@ -200,45 +202,6 @@ CRenderViewMtoA::~CRenderViewMtoA()
       MMessage::removeCallback(m_colorMgtRefreshCb);
       m_colorMgtRefreshCb = 0;
    }
-}
-
-// Return all renderable cameras
-static int GetRenderCamerasList(MDagPathArray &cameras)
-{
-
-   M3dView view;
-   MDagPath activeCameraPath;
-   MStatus viewStatus;
-   view = M3dView::active3dView(&viewStatus);
-   if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
-   {
-      cameras.append(activeCameraPath);
-      return 1;
-   }
-
-   MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
-   MDagPath cameraPath;
-   // MFnCamera cameraNode;
-   MFnDagNode cameraNode;
-   MPlug renderable;
-   MStatus stat;
-   while (!dagIter.isDone())
-   {
-      dagIter.getPath(cameraPath);
-      cameraNode.setObject(cameraPath);
-      renderable = cameraNode.findPlug("renderable", false, &stat);
-      if (stat && renderable.asBool())
-      {
-         cameras.append(cameraPath);
-      }
-      dagIter.next();
-   }
-   int size = cameras.length();
-   if (size > 1)
-      MGlobal::displayWarning("More than one renderable camera. (use the -cam/-camera option to override)");
-   else if (!size)
-      MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
-   return size;
 }
 
 #define ARV_DOCKED 1
@@ -393,7 +356,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
       if (m_rvColorMgtCb == 0)
       {
-         m_rvColorMgtCb = MNodeMessage::addNodeDirtyCallback(colorMgtObject,
+         m_rvColorMgtCb = MNodeMessage::addNodeDirtyPlugCallback(colorMgtObject,
                                               ColorMgtCallback,
                                               this,
                                               &status);
@@ -437,7 +400,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
       if (m_rvResCb == 0)
       {
-         m_rvResCb = MNodeMessage::addNodeDirtyCallback(resObject,
+         m_rvResCb = MNodeMessage::addNodeDirtyPlugCallback(resObject,
                                               ResolutionCallback,
                                               this,
                                               &status);
@@ -460,14 +423,6 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       SetTempDirectory(tmpDir.asChar());
    }
 
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   if (renderSession)
-   {
-      CRenderOptions *renderOptions = renderSession->RenderOptions();
-      int consoleLogging = renderOptions->GetLogConsoleVerbosity();
-      int fileLogging = renderOptions->GetLogFileVerbosity();
-      SetLogging(consoleLogging, fileLogging);
-   }
    UpdateRenderCallbacks();
 
    MGlobal::executePythonCommand("import mtoa.utils;mtoa.utils.getActiveRenderLayerName()", s_renderLayer);
@@ -577,14 +532,12 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
    // Callbacks for scene open/save, as well as render layers changes
    MStatus status;   
-   if (m_rvSceneSaveCb == 0)
-   {
-      m_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
-   }
+   
+   /* FIXME do we want this for the viewport ?
    if (m_rvSceneOpenCb == 0)
    {
       m_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
-   }
+   }*/
    if (m_rvLayerManagerChangeCb == 0)
    {
       m_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
@@ -617,67 +570,49 @@ void CRenderViewMtoA::RenderChanged()
 
 void CRenderViewMtoA::UpdateSceneChanges()
 {
-   if (!AiUniverseIsActive())
-      UpdateFullScene();
-   else
+   if (m_session)
    {
-      CMayaScene::UpdateSceneChanges();
-      SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
+      m_session->Update();
+      SetFrame((float)m_session->GetOptions().GetExportFrame());
    }
 }
 
 /** When this funtion is invoked, it means that the whole scene needs to 
  * be re-exported from scratch.
+ * FIXME : why should this code be different from a fresh new export ?
  **/
 void CRenderViewMtoA::UpdateFullScene()
 {
+   if (m_session == nullptr)
+      return;
+   
+   std::string lastCamera = GetOption("Camera");
+   SetUniverse(nullptr); // this ensures we delete the previous render session
+   m_session->Clear();
+
+
+   SetUniverse(m_session->GetUniverse());
+   
+   // FIXME do we want the preMel callbacks and should they be handled here ???
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-   // Universe isn't active, oh my....
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   // the renderSession will be NULL if ARV was opened without rendering
-   if (renderSession)
-   {   
-      renderSession->SetRendering(false);
-      CMayaScene::End();
-      CMayaScene::ExecuteScript(renderGlobals.postMel);
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
-
-   }
+   MGlobal::executeCommand(renderGlobals.postMel);
+   MGlobal::executeCommand(renderGlobals.postRenderMel);
 
    // Make sure the caches are flushed (#3369)
    AiUniverseCacheFlush(AI_CACHE_ALL);
 
-   // Re-export everything !
-   MDagPathArray cameras;
-   GetRenderCamerasList(cameras);
-   CMayaScene::ExecuteScript(renderGlobals.preMel);
-   CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
-
-   CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
-
-   if (!renderGlobals.renderAll)
-   {
-      MSelectionList selected;
-      MGlobal::getActiveSelectionList(selected);
-      CMayaScene::Export(&selected);
-   }
-   else
-   {
-      CMayaScene::Export();
-   }
-
+   // Restore the proper cameras
+   MDagPathArray cameras = CArnoldSession::GetRenderCameras(true);
+   CSessionOptions &options = m_session->GetOptions();
+   
    if (cameras.length() > 0)
    {
       MDagPath renderCamera = cameras[0];
-
-      // try to restore the last camera we had in ARV (#3372)
-      // FIXME replace this by a function GetOptionValue("Camera") that would return the 
-      // menu value
-      if (!s_lastCameraName.empty())
+      if (!lastCamera.empty())
       {
-        // Search for the MDagPath for this camera   
+         // Search for the MDagPath for this camera   
          MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
          itDag.reset();
 
@@ -685,8 +620,8 @@ void CRenderViewMtoA::UpdateFullScene()
          {
             MDagPath camPath;
             itDag.getPath(camPath);
-            std::string camName = CDagTranslator::GetArnoldNaming(camPath).asChar();
-            if (camName == s_lastCameraName)
+            std::string camName = options.GetArnoldNaming(camPath).asChar();
+            if (camName == lastCamera)
             {
                camPath.extendToShape();
                renderCamera = camPath;
@@ -697,31 +632,36 @@ void CRenderViewMtoA::UpdateFullScene()
       }
       if (renderCamera.isValid())
       {
-         CMayaScene::GetArnoldSession()->ExportDagPath(renderCamera, true);
+         m_session->ExportDagPath(renderCamera, true);
       }
-      // SetExportCamera mus be called AFTER CMayaScene::Export
-      CMayaScene::GetArnoldSession()->SetExportCamera(renderCamera, false);
 
-      // Set resolution and camera as passed in.
-      CMayaScene::GetRenderSession()->SetResolution(-1, -1);
-      CMayaScene::GetRenderSession()->SetCamera(renderCamera);
+      m_session->SetExportCamera(renderCamera, false);
+
+      MGlobal::executeCommand(renderGlobals.preMel);
+      MGlobal::executeCommand(renderGlobals.preRenderMel);
+
+      if (!renderGlobals.renderAll)
+      {
+         MSelectionList selected;
+         MGlobal::getActiveSelectionList(selected);
+         m_session->Export(&selected);
+      }
+      else
+      {
+         m_session->Export();
+      }
    }
 
    if (m_viewportRendering)
    {
-      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_VIEWPORT);
+      AiRenderSetHintStr(m_session->GetRenderSession(), AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_VIEWPORT);
    }
    else
    {
-      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
+      AiRenderSetHintStr(m_session->GetRenderSession(), AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
    }
 
    UpdateRenderCallbacks();
-
-   // GetRenderSession() might have changed since we exported the scene
-   renderSession = CMayaScene::GetRenderSession();
-   if (renderSession)
-      renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
 }
 void CRenderViewMtoA::SetCameraName(const MString &name)
 {
@@ -729,8 +669,11 @@ void CRenderViewMtoA::SetCameraName(const MString &name)
 }
 void CRenderViewMtoA::UpdateRenderCallbacks()
 {
+   if (!m_session)
+      return;
+
    MStatus status;
-   MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
+   MFnDependencyNode optionsNode(m_session->GetOptions().GetArnoldRenderOptions(), &status);
    if (status)
    {
       m_progressiveRenderStarted = optionsNode.findPlug("IPRRefinementStarted", true).asString();
@@ -751,7 +694,7 @@ void CRenderViewMtoA::UpdateRenderCallbacks()
    m_hasProgressiveRenderFinished = (m_progressiveRenderFinished != "");
 }
 
-static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
+static void GetSelectionVector(std::vector<AtNode *> &selectedNodes, CArnoldRenderViewSession *session)
 {
    MSelectionList activeList;
    MGlobal::getActiveSelectionList(activeList);
@@ -766,7 +709,7 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
    if (activeList.getDagPath(0, dagPath) == MS::kSuccess)
    {
       dagPath.extendToShape();
-      name = CDagTranslator::GetArnoldNaming(dagPath);
+      name = (session) ? session->GetOptions().GetArnoldNaming(dagPath) : dagPath.partialPathName();
    } else
    {
       if (objNode.hasFn(MFn::kDisplacementShader))
@@ -786,25 +729,23 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
       name = MFnDependencyNode(objNode).name();
    }
 
-   AtNode *selected = AiNodeLookUpByName(name.asChar());
+   AtNode *selected = AiNodeLookUpByName(session->GetUniverse(), name.asChar());
    if (selected) selectedNodes.push_back(selected);
    
 }
 unsigned int CRenderViewMtoA::GetSelectionCount()
 {
-   if (AiUniverseIsActive())
-   {
-      std::vector<AtNode *>selection;
-      GetSelectionVector(selection);
-      return (unsigned int)selection.size();
-   }
+   if (!m_session)
+      return 0;
    
-   return 0;
+   std::vector<AtNode *>selection;
+   GetSelectionVector(selection, m_session);
+   return (unsigned int)selection.size();
 }
 void CRenderViewMtoA::GetSelection(AtNode **selection)
 {
    std::vector<AtNode *> selectionVec;
-   GetSelectionVector(selectionVec);
+   GetSelectionVector(selectionVec, m_session);
    if (selectionVec.empty()) return;
 
    memcpy(selection, &selectionVec[0], selectionVec.size() * sizeof(AtNode*));
@@ -853,8 +794,9 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
 
    if (arv->isVisible())
    {
-      CMayaScene::GetRenderSession()->FillRenderViewCameras();
-
+      if (renderViewMtoA->m_session)
+         renderViewMtoA->m_session->SetCamerasList();
+      
       // assign the ARV_options parameter as it is the first time since I opened this scene
       int exists = 0;
       MGlobal::executeCommand("objExists defaultArnoldRenderOptions", exists);
@@ -887,10 +829,11 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
 
 void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 {
-   if (!AiUniverseIsActive()) return;
-
-   if (data == NULL) return;
+   if (data == nullptr)
+      return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   if (renderViewMtoA->m_session == nullptr)
+      return;
 
    MString layerName;
    MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
@@ -909,17 +852,16 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 // Selection has changed
 void CRenderViewMtoA::SelectionChangedCallback(void *data)
 {
-   if (!AiUniverseIsActive()) return;
-
-   if (data == NULL) return;
+   if (data == nullptr)
+      return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   if (renderViewMtoA->m_session == nullptr)
+      return;
+
    MSelectionList activeList;
    MGlobal::getActiveSelectionList(activeList);
    if( activeList.isEmpty()) return;
 
-   //CArnoldSession *session = CMayaScene::GetArnoldSession();
-   //session->FlattenSelection(&activeList, false);
-   
    MObject objNode;
    std::vector<AtNode *> selection;
    unsigned int count = activeList.length();
@@ -948,13 +890,14 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
          }
       }
 
+      AtUniverse *universe = (renderViewMtoA->m_session) ? renderViewMtoA->m_session->GetUniverse() : nullptr;
       MFnDependencyNode nodeFn( objNode );
 
-      AtNode *selected_shader = AiNodeLookUpByName (nodeFn.name().asChar());
+      AtNode *selected_shader = AiNodeLookUpByName (universe, nodeFn.name().asChar());
       if (selected_shader == NULL && dagSel.isValid())
       {
-         MString selName = CDagTranslator::GetArnoldNaming(dagSel);
-         selected_shader = AiNodeLookUpByName(selName.asChar());
+         MString selName = (renderViewMtoA->m_session) ? renderViewMtoA->m_session->GetOptions().GetArnoldNaming(dagSel) : dagSel.partialPathName();
+         selected_shader = AiNodeLookUpByName(universe, selName.asChar());
       }
 
       if(selected_shader) selection.push_back(selected_shader);
@@ -969,7 +912,6 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
 void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append)
 {  
    MStringArray selectedObjects;
-   CArnoldSession *session = CMayaScene::GetArnoldSession();
    unordered_map<std::string, std::vector<std::string> > proceduralSelectedItems;
 
    for (unsigned int i = 0; i < selectionCount; ++i)
@@ -996,7 +938,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
          else
             break;      
       }
-      MString objName = session->GetMayaObjectName(pickedObject);
+      MString objName = (m_session) ? m_session->GetMayaObjectName(pickedObject) : MString(AiNodeGetName(pickedObject));
       std::string objNameStr(objName.asChar());
       // selectedObjects contain the list of root parent nodes (eg the root standin that exists in the maya scene)
       selectedObjects.append(objName);
@@ -1047,7 +989,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
 
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 {
-   if (node != AiUniverseGetOptions()) return;
+   if (node != AiUniverseGetOptions(m_session->GetUniverse())) return;
    std::string paramName = paramNameChar;
 
 /*
@@ -1099,13 +1041,17 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
       {
          MDagPath camPath;
          itDag.getPath(camPath);
-         std::string camName = CDagTranslator::GetArnoldNaming(camPath).asChar();
+         std::string camName = (m_session) ? m_session->GetOptions().GetArnoldNaming(camPath).asChar() : camPath.partialPathName().asChar();
          if (camName == cameraName)
          {
+            if (m_session)
+               m_session->SetExportCamera(camPath, false);
             // why do we need to have this information in 2 several places ??
+            /* FIXME
             CMayaScene::GetRenderSession()->SetCamera(camPath);
             CMayaScene::GetArnoldSession()->SetExportCamera(camPath, false);  // false means we don't want MtoA to trigger a new render, this is already being done by ARV
             CMayaScene::GetArnoldSession()->ExportImagePlane();
+            */
             break;
          }      
          itDag.next();
@@ -1186,6 +1132,7 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
       }
    }
 
+/* FIXME : is it ok ?
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   
@@ -1198,6 +1145,7 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
    }
+   */
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
 
@@ -1208,6 +1156,17 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
    m_rvLayerChangeCb = 0;
    
    MProgressWindow::endProgress();
+
+
+   if (m_session)
+   {
+
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+      MGlobal::executeCommand(renderGlobals.postRenderMel);
+      MGlobal::executeCommand(renderGlobals.postMel);
+      m_session->Clear();  
+   }
 }
 
 void CRenderViewMtoA::RenderOptionsClosed()
@@ -1238,7 +1197,7 @@ CRenderViewRotateManipulator *CRenderViewMtoA::GetRotateManipulator()
    
 CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
 {
-   AtNode *arnold_camera = AiUniverseGetCamera();
+   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
    if (arnold_camera == NULL) return;
    
    MSelectionList camList;
@@ -1272,8 +1231,8 @@ CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
    float center_dist = (float)center.distanceTo(originalPosition);
 
    m_distFactor = center_dist * tanf(AiNodeGetFlt(arnold_camera, "fov") * AI_DTOR);
-
-   m_width = AiNodeGetInt(AiUniverseGetOptions(), "xres");
+// FIXME we need the universe
+   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
 }
 
 void CRenderViewMtoAPan::MouseDelta(int deltaX, int deltaY)
@@ -1289,7 +1248,7 @@ void CRenderViewMtoAPan::MouseDelta(int deltaX, int deltaY)
 
 CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
 {
-   AtNode *arnold_camera = AiUniverseGetCamera();
+   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
    if (arnold_camera == NULL) return;
    
    MSelectionList camList;
@@ -1315,7 +1274,7 @@ CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    m_dist = (float)m_center.distanceTo(m_originalPosition);
 
-   m_width = AiNodeGetInt(AiUniverseGetOptions(), "xres");
+   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
 }
 
 void CRenderViewMtoAZoom::MouseDelta(int deltaX, int deltaY)
@@ -1341,7 +1300,7 @@ void CRenderViewMtoAZoom::MouseDelta(int deltaX, int deltaY)
 
 void CRenderViewMtoAZoom::WheelDelta(float delta)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera();
+   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
    if (arnold_camera == NULL) return;
    
    MSelectionList camList;
@@ -1398,7 +1357,7 @@ void CRenderViewMtoAZoom::FrameSelection()
       boundingBox.transformUsing(mtx);
       globalBox.expand(boundingBox);
    }
-   AtNode *arnoldCamera = AiUniverseGetCamera();
+   AtNode *arnoldCamera = AiUniverseGetCamera(GetUniverse());
    if (arnoldCamera == NULL) return;
    
    MSelectionList camList;
@@ -1469,7 +1428,7 @@ void CRenderViewMtoAZoom::FrameSelection()
 
 CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator()
 {
-   AtNode *arnold_camera = AiUniverseGetCamera();
+   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
    if (arnold_camera == NULL) return;
 
    AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
@@ -1643,7 +1602,7 @@ void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientD
    }
 }
 void CRenderViewMtoA::ResolutionChangedCallback(void *data)
-{
+{/*
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
    
@@ -1662,10 +1621,9 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    resList.getDependNode(0,resObject);
    MFnDependencyNode depNode(resObject);
 
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
-   
-   if (renderOptions == NULL) return;
+   CArnoldRenderViewSession *session = renderViewMtoA->m_session;
+
+   if (session == NULL) return;
 
    MStatus status;
    int width = 1;
@@ -1697,18 +1655,18 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
 
    if(updateRender)
    {
-      /* FIXME we could probably do a simple re-render
-      renderSession->InterruptRender(true);
-      renderSession->SetResolution(width, height);
-      renderViewMtoA->SetOption("Refresh Render", "1");
-      */
+      // FIXME we could probably do a simple re-render
+      // renderSession->InterruptRender(true);
+      // renderSession->SetResolution(width, height);
+      // renderViewMtoA->SetOption("Refresh Render", "1");
+      
       renderViewMtoA->SetOption("Full IPR Update", "1");
 
       // want to resize the window
       if (width  > 1 && height > 1 && pixelAspectRatio > 0.f)
          renderViewMtoA->Resize(width * pixelAspectRatio, height);
    }
-
+*/
 
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
@@ -1727,6 +1685,8 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 
 }
 
+
+// FIXME should we re-introduce this ?
 void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, void *data)
 {
    if (s_sequenceData == NULL){return;}
@@ -1735,7 +1695,7 @@ void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, 
 
    if (MProgressWindow::isCancelled())
    {
-      CMayaScene::GetRenderSession()->InterruptRender(true);
+      // FIXME CMayaScene::GetRenderSession()->InterruptRender(true);
       MProgressWindow::endProgress();
       rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
       rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
@@ -1749,11 +1709,12 @@ void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, 
 
    if(!s_sequenceData->renderStarted)
    {
-      if (AiRendering()) {s_sequenceData->renderStarted = true; }
+      if (AiRenderGetStatus(rvMtoA->m_session->GetRenderSession()) == AI_RENDER_STATUS_RENDERING)
+         s_sequenceData->renderStarted = true; 
       
    } else
    {
-      if(!AiRendering())
+      if(AiRenderGetStatus(rvMtoA->m_session->GetRenderSession()) != AI_RENDER_STATUS_RENDERING)
       {
          // this frame has finished !
          s_sequenceData->current += s_sequenceData->step;
@@ -1796,7 +1757,8 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
       m_rvIdleCb = 0;
    } 
    // make sure no render is going on
-   CMayaScene::GetRenderSession()->InterruptRender(true);
+
+// FIXME    CMayaScene::GetRenderSession()->InterruptRender(true);
 
    if (s_sequenceData) 
    {
@@ -1873,25 +1835,26 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
 void CRenderViewMtoA::PreProgressiveStep()
 {
    if (!m_hasPreProgressiveStep) return;
-   CMayaScene::ExecuteScript(m_preProgressiveStep, false, true);
+
+   MGlobal::executeCommand(m_preProgressiveStep, false, true);
 
 }
 void CRenderViewMtoA::PostProgressiveStep()
 {
    if (!m_hasPostProgressiveStep) return;
-   CMayaScene::ExecuteScript(m_postProgressiveStep, false, true);
+   MGlobal::executeCommand(m_postProgressiveStep, false, true);
 
 }
 void CRenderViewMtoA::ProgressiveRenderStarted()
 {
    if (!m_hasProgressiveRenderStarted) return;
-   CMayaScene::ExecuteScript(m_progressiveRenderStarted, false, true);
+   MGlobal::executeCommand(m_progressiveRenderStarted, false, true);
 }
 
 void CRenderViewMtoA::ProgressiveRenderFinished()
 {
    if (!m_hasProgressiveRenderFinished) return;
-   CMayaScene::ExecuteScript(m_progressiveRenderFinished, false, true);
+   MGlobal::executeCommand(m_progressiveRenderFinished, false, true);
 }
 
 void CRenderViewMtoA::Resize(int width, int height, bool drawableArea)

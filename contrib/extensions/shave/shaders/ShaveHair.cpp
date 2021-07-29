@@ -71,7 +71,7 @@ node_initialize
 node_update
 {
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
-   AtNode *options = AiUniverseGetOptions();
+   AtNode *options = AiUniverseGetOptions(AiNodeGetUniverse(node));
    data->max_diffuse_depth = AiNodeGetInt(options, "GI_diffuse_depth");
 
 }

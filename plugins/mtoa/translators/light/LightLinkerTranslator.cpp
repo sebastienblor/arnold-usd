@@ -1,4 +1,5 @@
 #include "LightLinkerTranslator.h"
+#include "../NodeTranslatorImpl.h"
 #include "utils/MtoaLog.h"
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
@@ -60,13 +61,13 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                   }
                   if (path.isValid())
                   {
-                     CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
+                     CNodeTranslator *elemTr = translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path)); 
                      if (elemTr)  elemTr->RequestUpdate();
                   }
                   // Check also for shapes
                   if (MStatus::kSuccess == path.extendToShape())
                   {
-                     CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
+                     CNodeTranslator *elemTr = translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path)); 
                      if (elemTr)  elemTr->RequestUpdate();
                   }
                } // if (object.hasFn(MFn::kDagNode))
@@ -74,8 +75,9 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                {
                   // We don't need to explicitely request an update for all set members since we got
                   // a translator for sets
-                  CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(object); 
+                  CNodeTranslator *elemTr = translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(object));
                   if (elemTr)  elemTr->RequestUpdate();
+                  
                }
             } // if ((leafAttrName == "olnk") || (leafAttrName == "solk"))
             else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
@@ -90,6 +92,7 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                if (MtoaTranslationInfo())
                   MtoaDebugLog("[mtoa.translator.ipr] "+ translator->GetMayaNodeName()+"| "+
                      translator->GetTranslatorName()+": Connection made or broken on "+otherPlug.name()+"->"+plug.name()+" is ignored.");
+               
             }
          }
          else
@@ -116,7 +119,7 @@ void CLightLinkerTranslator::AddUpdateCallbacks()
 
    MObject object = GetMayaObject();
    // So we update on attribute/input changes.
-   id = MNodeMessage::addNodeDirtyCallback(object,
+   id = MNodeMessage::addNodeDirtyPlugCallback(object,
                                            NodeDirtyCallback,
                                            this,
                                            &status);
@@ -147,7 +150,7 @@ void CLightLinkerTranslator::RequestUpdate()
    MStatus stat;
 
    // This call used to be in export, but it seems better to set this now
-   RequestLightLinksUpdate();
+   m_impl->m_session->RequestUpdateLightLinks();
 
    const CSessionOptions &options = GetSessionOptions();
 
@@ -177,18 +180,13 @@ void CLightLinkerTranslator::RequestUpdate()
    unsigned int l = list.length();
    if (l > 0)
    {
-      // The code from CNodeTranslator::RequestUpdate was duplicated here
-      // we're now just calling the base class. Only difference is that
-      // CArnoldSession::Request is being called now, while before it
-      // was called explicitely a few lines below. But does it make a difference,
-      // since we're about to call RequestUpdate on several other translators ?
       CNodeTranslator::RequestUpdate();
       
       for (unsigned int i=0; i<l; i++)
       {
          if (MStatus::kSuccess == list.getDagPath(i, path))
          {
-            CNodeTranslator *elemTr = GetTranslator(path); 
+            CNodeTranslator *elemTr = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path));
             if (elemTr)  elemTr->RequestUpdate();
 
             // No need to check for shape, it's always the shape that Maya connects to light linker(s)
@@ -197,7 +195,7 @@ void CLightLinkerTranslator::RequestUpdate()
          else if (MStatus::kSuccess == list.getDependNode(i, element))
          {
             // Should be a set of objects logically
-            CNodeTranslator *elemTr = GetTranslator(element); 
+            CNodeTranslator *elemTr = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(element));
             if (elemTr)  elemTr->RequestUpdate();
          }
          else
@@ -206,8 +204,6 @@ void CLightLinkerTranslator::RequestUpdate()
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar(), i);
          }
       }
-      // removed the explicit call to CArnoldSession::RequestUpdate 
-      // as this is being done by each of the calls to CNodeTranslator::RequestUpdate Above
 
    }
 

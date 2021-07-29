@@ -72,9 +72,7 @@ class StandInTransverser(ProceduralTransverser):
 
     def getNumNodes(self, filename):
 
-        universeCreated = False
         if not ai.AiUniverseIsActive():
-            universeCreated = True
             ai.AiBegin()
 
         universe = ai.AiUniverse()
@@ -90,9 +88,6 @@ class StandInTransverser(ProceduralTransverser):
 
         ai.AiNodeIteratorDestroy(iter)
         ai.AiUniverseDestroy(universe)
-
-        if universeCreated:
-            ai.AiEnd()
 
         return count
 
@@ -159,9 +154,7 @@ class StandInTransverser(ProceduralTransverser):
                 numNodes = self.getNumNodes(filename)
             FILE_CACHE[filename][0][PROC_NUM_CHILDREN] = numNodes
 
-            universeCreated = False
             if not ai.AiUniverseIsActive():
-                universeCreated = True
                 ai.AiBegin()
 
             universe = ai.AiUniverse()
@@ -194,8 +187,6 @@ class StandInTransverser(ProceduralTransverser):
             ai.AiNodeIteratorDestroy(iter)
             ai.AiUniverseDestroy(universe)
 
-            if universeCreated:
-                ai.AiEnd()
         return FILE_CACHE[filename][1:]
         # but we should consider nested procedurals....
 

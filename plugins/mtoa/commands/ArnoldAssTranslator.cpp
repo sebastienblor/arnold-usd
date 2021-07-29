@@ -88,7 +88,7 @@ MPxFileTranslator::MFileKind CArnoldAssTranslator::identifyFile(const MFileObjec
    }
    else
    {
-      MString	fileName(file.name());
+      MString	fileName(file.resolvedName());
       int		fileNameLen = fileName.length();
       int		startOfExtension = fileName.rindex('.') + 1;
 

@@ -18,7 +18,8 @@ public:
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
    virtual MSelectionMask getShapeSelectionMask() const;
    static MTypeId id;
-
+   SchedulingType schedulingType()const override {return kParallel;}
+   
    static CStaticAttrHelper s_attributes;
 
    // Inputs

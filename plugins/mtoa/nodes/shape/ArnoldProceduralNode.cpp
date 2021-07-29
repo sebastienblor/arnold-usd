@@ -24,8 +24,8 @@
 #include "extension/ExtensionsManager.h"
 #include "common/UnorderedContainer.h"
 #include "utils/Universe.h"
-#include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
+#include "session/SessionManager.h"
 
 #include <ai_node_entry.h>
 #include <ai_params.h>
@@ -52,8 +52,7 @@ void CArnoldProceduralNode::postConstructor()
    // TODO: use a metadata to define this
    setExistWithoutInConnections(true);
    setExistWithoutOutConnections(true);
-   // No compute anyway
-   setMPSafe(false);
+
    // Copy the abstract so that it can accessed on instances
    // (and saved before a new register overwrites it)
    m_abstract = s_abstract;
@@ -240,13 +239,22 @@ MStatus CArnoldProceduralNode::initialize()
 
 void CArnoldProceduralNode::updateGeometry()
 {
-   bool universeCreated = ArnoldUniverseBegin();
-   
-   AtUniverse *universe = AiUniverse();
-   AtUniverse *proc_universe = AiUniverse();
 
+   AtUniverse *universe = AiUniverse();
+
+   static std::string s_proceduralNodeSession("proceduralNode");
+
+   CArnoldSession *session = CSessionManager::FindActiveSession(s_proceduralNodeSession);
+   if (session == nullptr) {
+      session = new CArnoldSession();
+      CSessionManager::AddActiveSession(s_proceduralNodeSession, session);
+   }
+
+
+   AtUniverse *proc_universe = session->GetUniverse();
+      
    MObject me = thisMObject();   
-   CNodeTranslator *translator = CMayaScene::GetArnoldSession()->ExportNodeToUniverse(me, proc_universe);
+   CNodeTranslator *translator = session->ExportNode(me);
    
    AtNode *proc = (translator) ? translator->GetArnoldNode() : NULL;
    if (proc)
@@ -272,12 +280,7 @@ void CArnoldProceduralNode::updateGeometry()
       AiProceduralViewport(proc, universe, viewport_mode);
       DrawUniverse(universe);
    }
-   if (translator)
-      delete translator;
-
+   
    AiUniverseDestroy(universe);
-   AiUniverseDestroy(proc_universe);
-
-   if (universeCreated)
-      AiEnd();
+   CSessionManager::DeleteActiveSession(s_proceduralNodeSession);
 }

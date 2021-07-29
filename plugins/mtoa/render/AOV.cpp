@@ -1,7 +1,6 @@
 #include "platform/Platform.h"
 #include "translators/NodeTranslator.h"
 #include "AOV.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MPlug.h>
 #include <maya/MTime.h>

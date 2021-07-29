@@ -56,8 +56,8 @@ public:
    CArnoldBaseProcedural();
    virtual ~CArnoldBaseProcedural();
 
-   virtual void postConstructor();
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
+   void postConstructor() override;
+   MStatus compute(const MPlug& plug, MDataBlock& data) override;
    virtual bool isBounded() const;
    virtual MBoundingBox boundingBox() const;
    

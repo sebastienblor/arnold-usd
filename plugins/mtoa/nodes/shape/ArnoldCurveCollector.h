@@ -10,11 +10,12 @@ class CArnoldCurveCollector
 {
 
 public:
-   virtual void postConstructor();
+   void postConstructor() override;
 
    static void* creator();
    static MStatus initialize();
-   virtual MStatus   compute( const MPlug&, MDataBlock& );
+   MStatus compute( const MPlug&, MDataBlock& ) override;
+   SchedulingType schedulingType()const override {return kParallel;}
    
    static MTypeId id;
 

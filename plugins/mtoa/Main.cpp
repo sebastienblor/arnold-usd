@@ -47,7 +47,6 @@
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
 #include "commands/ArnoldFlushCmd.h"
-#include "commands/ArnoldCopyAsAdminCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
 #include "commands/ArnoldViewportRendererOptionsCmd.h"
 #ifdef ENABLE_ALEMBIC
@@ -112,8 +111,6 @@
 #include "extension/ExtensionsManager.h"
 #include "extension/Extension.h"
 
-#include "scene/MayaScene.h"
-
 #include <ai_msg.h>
 #include <ai_render.h>
 
@@ -158,7 +155,6 @@ namespace // <anonymous>
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
-      {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
       {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
@@ -1026,7 +1022,6 @@ namespace // <anonymous>
          MDGMessage::removeCallback(CArnoldOptionsNode::sId);
          CArnoldOptionsNode::sId = 0;
       }
-      CRenderSession::ClearIdleRenderViewCallback();      
       return status;
    }
 
@@ -1069,6 +1064,7 @@ enum MtoAInitializedData
 {
    MTOA_INIT_FILE_EXPORT = 0,
    MTOA_INIT_FILE_IMPORT = 1,
+   MTOA_INIT_USD_EXPORT,
    MTOA_INIT_TX_FILE,
    MTOA_INIT_MATERIAL_VIEW,
    MTOA_INIT_REGISTER_SWATCH,
@@ -1113,6 +1109,9 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
    if (initData[MTOA_INIT_FILE_EXPORT])
    {
       plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeExport);
+   }
+   if (initData[MTOA_INIT_USD_EXPORT])
+   {
       plugin.deregisterFileTranslator(CArnoldUsdTranslator::fileTypeExport);
    }
 
@@ -1120,7 +1119,7 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
       MMessage::removeCallback(connectionCallback);
 
    if (AiUniverseIsActive())
-      ArnoldUniverseEnd();
+      ArnoldEnd();
 
 }
 
@@ -1140,13 +1139,40 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    // Load metadata for builtin (mtoa.mtd)
+   // FIXME to be moved to bin/arnold.mtd so that it's loaded automatically by arnold
    MString loadpath = plugin.loadPath();
    MString metafile = loadpath + "/" + "mtoa.mtd";
    SetMetafile(metafile);
 
-   ArnoldUniverseBegin(GetStartupLogLevel());
+   ArnoldBegin(GetStartupLogLevel());
 
    std::vector<bool> initializedData(MTOA_INIT_COUNT, false);
+
+   auto VerifyInititalization = [](MStatus status, MtoAInitializedData step, MObject &object, 
+                                 MFnPlugin &plugin, std::string stepName, std::vector<bool> &initializedData) 
+   {
+      CHECK_MSTATUS(status);
+      if (MStatus::kSuccess == status)
+      {
+         std::string msg = "Successfully loaded ";
+         msg += stepName;
+         AiMsgDebug(msg.c_str());
+         if (step < initializedData.size())
+            initializedData[step] = true;
+      }
+      else
+      {
+         std::string msg = "Failed to load ";
+         msg += stepName;
+         AiMsgError(msg.c_str());
+         MGlobal::displayError(msg.c_str());
+         
+         MtoAInitFailed(object, plugin, initializedData);
+         return false;
+      }
+      return true;
+      
+   };
 
    // ASS file translator
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeExport,
@@ -1155,21 +1181,9 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                                           CArnoldAssTranslator::optionScriptExport,
                                           CArnoldAssTranslator::optionDefault,
                                           false);
-   
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgDebug("Successfully registered Arnold ass file exporter");
-      initializedData[MTOA_INIT_FILE_EXPORT] = true;
-   }
-   else
-   {
-      AiMsgError("Failed to register Arnold ass file exporter");
-      MGlobal::displayError("Failed to register Arnold ass file exporter");
-      
-      MtoAInitFailed(object, plugin, initializedData);
+   if (!VerifyInititalization(status, MTOA_INIT_FILE_EXPORT, object, plugin, "Arnold ass file exporter", initializedData))
       return MStatus::kFailure;
-   }
+   
    
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeImport,
                                           CArnoldAssTranslator::fileIcon,
@@ -1177,20 +1191,9 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                                           CArnoldAssTranslator::optionScriptImport,
                                           CArnoldAssTranslator::optionDefault,
                                           false);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgDebug("Successfully registered Arnold ass file importer");
-      initializedData[MTOA_INIT_FILE_IMPORT] = true;
-   }
-   else
-   {
-      AiMsgError("Failed to register Arnold ass file importer");
-      MGlobal::displayError("Failed to register Arnold ass file importer");
-      MtoAInitFailed(object, plugin, initializedData);
+   if (!VerifyInititalization(status, MTOA_INIT_FILE_IMPORT, object, plugin, "Arnold ass file importer", initializedData))
       return MStatus::kFailure;
-   }
-
+   
    // Arnold-USD file translator
    status = plugin.registerFileTranslator(CArnoldUsdTranslator::fileTypeExport,
                                           CArnoldUsdTranslator::fileIcon,
@@ -1198,112 +1201,53 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                                           CArnoldUsdTranslator::optionScriptExport,
                                           CArnoldUsdTranslator::optionDefault,
                                           false);
-   
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgDebug("Successfully registered Arnold-USD file exporter");
-      initializedData[MTOA_INIT_FILE_EXPORT] = true;
-   }
-   else
-   {
-      AiMsgError("Failed to register Arnold-USD file exporter");
-      MGlobal::displayError("Failed to register Arnold-USD file exporter");
-      
-      MtoAInitFailed(object, plugin, initializedData);
+   if (!VerifyInititalization(status, MTOA_INIT_USD_EXPORT, object, plugin, "Arnold-USD file exporter", initializedData))
       return MStatus::kFailure;
-   }
-      
-   // Register image formats
+
+   // Register image formats (should this be only for batch ??)
    MStringArray extensions;
    extensions.append("tex");
    extensions.append("tx");
    plugin.registerImageFile(CTxTextureFile::fileName,
                               CTxTextureFile::creator, 
                               extensions);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgDebug("Successfully registered tx texture file");
-      initializedData[MTOA_INIT_TX_FILE] = true;
-   }
-   else
-   {
-      AiMsgError("Failed to register tx texture file");
-      MGlobal::displayError("Failed to register tx texture file");
-      
-      MtoAInitFailed(object, plugin, initializedData);
+
+   if (!VerifyInititalization(status, MTOA_INIT_TX_FILE, object, plugin, "tx texture file", initializedData))
       return MStatus::kFailure;
-   }
 
-   // Material view renderer
    if (!isBatch)
    {
+      // Material view renderer
       status = plugin.registerRenderer(CMaterialView::Name(), CMaterialView::Creator);
-      CHECK_MSTATUS(status);
-      if (MStatus::kSuccess == status)
-      {
-         AiMsgDebug("Successfully registered Arnold material view renderer");
-         initializedData[MTOA_INIT_MATERIAL_VIEW] = true;
-      }
-      else
-      {
-         AiMsgError("Failed to register Arnold material view renderer");
-         MGlobal::displayError("Failed to register Arnold material view renderer");
-         MtoAInitFailed(object, plugin, initializedData);
+      if (!VerifyInititalization(status, MTOA_INIT_MATERIAL_VIEW, object, plugin, "Arnold material view renderer", initializedData))
          return MStatus::kFailure;
-      }
-   }
-
-   // Swatch renderer
-   if (!isBatch)
-   {
+   
+      // Swatch renderer
       status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
-      CHECK_MSTATUS(status);
-      if (MStatus::kSuccess == status)
-      {
-         AiMsgDebug("Successfully registered Arnold swatch renderer");
-         initializedData[MTOA_INIT_REGISTER_SWATCH] = true;
-      }
-      else
-      {
-         AiMsgError("Failed to register Arnold swatch renderer");
-         MGlobal::displayError("Failed to register Arnold swatch renderer");
-         MtoAInitFailed(object, plugin, initializedData);
+      if (!VerifyInititalization(status, MTOA_INIT_REGISTER_SWATCH, object, plugin, "Arnold swatch renderer", initializedData))
          return MStatus::kFailure;
-      }
    }
 
    // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
    {
       const mayaCmd& cmd = mayaCmdList[i];
+      std::string cmdStr = cmd.name;
+      cmdStr += " command";
       status = plugin.registerCommand(cmd.name, cmd.creator, cmd.syntax);
-      CHECK_MSTATUS(status);
-      if (status == MS::kSuccess)
-         AiMsgDebug("[mtoa] Successfully registered '%s' command.", cmd.name);
-      else
+      if (!VerifyInititalization(status, MTOA_INIT_COUNT, object, plugin, cmdStr, initializedData))
       {
-         AiMsgError("[mtoa] Failed to register '%s' command.\n[mtoa] Status : %s", 
-                     cmd.name, status.errorString().asChar());
-         MGlobal::displayError(MString("[mtoa] Failed to register '") +
-                     MString(cmd.name) + MString("'' command."));
-
-         MtoAInitFailed(object, plugin, initializedData);
-
          // unregister the previous commands
          for (size_t j = 0; j < i; ++j)
-         {
-            const mayaCmd& cmd = mayaCmdList[j];
-            plugin.deregisterCommand(cmd.name);
-         }
+            plugin.deregisterCommand(mayaCmdList[j].name);
+         
          return MStatus::kFailure;
       }
    }
    initializedData[MTOA_INIT_COMMANDS] = true;
 
+   // Arnold nodes: we allow for some nodes to fail
    status = RegisterArnoldNodes(object);
-   // Nodes
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered Arnold nodes");
@@ -1313,58 +1257,21 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    {
       AiMsgError("Failed to register one or more Arnold nodes");
       MGlobal::displayError("Failed to register one or more Arnold nodes");
-      // NOTE: allow to keep going
-      // ArnoldUniverseEnd();
-      // return MStatus::kFailure;
    }
 
    // Since executePythonCommand eats error output, trying to see if we can access every required module
    status = MGlobal::executePythonCommand(MString("import arnold"), true, false);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully imported python module 'arnold'");
-      MGlobal::displayInfo("Successfully imported python module 'arnold'");
-   }
-   else
-   {
-      AiMsgError("Failed to import python module 'arnold'");
-      MGlobal::displayError("Failed to import python module 'arnold'");
-      MtoAInitFailed(object, plugin, initializedData);
-      return MStatus::kFailure;
-   }
+   if (!VerifyInititalization(status, MTOA_INIT_COUNT, object, plugin, "python module 'arnold'", initializedData))
+         return MStatus::kFailure;
+
    status = MGlobal::executePythonCommand(MString("import mtoa"), true, false);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully imported python module 'mtoa'");
-      MGlobal::displayInfo("Successfully imported python module 'mtoa'");
-   }
-   else
-   {
-      AiMsgError("Failed to import python module 'mtoa'");
-      MGlobal::displayError("Failed to import python module 'mtoa'");
-      MtoAInitFailed(object, plugin, initializedData);
-      return MStatus::kFailure;
-   }
+   if (!VerifyInititalization(status, MTOA_INIT_COUNT, object, plugin, "python module 'mtoa'", initializedData))
+         return MStatus::kFailure;
 
    // Register the Arnold renderer
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"), true, false);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgDebug("Successfully registered renderer 'arnold'");
-      MGlobal::displayInfo("Successfully registered renderer 'arnold'");
-      initializedData[MTOA_INIT_RENDERER] = true;
-   }
-   else
-   {
-      AiMsgError("Failed to register renderer 'arnold'");
-      MGlobal::displayError("Failed to register renderer 'arnold'");
-      MtoAInitFailed(object, plugin, initializedData);
-      return MStatus::kFailure;
-   }
-
+   if (!VerifyInititalization(status, MTOA_INIT_RENDERER, object, plugin, "renderer 'arnold'", initializedData))
+         return MStatus::kFailure;
    if (!isBatch)
    {
 
@@ -1424,7 +1331,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    	  CArnoldVolumeGeometryOverride::Creator);
       CHECK_MSTATUS(status); 
 
-#ifdef MTOA_ENABLE_AVP
       MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
       if (renderer)
       {
@@ -1450,13 +1356,9 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       if (!status) {
           status.perror("registerCommand");
       }
-#endif
    }
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
-   ArnoldUniverseEnd();
-
-   CMayaScene::Init();
    return returnStatus;
 }
 
@@ -1467,73 +1369,57 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    MFnPlugin plugin(object);
    bool isBatch = IsBatch();
-   // Should be done when render finishes
-   CMayaScene::End();
 
-   ArnoldUniverseBegin(GetStartupLogLevel());
+   // TODO: Ensure we clear all sessions
+
+   auto VerifyUninititalization = [](MStatus status, std::string stepName) 
+   {
+      CHECK_MSTATUS(status);
+      if (MStatus::kSuccess == status)
+      {
+         std::string cmdStr = "Successfully unloaded ";
+         cmdStr += stepName;
+         AiMsgInfo(cmdStr.c_str());
+         MGlobal::displayInfo(cmdStr.c_str());
+         return true;
+      }
+      else
+      {
+         std::string cmdStr = "Failed to unload ";
+         cmdStr += stepName;
+         AiMsgError(cmdStr.c_str());
+         MGlobal::displayError(cmdStr.c_str());
+         return false;
+      }
+   };
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered renderer 'arnold'");
-      MGlobal::displayInfo("Successfully deregistered renderer 'arnold'");
-   }
-   else
-   {
+   if (!VerifyUninititalization(status, "renderer 'arnold'"))
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister renderer 'arnold'");
-      MGlobal::displayError("Failed to deregister renderer 'arnold'");
-   }
 
    status = UnregisterArnoldNodes(object);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered Arnold nodes");
-      MGlobal::displayInfo("Successfully deregistered Arnold nodes");
-   }
-   else
-   {
+   if (!VerifyUninititalization(status, "Arnold nodes"))
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold nodes");
-      MGlobal::displayError("Failed to deregister Arnold nodes");
-   }
+   
 
    // Unregister all attribute extensions from Maya atributes
    status = CExtensionsManager::UnregisterExtensionAttributes(object);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered Arnold attribute extensions");
-      MGlobal::displayInfo("Successfully deregistered Arnold attribute extensions");
-   }
-   else
-   {
+   if (!VerifyUninititalization(status, "Arnold attribute extensions"))
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold attribute extensions");
-      MGlobal::displayError("Failed to deregister Arnold attribute extensions");
-   }
+
    // Deregister in inverse order of registration
    // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
    {
       const mayaCmd& cmd = mayaCmdList[i];
+      std::string cmdStr = cmd.name;
+      cmdStr += " command";
       status = plugin.deregisterCommand(cmd.name);
-      CHECK_MSTATUS(status);
-      if (status == MStatus::kSuccess)
-      {
-         AiMsgDebug("[mtoa] Successfully deregistered '%s' command.", cmd.name);
-         MGlobal::displayInfo(MString("[mtoa] Successfully deregistered '") +
-                     MString(cmd.name) + MString("' command."));
-      }
-      else
-      {
+
+      if (!VerifyUninititalization(status, cmdStr))
          returnStatus = MStatus::kFailure;
-         AiMsgError("[mtoa] Failed to deregister '%s' command.\n[mtoa] Status : %s",
-                     cmd.name, status.errorString().asChar());
-         MGlobal::displayError(MString("[mtoa] Failed to deregister '") +
-                     MString(cmd.name) + MString("'' command."));
-      }
    }
+
    if (!isBatch)
    {
       for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
@@ -1554,9 +1440,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
          CHECK_MSTATUS(status);
       }
 
-      if (MGlobal::mayaState() == MGlobal::kInteractive)
-      {
-      }
       status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
           AI_STANDIN_CLASSIFICATION,
           "arnoldStandInNodeOverride");
@@ -1585,7 +1468,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       // Register a custom selection mask
       MSelectionMask::deregisterSelectionType("arnoldLightSelection");
 
-#ifdef MTOA_ENABLE_AVP
       MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
       if (renderer)
       {
@@ -1600,109 +1482,44 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
       status = plugin.deregisterNode(ArnoldViewRegionManipulator::id);
       if (!status) {
-          status.perror("deregisterNode");
-          }
+         status.perror("deregisterNode");
+      }
 
       status = _aiViewRegionCmd.deregisterCommand(object);
       if (!status) {
-          status.perror("deregisterCommand");
-          return status;
+         status.perror("deregisterCommand");
       }
-
-#endif
    }
 
-   // Material view renderer
    if (!isBatch)
    {
+      // Material view renderer
       status = plugin.deregisterRenderer(CMaterialView::Name());
-      CHECK_MSTATUS(status);
-      if (MStatus::kSuccess == status)
-      {
-         AiMsgInfo("Successfully deregistered Arnold material view renderer");
-         MGlobal::displayInfo("Successfully deregistered Arnold material view renderer");
-      }
-      else
-      {
+      if (!VerifyUninititalization(status, "Arnold material view renderer"))
          returnStatus = MStatus::kFailure;
-         AiMsgError("Failed to deregister Arnold material view renderer");
-         MGlobal::displayError("Failed to deregister Arnold material view renderer");
-      }
-   }
-
-   // Swatch renderer
-   if (!isBatch)
-   {
+   
+      // Swatch renderer
       status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
-      CHECK_MSTATUS(status);
-      if (MStatus::kSuccess == status)
-      {
-         AiMsgInfo("Successfully deregistered Arnold swatch renderer");
-         MGlobal::displayInfo("Successfully deregistered Arnold swatch renderer");
-      }
-      else
-      {
+      if (!VerifyUninititalization(status, "Arnold swatch renderer"))
          returnStatus = MStatus::kFailure;
-         AiMsgError("Failed to deregister Arnold swatch renderer");
-         MGlobal::displayError("Failed to deregister Arnold swatch renderer");
-      }
    } 
    // Deregister image formats
    status = plugin.deregisterImageFile(CTxTextureFile::fileName);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered tx texture file");
-      MGlobal::displayInfo("Successfully deregistered tx texture file");
-   }
-   else
-   {
+   if (!VerifyUninititalization(status, "tx texture file"))
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister tx texture file");
-      MGlobal::displayError("Failed to deregister tx texture file");
-   }
-   
+
    // ASS file translator
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeExport);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered Arnold ass file exporter");
-      MGlobal::displayInfo("Successfully deregistered Arnold ass file exporter");
-   }
-   else
-   {
+   if (!VerifyUninititalization(status, "Arnold ass file exporter"))
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold ass file exporter");
-      MGlobal::displayError("Failed to deregister Arnold ass file exporter");
-   }
    
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeImport);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered Arnold ass file importer");
-      MGlobal::displayInfo("Successfully deregistered Arnold ass file importer");
-   }
-   else
-   {
+   if (!VerifyUninititalization(status, "Arnold ass file importer"))
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold ass file importer");
-      MGlobal::displayError("Failed to deregister Arnold ass file importer");
-   }
+
    status = plugin.deregisterFileTranslator(CArnoldUsdTranslator::fileTypeExport);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered Arnold-USD file exporter");
-      MGlobal::displayInfo("Successfully deregistered Arnold-USD file exporter");
-   }
-   else
-   {
+   if (!VerifyUninititalization(status, "Arnold-USD file exporter"))
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold-USD file exporter");
-      MGlobal::displayError("Failed to deregister Arnold-USD file exporter");
-   }
 
    // Restore the original env variables, so that they don't accumulate if we re-load MtoA
    SetEnv("MTOA_EXTENSIONS_PATH", s_mtoa_extensions_path_orig);
@@ -1710,8 +1527,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    MMessage::removeCallback(connectionCallback);
    
-   ArnoldUniverseEnd();
-
-   CMayaScene::DeInit();
+   ArnoldEnd();
    return returnStatus;
 }

@@ -17,16 +17,23 @@ class CArnoldOptionsNode
 public:
    ~CArnoldOptionsNode();
 
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data)
+   MStatus compute(const MPlug& plug, MDataBlock& data) override
    {
      return MS::kSuccess;
    }
+
+   enum RenderType
+   {
+      MTOA_RENDER_INTERACTIVE,
+      MTOA_RENDER_EXPORTASS,
+      MTOA_RENDER_EXPORTASS_AND_KICK
+   };
 
    static MObject getOptionsNode();
 
    static void* creator();
    static MStatus initialize();
-   void postConstructor();
+   void postConstructor() override;
    static void createdCallback(MObject& node, void* clientData);
    static MTypeId id;
    static MCallbackId sId;
@@ -36,6 +43,7 @@ public:
 
    static MObject s_optionsNode;
   
+   static MObject s_renderGlobals;
    static MObject s_imageFormat;
    static MObject s_aovs;
    static MObject s_aovMode;

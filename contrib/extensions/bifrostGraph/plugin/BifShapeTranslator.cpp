@@ -263,7 +263,8 @@ void CBifShapeTranslator::Export( AtNode *shape )
       unsigned int numMotionSteps = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && !velocityOnly ? GetNumMotionSteps() : 1;
 
       MString baseBobPath = GetBaseBobPath();
-      if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
+      
+      if ((!IsFileExport()) || baseBobPath.length() == 0)
       {
          // Pass pointers (handles) over for speed, as there's no danger of
          // pointers being written to disk
@@ -656,7 +657,7 @@ void CBifShapeTranslator::ExportMotion(AtNode *shape)
 
       AtArray* dataArray = AiNodeGetArray(shape, "bifrost:input0");
 
-      if (GetSessionMode() != MTOA_SESSION_ASS || baseBobPath.length() == 0)
+      if ((!IsFileExport()) || baseBobPath.length() == 0)
       {
          // Pass pointers (handles) over for speed, as there's no danger of
          // pointers being written to disk

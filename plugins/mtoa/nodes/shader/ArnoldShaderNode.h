@@ -18,10 +18,11 @@ private:
 
 public:
 
-   virtual void postConstructor();
+   void postConstructor() override;
 
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
-
+   MStatus compute(const MPlug& plug, MDataBlock& data) override;
+   SchedulingType schedulingType()const override {return kSerial;}
+   
    CAbMayaNode m_abstract;
 
    static void* creator();

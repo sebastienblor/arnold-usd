@@ -1,9 +1,14 @@
 #include "ArnoldViewportRendererOptionsCmd.h"
-#include "scene/MayaScene.h"
+#include "session/ArnoldRenderViewSession.h"
+#include "session/SessionManager.h"
 
 #include <maya/MArgList.h>
 #include <maya/MSyntax.h>
 #include <maya/MArgDatabase.h>
+#include <maya/MGlobal.h>
+
+static std::string s_arnoldViewportSession("arnoldViewport");
+
 
 MSyntax CArnoldViewportRendererOptionsCmd::newSyntax()
 {
@@ -16,7 +21,6 @@ static bool s_wasVisible = false;
 
 MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
 {
-
    MStatus status;
    MArgDatabase args(syntax(), argList);
 
@@ -46,24 +50,45 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
          mode = "close"; // closing ARV
    }
 
-   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);   
+   bool sessionExisted = (session != nullptr);
+   if (session == nullptr)
+   {
+      s_wasVisible = true;
+      
+      session = new CArnoldRenderViewSession(true);
+      CSessionManager::AddActiveSession(s_arnoldViewportSession, session);
+      CRenderViewMtoA &renderView = session->GetRenderView();
+      renderView.OpenMtoAViewportRendererOptions();
+      renderView.RequestFullSceneUpdate();
+      s_wasVisible = false;
+      renderView.CloseOptionsWindow();
+      CSessionManager::DeleteActiveSession(s_arnoldViewportSession);
+      return MS::kSuccess;
+   }
    
+   CRenderViewMtoA &renderView = session->GetRenderView();
+      
    if (mode == "open")
    {
       s_wasVisible = true;
-      CRenderSession::OpenInteractiveRendererOptions();
-      if (renderSession == NULL)
+      renderView.SetViewportRendering(true);
+      renderView.OpenMtoAViewportRendererOptions();
+      renderView.RequestFullSceneUpdate();
+      
+      if (!sessionExisted)
       {
          s_wasVisible = false;
-         CRenderSession::CloseOptionsWindow();
+         renderView.CloseOptionsWindow();
          //MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
       }
 
    } else if (mode == "close")
    {  
       s_wasVisible = false;        
-      CRenderSession::CloseOptionsWindow();
+      renderView.CloseOptionsWindow();
    }
+
    return MS::kSuccess;
 }
 

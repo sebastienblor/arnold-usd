@@ -366,6 +366,9 @@ MStatus CExtensionImpl::NewArnoldPlugin(const MString &file)
 
       CExtensionImpl::s_allLoadedArnoldPlugins.insert(file_str);
       m_ownLoadedArnoldPlugins.insert(file_str);
+
+      // load the plugin right away
+      AiLoadPlugins(file_str.c_str());
       return MStatus::kSuccess;
    }
 }

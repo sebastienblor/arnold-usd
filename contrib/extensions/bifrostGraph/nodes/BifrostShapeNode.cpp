@@ -191,8 +191,6 @@ void CBifrostShapeNode::updateGeometry()
    if (nEle == 0)
       return;
 
-   bool universeCreated = ArnoldUniverseBegin();
-   
    AtUniverse *universe = AiUniverse();
    AtUniverse *proc_universe = AiUniverse();
 
@@ -243,6 +241,4 @@ void CBifrostShapeNode::updateGeometry()
    AiUniverseDestroy(universe);
    AiUniverseDestroy(proc_universe);
 
-   if (universeCreated)
-      AiEnd();
 }

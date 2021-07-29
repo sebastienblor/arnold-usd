@@ -1,10 +1,10 @@
 #include "utils/Version.h"
 #include "ArnoldSceneCmd.h"
-#include "scene/MayaScene.h"
 #include "utils/MakeTx.h"
 #include "../common/UnorderedContainer.h"
 #include "translators/NodeTranslator.h"
 #include "translators/DagTranslator.h"
+#include "session/SessionManager.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -26,7 +26,7 @@
 
 
 #include <math.h>
-
+static const std::string s_arnoldSceneSessionId("arnoldScene");
 MSyntax CArnoldSceneCmd::newSyntax()
 {
    MSyntax syntax;
@@ -38,10 +38,21 @@ MSyntax CArnoldSceneCmd::newSyntax()
    return syntax;
 }
 
+static inline CArnoldSession *InitArnoldSceneSession()
+{
+   CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
+   if (session == nullptr)
+   {
+      session = new CArnoldSession();
+      CSessionManager::AddActiveSession(s_arnoldSceneSessionId, session);
+   }
+   return session;
+}
 
 
 MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 {
+   
    MStatus status;
    MArgDatabase args(syntax(), argList);
 
@@ -50,12 +61,13 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    bool listAllNewNodes = false;
    bool listRootNodes = false;
    bool listAllNodes = false;
-
+   CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
    if (args.isFlagSet("query"))
    {
-      setResult(CMayaScene::IsActive());
+      setResult(session != nullptr);
       return MS::kSuccess;
    }
+
    MString listValue = (args.isFlagSet("list")) ? args.flagArgumentString("list", 0) : "";
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "create";
 
@@ -68,11 +80,11 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 
 
    unordered_set<std::string> previousObjects;
-   if (listAllNewNodes && AiUniverseIsActive())
+   if (listAllNewNodes && session != nullptr)
    {
       // if requested, loop over previously existing arnold nodes in the scene, so
       // that we can find out the newly created nodes after export
-      AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
+      AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(session->GetUniverse(), AI_NODE_ALL);
       while (!AiNodeIteratorFinished(nodeIter))
       {
          AtNode *node = AiNodeIteratorGetNext(nodeIter);
@@ -87,31 +99,26 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 
    if (mode == "create")
    {
-      if (!CMayaScene::IsActive())
-         CMayaScene::Begin(MTOA_SESSION_ASS);
-
       // export with an empty selection list so that options, etc...
       // are properly initialized
       MSelectionList list;
-      CMayaScene::Export(&list);
+      InitArnoldSceneSession()->Export(&list);
    }
    else if (mode == "destroy")
    {
-      if (CMayaScene::IsActive())
-         CMayaScene::End();
-
+      if (session)
+      {
+         CSessionManager::DeleteActiveSession(s_arnoldSceneSessionId);
+      }
    }
    else if (mode == "convert_scene")
    {
-      if (!CMayaScene::IsActive())
-         CMayaScene::Begin(MTOA_SESSION_ASS);
-
-      CMayaScene::Export();
+      InitArnoldSceneSession()->Export();
    }
    else if (mode == "convert_selected") 
    {
-      if (!CMayaScene::IsActive())
-         CMayaScene::Begin(MTOA_SESSION_ASS);
+      CArnoldSession *session = InitArnoldSceneSession();
+
       MSelectionList sList;
       MStringArray sListStrings;
       args.getObjects(sListStrings);   
@@ -132,9 +139,7 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 
       MSelectionList sel(sList);
 
-      CMayaScene::Export(&sList);
-
-      CArnoldSession *session = CMayaScene::GetArnoldSession();
+      session->Export(&sList);
 
       // Even though we called Export(&sList) we must ensure that each of the selected nodes was properly exported.
       // The problem is that this function is only exporting cameras, shapes, lights, etc... so it's not fully doing what we expect
@@ -153,12 +158,9 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
                tr = session->ExportDagPath(dag, false);
             } else if (sel.getDependNode(i, objNode) == MS::kSuccess)
             {
-               MPlug shaderPlug = MFnDependencyNode(objNode).findPlug("message", true);
-               if (!shaderPlug.isNull())
-               {
-                 tr = session->ExportNode(shaderPlug, 
+               tr = session->ExportNode(objNode, 
                                 false, 0);
-               }
+
             }
             if (tr)
             {
@@ -169,14 +171,11 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
          }
          for (unordered_set<std::string>::iterator it = newNodes.begin(); it != newNodes.end(); ++it)
             result.append((*it).c_str());
-         
       }
    }
    else if (mode == "update_selected") 
    {
-      if (!CMayaScene::IsActive())
-         return MS::kFailure;
-      CArnoldSession *session = CMayaScene::GetArnoldSession();
+      CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
       if (session == nullptr)
          return MS::kFailure;
 
@@ -221,7 +220,7 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    }
    if (listAllNewNodes || listAllNodes)
    {
-      AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
+      AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(session->GetUniverse(), AI_NODE_ALL);
       while (!AiNodeIteratorFinished(nodeIter))
       {
          AtNode *node = AiNodeIteratorGetNext(nodeIter);

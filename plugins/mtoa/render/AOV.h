@@ -15,8 +15,6 @@
 #include <vector>
 #include <set>
 
-class CMayaScene;
-
 class CAOV;
 typedef std::set<CAOV> AOVSet;
 

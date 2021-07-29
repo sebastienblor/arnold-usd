@@ -1,62 +1,220 @@
-#include "platform/Platform.h"
 #include "ArnoldSession.h"
-#include "attributes/Components.h"
-#include "extension/ExtensionsManager.h"
-#include "scene/MayaScene.h"
-#include "translators/options/OptionsTranslator.h"
-#include "translators/camera/ImagePlaneTranslator.h"
-#include "translators/shader/ShaderTranslators.h"
-#include "translators/shader/ShadingEngineTranslator.h"
-#include "nodes/ShaderUtils.h"
-#include "translators/DagTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
-#include "utils/MakeTx.h"
-#include "utils/MtoaLog.h"
-
-
 #include <ai_msg.h>
 #include <ai_nodes.h>
-#include <ai_ray.h>
-
-#include <maya/M3dView.h>
-#include <maya/MAnimControl.h>
-#include <maya/MGlobal.h>
-#include <maya/MFnMesh.h>
-#include <maya/MFnMeshData.h>
-#include <maya/MFnNurbsSurface.h>
-#include <maya/MFnSet.h>
-#include <maya/MFnRenderLayer.h>
-#include <maya/MMatrix.h>
-#include <maya/MPlug.h>
-#include <maya/MItDependencyNodes.h>
-#include <maya/MSelectionList.h>
-#include <maya/MItSelectionList.h>
-#include <maya/MFnTransform.h>
-#include <maya/MDagPathArray.h>
-#include <maya/MFnInstancer.h>
-#include <maya/MItInstancer.h>
-#include <maya/MPlugArray.h>
-#include <maya/MMessage.h>
-#include <maya/MEventMessage.h>
-#include <maya/MDGMessage.h>
-#include <maya/MFnMatrixData.h>
-#include <maya/MFileObject.h>
-#include <maya/MNodeMessage.h>
-#include <maya/MProgressWindow.h>
-#include <maya/MSceneMessage.h>
-
 #include <assert.h>
 #include <stdio.h>
+#include <maya/MGlobal.h>
+#include <maya/MProgressWindow.h>
+#include <maya/MPlugArray.h>
+#include <maya/MFnRenderLayer.h>
+#include <maya/MFnSet.h>
+#include <maya/MSelectionList.h>
+#include <maya/MItSelectionList.h>
+#include <maya/MItDependencyNodes.h>
+#include <maya/MEventMessage.h>
+#include <maya/MDagMessage.h>
+#include <maya/M3dView.h>
+#include "translators/NodeTranslatorImpl.h"
+#include "extension/ExtensionsManager.h"
+#include "utils/MakeTx.h"
+#include "nodes/ShaderUtils.h"
+#include "attributes/Components.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
+
+CArnoldSession::CArnoldSession(bool initOptions)
+{
+   MSelectionList list;
+
+   /* This will be initialized when session options will call GetDefaultArnoldRenderOptions();
+   MObject optNode = GetDefaultArnoldRenderOptions();
+   if (optNode.isNull())
+   {
+      // defaultArnoldRenderOptions doesn't exist, we need to initialize it
+      MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
+      
+   }*/
+   m_universe = AiUniverse();
+   m_isExportingMotion = false;
+   m_renderSession = nullptr;
+   m_motionStep = 0;
+   m_updateOptions = false;
+   m_updateMotion = false;
+   m_updateLightLinks = false;
+   m_updateTx = false;
+   m_checkVisibility = true;
+   m_checkRenderLayer = true;
+   m_batch = false;
+   m_optionsTranslator = nullptr;
+
+   m_requestUpdate = false;
+   m_newNodeCallbackId = 0;
+   m_addParentCallbackId = 0;
+   m_removeParentCallbackId = 0;
+   m_updateCallbacks = false;
+   m_hiddenNodeCb = 0;
+   m_lightLinks.SetOptions(&m_sessionOptions);
+   m_lightLinks.SetUniverse(m_universe);
+   if (initOptions)
+      InitSessionOptions();
+}
+
+CArnoldSession::~CArnoldSession()
+{
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+   for ( ; it != itEnd; ++it)
+      delete it->second;
+   
+   if (m_renderSession)
+   {
+      AiRenderInterrupt(m_renderSession, AI_BLOCKING);
+      AiRenderSessionDestroy(m_renderSession);
+      m_renderSession = nullptr;
+   }
+
+   m_translators.clear();
+   if (m_universe)
+      AiUniverseDestroy(m_universe);
+   
+   ClearUpdateCallbacks();
+   m_masterInstances.clear();
+}
+
+void CArnoldSession::InitSessionOptions()
+{
+   m_updateOptions = false;
+   m_sessionOptions.Update();
+}
+
+template <class T>
+static void ChangeCurrentFrame(T time, bool forceViewport = false)
+{   
+   // time can be either MTime or double
+
+   // Ensure we don't do anything for AVP
+   /*
+   FIXME
+   if (sessionMode == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
+      return;
+      */
+   MTime currentTime = MAnimControl::currentTime();
+   if (currentTime == time)
+      return;
+
+   // viewFrame will force the refresh of the viewport. This seems to be needed in batch render
+   // to ensure that the DG data is properly set to the "current" frame. Otherwise, in some test scenes, 
+   // we can get wrong data (see #4447). So we want to keep using viewFrame for the main current frame.
+   // However, for other "motion" frames, it's better to use "setCurrentTime" which doesn't force a refresh 
+   // of the viewport (until next maya "idle").
+   if (forceViewport)
+      MGlobal::viewFrame(time); 
+   else
+      MAnimControl::setCurrentTime(time); 
+}
+
+
+AtRenderSession *CArnoldSession::GetRenderSession()
+{
+   if (m_renderSession == nullptr)
+      m_renderSession = AiRenderSession(m_universe, IsBatchSession() ? AI_SESSION_BATCH : AI_SESSION_INTERACTIVE);
+   return m_renderSession;
+}
+MDagPathArray CArnoldSession::GetRenderCameras(bool activeView)
+{
+   MDagPathArray cameras;
+   MDagPath activeCameraPath;
+   // optionally include the active camera in the viewport
+   if (activeView)
+   {
+      M3dView view;
+ 
+      MStatus viewStatus;
+      view = M3dView::active3dView(&viewStatus);
+      if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+      {
+         cameras.append(activeCameraPath);
+      }
+   }
+
+   MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
+   MDagPath cameraPath;
+   // MFnCamera cameraNode;
+   MFnDagNode cameraNode;
+   MPlug renderable;
+   MStatus stat;
+   while (!dagIter.isDone())
+   {
+      dagIter.getPath(cameraPath);
+      dagIter.next();
+      // don't need to include the active camera twice
+      if (cameraPath == activeCameraPath)
+         continue;
+
+      cameraNode.setObject(cameraPath);
+      renderable = cameraNode.findPlug("renderable", true, &stat);
+      if (stat && renderable.asBool())
+         cameras.append(cameraPath);
+      
+   }
+
+   return cameras;
+}
 
 
 namespace // <anonymous>
 {
+
+   bool IsVisible(MFnDagNode &node)
+   {
+      MStatus status;
+
+      if (node.isIntermediateObject())
+         return false;
+
+
+      MPlug visPlug = node.findPlug("visibility", true, &status);
+      // Check standard visibility
+      if (status == MStatus::kFailure || !visPlug.asBool())
+         return false;
+
+      // LOD visibility support had first been implemented for mesh lights, 
+      // but it was then reverted in #2679 , because some users were relying
+      // on this attribute to be ignored by Arnold. This was, back at the time, 
+      // the only was to hide an object from the viewport and still render it.
+      // There are now different ways to achieve this, so we're re-introducing the
+      // support for lodVisibility in #4259
+      
+      MPlug lodVisPlug = node.findPlug("lodVisibility", true, &status);
+      if (status == MStatus::kFailure || !lodVisPlug.asBool())
+         return false;
+
+      // Check override visibility
+      MPlug overPlug = node.findPlug("overrideEnabled", true, &status);
+      if (status == MStatus::kSuccess && overPlug.asBool())
+      {
+         MPlug overVisPlug = node.findPlug("overrideVisibility", true, &status);
+         if (status == MStatus::kFailure || !overVisPlug.asBool())
+            return false;
+      }
+      return true;
+   }
+
+   inline bool IsVisiblePath(MDagPath dagPath)
+   {
+      MStatus stat = MStatus::kSuccess;
+      while (stat == MStatus::kSuccess)
+      {
+         MFnDagNode node;
+         node.setObject(dagPath.node());
+         if (!IsVisible(node))
+            return false;
+         stat = dagPath.pop();
+      }
+      return true;
+   }
+
    // TODO: use the renderLayer specified in the CMayaScene instead
-   bool IsInRenderLayer(MDagPath dagPath)
+   inline bool IsInRenderLayer(MDagPath dagPath)
    {
       MObject renderLayerObj = MFnRenderLayer::currentLayer();
 
@@ -65,7 +223,7 @@ namespace // <anonymous>
       return curLayer.inCurrentRenderLayer(dagPath);
    }
 
-   bool IsTemplated(MFnDagNode & node)
+   inline bool IsTemplated(MFnDagNode & node)
    {
       MStatus status;
 
@@ -88,7 +246,7 @@ namespace // <anonymous>
             return false;
    }
 
-   bool IsTemplatedPath(MDagPath dagPath)
+   inline bool IsTemplatedPath(MDagPath dagPath)
    {
 
       MStatus stat = MStatus::kSuccess;
@@ -102,561 +260,120 @@ namespace // <anonymous>
       }
       return false;
    }
-}
-template <class T>
-static void ChangeCurrentFrame(T time, int sessionMode, bool forceViewport = false)
-{   
-   // time can be either MTime or double
-
-   // Ensure we don't do anything for AVP
-   if (sessionMode == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
-      return;
-   
-   // viewFrame will force the refresh of the viewport. This seems to be needed in batch render
-   // to ensure that the DG data is properly set to the "current" frame. Otherwise, in some test scenes, 
-   // we can get wrong data (see #4447). So we want to keep using viewFrame for the main current frame.
-   // However, for other "motion" frames, it's better to use "setCurrentTime" which doesn't force a refresh 
-   // of the viewport (until next maya "idle").
-   if (forceViewport)
-      MGlobal::viewFrame(time); 
-   else
-      MAnimControl::setCurrentTime(time); 
-}
-
-
-// Public Methods
-
-// Export a single dag path (a dag node or an instance of a dag node)
-// Considered to be already filtered and checked
-CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool initOnly, MStatus* stat)
-{
-   //m_motionStep = 0;
-   MStatus status = MStatus::kSuccess;
-   AtNode* arnoldNode = NULL;
-
-   MString name = CDagTranslator::GetArnoldNaming(dagPath);
-   MString type = MFnDagNode(dagPath).typeName();
-
-   AiMsgTab(1);
-   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-
-   if (translator == NULL)
+   // Filter and expand the selection, and all its hirarchy down stream.
+   // Also flattens sets in selection.
+   //
+   // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+   //
+   MStatus FlattenSelection(CArnoldSession *session, MSelectionList* selected, bool skipRoot = false)
    {
-      if (stat != NULL) *stat = MStatus::kNotImplemented;
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.session]     "+ name + " | Ignoring DAG node of type "+ type);
+      MStatus status;
 
-      AiMsgTab(-1);
-      return NULL;
-   }
-   else if (!translator->m_impl->IsMayaTypeDag())
-   {
-      if (stat != NULL) *stat = MStatus::kInvalidParameter;
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa] translator for "+ name+" of type "+type+" is not a DAG translator");
-
-      AiMsgTab(-1);
-      return NULL;
-   }
-
-   if (MtoaTranslationInfo())
-      MtoaDebugLog("[mtoa.session]     "+name+" | Exporting DAG node of type "+ type);
-
-   CNodeAttrHandle handle(dagPath);
-   MString hashCode;
-   handle.GetHashString(hashCode);
-   std::string hashStr(hashCode.asChar());
-   // Check if node has already been processed
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
-
-   if (it != m_processedTranslators.end())
-   {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.session]     "+ name+" | Reusing previous export of DAG node of type "+type);
-
-      delete translator;
-      status = MStatus::kSuccess;
-      arnoldNode = it->second->GetArnoldNode();
-      translator = (CDagTranslator*)it->second;
-   }
-
-   if (arnoldNode == NULL)
-   {
-      status = MStatus::kSuccess;
-      translator->m_impl->Init(this, dagPath);
-      if (it != m_processedTranslators.end())
+      MObject node;
+      MDagPath path;
+      MFnDagNode dgNode;
+      MFnSet set;
+      MSelectionList children;
+      // loop users selection
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      selected->clear();
+      for (it.reset(); !it.isDone(); it.next())
       {
-         it->second = translator;
+         if (it.getDagPath(path) == MStatus::kSuccess)
+         {
+            // FIXME: if we selected a shape, and it's an instance,
+            // should we export all its dag paths?
+            if (session->IsExportable(path) == CArnoldSession::MTOA_EXPORT_ACCEPTED)
+            {
+               // add this path, unless skipRoot is true
+               if (!skipRoot) selected->add(path, MObject::kNullObj, true);
+
+               for (unsigned int child = 0; (child < path.childCount()); child++)
+               {
+                  MObject ChildObject = path.child(child);
+                  path.push(ChildObject);
+                  children.clear();
+                  children.add(path.fullPathName());
+                  dgNode.setObject(path.node());
+                  if (!dgNode.isIntermediateObject())
+                     selected->add (path, MObject::kNullObj, true);
+                  path.pop(1);
+                  if (MStatus::kSuccess != FlattenSelection(session, &children, true)) // true = skipRoot
+                     status = MStatus::kFailure;
+
+                  selected->merge(children);
+               }
+            }
+         }
+         else if (MStatus::kSuccess == it.getDependNode(node))
+         {
+            // Got a dependency (not dag) node
+            if (node.hasFn(MFn::kSet))
+            {
+               // if it's a set we actually iterate on its content
+               set.setObject(node);
+               children.clear();
+               // get set members, we don't set flatten to true in case we'd want a
+               // test on each set recursively
+               set.getMembers(children, false);
+               if (MStatus::kSuccess != FlattenSelection(session, &children, true)) // true = skipRoot
+                  status = MStatus::kFailure;
+               selected->merge(children);
+            }
+            else
+            {
+               // Keep all the DependencyNodes (shaders, etc...) in the selected list
+               // because we want to ensure that they're exported #4148
+               selected->add(node);
+            }
+         }
+         else
+         {
+            status = MStatus::kFailure;
+         }
       }
-      else
-      {
-         m_processedTranslators[hashStr] = translator;
-         // This node handle might have already been added to the list of objects to update
-         // but since no translator was found in m_processedTranslators, it might have been discarded
-         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
-         // for this shader
-         if (IsInteractiveRender()) QueueForUpdate(translator);
-      }
-      if (!initOnly)
-         arnoldNode = translator->m_impl->DoExport();
-   }
 
-   if (NULL != stat) *stat = status;
-   AiMsgTab(-1);
-   return translator;
+      return status;
+   }
 }
 
-// Export a plug (dependency node output attribute)
-//
-CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, 
-                                   bool initOnly, int instanceNumber, MStatus *stat)
+void CArnoldSession::Clear()
 {
-   //instanceNumber is currently used only for bump. We provide a specific instance number
-
-   MObject mayaNode = shaderOutputPlug.node();
-   MStatus status = MStatus::kSuccess;
-   AtNode* arnoldNode = NULL;
-   CNodeTranslator* translator = NULL;
-   MDagPath dagPath;
-   // FIXME: should get correct instance number from plug
-   if (MFnDagNode(MFnDagNode(mayaNode).parent(0)).getPath(dagPath) == MS::kSuccess)
-   {
-      dagPath.push(mayaNode);
-      MStatus status = MStatus::kSuccess;
-      translator = (CNodeTranslator*)ExportDagPath(dagPath, initOnly, &status);
-      // kInvalidParameter is returned when a non-DAG translator is used on a DAG node, but we can still export that here
-      if (status != MStatus::kInvalidParameter)
-      {
-         if (stat != NULL) *stat = status;
-         return translator;
-      }
-   }
-
-   MFnDependencyNode fnNode(mayaNode);
-   MString name = fnNode.name();
-   MString type = fnNode.typeName();
-
-   translator = CExtensionsManager::GetTranslator(mayaNode);
-   AiMsgTab(1);
-
-   if (translator == NULL)
-   {
-      status = MStatus::kNotImplemented;
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.session]     "+name+": Maya node type not supported: "+type);
-
-      AiMsgTab(-1);
-      return NULL;
-   }
-
-   MPlug resultPlug;
-   // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
-   ResolveFloatComponent(shaderOutputPlug, resultPlug);
-   MPlug resolvedPlug;
-   // resolving the plug gives translators a chance to replace ".message" with ".outColor",
-   // for example, or to reject it outright.
-   // once the attribute is properly resolved it can be used as a key in our multimap cache
-   if (translator->m_impl->ResolveOutputPlug(resultPlug, resolvedPlug))
-   {
-      resultPlug = resolvedPlug;
-   }
-   else
-   {
-      delete translator;
-      translator = NULL;
-      status = MStatus::kNotImplemented;
-      MFnDependencyNode fnNode(mayaNode);
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa] [maya "+name+"] Invalid output attribute: \""+ resultPlug.partialName(false, false, false, false, false, true) +"\"");
-      AiMsgTab(-1);
-      return NULL;
-   }
-
-   MString plugName = resultPlug.name();
-   if (MtoaTranslationInfo())
-      MtoaDebugLog("[mtoa.session]     "+name+" | Exporting plug "+plugName+" for type "+type);
-
-   CNodeAttrHandle handle;
-   MString handleCode;
-   if (translator->DependsOnOutputPlug())
-   {
-      handle.set(resultPlug, instanceNumber);
-      handle.GetHashString(handleCode, true); // true because I need the plug name
-   }
-   else
-   {
-      handle.set(mayaNode, "", instanceNumber);
-      handle.GetHashString(handleCode, false); // I don't need the plug name
-   }
-   std::string hashStr(handleCode.asChar());
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
-
-   if (it != m_processedTranslators.end())
-   {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.session]     "+name+" | Reusing previous export of node of type "+type);
-
-      delete translator;
-      status = MStatus::kSuccess;
-      arnoldNode = it->second->GetArnoldNode();
-      translator = it->second;
-   }
-   
-   if (arnoldNode == NULL)
-   {
-      status = MStatus::kSuccess;
-      translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true), instanceNumber);
-      if (it != m_processedTranslators.end())
-      {
-         it->second = translator;
-      }
-      else
-      {
-         m_processedTranslators[hashStr] = translator;
-         
-         // This node handle might have already been added to the list of objects to update
-         // but since no translator was found in m_processedTranslators, it might have been discarded
-         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
-         // for this shader
-         if (IsInteractiveRender()) QueueForUpdate(translator);
-      }
-      if (!initOnly)
-         arnoldNode = translator->m_impl->DoExport();
-   }
-   if (NULL != stat) *stat = status;
-   AiMsgTab(-1);
-   return translator;
-}
-
-CNodeTranslator *CArnoldSession::GetActiveTranslator(const CNodeAttrHandle &handle)
-{
-   MString hashCode;
-   handle.GetHashString(hashCode);
-   std::string hashStr(hashCode.asChar());
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
-
-   if (it != m_processedTranslators.end())
-      return it->second;
-
-
-   // FIXME, should we try now with the attribute name for multi-output translators ?
-   /*
-   handle.GetHashString(hashCode, true);
-   hashStr= hashCode.asChar();
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
-
-   if (it != m_processedTranslators.end())
-      return it->second;   
-   */
-
-   return NULL;
-}
-
-// This function removes the translator from our list of 
-// processed translators. Note that it doesn't actually erase it,
-// this will be done later
-void CArnoldSession::EraseActiveTranslator(CNodeTranslator *translator)
-{
-   if (translator == NULL) return;
-
-   CNodeAttrHandle &handle = translator->m_impl->m_handle;
-   MString hashCode;
-   handle.GetHashString(hashCode, translator->DependsOnOutputPlug());
-
-   std::string hashStr(hashCode.asChar());
-   
-   m_processedTranslators.erase(hashStr);
-   // we're not deleting the translator yet
-}
-
-
-
-bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
-{
-   MStatus stat = MStatus::kSuccess;
-
-   // We were testing the render layer in some places but not here.
-   // This made us ignore the render layers during IPR updates (see #3144 #3350)
-   unsigned int mask = GetExportFilterMask();
-   if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(dagPath))
-      return false;
-   
-   while (stat == MStatus::kSuccess)
-   {
-      MFnDagNode node;
-      node.setObject(dagPath.node());
-      if (!IsVisible(node) || IsTemplated(node))
-         return false;
-      stat = dagPath.pop();
-   }
-   return true;
-}
-
-// Private Methods
-
-MStatus CArnoldSession::Begin(const CSessionOptions &options)
-{
- 
-   MStatus status = MStatus::kSuccess;
-
-   m_sessionOptions = options;
-
-   status = UpdateMotionFrames();
-
-   m_is_active = true;
-   m_requestUpdate = false;
-
-   m_scaleFactor = options.GetScaleFactor();
-   AtVector s(static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor));
-   m_scaleFactorAtMatrix = AiM4Scaling(s);
-
-   double sc[3] = {m_scaleFactor, m_scaleFactor, m_scaleFactor};
-   m_scaleFactorMMatrix.setToIdentity();
-   MTransformationMatrix trmat(m_scaleFactorMMatrix);
-   trmat.setScale(sc, MSpace::kWorld);
-   m_scaleFactorMMatrix = trmat.asMatrix();
-
-   m_origin = options.GetOrigin();
-
-   return status;
-}
-
-MStatus CArnoldSession::End()
-{
-   MStatus status = MStatus::kSuccess;
-
-   m_requestUpdate = false;
-   if (IsInteractiveRender())
-   {
-      ClearUpdateCallbacks();
-   }
-   else if (GetSessionMode() == MTOA_SESSION_ASS && MGlobal::mayaState() == MGlobal::kInteractive && IsMotionBlurEnabled())
-   {
-      // reset to export frame
-      ChangeCurrentFrame(MTime(GetExportFrame(), MTime::uiUnit()), GetSessionMode());
-   }
-
-   // Delete stored translators
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
-   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
    for ( ; it != itEnd; ++it)
-   {
       delete it->second;
-   }
-
-   for(unsigned int i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
-   {
-      MNodeMessage::removeCallback(m_hiddenObjectsCallbacks[i].second);
-   }
-   m_hiddenObjectsCallbacks.clear();
-
-   m_processedTranslators.clear();
-   m_objectsToUpdate.clear();
-   m_optionsTranslator = NULL;
-   m_masterInstances.clear();
-   // Clear motion frames storage
-   m_motion_frames.clear();
-
-   m_is_active = false;
-   return status;
-}
-
-MStatus CArnoldSession::UpdateLightLinks()
-{
-   // FIXME: we are not sure all these lights will actually have been exported to 
-   // the Arnold universe
-   // Possible solution, make sure ExportLights is done first, before dag objects
-   // are exported and light linking queried, and count the number of lights
-   // actually in the Arnold universe
-   m_numLights = 0;
-   MItDag dagIterLights(MItDag::kDepthFirst, MFn::kLight);
-   for (; (!dagIterLights.isDone()); dagIterLights.next())
-   {
-      m_numLights += 1;
-   }
-   // For plugin lights, 
-   MItDag dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode);
-   for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
-   {
-      if (CMayaScene::IsArnoldLight(dagIterPlugin.currentItem()))
-      {
-         m_numLights += 1;
-      }
-   }
-   // TODO : turn off light linking option if we detect here that all lights
-   // "illuminate by default" ?
-
-   MStatus status = MStatus::kSuccess;   
-   m_arnoldLightLinks.ClearLightLinks();
-
-   if (m_numLights > 0)
-   {      
-      m_arnoldLightLinks.SetLinkingMode(m_sessionOptions.GetLightLinkMode(), 
-           m_sessionOptions.GetShadowLinkMode());
-      if (m_sessionOptions.GetLightLinkMode() == MTOA_LIGHTLINK_MAYA
-            || m_sessionOptions.GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
-      {
-         // Default values except last. We set componentSupport = false
-         //status = m_lightLinks.parseLinks(MObject::kNullObj, false, NULL, false, false);
-         m_arnoldLightLinks.ParseLights();
-      }
-
-      if (MS::kSuccess != status)
-         AiMsgError("[mtoa] Failed to parse light linking information for %i lights", m_numLights);
-      
-   }
-   else if (m_sessionOptions.m_mode != MTOA_SESSION_ASS)
-   {
-      AiMsgWarning("[mtoa] No light in scene");
-   }
-
-
-   FlagLightLinksDirty(false);
-   if (MtoaTranslationInfo())
-      MtoaDebugLog("[mtoa.sesion]    Updating Light-linking information");
-
-   return status;
-}
-
-MStatus CArnoldSession::UpdateMotionFrames()
-{
-   MStatus status = MStatus::kSuccess;
-
-   double exportFrame         = m_sessionOptions.m_frame;
-   if (m_sessionOptions.m_motion.enable_mask)
-   {
-      unsigned int range_type    = m_sessionOptions.m_motion.range_type;
-      unsigned int motionSteps   = m_sessionOptions.m_motion.steps;
-      m_motion_frames.clear();
-      m_motion_frames.reserve(motionSteps);
-      
-      double motionFrames;
-      double stepSize;
-      double startFrame;
-      double endFrame;
-      
-      switch(range_type)
-      {
-         case MTOA_MBLUR_TYPE_START:
-            motionFrames = m_sessionOptions.m_motion.motion_frames;
-            stepSize = motionFrames / double(motionSteps - 1);
-            startFrame = exportFrame;
-            endFrame = exportFrame + motionFrames;
-            for (unsigned int step=0; (step < motionSteps - 1); ++step)
-            {
-               m_motion_frames.push_back(startFrame + (double)step * stepSize);
-            }
-            m_motion_frames.push_back(endFrame);
-            break;
-         case MTOA_MBLUR_TYPE_CENTER:
-            motionFrames = m_sessionOptions.m_motion.motion_frames;
-            stepSize = motionFrames / double(motionSteps - 1);
-            startFrame = exportFrame - motionFrames * 0.5;
-            endFrame = exportFrame + motionFrames * 0.5;
-            for (unsigned int step=0; (step < motionSteps - 1); ++step)
-            {
-               if((motionSteps%2 == 1) && (step == ((motionSteps-1)/2)) )
-                  m_motion_frames.push_back(exportFrame);
-               else
-                  m_motion_frames.push_back(startFrame + (double)step * stepSize);
-            }
-            m_motion_frames.push_back(endFrame);
-            break;
-         case MTOA_MBLUR_TYPE_END:
-            motionFrames = m_sessionOptions.m_motion.motion_frames;
-            stepSize = motionFrames / double(motionSteps - 1);
-            startFrame = exportFrame - motionFrames;
-            endFrame = exportFrame;
-            m_motion_frames.push_back(startFrame);
-            for (unsigned int step=1; (step < motionSteps - 1); ++step)
-            {
-               m_motion_frames.push_back(endFrame - (double)(motionSteps - 1 - step) * stepSize);
-            }
-            m_motion_frames.push_back(endFrame);
-            break;
-         case MTOA_MBLUR_TYPE_CUSTOM:
-            startFrame = exportFrame + m_sessionOptions.m_motion.motion_start;
-            endFrame = exportFrame + m_sessionOptions.m_motion.motion_end;
-            motionFrames = endFrame - startFrame;
-            stepSize = motionFrames / double(motionSteps - 1);
-            for (unsigned int step=0; (step < motionSteps - 1); ++step)
-            {
-               m_motion_frames.push_back(startFrame + (double)step * stepSize);
-            }
-            m_motion_frames.push_back(endFrame);
-            break;
-      }
-   }
-   else
-   {
-      m_motion_frames.clear();
-      m_motion_frames.push_back(exportFrame);
-   }
-
-   return status;
-}
-
-/// Export the Arnold Render Options node
-AtNode* CArnoldSession::ExportOptions()
-{
-   MObject options = m_sessionOptions.GetArnoldRenderOptions();
-   if (options.isNull())
-   {
-      AiMsgWarning("[mtoa] Failed to find Arnold options node");
-      return NULL;
-   }
-   MFnDependencyNode fnNode(options);
-   if(MtoaTranslationInfo())
-      MtoaDebugLog("[mtoa] Exporting Arnold options "+ fnNode.name());
-
-   MPlug optPlug = fnNode.findPlug("message", true);
-   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, false);
-   if (m_optionsTranslator == nullptr)
-   {
-      AiMsgError("[mtoa] No translator found for the options node");
-      return NULL;
-   }
-   ExportColorManager();
-   return m_optionsTranslator->GetArnoldNode();
-}
-
-AtNode *CArnoldSession::ExportColorManager()
-{
-   // get the maya node contraining the color management options         
-   MSelectionList activeList;
-   activeList.add(MString(":defaultColorMgtGlobals"));
    
-   if(activeList.length() > 0)
+   m_translators.clear();
+   if (m_renderSession)
    {
-      MObject colorMgtObject;
-      activeList.getDependNode(0,colorMgtObject);
-      MFnDependencyNode fnSNode(colorMgtObject);
-      MPlug mgtPlug = fnSNode.findPlug("message", true);
-      CNodeTranslator* syncolorTr = ExportNode(mgtPlug, false);
-
-      if(syncolorTr)
-         return syncolorTr->GetArnoldNode();
+      AiRenderInterrupt(m_renderSession, AI_BLOCKING);
+      AiRenderSessionDestroy(m_renderSession);
+      m_renderSession = nullptr;
    }
-   return NULL;
+   if (m_universe)
+      AiUniverseDestroy(m_universe);
+   
+   m_universe = AiUniverse();
+   m_lightLinks.ClearLightLinks();
+   m_lightLinks.SetUniverse(m_universe);
+   m_updateLightLinks = true;
+   // ClearUpdateCallbacks(); we shouldn't have to clear the update callbacks, since the session type is not meant to change
+   m_masterInstances.clear();
+   m_optionsTranslator = nullptr;
+ 
 }
 
-/// Primary entry point for exporting a Maya scene to Arnold
-MStatus CArnoldSession::Export(MSelectionList* selected)
+void CArnoldSession::Export(MSelectionList* selected)
 {
    MStatus status;
-   if (!AiUniverseIsActive())
-   {
-      AiMsgError("[mtoa] Need an active Arnold universe to export to.");
-      return MStatus::kFailure;
-   }
-
+   
    // It wouldn't be efficient to test the whole scene against selection state
    // so selected gets a special treatment
-   bool exportSelected = (NULL != selected) ? true : false;
-   if (exportSelected)
+   if (selected)
    {
       unsigned int ns = selected->length();
-      status = FlattenSelection(selected, false); // false = don't skip root nodes (ticket #1061)
+      status = FlattenSelection(this, selected, false); // false = don't skip root nodes (ticket #1061)
       unsigned int fns = selected->length();
 
       if (MtoaTranslationInfo())
@@ -676,39 +393,62 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    }
 
    // Set up export options
-   ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
+   //ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
    m_motionStep = 0;
 
+   SetStatus(MString("Exporting Arnold Scene..."));
 
-   if (exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_ASS)
+   // If the options have changed, we need to update CSessionOptions
+   if (m_updateOptions)
    {
-      MGlobal::executeCommand("prepareRender -setup");
-      MGlobal::executeCommand("prepareRender -invokePreRender");
+      InitSessionOptions();
    }
 
-   CRenderSession *renderSession = CMayaScene::GetRenderSession();
-   if (renderSession && exportMode != MTOA_SESSION_ASS)
-      renderSession->SetRenderViewStatusInfo(MString("Exporting Arnold Scene..."));
 
    // Are we motion blurred (any type)?
-   const bool mb = IsMotionBlurEnabled();
+   const bool mb = m_sessionOptions.IsMotionBlurEnabled();
 
    if (MtoaTranslationInfo())
    {
       MString log = "[mtoa.session]     Initializing at frame ";
-      log += GetExportFrame();
+      log += m_sessionOptions.GetExportFrame();
       MtoaDebugLog(log);
    }
-
    ExportOptions();  // inside loop so that we're on the proper frame
 
    // First "real" export
-   ChangeCurrentFrame(m_sessionOptions.m_frame, GetSessionMode(), true);
-   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || 
-      exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW || exportMode == MTOA_SESSION_SEQUENCE)
+   ChangeCurrentFrame(m_sessionOptions.m_frame, true);
+
+   if (IsFileExport() && selected)
+   {
+      // If we export selected to a file, not as a full render,
+      // we don't need to export all lights / cameras, but
+      // we export the selected ones first
+      status = ExportCameras(selected);
+      status = ExportLights(selected);
+      status = ExportDag(selected);
+
+      // Ensure that any node that is selected is properly exported.
+      // Dag nodes were already treated above, so we only consider non-dag nodes below
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      MDagPath selectedPath;
+      MObject selectedNode;
+      for (it.reset(); !it.isDone(); it.next())
+      {
+         if (it.getDagPath(selectedPath) == MStatus::kSuccess)
+            continue; // dag node, no need to consider it
+         
+         if (it.getDependNode (selectedNode) != MStatus::kSuccess)
+            continue;
+         MPlug nodePlug = (!selectedNode.isNull()) ? MFnDependencyNode(selectedNode).findPlug("message", true) : MPlug();
+         if (!nodePlug.isNull())
+            ExportNode(nodePlug);            
+      }
+   } else
    {
       // Either for a specific camera or export all cameras
       // Note : in "render selected" mode Maya exports all lights and cameras
+      /* FIXME !!! we used to do this, do we want to keep it ???
       if (m_sessionOptions.m_camera.isValid())
       {
          m_sessionOptions.m_camera.extendToShape();
@@ -716,77 +456,30 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       }
       else
       {
-         status = ExportCameras();
+         status = ExportCameras();   
       }
+      */
+
+
+      status = ExportCameras();
+
       // For render selected we need all the lights (including unselected ones)
       status = ExportLights();
       status = ExportDag(selected);
-   }
-   else if (exportMode == MTOA_SESSION_ASS)
-   {
-      if (exportSelected)
-      {
-         // If we export selected to a file, not as a full render,
-         // we don't need to export all lights / cameras, but
-         // we export the selected ones first
-         status = ExportCameras(selected);
-         status = ExportLights(selected);
-         status = ExportDag(selected);
-
-         // Ensure that any node that is selected is properly exported.
-         // Dag nodes were already treated above, so we only consider non-dag nodes below
-         MItSelectionList it(*selected, MFn::kInvalid, &status);
-         MDagPath selectedPath;
-         MObject selectedNode;
-         for (it.reset(); !it.isDone(); it.next())
-         {
-            if (it.getDagPath(selectedPath) == MStatus::kSuccess)
-               continue; // dag node, no need to consider it
-            
-            if (it.getDependNode (selectedNode) != MStatus::kSuccess)
-               continue;
-            MPlug nodePlug = (!selectedNode.isNull()) ? MFnDependencyNode(selectedNode).findPlug("message", true) : MPlug();
-            if (!nodePlug.isNull())
-               ExportNode(nodePlug);            
-         }
-      }
-      else
-      {
-         // Else if it's a full / renderable scene
-         if (m_sessionOptions.m_camera.isValid())
-         {
-            m_sessionOptions.m_camera.extendToShape();
-            ExportDagPath(m_sessionOptions.m_camera, true);
-         }
-         else
-         {
-            status = ExportCameras();
-         }
-         // Update light linking info
-         // FIXME: use a translator for light linker node(s)
-         status = ExportLights();
-         status = ExportDag();
-      }
-   }
-   else
-   {
-      AiMsgError("[mtoa] Unsupported export mode: %d", exportMode);
-      return MStatus::kFailure;
    }
 
    // Eventually export all shading groups
    if (m_sessionOptions.GetExportAllShadingGroups())
    {
       MStringArray shadingGroups;
-      if (exportSelected)
+      if (selected)
          MGlobal::executeCommand("ls -sl -typ shadingEngine", shadingGroups); // get selected shading groups and export them
       else
          MGlobal::executeCommand("ls -typ shadingEngine", shadingGroups); // get all shading groups in the scene and export them
       
 
-      CRenderOptions* renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
-      unsigned int mask = (renderOptions) ? renderOptions->outputAssMask() : AI_NODE_ALL;
-      bool exportShadingGroupData = (GetSessionMode() == MTOA_SESSION_ASS) && (mask & AI_NODE_SHADER && !(mask & AI_NODE_SHAPE));
+      unsigned int mask = m_sessionOptions.outputAssMask();
+      bool exportShadingGroupData = (mask & AI_NODE_SHADER) && !(mask & AI_NODE_SHAPE);
 
       for (unsigned int shg = 0; shg < shadingGroups.length(); ++shg)
       {
@@ -849,9 +542,9 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // So we can't call doExport while iterating over them.
    // Thus we first store the list of translators to process.
    std::vector<CNodeTranslator*> translatorsToExport;
-   translatorsToExport.reserve(m_processedTranslators.size());
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
-   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   translatorsToExport.reserve(m_translators.size());
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
    for (; it != itEnd; ++it)
       if (it->second) translatorsToExport.push_back(it->second);
    
@@ -862,10 +555,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    int currentFrameIndex = -1;
    if (mb)
    {
-      for (size_t i = 0; i < m_motion_frames.size(); ++i)
+      for (size_t i = 0; i < m_sessionOptions.m_motion_frames.size(); ++i)
       {
-         if (std::abs(m_motion_frames[i] - m_sessionOptions.m_frame) < 
-            (m_motion_frames[1] - m_motion_frames[0]) /10.)
+         if (std::abs(m_sessionOptions.m_motion_frames[i] - m_sessionOptions.m_frame) < 
+            (m_sessionOptions.m_motion_frames[1] - m_sessionOptions.m_motion_frames[0]) /10.)
          {            
             currentFrameIndex = m_motionStep = i;
             break;
@@ -890,25 +583,24 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // re-generate the translators to export list as it may have increased during 
       // the first export
       translatorsToExport.clear();
-      translatorsToExport.reserve(m_processedTranslators.size());
-      it = m_processedTranslators.begin();
-      itEnd = m_processedTranslators.end();
+      translatorsToExport.reserve(m_translators.size());
+      it = m_translators.begin();
+      itEnd = m_translators.end();
       for (; it != itEnd; ++it)
          if (it->second) translatorsToExport.push_back(it->second);
 
       // now loop through motion steps
-      unsigned int numSteps = GetNumMotionSteps();
+      unsigned int numSteps = m_sessionOptions.GetNumMotionSteps();
       m_isExportingMotion = true;
       
-      if (renderSession && exportMode != MTOA_SESSION_ASS)
-         renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
+      SetStatus(MString("Exporting Motion Data..."));
 
       for (unsigned int step = 0; step < numSteps; ++step)
       {
          if (step == (unsigned int)currentFrameIndex)
             continue; // current frame, has already been exported above
-         ChangeCurrentFrame(MTime(m_motion_frames[step], MTime::uiUnit()), GetSessionMode());
-
+         ChangeCurrentFrame(MTime(m_sessionOptions.m_motion_frames[step], MTime::uiUnit()));
+         
          if (MtoaTranslationInfo())
          {
             MString log = "[mtoa.session]     Exporting step ";
@@ -916,10 +608,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
             log += " of ";
             log += numSteps;
             log += " at frame ";
-            log +=  m_motion_frames[step];
+            log +=  m_sessionOptions.m_motion_frames[step];
             MtoaDebugLog(log);
          }
-         
+                  
          // then, loop through the already processed dag translators and export for current step
          // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
          // Since all nodes *should* be exported at this point, the following calls to DoExport do not
@@ -941,667 +633,56 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          (*trIt)->PostExport((*trIt)->m_impl->m_atNode);
 
 
-      // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
-      // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSession::End() 
-      // (see tickets #418 and #444)
-      // FIXME: however we have a ticket "2044 about frame not being correct during post-export scripts
-      if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-      {
-         ChangeCurrentFrame(MTime(GetExportFrame(), MTime::uiUnit()), GetSessionMode());
-      }
+      ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()));
       m_isExportingMotion = false;
    }
 
    m_motionStep = 0;
 
-   // add callbacks after all is done
-   if (IsInteractiveRender())
+   if (m_updateCallbacks)
    {
-      ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
-      ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+      ObjectToTranslatorMap::iterator it = m_translators.begin();
+      ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+
       for ( ; it != itEnd; ++it)
       {
          CNodeTranslator *nodeTr = it->second;
          if (nodeTr == NULL) continue;
-         nodeTr->AddUpdateCallbacks();
-         nodeTr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
-         nodeTr->m_impl->m_inUpdateQueue = false; // allow to trigger new updates
-         nodeTr->m_impl->m_isExported = true; // next export will be an update
+         CNodeTranslatorImpl *trImpl = nodeTr->m_impl;
+         if (trImpl->m_mayaCallbackIDs.length() == 0)
+            nodeTr->AddUpdateCallbacks();
+         trImpl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+         trImpl->m_inUpdateQueue = false; // allow to trigger new updates
+         trImpl->m_isExported = true; // next export will be an update
          // for motion blur, check which nodes are static and which aren't (#2316)
-         if (mb && GetNumMotionSteps() > 1)
+         if (mb ) // && GetNumMotionSteps() > 1
          {
-            nodeTr->m_impl->m_animArrays = nodeTr->m_impl->HasAnimatedArrays();
-         } else nodeTr->m_impl->m_animArrays = false;
+            trImpl->m_animArrays = trImpl->HasAnimatedArrays();
+         } else trImpl->m_animArrays = false;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
-
+    
    // it would seem correct to only call ExportTxFiles if m_updateTx = true
    ExportTxFiles();
 
-   if (exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_ASS)
-   {
-      MGlobal::executeCommand("prepareRender -invokePostRender");
-      MGlobal::executeCommand("prepareRender -restore");    
-   }
-
-   return status;
-}
-
-// Export the cameras of the maya scene
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
-{
-   MStatus status = MStatus::kSuccess;
-
-   // If we got a selection list iterate it and pick cameras
-   if (NULL != selected)
-   {
-      MItSelectionList it(*selected, MFn::kInvalid, &status);
-      MDagPath path;
-      for (it.reset(); !it.isDone(); it.next())
-      {
-         // Silently skip non dag and non camera items in selection
-         if (it.getDagPath(path) == MStatus::kSuccess)
-         {
-            if (path.node().hasFn(MFn::kCamera))
-            {
-               if (ExportDagPath(path) == NULL) status = MStatus::kFailure;
-            }
-         }
-      }
-   }
-   else
-   {
-      // No selection we need all cameras in scene
-      MDagPath path;
-      MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-
-      MFnDagNode cameraNode;
-      MPlug renderablePlug;
-      // First we export all cameras
-      // We do not reset the iterator to avoid getting kWorld
-      for (; (!dagIterCameras.isDone()); dagIterCameras.next())
-      {
-         if (dagIterCameras.getPath(path))
-         {
-            
-            MStatus stat;
-            cameraNode.setObject(path);
-            // Note that some non-renderable cameras are still exported in 
-            // ExportDag, if their filteredStatus is "accepted"
-            renderablePlug = cameraNode.findPlug("renderable", false, &stat);
-            bool isRenderable = (stat == MS::kSuccess) ? renderablePlug.asBool() : false;
-
-            // Force the export of default persp camera for ARV (#3655)
-            if (isRenderable == false && GetSessionMode() ==  MTOA_SESSION_RENDERVIEW && path.partialPathName() == MString("perspShape"))
-               isRenderable = true;
-
-            if (isRenderable)
-               ExportDagPath(path, true, &stat);
-
-            if (stat != MStatus::kSuccess)
-               status = MStatus::kFailure;
-         }
-         else
-         {
-            AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
-            status = MS::kFailure;
-         }
-      }
-   }
-
-   return status;
-}
-
-// Export the lights of the maya scene
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CArnoldSession::ExportLights(MSelectionList* selected)
-{
-   MStatus status = MStatus::kSuccess;
-
-   // If we got a selection list iterate it and pick lights
-   if (NULL != selected)
-   {
-      MItSelectionList it(*selected, MFn::kInvalid, &status);
-      MDagPath path;
-      MObject node;
-      for (it.reset(); !it.isDone(); it.next())
-      {
-         // Silently skip non dag and non light items in selection
-         if (it.getDagPath(path) == MStatus::kSuccess)
-         {
-            node = path.node();
-            if (node.hasFn(MFn::kLight) || CMayaScene::IsArnoldLight(node))
-            {
-               if (ExportDagPath(path, true) == NULL) status = MStatus::kFailure;
-            }
-         }
-      }
-   }
-   else
-   {
-      // No selection we need all lights in scene
-
-      MDagPath path;
-      MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight, &status);
-
-      // First we export all lights
-      // We do not reset the iterator to avoid getting kWorld
-      unsigned int mask = GetExportFilterMask();
-      for (; (!dagIterLights.isDone()); dagIterLights.next())
-      {
-         if (dagIterLights.getPath(path))
-         {
-            // Only check for lights being visible, not templated and in render layer
-            // FIXME: does a light need to be in layer to render actually in Maya?
-            MFnDagNode node(path.node());
-            MString name = node.name();
-            if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
-               continue;
-
-            // FIXME both filters below happen to always be enabled 
-            if (/*(mask & MTOA_FILTER_TEMPLATED) && */ IsTemplatedPath(path))
-               continue;
-            if (/*(mask & MTOA_FILTER_HIDDEN) &&*/ !IsVisiblePath(path))
-               continue;
-            
-            MStatus stat;
-            ExportDagPath(path, true, &stat);
-            if (stat != MStatus::kSuccess)
-               status = MStatus::kFailure;
-         }
-         else
-         {
-            AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
-            status = MS::kFailure;
-         }
-      }
-
-      // Above will not catch plugin lights,
-      MString           classification;
-      MItDag            dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode, &status);
-      for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
-      {
-         if (CMayaScene::IsArnoldLight(dagIterPlugin.currentItem()))
-         {
-            if (dagIterPlugin.getPath(path))
-            {
-               // Only check for lights being visible, not templated and in render layer
-               // FIXME: does a light need to be in layer to render actually in Maya?
-               MFnDagNode node(path.node());
-               MString name = node.name();
-               if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
-                  continue;
-               if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
-                  continue;
-               if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
-                  continue;
-               if (ExportDagPath(path, true) == NULL)
-                  status = MStatus::kFailure;
-            }
-            else
-            {
-               AiMsgError("[mtoa] Could not get path for Arnold plugin lights DAG iterator.");
-               status = MS::kFailure;
-            }
-         }
-      }
-
-      // Now export light linker nodes
-      MFnDependencyNode depFn;
-      MItDependencyNodes depIterLinkers(MFn::kLightLink, &status);
-      for (; (!depIterLinkers.isDone()); depIterLinkers.next())
-      {
-         MObject node = depIterLinkers.thisNode(&status);
-         if (MStatus::kSuccess == status)
-         {
-            depFn.setObject(node);
-            MPlug plug = depFn.findPlug("message", true);
-            ExportNode(plug);
-         }
-         else
-         {
-            AiMsgError("[mtoa] Could not get node for Arnold plugin lights DAG iterator.");
-         }
-      }
-   }
-
-   // UpdateLightLinks refreshes global light linking info
-   UpdateLightLinks();
-
-   return status;
-}
-
-// When a hidden node gets "unhidden", we need to go through an "idle" callback
-// so that Maya has time to process its visibility status properly
-static MCallbackId s_hiddeNodeCb = 0;
-static MDagPathArray s_hiddenNodesArray;
-void CArnoldSession::DoHiddenCallback(void* clientData)
-{
-   MMessage::removeCallback(s_hiddeNodeCb);
-   s_hiddeNodeCb = 0;
-   MStatus status;
-   CArnoldSession *session = (CArnoldSession*)clientData;
-   if (session)
-   {
-      for (unsigned int i = 0; i< s_hiddenNodesArray.length(); i++)
-      {
-         DagFiltered filtered = session->FilteredStatus(s_hiddenNodesArray[i]);
-         if (filtered == MTOA_EXPORT_ACCEPTED)
-            session->SetDagVisible(s_hiddenNodesArray[i]);
-      }
-   }
-   s_hiddenNodesArray.clear();
-}
-// This callback is invoked when one of the skipped (hidden) objects is modified 
-// during an IPR session. We have to check if it became visible in order to export it
-void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData)
-{
-   // just check if this node is visible now 
-   MFnDagNode dagNode(node);
-   MDagPath path;
-   if (dagNode.getPath(path) != MS::kSuccess) return;
-
-   if(!path.isValid()) return;
-
-   MString plugName = plug.partialName(false, false, false, false, false, true);
-
-   //CArnoldSession *session = (CArnoldSession*)clientData;
-   //DagFiltered filtered = session->FilteredStatus(path); // We shouldn't invoke this here otherwise we're messing with Maya's DAG 
-   if (/*filtered != MTOA_EXPORT_ACCEPTED && */ plugName != "visibility")
-    return; 
-
-   // We need to go through an "idle" callback, otherwise Maya won't have time to process the 
-   // visibility status of this node 
-   if(s_hiddeNodeCb == 0)
-   {
-      s_hiddeNodeCb = MEventMessage::addEventCallback("idle",
-                                                  CArnoldSession::DoHiddenCallback,
-                                                  clientData
-                                                  );
-   } 
-   s_hiddenNodesArray.append(path);
-}
-
-void CArnoldSession::SetDagVisible(MDagPath &path)
-{
-   MObject object = path.node();
-   // we need to clear the existing hiddenObjectCallback
-   // starting with a simple linear search
-   for(size_t i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
-   {
-      if (m_hiddenObjectsCallbacks[i].first.object() == object)
-      {
-         // found the object in our hidden list         
-         const MStatus status = MNodeMessage::removeCallback(m_hiddenObjectsCallbacks[i].second);
-         if (status == MS::kSuccess) 
-         {
-            m_hiddenObjectsCallbacks.erase(m_hiddenObjectsCallbacks.begin() + i);
-            break;
-         }
-      }
-   }
-
-   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
-   MStatus status;
-   bool pruneDag = false;
-   MDagPath parentPruneDag;
-
-   for (dagIterator.reset(path); (!dagIterator.isDone()); dagIterator.next())
-   {
-      if (dagIterator.getPath(path))
-      {
-         if (path.apiType() == MFn::kWorld)
-            continue;
-
-         if (pruneDag)
-         {
-            MDagPath tmpPath(path);
-            tmpPath.pop();
-            if (tmpPath == parentPruneDag)
-            {
-               dagIterator.prune();
-               continue;
-            }
-            pruneDag = false;
-         }
-
-         MObject obj = path.node();
-         MFnDagNode node(obj);
-         MString name = node.name();
-         DagFiltered filtered = FilteredStatus(path);
-         if (filtered != MTOA_EXPORT_ACCEPTED)
-         {
-            if (IsInteractiveRender())
-            {
-               HiddenObjectCallbackPair hiddenObj;
-               hiddenObj.first = CNodeAttrHandle(obj, "");
-               hiddenObj.second = MNodeMessage::addNodeDirtyCallback(obj,
-                                        HiddenNodeCallback,
-                                        this,
-                                        &status);
-               m_hiddenObjectsCallbacks.push_back(hiddenObj);
-            }
-            // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
-            // for MTOA_EXPORT_REJECTED_BRANCH
-            if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
-               dagIterator.prune();
-            continue;
-         }
-         MStatus stat;
-
-         // We shouldn't call this function during a render !
-         // It's going to create new nodes (#3355)
-         //CDagTranslator *tr = ExportDagPath(path, true, &stat);
-         QueueForUpdate(path);
-         if (stat != MStatus::kSuccess)
-            status = MStatus::kFailure;
-
-/*
-         // Since we're not calling ExportDagPath anymore, we don't have any translator and we don't know
-         if (tr != NULL && !tr->ExportDagChildren())
-         {
-            pruneDag = true;
-            parentPruneDag = path;
-            parentPruneDag.pop();
-            dagIterator.prune();
-         }*/
-      }
-   }
-   RequestUpdate();
-}
-
-// Export the full maya scene or the passed selection
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CArnoldSession::ExportDag(MSelectionList* selected)
-{
-   MStatus status = MStatus::kSuccess;
-
-   // If we got a selection list iterate it and export
-   if (NULL != selected)
-   {
-      MItSelectionList it(*selected, MFn::kInvalid, &status);
-      MDagPath path;
-      MObject node;
-      for (it.reset(); !it.isDone(); it.next())
-      {
-         if (it.getDagPath(path) == MStatus::kSuccess)
-         {
-            MStatus stat;
-            ExportDagPath(path, true, &stat);
-            if (stat != MStatus::kSuccess)
-               status = MStatus::kFailure;
-         }
-         else
-         {
-            status = MStatus::kFailure;
-         }
-      }
-   }
-   else
-   {
-      // No selection export whole scene
-
-      MDagPath path;
-
-      DagFiltered filtered;
-      MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
-
-      bool pruneDag = false;
-      MDagPath parentPruneDag;
-
-      for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
-      {
-         if (dagIterator.getPath(path))
-         {
-            if (path.apiType() == MFn::kWorld)
-               continue;
-
-            if (pruneDag)
-            {
-               MDagPath tmpPath(path);
-               tmpPath.pop();
-               if (tmpPath == parentPruneDag)
-               {
-                  dagIterator.prune();
-                  continue;
-               }
-               pruneDag = false;
-            }
-            MObject obj = path.node();
-            MFnDagNode node(obj);
-            MString name = node.name();
-            filtered = FilteredStatus(path);
-            if (filtered != MTOA_EXPORT_ACCEPTED)
-            {
-               if (IsInteractiveRender())
-               {
-                  HiddenObjectCallbackPair hiddenObj;
-                  hiddenObj.first = CNodeAttrHandle(obj, "");
-                  hiddenObj.second = MNodeMessage::addNodeDirtyCallback(obj,
-                                           HiddenNodeCallback,
-                                           this,
-                                           &status);
-                  m_hiddenObjectsCallbacks.push_back(hiddenObj);
-               }
-               // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
-               // for MTOA_EXPORT_REJECTED_BRANCH
-               if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
-                  dagIterator.prune();
-               continue;
-            }
-            MStatus stat;
-            CDagTranslator *tr = ExportDagPath(path, true, &stat);
-            if (stat != MStatus::kSuccess)
-               status = MStatus::kFailure;
-
-            if (tr != NULL && !tr->ExportDagChildren())
-            {
-               pruneDag = true;
-               parentPruneDag = path;
-               parentPruneDag.pop();
-               dagIterator.prune();
-            }
-         }
-         else
-         {
-            AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
-            status = MStatus::kInvalidParameter;
-         }
-      }
-   }
+   // Execute post export callback
+   // Do we also want to do it in Update() ? 
    
-   return status;
+   MFnDependencyNode fnArnoldRenderOptions(m_sessionOptions.GetArnoldRenderOptions());
+   MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation", true).asString();
+   MGlobal::executeCommand(postTranslationCallbackScript);
 }
 
-
-// Filter and expand the selection, and all its hirarchy down stream.
-// Also flattens sets in selection.
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CArnoldSession::FlattenSelection(MSelectionList* selected, bool skipRoot)
-{
-   MStatus status;
-
-   MObject node;
-   MDagPath path;
-   MFnDagNode dgNode;
-   MFnSet set;
-   MSelectionList children;
-   // loop users selection
-   MItSelectionList it(*selected, MFn::kInvalid, &status);
-   selected->clear();
-   for (it.reset(); !it.isDone(); it.next())
-   {
-      if (it.getDagPath(path) == MStatus::kSuccess)
-      {
-         // FIXME: if we selected a shape, and it's an instance,
-         // should we export all its dag paths?
-         if (FilteredStatus(path) == MTOA_EXPORT_ACCEPTED)
-         {
-            // add this path, unless skipRoot is true
-            if (!skipRoot) selected->add(path, MObject::kNullObj, true);
-
-            for (unsigned int child = 0; (child < path.childCount()); child++)
-            {
-               MObject ChildObject = path.child(child);
-               path.push(ChildObject);
-               children.clear();
-               children.add(path.fullPathName());
-               dgNode.setObject(path.node());
-               if (!dgNode.isIntermediateObject())
-                  selected->add (path, MObject::kNullObj, true);
-               path.pop(1);
-               if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
-                  status = MStatus::kFailure;
-
-               selected->merge(children);
-            }
-         }
-      }
-      else if (MStatus::kSuccess == it.getDependNode(node))
-      {
-         // Got a dependency (not dag) node
-         if (node.hasFn(MFn::kSet))
-         {
-            // if it's a set we actually iterate on its content
-            set.setObject(node);
-            children.clear();
-            // get set members, we don't set flatten to true in case we'd want a
-            // test on each set recursively
-            set.getMembers(children, false);
-            if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
-               status = MStatus::kFailure;
-            selected->merge(children);
-         }
-         else
-         {
-            // Keep all the DependencyNodes (shaders, etc...) in the selected list
-            // because we want to ensure that they're exported #4148
-            selected->add(node);
-         }
-      }
-      else
-      {
-         status = MStatus::kFailure;
-      }
-   }
-
-   return status;
-}
-
-/// Determine if the DAG node should be skipped.
-/// The MDGContext defines the frame at which to test visibility
-DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExportFilter *filter) const
-{
-   if (NULL == filter) filter = &GetExportFilter();
-   // Tests that cause the whole branch to be pruned
-   unsigned int mask = filter->state_mask;
-   // FIXME both filters below appear to always be enabled
-   if (/*(mask & MTOA_FILTER_TEMPLATED) &&*/ IsTemplatedPath(path))
-      return MTOA_EXPORT_REJECTED_BRANCH;
-   if (/*(mask & MTOA_FILTER_HIDDEN) &&*/ !IsVisiblePath(path))
-      return MTOA_EXPORT_REJECTED_BRANCH;
-   // Tests that cause the node to be ignored
-   if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
-      return MTOA_EXPORT_REJECTED_NODE;
-
-   // Then test against all types passed in the MFN::Types array
-   /* This is no longer used
-   MObject obj = path.node();
-   MFnDagNode node(obj);
-   MString name = node.name();
-   MFnTypeSet::const_iterator sit(filter->excluded.begin()), send(filter->excluded.end());
-   for(; sit!=send;++sit)
-      if (obj.hasFn(*sit))
-         return MTOA_EXPORT_REJECTED_NODE;
-   */
-   return MTOA_EXPORT_ACCEPTED;
-}
-
-void CArnoldSession::ExportLightLinking(AtNode* shape, const MDagPath& path)
-{
-   m_arnoldLightLinks.ExportLightLinking(shape, path);
-}
-
-// updates
-void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
-{
-   if (m_isExportingMotion && IsInteractiveRender()) return;
-   m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
-}
-
-
-void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
-{
-   // don't add translator twice to the list, it could crash if its updateMode
-   // is "delete". Other solution would be to use a set, but the extra-cost is not
-   // necessary since we already have this flag
-   if (translator == NULL || translator->m_impl->m_inUpdateQueue) return; 
-
-   // During IPR with motion blur, we change the current frame to export the motion 
-   // and this might propagate nodeDirty signals that end up here. 
-   // We don't want to consider those
-   if (m_isExportingMotion && IsInteractiveRender()) return;
-
-   // Set this translator as being in the update list, to avoid useless future signals
-   translator->m_impl->m_inUpdateQueue = true;   
-
-   if (MtoaTranslationInfo())
-   {
-      MString log ="[mtoa.session]    Queuing "+ translator->GetMayaNodeName()+" for "; 
-      switch(translator->m_impl->m_updateMode)
-      {
-         default:
-         case CNodeTranslator::AI_UPDATE_ONLY:
-            log += " Update";
-            break;
-         case CNodeTranslator::AI_RECREATE_NODE:
-            log += " Re-generation";
-            break;
-         case CNodeTranslator::AI_RECREATE_TRANSLATOR:
-            log += " Translator re-generation";
-            break;
-         case CNodeTranslator::AI_DELETE_NODE:
-            log += "Deletion";
-            break;
-      }
-      MtoaDebugLog(log);
-   }
-   // add this translator to the list of objects to be updated in next DoUpdate()
-   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
-}
-
-void CArnoldSession::RequestUpdate()
-{
-   m_requestUpdate = true;
-   CMayaScene::UpdateIPR();
-}
-
-void CArnoldSession::DoUpdate()
+void CArnoldSession::Update()
 {
    bool mtoa_translation_info = MtoaTranslationInfo();
 
    if (mtoa_translation_info)
       MtoaDebugLog("[mtoa.session]    Updating Arnold Scene....");
    
-   CRenderSession *renderSession = CMayaScene::GetRenderSession();
-   
-   /*
-   if (renderSession)
-      renderSession->SetRenderViewStatusInfo(MString("Updating Arnold Scene..."));
-      */
-
+   SetStatus(MString("Updating Arnold Scene..."));
    MStatus status;
-   assert(AiUniverseIsActive());
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
@@ -1610,43 +691,48 @@ void CArnoldSession::DoUpdate()
    int currentFrameIndex;
    MString hashCode;
    std::string hashStr;
-
-   bool interactiveRender = IsInteractiveRender();
    
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-   bool frameChanged = (frame != GetExportFrame());
+   bool frameChanged = (frame != m_sessionOptions.GetExportFrame());
 
    // only change the frame for interactive renders
    // It appears that Export() doesn't restore the current frame
    // in maya otherwise ( to avoid useless maya evaluations )
-   if (frameChanged && interactiveRender) SetExportFrame(frame);
+   if (frameChanged && m_updateCallbacks) m_sessionOptions.SetExportFrame(frame);
+
+
+   if (m_updateOptions)
+   {
+      if (mtoa_translation_info)
+         MtoaDebugLog("[mtoa.session]     Updating Session Options");
+
+      // FIXME !!! ? renderSession->UpdateRenderOptions();
+      InitSessionOptions();
+   }
 
    size_t previousUpdatedTranslators = 0;
 
    int updateRecursions = 0;
    static const int maxUpdateRecursions = 5;
 
-   if (m_updateMotionData)
+   if (m_updateMotion)
    {  
       if (mtoa_translation_info)
          MtoaDebugLog("[mtoa.session]    Updating Motion Blur data");
 
       std::vector<bool> prevRequiresMotion;
-      prevRequiresMotion.reserve(m_processedTranslators.size());
+      prevRequiresMotion.reserve(m_translators.size());
 
       // stores requiresMotionData from all translators
-      ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
-      ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+      ObjectToTranslatorMap::iterator it = m_translators.begin();
+      ObjectToTranslatorMap::iterator itEnd = m_translators.end();
       for ( ; it != itEnd; ++it)
          prevRequiresMotion.push_back(it->second->RequiresMotionData());
 
-      // this will update the motion blur settings in SessionOptions
-      // which is necessary for RequiresMotionData
-      m_sessionOptions.GetFromMaya();
 
       // check again all translators
       int trIdx = 0;
-      for (it = m_processedTranslators.begin() ; it != itEnd; ++it, ++trIdx)
+      for (it = m_translators.begin() ; it != itEnd; ++it, ++trIdx)
       {
          if (prevRequiresMotion[trIdx])
          {
@@ -1678,26 +764,18 @@ void CArnoldSession::DoUpdate()
 
          // If motion blur changes, we need to ensure that the render camera is updated.
          // In particular, we need the shutter_start / shutter_end to be updated properly (see #4126)
-         CNodeTranslator *cameraTranslator = CNodeTranslator::GetTranslator(m_sessionOptions.GetExportCamera());
+         CNodeTranslator *cameraTranslator = GetActiveTranslator(CNodeAttrHandle(m_sessionOptions.GetExportCamera()));
          if (cameraTranslator)
             cameraTranslator->RequestUpdate();
       }
       
-      UpdateMotionFrames();
-      m_updateMotionData = false;
+      m_sessionOptions.UpdateMotionFrames();
+      m_updateMotion = false;
    }
 
-   if (m_updateOptions)
-   {
-      if (mtoa_translation_info)
-         MtoaDebugLog("[mtoa.session]     Updating Scene Options");
-
-      renderSession->UpdateRenderOptions();
-      m_updateOptions = false;
-   }
 
    exportMotion = false;
-   motionBlur = IsMotionBlurEnabled();
+   motionBlur = m_sessionOptions.IsMotionBlurEnabled();
    mbRequiresFrameChange = false;
    m_isExportingMotion = false;
 
@@ -1706,14 +784,15 @@ UPDATE_BEGIN:
    newDag = false;
    
    m_motionStep = 0;
+   const std::vector<double> &motionFrames = m_sessionOptions.GetMotionFrames();
+     
    currentFrameIndex = -1;
    if (motionBlur)
    {
-
-      for (size_t i = 0; i < m_motion_frames.size(); ++i)
+      for (size_t i = 0; i < motionFrames.size(); ++i)
       {
-         if (std::abs(m_motion_frames[i] - m_sessionOptions.m_frame) < 
-            (m_motion_frames[1] - m_motion_frames[0]) /10.)
+         if (std::abs(motionFrames[i] - m_sessionOptions.m_frame) < 
+            (motionFrames[1] - motionFrames[0]) /10.)
          {            
             currentFrameIndex = m_motionStep = i;
             break;
@@ -1742,7 +821,7 @@ UPDATE_BEGIN:
          // delete the current translator, just like AI_DELETE_NODE does
          translator->Delete();
          
-         m_processedTranslators.erase(hashStr); 
+         m_translators.erase(hashStr); 
 
          // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
          delete translator;
@@ -1787,7 +866,7 @@ UPDATE_BEGIN:
                MtoaDebugLog("[mtoa.ipr]   Deleting arnold node for "+ translator->GetMayaNodeName());
             translator->Delete();
             // the translator has already been removed from our list
-            //m_processedTranslators.erase(handle);
+            //m_translators.erase(handle);
 
             // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
             delete translator;
@@ -1898,7 +977,7 @@ UPDATE_BEGIN:
          // will be requested if they're connected to an exported node
       }
    }
-   bool isLightLinksDirty = IsLightLinksDirty();
+   bool isLightLinksDirty = m_updateLightLinks;
    if (newDag || isLightLinksDirty)
       UpdateLightLinks();
    
@@ -1936,7 +1015,7 @@ UPDATE_BEGIN:
       // heavy process just for the light links
 
       ObjectToTranslatorMap::iterator it;
-      for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
+      for(it = m_translators.begin(); it != m_translators.end(); ++it)
       {     
          if (it->second == NULL || !it->second->m_impl->IsMayaTypeDag())
             continue;
@@ -1947,7 +1026,7 @@ UPDATE_BEGIN:
          if (AiNodeEntryGetType(AiNodeGetNodeEntry(node)) != AI_NODE_SHAPE)
             continue;
          // this is a shape, exporting light linking for it
-         m_arnoldLightLinks.ExportLightLinking(node, tr->GetMayaDagPath());
+         m_lightLinks.ExportLightLinking(node, tr->GetMayaDagPath());
       }
    }
 
@@ -1969,11 +1048,10 @@ UPDATE_BEGIN:
    //--------- Now handling motion blur export
    if (exportMotion)
    {      
-      if (renderSession)
-         renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
+      SetStatus(MString("Exporting Motion Data..."));
 
       // Scene is motion blured, get the data for the steps.
-      unsigned int numSteps = GetNumMotionSteps();
+      unsigned int numSteps = m_sessionOptions.GetNumMotionSteps();
 
       // raise this flag to say we're currently exporting the motion steps
       m_isExportingMotion = true;
@@ -1989,7 +1067,7 @@ UPDATE_BEGIN:
             MString log = "[mtoa.session]     Updating step ";
             log += step;
             log += " at frame ";
-            log += m_motion_frames[step];
+            log += motionFrames[step];
             log += " for ";
             log += (int)translatorsToUpdate.size();
             log += " nodes";
@@ -2000,7 +1078,7 @@ UPDATE_BEGIN:
          // we don't need to change the current frame. However we still need to process
          // the export for every step. Otherwise some AtArray keys could be missing
          if (mbRequiresFrameChange)
-            ChangeCurrentFrame(MTime(m_motion_frames[step], MTime::uiUnit()), GetSessionMode());
+            ChangeCurrentFrame(MTime(motionFrames[step], MTime::uiUnit()));
 
          // set the motion step as it will be used by translators to fill the arrays
          // at the right index
@@ -2035,7 +1113,7 @@ UPDATE_BEGIN:
 
       // we've done enough harm, let's restore the current frame...
       if (mbRequiresFrameChange)
-         ChangeCurrentFrame(MTime(GetExportFrame(), MTime::uiUnit()), GetSessionMode());
+         ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()));
 
       // we're done exporting motion now
       m_isExportingMotion = false;
@@ -2060,7 +1138,7 @@ UPDATE_BEGIN:
       CNodeTranslatorImpl *trImpl = translator->m_impl;
       // we no longer clear the update callbacks
       // we just add them if they're missing
-      if (interactiveRender && (trImpl->m_mayaCallbackIDs.length() == 0))
+      if (m_updateCallbacks && (trImpl->m_mayaCallbackIDs.length() == 0))
          translator->AddUpdateCallbacks();
       
       trImpl->m_inUpdateQueue = false; // I'm allowed to receive updates once again
@@ -2073,295 +1151,41 @@ UPDATE_BEGIN:
    m_requestUpdate = false;
 }
 
-void CArnoldSession::ClearUpdateCallbacks()
+
+
+/// Determine if the DAG node should be skipped.
+/// The MDGContext defines the frame at which to test visibility
+CArnoldSession::DagFiltered CArnoldSession::IsExportable(const MDagPath &path) const
 {
-   // Clear the list of translators to update.
-   m_objectsToUpdate.clear();
+   if (IsTemplatedPath(path))
+      return MTOA_EXPORT_REJECTED_BRANCH;
+   if (m_checkVisibility && !IsVisiblePath(path))
+      return MTOA_EXPORT_REJECTED_BRANCH;
+   // if we're exporting a selection, we don't want to check for render layers
+   if (m_checkRenderLayer && !IsInRenderLayer(path))
+      return MTOA_EXPORT_REJECTED_NODE;
 
-   ObjectToTranslatorMap::iterator it;
-   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-   {	   
-      if (it->second != NULL) it->second->m_impl->RemoveUpdateCallbacks();
-   }
+   return MTOA_EXPORT_ACCEPTED;
 }
 
-/// Set the camera to export.
-
-/// If called prior to export, only the specified camera will be exported. If not set, all cameras
-/// will be exported, but some translators may not be able to fully export without an export camera specified.
-/// To address this potential issue, this method should be called after a multi-cam export, as it will cause
-/// the options translator to be updated
-///
-void CArnoldSession::SetExportCamera(MDagPath camera, bool updateRender)
+void CArnoldSession::SetStatus(MString status)
 {
-   if (MtoaTranslationInfo())
-      MtoaDebugLog("[mtoa.session] Setting export camera to \""+ camera.partialPathName() + "\"");
-
-   // first we need to make sure this camera is properly exported
-   if (camera.isValid())
-   {
-      camera.extendToShape();
-      ExportDagPath(camera);
-   }
-   
-   m_sessionOptions.SetExportCamera(camera);
-
-   if (updateRender == false  && m_optionsTranslator == NULL) return;
-   // just queue the options translator now 
-   // instead of relying on the DependsOnExportCamera.
-   // In the future we should have a generic way to make translators dependent from others,
-   // so that whatever change in one translator propagates an update on the others
-   QueueForUpdate(m_optionsTranslator);
-   DoUpdate();
+   MGlobal::displayInfo(status);
 }
 
-bool CArnoldSession::IsActiveAOV(CAOV &aov) const
-{
-   if (m_optionsTranslator != NULL)
-      return m_optionsTranslator->IsActiveAOV(aov);
-   return false;
-}
-
-AOVSet CArnoldSession::GetActiveAOVs() const
-{
-   if (m_optionsTranslator != NULL)
-      return m_optionsTranslator->GetActiveAOVs();
-   AOVSet empty;
-   return empty;
-}
-MStringArray CArnoldSession::GetActiveImageFilenames() const
-{
-   if (m_optionsTranslator)
-      return m_optionsTranslator->GetActiveImageFilenames();
-   return MStringArray();
-}
-
-void CArnoldSession::FormatTexturePath(MString& texturePath)
-{
-    m_sessionOptions.FormatTexturePath(texturePath);
-}
-
-void CArnoldSession::FormatProceduralPath(MString& proceduralPath)
-{
-    m_sessionOptions.FormatProceduralPath(proceduralPath);
-}
-
-MMatrix& CArnoldSession::ScaleMatrix(MMatrix& matrix) const
-{
-   matrix *= m_scaleFactorMMatrix;
-   return matrix;
-}
-
-AtMatrix& CArnoldSession::ScaleMatrix(AtMatrix& matrix) const
-{
-   matrix = AiM4Mult(m_scaleFactorAtMatrix, matrix);
-   return matrix;
-}
-
-float& CArnoldSession::ScaleDistance(float& distance) const
-{
-   double s = static_cast<double>(distance);
-   s *= m_scaleFactor;
-   distance = static_cast<float>(s);
-   return distance;
-}
-
-double& CArnoldSession::ScaleDistance(double& distance) const
-{
-   distance *= m_scaleFactor;
-   return distance;
-}
-
-
-float& CArnoldSession::ScaleArea(float& area) const
-{
-   double s = static_cast<double>(area);
-   s *= m_scaleFactor;
-   s *= m_scaleFactor;
-   area = static_cast<float>(s);
-   return area;
-}
-
-float& CArnoldSession::ScaleLightExposure(float& exposure) const
-{
-   double e = static_cast<double>(exposure);
-   e += log(m_scaleFactor * m_scaleFactor) / log(2.0);
-   exposure = static_cast<float>(e);
-   return exposure;
-}
-
-MVector CArnoldSession::GetOrigin() const
-{
-   return m_origin;
-}
-
-MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
-{   
-   // first check if an object exists with the same name ?
-   const char *arnoldName = AiNodeGetName(node);
-
-   MSelectionList camList;
-   camList.add(MString(arnoldName));
-   MObject mayaObject;
-   if (camList.getDependNode(0, mayaObject) == MS::kSuccess && !mayaObject.isNull())
-   {
-      // There is an object with the same name in Maya.
-      // We're assuming it's this one....
-      return MString(arnoldName);
-   }
-
-
-   // There is no object with this name in the scene.
-   // Let's search it amongst the list of processed translators
-   ObjectToTranslatorMap::const_iterator it = m_processedTranslators.begin();
-   ObjectToTranslatorMap::const_iterator itEnd = m_processedTranslators.end();
-   for ( ; it != itEnd; ++it)
-   {
-      CNodeTranslator *translator = it->second;
-      if (translator == NULL) continue;
-
-      // check if this translator corresponds to this AtNode
-      // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
-      if (translator->GetArnoldNode() == node)
-      {
-         // We found our translator
-         return translator->GetMayaNodeName().asChar();
-      }
-   }
-
-   return "";
-}
-const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
-{
-   AtNode* node = AiNodeLookUpByName(mayaName.asChar());
-
-   if (node == NULL)
-   {
-      // There is no object with this name in the scene.
-      // Let's search it amongst the list of processed translators
-
-      ObjectToTranslatorMap::const_iterator it = m_processedTranslators.begin();
-      ObjectToTranslatorMap::const_iterator itEnd = m_processedTranslators.end();
-      for ( ; it != itEnd; ++it)
-      {
-         CNodeTranslator *translator = it->second;
-         if (translator == NULL) continue;
-
-         // check if this translator corresponds to this AtNode
-         // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
-         if (translator->GetMayaNodeName() == mayaName)
-         {
-            // We found our translator
-            node = translator->GetArnoldNode();
-         }
-      }
-   }
-
-   if (node) return AiNodeGetName(node);   
-
-   return "";
-}
-
-
-bool CArnoldSession::IsVisible(MFnDagNode &node)
-{
-   MStatus status;
-
-   if (node.isIntermediateObject())
-      return false;
-
-   // The material view objects in Maya has always visibility disabled
-   // to not show up by default in the scenes. So we need to override
-   // that here and always return true for objects in material view session
-   CArnoldSession *session = CMayaScene::GetArnoldSession();
-   if (session && session->GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
-      return true;
-
-   MPlug visPlug = node.findPlug("visibility", true, &status);
-   // Check standard visibility
-   if (status == MStatus::kFailure || !visPlug.asBool())
-      return false;
-
-   // LOD visibility support had first been implemented for mesh lights, 
-   // but it was then reverted in #2679 , because some users were relying
-   // on this attribute to be ignored by Arnold. This was, back at the time, 
-   // the only was to hide an object from the viewport and still render it.
-   // There are now different ways to achieve this, so we're re-introducing the
-   // support for lodVisibility in #4259
-   
-   MPlug lodVisPlug = node.findPlug("lodVisibility", &status);
-   if (status == MStatus::kFailure || !lodVisPlug.asBool())
-      return false;
-
-   // Check override visibility
-   MPlug overPlug = node.findPlug("overrideEnabled", true, &status);
-   if (status == MStatus::kSuccess && overPlug.asBool())
-   {
-      MPlug overVisPlug = node.findPlug("overrideVisibility", true, &status);
-      if (status == MStatus::kFailure || !overVisPlug.asBool())
-         return false;
-   }
-   return true;
-}
-
-bool CArnoldSession::IsVisiblePath(MDagPath dagPath)
-{
-   MStatus stat = MStatus::kSuccess;
-   while (stat == MStatus::kSuccess)
-   {
-      MFnDagNode node;
-      node.setObject(dagPath.node());
-      if (!IsVisible(node))
-         return false;
-      stat = dagPath.pop();
-   }
-   return true;
-}
-
-const MStringArray &CArnoldSession::GetTextureSearchPaths() const
-{
-   return m_sessionOptions.GetTextureSearchPaths();   
-}
-const MStringArray &CArnoldSession::GetProceduralSearchPaths() const
-{
-   return m_sessionOptions.GetProceduralSearchPaths();
-}
 
 
 void CArnoldSession::ExportTxFiles()
 {
-   // Do not call makeTx if we're doing swatch rendering or material view
-   int sessionMode = GetSessionMode();
-   if (sessionMode == MTOA_SESSION_MATERIALVIEW ||
-      sessionMode == MTOA_SESSION_UNDEFINED) return;
-
-   bool autoTx = false;
-   bool useTx = false;
-
-   if (sessionMode == MTOA_SESSION_SWATCH )
-   {
-      // This function is only called by swatch if useTx is true, and we want all this to be fast
-      // so it's useless to get the value once again
-      useTx = true;
-   } else
-   {
-      // FIXME really inconvenient
-      // we must not do this from the global render options, or we might override some export 
-      // command line settings
-      CRenderOptions renderOptions; 
-      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya(); 
-      
-      autoTx = renderOptions.autoTx();
-      useTx = renderOptions.useExistingTiledTextures();
-   }
+   bool autoTx = m_sessionOptions.GetAutoTx();
+   bool useTx = m_sessionOptions.GetUseExistingTx();
 
    if (useTx == false && autoTx == false) return;
 
    if (MtoaTranslationInfo())
       MtoaDebugLog("[mtoa.session]    Updating TX files");
 
-   const MStringArray &searchPaths = GetTextureSearchPaths();
+   const MStringArray &searchPaths = m_sessionOptions.GetTextureSearchPaths();
 
    bool progressBar = autoTx && (MGlobal::mayaState() == MGlobal::kInteractive);
 
@@ -2369,8 +1193,8 @@ void CArnoldSession::ExportTxFiles()
    textureNodes.reserve(100); // completely empirical value, to avoid first allocations
 
 
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
-   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
 
    static const AtString image_str("image");
 
@@ -2403,16 +1227,6 @@ void CArnoldSession::ExportTxFiles()
 
    if(cmEnabled)
    {
-      /*
-      int configFileEnabled = 0;
-      MGlobal::executeCommand("colorManagementPrefs -q -cmConfigFileEnabled", configFileEnabled);
-
-      if (configFileEnabled)
-         MGlobal::executeCommand("colorManagementPrefs -q -configFilePath", colorConfig);
-      else
-         MGlobal::executeCommand("internalVar -userPrefDir", colorConfig);         
-      
-      */
       MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);      
    }
 
@@ -2576,14 +1390,14 @@ void CArnoldSession::ExportTxFiles()
       MString arv_msg("Converting ");
       arv_msg += (int) listTextures.size();
       arv_msg += " textures to .TX....";
-      CMayaScene::GetRenderSession()->SetRenderViewStatusInfo(arv_msg);
+      SetStatus(arv_msg);
    }
 
    // We now have the full list of textures, let's loop over them
    for (unsigned int i = 0; i < listTextures.size(); ++i)
    {
       // now call AiMakeTx with the corresponding arguments (including color space)
-      AiMakeTx(listTextures[i].c_str(), listArguments[i].c_str());
+      AiMakeTx(listTextures[i].c_str(), listArguments[i].c_str(), m_universe);
    }
 
    // we told arnold to run TX conversion for the previous files
@@ -2611,7 +1425,6 @@ void CArnoldSession::ExportTxFiles()
       {
          if (MtoaTranslationInfo())
             MtoaDebugLog("[maketx] Successfully converted texture to TX " + MString(source_filenames[index]));
-
 
          if ((progressBar) && (!progressStarted))
          {
@@ -2734,7 +1547,7 @@ void CArnoldSession::ExportTxFiles()
          if (expandedFilenames.length() > 0)
          {
             filename = txFilename;
-            FormatTexturePath(filename);
+            m_sessionOptions.FormatTexturePath(filename);
             AiNodeSetStr(imgNode, "filename", filename.asChar()); 
             // since we replace the filename by TX we need to reset the color space
             AiNodeSetStr(imgNode, "color_space", AtString(""));
@@ -2743,16 +1556,735 @@ void CArnoldSession::ExportTxFiles()
    }
 }
 
-void CArnoldSession::RequestUpdateMotion()
+// This function removes the translator from our list of 
+// processed translators. Note that it doesn't actually erase it,
+// this will be done later
+void CArnoldSession::EraseActiveTranslator(CNodeTranslator *translator)
 {
-   m_updateMotionData = true;
+   if (translator == NULL) return;
+
+   CNodeAttrHandle &handle = translator->m_impl->m_handle;
+   MString hashCode;
+   handle.GetHashString(hashCode, translator->DependsOnOutputPlug());
+
+   std::string hashStr(hashCode.asChar());
+   
+   m_translators.erase(hashStr);
+   // we're not deleting the translator yet
+}
+
+CNodeTranslator *CArnoldSession::GetActiveTranslator(const CNodeAttrHandle &handle)
+{
+   MString hashCode;
+   handle.GetHashString(hashCode);
+   std::string hashStr(hashCode.asChar());
+   ObjectToTranslatorMap::iterator it = m_translators.find(hashStr);
+
+   if (it != m_translators.end())
+      return it->second;
+
+
+   // FIXME, should we try now with the attribute name for multi-output translators ?
+   /*
+   handle.GetHashString(hashCode, true);
+   hashStr= hashCode.asChar();
+   ObjectToTranslatorMap::iterator it = m_translators.find(hashStr);
+
+   if (it != m_translators.end())
+      return it->second;   
+   */
+
+   return NULL;
+}
+
+/// Export the Arnold Render Options node
+AtNode* CArnoldSession::ExportOptions()
+{
+   MObject options = m_sessionOptions.GetArnoldRenderOptions();
+
+   if (options.isNull())
+   {
+      // Calling CSessionOptions::Update will initialize the options node to the 
+      // default one (and create it if needed)
+      m_sessionOptions.Update();
+   }
+   
+   options = m_sessionOptions.GetArnoldRenderOptions();
+   if (options.isNull())
+   {
+      AiMsgWarning("[mtoa] Failed to find Arnold options node");
+      return NULL;
+   }
+   MStatus status;
+   MFnDependencyNode fnNode(options, &status);
+   if (status != MS::kSuccess)
+   {
+      AiMsgWarning("[mtoa] Invalid options node");
+      return NULL;
+   }
+   if(MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] Exporting Arnold options "+ fnNode.name());
+
+   MPlug optPlug = fnNode.findPlug("message", true);
+   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, false);
+   if (m_optionsTranslator == nullptr)
+   {
+      AiMsgError("[mtoa] No translator found for the options node");
+      return NULL;
+   }
+   ExportColorManager();
+   return m_optionsTranslator->GetArnoldNode();
+}
+
+AtNode *CArnoldSession::ExportColorManager()
+{
+   // Export the color manager node
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   if(activeList.length() > 0)
+   {
+      MObject colorMgtObject;
+      activeList.getDependNode(0,colorMgtObject);
+      MFnDependencyNode fnSNode(colorMgtObject);
+      MPlug mgtPlug = fnSNode.findPlug("message", true);
+      CNodeTranslator* syncolorTr = ExportNode(mgtPlug, false);
+      if(syncolorTr)
+         return syncolorTr->GetArnoldNode();
+   } 
+   return nullptr;
+}
+
+static inline bool IsArnoldLight(const MObject &object)
+{
+   MFnDependencyNode depFn(object);
+   std::string classification(MFnDependencyNode::classification(depFn.typeName()).asChar());
+   if (classification.find(CLASSIFY_ARNOLD_LIGHT.asChar()) != std::string::npos)
+      return true;
+   else
+      return false;
+}
+
+// Export the lights of the maya scene
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CArnoldSession::ExportLights(MSelectionList* selected)
+{
+   MStatus status = MStatus::kSuccess;
+
+   // If we got a selection list iterate it and pick lights
+   if (NULL != selected)
+   {
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      MDagPath path;
+      MObject node;
+      for (it.reset(); !it.isDone(); it.next())
+      {
+         // Silently skip non dag and non light items in selection
+         if (it.getDagPath(path) == MStatus::kSuccess)
+         {
+            node = path.node();
+            if (node.hasFn(MFn::kLight) || IsArnoldLight(node))
+            {
+               if (ExportDagPath(path, true) == NULL) status = MStatus::kFailure;
+            }
+         }
+      }
+   }
+   else
+   {
+      // No selection we need all lights in scene
+
+      MDagPath path;
+      MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight, &status);
+
+      // First we export all lights
+      // We do not reset the iterator to avoid getting kWorld
+      for (; (!dagIterLights.isDone()); dagIterLights.next())
+      {
+         if (dagIterLights.getPath(path))
+         {
+            // Only check for lights being visible, not templated and in render layer
+            // FIXME: does a light need to be in layer to render actually in Maya?
+            MFnDagNode node(path.node());
+            MString name = node.name();
+            if (m_checkRenderLayer && !IsInRenderLayer(path))
+               continue;
+            if (IsTemplatedPath(path))
+               continue;
+            if (m_checkVisibility && !IsVisiblePath(path))
+               continue;
+            
+            MStatus stat;
+            ExportDagPath(path, true, &stat);
+            if (stat != MStatus::kSuccess)
+               status = MStatus::kFailure;
+         }
+         else
+         {
+            AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
+            status = MS::kFailure;
+         }
+      }
+
+      // Above will not catch plugin lights,
+      MString           classification;
+      MItDag            dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode, &status);
+      for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
+      {
+         if (IsArnoldLight(dagIterPlugin.currentItem()))
+         {
+            if (dagIterPlugin.getPath(path))
+            {
+               // Only check for lights being visible, not templated and in render layer
+               // FIXME: does a light need to be in layer to render actually in Maya?
+               MFnDagNode node(path.node());
+               MString name = node.name();
+               if (m_checkRenderLayer && !IsInRenderLayer(path))
+                  continue;
+               if (IsTemplatedPath(path))
+                  continue;
+               if (m_checkVisibility && !IsVisiblePath(path))
+                  continue;
+               if (ExportDagPath(path, true) == NULL)
+                  status = MStatus::kFailure;
+            }
+            else
+            {
+               AiMsgError("[mtoa] Could not get path for Arnold plugin lights DAG iterator.");
+               status = MS::kFailure;
+            }
+         }
+      }
+
+      // Now export light linker nodes
+      MFnDependencyNode depFn;
+      MItDependencyNodes depIterLinkers(MFn::kLightLink, &status);
+      for (; (!depIterLinkers.isDone()); depIterLinkers.next())
+      {
+         MObject node = depIterLinkers.thisNode(&status);
+         if (MStatus::kSuccess == status)
+         {
+            depFn.setObject(node);
+            MPlug plug = depFn.findPlug("message", true);
+            ExportNode(plug);
+         }
+         else
+         {
+            AiMsgError("[mtoa] Could not get node for Arnold plugin lights DAG iterator.");
+         }
+      }
+   }
+
+   // UpdateLightLinks refreshes global light linking info
+   UpdateLightLinks();
+
+   return status;
+}
+
+
+// Export the full maya scene or the passed selection
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CArnoldSession::ExportDag(MSelectionList* selected)
+{
+   MStatus status = MStatus::kSuccess;
+
+   // If we got a selection list iterate it and export
+   if (NULL != selected)
+   {
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      MDagPath path;
+      MObject node;
+      for (it.reset(); !it.isDone(); it.next())
+      {
+         if (it.getDagPath(path) == MStatus::kSuccess)
+         {
+            MStatus stat;
+            ExportDagPath(path, true, &stat);
+            if (stat != MStatus::kSuccess)
+               status = MStatus::kFailure;
+         }
+         else
+         {
+            status = MStatus::kFailure;
+         }
+      }
+   }
+   else
+   {
+      // No selection export whole scene
+
+      MDagPath path;
+
+      DagFiltered filtered;
+      MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+
+      bool pruneDag = false;
+      MDagPath parentPruneDag;
+
+      for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
+      {
+         if (dagIterator.getPath(path))
+         {
+            if (path.apiType() == MFn::kWorld)
+               continue;
+
+            if (pruneDag)
+            {
+               MDagPath tmpPath(path);
+               tmpPath.pop();
+               if (tmpPath == parentPruneDag)
+               {
+                  dagIterator.prune();
+                  continue;
+               }
+               pruneDag = false;
+            }
+            MObject obj = path.node();
+            MFnDagNode node(obj);
+            MString name = node.name();
+            filtered = IsExportable(path);
+            if (filtered != MTOA_EXPORT_ACCEPTED)
+            {
+               if (m_updateCallbacks)
+               {
+                  HiddenObjectCallbackPair hiddenObj;
+                  hiddenObj.first = CNodeAttrHandle(obj, "");
+                  hiddenObj.second = MNodeMessage::addNodeDirtyPlugCallback(obj,
+                                           HiddenNodeCallback,
+                                           this,
+                                           &status);
+                  m_hiddenObjectsCallbacks.push_back(hiddenObj);
+               }
+               // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
+               // for MTOA_EXPORT_REJECTED_BRANCH
+               if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
+                  dagIterator.prune();
+               continue;
+            }
+            MStatus stat;
+            CDagTranslator *tr = ExportDagPath(path, true, &stat);
+            if (stat != MStatus::kSuccess)
+               status = MStatus::kFailure;
+
+            if (tr != NULL && !tr->ExportDagChildren())
+            {
+               pruneDag = true;
+               parentPruneDag = path;
+               parentPruneDag.pop();
+               dagIterator.prune();
+            }
+         }
+         else
+         {
+            AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
+            status = MStatus::kInvalidParameter;
+         }
+      }
+   }
+   
+   return status;
+}
+
+
+
+// Public Methods
+
+// Export a single dag path (a dag node or an instance of a dag node)
+// Considered to be already filtered and checked
+CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool initOnly, MStatus* stat)
+{
+
+   //m_motionStep = 0;
+   MStatus status = MStatus::kSuccess;
+   AtNode* arnoldNode = NULL;
+
+   MString name = m_sessionOptions.GetArnoldNaming(dagPath);
+   MString type = MFnDagNode(dagPath).typeName();
+
+   AiMsgTab(1);
+   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+
+   if (translator == NULL)
+   {
+      if (stat != NULL) *stat = MStatus::kNotImplemented;
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+ name + " | Ignoring DAG node of type "+ type);
+
+      AiMsgTab(-1);
+      return NULL;
+   }
+   else if (!translator->m_impl->IsMayaTypeDag())
+   {
+      if (stat != NULL) *stat = MStatus::kInvalidParameter;
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] translator for "+ name+" of type "+type+" is not a DAG translator");
+
+      AiMsgTab(-1);
+      return NULL;
+   }
+
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.session]     "+name+" | Exporting DAG node of type "+ type);
+
+   CNodeAttrHandle handle(dagPath);
+   MString hashCode;
+   handle.GetHashString(hashCode);
+   std::string hashStr(hashCode.asChar());
+   // Check if node has already been processed
+   ObjectToTranslatorMap::iterator it = m_translators.find(hashStr);
+
+   if (it != m_translators.end())
+   {
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+ name+" | Reusing previous export of DAG node of type "+type);
+
+      delete translator;
+      status = MStatus::kSuccess;
+      arnoldNode = it->second->GetArnoldNode();
+      translator = (CDagTranslator*)it->second;
+   }
+
+   if (arnoldNode == NULL)
+   {
+      status = MStatus::kSuccess;
+      translator->m_impl->Init(this, dagPath);
+      if (it != m_translators.end())
+      {
+         it->second = translator;
+      }
+      else
+      {
+         m_translators[hashStr] = translator;
+         // This node handle might have already been added to the list of objects to update
+         // but since no translator was found in m_translators, it might have been discarded
+         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+         // for this shader
+         if (m_updateCallbacks) QueueForUpdate(translator);
+      }
+      if (!initOnly)
+         arnoldNode = translator->m_impl->DoExport();
+   }
+
+   if (NULL != stat) *stat = status;
+   AiMsgTab(-1);
+   return translator;
+}
+
+CNodeTranslator* CArnoldSession::ExportNode(const MObject &object, 
+                                   bool initOnly, int instanceNumber, MStatus *stat)
+{
+   if (object.isNull())
+   {
+      if (stat)
+         *stat = MS::kFailure;
+      return nullptr;
+   }
+   MPlug nodePlug = MFnDependencyNode(object).findPlug("message", true);
+   if (!nodePlug.isNull())
+      return ExportNode(nodePlug, initOnly, instanceNumber, stat);            
+
+   return nullptr;
+}
+// Export a plug (dependency node output attribute)
+//
+CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, 
+                                   bool initOnly, int instanceNumber, MStatus *stat)
+{
+   //instanceNumber is currently used only for bump. We provide a specific instance number
+
+   MObject mayaNode = shaderOutputPlug.node();
+   MStatus status = MStatus::kSuccess;
+   AtNode* arnoldNode = NULL;
+   CNodeTranslator* translator = NULL;
+   MDagPath dagPath;
+   // FIXME: should get correct instance number from plug
+   if (MFnDagNode(MFnDagNode(mayaNode).parent(0)).getPath(dagPath) == MS::kSuccess)
+   {
+      dagPath.push(mayaNode);
+      MStatus status = MStatus::kSuccess;
+      translator = (CNodeTranslator*)ExportDagPath(dagPath, initOnly, &status);
+      // kInvalidParameter is returned when a non-DAG translator is used on a DAG node, but we can still export that here
+      if (status != MStatus::kInvalidParameter)
+      {
+         if (stat != NULL) *stat = status;
+         return translator;
+      }
+   }
+
+   MFnDependencyNode fnNode(mayaNode);
+   MString name = fnNode.name();
+   MString type = fnNode.typeName();
+
+   translator = CExtensionsManager::GetTranslator(mayaNode);
+   AiMsgTab(1);
+
+   if (translator == NULL)
+   {
+      status = MStatus::kNotImplemented;
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+name+": Maya node type not supported: "+type);
+
+      AiMsgTab(-1);
+      return NULL;
+   }
+
+   MPlug resultPlug;
+   // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
+   ResolveFloatComponent(shaderOutputPlug, resultPlug);
+   MPlug resolvedPlug;
+   // resolving the plug gives translators a chance to replace ".message" with ".outColor",
+   // for example, or to reject it outright.
+   // once the attribute is properly resolved it can be used as a key in our multimap cache
+   if (translator->m_impl->ResolveOutputPlug(resultPlug, resolvedPlug))
+   {
+      resultPlug = resolvedPlug;
+   }
+   else
+   {
+      delete translator;
+      translator = NULL;
+      status = MStatus::kNotImplemented;
+      MFnDependencyNode fnNode(mayaNode);
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] [maya "+name+"] Invalid output attribute: \""+ resultPlug.partialName(false, false, false, false, false, true) +"\"");
+      AiMsgTab(-1);
+      return NULL;
+   }
+
+   MString plugName = resultPlug.name();
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.session]     "+name+" | Exporting plug "+plugName+" for type "+type);
+
+   CNodeAttrHandle handle;
+   MString handleCode;
+   if (translator->DependsOnOutputPlug())
+   {
+      handle.set(resultPlug, instanceNumber);
+      handle.GetHashString(handleCode, true); // true because I need the plug name
+   }
+   else
+   {
+      handle.set(mayaNode, "", instanceNumber);
+      handle.GetHashString(handleCode, false); // I don't need the plug name
+   }
+   std::string hashStr(handleCode.asChar());
+   ObjectToTranslatorMap::iterator it = m_translators.find(hashStr);
+
+   if (it != m_translators.end())
+   {
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+name+" | Reusing previous export of node of type "+type);
+
+      delete translator;
+      status = MStatus::kSuccess;
+      arnoldNode = it->second->GetArnoldNode();
+      translator = it->second;
+   }
+   
+   if (arnoldNode == NULL)
+   {
+      status = MStatus::kSuccess;
+      translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true), instanceNumber);
+      if (it != m_translators.end())
+      {
+         it->second = translator;
+      }
+      else
+      {
+         m_translators[hashStr] = translator;
+         
+         // This node handle might have already been added to the list of objects to update
+         // but since no translator was found in m_translators, it might have been discarded
+         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+         // for this shader
+         if (m_updateCallbacks) QueueForUpdate(translator);
+      }
+      if (!initOnly)
+         arnoldNode = translator->m_impl->DoExport();
+   }
+   if (NULL != stat) *stat = status;
+   AiMsgTab(-1);
+   return translator;
+}
+
+// Export the cameras of the maya scene
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
+{
+   MStatus status = MStatus::kSuccess;
+
+   // If we got a selection list iterate it and pick cameras
+   if (NULL != selected)
+   {
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      MDagPath path;
+      for (it.reset(); !it.isDone(); it.next())
+      {
+         // Silently skip non dag and non camera items in selection
+         if (it.getDagPath(path) == MStatus::kSuccess)
+         {
+            if (path.node().hasFn(MFn::kCamera))
+            {
+               if (ExportDagPath(path) == NULL) status = MStatus::kFailure;
+            }
+         }
+      }
+   }
+   else
+   {
+      // No selection we need all cameras in scene
+      MDagPathArray cameras = GetRenderCameras(false); // don't include the active view
+      MStatus camStatus;
+      for (unsigned int i = 0; i < cameras.length(); ++i)
+      {
+         ExportDagPath(cameras[i], true, &camStatus);
+         if (camStatus != MStatus::kSuccess)
+            status = MStatus::kFailure;
+      }
+   }
+
+   return status;
+}
+
+void CArnoldSession::AddUpdateCallbacks()
+{
+   m_updateCallbacks = true;
+
+   MCallbackId id;
+   MStatus status;
+   // Add the node added callback
+   if (m_newNodeCallbackId == 0)
+   {
+      // We used to call the callback for every "dependNode", but now we're just doing it
+      // for dag nodes. This is introduced for #2540 when hypershade is opened, but more generically
+      // it shouldn't be necessary to restart when every node is created. Depend nodes should
+      // only appear once they're connected to other exported nodes
+      id = MDGMessage::addNodeAddedCallback(NewNodeCallback, "dagNode", (void*) this, &status);
+      if (status == MS::kSuccess)
+         m_newNodeCallbackId = id;
+      else
+         AiMsgError("[mtoa] Unable to setup IPR node added callback");
+   }
+
+   if (m_addParentCallbackId == 0)
+   {
+      id = MDagMessage::addParentAddedCallback(ParentingChangedCallback,  (void*) this, &status);
+      if (status == MS::kSuccess)
+         m_addParentCallbackId = id;
+      else
+         AiMsgError("[mtoa] Unable to setup IPR parent added callback");
+      
+   }
+   if (m_removeParentCallbackId == 0)
+   {
+      id = MDagMessage::addParentRemovedCallback(ParentingChangedCallback,  (void*) this, &status);
+      if (status == MS::kSuccess)
+         m_removeParentCallbackId = id;
+      else
+         AiMsgError("[mtoa] Unable to setup IPR parent removed callback");
+   }
+   
+   // TODO : might add a forceUpdateCallback to re-export when frame changes
+   // static MCallbackId   addForceUpdateCallback (MMessage::MTimeFunction func, void *clientData=NULL, MStatus *ReturnStatus=NULL)
+   // This method registers a callback that is called after the time changes and after all nodes have been evaluated in the dependency graph. 
+   
+   // If some translators were already processed, 
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+   const bool mb = m_sessionOptions.IsMotionBlurEnabled();
+   for ( ; it != itEnd; ++it)
+   {
+      CNodeTranslator *nodeTr = it->second;
+      if (nodeTr == NULL) continue;
+      nodeTr->AddUpdateCallbacks();
+         nodeTr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+      nodeTr->m_impl->m_inUpdateQueue = false; // allow to trigger new updates
+      // for motion blur, check which nodes are static and which aren't (#2316)
+      if (mb && m_sessionOptions.GetNumMotionSteps() > 1)
+      {
+         nodeTr->m_impl->m_animArrays = nodeTr->m_impl->HasAnimatedArrays();
+      } else nodeTr->m_impl->m_animArrays = false;
+   }   
+}
+
+void CArnoldSession::ClearUpdateCallbacks()
+{
+   m_updateCallbacks = false;
+   if (m_newNodeCallbackId != 0)
+   {
+      MMessage::removeCallback(m_newNodeCallbackId);
+      m_newNodeCallbackId = 0;
+   }
+   if (m_addParentCallbackId != 0)
+   {
+      MMessage::removeCallback(m_addParentCallbackId);
+      m_addParentCallbackId = 0;
+   }
+   if (m_removeParentCallbackId != 0)
+   {
+      MMessage::removeCallback(m_removeParentCallbackId);
+      m_removeParentCallbackId = 0;
+   }
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+   for ( ; it != itEnd; ++it)
+   {
+      CNodeTranslator *nodeTr = it->second;
+      if (nodeTr == NULL) continue;
+      nodeTr->m_impl->RemoveUpdateCallbacks();
+   }
+}
+
+// We used to call the callback for every "dependNode", but now we're just doing it
+// for dag nodes. This is introduced for #2540 when hypershade is opened, but more generically
+// it shouldn't be necessary to restart when every node is created. Depend nodes should
+// only appear once they're connected to other exported nodes
+void CArnoldSession::NewNodeCallback(MObject & node, void *clientData)
+{
+   CArnoldSession* session = (CArnoldSession*)clientData;
+   if (session)
+      session->NewNode(node);
+}
+void CArnoldSession::NewNode(MObject &node)
+{   
+   MFnDependencyNode depNodeFn(node);
+   MString type = depNodeFn.typeName();
+   
+   MString name = depNodeFn.name();
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.ipr] IPRNewNodeCallback on "+ MString(name.asChar())+" ("+MString(type.asChar())+")");
+      
+   
+   MFnDagNode dagNodeFn(node);
+   MDagPath path;
+   const MStatus status = dagNodeFn.getPath(path);
+   if (status == MS::kSuccess)
+      QueueForUpdate(path);
+   else
+      QueueForUpdate(node);
+   
+   // FIXME : instead of testing specific types, we could 
+   // simply get a translator for this type (as ArnoldSession::ExportDagPath does).
+   // if no translator is provided then we skip it
+   if(type == "transform" || type == "locator") return; // no need to do anything with a simple transform node
+
+   // new cameras shouldn't restart IPR
+   if (node.hasFn(MFn::kCamera)) 
+      return;
+   
    RequestUpdate();
 }
-void CArnoldSession::RequestUpdateOptions()
+void CArnoldSession::ParentingChangedCallback(MDagPath &child, MDagPath &parent, void *clientData)
 {
-   m_updateOptions = true;
-   RequestUpdate();
+   CArnoldSession* session = (CArnoldSession*)clientData;
+   session->RecursiveUpdateDagChildren(child); 
 }
+
 
 void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
 {
@@ -2764,8 +2296,8 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
    handle.GetHashString(hashCode);
    std::string hashStr(hashCode.asChar());
 
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
-   if (it != m_processedTranslators.end())
+   ObjectToTranslatorMap::iterator it = m_translators.find(hashStr);
+   if (it != m_translators.end())
    {  
 
       CNodeTranslator *tr = it->second;
@@ -2780,7 +2312,8 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
          // Option 2 : just rename the node, is this enough ? or would there be any reason
          // for things to be done differently in CNodeTranslator::CreateArnoldNode depending 
          // on the hierarchy ?
-         /*  
+
+         /*   already commented !!!!
          AtNode *arnoldNode = tr->GetArnoldNode();
          if (arnoldNode)
          {
@@ -2792,14 +2325,9 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
                CMayaScene::GetRenderSession()->ObjectNameChanged(path.node(), oldName);
             }
          }*/
-            
          tr->RequestUpdate();
       }
-
-      
-
    }
- 
    // Recursively dive into the dag children
    for (unsigned int i = 0; i < path.childCount(); i++)
    {
@@ -2808,88 +2336,344 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
       RecursiveUpdateDagChildren(path);
       path.pop(1);
    }
-
 }
 
-void CArnoldSession::ExportImagePlane()
+void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
-   MDagPath camera = m_sessionOptions.GetExportCamera();
+   if (m_isExportingMotion && m_updateCallbacks) return;
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
+}
 
-   MFnDependencyNode fnNode (camera.node());
-   MPlug imagePlanePlug = fnNode.findPlug("imagePlane", true);
 
-   AtNode *options = AiUniverseGetOptions();
+void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
+{
+   // don't add translator twice to the list, it could crash if its updateMode
+   // is "delete". Other solution would be to use a set, but the extra-cost is not
+   // necessary since we already have this flag
+   if (translator == NULL || translator->m_impl->m_inUpdateQueue) return; 
 
-   CNodeTranslator *imgTranslator = NULL;
-   MStatus status;
+   // During IPR with motion blur, we change the current frame to export the motion 
+   // and this might propagate nodeDirty signals that end up here. 
+   // We don't want to consider those
+   if (m_isExportingMotion && m_updateCallbacks) return;
 
-   AiNodeSetPtr(options, "background", NULL);
+   // Set this translator as being in the update list, to avoid useless future signals
+   translator->m_impl->m_inUpdateQueue = true;   
 
-   if (imagePlanePlug.numConnectedElements() == 0)
-      return;
-
-   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+   if (MtoaTranslationInfo())
    {
-      MPlugArray connectedPlugs;
-      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-
-
-      if (status && (connectedPlugs.length() > 0))
+      MString log ="[mtoa.session]    Queuing "+ translator->GetMayaNodeName()+" for "; 
+      switch(translator->m_impl->m_updateMode)
       {
-         imgTranslator = ExportNode(connectedPlugs[0], true);
-         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
+         default:
+         case CNodeTranslator::AI_UPDATE_ONLY:
+            log += " Update";
+            break;
+         case CNodeTranslator::AI_RECREATE_NODE:
+            log += " Re-generation";
+            break;
+         case CNodeTranslator::AI_RECREATE_TRANSLATOR:
+            log += " Translator re-generation";
+            break;
+         case CNodeTranslator::AI_DELETE_NODE:
+            log += "Deletion";
+            break;
+      }
+      MtoaDebugLog(log);
+   }
+   // add this translator to the list of objects to be updated in next DoUpdate()
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
+}
 
-         if (imgPlaneTranslator)
+void CArnoldSession::RequestUpdate()
+{
+   m_requestUpdate = true;
+}
+
+
+// When a hidden node gets "unhidden", we need to go through an "idle" callback
+// so that Maya has time to process its visibility status properly
+
+void CArnoldSession::DoHiddenCallback(void* clientData)
+{
+   CArnoldSession *session = (CArnoldSession*)clientData;
+   MMessage::removeCallback(session->m_hiddenNodeCb);
+   session->m_hiddenNodeCb = 0;
+   MStatus status;
+   MDagPathArray &hiddenNodesArray = session->m_hiddenNodesArray;
+   
+   if (session)
+   {
+      for (unsigned int i = 0; i < hiddenNodesArray.length(); i++)
+      {
+         DagFiltered filtered = session->IsExportable(hiddenNodesArray[i]);
+         if (filtered == MTOA_EXPORT_ACCEPTED)
+            session->SetDagVisible(hiddenNodesArray[i]);
+      }
+   }
+   hiddenNodesArray.clear();
+}
+// This callback is invoked when one of the skipped (hidden) objects is modified 
+// during an IPR session. We have to check if it became visible in order to export it
+void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   // just check if this node is visible now 
+   MFnDagNode dagNode(node);
+   MDagPath path;
+   if (dagNode.getPath(path) != MS::kSuccess) return;
+
+   if(!path.isValid() || clientData == nullptr) return;
+   CArnoldSession *session = (CArnoldSession*)clientData;
+   
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
+   if (plugName != "visibility")
+    return; 
+
+   // We need to go through an "idle" callback, otherwise Maya won't have time to process the 
+   // visibility status of this node 
+   if(session->m_hiddenNodeCb == 0)
+   {
+      session->m_hiddenNodeCb = MEventMessage::addEventCallback("idle",
+                                                  CArnoldSession::DoHiddenCallback,
+                                                  clientData
+                                                  );
+   } 
+   session->m_hiddenNodesArray.append(path);
+}
+
+void CArnoldSession::SetDagVisible(MDagPath &path)
+{
+   MObject object = path.node();
+   // we need to clear the existing hiddenObjectCallback
+   // starting with a simple linear search
+   for(size_t i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
+   {
+      if (m_hiddenObjectsCallbacks[i].first.object() == object)
+      {
+         // found the object in our hidden list         
+         const MStatus status = MNodeMessage::removeCallback(m_hiddenObjectsCallbacks[i].second);
+         if (status == MS::kSuccess) 
          {
-            imgPlaneTranslator->SetCamera(fnNode.name());
-
-            AtNode *imgPlaneShader = imgPlaneTranslator->m_impl->m_atRoot;
-            
-            if (imgPlaneShader)      
-            {
-               AiNodeSetPtr(options, "background", imgPlaneShader);
-               AiNodeSetByte(options, "background_visibility", 1);
-            }
+            m_hiddenObjectsCallbacks.erase(m_hiddenObjectsCallbacks.begin() + i);
+            break;
          }
       }
    }
-}
 
-CNodeTranslator *CArnoldSession::ExportNodeToUniverse(const MObject &object, AtUniverse *universe)
-{
-   if (this == NULL)
-      return NULL;
-   
-   AtNode* arnoldNode = NULL;
-   CNodeTranslator* translator = NULL;
-   MDagPath dagPath;
-   if (MFnDagNode(MFnDagNode(object).parent(0)).getPath(dagPath) == MS::kSuccess)
-   {
-      // Dag path
-      dagPath.push(object);
-      translator = static_cast<CNodeTranslator*>(CExtensionsManager::GetTranslator(dagPath));
-      if (translator == NULL)
-         return NULL;
-      translator->m_impl->m_universe = universe;
-      translator->m_impl->Init(this, dagPath);
+   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+   MStatus status;
+   bool pruneDag = false;
+   MDagPath parentPruneDag;
 
-   } else
+   for (dagIterator.reset(path); (!dagIterator.isDone()); dagIterator.next())
    {
-      translator = CExtensionsManager::GetTranslator(object);
-      if (translator == NULL)   
-         return NULL;
-      translator->m_impl->m_universe = universe;
-      translator->m_impl->Init(this, object, "message");
+      if (dagIterator.getPath(path))
+      {
+         if (path.apiType() == MFn::kWorld)
+            continue;
+
+         if (pruneDag)
+         {
+            MDagPath tmpPath(path);
+            tmpPath.pop();
+            if (tmpPath == parentPruneDag)
+            {
+               dagIterator.prune();
+               continue;
+            }
+            pruneDag = false;
+         }
+
+         MObject obj = path.node();
+         MFnDagNode node(obj);
+         MString name = node.name();
+         DagFiltered filtered = IsExportable(path);
+         if (filtered != MTOA_EXPORT_ACCEPTED)
+         {
+            if (m_updateCallbacks)
+            {
+               HiddenObjectCallbackPair hiddenObj;
+               hiddenObj.first = CNodeAttrHandle(obj, "");
+               hiddenObj.second = MNodeMessage::addNodeDirtyPlugCallback(obj,
+                                        HiddenNodeCallback,
+                                        this,
+                                        &status);
+               m_hiddenObjectsCallbacks.push_back(hiddenObj);
+            }
+            // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
+            // for MTOA_EXPORT_REJECTED_BRANCH
+            if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
+               dagIterator.prune();
+            continue;
+         }
+         MStatus stat;
+
+         // We shouldn't call this function during a render !
+         // It's going to create new nodes (#3355)
+         //CDagTranslator *tr = ExportDagPath(path, true, &stat);
+         QueueForUpdate(path);
+         if (stat != MStatus::kSuccess)
+            status = MStatus::kFailure;
+
+/*
+         // Since we're not calling ExportDagPath anymore, we don't have any translator and we don't know
+         if (tr != NULL && !tr->ExportDagChildren())
+         {
+            pruneDag = true;
+            parentPruneDag = path;
+            parentPruneDag.pop();
+            dagIterator.prune();
+         }*/
+      }
    }
-      
-   translator->m_impl->DoExport();
-   return translator;
+   RequestUpdate();
 }
-   
-void CArnoldSession::AddCallbacksToUpdateNodes()
+
+
+MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
+{   
+   // first check if an object exists with the same name ?
+   MString arnoldName = (AiNodeLookUpUserParameter(node, "dcc_name") != nullptr) ? 
+      MString(AiNodeGetStr(node, "dcc_name")) : MString(AiNodeGetName(node));
+   // slashes should be replaced by pipes
+   static MString slashStr("/");
+   static MString pipeStr("|");
+   arnoldName.substitute(slashStr, pipeStr);
+
+   MSelectionList camList;
+
+   camList.add(arnoldName);
+   MObject mayaObject;
+   if (camList.getDependNode(0, mayaObject) == MS::kSuccess && !mayaObject.isNull())
+   {
+      // There is an object with the same name in Maya.
+      // We're assuming it's this one....
+      return MString(arnoldName);
+   }
+   // Check the dcc_name
+
+
+   // There is no object with this name in the scene.
+   // Let's search it amongst the list of processed translators
+   ObjectToTranslatorMap::const_iterator it = m_translators.begin();
+   ObjectToTranslatorMap::const_iterator itEnd = m_translators.end();
+   for ( ; it != itEnd; ++it)
+   {
+      CNodeTranslator *translator = it->second;
+      if (translator == NULL) continue;
+
+      // check if this translator corresponds to this AtNode
+      // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
+      if (translator->GetArnoldNode() == node)
+      {
+         // We found our translator
+         return translator->GetMayaNodeName().asChar();
+      }
+   }
+   return "";
+}
+
+/// Set the camera to export.
+
+/// If called prior to export, only the specified camera will be exported. If not set, all cameras
+/// will be exported, but some translators may not be able to fully export without an export camera specified.
+/// To address this potential issue, this method should be called after a multi-cam export, as it will cause
+/// the options translator to be updated
+///
+/// FIXME !!! we're changing the explanation above !! we don't want a special behaviour depending on whether this
+// function is called before or after Export(). We want to eventually control this in the session 
+/// (i.e. export all cameras or only the session one)
+void CArnoldSession::SetExportCamera(MDagPath camera, bool updateRender)
 {
-   if (!IsInteractiveRender())
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.session] Setting export camera to \""+ camera.partialPathName() + "\"");
+
+   // first we need to make sure this camera is properly exported
+   if (camera.isValid())
+   {
+      camera.extendToShape();
+      ExportDagPath(camera);
+   }
+   m_sessionOptions.m_camera = camera;
+
+   if (updateRender == false  && m_optionsTranslator == NULL) return;
+   // just queue the options translator now 
+   // instead of relying on the DependsOnExportCamera.
+   // In the future we should have a generic way to make translators dependent from others,
+   // so that whatever change in one translator propagates an update on the others
+   QueueForUpdate(m_optionsTranslator);
+   // FIXME we should also update any translator that depends on the render camera, for example the image plane
+   Update();
+}
+
+void CArnoldSession::UpdateLightLinks()
+{
+   // FIXME: we are not sure all these lights will actually have been exported to 
+   // the Arnold universe
+   // Possible solution, make sure ExportLights is done first, before dag objects
+   // are exported and light linking queried, and count the number of lights
+   // actually in the Arnold universe
+   
+   /* FIXME : do we need the iterations below ? we just seem to be accumulating m_numLights
+   which was never used anywhere
+
+   int numLights = 0;
+   MItDag dagIterLights(MItDag::kDepthFirst, MFn::kLight);
+   for (; (!dagIterLights.isDone()); dagIterLights.next())
+   {
+      numLights += 1;
+   }
+   // For plugin lights, 
+   MItDag dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode);
+   for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
+   {
+      if (IsArnoldLight(dagIterPlugin.currentItem()))
+      {
+         numLights += 1;
+      }
+   }
+   // TODO : turn off light linking option if we detect here that all lights
+   // "illuminate by default" ?
+*/
+   m_lightLinks.ClearLightLinks();
+
+//   if (numLights > 0)
+   {      
+      m_lightLinks.SetLinkingMode(m_sessionOptions.GetLightLinkMode(), 
+           m_sessionOptions.GetShadowLinkMode());
+      if (m_sessionOptions.GetLightLinkMode() == MTOA_LIGHTLINK_MAYA
+            || m_sessionOptions.GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
+      {
+         m_lightLinks.ParseLights();
+      }
+   }
+/*   else if (!IsFileExport())
+   {
+      AiMsgWarning("[mtoa] No light in scene");
+   }*/
+
+   m_updateLightLinks = false;
+
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.sesion]    Updating Light-linking information");
+
+
+}
+void CArnoldSession::ExportLightLinking(AtNode *shape, const MDagPath &path)
+{
+    m_lightLinks.ExportLightLinking(shape, path);
+}
+
+void CArnoldSession::RequestUpdateImagers(bool listChanged)
+{
+   // Some imager nodes might have been created without going through the usual Update function, 
+   // we need to ensure the update callbacks were properly created for each of them.
+   if (!IsInteractiveSession())
+      return;
+
+   // the code below only applies if the list of imagers has changed
+   if (!listChanged)
       return;
 
    for(size_t i = 0; i < m_objectsToUpdate.size(); ++i)
@@ -2906,4 +2690,35 @@ void CArnoldSession::AddCallbacksToUpdateNodes()
       // restore the update mode to "update Only"
       tr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
    }
+}
+MObject CArnoldSession::GetDefaultArnoldRenderOptions()
+{
+   MObject options;
+   MSelectionList list;
+   list.add("defaultArnoldRenderOptions");
+  if (list.length() > 0)
+      list.getDependNode(0, options);
+   else
+   {
+       // defaultArnoldRenderOptions doesn't exist, we need to initialize it
+      MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
+      list.clear();
+      list.add("defaultArnoldRenderOptions");
+      if (list.length() > 0)
+         list.getDependNode(0, options);
+   }
+   return options;
+}
+
+void CArnoldSession::InterruptRender()
+{
+   if (m_renderSession)
+      AiRenderInterrupt(m_renderSession, AI_BLOCKING);
+}
+bool CArnoldSession::IsRendering()
+{
+   if (m_renderSession == nullptr)
+      return false;
+
+   return AiRenderGetStatus(m_renderSession) == AI_RENDER_STATUS_RENDERING;
 }

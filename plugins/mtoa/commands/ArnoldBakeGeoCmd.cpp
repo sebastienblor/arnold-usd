@@ -1,7 +1,8 @@
 #include "ArnoldBakeGeoCmd.h"
-#include "../scene/MayaScene.h"
 #include "../common/UnorderedContainer.h"
 #include "utils/MtoAAdpPayloads.h"
+#include "session/ArnoldSession.h"
+#include "session/SessionManager.h"
 #include <ai.h>
 
 #include <maya/MStatus.h>
@@ -23,6 +24,7 @@
 #include <istream>
 #include <streambuf>
 
+static const std::string s_bakeGeoSessionId("bakeGeo");
 // hash function from http://www.cse.yorku.ca/~oz/hash.html
 inline size_t
 HashFunctionDJB2(const unsigned char *input, size_t size)
@@ -98,13 +100,6 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   CMayaScene::End();
-   // Cannot export while a render is active
-   if (AiUniverseIsActive())
-   {
-      AiMsgError("[mtoa] Cannot bake geometry while rendering");
-      return MS::kFailure;
-   }
 
    MString filename = "";
    argDB.getFlagArgument("filename", 0, filename);
@@ -118,31 +113,42 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::ostream os(&fb);
    os << "# Arnold Renderer - OBJ export\n";  // anything else we want to dump in the header ?
 
-   CMayaScene::Begin(MTOA_SESSION_RENDER);
-   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   renderSession->SetForceTranslateShadingEngines(true);   
-   arnoldSession->SetExportFilterMask(AI_NODE_ALL);
-
-   CMayaScene::Export(&selected);
+   //CArnoldSession *session = CSessionManager::FindActiveSession(bakeGeoSessionId);
+   CArnoldSession * session = new CArnoldSession();
+   if (!CSessionManager::AddActiveSession(s_bakeGeoSessionId, session))
+   {
+      delete session;
+      return MS::kFailure;
+   }
+   CSessionOptions &options = session->GetOptions();
+   
+   options.SetForceTranslateShadingEngines(true);
+   AtUniverse *universe = session->GetUniverse();
+   AtRenderSession *renderSession = session->GetRenderSession();
+   session->Export(&selected);
 
    // We need to ensure that a render camera is set, otherwise subdivision might fail (#3264)
-   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(universe), "camera");
    if (renderCam == NULL)
    {      
       // Please don't tell anyone that I'm creating a dummy camera here,
       // it will be deleted at the end of this function anyway.
-      renderCam = AiNode("persp_camera");
+      renderCam = AiNode(universe, "persp_camera");
       AiNodeSetStr(renderCam, "name", "__mtoa_baking_cam");
-      AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)renderCam);
+      AiNodeSetPtr(AiUniverseGetOptions(universe), "camera", (void*)renderCam);
    }
 
    static const AtString polymesh_str("polymesh");
    static const AtString procedural_str("procedural");
 
-   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-   AiRender(AI_RENDER_MODE_FREE);
-   AtNodeIterator *nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+   AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+   AiRenderBegin(renderSession, AI_RENDER_MODE_FREE);
+   while(AiRenderGetStatus(renderSession) != AI_RENDER_STATUS_PAUSED)
+   {
+      continue;
+   }
+
+   AtNodeIterator *nodeIter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
    AtShaderGlobals* sg = AiShaderGlobals();
    
    std::vector<AtVector> vertices;
@@ -311,8 +317,8 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
 
    AiNodeIteratorDestroy(nodeIter);
    AiShaderGlobalsDestroy(sg);
-   AiRenderAbort();
+   AiRenderAbort(renderSession);
 
-   CMayaScene::End();
+   CSessionManager::DeleteActiveSession(s_bakeGeoSessionId);
    return MS::kSuccess;
 }

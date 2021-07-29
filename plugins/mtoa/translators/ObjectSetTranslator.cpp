@@ -156,16 +156,16 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                   path = allPaths[instanceNumber];
                }
                if (path.isValid())
-                  translator->DirtyElement(GetTranslator(path));
+                  translator->DirtyElement(translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path)));
                  
                
                // Check also for shapes
                if (MStatus::kSuccess == path.extendToShape())
-                  translator->DirtyElement(GetTranslator(path)); 
+                  translator->DirtyElement(translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path))); 
                
             }
             else if (pname == "dnsm")
-               translator->DirtyElement(GetTranslator(otherPlug.node())); 
+               translator->DirtyElement(translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(otherPlug.node()))); 
          }
       }
       else if (msg & (MNodeMessage::kAttributeAdded | MNodeMessage::kAttributeRemoved))
@@ -239,7 +239,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
          }
          else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
          {
-            translator->DirtyElement(GetTranslator(linker)); 
+            translator->DirtyElement(translator->m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(linker))); 
          }
          
       }
@@ -250,18 +250,18 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
                      nodeName.asChar(), clientData);
    }
 }
-static void FillMembersDagTranslators(MDagPath path, std::vector<CNodeTranslator*> &translators)
-{   
+void CObjectSetTranslator::FillMembersDagTranslators(MDagPath path, std::vector<CNodeTranslator*> &translators)
+{  
    std::vector<CNodeTranslator*>::iterator it;
    
-   CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
+   CNodeTranslator *elemTr = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path));
    if (elemTr) 
       translators.push_back(elemTr);
 
    // Check also for shape
    if (MStatus::kSuccess == path.extendToShape())
    {
-      CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
+      CNodeTranslator *elemTr = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path));
       if (elemTr)
          translators.push_back(elemTr);
    }
@@ -303,7 +303,7 @@ void CObjectSetTranslator::FillMembersTranslators()
          }
          else if (MStatus::kSuccess == list.getDependNode(i, element))
          {
-            CNodeTranslator *elemTr = GetTranslator(element); 
+            CNodeTranslator *elemTr = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(element)); 
             if (elemTr)
                m_membersTranslators.push_back(elemTr);
          }
@@ -327,11 +327,6 @@ void CObjectSetTranslator::RequestUpdate()
    if (m_membersTranslators.empty())
       return;
 
-   // The code from CNodeTranslator::RequestUpdate was duplicated here
-   // we're now just calling the base class. Only difference is that
-   // CArnoldSession::Request is being called now, while before it
-   // was called explicitely a few lines below. But does it make a difference,
-   // since we're about to call RequestUpdate on several other translators ?
    CNodeTranslator::RequestUpdate();
 
    for (size_t i = 0; i < m_membersTranslators.size(); ++i)

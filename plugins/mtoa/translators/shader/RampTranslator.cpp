@@ -566,7 +566,7 @@ AtNode* CRampTranslator::ExportUvTransform()
 
          float rotateFrame = srcNodeFn.findPlug("rotateFrame", true).asFloat();
          AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
-         //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
+         //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame", true));
          ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame", true));
          float rotateUV = srcNodeFn.findPlug("rotateUV", true).asFloat();
          AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);

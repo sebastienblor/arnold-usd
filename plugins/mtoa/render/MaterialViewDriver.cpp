@@ -2,7 +2,6 @@
 #include "platform/Platform.h"
 #include "render/OutputDriver.h"
 #include "render/MaterialView.h"
-#include "scene/MayaScene.h"
 
 #include <ai_critsec.h>
 #include <ai_drivers.h>

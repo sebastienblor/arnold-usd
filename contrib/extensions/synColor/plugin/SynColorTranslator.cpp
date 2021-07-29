@@ -1,4 +1,5 @@
 #include "SynColorTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
@@ -12,11 +13,16 @@
 void CSynColorTranslator::Export(AtNode* node)
 {
    MFnDependencyNode defaultColorSettings(GetMayaObject());
+
    const bool cmEnabled = defaultColorSettings.findPlug("cmEnabled", true).asBool();
    if(cmEnabled)
    {
-      AtNode *options = AiUniverseGetOptions();
-      AiNodeSetPtr(options, "color_manager", (void*)node);
+      AtNode *options = AiUniverseGetOptions(AiNodeGetUniverse(node));
+      // Eventually disable color manager if the export option is turned off #2995
+      if (m_impl->m_session->IsFileExport() && (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
+         AiNodeResetParameter(options, "color_manager");
+      else
+         AiNodeSetPtr(options, "color_manager", (void*)node);
 
       MString renderingSpace = defaultColorSettings.findPlug("workingSpaceName", true).asString();
 

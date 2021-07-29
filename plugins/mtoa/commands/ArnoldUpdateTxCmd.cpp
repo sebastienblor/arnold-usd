@@ -1,6 +1,5 @@
 #include "utils/Version.h"
 #include "ArnoldUpdateTxCmd.h"
-#include "scene/MayaScene.h"
 #include "utils/MakeTx.h"
 
 #include <ai_dotass.h>

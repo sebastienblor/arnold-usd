@@ -169,9 +169,6 @@ class OSLSceneModel():
         # cleanup the node
         AiUniverseDestroy(compilation_universe)
 
-        if not isActive:
-            AiEnd()
-
     def __modifyScene__(self):
 
         '''

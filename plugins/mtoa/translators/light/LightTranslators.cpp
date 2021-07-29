@@ -99,7 +99,7 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
 
 // Quad AreaLight
 //
-
+// FIXME in which universe to flush the cache ?
 void CQuadLightTranslator::Export(AtNode* light)
 {
    if (m_flushCache)
@@ -703,7 +703,7 @@ void CMeshLightNewTranslator::AddUpdateCallbacks()
    if (meshObj != MObject::kNullObj)
    {
       MStatus status;
-      MCallbackId id = MNodeMessage::addNodeDirtyCallback(meshObj,
+      MCallbackId id = MNodeMessage::addNodeDirtyPlugCallback(meshObj,
                                                           NodeDirtyCallback,
                                                           this,
                                                           &status);

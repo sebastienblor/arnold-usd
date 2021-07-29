@@ -8,6 +8,8 @@
 
 
 #include "ArnoldViewOverride.h"
+#include "session/ArnoldRenderViewSession.h"
+#include "session/SessionManager.h"
 #include <maya/MItDependencyNodes.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MObject.h>
@@ -17,8 +19,6 @@
 #include <maya/MSceneMessage.h>
 #include <maya/MConditionMessage.h>
 
-
-#include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
 
 static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
@@ -27,6 +27,7 @@ static MString s_activeViewport(""); // store the name of the last active viewpo
 static unsigned int s_width = 0;
 static unsigned int s_height = 0;
 
+static std::string s_arnoldViewportSession("arnoldViewport");
 // For override creation we return a UI name so that it shows up in as a
 // renderer in the 3d viewport menus.
 // 
@@ -40,8 +41,7 @@ ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     // register a file open and file new callback
     mFileNewCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeNew, sPreFileOpen, this);
     mFileOpenCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, sPreFileOpen, this);
-    mPlablastCB = MConditionMessage::addConditionCallback( "playblasting",CRenderSession::RenderViewPlayblast);
-   
+    mPlablastCB = MConditionMessage::addConditionCallback( "playblasting", sPlayblasting, this);
 }
 
 // On destruction all operations are deleted.
@@ -79,33 +79,20 @@ MHWRender::DrawAPI ArnoldViewOverride::supportedDrawAPIs() const
     return MHWRender::kAllDevices;
 }
 
-void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int height)
-{
-    CMayaScene::End();
-/*
-    MCommonRenderSettingsData renderGlobals;
-    MRenderUtil::getCommonRenderSettings(renderGlobals);
-
-    CMayaScene::ExecuteScript(renderGlobals.preMel);
-    CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
-*/
-    CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
-
-    // SetExportCamera mus be called AFTER CMayaScene::Export
-    CMayaScene::GetArnoldSession()->SetExportCamera(camera);
-    CRenderSession *renderSession = CMayaScene::GetRenderSession();
-    // Set resolution and camera as passed in.
-    renderSession->SetResolution(width, height);
-    renderSession->RenderOptions()->UpdateImageDimensions();
-    renderSession->SetCamera(camera);
-    
-}
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    bool firstRender = (session == nullptr);
 
-    if (CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsExportingMotion())
-		return MStatus::kFailure;
+    if (session == nullptr)
+    {
+        session = new CArnoldRenderViewSession(true);
+        CSessionManager::AddActiveSession(s_arnoldViewportSession, session);
+    }
+    if (session->IsExportingMotion())
+        return MS::kFailure;
+    CSessionOptions &sessionOptions = session->GetOptions();
 
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
     if (!theRenderer)
@@ -145,7 +132,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     }
 
     // if there's no active scene, or if we switched to a new viewport, then this is considered as a first render
-    bool firstRender = (!CMayaScene::IsActive() || destination != s_activeViewport);
+    if (destination != s_activeViewport)
+        firstRender = true;
     
     MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
 
@@ -192,7 +180,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
     if (firstRender)
     {
-        startRenderView(camera, width, height);
+        session->SetExportCamera(camera, false);
 
         if (mTexture)
         {
@@ -202,8 +190,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureManager->releaseTexture(mTexture);
             mTexture = NULL;
         }
-
-        CDagTranslator *camTranslator = CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
+        CDagTranslator *camTranslator = session->ExportDagPath(camera, true);
         AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
         if (camNode)
         {
@@ -211,29 +198,26 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             // We need to use the partial name as this is the one considered by ARV's camera menu
             newCamName = camera.partialPathName().asChar(); 
             // Need to give the list of cameras + the current camera to ARV's options window #4370
-            CRenderSession::SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
-            CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
+            
+            session->SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
+            session->SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
         }
+        
     }
     s_activeViewport = destination; // set this viewport as the "active" one
 
-    CRenderSession* renderSession = CMayaScene::GetRenderSession();
-
-
     if (!state.initialized)
     {
-        CRenderOptions *renderOptions = renderSession->RenderOptions();
-        renderSession->SetResolution(width, height);
-        renderOptions->UpdateImageDimensions();
-
+        sessionOptions.SetResolution(width, height);
+        // ensure the options are re-exported
         if (state.useRegion)
         {
-            renderOptions->SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
-                AiClamp(int((1.f - state.viewRectangle.w) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/     
+            sessionOptions.SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
+                AiClamp(int((1.f - state.viewRectangle.w) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top     
         }
         else
         {
-            renderOptions->ClearRegion();
+            sessionOptions.ClearRegion();
         }
     }
 
@@ -241,31 +225,40 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     
     if (!firstRender)
 	{
-        CRenderOptions *renderOptions = renderSession->RenderOptions();
-
         // A render had already started, we want to check if the window size has changed
-		int previousWidth = renderOptions->width();
-		int previousHeight = renderOptions->height();
-		if (previousWidth != width || previousHeight != height)
+
+        int previousWidth = width;
+        int previousHeight = height;
+        sessionOptions.GetResolution(previousWidth, previousHeight);
+
+        if (previousWidth != width || previousHeight != height)
 		{
-			AtBBox2 bounds;
-			renderSession->HasRenderResults(bounds);
-			renderSession->PostDisplay();
-			renderSession->InterruptRender(true);
-			renderSession->SetResolution(width, height);
-			renderOptions->UpdateImageDimensions();
+            AtBBox2 bounds;
+            CRenderViewMtoA &renderView = session->GetRenderView();
+			renderView.HasRenderResults(bounds);
+			renderView.PostDisplay();
+			renderView.InterruptRender(true);
+        
+			sessionOptions.SetResolution(width, height);
+			// ensure the options are re-exported
 		
-			if (renderOptions->useRenderRegion())
+			if (sessionOptions.UseRenderRegion())
 			{
                 // eventually adapt the arnold crop region
-				renderOptions->SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
-				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
+				sessionOptions.SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
+				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top
 
 			}
-            CDagTranslator *camTranslator = CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
-            if (camTranslator)
-                camTranslator->RequestUpdate(); // camera needs to re-export to take into account resolution50
             
+            COptionsTranslator *optionsTranslator = session->GetOptionsTranslator();
+            if (optionsTranslator)
+                optionsTranslator->RequestUpdate();
+
+            CDagTranslator *camTranslator = session->ExportDagPath(camera, true);
+            if (camTranslator)
+            {
+                camTranslator->RequestUpdate(); // camera needs to re-export to take into account resolution
+            }            
 
             if (mTexture)
             {
@@ -277,25 +270,25 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             }
             needsRefresh = true;
 		}
-        if (!(renderSession->GetCamera() == camera))
+        if (!(sessionOptions.GetCamera() == camera))
         {
             // the camera has changed
-            renderSession->InterruptRender(true);
-            CDagTranslator *camTranslator = CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
+            session->GetRenderView().InterruptRender(true);
+            CDagTranslator *camTranslator = session->ExportDagPath(camera, true);
             // SetExportCamera mus be called AFTER CMayaScene::Export
-            CMayaScene::GetArnoldSession()->SetExportCamera(camera);
-            renderSession->SetCamera(camera);
+            session->SetExportCamera(camera);
             AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
             if (camNode)
             {
                 // We need to use the partial name as this is the one considered by ARV's camera menu
                 newCamName =  camera.partialPathName().asChar();
                 // Need to give the list of cameras + the current camera to ARV's options window #4370
-                CRenderSession::SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
-                CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
+                session->SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
+                session->SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
             }
             needsRefresh = true;
         }
+        
 	}
     bool restoreIPR = false;
     if (!state.initialized)
@@ -307,79 +300,71 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         MGlobal::executeCommand("arnoldViewOverrideOptionBox;");
 
         if (!state.enabled)
-            CRenderSession::SetRenderViewOption(MString("Run IPR"), "0");    
-        else if (CRenderSession::IsIPRPaused())
-            restoreIPR = true;
+            session->SetRenderViewOption(MString("Run IPR"), "0");    
+        else
+        {
+            std::string isIPRRunning(session->GetRenderView().GetOption("Run IPR"));
+            if (isIPRRunning == "0")
+                restoreIPR = true;
+        } 
 
-        //MString enabledStr = (state.enabled) ? MString("1") : MString("0");
         MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
         // FIXME this is causing a render restart and we don't want this now
         
-        CRenderSession::SetRenderViewOption(MString("Crop Region"),useRegionStr);
+        session->SetRenderViewOption(MString("Crop Region"),useRegionStr);
     }
 
-    renderSession = CMayaScene::GetRenderSession();
-    CRenderOptions *renderOptions = renderSession->RenderOptions();
-	if (renderSession->IsRegionCropped() != renderOptions->useRenderRegion())
+    std::string arvCrop = (session) ? session->GetRenderView().GetOption("Crop Region") : "";
+    bool regionCropped = (arvCrop == "1");
+    
+    if (regionCropped != sessionOptions.UseRenderRegion())
 	{
-		// ARV settings are different from the ones in the render options. ARV wins !
-		if (renderSession->IsRegionCropped())
+        // ARV settings are different from the ones in the render options. ARV wins !
+		if (regionCropped)
 		{
-	        renderOptions->SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
-				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
+            sessionOptions.SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
+				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top
 
 		} else
 		{
-			renderOptions->ClearRegion();
+			sessionOptions.ClearRegion();
 		}
 	}
-	if (renderOptions && renderOptions->useRenderRegion())
-    {
-        int width = renderOptions->width();
-        int height = renderOptions->height();
-        int minx = renderOptions->minX();
-        int miny = renderOptions->minY();
-        int maxx = renderOptions->maxX();
-        int maxy = renderOptions->maxY();
+    int w, h, minx, miny, maxx, maxy;
 
-        state.viewRectangle.x = (float)minx / (float)width;
-        state.viewRectangle.y = 1.f - ((float)maxy / (float)height);
-        state.viewRectangle.z = (float)(maxx) / (float)width;
-        state.viewRectangle.w = 1.f - ((float)miny / (float)height);
+    if (sessionOptions.GetRegion(minx, miny, maxx, maxy) && sessionOptions.GetResolution(w, h))
+    {
+        state.viewRectangle.x = (float)minx / (float)w;
+        state.viewRectangle.y = 1.f - ((float)maxy / (float)h);
+        state.viewRectangle.z = (float)(maxx) / (float)w;
+        state.viewRectangle.w = 1.f - ((float)miny / (float)h);
 
         s_ViewRectangle = state.viewRectangle;
     }
 
-    state.enabled = (restoreIPR) ? true : !renderSession->IsIPRPaused();
-    mRegionRenderStateMap[destination.asChar()] = state;
 
-    if (!CMayaScene::IsActive())
-    {
-        MGlobal::displayError("Error rendering Arnold IPR, Arnold Render session is not active.");
-        return MS::kFailure;
-    }
+    std::string arvRunIpr = (session) ? session->GetRenderView().GetOption("Run IPR") : "";
+    state.enabled = (restoreIPR) ? true : arvRunIpr != "0";
+    mRegionRenderStateMap[destination.asChar()] = state;
 
     // if the session is not rendering, but the state is enabled
     // end the current empty scene and start a new rendering
-    if (!renderSession->IsRendering() && state.enabled)
+    /* FIXME, do we still need this ?
+    if (!session->IsRendering() && state.enabled)
     {
-        // end the existing (empty) scene
-        //renderSession->CloseRenderViewWithSession(false);
-        //CMayaScene::End();
-        renderSession->InterruptRender(true); // we shouldn't need this based on the condition above
+        session->InterruptRender(true); // we shouldn't need this based on the condition above
         if (AiUniverseIsActive())
             AiEnd();
 
-        //renderSession->CloseRenderViewWithSession(true);
         needsRefresh = true;
-    }
+    }*/
 
     // now get the current bits
     // and create a texture from them.
     AtBBox2 bounds;
     // Note that we're not using the "bounds" region here, about which region
     // of the buffer needs to be updated
-    bool results = CRenderSession::HasRenderResults(bounds);
+    bool results = session->GetRenderView().HasRenderResults(bounds);
 
     if (needsRefresh || restoreIPR)
     {
@@ -389,15 +374,15 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         // now restart the render and early out. We'll be called here again in the next refresh.
         if (!newCamName.empty())
         {
-            CRenderSession::SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
-            CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
+            session->SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
+            session->SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
         }
 
-        CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
+        session->SetRenderViewOption(MString("Refresh Render"), MString("1"));
 
         if (restoreIPR)
-            CRenderSession::SetRenderViewOption(MString("Run IPR"), "1");
-
+            session->SetRenderViewOption(MString("Run IPR"), "1");
+        
         return MS::kSuccess;
     }
 
@@ -408,7 +393,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         return MS::kSuccess;
 
     unsigned int buffer_width = 0, buffer_height = 0;
-    const AtRGBA *buffer = renderSession->GetDisplayedBuffer(&buffer_width, &buffer_height);
+    const AtRGBA *buffer = session->GetRenderView().GetDisplayedBuffer(&buffer_width, &buffer_height);
     if (buffer)
     {
         if (mTexture != NULL && (buffer_width != s_width || buffer_height != s_height))
@@ -440,10 +425,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureBlit->setColorTexture(mTexture);
         }
     }
-
-    // FIXME temp. function that we need to call for now. We'll manage to remove it
-    // after the renderview switches to the new Render Control API
-    CRenderSession::PostDisplay();
+    session->GetRenderView().PostDisplay();
 
     return MStatus::kSuccess;
 }
@@ -480,9 +462,13 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         s_activeViewport = MString("");
         
         // Close the options window and end the scene.
-        CRenderSession::CloseOptionsWindow();
-        CMayaScene::End();
-
+        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+        if (session)
+        {
+            session->GetRenderView().CloseOptionsWindow(); // could it be done at deletion ?
+            CSessionManager::DeleteActiveSession(s_arnoldViewportSession);
+        }
+    
         RegionRenderState state = static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()];
         state.initialized = false;
         static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()] = state;
@@ -495,17 +481,27 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
     }
 }
 
+void ArnoldViewOverride::sPlayblasting(bool state, void* clientData)
+{
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    if (session)
+        session->SetPlayblasting(state);
+}
 void ArnoldViewOverride::sPreFileOpen(void* clientData)
 {
     stopExistingOverrides("");
-    CRenderSession::CloseOptionsWindow();
+
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    if (session)
+        session->GetRenderView().CloseOptionsWindow();
+
     static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
     //MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");  
 }
 
 void ArnoldViewOverride::stopExistingOverrides(const MString & destination)
 {
-    CRenderSession::CloseOtherViews(destination);
+    CArnoldRenderViewSession::CloseOtherViews(destination);
 }
 
 //
@@ -580,10 +576,10 @@ const MHWRender::MShaderInstance * TextureBlit::shader()
 
     if (mShaderInstance)
     {
-		CRenderSession *renderSession = CMayaScene::GetRenderSession();
-
-        bool regionCropped = (renderSession) ? renderSession->IsRegionCropped() : false; // check if option is enabled in ARV
-		
+        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+        std::string arvCrop = session ? session->GetRenderView().GetOption("Crop Region") : "";
+        bool regionCropped = arvCrop == "1";
+      
         mShaderInstance->setParameter("gUseScissorRect", regionCropped);
         mShaderInstance->setParameter("gScissorRect", &ViewRectangle()[0]);
         mShaderInstance->setParameter("gDisableAlpha", false);

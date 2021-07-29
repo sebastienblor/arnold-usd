@@ -33,7 +33,7 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
    AtNode* displ_node = NULL;
    AtNode* volume_node = NULL;
 
-   if ( AiMaterialxReadMaterials(NULL, mtlx_path.asChar(), hints, nodes) == AI_MATX_SUCCESS )
+   if ( AiMaterialxReadMaterials(GetUniverse(), mtlx_path.asChar(), hints, nodes) == AI_MATX_SUCCESS )
    {
       unsigned int arrElems = AiArrayGetNumElements(nodes);
       for(unsigned int i =0 ; i < arrElems ; i ++)

@@ -1,10 +1,8 @@
 #include "NodeTranslatorImpl.h"
 
-#include "render/RenderOptions.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/Components.h"
 #include "common/UtilityFunctions.h"
-#include "scene/MayaScene.h"
 #include <utils/MtoAAdpPayloads.h>
 
 #include <ai_ray.h>
@@ -102,7 +100,6 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
    // if this translator has never been exported, we should rather call DoExport()
    if (!m_isExported) return DoExport();
 
-   assert(AiUniverseIsActive());
    AtNode* node = m_tr.GetArnoldNode("");
    
    if (node == NULL)
@@ -232,7 +229,7 @@ void CNodeTranslatorImpl::ExportDccName()
    if (m_atRoot == NULL)
       return;
 
-   const CSessionOptions &options = CNodeTranslator::GetSessionOptions();
+   const CSessionOptions &options = m_tr.GetSessionOptions();
    if (options.GetExportPrefix().length() == 0 && 
       options.GetExportNamespace() == MTOA_EXPORT_NAMESPACE_ON)
       return; // No need to export dcc_name in this scenario
@@ -273,21 +270,6 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
 
       if (srcArnoldNode == NULL)
          return NULL;
-
-      // For material view sessions we need to propagate any shader update upstream
-      // because it's only the root shader that gets sent for update, even if the
-      // update was caused by some upstream shader node
-      if (srcNodeTranslator && m_session->GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
-      {
-         // Check if the given node is a shader
-         const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
-         const int type = AiNodeEntryGetType(nodeEntry);
-         if (type == AI_NODE_SHADER)
-         {
-            // Propagate the update upstream
-            srcNodeTranslator->m_impl->DoUpdate();
-         }
-      }
 
       if (arnoldParamType == AI_TYPE_NODE)
       {
@@ -393,7 +375,6 @@ MPlug CNodeTranslatorImpl::FindMayaOverridePlug(const MString &attrName, MStatus
       
       if (translator == 0)
           continue;
-      // MString setName = translator->GetMayaObjectName();
       // Search only on active translators
       if (translator->m_impl->FindMayaObjectPlug("aiOverride", &status).asBool())
       {
@@ -618,7 +599,6 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       }
       break;
    {
-      // FIXME Arnold5 what should we do with closures here ?
    case AI_TYPE_CLOSURE:
       // so I have a constant closure parameter. if in maya it is a color, I want to plug 
       // a closure node that returns a basic emission color
@@ -777,7 +757,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                if ((strcmp(mentry->name, "scale") == 0) && (mentry->type == AI_TYPE_INT))
                {
                   if (mentry->value.INT() == 1) // scale distance
-                     m_session->ScaleDistance(val);
+                     m_session->GetOptions().ScaleDistance(val);
                }
                continue;
             }
@@ -837,7 +817,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             MObject matObj = plug.asMObject();
             MFnMatrixData matData(matObj);
             MMatrix mm = matData.matrix();
-            CNodeTranslator::ConvertMatrix(am, mm);
+            m_tr.ConvertMatrix(am, mm);
             AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
          }
       }
@@ -964,7 +944,6 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          AiArraySetRGB(array, i, color);
       }
       break;
-   // FIXME Arnold5 anything to be done with closures here ?
    case AI_TYPE_RGBA:
       {
          AtRGBA color;
@@ -1007,7 +986,7 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          MObject matObj = elem.asMObject();
          MFnMatrixData matData(matObj);
          MMatrix mm = matData.matrix();
-         CNodeTranslator::ConvertMatrix(am, mm);
+         m_tr.ConvertMatrix(am, mm);
          AiArraySetMtx(array, i, am);
       }
       break;
@@ -1167,10 +1146,9 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
             // When exporting to .ass, if shaders are exported but not shapes,
             // we want to keep track of the shading engine assignments (surface, volume, displacement)
             // so that we can eventually restore them later on when importing them (#4033)
-            if (node && m_session->GetSessionMode() == MTOA_SESSION_ASS)
+            if (node && m_session->IsFileExport())
             {
-               CRenderOptions* renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
-               unsigned int mask = (renderOptions) ? renderOptions->outputAssMask() : AI_NODE_ALL;
+               unsigned int mask = m_tr.GetSessionOptions().outputAssMask();
                if (mask & AI_NODE_SHADER && !(mask & AI_NODE_SHAPE))
                {
                   // Set the user data material_surface / material_volume on the root shader, 
@@ -1214,9 +1192,9 @@ void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
 {
    // Exporting User Attributes from override sets (#1741)
    for (std::vector<CNodeTranslator*>::const_iterator it = m_overrideSets.begin() ; it != m_overrideSets.end(); ++it)
-      CNodeTranslator::ExportUserAttributes(anode, (*it)->GetMayaObject(), &m_tr);
+      m_tr.ExportUserAttributes(anode, (*it)->GetMayaObject(), &m_tr);
  
-   CNodeTranslator::ExportUserAttributes(anode, m_tr.GetMayaObject(), &m_tr);
+   m_tr.ExportUserAttributes(anode, m_tr.GetMayaObject(), &m_tr);
    
    // Exporting the unexposed options parameter
    MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
@@ -1225,7 +1203,7 @@ void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
 }
 MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
 {
-   MString name = CNodeTranslator::GetArnoldNaming(m_tr.GetMayaObject());
+   MString name = m_tr.GetSessionOptions().GetArnoldNaming(m_tr.GetMayaObject());
 
    if (m_tr.DependsOnOutputPlug())
    {
@@ -1237,81 +1215,12 @@ MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* ta
       name = name + AI_TAG_SEP + tag;
 
    // If name is alredy used, create a new one
-   if(AiNodeLookUpByName(name.asChar()))
+   if(AiNodeLookUpByName(m_tr.GetUniverse(), name.asChar()))
    {
       char tmpName[MAX_NAME_SIZE];
       name = NodeUniqueName(nodeType, tmpName);
    }
    return name;
-}
-
-void CNodeTranslatorImpl::AddNamingOptions(MString &name)
-{
-   const CSessionOptions &options = CNodeTranslator::GetSessionOptions();
-
-   // What to do with the namespaces ? either keep them (ON), or strip them (OFF),
-   // or keep them only once at the root of the hierarchy (ROOT) as if it was a parent
-   unsigned int exportNamespace = options.GetExportNamespace();
-   if (exportNamespace != MTOA_EXPORT_NAMESPACE_ON)
-   {
-      MString origStr;
-      while(true)
-      {
-         // store the name at the beginning of each iteration, in order to ensure
-         // it does change and we don't enter an infinite loop
-         origStr = name; 
-         
-         int namespaceEnd = name.indexW(':');
-         if (namespaceEnd < 0)
-            break;
-
-         const char *data = name.asChar();
-         int namespaceBegin = namespaceEnd-1;
-         for (; namespaceBegin >= 0; namespaceBegin--)
-         {
-            // Found the beginning of the namespace
-            if (data[namespaceBegin] == '|')
-               break;
-         }
-         MString namespaceStr = (namespaceBegin < 0) ? 
-               MString("|") + name.substringW(0, namespaceEnd) :
-               name.substringW(namespaceBegin, namespaceEnd);
-         
-         if (exportNamespace == MTOA_EXPORT_NAMESPACE_OFF)
-         {
-            if (namespaceBegin < 0)
-               name = name.substringW(namespaceEnd + 1, name.length() -1);
-         
-         } else if (exportNamespace ==  MTOA_EXPORT_NAMESPACE_ROOT)
-         {
-            MString tmpStr = name.substringW(0, namespaceEnd - 1) + MString("|");
-            name = tmpStr + name.substringW(namespaceEnd + 1, name.length() -1); // replace the ':' by a '|'
-         }
-         name.substitute(namespaceStr, MString("|")); 
-
-         if (name == origStr)
-         {
-            // Mayday, we have a problem, the name hasn't changed at all and we're going 
-            // to enter an infinite loop. Let's get out of here before it explodes.
-            // store the name at the beginning of each iteration
-            AiMsgError("[mtoa] Namespace couldn't be stripped from name %s", name.asChar());
-            break;
-         }
-      }
-   }
-
-   // replace all pipes by slashes if the separator is set to "/"
-   if (options.GetExportSeparator() == MTOA_EXPORT_SEPARATOR_SLASHES)
-      name.substitute(MString("|"), MString ("/"));
-   
-   const MString &prefix = options.GetExportPrefix();
-   if (prefix.length() > 0) {
-      name = prefix + name;
-
-      // Ensure we don't have double-slashes, that cause problems in some formats
-      if (options.GetExportSeparator() == MTOA_EXPORT_SEPARATOR_SLASHES)
-         name.substitute(MString("//"), MString ("/"));
-   }
 }
 
 // check if an AtArray is animated,  i.e. has different values on multiple keys
@@ -1470,7 +1379,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
 
    // if motion length is null, return true otherwise next change won't be updated properly
    double motion_start, motion_end;
-   m_session->GetMotionRange(motion_start, motion_end);
+   m_session->GetOptions().GetMotionRange(motion_start, motion_end);
    if (std::abs(motion_end - motion_start) < AI_EPSILON)
       return true;
 
