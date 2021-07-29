@@ -626,8 +626,6 @@ class ImagersUI(QtWidgets.QFrame):
 
             self.attributeScrollArea.setWidget(self.scrollAreaWidgetContents)
 
-            self.imagerAttributesFrame = None
-
             self.imagerStack.itemSelected.connect(self.showItemProperties)
             self.imagerStack.itemRemoved.connect(self.updateImagers)
 
