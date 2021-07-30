@@ -12,10 +12,10 @@ for f in files:
 # We are expecting exactly 2 pngs : testrender_beauty.png and testrender_Z.png
 
 if num_png == 2:
-	print 'OK'
+	print('OK')
 	shutil.copy('ok.tif', 'testrender.tif')
 else:
-	print 'FAIL'
+	print('FAIL')
 	shutil.copy('fail.tif', 'testrender.tif')
 
 

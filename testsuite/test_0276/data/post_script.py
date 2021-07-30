@@ -24,7 +24,7 @@ success = True
 try:
 	from arnold import *
 
-	print 'Testing original scene'
+	print('Testing original scene')
 	AiBegin()
 	AiASSLoad('test.ass')
 	
@@ -37,7 +37,7 @@ try:
 	success = success and AiNodeLookUpByName('lambert1')
 	AiEnd()
 
-	print 'Testing Full Path Export'
+	print('Testing Full Path Export')
 	AiBegin()
 	AiASSLoad('test_fp.ass')
 	success = True
@@ -49,7 +49,7 @@ try:
 	success = success and AiNodeLookUpByName('lambert1')
 	AiEnd()
 
-	print 'Testing Name Prefix'
+	print('Testing Name Prefix')
 	AiBegin()
 	AiASSLoad('test_pr.ass')
 	success = True
@@ -61,7 +61,7 @@ try:
 	success = success and AiNodeLookUpByName('pref_lambert1')
 	AiEnd()
 
-	print 'Testing Full path AND Name Prefix'
+	print('Testing Full path AND Name Prefix')
 	AiBegin()
 	AiASSLoad('test_fp_pr.ass')
 	success = True
@@ -74,14 +74,14 @@ try:
 	AiEnd()
 
 	if success:
-		print 'OK'
+		print('OK')
 		shutil.copy('ok.tif', 'testrender.tif')
 	else:
-		print 'FAIL'
+		print('FAIL')
 		shutil.copy('fail.tif', 'testrender.tif')
 
-except RuntimeError, err:
-	print err
+except RuntimeError as err:
+	print(err)
 
 sys.path = previousSysPath
 os.environ['PATH'] = previousPath
