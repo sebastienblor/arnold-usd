@@ -21,7 +21,7 @@
 #include "attributes/Components.h"
 
 
-CArnoldSession::CArnoldSession(bool initOptions)
+CArnoldSession::CArnoldSession(bool initOptions, bool defaultUniverse)
 {
    MSelectionList list;
 
@@ -33,7 +33,7 @@ CArnoldSession::CArnoldSession(bool initOptions)
       MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
       
    }*/
-   m_universe = AiUniverse();
+   m_universe = (defaultUniverse) ? nullptr : AiUniverse();
    m_isExportingMotion = false;
    m_renderSession = nullptr;
    m_motionStep = 0;
@@ -351,10 +351,13 @@ void CArnoldSession::Clear()
       AiRenderSessionDestroy(m_renderSession);
       m_renderSession = nullptr;
    }
+   // if we had an explicit universe, let's create a new one
    if (m_universe)
+   {      
       AiUniverseDestroy(m_universe);
+      m_universe = AiUniverse();
+   }
    
-   m_universe = AiUniverse();
    m_lightLinks.ClearLightLinks();
    m_lightLinks.SetUniverse(m_universe);
    m_updateLightLinks = true;

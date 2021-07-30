@@ -1,0 +1,47 @@
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'MASH_Audio.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 8: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 13: filePathEditor: Attribute 'svgToPoly.svgFilepath' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been registered already.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+00:00:00   221MB ERROR   | [mtoa.attr] Arnold parameter "options.preserve_scene_data" does not exist.
+00:00:00   229MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   229MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+polySphere -r 1 -sx 20 -sy 20 -ax 0 1 0 -cuv 2 -ch 1;
+Result: pSphere1 polySphere1
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0 -s 8 -ch 1; objectMoveCommand;
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0 -s 8 -ch 1; objectMoveCommand;
+Successfully deregistered renderer 'arnold'
+Successfully deregistered Arnold nodes
+[mtoa] Successfully deregisterdd 'arnoldRender' command.
+[mtoa] Successfully deregisterdd 'arnoldIpr' command.
+[mtoa] Successfully deregisterdd 'arnoldBakeGeo' command.
+[mtoa] Successfully deregisterdd 'arnoldRenderToTexture' command.
+[mtoa] Successfully deregisterdd 'arnoldExportAss' command.
+[mtoa] Successfully deregisterdd 'arnoldPlugins' command.
+[mtoa] Successfully deregisterdd 'arnoldListAttributes' command.
+[mtoa] Successfully deregisterdd 'arnoldTemperatureToColor' command.
+[mtoa] Successfully deregisterdd 'arnoldFlushCache' command.
+[mtoa] Successfully deregisterdd 'arnoldCopyAsAdmin' command.
+[mtoa] Successfully deregisterdd 'arnoldRenderView' command.
+[mtoa] Successfully deregisterdd 'arnoldUpdateTx' command.
+[mtoa] Successfully deregisterdd 'arnoldScene' command.
+[mtoa] Successfully deregisterdd 'arnoldLicense' command.
+Successfully deregistered Arnold material view renderer
+Successfully deregistered Arnold swatch renderer
+Successfully deregistered tx texture file
+Successfully deregistered Arnold ass file exporter
+Successfully deregistered Arnold ass file importer
+Warning: file: C:/Users/blaines/Documents/maya/projects/default/scenes/test1.ma line 361: Selected nodes were ignored since the 'scene' flag was used.
+Warning: particleShape1: No cache file found for this object, runup may be needed. Check your workspace particles directory.
+Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
+Warning: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
+File read in  0.024 seconds.
+post_script

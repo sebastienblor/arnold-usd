@@ -43,7 +43,7 @@ public:
    // Map dag object handles to primary instance
    typedef unordered_map<MObjectHandle, MDagPath> ObjectHandleToDagMap;
 
-   CArnoldSession(bool initOptions = true);
+   CArnoldSession(bool initOptions = true, bool defaultUniverse = false);
    virtual ~CArnoldSession();
 
    // return the list of renderable cameras in the scene

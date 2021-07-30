@@ -43,13 +43,59 @@ static inline CArnoldSession *InitArnoldSceneSession()
    CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
    if (session == nullptr)
    {
-      session = new CArnoldSession();
+      // here we want to use the default (implicit) universe.
+      // The goal of this command is for users to convert a scene in memory
+      // and then access it through the arnold API. For this to work, we need the
+      // nodes to be in the default universe
+      session = new CArnoldSession(true, true); 
       CSessionManager::AddActiveSession(s_arnoldSceneSessionId, session);
    }
    return session;
 }
 
+static inline MSelectionList ComputeSelectionList(const MArgDatabase &args)
+{
+   MSelectionList sList;
+   MStringArray sListStrings;
+   args.getObjects(sListStrings);   
+   const unsigned int sListStringsLength = sListStrings.length();
+   
+   if (sListStringsLength > 0)
+   {
+      for (unsigned int i = 0; i < sListStringsLength; ++i)
+      {
+         sList.add(sListStrings[i]);
+      }
+   }
+   else
+      MGlobal::getActiveSelectionList(sList);
 
+   return sList;
+}
+static inline void GetTranslatorsList(const MSelectionList &sel, CArnoldSession *session, std::vector<CNodeTranslator*> &translators)
+{   
+   translators.clear();
+   translators.reserve(sel.length());
+   for (unsigned int i = 0; i < sel.length(); ++i)
+   {
+      MStatus listStatus;
+      MDagPath dag;
+      MObject objNode;
+      CNodeTranslator *tr = NULL;
+      if (sel.getDagPath(i, dag) == MS::kSuccess)
+      {
+         dag.extendToShape();
+         tr = session->GetActiveTranslator(CNodeAttrHandle(dag));
+      } else if (sel.getDependNode(i, objNode) == MS::kSuccess)
+      {
+         tr = session->GetActiveTranslator(CNodeAttrHandle(objNode));
+      }
+      if (tr)
+      {
+         translators.push_back(tr);
+      }
+   }
+}
 MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 {
    
@@ -108,6 +154,7 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    {
       if (session)
       {
+         // This will delete all the AtNodes that were created in the default universe
          CSessionManager::DeleteActiveSession(s_arnoldSceneSessionId);
       }
    }
@@ -118,30 +165,12 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    else if (mode == "convert_selected") 
    {
       CArnoldSession *session = InitArnoldSceneSession();
+      
+      MSelectionList sel = ComputeSelectionList(args);
 
-      MSelectionList sList;
-      MStringArray sListStrings;
-      args.getObjects(sListStrings);   
+      session->Export(&sel);
 
-      const unsigned int sListStringsLength = sListStrings.length();
-
-
-      sList.clear();
-      if (sListStringsLength > 0)
-      {
-         for (unsigned int i = 0; i < sListStringsLength; ++i)
-         {
-            sList.add(sListStrings[i]);
-         }
-      }
-      else
-         MGlobal::getActiveSelectionList(sList);
-
-      MSelectionList sel(sList);
-
-      session->Export(&sList);
-
-      // Even though we called Export(&sList) we must ensure that each of the selected nodes was properly exported.
+      // Even though we called Export(&sel) we must ensure that each of the selected nodes was properly exported.
       // The problem is that this function is only exporting cameras, shapes, lights, etc... so it's not fully doing what we expect
       if (session)
       {
@@ -178,44 +207,26 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
       if (session == nullptr)
          return MS::kFailure;
-
-      MSelectionList sList;
-      MStringArray sListStrings;
-      args.getObjects(sListStrings);   
-      const unsigned int sListStringsLength = sListStrings.length();
-
-      sList.clear();
-      if (sListStringsLength > 0)
+      
+      MSelectionList sel = ComputeSelectionList(args);
+      std::vector<CNodeTranslator *> translators;
+      GetTranslatorsList(sel, session, translators);
+      for (auto tr : translators)
       {
-         for (unsigned int i = 0; i < sListStringsLength; ++i)
-         {
-            sList.add(sListStrings[i]);
-         }
+         tr->RequestUpdate();
       }
-      else
-         MGlobal::getActiveSelectionList(sList);
+   } else if (mode == "destroy_selected") 
+   {
+      CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
+      if (session == nullptr)
+         return MS::kFailure;
 
-      MSelectionList sel(sList);
-
-      for (unsigned int i = 0; i < sel.length(); ++i)
+      MSelectionList sel = ComputeSelectionList(args);
+      std::vector<CNodeTranslator *> translators;
+      GetTranslatorsList(sel, session, translators);
+      for (auto tr : translators)
       {
-         MStatus listStatus;
-         MDagPath dag;
-         MObject objNode;
-         CNodeTranslator *tr = NULL;
-         if (sel.getDagPath(i, dag) == MS::kSuccess)
-         {
-            dag.extendToShape();
-            tr = session->GetActiveTranslator(CNodeAttrHandle(dag));
-         } else if (sel.getDependNode(i, objNode) == MS::kSuccess)
-         {
-            tr = session->GetActiveTranslator(CNodeAttrHandle(objNode));
-         }
-
-         if (tr)
-         {
-            tr->RequestUpdate();
-         }            
+         session->EraseActiveTranslator(tr);      
       }
    }
    if (listAllNewNodes || listAllNodes)
