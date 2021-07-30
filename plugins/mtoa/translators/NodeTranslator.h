@@ -4,6 +4,7 @@
 #include "platform/Platform.h"
 #include "attributes/AttrHelper.h"
 #include "session/SessionOptions.h"
+#include "utils/MtoaLog.h"
 #include "extension/AbTranslator.h"
 
 #include <ai_nodes.h>
@@ -191,6 +192,13 @@ public:
    /// actually an IPR update
    bool IsExported() const;
 
+   /// Is this session exporting to a file ?
+   bool IsFileExport() const;
+   /// Is this a batch session ?
+   bool IsBatchSession() const;
+   /// Do we have update callbacks for this session ?
+   bool IsInteractiveSession() const;
+   
    /** Returns true if we are exporting the motion (i.e. changing the current frame). While exporting motion, the function
     ExportMotion will be invoked for all translators for whom RequiresMotionData is true
     \see ExportMotion
@@ -307,24 +315,16 @@ public:
    static void NodeInitializer(CAbTranslator context);
 
    /// Get the global CSessionOptions of the current scene.
-   static const CSessionOptions& GetSessionOptions();
+   const CSessionOptions& GetSessionOptions();
 
    /// Convert a matrix from Maya to Arnold data
-   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
-   
-   /// Get the Arnold name corresponding to a Maya object. For Dag nodes, prefer the function in CDagTranslator with a MDagPath argument
-   static MString GetArnoldNaming(const MObject &object);
-
-   // Request an update of the TX textures generation
-   static void RequestTxUpdate();
-   /// Request an update of light links in the scene
-   static void RequestLightLinksUpdate();
-
-   /// Get the MtoA Translator associated to a Maya object in the scene
-   static CNodeTranslator *GetTranslator(const MObject &object);
-   /// Get the MtoA Translator associated to a Maya DAG node in the scene
-   static CNodeTranslator *GetTranslator(const MDagPath &dagPath);
+   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
       
+   // Request an update of the TX textures generation
+   void RequestTxUpdate();
+
+   AtUniverse *GetUniverse();
+   
    /// Callback used to be adverted of changes in the scene. Can be used in AddUpdateCallbacks when the parent function isn't called.
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
    /// Callback used to be adverted of object's name modifications. Can be used in AddUpdateCallbacks when the parent function isn't called.
@@ -333,24 +333,23 @@ public:
    static void NodeAboutToBeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
 
    /// Export the MObject user attributes to the given Arnold node. This is only needed when the target AtNode is different than GetArnoldNode()
-   static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
+   void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
 
 //-----------------------------------------
 //------ Shortcuts to get information from the global CSessionOptions
 
    /// Get the frame being exported
-   static double GetExportFrame();
+   double GetExportFrame();
    /// Get the status of global motion blur for a specific motion type
-   static bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY);
-   /// Get the ArnoldSessionMode of current export (IPR, Render, Batch, .ASS Export, etc...)
-   static ArnoldSessionMode GetSessionMode();
+   bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY);
    /// Get the Maya Object containing the Arnold global options
-   static const MObject& GetArnoldRenderOptions();
+   const MObject& GetArnoldRenderOptions();
    /// Get the shutter length for motion blur
-   static double GetMotionByFrame();
+   double GetMotionByFrame();
    /// Get the list of motion steps that being processed by current export
-   static const double *GetMotionFrames(unsigned int &count);
+   const double *GetMotionFrames(unsigned int &count);
 
+   const std::vector<CNodeTranslator*> &GetConnectedTranslators() const;
 
 /// Class destructor
    virtual ~CNodeTranslator();

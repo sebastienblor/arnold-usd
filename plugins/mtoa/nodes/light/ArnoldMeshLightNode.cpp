@@ -180,7 +180,7 @@ void CArnoldMeshLightNode::AttrChangedCallback(MNodeMessage::AttributeMessage ms
                MMessage::removeCallback(node->m_meshDirtyId);
             }
             MObject otherPlugObject = otherPlug.node();
-            node->m_meshDirtyId = MNodeMessage::addNodeDirtyCallback(otherPlugObject, MeshDirtyCallback, node);
+            node->m_meshDirtyId = MNodeMessage::addNodeDirtyPlugCallback(otherPlugObject, MeshDirtyCallback, node);
             node->scheduleGeometryUpdate();
          }
       }

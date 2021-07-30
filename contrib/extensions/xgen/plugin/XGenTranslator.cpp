@@ -193,7 +193,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
 #endif
 
       // In Batch render, file name has a number added. Get the original name
-      if(GetSessionOptions().IsBatch())
+      if(IsBatchSession() || IsFileExport())
       {
          int exists = 0;
             MGlobal::executeCommand("objExists arnoldBatchNode.mtoaOrigFileName", exists);
@@ -433,7 +433,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       {
          // Export Camera isn't set in the options for some reason, let's see if it
          // has been set on arnold options side
-         AtNode *arnoldCamera = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+         AtNode *arnoldCamera = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(AiNodeGetUniverse(procedural)), "camera");
          if (arnoldCamera)
          {
             MSelectionList camList;
@@ -581,11 +581,11 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       bool batchModeOk = false;
       
       // if maya session is in batch or  xgen render mode is batch we want to 
-      if(GetSessionOptions().IsBatch() || (info.renderMode == 3))
+      if(IsBatchSession() || IsFileExport() || (info.renderMode == 3))
       {
          batchModeOk = true;
       }
-
+      
       // check if we don't have an alembic
       if (!info.hasAlembicFile) // we don't have the alembic
       {
@@ -1011,9 +1011,9 @@ void CXgDescriptionTranslator::PostExport(AtNode *node)
    // For now we're only expanding the procedurals during export if we are on an interactive render
    // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
    // can be updated while tweaking the XGen attributes
-   if (GetSessionOptions().GetSessionMode() == MTOA_SESSION_ASS)
+   if (IsFileExport())
       return;
-
+   
    ExpandProcedural();
 }
 

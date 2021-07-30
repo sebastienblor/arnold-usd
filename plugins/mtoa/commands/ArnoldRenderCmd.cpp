@@ -1,6 +1,7 @@
 #include "ArnoldRenderCmd.h"
-#include "scene/MayaScene.h"
 #include "render/OutputDriver.h"
+#include "session/ArnoldRenderSession.h"
+#include "session/SessionManager.h"
 #include "utils/FileUtils.h"
 
 #include <ai_msg.h>
@@ -25,7 +26,7 @@
 #include <sstream>
 #include <set>
 
-extern const AtNodeMethods* batch_progress_driver_mtd;
+static const std::string s_arnoldRenderSessionId("arnoldRender");
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -43,12 +44,21 @@ MSyntax CArnoldRenderCmd::newSyntax()
    return syntax;
 }
 
+
+enum RenderType
+{
+   MTOA_RENDER_INTERACTIVE,
+   MTOA_RENDER_EXPORTASS,
+   MTOA_RENDER_EXPORTASS_AND_KICK
+};
+
+
 MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 {
+
    MStatus status;
    MArgDatabase args(syntax(), argList);
    MDagPath dagPath;
-
    
    const bool batch = args.isFlagSet("batch") ? true : false;
    const bool sequence = args.isFlagSet("frameSequence") ? true : false;
@@ -57,17 +67,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-   /* Ticket #2377 : 
-   Commenting this for now, as we don't know if we really want ARV to be used for sequence rendering
+   // Ticket #2377 : 
+   //Commenting this for now, as we don't know if we really want ARV to be used for sequence rendering
    
-   if (sequence && !batch)
-   {
+   //if (sequence && !batch)
+   //{
       // Sequence interactive rendering
       // RenderSession will try to render it with the Arnold RenderView.
       // If it can't it will return false, and we'll keep using Maya's native one
-      if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
-   }
-   */
+   //   if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
+   //}
+   
 
    // Rendered camera
    MString camera = "";
@@ -93,37 +103,32 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
 
-   // FIXME: just a fast hack, should rehaul CRenderOptions code
-   // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
-   // TODO : use MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
-   // code to support compressed output filename too
-   short renderType = 0;
-   bool outputAssBoundingBox = false;
-   bool useBinaryEncoding = true;
-   bool forceTranslateShadingEngines = false;
-   bool progressiveRefinement = true;
-   bool exportAllShadingGroups = false;
-   bool exportFullPaths = false;
-   
-   MSelectionList list;
-   MObject node;
-   list.add("defaultArnoldRenderOptions");
-   bool expandProcedurals = false;
-   MString kickRenderFlags = "";
-   if (list.length() > 0)
+   CArnoldRenderSession *session = (CArnoldRenderSession *)CSessionManager::FindActiveSession(s_arnoldRenderSessionId);
+   if (session == nullptr)
    {
-      list.getDependNode(0, node);
-      MFnDependencyNode fnArnoldRenderOptions(node);
-      renderType = fnArnoldRenderOptions.findPlug("renderType", true).asShort();
-      outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox", true).asBool();
-      expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals", true).asBool();
-      kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags", true).asString();
-      useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss", true).asBool();
-      forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines", true).asBool();
-      progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering", true).asBool();
-      exportAllShadingGroups = fnArnoldRenderOptions.findPlug("exportAllShadingGroups", true).asBool();
-      exportFullPaths = fnArnoldRenderOptions.findPlug("exportFullPaths", true).asBool();
+      session = new CArnoldRenderSession();
+      CSessionManager::AddActiveSession(s_arnoldRenderSessionId, session);
+   }// else : FIXME what to do if the session already exists ??
+   else
+   {
+      session->Clear();
    }
+
+   CSessionOptions &sessionOptions = session->GetOptions();
+   MFnDependencyNode fnArnoldRenderOptions(sessionOptions.GetArnoldRenderOptions());
+  
+   bool outputAssBoundingBox = sessionOptions.outputAssBoundingBox();
+   bool expandProcedurals = sessionOptions.expandProcedurals();
+   bool useBinaryEncoding = sessionOptions.useBinaryEncoding();
+   bool forceTranslateShadingEngines = sessionOptions.forceTranslateShadingEngines();
+   bool progressiveRefinement = sessionOptions.IsProgressive();
+   bool exportAllShadingGroups = sessionOptions.GetExportAllShadingGroups();
+   bool exportFullPaths = sessionOptions.GetExportFullPath();
+
+   // FIXME these 2 parameters are not part of the session options, what should we do with them ?
+   MString kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags", true).asString();
+   short renderType = fnArnoldRenderOptions.findPlug("renderType", true).asShort();
+      
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
       // FIXME: actual export code should be shared so we don't have to do this dirty call
@@ -232,7 +237,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             {
                MString msg = "[mtoa] Kick return code : ";
                msg += kickRet;
-               MGlobal::displayWarning(msg);
             }
 
             // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback?
@@ -255,14 +259,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (allPanelNames.length() > 0)
          renderViewPanelName = allPanelNames[0];
    }
-
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
-
-   //#3784 Closing other views (AVP) before rendring with Maya Render View
-   CRenderSession::CloseOtherViews("");
-   CMayaScene::End(); // In case we're already rendering (e.g. IPR).
-
+   
    // Check if in multiframe mode
    if (multiframe)
    {
@@ -317,7 +316,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                return MStatus::kFailure;
             }
 
-            MFnDependencyNode camDag(dagIterCameras.item());
+            MFnDependencyNode camDag(dagIterCameras.currentItem());
             if (camDag.findPlug("renderable", true).asBool())
             {
                cameras.append(dagPath);
@@ -379,33 +378,23 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MGlobal::executeCommand("exists renderLayerDisplayName", scriptExists);
       if (scriptExists)
          MGlobal::executeCommand("renderLayerDisplayName " + layerDisplayName, layerDisplayName);
-      
-      
 
       for (std::set<double>::const_iterator frameIt = frameSet.begin(); frameIt != frameSet.end(); ++frameIt)
       {
          const double framerender = *frameIt;
          MGlobal::viewFrame(framerender);
-         CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
+         MGlobal::executeCommand(renderGlobals.preRenderMel);
 
-         // FIXME: do we really need to reset everything each time?
-         CMayaScene::Begin(batch ? MTOA_SESSION_BATCH : MTOA_SESSION_SEQUENCE);
+         session->Clear(); // clear the session and re-export the scene from scratch
+         session->SetBatch(batch); // batch means that we're not displaying the render
+         sessionOptions.SetExportFrame(framerender);
+         sessionOptions.SetSupportStereoCameras(true);
 
-         CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-         CRenderSession* renderSession = CMayaScene::GetRenderSession();
-         arnoldSession->SetExportFrame(framerender);
-
-         CMayaScene::Export(selectedPtr);
-
+         session->Export(selectedPtr);
+         AtUniverse *universe = session->GetUniverse();
+         
          if (renderViewPanelName.length() > 0)
-            renderSession->SetRenderViewPanelName(renderViewPanelName);
-
-         if (port != -1)
-         {         
-            AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE,
-                           "batch_progress_driver", "mtoa",
-                           (AtNodeMethods*) batch_progress_driver_mtd, AI_VERSION);
-         }
+            session->GetOptions().SetRenderViewPanelName(renderViewPanelName);
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
@@ -413,51 +402,27 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
             // It is ok to set the camera here, because if camera is no set at export time,
             // all the cameras are exported during the export.
-            arnoldSession->SetExportCamera(cameraDagPath);
-            renderSession->SetResolution(width, height);
-
-            // append the batch progress driver at the end of the list if port flag has been added
-            if (port != -1)
-            {
-               AtNode* options = AiUniverseGetOptions();
-               AtArray* oldOutputs = AiNodeGetArray(options, "outputs");
-               const unsigned oldCount = AiArrayGetNumElements(oldOutputs);
-               AtArray* newOutputs = AiArrayAllocate(oldCount + 1, 1, AI_TYPE_STRING);
-               for (unsigned i = 0; i < oldCount; ++i)
-                  AiArraySetStr(newOutputs, i, AiArrayGetStr(oldOutputs, i));
-
-               AtNode* filterNode = AiNode("box_filter");
-               AiNodeSetStr(filterNode, "name", "progress_driver_filter");
-
-               AtNode* progressDriver = AiNode("batch_progress_driver");
-               AiNodeSetStr(progressDriver, "name", "progress_driver");
-               AiNodeSetInt(progressDriver, "port", port);
-
-               AiArraySetStr(newOutputs, oldCount, "Z FLOAT progress_driver_filter progress_driver");
-               AiNodeSetArray(options, "outputs", newOutputs);
-            }
+            session->SetExportCamera(cameraDagPath);
+            sessionOptions.SetResolution(width, height);
             
             if (batch)
             {
                // Skipt file render if it already exists
                if(renderGlobals.skipExistingFrames)
                {
-                  MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+                  MStringArray imageFilenames = session->GetActiveImageFilenames();
                   if(imageFilenames.length() > 0 && fileExists(imageFilenames[0].asChar()))
                   {
                         MGlobal::displayInfo("[mtoa] Skipping existing image: " + imageFilenames[0]);
                         continue;
                   }
                }
+               session->DisplayProgress(true);
 
-               int batchStatus = renderSession->DoBatchRender();
-               if (batchStatus != AI_SUCCESS)
+               if (!session->BatchRender())
                {
-                  CMayaScene::End();
                   MGlobal::displayError("[mtoa] Failed batch render");
-                  if(port != -1 && batchStatus == AI_ABORT) {
-                      MRenderUtil::sendRenderProgressInfo("", -111); // magic number for abort/kill
-                  }
+                  CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
                   return MS::kFailure;
                }
             }
@@ -475,7 +440,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                msg += layerDisplayName;
 
                MGlobal::displayInfo(msg);
-               MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+               MStringArray imageFilenames = session->GetActiveImageFilenames();
                
                // Skipt file render if it already exists
                if(renderGlobals.skipExistingFrames)
@@ -490,25 +455,19 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                for (size_t i = 0; i < imageFilenames.length(); ++i)
                   MGlobal::displayInfo("\t" + imageFilenames[i]);
 
-               int status = renderSession->DoInteractiveRender();
-               if (status != AI_SUCCESS)
+               if (!session->Render())
                {
-                  CMayaScene::End();
-                  if (status == AI_INTERRUPT)
-                     MGlobal::displayInfo("[mtoa] Sequence render aborted");
-                  else
-                     MGlobal::displayError("[mtoa] Failed sequence render");
                   return MS::kFailure;
                }
+               
                // Save the image to render view if requested
                if (saveToRenderView == "all" || saveToRenderView == MFnDependencyNode(cameraDagPath.transform()).name()) {
-                  CMayaScene::ExecuteScript("renderWindowMenuCommand(\"keepImageInRenderView\", \"" + renderViewPanelName + "\")");
+                  MGlobal::executeCommand("renderWindowMenuCommand(\"keepImageInRenderView\", \"" + renderViewPanelName + "\")");
                }
             }
          }
 
-         CMayaScene::End();
-         CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+         MGlobal::executeCommand(renderGlobals.postRenderMel);
          ++frameIndex;
       }
    }
@@ -524,39 +483,28 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // done for frame 1
       // MGlobal::viewFrame(currentFrame);
 
-      CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
+      MGlobal::executeCommand(renderGlobals.preRenderMel);
 
-      // CMayaScene::ExportAndRenderFrame(MTOA_SESSION_RENDER, selected);
+      if (MStatus::kSuccess == sel.getDagPath(0, camera)) session->SetExportCamera(camera, false);
+      sessionOptions.SetResolution(width, height);
 
-      CMayaScene::Begin(MTOA_SESSION_RENDER);
-
-      CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-
-      if (MStatus::kSuccess == sel.getDagPath(0, camera)) arnoldSession->SetExportCamera(camera);
-      CMayaScene::Export(selectedPtr);
-      renderSession->SetResolution(width, height);
-      // Set the render session camera.
-      renderSession->SetCamera(camera);
+      session->Export(selectedPtr);
+      
       // And render view panel
       if (renderViewPanelName.length() > 0)
-         renderSession->SetRenderViewPanelName(renderViewPanelName);
+         sessionOptions.SetRenderViewPanelName(renderViewPanelName);
 
       // Start the render.
-      int stat = renderSession->DoInteractiveRender();
-      
-      //See #3283 : we actually don't want the maya command to return failure. when we interrupt the render
-      if (stat != AI_SUCCESS && stat != AI_INTERRUPT)
-         status = MS::kFailure;
-        
+      if (!session->Render())
+         return MS::kFailure;
 
-      CMayaScene::End();
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel, false, true);
+      MGlobal::executeCommand(renderGlobals.postRenderMel, false, true);
+
 
       // Workaround for overriding the render view caption that Maya
       // sets after rendering is finished. Set the last caption again 
       // deferred to override Maya's caption.
-      const MString& captionCmd = GetLastRenderViewCaptionCommand();
+      const MString& captionCmd = session->GetLastRenderViewCaptionCommand();
       if (captionCmd != "")
       {
          MGlobal::executeCommandOnIdle(captionCmd, false);
@@ -564,6 +512,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       // DEBUG_MEMORY;
    }
+
+   CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
 
    return status;
 }

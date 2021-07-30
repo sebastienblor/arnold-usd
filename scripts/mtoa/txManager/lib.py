@@ -121,10 +121,8 @@ class TxProcessor(QtCore.QObject):
             return
 
         # first we need to make sure the options & color manager node were converted to arnold
-        arnoldUniverseActive = ai.AiUniverseIsActive()
-
-        if not arnoldUniverseActive:
-            cmds.arnoldScene(mode='create')
+        
+        cmds.arnoldScene(mode='create')
 
         ai.AiMsgSetConsoleFlags(ai.AI_LOG_INFO)
 
@@ -286,8 +284,7 @@ class TxProcessor(QtCore.QObject):
         utils.executeDeferred(self.txManager.on_refresh)
 
         # an arnold scene was created above, let's delete it now
-        if not arnoldUniverseActive:
-            cmds.arnoldScene(mode="destroy")
+        cmds.arnoldScene(mode="destroy")
 
         return True
 
@@ -399,10 +396,6 @@ def get_scanned_files(scan_attributes):
 def build_texture_data(textures, expand=True):
     '''Builds the texture's dictionary. If the expand flag is enabled, it will
     attempt to expand the variables in the path.'''
-    arnoldUniverseActive = ai.AiUniverseIsActive()
-    if not arnoldUniverseActive:
-        ai.AiBegin()
-
     for texture, texture_data in textures.items():
         if expand:
             texture_exp = makeTx.expandFilenameWithSearchPaths(texture)
@@ -449,8 +442,6 @@ def build_texture_data(textures, expand=True):
         for k,v in iinfo.items():
             textures[texture][k] = v
 
-    if not arnoldUniverseActive:
-        ai.AiEnd()
     return textures
 
 

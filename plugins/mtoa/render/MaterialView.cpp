@@ -3,11 +3,10 @@
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "utils/MtoAAdpPayloads.h"
-#include "scene/MayaScene.h"
-#include "render/RenderSession.h"
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/options/OptionsTranslator.h"
+#include "session/SessionManager.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/AttrHelper.h"
 
@@ -41,7 +40,9 @@ extern const AtNodeMethods* materialview_driver_mtd;
 CMaterialView* CMaterialView::s_instance = NULL;
 
 CMaterialView::CMaterialView()
-: m_activeShader(NULL)
+: m_arnoldSession(nullptr)
+, m_renderSession(nullptr)
+, m_activeShader(NULL)
 , m_dummyShader(NULL)
 , m_environmentLight(NULL)
 , m_environmentImage(NULL)
@@ -72,17 +73,17 @@ AtRenderStatus MaterialViewUpdateCallback(void *private_data, AtRenderUpdateType
       status = AI_RENDER_STATUS_PAUSED;
    else if (update_type == AI_RENDER_UPDATE_ERROR)
       status = AI_RENDER_STATUS_FAILED;
-
+   
    return status;
 }
-
+static int ass_counter = 0;
 
 MStatus CMaterialView::startAsync(const JobParams& params)
 {
+   std::lock_guard<AtMutex> guard(m_runningLock);
    if (!IsActive())
       return MStatus::kFailure;
 
-   CCritSec::CScopedLock sc(m_runningLock);
 
    // Guard for being called twice
    if (m_running)
@@ -95,20 +96,27 @@ MStatus CMaterialView::startAsync(const JobParams& params)
    m_job = params;
    m_terminationRequested = false;
    m_running = true;
-   
+
+   if (m_arnoldSession == nullptr || m_renderSession == nullptr)
+      BeginSession();
+
    InitOptions();
     
-   if (AiRenderGetStatus() != AI_RENDER_STATUS_NOT_STARTED)
+   if (AiRenderGetStatus(m_renderSession) != AI_RENDER_STATUS_NOT_STARTED)
    {
-      AiRenderInterrupt(AI_BLOCKING);
-      AiRenderEnd();
+      AiRenderInterrupt(m_renderSession, AI_BLOCKING);
+      AiRenderEnd(m_renderSession);
    }
 
-   AiRenderSetHintBool(AtString("progressive"), true);
-   AiRenderSetHintBool(AtString("progressive_show_all_outputs"), false);
-   AiRenderSetHintInt(AtString("progressive_min_AA_samples"), -3);
-   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
-   AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
+   // This will take care of "use existing Tx"
+   m_arnoldSession->ExportTxFiles();
+   
+   AiRenderSetHintBool(m_renderSession, AtString("progressive"), true);
+   AiRenderSetHintBool(m_renderSession, AtString("progressive_show_all_outputs"), false);
+   AiRenderSetHintInt(m_renderSession, AtString("progressive_min_AA_samples"), -3);
+   AiRenderSetHintStr(m_renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
+   
+   AiRenderBegin(m_renderSession, AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
 
    ScheduleRefresh();
 
@@ -117,13 +125,14 @@ MStatus CMaterialView::startAsync(const JobParams& params)
 
 MStatus CMaterialView::stopAsync()
 {
-   CCritSec::CScopedLock sc(m_runningLock);
+
+   std::lock_guard<AtMutex> guard(m_runningLock);
 
    m_terminationRequested = true;
    InterruptRender(true);
 
-   AiRenderInterrupt(AI_BLOCKING);
-   AiRenderEnd();
+   AiRenderInterrupt(m_renderSession, AI_BLOCKING);
+   AiRenderEnd(m_renderSession);
 
    m_running = false;
 
@@ -132,12 +141,13 @@ MStatus CMaterialView::stopAsync()
 
 bool CMaterialView::isRunningAsync()
 {
-   CCritSec::CScopedLock sc(m_runningLock);
+   std::lock_guard<AtMutex> guard(m_runningLock);
    return m_running;
 }
 
 MStatus CMaterialView::beginSceneUpdate()
 {
+   
    if (IsActive())
    {
       // Session is already active
@@ -149,17 +159,18 @@ MStatus CMaterialView::beginSceneUpdate()
       return MStatus::kSuccess;
    }
    // Begin a new session
+   InterruptRender();
    return BeginSession() ? MStatus::kSuccess : MStatus::kFailure;
 }
 
 
 MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
-
+   
+   std::lock_guard<AtMutex> guard(m_sceneLock);
+   
    // Make sure the renderer is stopped
    InterruptRender(true);
 
@@ -179,11 +190,10 @@ MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
 
 MStatus CMaterialView::translateLightSource(const MUuid& id, const MObject& node)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
-
+   
+   std::lock_guard<AtMutex> guard(m_sceneLock);
    // Make sure the renderer is stopped
    InterruptRender(true);
 
@@ -196,11 +206,11 @@ MStatus CMaterialView::translateLightSource(const MUuid& id, const MObject& node
 
 MStatus CMaterialView::translateCamera(const MUuid& id, const MObject& node)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
-
+   
+   std::lock_guard<AtMutex> guard(m_sceneLock);
+   
    // Make sure the renderer is stopped
    InterruptRender(true);
 
@@ -213,17 +223,18 @@ MStatus CMaterialView::translateCamera(const MUuid& id, const MObject& node)
 
 MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType type)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
 
+   std::lock_guard<AtMutex> guard(m_sceneLock);
+   
    // Make sure the renderer is stopped
    InterruptRender(true);
-
+   AtUniverse *universe= m_arnoldSession->GetUniverse();
+   
    if (!m_environmentLight)
    {
-       m_environmentLight = AiNode("skydome_light");
+       m_environmentLight = AiNode(universe, "skydome_light");
        AiNodeSetStr(m_environmentLight, "name", "mtrlViewSkyDome");
        AiNodeSetInt(m_environmentLight, "format", 2);
        AiNodeSetRGB(m_environmentLight, "color", 0.1f, 0.1f, 0.1f);
@@ -233,7 +244,7 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
    }
    if (!m_environmentImage)
    {
-       m_environmentImage = AiNode("image");
+       m_environmentImage = AiNode(universe, "image");
        AiNodeSetStr(m_environmentImage, "name", "mtrlViewSkyDomeImage");
    }
 
@@ -242,13 +253,13 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
 
 MStatus CMaterialView::translateTransform(const MUuid& id, const MUuid& childId, const MMatrix& mayaMatrix)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
 
+   std::lock_guard<AtMutex> guard(m_sceneLock);
+   
    CNodeTranslator* translator = NULL;
-
+   
    TranslatorLookup::iterator it = m_translatorLookup.find(id);
    if (it != m_translatorLookup.end())
    {
@@ -285,19 +296,19 @@ MStatus CMaterialView::translateTransform(const MUuid& id, const MUuid& childId,
 
 MStatus CMaterialView::translateShader(const MUuid& id, const MObject& node)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
-
+   
+   std::lock_guard<AtMutex> guard(m_sceneLock);
+   
    // Make sure the renderer is stopped 
-   if (AiRenderGetStatus() == AI_RENDER_STATUS_RENDERING)
+   if (AiRenderGetStatus(m_renderSession) == AI_RENDER_STATUS_RENDERING)
    {
-      AiRenderInterrupt(AI_BLOCKING);
+      AiRenderInterrupt(m_renderSession, AI_BLOCKING);
    }
-//   InterruptRender(true);
+   InterruptRender(true);
 
-   if (!TranslateNode(id, node))
+   if (!TranslateNode(id, node, MV_UPDATE_DEFAULT, true))
    {
       return MStatus::kFailure;
    }
@@ -321,11 +332,12 @@ MStatus CMaterialView::setProperty(const MUuid& id, const MString& name, float v
 
 MStatus CMaterialView::setProperty(const MUuid& id, const MString& name, const MString& value)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
+   
+   std::lock_guard<AtMutex> guard(m_sceneLock);
 
+   
    if (m_environmentLight && m_environmentImage)
    {
       static const MString s_imageFileStr("imageFile");
@@ -351,10 +363,10 @@ MStatus CMaterialView::setProperty(const MUuid& id, const MString& name, const M
 
 MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    if (!IsActive())
       return MStatus::kFailure;
+
+   std::lock_guard<AtMutex> guard(m_sceneLock);
    
    TranslatorLookup::iterator it = m_translatorLookup.find(id);
    if (it == m_translatorLookup.end())
@@ -390,19 +402,19 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
 
 MStatus CMaterialView::setResolution(unsigned int width, unsigned int height)
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
+   std::lock_guard<AtMutex> guard(m_sceneLock);
 
    m_width = width;
    m_height = height;
 
-   if (IsActive())
+   if (m_active)
    {
       // Resolution updates are not wrapped in begin/end calls
       // so we need to interrupt and schedule refresh explicitly here
 
-      InterruptRender();
+      InterruptRender(true);
 
-      AtNode* options = AiUniverseGetOptions();
+      AtNode* options = AiUniverseGetOptions(m_arnoldSession->GetUniverse());
       AiNodeSetInt(options, "xres", m_width);
       AiNodeSetInt(options, "yres", m_height);
 
@@ -414,13 +426,15 @@ MStatus CMaterialView::setResolution(unsigned int width, unsigned int height)
 
 MStatus CMaterialView::endSceneUpdate()
 {
-   if (AiRenderGetStatus() == AI_RENDER_STATUS_NOT_STARTED)
+   m_arnoldSession->ExportTxFiles();
+   if (AiRenderGetStatus(m_renderSession) == AI_RENDER_STATUS_NOT_STARTED)
    {
-      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
-      AiRenderBegin(AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
+      AiRenderSetHintStr(m_renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
+      AiRenderBegin(m_renderSession, AI_RENDER_MODE_CAMERA, MaterialViewUpdateCallback, (void*)this);
    }
-   else
-      AiRenderRestart();
+   else{
+      AiRenderRestart(m_renderSession);
+   }
    return MStatus::kSuccess;
 }
 
@@ -438,43 +452,43 @@ bool CMaterialView::isSafeToUnload()
 
 bool CMaterialView::BeginSession()
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
-   if (m_active)
+   std::lock_guard<AtMutex> guard(m_sceneLock);
+   if (m_active || m_arnoldSession)
    {
+      m_active = true;
       // We are already active. We should never get here.
       return true;
    }
+   //MSwatchRenderBase::enableSwatchRender(false);
 
-   // Make sure no other session is active. In that case we're not allowed to start.
-   // Except for swatch rendering which has a lower priority and will be disabled below.
-   if(CMayaScene::IsActive(MTOA_SESSION_ANY) && !CMayaScene::IsActive(MTOA_SESSION_SWATCH))
+   m_arnoldSession = (CArnoldSession *)CSessionManager::FindActiveSession("MaterialView");
+   if (!m_arnoldSession) 
    {
-      return false;
+      m_arnoldSession = new CArnoldSession();
+      CSessionManager::AddActiveSession("MaterialView", m_arnoldSession);
+      m_arnoldSession->SetCheckVisibility(false);
+      // do we really want to disable use existing TX ?
+      m_renderSession = m_arnoldSession->GetRenderSession();
    }
-
-   // We have higher priority than swatch rendering, so disable it.
-   // This will also cancell any active swatch rendering.
-   MSwatchRenderBase::enableSwatchRender(false);
-
-   // Begin a scene session in material view mode
-   CMayaScene::Begin(MTOA_SESSION_MATERIALVIEW);
+   CSessionOptions &sessionOptions = m_arnoldSession->GetOptions();
+   sessionOptions.SetUseExistingTx(true);
+   sessionOptions.SetAutoTx(false);
 
    // Install our driver
-   AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "materialview_display", "mtoa", (AtNodeMethods*) materialview_driver_mtd, AI_VERSION);
+   if (AiNodeEntryLookUp("materialview_display") == nullptr)
+      AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "materialview_display", "mtoa", (AtNodeMethods*) materialview_driver_mtd, AI_VERSION);
 
-   m_dummyShader = AiNode("utility");
+   m_dummyShader = AiNode(m_arnoldSession->GetUniverse(), "utility");
    AiNodeSetStr(m_dummyShader, "name", "mtrlViewDummyShader");
    AiNodeSetRGB(m_dummyShader, "color", 0.0f, 0.0f, 0.0f);
 
    m_active = true;
-
    return true;
 }
 
 void CMaterialView::EndSession()
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
+   std::lock_guard<AtMutex> guard(m_sceneLock);
 
    if (!m_active)
       return;
@@ -483,11 +497,7 @@ void CMaterialView::EndSession()
    InterruptRender(true);
 
    // Cleanup
-   for (TranslatorVector::iterator it = m_deletables.begin(); it != m_deletables.end(); ++it)
-   {
-      delete *it;
-   }
-   m_deletables.clear();
+   
    m_translatorLookup.clear();
    m_activeShader      = NULL;
    m_dummyShader       = NULL;
@@ -499,29 +509,31 @@ void CMaterialView::EndSession()
    m_active = false;
 
    // Uninstall our driver
-   AiNodeEntryUninstall("materialview_display");
+//   AiNodeEntryUninstall("materialview_display");
 
+   m_renderSession = nullptr;
+   CSessionManager::DeleteActiveSession("MaterialView");
+   m_arnoldSession = nullptr;
    // End our scene session
-   CMayaScene::End();
-
+   
    // Notify scene is destroyed
    SendProgress(-1);
-
    // Re-enable swatches
-   MSwatchRenderBase::enableSwatchRender(true);
+   //MSwatchRenderBase::enableSwatchRender(true);
+
 }
 
 bool CMaterialView::IsActive()
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
+   std::lock_guard<AtMutex> guard(m_sceneLock);
    return m_active;
 }
 
 void CMaterialView::InitOptions()
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
-   AtNode* options = AiUniverseGetOptions();
+   std::lock_guard<AtMutex> guard(m_sceneLock);
+   AtUniverse *universe = m_arnoldSession->GetUniverse();
+   AtNode* options = AiUniverseGetOptions(universe);
 
    // Set render camera
    TranslatorLookup::iterator it = m_translatorLookup.find(m_job.cameraId);
@@ -537,20 +549,18 @@ void CMaterialView::InitOptions()
    }
 
    // Setup display driver
-   AtNode* driver = AiNodeLookUpByName("materialview_display1");
+   AtNode* driver = AiNodeLookUpByName(universe, "materialview_display1");
    if (!driver)
    {
-      driver = AiNode("materialview_display");
-      AiNodeSetStr(driver, "name", "materialview_display1");
+      driver = AiNode(universe, "materialview_display", "materialview_display1");
    }
    AiNodeSetPtr(driver, "view", this);
 
    // Setup filter
-   AtNode* filter = AiNodeLookUpByName("materialview_filter1");
+   AtNode* filter = AiNodeLookUpByName(universe, "materialview_filter1");
    if (!filter)
    {
-      filter = AiNode("gaussian_filter");
-      AiNodeSetStr(filter, "name", "materialview_filter1");
+      filter = AiNode(universe, "gaussian_filter", "materialview_filter1");
    }
    AiNodeSetFlt(filter, "width", 2.0f);
 
@@ -566,6 +576,8 @@ void CMaterialView::InitOptions()
    AiNodeSetInt(options, "bucket_size", 32);
    AiNodeSetStr(options, "pin_threads", "off");
    AiNodeSetInt(options, "threads", m_job.maxThreads);
+   AiNodeSetBool(options, "texture_automip", false);
+   
 
    // displacement not correctly supported in material viewer yet
    // just ignoring it for now
@@ -596,7 +608,7 @@ void CMaterialView::InitOptions()
       // FIXME this code is duplicated from OptionsTranslator, we should rather handle the whole export from there
       if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
       {
-         MPlug gpuPlug = fnArnoldRenderOptions.findPlug("renderDevice");
+         MPlug gpuPlug = fnArnoldRenderOptions.findPlug("renderDevice", true);
          if (!gpuPlug.isNull())
             gpuRender = gpuPlug.asBool();
 
@@ -605,16 +617,16 @@ void CMaterialView::InitOptions()
       if (gpuRender)
       {
 
-         MString gpu_default_names = fnArnoldRenderOptions.findPlug("gpu_default_names").asString();
+         MString gpu_default_names = fnArnoldRenderOptions.findPlug("gpu_default_names", true).asString();
          AiNodeSetStr(options, "gpu_default_names", AtString(gpu_default_names.asChar()));
-         AiNodeSetInt(options, "gpu_default_min_memory_MB",fnArnoldRenderOptions.findPlug("gpu_default_min_memory_MB").asInt());
+         AiNodeSetInt(options, "gpu_default_min_memory_MB",fnArnoldRenderOptions.findPlug("gpu_default_min_memory_MB", true).asInt());
          
          bool autoSelect = true;
-         MPlug manualDevices = fnArnoldRenderOptions.findPlug("manual_gpu_devices");
+         MPlug manualDevices = fnArnoldRenderOptions.findPlug("manual_gpu_devices", true);
          if (manualDevices.asBool())
          {  // Manual Device selection
             std::vector<unsigned int> devices;
-            MPlug gpuDevices = fnArnoldRenderOptions.findPlug("render_devices");
+            MPlug gpuDevices = fnArnoldRenderOptions.findPlug("render_devices", true);
             if (!gpuDevices.isNull())
             {
                unsigned int numElements = gpuDevices.numElements();
@@ -647,10 +659,8 @@ void CMaterialView::InitOptions()
       //AiNodeSetInt(options, "AA_samples_max", 6);
 
    }
-   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-   if (arnoldSession)
-      arnoldSession->ExportColorManager();
-
+   
+   m_arnoldSession->ExportColorManager();
    
 }
 
@@ -659,48 +669,48 @@ void CMaterialView::InterruptRender(bool waitFinished)
    {
       // Remove any scheduled refresh and 
       // set interrupt state
-      CCritSec::CScopedLock sc(m_refreshLock);
+      std::lock_guard<AtMutex> guard(m_refreshLock);
       m_refreshAllowed = false;
       m_refreshEvent.unset();
       m_interrupted = true;
    }
 
-   if (AiRenderGetStatus() != AI_RENDER_STATUS_NOT_STARTED)
+   if (AiRenderGetStatus(m_renderSession) != AI_RENDER_STATUS_NOT_STARTED)
    {
-      AiRenderInterrupt((waitFinished) ? AI_BLOCKING : AI_NON_BLOCKING);
+      AiRenderInterrupt(m_renderSession, (waitFinished) ? AI_BLOCKING : AI_NON_BLOCKING);
    }
 }
 
 void CMaterialView::ScheduleRefresh()
 {
-   CCritSec::CScopedLock sc(m_refreshLock);
+   std::lock_guard<AtMutex> guard(m_refreshLock);
    m_refreshAllowed = true;
    m_refreshEvent.set();
 }
 
 void CMaterialView::DoSuspend()
 {
-   CCritSec::CScopedLock sc(m_runningLock);
+   std::lock_guard<AtMutex> guard(m_runningLock);
    if (!m_suspended)
    {
       m_suspended = true;
-      CMayaScene::ExecuteScript("renderer -materialViewRendererSuspend true");
+      MGlobal::executeCommand("renderer -materialViewRendererSuspend true");
    }
 }
 
 void CMaterialView::DoResume()
 {
-   CCritSec::CScopedLock sc(m_runningLock);
+   std::lock_guard<AtMutex> guard(m_runningLock);
    if (m_suspended)
    {
       m_suspended = false;
-      CMayaScene::ExecuteScript("renderer -materialViewRendererSuspend false");
+      MGlobal::executeCommand("renderer -materialViewRendererSuspend false");
    }
 }
 
 void CMaterialView::DoAbort()
 {
-   CCritSec::CScopedLock sc(m_runningLock);
+   std::lock_guard<AtMutex> guard(m_runningLock);
    if (IsActive())
    {
       if (isRunningAsync()) {
@@ -710,15 +720,24 @@ void CMaterialView::DoAbort()
    }
 }
 
-AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int updateMode)
+AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int updateMode, bool updateConnections)
 {
    AtNode* arnoldNode = NULL;
 
-   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
+   if (m_arnoldSession == nullptr)
+      return nullptr;
 
    TranslatorLookup::iterator it = m_translatorLookup.find(id);
    if (it == m_translatorLookup.end())
    {
+      CNodeTranslator* translator = m_arnoldSession->ExportNode(node);
+      if (translator)
+      {
+         m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));         
+         arnoldNode = translator->GetArnoldNode();
+      }
+      
+      /*
       CNodeTranslator* translator = CExtensionsManager::GetTranslator(node);
       if (translator)
       {
@@ -726,12 +745,14 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
          arnoldNode = translator->m_impl->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
-      }
+      }*/
    }
    else
    {
       CNodeTranslator* translator = it->second;
-      arnoldNode = UpdateNode(translator, updateMode);
+      AtNode *trNode = translator->GetArnoldNode();
+      arnoldNode = UpdateNode(translator, updateMode, updateConnections);
+
    }
 
    if (arnoldNode)
@@ -751,9 +772,9 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
 AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, int updateMode)
 {
    AtNode* arnoldNode = NULL;
-
-   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-
+   if (m_arnoldSession == nullptr)
+      return nullptr;
+   
    TranslatorLookup::iterator it = m_translatorLookup.find(id);
    if (it == m_translatorLookup.end())
    {
@@ -761,13 +782,11 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       MDagPath::getAPathTo(node, dagPath);
       dagPath.extendToShape();
 
-      CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+      CDagTranslator *translator = m_arnoldSession->ExportDagPath(dagPath);
       if (translator)
       {
-         translator->m_impl->Init(arnoldSession, dagPath);
-         arnoldNode = translator->m_impl->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
-         m_deletables.push_back(translator);
+         arnoldNode = translator->GetArnoldNode();
       }
    }
    else
@@ -791,19 +810,29 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
    {
       AiMsgError("Failed to export DAG node %s", MFnDagNode(node).fullPathName().asChar());
    }
-
    return arnoldNode;
 }
 
-AtNode* CMaterialView::UpdateNode(CNodeTranslator* translator, int updateMode)
+AtNode* CMaterialView::UpdateNode(CNodeTranslator* translator, int updateMode, bool updateConnections)
 {
+   AtNode *node = nullptr;
    if (updateMode == MV_UPDATE_RECREATE)
    {
       translator->Delete();
       translator->m_impl->DoCreateArnoldNodes();
-      return translator->m_impl->DoExport();
+      node = translator->m_impl->DoExport();
+   } else
+      node = translator->m_impl->DoUpdate();
+
+   if (updateConnections)
+   {
+      const std::vector<CNodeTranslator *> &references = translator->m_impl->m_references;
+      for (auto childTr : references)
+      {
+         UpdateNode(childTr, updateMode, true);
+      }
    }
-   return translator->m_impl->DoUpdate();
+   return node;
 }
 
 void CMaterialView::SendBucketToView(unsigned int left, unsigned int right, unsigned int bottom, unsigned int top, void* data)

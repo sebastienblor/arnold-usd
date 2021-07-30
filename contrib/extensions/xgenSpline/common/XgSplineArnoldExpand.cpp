@@ -112,7 +112,7 @@ void XgSplineProcedural::CreateCurves(AtNode* procedural, bool procParent)
    // Inherit the name from the procedural
    const std::string proceduralName = AiNodeGetName(procedural);
    const std::string curvesName     = proceduralName + "_curves";
-   _curves = AiNode("curves", curvesName.c_str(), procParent ? procedural : NULL);
+   _curves = AiNode(AiNodeGetUniverse(procedural), "curves", curvesName.c_str(), procParent ? procedural : NULL);
 
    // XGen is using uniform bsplines
    AiNodeSetStr(_curves, "basis", "b-spline");

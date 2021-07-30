@@ -24,8 +24,6 @@ void CArnoldOperatorNode::postConstructor()
    // TODO: use a metadata to define this
    setExistWithoutInConnections(true);
    setExistWithoutOutConnections(true);
-   // No compute anyway
-   setMPSafe(false);
    // Copy the abstract so that it can accessed on instances
    // (and saved before a new register overwrites it)
    m_abstract = s_abstract;

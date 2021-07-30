@@ -48,7 +48,7 @@ void CArnoldLightPortalNode::postConstructor()
 {
    // Call parent postConstructor as it is not done automatically as the parent constructor
    MPxLocatorNode::postConstructor();
-   setMPSafe(true);
+
 }
 
 MStatus CArnoldLightPortalNode::compute(const MPlug& plug, MDataBlock& block)

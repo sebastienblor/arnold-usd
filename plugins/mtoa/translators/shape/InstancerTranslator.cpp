@@ -9,7 +9,6 @@
 
 #include "InstancerTranslator.h"
 #include <maya/MFnDagNode.h>
-#include <scene/MayaScene.h>
 #include "utils/time.h"
 #include "utils/MtoaLog.h"
 
@@ -395,7 +394,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          {
             m_cloneInstances.push_back(false); // standard gInstance of node will be created
          }
-         m_objectNames.append(CDagTranslator::GetArnoldNaming(dagPathMaster).asChar());
+         m_objectNames.append(GetSessionOptions().GetArnoldNaming(dagPathMaster).asChar());
          m_objectDagPaths.append(dagPathMaster);
       }
       // Done export object masters
@@ -654,7 +653,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
    if(m_particleIDMap.size() == 0)
       return;
    
-   MString baseName = CDagTranslator::GetArnoldNaming(GetMayaDagPath());
+   MString baseName = GetSessionOptions().GetArnoldNaming(GetMayaDagPath());
 
    int globalIndex = 0;
    
@@ -671,7 +670,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
          if (idx >= (int)m_objectNames.length()) continue;
 
          AtNode *instance = NULL;
-         AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
+         AtNode* obj = AiNodeLookUpByName(GetUniverse(), m_objectNames[idx].asChar());
 
          MString instanceKey = "inst";
          instanceKey += globalIndex;

@@ -239,9 +239,9 @@ int Procedural::Init(AtNode* node, bool procParent)
 #endif
 
    AtString parameters = AiNodeGetStr( node, "data" );
-   
-   m_options = AiUniverseGetOptions();
-   m_camera = AiUniverseGetCamera();
+   AtUniverse *universe = AiNodeGetUniverse(node);
+   m_options = AiUniverseGetOptions(universe);
+   m_camera = AiUniverseGetCamera(universe);
    
 #ifdef MTOA_XG_INIT_CONFIG
    char* xgenConfigPath = getenv("XGEN_CONFIG_PATH");
@@ -888,7 +888,7 @@ bool Procedural::createMergedCurves()
    if (m_mergedCurves)
       return false;
 
-   m_mergedCurves = AiNode("curves", nodeName.c_str(), m_parent);
+   m_mergedCurves = AiNode(AiNodeGetUniverse(m_node), "curves", nodeName.c_str(), m_parent);
    m_merged_data = new XgMergedData();
 
    AiNodeSetUInt(m_mergedCurves, "id", getHash(m_mergedCurves));
@@ -934,7 +934,7 @@ void Procedural::createBaseSphere()
    if (m_sphere)
       return;
 
-   m_sphere = AiNode("sphere", nodeName.c_str(), m_parent);
+   m_sphere = AiNode(AiNodeGetUniverse(m_node), "sphere", nodeName.c_str(), m_parent);
    AiNodeSetFlt( m_sphere, "radius", 0.5f );
    AiNodeSetVec( m_sphere, "center", 0.0f, 0.0f, 0.0f );
    AiNodeSetByte( m_sphere, "visibility", 0 );
@@ -1114,7 +1114,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         
       // and a geometry instance node.
       string nodeName = strParentName + string("_ginstance_") + strID;
-      AtNode* nodeInstance = AiNode("ginstance", nodeName.c_str(), m_parent);
+      AtNode* nodeInstance = AiNode(AiNodeGetUniverse(m_node), "ginstance", nodeName.c_str(), m_parent);
       AiNodeSetUInt(nodeInstance, "id", getHash(nodeInstance) );
       AiNodeSetArray( nodeInstance, "matrix", matrix );
       AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
@@ -1214,7 +1214,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 
       // and a geometry instance node.
       string nodeName = strParentName + string("_nurbs_") + strID;
-      AtNode* nodeCard = AiNode( "nurbs", nodeName.c_str(), m_parent);
+      AtNode* nodeCard = AiNode(AiNodeGetUniverse(m_node), "nurbs", nodeName.c_str(), m_parent);
       AiNodeSetInt(nodeCard, "id", getHash(nodeCard ));
       AiNodeSetArray( nodeCard, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
 
@@ -1822,7 +1822,7 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
 
    // and a geometry instance node.
    string nodeName = strParentName + string("_procedural_") + strID;
-   AtNode* abcProc = AiNode("procedural", nodeName.c_str(), m_parent);
+   AtNode* abcProc = AiNode(AiNodeGetUniverse(m_node), "procedural", nodeName.c_str(), m_parent);
 
    AiNodeSetStr( abcProc, "filename", dso.c_str() );
    //AiNodeSetStr( abcProc, "data", dso_data.c_str() );

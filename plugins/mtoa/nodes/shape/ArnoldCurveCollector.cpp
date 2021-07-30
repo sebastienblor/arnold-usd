@@ -145,7 +145,6 @@ void CArnoldCurveCollector::postConstructor()
 {   
    // Call parent postConstructor as it is not done automatically as the parent constructor
    MPxLocatorNode::postConstructor();
-   setMPSafe(true);
 
    // Need to set the default Curve Profile ramp, otherwise it will 
    // appear empty. Here we choose to add two points at 0 and 1 position,

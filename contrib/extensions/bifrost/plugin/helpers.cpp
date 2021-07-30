@@ -31,7 +31,7 @@ void MAttrData::makeInput(){
 void MAttrData::makeInputMesh(const char* longName, const char* shortName){
    MStatus status;
    MFnTypedAttribute typeAttr;
-   MObject obj = typeAttr.create(longName, shortName, MFnData::kMesh, &status);
+   MObject obj = typeAttr.create(longName, shortName, MFnData::kMesh, MObject::kNullObj, &status);
    typeAttr.setStorable(false);
    typeAttr.setKeyable(true);
    typeAttr.setDisconnectBehavior(MFnAttribute::kReset);

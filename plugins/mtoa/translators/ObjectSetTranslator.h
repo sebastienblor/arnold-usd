@@ -29,6 +29,7 @@ protected:
    static void SetMembersChangedCallback(MObject &node, void *clientData);
 private:
    void FillMembersTranslators();
+   void FillMembersDagTranslators(MDagPath path, std::vector<CNodeTranslator*> &translators);
 
    std::vector<CNodeTranslator *> m_membersTranslators;
    bool m_membersListDirty;

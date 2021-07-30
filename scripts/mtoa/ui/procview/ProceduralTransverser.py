@@ -73,15 +73,6 @@ def ArnoldUniverseOnlyBegin():
     return False
 
 
-def ArnoldUniverseEnd():
-    if AiUniverseIsActive():
-        if AiRendering():
-            AiRenderInterrupt()
-        if AiRendering():
-            AiRenderAbort()
-        AiEnd()
-
-
 class ProceduralTransverser(BaseTransverser):
     """ Procedural Transverser class """
 
@@ -154,10 +145,7 @@ class ProceduralTransverser(BaseTransverser):
                                                                enum_values)
 
                 AiParamIteratorDestroy(paramIter)
-
-                if AiUniverseCreated:
-                    ArnoldUniverseEnd()
-
+                
         return self.paramDict
 
     def getNodeTypes(self, iObj):
@@ -654,7 +642,5 @@ class ProceduralTransverser(BaseTransverser):
             idx = param_default.contents.INT
             value = AiEnumGetString(AiParamGetEnum(param), idx)
 
-        if AiUniverseCreated:
-            ArnoldUniverseEnd()
-
+        
         return value

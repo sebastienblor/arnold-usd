@@ -90,7 +90,7 @@ AtNode* CArnoldVolumeTranslator::ExportInstance(AtNode *instance, const MDagPath
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
    
 
-   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
+   AiNodeSetStr(instance, "name", GetSessionOptions().GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
 
@@ -164,7 +164,7 @@ MString CArnoldVolumeTranslator::GetFileName()
 AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 {
 
-   AiNodeSetStr(volume, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
+   AiNodeSetStr(volume, "name", GetSessionOptions().GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(volume);
    ProcessRenderFlags(volume);

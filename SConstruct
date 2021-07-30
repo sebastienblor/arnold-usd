@@ -337,15 +337,10 @@ env['MAYA_VERSION_BASE'] = maya_version_base
 if system.os == 'linux' or env['MODE'] != 'debug' :    
     env['ENABLE_BIFROST'] = 1
 
-bifrost_ext = 'bifrost_2016'
-
-bifrost_ext = 'bifrost_2017'
-if int(maya_version) >= 201800:
-    bifrost_ext = 'bifrost'
-    env.Append(CPPDEFINES = Split('MTOA_ENABLE_AVP'))
-    # TODO add detection of Bifrost board plugin SDk and bifrost sdk
-    env["ENABLE_BIFROST_GRAPH"] = 1
-    env["ENABLE_ALEMBIC"] = 1
+bifrost_ext = 'bifrost'
+# TODO add detection of Bifrost board plugin SDk and bifrost sdk
+env["ENABLE_BIFROST_GRAPH"] = 1
+env["ENABLE_ALEMBIC"] = 1
 
 
 build_id = ""

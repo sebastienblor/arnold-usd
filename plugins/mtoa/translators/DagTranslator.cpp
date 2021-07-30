@@ -1,6 +1,5 @@
 #include "DagTranslator.h"
 #include "DagTranslatorImpl.h"
-#include "scene/MayaScene.h"
 #include <maya/MPlugArray.h>
 #include <maya/MFnSet.h>
 #include <maya/MNodeMessage.h>
@@ -75,25 +74,6 @@ bool CDagTranslator::IsTransformPlug(const MPlug &plug)
    return false;        
 }
 
-MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
-{
-   const CSessionOptions& options = GetSessionOptions();
-   
-   MDagPath dag(dagPath);
-
-   // Check if we want to export the parent transform name
-   if (options.GetExportDagTransformNames())
-      dag.pop();
-
-
-   // Use either the "short" name or the "full path" name depending on the option
-   MString name = options.GetExportFullPath() ? 
-      dag.fullPathName() : dag.partialPathName();
-
-   CDagTranslatorImpl::AddNamingOptions(name);
-   return name;
-}
-
 void CDagTranslatorImpl::ExportDccName()
 {
    if (m_atRoot == NULL)
@@ -108,7 +88,7 @@ void CDagTranslatorImpl::ExportDccName()
 MString CDagTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
 {
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
-   MString name = CDagTranslator::GetArnoldNaming(dagTr->GetMayaDagPath());
+   MString name = dagTr->GetSessionOptions().GetArnoldNaming(dagTr->GetMayaDagPath());
 
    if (DependsOnOutputPlug())
    {
@@ -136,7 +116,7 @@ void CDagTranslator::AddUpdateCallbacks()
       if (node != MObject::kNullObj)
       {
          // We can use the normal NodeDirtyCallback here.
-         MCallbackId id = MNodeMessage::addNodeDirtyCallback(node,
+         MCallbackId id = MNodeMessage::addNodeDirtyPlugCallback(node,
                                                              NodeDirtyCallback,
                                                              this,
                                                              &status);
@@ -148,7 +128,6 @@ void CDagTranslator::AddUpdateCallbacks()
    // Call the base class to get the others.
    CNodeTranslator::AddUpdateCallbacks();
 }
-
 static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *session, const MDagPath& dagPath, MDagPath &masterDag)
 {
    if (dagPath.isInstanced())
@@ -245,14 +224,15 @@ void CDagTranslator::ExportMatrix(AtNode* node)
 
 bool CDagTranslator::IsRenderable() const
 {
-   return m_impl->m_session->IsRenderablePath(m_dagPath);
+   return m_impl->m_session->IsExportable(m_dagPath) == CArnoldSession::MTOA_EXPORT_ACCEPTED;
 }
 
 AtByte CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_impl->m_session->IsRenderablePath(m_dagPath))
+   if (!IsRenderable())
       return AI_RAY_UNDEFINED;
+   
 
    AtByte visibility = AI_RAY_ALL;
    MPlug plug;
@@ -274,19 +254,6 @@ AtByte CDagTranslator::ComputeVisibility()
    {
       visibility &= ~AI_RAY_CAMERA;
    }
-/*
-  FIXME what do we do now ?
-   plug = FindMayaPlug("visibleInReflections");
-   if (!plug.isNull() && !plug.asBool())
-   {
-      visibility &= ~AI_RAY_SPECULAR_REFLECT;
-   }
-
-   plug = FindMayaPlug("visibleInRefractions");
-   if (!plug.isNull() && !plug.asBool())
-   {
-      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
-   }*/
 
    plug = FindMayaPlug("aiVisibleInDiffuseReflection");
    if (!plug.isNull() && !plug.asBool())
@@ -413,7 +380,7 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
 
 CDagTranslator *CDagTranslator::ExportDagPath(const MDagPath &dagPath)
 {
-   return CMayaScene::GetArnoldSession()->ExportDagPath(dagPath);
+   return m_impl->m_session->ExportDagPath(dagPath);
 }
 
 void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
@@ -436,7 +403,7 @@ void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
 
    if (isInstance)
    {      
-      CNodeTranslator::ExportUserAttributes(anode, dagTr->GetMayaDagPath().transform(), &m_tr);
+      m_tr.ExportUserAttributes(anode, dagTr->GetMayaDagPath().transform(), &m_tr);
       
       // FIXME below is what's being done in parent function for aiUserOptions
       // is that what we want to do here ?

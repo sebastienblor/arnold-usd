@@ -71,7 +71,7 @@ MStatus CSphereLocator::connectionMade( const MPlug& plug,
    if (plug.attribute() == s_color)
    {
       MObject 	object = otherPlug.node();
-	   m_dirtyCallbackId = MNodeMessage::addNodeDirtyCallback(
+	   m_dirtyCallbackId = MNodeMessage::addNodeDirtyPlugCallback(
 							   object,
 							   nodeDirtyEventCallback,
 							   this); 
@@ -274,7 +274,7 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
       if (!itDG.isDone())
       {
-         MObject textureNode = itDG.thisNode();
+         MObject textureNode = itDG.currentItem();
          fileTexture.setObject(textureNode);
 
       }
@@ -319,14 +319,14 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
    m_goSample = false;
 }
 
-bool CSphereLocator::setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context)
+bool CSphereLocator::setInternalValue(const MPlug &plug, const MDataHandle &handle)
 {     
    if (plug == s_color || plug == s_sampling)
    {
       m_goSample = true;
    }
    
-   return MPxLocatorNode::setInternalValueInContext(plug, handle, context);
+   return MPxLocatorNode::setInternalValue(plug, handle);
 }
 
 

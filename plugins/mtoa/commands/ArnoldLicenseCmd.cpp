@@ -26,6 +26,7 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <string>
+#include <mutex>
 
 
 
@@ -414,7 +415,7 @@ struct ArnoldLicenseInfo
    int nlmLicenseInUse;
    bool valid;
    MString details;
-   MMutexLock mutex;
+   std::mutex mutex;
 };
 static ArnoldLicenseInfo *s_license_info = NULL;
 

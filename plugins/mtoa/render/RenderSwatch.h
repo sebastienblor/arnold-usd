@@ -1,8 +1,10 @@
 #pragma once
 
 #include "platform/Platform.h"
-#include "render/RenderSession.h"
 
+#include <ai_universe.h>
+#include <ai_critsec.h>
+#include <ai_adp.h>
 #include <maya/MSwatchRenderBase.h> 
 #include <maya/MString.h>
 #include <maya/MPlugArray.h>
@@ -21,6 +23,8 @@
  * node called "swatch_geo" in that scene for it to apply the
  * shader too.
  */
+
+class CArnoldSession;
 
 typedef enum
 {
@@ -63,24 +67,11 @@ private:
    /// \see ExportNode
    /// \see AssignNode
    /// \see ApplyOverrides
-   MStatus BuildArnoldScene();
-   /// Load an ASS file for the swatch.
-   /// \see BuildArnoldScene
-   MStatus LoadAssForNode();
-   /// Creates a simple Arnold scene (sphere by default)
-   /// \see BuildArnoldScene
-   MStatus DefaultArnoldScene();
-   /// Export previewed node and apply specific overrides
-   /// on the built Arnold Scene.
-   /// \see BuildArnoldScene
-   MStatus ExportNode(AtNode* & arnoldNode, CNodeTranslator* & translator);
+   MStatus BuildArnoldScene(CArnoldSession *session);
    /// Assign the exported node to the Arnold scene.
    /// \see BuildArnoldScene
    /// \see ExportSwatchNode
    MStatus AssignNode(AtNode* const arnoldNode, CNodeTranslator* const translator);
-   /// Apply specified overrides on the Arnold scene.
-   /// \see BuildArnoldScene
-   MStatus ApplyOverrides(CNodeTranslator* const translator);
 
    /// Print an error and clear the swatch.
    /// \param msg the error message.
@@ -88,7 +79,7 @@ private:
    /// Clear the swatch.
    void ClearSwatch();
    /// Creates a polygon sphere.
-   AtNode* PolySphere();
+   AtNode* PolySphere(AtUniverse *universe);
 
    bool DoSwatchRender();
    
@@ -101,6 +92,8 @@ private:
    int m_iteration;
    MString m_nodeClass;
    CRenderSwatchClass m_swatchClass;
-
+   std::string m_sessionId;
+   AtMutex m_swatchLock;
+   bool m_initialized;
 
 };

@@ -1234,7 +1234,6 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
    // the plugin that was just loaded is in our list, we need to loop over all our 
    // extensions and see which one needs to be registered
 
-   bool universeCreated = false;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();
          extIt++)
@@ -1243,9 +1242,6 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
             && extIt->m_impl->m_requiredMayaPlugins.find(plugin_str)
             != extIt->m_impl->m_requiredMayaPlugins.end())
       {
-         if (!universeCreated)
-            universeCreated = ArnoldUniverseBegin();
-
          CExtension *extension = &(*extIt);
          if (extension->m_impl->m_library == nullptr)
          {
@@ -1265,8 +1261,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          }
       }
    }
-   if (universeCreated) ArnoldUniverseEnd();
-
+   
    // remove this plugin from our list now that it was registered
    s_deferredExtensions.erase(plugin_str);
 }

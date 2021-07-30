@@ -93,6 +93,4 @@ void CArnoldSkyNode::postConstructor()
    
    // Call parent postConstructor as it is not done automatically as the parent constructor
    CSphereLocator::postConstructor();
-
-   setMPSafe(true);
 }

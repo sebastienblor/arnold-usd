@@ -1035,7 +1035,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    //
    // GEOMETRY
    //  
-   bool mayaUsdExport = GetSessionOptions().IsMayaUsd();
+   bool mayaUsdExport = false;//GetSessionOptions().IsMayaUsd();
    
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
@@ -1496,8 +1496,8 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 
 AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {   
-   if (!GetSessionOptions().IsMayaUsd())
-      ExportMatrix(polymesh);
+   // if (!GetSessionOptions().IsMayaUsd())
+   ExportMatrix(polymesh);
 
    ExportMeshParameters(polymesh);
    if (RequiresShaderExport())
@@ -1524,8 +1524,8 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    int instanceNum = m_dagPath.instanceNumber();
    int masterInstanceNum = masterInstance.instanceNumber();
 
-   if (!GetSessionOptions().IsMayaUsd())
-      ExportMatrix(instance);
+   //if (!GetSessionOptions().IsMayaUsd())
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);

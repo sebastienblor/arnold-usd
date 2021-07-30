@@ -1,9 +1,10 @@
 #include "ArnoldRenderToTextureCmd.h"
-#include "../scene/MayaScene.h"
 #include "../extension/ExtensionsManager.h"
 #include "../translators/shader/ShaderTranslator.h"
 #include "../utils/BuildID.h"
 #include "utils/MtoAAdpPayloads.h"
+#include "session/ArnoldSession.h"
+#include "session/SessionManager.h"
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -17,6 +18,8 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MItDependencyNodes.h>
 #include <maya/MProgressWindow.h>
+#include <maya/MRenderUtil.h>
+
 
 #include <map>
 #include <string>
@@ -28,6 +31,7 @@
 #include <istream>
 #include <streambuf>
 
+static const std::string s_renderToTextureSessionId("renderToTexture");
 
 CArnoldRenderToTextureCmd::CArnoldRenderToTextureCmd(){}
 
@@ -127,14 +131,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       return MS::kSuccess;
    }
 
-   CMayaScene::End();
-   // Cannot export while a render is active
-   if (AiUniverseIsActive())
-   {
-      MGlobal::displayError("[mtoa] Render to Texture : a render is already in progress");
-      return MS::kSuccess;
-   }
-
+      
    // only display progressBar in Interactive sessions
    // or in batch it might fail
    bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
@@ -171,18 +168,28 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    {
       double frame = frames[i];
 
+      CArnoldSession *session = new CArnoldSession();
+
+      if (!CSessionManager::AddActiveSession(s_renderToTextureSessionId, session))
+      {
+         delete session;
+         return MS::kFailure;
+      }
+      CSessionOptions &options = session->GetOptions();
+      AtUniverse *universe = session->GetUniverse();
+      options.SetForceTranslateShadingEngines(true);
+      AtRenderSession *renderSession = session->GetRenderSession();
+      
+
       double currentFrame = 0.f;
       MString cmd = MString("currentTime -query");
       MGlobal::executeCommand(cmd, currentFrame); 
 
       if (currentFrame != frame)
+      {
          MGlobal::viewFrame(frame);
-
-      CMayaScene::Begin(MTOA_SESSION_RENDER);
-      CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetForceTranslateShadingEngines(true);
-      arnoldSession->SetExportFilterMask(AI_NODE_ALL);
+         options.SetExportFrame(frame);
+      }
 
       bool enableAovs = false;
       if (argDB.isFlagSet("enable_aovs")) argDB.getFlagArgument("enable_aovs", 0, enableAovs);
@@ -196,10 +203,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
          MDagPath cameraPath;
          dagIter.getPath(cameraPath);
-         arnoldSession->SetExportCamera(cameraPath);
+         session->SetExportCamera(cameraPath);
       }
 
-      CMayaScene::Export();
+      session->Export();
       AtNode *shaderNode = 0;
       
       if (argDB.isFlagSet("shader"))
@@ -232,7 +239,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                }
                else
                {
-                  CNodeTranslator *translator = arnoldSession->ExportNode(outColorPlug, false, -1, &outColorStatus);
+                  CNodeTranslator *translator = session->ExportNode(outColorPlug, false, -1, &outColorStatus);
                   if (translator != 0)
                   {
                      shaderNode = translator->GetArnoldNode();
@@ -255,7 +262,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
          }
       }
-      AtNode* options_node = AiUniverseGetOptions();
+      AtNode* options_node = AiUniverseGetOptions(universe);
       AiNodeSetPtr(options_node, "color_manager", NULL);
 
       int resolution = 512; // default value
@@ -264,19 +271,20 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       else
          MGlobal::displayWarning("[mtoa] Render to Texture : No resolution specified, using 512x512 by default");
 
-      renderSession->SetResolution(resolution, resolution);
+      options.SetResolution(resolution, resolution);
       // I guess that setting the renderSession's resolution
       // is enough, but let's make sure....
       AiNodeSetInt(options_node, "xres", resolution);
       AiNodeSetInt(options_node, "yres", resolution);
 
+      
       if (argDB.isFlagSet("aa_samples"))
       {
          int aa_samples = 1;
          argDB.getFlagArgument("aa_samples", 0, aa_samples);
          AiNodeSetInt(options_node, "AA_samples", aa_samples);
       }
-
+      
       // create a filter
       MString filterType = "gaussian_filter";
       if (argDB.isFlagSet("filter"))
@@ -284,13 +292,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          argDB.getFlagArgument("filter", 0, filterType);
          filterType += "_filter";
       }
-      AtNode *filterNode = AiNode(filterType.asChar());
+      
+      AtNode *filterNode = AiNode(universe, filterType.asChar());
       if (filterNode == 0)
       {
          MString errLog = "[mtoa] Render to Texture : Unknown filter type ";
          errLog += filterType;
          MGlobal::displayWarning(errLog.asChar());
-         filterNode = AiNode("gaussian_filter");
+         filterNode = AiNode(universe, "gaussian_filter");
       }
 
       static std::string filterName("defaultArnoldFilter/cameraMapperFilter");
@@ -353,13 +362,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       std::vector<std::string> aovNames;
 
       outputsList.push_back("RGBA RGBA defaultArnoldFilter/cameraMapperFilter defaultArnoldDriver/cameraMapperOutput");
-
+      
       // create a driver that will write the output texture
-      AtNode *driver = AiNode("driver_exr");
       static std::string uvMapperDriverName ("defaultArnoldDriver/cameraMapperOutput");
-
-      AiNodeSetStr(driver, "name", uvMapperDriverName.c_str());
-
+      AtNode *driver = AiNode(universe, "driver_exr", uvMapperDriverName.c_str());
+      
       if (extendEdges)
          AiNodeSetBool(driver, "tiled", false);
 
@@ -416,21 +423,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
          }
       }
-
-      AtArray *outputs = 0;
-
-      if (progressBar)
-      {
-         AtNode* render_view = AiNode("progress_driver");
-         AiNodeSetStr(render_view, "name", "progress_display");
-
-         AtNode* driverFilterNode = AiNode("box_filter");
-         AiNodeSetStr(driverFilterNode, "name", "progress_driver_filter");
-
-         outputsList.push_back("Z FLOAT progress_driver_filter progress_display");      
-      }
-
-      outputs = AiArrayAllocate(outputsList.size(), 1, AI_TYPE_STRING);
+      AtArray *outputs = AiArrayAllocate(outputsList.size(), 1, AI_TYPE_STRING);
 
       for (size_t aov = 0; aov < outputsList.size(); ++aov)
          AiArraySetStr(outputs, aov, outputsList[aov].c_str());
@@ -448,16 +441,20 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       {      
          // Please don't tell anyone that I'm creating a dummy camera here,
          // it will be deleted at the end of this function anyway.
-         renderCam = AiNode("persp_camera");
+         renderCam = AiNode(universe, "persp_camera");
          AiNodeSetStr(renderCam, "name", "__mtoa_baking_cam");
          AiNodeSetPtr(options_node, "camera", (void*)renderCam);
       }
 
       // Dirty hack... this is initializing all the polymeshes triangles
       // which is necessary for CameraUvMapper to work correctly
-      AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-      AiRender(AI_RENDER_MODE_FREE);
-      AiRenderAbort();
+      AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+      AiRenderBegin(renderSession, AI_RENDER_MODE_FREE);
+      while(AiRenderGetStatus(renderSession) != AI_RENDER_STATUS_PAUSED)
+      {
+         continue;
+      }
+      AiRenderEnd(renderSession);
 
       std::vector<AtNode*> nodes;
       static const AtString polymesh_str("polymesh");
@@ -472,18 +469,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             dagPath.extendToShape();
          }
          MFnDagNode dagNode(dagPath);
-         MString meshName = CDagTranslator::GetArnoldNaming(dagPath);
-         AtNode* node = AiNodeLookUpByName(meshName.asChar());
+         MString meshName = options.GetArnoldNaming(dagPath);
+         AtNode* node = AiNodeLookUpByName(universe, meshName.asChar());
 
-         if (node == NULL)
-         {
-            // Shouldn't have to do this ?
-            const char *arnoldName = arnoldSession->GetArnoldObjectName(meshName.asChar());
-            if ((arnoldName != NULL) && (arnoldName[0] != '\0'))
-            {
-               node = AiNodeLookUpByName(arnoldName);
-            }
-         }
          if (node == NULL)
          {
             std::string errorLog = "[mtoa] Render to Texture : Object ";
@@ -502,7 +490,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             // need to get all the children nodes
 
             // we loop over the entire Arnold Scene, and check which have this node as parent
-            AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+            AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
             while (!AiNodeIteratorFinished(nodeIter))
             {
                AtNode *loopNode = AiNodeIteratorGetNext(nodeIter);
@@ -536,13 +524,15 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             MGlobal::displayError(errLog);
          }
       }
+
       for (size_t i = 0; i < nodes.size(); ++i)
       {
          AtNode *mesh = nodes[i];
+         
          const char *meshName = AiNodeGetName(mesh);
          std::string fullMeshName = meshName;
 
-         if (AiNodeLookUpByName(meshName) == NULL)
+         if (AiNodeLookUpByName(universe, meshName) == NULL)
          {
             // this name isn't enough to find the node in the scene.
             // We might need to set its full path name
@@ -554,6 +544,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
          }
 
+         // by how much should the progress increase for each node being rendered
+         float progressNodeDelta = 100.f / (float)nodes.size();
          if (progressBar)
          {
             if (i == 0)
@@ -582,10 +574,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
             else
             {
-               MProgressWindow::setProgress(i * 100 / nodes.size());
+               MProgressWindow::setProgress(int(i * progressNodeDelta));
             }
          }
-         
          // specific shader to be assigned to geometry
          if (shaderNode)
          {
@@ -611,7 +602,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
          std::replace( meshNameStr.begin(), meshNameStr.end(), '|', '_'); // replace all '|' to '_'
          
-
          std::string shaderNameStr;
          if (shader_name)
          {
@@ -626,7 +616,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          sidedness &= ~AI_RAY_CAMERA; 
          AiNodeSetByte(mesh, "sidedness", sidedness);
          AiNodeSetBool(mesh, "opaque", true); // force opaque to true since a transparent material wouldn't work at all
-
+         
          if (allUdims || udimsSet.size()>0)
          {
 
@@ -664,15 +654,15 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
                // comment for mayabatch
                std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
-               AtNode *camera = AiNode("uv_camera");
+               AtNode *camera = AiNode(universe, "uv_camera", "cameraUvBaker");
                if (camera == 0)
                {
-                  CMayaScene::End();
+                  CSessionManager::DeleteActiveSession(s_renderToTextureSessionId);
                   MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a uv_camera node");
                   return MS::kSuccess;
                }
 
-               AiNodeSetStr(camera, "name", "cameraUvBaker");
+               
                AiNodeSetPtr(camera, "mesh", (void*) mesh);
                AiNodeSetStr(camera, "uv_set", uvSet.asChar());
                AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
@@ -687,6 +677,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                AiNodeSetPtr(options_node, "camera", camera);
                
                AiNodeSetStr(driver, "filename", filename.c_str());
+
+               MString filenameStr(filename.c_str());
 
                for (size_t aov = 0; aov < aovDrivers.size(); ++aov)
                {
@@ -704,8 +696,36 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   aovFilename += ".exr";
                   AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.asChar());
                }
-               AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-               AiRender();
+               AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+
+               if (progressBar)
+                  MRenderUtil::sendRenderProgressInfo(filenameStr, -1111); // magic number for start
+               float lastProgress = -1;
+
+               AiRenderBegin(renderSession);
+               while(true)
+               {
+                  AtRenderStatus status = AiRenderGetStatus(renderSession);
+                  if (status == AI_RENDER_STATUS_PAUSED || status == AI_RENDER_STATUS_FINISHED || status == AI_RENDER_STATUS_FAILED)
+                     break;
+
+                  if (progressBar)
+                  {
+                     float progress = 0;
+                     static AtString total_progress_str("total_progress");
+                     AiRenderGetHintFlt(renderSession, total_progress_str, progress);
+                     if (progress != lastProgress)
+                     {
+                        lastProgress = progress;
+                        MRenderUtil::sendRenderProgressInfo(filenameStr, (int)progress);
+                        // also increase the progressbar value
+                        MProgressWindow::setProgress(int((i + AiMax(progress * 0.01f, 1.f)) * progressNodeDelta));
+                     }
+                  }
+               }
+               AiRenderEnd(renderSession);
+               
+               MRenderUtil::sendRenderProgressInfo(filenameStr, 100); // magic number for end
                MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + MString(filename.c_str()));
 
                AiNodeDestroy(camera);
@@ -718,10 +738,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          // render without udims
          else
          {
-            AtNode *camera = AiNode("uv_camera");
+            AtNode *camera = AiNode(universe, "uv_camera");
             if (camera == 0)
             {
-               CMayaScene::End();
+               CSessionManager::DeleteActiveSession(s_renderToTextureSessionId);
                MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a uv_camera node");
                return MS::kSuccess;
             }
@@ -771,17 +791,21 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                aovFilename += ".exr";
                AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.asChar());
             }
-            AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-            AiRender();
-
+            AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+            AiRenderBegin(renderSession);
+            while(true)
+            {
+               AtRenderStatus status = AiRenderGetStatus(renderSession);
+               if (status == AI_RENDER_STATUS_PAUSED || status == AI_RENDER_STATUS_FINISHED || status == AI_RENDER_STATUS_FAILED)
+                  break;
+            }
             MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + filename);
-
             AiNodeDestroy(camera);
+            AiRenderEnd(renderSession);
          }
       }
       MProgressWindow::endProgress();
-
-      CMayaScene::End();
+      CSessionManager::DeleteActiveSession(s_renderToTextureSessionId);                     
    }
 
    return MS::kSuccess;

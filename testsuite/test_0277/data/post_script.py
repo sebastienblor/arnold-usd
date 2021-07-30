@@ -26,7 +26,7 @@ success = success and AiNodeLookUpByName('aiStandardSurface1SG/aov1')
 success = success and AiNodeLookUpByName('aiImage1')
 success = success and AiNodeLookUpByName('aiNoise1')
 
-print 'Success is %s' % success
+print('Success is %s' % success)
 
 if success:
 	shutil.copy('ok.tif', 'testrender.tif')

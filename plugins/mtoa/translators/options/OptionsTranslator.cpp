@@ -3,9 +3,7 @@
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/driver/DriverTranslator.h"
 #include "translators/camera/ImagePlaneTranslator.h"
-#include "render/RenderSession.h"
 #include "session/ArnoldSession.h"
-#include "scene/MayaScene.h"
 
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
@@ -25,10 +23,7 @@
 
 AtNode* COptionsTranslator::CreateArnoldNodes()
 {
-   assert(AiUniverseIsActive());
-
-   AtNode* options = AiUniverseGetOptions();
-   return options;
+   return AiUniverseGetOptions(m_impl->m_session->GetUniverse());
 }
 
 // One of the active AOVs is changing during IPR session, so we need to re-export
@@ -53,8 +48,7 @@ void COptionsTranslator::ClearAovCallbacks()
 void COptionsTranslator::ProcessAOVs()
 {
    AOVMode aovMode = AOVMode(FindMayaPlug("aovMode").asInt());
-   m_aovsEnabled = aovMode == AOV_MODE_ENABLED ||
-         (GetSessionOptions().IsBatch() && aovMode == AOV_MODE_BATCH_ONLY);
+   m_aovsEnabled = aovMode == AOV_MODE_ENABLED || (aovMode == AOV_MODE_BATCH_ONLY && m_impl->m_session->IsBatchSession());
 
    bool foundBeauty = false;
    MPlugArray conns;
@@ -89,7 +83,7 @@ void COptionsTranslator::ProcessAOVs()
             }
 
             // We want to be adverted when one of the AOV nodes changes (light groups, lpe, etc...)
-            if (GetSessionOptions().IsInteractiveRender())
+            if (IsInteractiveSession())
                m_aovCallbacks.push_back(MNodeMessage::addAttributeChangedCallback(oAOV, AovChangedCallback, this));
          }
          else
@@ -282,7 +276,7 @@ void COptionsTranslator::ExportAOVs()
       {
          // We can merge the light groups in a single AOV for batch sessions
          // AND if the output image is exr (it's saved as multi-layer exr)
-         bool mergeLightGroups = (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS);
+         bool mergeLightGroups = m_impl->m_session->IsBatchSession() || m_impl->m_session->IsFileExport();
          if (mergeLightGroups)
          {
             for (size_t i = 0; i < aovData.outputs.size(); ++i)
@@ -447,7 +441,7 @@ void COptionsTranslator::ExportAOVs()
    if (outputVariance && beautyDriver && !AiNodeIs(beautyDriver, driver_exr_str))
    {
       AiMsgError("[mtoa] Denoising AOVs can only be rendered in EXR");
-   } else if (outputVariance && beautyFilter && !GetSessionOptions().IsInteractiveRender()) // don't dump the denoising AOVs in interactive renders
+   } else if (outputVariance && beautyFilter && !IsInteractiveSession()) // don't dump the denoising AOVs in interactive renders
    {
       //== We need to dump the necessary outputs for noice.
       //== First, let's find the "beauty" AOV. Let's also check if the N, Z, diffuse_albedo are already present in the list of AOVs.
@@ -566,20 +560,13 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
    std::set<std::string> lightPathExpressions;
 
-   MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-   if (options.IsBatch())
-   {
-      pathType = defaultRenderGlobalsData.kFullPathImage;
-   }
-   else
-   {
-      pathType = defaultRenderGlobalsData.kFullPathTmp;
-   }
-
+   MCommonRenderSettingsData::MpathType pathType = (m_impl->m_session->IsBatchSession()) ? 
+      defaultRenderGlobalsData.kFullPathImage : pathType = defaultRenderGlobalsData.kFullPathTmp;
+   
    // we're only doing stereo rendering for Batch sessions (ass export / batch render) or sequence rendering
-   bool stereo = (options.IsBatch() || options.GetSessionMode() == MTOA_SESSION_SEQUENCE) && camera.node().hasFn(MFn::kStereoCameraMaster);
+   bool stereo = camera.node().hasFn(MFn::kStereoCameraMaster) && options.GetSupportStereoCameras();
 
    int numEyes = 1;
    // loop through aovs
@@ -599,7 +586,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          MDagPath camChildPath;
          if (childNode.getPath(camChildPath) != MS::kSuccess) continue;
          camChildPath.extendToShape();
-         MString childName = CDagTranslator::GetArnoldNaming(camChildPath);
+         MString childName = options.GetArnoldNaming(camChildPath);
          std::string childNameStr = childName.asChar();
 
          // if there's a way to get the Right-Left cameras through the Maya API it would be way better...
@@ -643,7 +630,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             MFnDagNode aovCamDagTransform(aovCameraDag);
 
             aovCamera = aovCamDagTransform.name();
-            if (GetSessionOptions().IsInteractiveRender() && (aovCamera != nameCamera))
+            if (IsInteractiveSession() && (aovCamera != nameCamera))
             {
                AiMsgWarning("[mtoa.aov] Per-camera AOV %s is skipped during interactive renders", aovData.name.asChar());
                continue;
@@ -876,7 +863,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             {
                if (aovCamera != nameCamera)
                {
-                  str = CDagTranslator::GetArnoldNaming(aovCameraDag) + MString(" ");
+                  str = GetSessionOptions().GetArnoldNaming(aovCameraDag) + MString(" ");
                }
                str += aovData.name + MString(" ");
 
@@ -929,7 +916,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          AtString lpeElem((*it).c_str());
          AiArraySetStr(lpeArray, lpeInd, lpeElem);
       }
-      AiNodeSetArray(AiUniverseGetOptions(), "light_path_expressions", lpeArray);
+      AiNodeSetArray(AiUniverseGetOptions(m_impl->m_session->GetUniverse()), "light_path_expressions", lpeArray);
    }
 }
 
@@ -1074,7 +1061,7 @@ void COptionsTranslator::SetCamera(AtNode *options)
       return;
 
    cameraNode.extendToShape();
-   CNodeTranslator *cameraTranslator = GetTranslator(cameraNode);
+   CNodeTranslator *cameraTranslator = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(cameraNode));
    AtNode* camera = (cameraTranslator) ? cameraTranslator->GetArnoldNode() : NULL;
    if (camera == NULL)
    {
@@ -1134,7 +1121,6 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
 
 void COptionsTranslator::Export(AtNode *options)
 {
-   assert(AiUniverseIsActive());
    ExportAOVs();
 
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
@@ -1145,6 +1131,8 @@ void COptionsTranslator::Export(AtNode *options)
 
    // set the camera
    SetCamera(options);
+   CArnoldSession *session = m_impl->m_session;
+   const CSessionOptions &sessionOptions = GetSessionOptions();
 
    const AtNodeEntry* optionsEntry = AiNodeGetNodeEntry(options);
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(options));
@@ -1222,8 +1210,10 @@ void COptionsTranslator::Export(AtNode *options)
          else if (strcmp(paramName, "enable_progressive_render") == 0)
          {
             // only expose progressive render for interactive sessions 
-            if (GetSessionOptions().IsInteractiveRender())
+            // FIXME is this the right criteria
+            if (IsInteractiveSession())
                CNodeTranslator::ProcessParameter(options, "enable_progressive_render", AI_TYPE_BOOLEAN);
+               
          } else if (strcmp(paramName, "ignore_list") == 0)
          {
             // Ticket #3608
@@ -1269,36 +1259,6 @@ void COptionsTranslator::Export(AtNode *options)
       }
    }
    AiParamIteratorDestroy(nodeParam);
-
-   // Setting the reference time properly (used when ignore motion blur is turned on)
-   /*
-   float referenceTime = 0.f;
-   
-   if (FindMayaPlug("mb_en").asBool())
-   {
-      // if motion blur is enabled, check the motion's range type 
-      int motionRange = FindMayaPlug("range_type").asInt();
-      switch(motionRange)
-      {
-         case MTOA_MBLUR_TYPE_START:
-            referenceTime = 0.f;
-         break;
-         default:
-         case MTOA_MBLUR_TYPE_CENTER:
-            referenceTime = 0.5f;
-         break;
-         case MTOA_MBLUR_TYPE_END:
-            referenceTime = 1.f;
-         break;
-         {
-         case MTOA_MBLUR_TYPE_CUSTOM:
-            float motionStart = FindMayaPlug("motion_start").asFloat();
-            float motionEnd = FindMayaPlug("motion_end").asFloat();
-            referenceTime = AiClamp((-motionStart) / AiMax((motionEnd - motionStart), AI_EPSILON), 0.f, 1.f);
-         break;
-         }
-      }
-   }*/
    AiNodeSetFlt(options, "reference_time", 0.f);
 
    AddProjectFoldersToSearchPaths(options);
@@ -1315,73 +1275,177 @@ void COptionsTranslator::Export(AtNode *options)
    else
    {
       AiNodeSetPtr(options, "background", NULL);
-      // first we get the image planes connected to this camera
       
-      m_impl->m_session->ExportImagePlane();
+      // we only export the image plane if there's no background
+      MDagPath camera = GetSessionOptions().GetExportCamera();
 
-   }
-   if ((GetSessionMode() == MTOA_SESSION_BATCH) || (GetSessionMode() == MTOA_SESSION_ASS))
-   {
-      MString overscanString = FindMayaPlug("outputOverscan").asString();
-      if (overscanString != "")
+      MFnDependencyNode fnNode (camera.node());
+      MPlug imagePlanePlug = fnNode.findPlug("imagePlane", true);
+
+      CNodeTranslator *imgTranslator = NULL;
+      MStatus status;
+
+      if (imagePlanePlug.numConnectedElements() > 0)
       {
-         float overscanL = 0.0f;
-         float overscanR = 0.0f;
-         float overscanT = 0.0f;
-         float overscanB = 0.0f;
-         bool overscanLP = false;
-         bool overscanRP = false;
-         bool overscanTP = false;
-         bool overscanBP = false;
-         
-         MStringArray split;
-         overscanString.split(' ', split);
-         const unsigned int splitLength = split.length();
-         if (splitLength == 1)
+            
+         for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
          {
-            ParseOverscanSettings(split[0], overscanL, overscanLP);
-            overscanR = overscanL;
-            overscanT = overscanL;
-            overscanB = overscanL;
-            overscanRP = overscanLP;
-            overscanTP = overscanLP;
-            overscanBP = overscanLP;
+            MPlugArray connectedPlugs;
+            MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+            imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+            if (status && (connectedPlugs.length() > 0))
+            {
+               AiNodeSetPtr(options, "background", ExportConnectedNode(connectedPlugs[0]));
+               AiNodeSetByte(options, "background_visibility", 1);
+            }
          }
-         else if (splitLength == 2)
-         {
-            ParseOverscanSettings(split[0], overscanT, overscanTP);
-            overscanB = overscanT;
-            overscanBP = overscanTP;
-            ParseOverscanSettings(split[1], overscanL, overscanLP);
-            overscanR = overscanL;
-            overscanRP = overscanLP;
-         }
-         else if (splitLength == 3)
-         {
-            ParseOverscanSettings(split[0], overscanT, overscanTP);
-            ParseOverscanSettings(split[1], overscanL, overscanLP);
-            overscanR = overscanL;
-            overscanRP = overscanLP;
-            ParseOverscanSettings(split[2], overscanB, overscanBP);
-         }
-         else if (splitLength == 4)
-         {
-            ParseOverscanSettings(split[0], overscanT, overscanTP);
-            ParseOverscanSettings(split[1], overscanR, overscanRP);
-            ParseOverscanSettings(split[2], overscanB, overscanBP);
-            ParseOverscanSettings(split[3], overscanL, overscanLP);
-         }
-
-         const int width = AiNodeGetInt(options, "xres");
-         const int height = AiNodeGetInt(options, "yres");
-
-         AiNodeSetInt(options, "region_min_x", overscanLP ? (int)ceilf(-(float)width * overscanL) : -(int)overscanL);
-         AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
-         AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
-         AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
-         
       }
    }
+
+   // Set resolution
+   MSelectionList list;
+   list.add(FindMayaPlug("renderGlobals").asString());
+
+   int width = -1;
+   int height = -1;
+   float pixelAspectRatio = 1.f;
+   bool useRenderRegion = false;
+   int minx = 0;
+   int miny = 0;
+   int maxx = 0;
+   int maxy = 0;
+   if (list.length() > 0)
+   {
+      MStatus status;
+      MObject renderGlobalsObject;
+      list.getDependNode(0, renderGlobalsObject);
+      MFnDependencyNode fnRenderGlobals(renderGlobalsObject);
+      MPlugArray connectedPlugs;
+      MPlug      resPlug = fnRenderGlobals.findPlug("resolution", true);
+
+      resPlug.connectedTo(connectedPlugs,
+         true,  // asDestination
+         false, // asSource
+         &status);
+
+      // Must be length 1 or we would have fan-in
+      if (status && (connectedPlugs.length() == 1))
+      {
+         MObject resNode = connectedPlugs[0].node(&status);
+         if (status)
+         {
+            MFnDependencyNode fnRes(resNode);
+            width  = fnRes.findPlug("width", true).asInt();
+            height = fnRes.findPlug("height", true).asInt();
+            
+            pixelAspectRatio = 1.0f / (((float)height / width) * fnRes.findPlug("deviceAspectRatio", true).asFloat());
+         }
+      }
+
+
+      useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion", true).asBool();
+      if (useRenderRegion)
+      {
+         minx = fnRenderGlobals.findPlug("left", true).asInt();
+         miny = fnRenderGlobals.findPlug("bot", true).asInt();
+         maxx = fnRenderGlobals.findPlug("rght", true).asInt();
+         maxy = fnRenderGlobals.findPlug("top", true).asInt();
+      }
+   }
+   // if the resolution is overidden in the session options, these values will be overridden here
+   session->GetOptions().GetResolution(width, height);
+   if (session->GetOptions().GetRegion(minx, miny, maxx, maxy))
+      useRenderRegion = true;
+
+   if (width > 0)
+      AiNodeSetInt(options, "xres", width);
+   if (height > 0)
+      AiNodeSetInt(options, "yres", height);
+
+   if (std::abs(pixelAspectRatio - 1.f) < 0.001)
+      pixelAspectRatio = 1.f;
+   else
+      pixelAspectRatio = 1.f / AiMax(AI_EPSILON, pixelAspectRatio);
+
+   AiNodeSetFlt(options, "pixel_aspect_ratio", pixelAspectRatio);
+
+   if (false && useRenderRegion)
+   {
+      AiNodeSetInt(options, "region_min_x", minx);
+      AiNodeSetInt(options, "region_min_y", height - maxy - 1);
+      AiNodeSetInt(options, "region_max_x", maxx);
+      AiNodeSetInt(options, "region_max_y", height - miny - 1);      
+   } else
+   {
+      AiNodeResetParameter(options, "region_min_x");
+      AiNodeResetParameter(options, "region_min_y");
+      AiNodeResetParameter(options, "region_max_x");
+      AiNodeResetParameter(options, "region_max_y");
+   }
+
+
+   // We used to apply outputOverscan only for batch & ass.
+   MString overscanString = FindMayaPlug("outputOverscan").asString();
+   /*
+   if (overscanString != "" && !useRenderRegion)
+   {
+      float overscanL = 0.0f;
+      float overscanR = 0.0f;
+      float overscanT = 0.0f;
+      float overscanB = 0.0f;
+      bool overscanLP = false;
+      bool overscanRP = false;
+      bool overscanTP = false;
+      bool overscanBP = false;
+      
+      MStringArray split;
+      overscanString.split(' ', split);
+      const unsigned int splitLength = split.length();
+      if (splitLength == 1)
+      {
+         ParseOverscanSettings(split[0], overscanL, overscanLP);
+         overscanR = overscanL;
+         overscanT = overscanL;
+         overscanB = overscanL;
+         overscanRP = overscanLP;
+         overscanTP = overscanLP;
+         overscanBP = overscanLP;
+      }
+      else if (splitLength == 2)
+      {
+         ParseOverscanSettings(split[0], overscanT, overscanTP);
+         overscanB = overscanT;
+         overscanBP = overscanTP;
+         ParseOverscanSettings(split[1], overscanL, overscanLP);
+         overscanR = overscanL;
+         overscanRP = overscanLP;
+      }
+      else if (splitLength == 3)
+      {
+         ParseOverscanSettings(split[0], overscanT, overscanTP);
+         ParseOverscanSettings(split[1], overscanL, overscanLP);
+         overscanR = overscanL;
+         overscanRP = overscanLP;
+         ParseOverscanSettings(split[2], overscanB, overscanBP);
+      }
+      else if (splitLength == 4)
+      {
+         ParseOverscanSettings(split[0], overscanT, overscanTP);
+         ParseOverscanSettings(split[1], overscanR, overscanRP);
+         ParseOverscanSettings(split[2], overscanB, overscanBP);
+         ParseOverscanSettings(split[3], overscanL, overscanLP);
+      }
+
+      const int width = AiNodeGetInt(options, "xres");
+      const int height = AiNodeGetInt(options, "yres");
+
+      AiNodeSetInt(options, "region_min_x", overscanLP ? (int)ceilf(-(float)width * overscanL) : -(int)overscanL);
+      AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
+      AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
+      AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
+      
+   }*/
+
 
    ExportAtmosphere(options);   
 
@@ -1543,7 +1607,8 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetArray(options, "aov_shaders", aovShadersArray);
    }
 
-   if (GetSessionOptions().IsInteractiveRender())
+   
+   if (IsInteractiveSession())
       AiNodeSetBool(options, "enable_dependency_graph", true);
 
    bool gpuRender = false;
@@ -1552,9 +1617,10 @@ void COptionsTranslator::Export(AtNode *options)
    {
       MPlug gpuPlug = FindMayaPlug("renderDevice");
       MPlug gpuFallbackPlug = FindMayaPlug("render_device_fallback");
-      if (GetSessionMode() != MTOA_SESSION_SWATCH && (!gpuPlug.isNull()))
+      
+      if (sessionOptions.GetSupportGpu() && (!gpuPlug.isNull()))
          gpuRender = gpuPlug.asBool();
-
+      
       if (!gpuFallbackPlug.isNull())
       {
          gpuFallbackBool = gpuFallbackPlug.asBool();
@@ -1563,14 +1629,9 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
       AiNodeSetStr(options, "render_device_fallback", (gpuFallbackBool) ? "CPU" : "error");
 
-      // For GPU render, we want to force options.enable_progressive_render to be ON, even if its value is ignored by Arnold.
-      // At least we can take this parameter into account later on, for example when ARV needs to do special things depending on 
-      // whether this option is enabled or not. See #3627
-      if (gpuRender && GetSessionOptions().IsInteractiveRender())
-         AiNodeSetBool(options, "enable_progressive_render", true);
    }
 
-   if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)
+   if ((gpuRender || optixDenoiser) && sessionOptions.GetSupportGpu())
    {
       CNodeTranslator::ProcessParameter(options, "gpu_default_names", AI_TYPE_STRING);
       CNodeTranslator::ProcessParameter(options, "gpu_default_min_memory_MB", AI_TYPE_INT);
@@ -1632,6 +1693,15 @@ void COptionsTranslator::Export(AtNode *options)
       if (autoSelect) // automatically select the GPU devices
          AiDeviceAutoSelect();
    }
+
+   // Eventually disable color manager if the export option is turned off #2995
+   // We're now handling this in the color manager extension, so we don't need to handle it here
+   /*
+   if (session->IsFileExport() && (session->GetOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
+   {
+      AiNodeSetPtr(options, "color_manager", NULL);
+   }*/
+
 }
 void COptionsTranslator::ExportImagers()
 {
@@ -1757,31 +1827,27 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
       // Only update imagers list if the render has finished, since arnold
       // currently doesn't support interactive changes in the list while the render is in progress
       // FIXME: we should not do this for some imagers that require a render restart !
-      if (AiRenderGetStatus() != AI_RENDER_STATUS_RENDERING)
+      if (AiRenderGetStatus(m_impl->m_session->GetRenderSession()) != AI_RENDER_STATUS_RENDERING)
       {
          // Update the imagers list in the options
          ExportImagers();
-         // Ensure the newly created imagers have their callbacks properly set
-         // as if we had gone through CArnoldSession::DoUpdate()
-         CArnoldSession *session = CMayaScene::GetArnoldSession();
-         if (session)
-            session->AddCallbacksToUpdateNodes();
-
-         // Tell ARV to update the list of imagers
-         CRenderSession *renderSession = CMayaScene::GetRenderSession();
-         if (renderSession)
-            renderSession->SetRenderViewOption("Update Imagers", "Rewire Imagers");
-
-         static AtString request_imager_update("request_imager_update");
-         AiRenderSetHintBool(request_imager_update, true);
+         m_impl->m_session->RequestUpdateImagers(true);
          return;
       }
-   } else if ((attrNameLength > 4 && plugName.substringW(0, 3) == "log_") || 
+   } else if (plugName == "mtoa_translation_info")
+   {
+      // tell MtoaLog that mtoa_translation_info might change
+      UpdateMtoaTranslationInfo();      
+   }
+
+
+   /*else if ((attrNameLength > 4 && plugName.substringW(0, 3) == "log_") || 
       (attrNameLength > 6 && plugName.substringW(0, 5) == "stats_") || 
       (attrNameLength > 8 && plugName.substringW(0, 7) == "profile_"))
    {
       m_impl->m_session->RequestUpdateOptions();
-   } 
+   } */
+   m_impl->m_session->RequestUpdateOptions();
 
-   CNodeTranslator::NodeChanged(node, plug);
+//   CNodeTranslator::NodeChanged(node, plug);
 }

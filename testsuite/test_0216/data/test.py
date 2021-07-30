@@ -13,7 +13,7 @@ kick = os.path.join(mtoa_root_path, 'bin', 'kick')
 cmd = '%s -v 0 -dp -dw ref.ass -l "%s" -r 160 120 -set defaultColorMgtGlobals.native_catalog_path "%s" -o testrender.tif' \
   % (kick, shaders_path, synColor_path)
 
-print cmd
+print(cmd)
 
 
 os.system(cmd)

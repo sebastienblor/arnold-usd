@@ -182,7 +182,7 @@ void CHairTranslator::Export( AtNode *curve )
             
             AiNodeLink(rampShader, "input2", multShader);
 
-            MPlug rampPlug = fnDepNodeHair.findPlug("hairColorScale");
+            MPlug rampPlug = fnDepNodeHair.findPlug("hairColorScale", true);
             MObject opos = fnDepNodeHair.attribute("hairColorScale_Position");
             ProcessArrayParameter(rampShader, "position", rampPlug, AI_TYPE_FLOAT, &opos);
             MObject ocol = fnDepNodeHair.attribute("hairColorScale_Color");
@@ -195,7 +195,7 @@ void CHairTranslator::Export( AtNode *curve )
          }
          AiNodeSetFlt(shader, "diffuse", 1.f);
 
-         MPlug opacPlug = fnDepNodeHair.findPlug("opacity");
+         MPlug opacPlug = fnDepNodeHair.findPlug("opacity", true);
          MPlugArray connections;
          opacPlug.connectedTo(connections, true, false);
          if (connections.length() > 0)
@@ -206,7 +206,7 @@ void CHairTranslator::Export( AtNode *curve )
             AiNodeSetRGB(shader, "opacity", opacity, opacity, opacity);
          }
 
-         MPlug transPlug = fnDepNodeHair.findPlug("translucence");
+         MPlug transPlug = fnDepNodeHair.findPlug("translucence", true);
          connections.clear();
          transPlug.connectedTo(connections, true, false);
          if (connections.length() > 0)
@@ -216,9 +216,9 @@ void CHairTranslator::Export( AtNode *curve )
             float translucence = transPlug.asFloat();
             AiNodeSetRGB(shader, "transmission_tint", translucence, translucence, translucence);
          }
-         ProcessParameter(shader, "specular_tint", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
+         ProcessParameter(shader, "specular_tint", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor", true));
          AiNodeSetRGB(shader, "specular2_tint", 0.f, 0.f, 0.f);
-         float specRoughness = fnDepNodeHair.findPlug("specularPower").asFloat();
+         float specRoughness = fnDepNodeHair.findPlug("specularPower", true).asFloat();
          AiNodeSetFlt(shader, "roughness", 1.f / specRoughness);
          plug = fnDepNodeHair.findPlug("aiIndirectDiffuse", true);
          AiNodeSetFlt(shader, "indirect_diffuse", plug.asFloat());

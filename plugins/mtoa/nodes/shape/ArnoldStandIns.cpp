@@ -11,8 +11,8 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "translators/DagTranslator.h"
 #include "utils/Universe.h"
-#include "scene/MayaScene.h"
 #include "utils/MayaUtils.h"
+#include "session/ArnoldSession.h"
 
 #include <ai_render.h>
 #include <ai_dotass.h>
@@ -166,12 +166,6 @@ MStatus CArnoldStandInShape::LoadFile()
       else if (geom->m_hasOverrides)
          isUsd = true;
 
-      if (!AiUniverseIsActive())
-      {
-        AiUniverseCreated = true;
-        AiBegin();
-      }
-
       AtUniverse *proc_universe = AiUniverse();
       universe = AiUniverse();
 
@@ -287,11 +281,9 @@ MStatus CArnoldStandInShape::LoadFile()
          DrawUniverse(universe);
       else
          status = MS::kFailure;
-      
-      // if (free_render) AiRenderAbort();
+            
       if (universe) AiUniverseDestroy(universe);
       if (proc_universe) AiUniverseDestroy(proc_universe);
-      if (AiUniverseCreated) AiEnd();
    }
    else
    {
@@ -708,7 +700,7 @@ void CArnoldStandInShape::updateGeometry()
 
  	if (data->drawOverride == 0) 
  	{ 
-      MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
+      MObject ArnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions(); 
       if (!ArnoldRenderOptionsNode.isNull()) 
          data->drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort(); 
  	} 

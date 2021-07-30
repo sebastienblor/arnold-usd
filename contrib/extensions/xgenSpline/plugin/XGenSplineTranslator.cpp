@@ -171,7 +171,7 @@ void CXgSplineDescriptionTranslator::PostExport(AtNode *node)
    // For now we're only expanding the procedurals during export if we are on an interactive render
    // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
    // can be updated while tweaking the XGen attributes
-   if (GetSessionOptions().GetSessionMode() == MTOA_SESSION_ASS)
+   if (IsFileExport())
       return;
 
    ExpandProcedural();

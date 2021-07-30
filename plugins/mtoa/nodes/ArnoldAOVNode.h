@@ -9,7 +9,7 @@ class CArnoldAOVNode
 
 public:
 
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data)
+   MStatus compute(const MPlug& plug, MDataBlock& data) override
    {
       return MS::kSuccess;
    }

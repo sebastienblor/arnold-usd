@@ -1,6 +1,7 @@
 #include "utils/Version.h"
 #include "ArnoldExportToMaterialXCmd.h"
-#include "scene/MayaScene.h"
+#include "session/ArnoldExportSession.h"
+#include "session/SessionManager.h"
 #include "utils/MtoAAdpPayloads.h"
 
 #include <maya/MStatus.h>
@@ -22,6 +23,8 @@
 #include <ai_bbox.h>
 #include <ai_materialx.h>
 #include <math.h>
+
+static const std::string s_exportMaterialXSessionId("exportMaterialX");
 
 MSyntax CArnoldExportToMaterialXCmd::newSyntax()
 {
@@ -63,8 +66,6 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    else
       MGlobal::getActiveSelectionList(selected);
 
-   MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
-
    // do we want to export the whole scene if nothing is selected ?
    if (selected.length() == 0)
    {
@@ -78,13 +79,18 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   CMayaScene::End();
-   // Cannot export while a render is active
-   if (AiUniverseIsActive())
+   //CArnoldSession *session = CSessionManager::FindActiveSession(exportSessionName);
+   // FIXME check what happens if an existing session is there
+   CArnoldExportSession * session = new CArnoldExportSession();
+
+   if (!CSessionManager::AddActiveSession(s_exportMaterialXSessionId, session))
    {
-      AiMsgError("[mtoa] Cannot Export to MaterialX while rendering");
+      delete session;
       return MS::kFailure;
    }
+
+   CSessionOptions &options = session->GetOptions();
+   AtUniverse *universe = session->GetUniverse();
 
    MString filename = "";
    argDB.getFlagArgument("filename", 0, filename);
@@ -108,51 +114,19 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
       argDB.getFlagArgument("relative", 0, relative);
 
 
-   int prevFullPath = 1;
-   MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.exportFullPaths\"", prevFullPath);
-   bool restoreFullPath = false;
-   if (argDB.isFlagSet("fullPath")) 
+   options.SetExportFullPath(true);
+   options.SetExportSlashSeparator(true);
+   options.SetForceTranslateShadingEngines(true);   
+   
+   session->Export(&selected);
+
+   AtRenderSession *renderSession = session->GetRenderSession();
+   AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+   AiRenderBegin(renderSession, AI_RENDER_MODE_FREE);
+   while(AiRenderGetStatus(renderSession) != AI_RENDER_STATUS_PAUSED)
    {
-      bool fullPath = (prevFullPath != 0);
-      argDB.getFlagArgument("fullPath", 0, fullPath);
-      if (fullPath != (prevFullPath!=0))
-      {
-         restoreFullPath = true;
-         MString cmdStr = "setAttr \"defaultArnoldRenderOptions.exportFullPaths\" ";
-         cmdStr += fullPath ? "1" : "0";
-         MGlobal::executeCommand(cmdStr);
-      }
+      continue;
    }
-
-   int prevSeparator = 0;
-   MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.exportSeparator\"", prevSeparator);
-   bool restoreSeparator = false;
-
-   if (argDB.isFlagSet("separator")) 
-   {
-      MString separator = "|";
-      argDB.getFlagArgument("separator", 0, separator);
-      int separatorVal = (separator == MString("/")) ? 1 : 0;
-      if (separatorVal != prevSeparator)
-      {
-         restoreSeparator = true;
-         MString cmdStr = "setAttr \"defaultArnoldRenderOptions.exportSeparator\" ";
-         cmdStr += separatorVal;
-         MGlobal::executeCommand(cmdStr);
-      }
-   }     
-   
-   CMayaScene::Begin(MTOA_SESSION_ASS);
-   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   renderSession->SetForceTranslateShadingEngines(true);   
-   arnoldSession->SetExportFilterMask(AI_NODE_ALL);
-   
-   CMayaScene::Export(&selected);
-   AiRenderSetHintStr(AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-   AiRender(AI_RENDER_MODE_FREE);
-   AiRenderAbort();
-   
    // The default mode of export for this command is look export as the look export has to 
    // deal with more information than just the material. 
    // The material Export flag when set write out just information about the material
@@ -160,8 +134,7 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
 
    if (!materialExport)
    {
-
-      AiMaterialxWrite(NULL, filename.asChar(), lookName.asChar(), properties.asChar(), relative);
+      AiMaterialxWrite(universe, filename.asChar(), lookName.asChar(), properties.asChar(), relative);
    }
    else
    {
@@ -207,44 +180,27 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
          plug = setFn.findPlug("surfaceShader", true, &stat);
          if (stat == MStatus::kSuccess && plug.isConnected())
          {
-            MFnDependencyNode surface_shader ( plug.source().node());
-            const char* arnoldName = arnoldSession->GetArnoldObjectName(surface_shader.name());
-            surface = AiNodeLookUpByName(arnoldName);
+            MString arnoldName = options.GetArnoldNaming(plug.source().node());
+            surface = AiNodeLookUpByName(universe, arnoldName.asChar());
          }
          plug = setFn.findPlug("displacementShader", true, &stat);
          if (stat == MStatus::kSuccess && plug.isConnected() )
          {
-            MFnDependencyNode displacement_shader (plug.source().node());
-            const char* arnoldName = arnoldSession->GetArnoldObjectName(displacement_shader.name());
-            disp = AiNodeLookUpByName(arnoldName);
+            MString arnoldName = options.GetArnoldNaming(plug.source().node());
+            disp = AiNodeLookUpByName(universe, arnoldName.asChar());
          }
          plug = setFn.findPlug("volumeShader", true, &stat);
          if (stat == MStatus::kSuccess && plug.isConnected())
          {
-            MFnDependencyNode volume_shader ( plug.source().node());
-            const char* arnoldName = arnoldSession->GetArnoldObjectName(volume_shader.name());
-            volume = AiNodeLookUpByName(arnoldName);
+            MString arnoldName = options.GetArnoldNaming(plug.source().node());
+            volume = AiNodeLookUpByName(universe, arnoldName.asChar());
          }
          AiMaterialxWriteMaterial(filename.asChar(), it->first.c_str() , surface , volume, disp);
       }
    }
 
-   CMayaScene::End();
-
-   if (restoreFullPath)
-   {
-      MString cmdStr("setAttr \"defaultArnoldRenderOptions.exportFullPaths\" ");
-      cmdStr += prevFullPath;
-      MGlobal::executeCommand(cmdStr);
-   }
+   CSessionManager::DeleteActiveSession(s_exportMaterialXSessionId);
    
-   if (restoreSeparator)
-   {
-      MString cmdStr("setAttr \"defaultArnoldRenderOptions.exportSeparator\" ");
-      cmdStr += prevSeparator;
-      MGlobal::executeCommand(cmdStr);
-   }
-
    return MS::kSuccess;
 }
 

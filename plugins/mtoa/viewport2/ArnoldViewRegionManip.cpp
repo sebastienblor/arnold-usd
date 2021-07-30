@@ -10,8 +10,8 @@
 //+
 
 #include "ArnoldViewRegionManip.h"
-
-#include "scene/MayaScene.h"
+#include "session/ArnoldRenderViewSession.h"
+#include "session/SessionManager.h"
 #include "nodes/ArnoldNodeIDs.h"
 
 #include <maya/MIOStream.h>
@@ -30,6 +30,8 @@
 // Statics
 MTypeId ArnoldViewRegionManipulator::id(ARNOLD_NODEID_VIEW_REGION_MANIP);
 MString ArnoldViewRegionManipulator::registrantId("ArnoldViewRegionManipulatorPlugin");
+
+static std::string s_arnoldViewportSession("arnoldViewport");
 
 //
 // class implementation
@@ -65,24 +67,20 @@ void ArnoldViewRegionManipulator::initializeInstance()
 {
     if (!fInitialized)
     {
-
         // Eventually get the crop region value in the render session
-        CRenderSession *renderSession = CMayaScene::GetRenderSession();
-        CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
-        if (renderOptions && renderOptions->useRenderRegion())
-        {
-            int width = renderOptions->width();
-            int height = renderOptions->height();
-            int minx = renderOptions->minX();
-            int miny = renderOptions->minY();
-            int maxx = renderOptions->maxX();
-            int maxy = renderOptions->maxY();
-
-            mViewRectangle.x = (float)minx / (float)width;
-            mViewRectangle.y = 1.f - ((float)maxy / (float)height);
-            mViewRectangle.z = (float)maxx / (float)width;
-            mViewRectangle.w = 1.f - ((float)miny / (float)height);
-            fInitialized = true;
+        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+        if (session)
+        {           
+            CSessionOptions &sessionOptions = session->GetOptions();
+            int width, height, minx, miny, maxx, maxy;
+            if (sessionOptions.GetRegion(minx, miny, maxx, maxy) && sessionOptions.GetResolution(width, height))
+            {
+                mViewRectangle.x = (float)minx / (float)width;
+                mViewRectangle.y = 1.f - ((float)maxy / (float)height);
+                mViewRectangle.z = (float)maxx / (float)width;
+                mViewRectangle.w = 1.f - ((float)miny / (float)height);
+                fInitialized = true;
+            }
         }
     }
 }
@@ -401,9 +399,11 @@ MStatus	ArnoldViewRegionManipulator::doPress(M3dView& view)
 // virtual
 MStatus	ArnoldViewRegionManipulator::doDrag(M3dView& view)
 {
-    if (!CMayaScene::GetRenderSession())
+    // FIXME do we still need this ?
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    if(session == nullptr)
         return MS::kFailure;
-
+        
     MPoint localMousePoint;
     MVector localMouseDirection;
     if (MS::kFailure == mouseRay(localMousePoint, localMouseDirection))
@@ -494,21 +494,27 @@ MStatus	ArnoldViewRegionManipulator::doDrag(M3dView& view)
 
 // virtual
 MStatus ArnoldViewRegionManipulator::doRelease(M3dView& view)
-{    
-    CRenderSession *renderSession = CMayaScene::GetRenderSession();
-    CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
-	if (!renderSession->IsRegionCropped()) return MS::kSuccess;
-    if (renderOptions == NULL) return MS::kFailure;
-
-    renderSession->InterruptRender(true);
-    int width = renderOptions->width();
-    int height = renderOptions->height();
-
-    renderOptions->SetRegion(AiClamp(int(mViewRectangle.x * width), 0, width -1), AiClamp(int(mViewRectangle.z * width), 0, width -1),
-            AiClamp(int((1.f - mViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - mViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top
+{   
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    if (session == nullptr)
+        return MS::kFailure;
+    CSessionOptions &sessionOptions = session->GetOptions();
+    std::string arvCrop = session->GetRenderView().GetOption("Crop Region");
+    if (arvCrop != "1")
+      return MS::kSuccess;
     
-    if (!renderSession->IsIPRPaused())
-        CMayaScene::GetArnoldSession()->RequestUpdate();
+    session->GetRenderView().InterruptRender(true);
+    int width, height;
+    if (sessionOptions.GetResolution(width, height))
+    {
+        sessionOptions.SetRegion(AiClamp(int(mViewRectangle.x * width), 0, width -1), AiClamp(int(mViewRectangle.z * width), 0, width -1),
+                AiClamp(int((1.f - mViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - mViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top
+    }
+    std::string arvRunIpr = session->GetRenderView().GetOption("Run IPR");
+    if (arvRunIpr != "0")
+    {
+        session->RequestUpdate();
+    }
 	   //renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
 
 	return MS::kSuccess;
@@ -522,10 +528,8 @@ bool ArnoldViewRegionManipulator::shouldDraw(const MDagPath& cameraPath) const
 	{
 		return false;
 	}
-
-    CRenderSession *renderSession = CMayaScene::GetRenderSession();
-    CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
-    return (renderOptions) ? renderOptions->useRenderRegion() : false;
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    return session ? session->GetOptions().UseRenderRegion() : false;
 }
 
 //

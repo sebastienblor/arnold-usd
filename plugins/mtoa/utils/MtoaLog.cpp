@@ -1,6 +1,6 @@
 #include "MtoaLog.h"
-#include "scene/MayaScene.h"
-#include "render/RenderOptions.h"
+#include "../session/SessionOptions.h"
+#include "../session/ArnoldSession.h"
 
 #include <maya/MGlobal.h>
 #include <iostream>
@@ -8,7 +8,6 @@
 int GetFlagsFromVerbosityLevel(unsigned int level)
 {
    int flags = 0;
-
    switch(level)
    {
       case MTOA_LOG_DEBUG:  flags = AI_LOG_ALL; break;
@@ -17,7 +16,6 @@ int GetFlagsFromVerbosityLevel(unsigned int level)
       case MTOA_LOG_WARNINGS:  flags |= AI_LOG_WARNINGS | AI_LOG_TIMESTAMP | AI_LOG_MEMORY;
       case MTOA_LOG_ERRORS:  flags |= AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_MEMORY | AI_LOG_BACKTRACE ; break; 
    }
-
    return flags;
 }
 
@@ -106,13 +104,31 @@ DLLEXPORT void MtoaSetupLogging(int logFlags)
    // AiMsgSetCallback(MtoaLogCallback);
 }
 
+static int s_mtoaTranslationInfo = -1;
 DLLEXPORT bool MtoaTranslationInfo()
 {
-   CRenderSession *renderSession = CMayaScene::GetRenderSession();
-   if (renderSession == NULL)
-      return false;
+   if (s_mtoaTranslationInfo < 0)
+   {
+      MObject options;
+      MSelectionList list;
+      list.add("defaultArnoldRenderOptions");
+      if (list.length() == 0)
+         return false;
 
-   return renderSession->RenderOptions()->mtoaTranslationInfo();
+      list.getDependNode(0, options);
+      MStatus status;
+      MFnDependencyNode optNode(options, &status);
+
+      bool info = (status == MS::kSuccess) ? optNode.findPlug("mtoa_translation_info", true).asBool() : false;
+      s_mtoaTranslationInfo = (info) ? 1 : 0;
+   }
+
+   return s_mtoaTranslationInfo > 0 ? true : false;
+}
+// the options node has changed, we can't keep using the cached value of mtoa_translation_info
+DLLEXPORT void UpdateMtoaTranslationInfo()
+{
+   s_mtoaTranslationInfo = -1;
 }
 
 DLLEXPORT void MtoaDebugLog(MString log)

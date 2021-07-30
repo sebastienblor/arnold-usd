@@ -6,7 +6,7 @@ oiiotool_path = sys.argv[2]
 #cmd = ('%s -v --info %s') % (oiiotool_path, 'testrender_diffuse_direct.exr')
 #print cmd
 #os.system(cmd)
-print 'Extracting channels from multi-layer images'
+print('Extracting channels from multi-layer images')
 cmd = ('%s %s -ch "%s,%s,%s" -o %s') % (oiiotool_path, 'testrender_diffuse_direct_lgroups.exr', 
 	'diffuse_direct_red.R', 'diffuse_direct_red.G', 'diffuse_direct_red.B', 'testrender_diffuse_direct_red.tif')
 os.system(cmd)

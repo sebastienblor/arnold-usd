@@ -14,9 +14,9 @@ class CArnoldOperatorNode
 
 public:
 
-   virtual void postConstructor();
+   void postConstructor() override;
 
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data)
+   MStatus compute(const MPlug& plug, MDataBlock& data) override
    {
       return MS::kSuccess;
    }
@@ -28,6 +28,7 @@ public:
    static CAbMayaNode s_abstract;
    // Input attributes
    static MObject SAttr[];
-
+   SchedulingType schedulingType()const override {return kSerial;}
+   
    static std::vector<CStaticAttrHelper> s_nodeHelpers;
 };  // class CArnoldOperatorNode

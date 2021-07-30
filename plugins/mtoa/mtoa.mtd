@@ -4005,3 +4005,50 @@ desc STRING "Apply a gamma correction to the color."
     [attr layer_selection]
         default             STRING     "RGBA"
 
+[node imager_color_curves]
+    maya.name              STRING "aiImagerColorCurves"
+    maya.classification     STRING  "imager"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT      0x00115DC4
+    [attr input]
+        maya.hide               BOOL     TRUE
+    [attr layer_selection]
+        default             STRING     "RGBA"
+    [attr RGB_position]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampRGB.rampRGB_Position"
+    [attr RGB_value]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampRGB.rampRGB_FloatValue"
+    [attr RGB_interpolation]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampRGB.rampRGB_Interp"
+    [attr R_position]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampR.rampR_Position"
+    [attr R_value]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampR.rampR_FloatValue"
+    [attr R_interpolation]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampR.rampR_Interp"
+    [attr G_position]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampG.rampG_Position"
+    [attr G_value]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampG.rampG_FloatValue"
+    [attr G_interpolation]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampG.rampG_Interp"
+    [attr B_position]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampB.rampB_Position"
+    [attr B_value]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampB.rampB_FloatValue"
+    [attr B_interpolation]
+        maya.hide           BOOL    true
+        maya.name           STRING  "rampB.rampB_Interp"
+    

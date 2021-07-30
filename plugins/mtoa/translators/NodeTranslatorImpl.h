@@ -47,7 +47,6 @@ public :
       m_animArrays(false),
       m_isExported(false),
       m_overrideSetsDirty(false),
-      m_universe(NULL),
       m_tr(translator){}
    virtual ~CNodeTranslatorImpl() {}
 
@@ -108,8 +107,6 @@ public :
    const char* GetArnoldTypeName();
    /// Get the type of the Maya node. Mainly used for debug logs : do we want to keep it in the API?
    MString GetMayaNodeTypeName() const;
-
-   static void AddNamingOptions(MString &name);
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
@@ -201,10 +198,7 @@ public :
    // for example a single shader assigned to the whole scene
    std::vector<CNodeTranslator *> m_references;
    unordered_set<CNodeTranslator *> m_backReferences;
-
-   // in which universe to create arnold nodes
-   AtUniverse *m_universe;
-
+   
 protected:
    CNodeTranslator &m_tr;
 };

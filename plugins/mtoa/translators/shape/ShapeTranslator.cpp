@@ -1,6 +1,6 @@
 #include "ShapeTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
-#include "scene/MayaScene.h"
+#include "session/ArnoldSession.h"
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 
@@ -223,8 +223,6 @@ void CShapeTranslator::AddUpdateCallbacks()
 
 bool CShapeTranslator::RequiresShaderExport()
 {
-   CRenderOptions *renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
-   if (renderOptions == NULL) return false;
-   return (renderOptions->outputAssMask() & AI_NODE_SHADER) ||
-       renderOptions->forceTranslateShadingEngines();
+   const CSessionOptions &options = m_impl->m_session->GetOptions();
+   return (options.outputAssMask() & AI_NODE_SHADER) || options.forceTranslateShadingEngines();
 }

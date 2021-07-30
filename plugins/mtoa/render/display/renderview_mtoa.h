@@ -52,11 +52,16 @@ class CRenderViewZoomManipulator;
 #include <maya/MColorPickerUtilities.h>
 #endif
 
-class CRenderViewMtoA : public CRenderViewInterface
+#include "attributes/AttrHelper.h"
+
+
+class CArnoldRenderViewSession;
+
+class DLLEXPORT CRenderViewMtoA : public CRenderViewInterface
 {
 public:
 
-	CRenderViewMtoA();
+	CRenderViewMtoA(CArnoldRenderViewSession *s);
 	virtual ~CRenderViewMtoA();
 
     
@@ -108,7 +113,7 @@ public:
    bool IsViewportRendering() const {return m_viewportRendering;}
    static void SetCameraName(const MString &name);
 
-
+   void SetSession(CArnoldRenderViewSession *s) {m_session = s;}
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
@@ -118,6 +123,8 @@ private:
    CustomCallback* m_colorPickingCallback;
    MColor ColorPickingCallback(QWidget*, QWidget*, const QPoint&, bool);
 #endif
+
+   CArnoldRenderViewSession *m_session;
 
    MCallbackId m_rvSelectionCb;
    MCallbackId m_rvSceneSaveCb;

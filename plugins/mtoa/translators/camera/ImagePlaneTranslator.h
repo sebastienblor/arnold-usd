@@ -15,16 +15,14 @@ public:
       return new CImagePlaneTranslator();
    }
    AtNode* CreateArnoldNodes();
-   void SetCamera(MString cameraName);
    
    virtual bool RequiresMotionData() {return false;}
    
-   void ExportImagePlane();
 protected:
 
 
    MString m_camera;
    MString m_colorSpace;
    bool RequiresColorCorrect();
-   //virtual void NodeChanged(MObject& node, MPlug& plug);
+
 };

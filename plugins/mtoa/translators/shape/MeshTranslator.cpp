@@ -63,8 +63,8 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
 
 void CMeshTranslator::ExportMotion(AtNode* anode)
 {
-   if (!GetSessionOptions().IsMayaUsd())
-      ExportMatrix(anode);
+   //if (!GetSessionOptions().IsMayaUsd())
+   ExportMatrix(anode);
 
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "polymesh") == 0)

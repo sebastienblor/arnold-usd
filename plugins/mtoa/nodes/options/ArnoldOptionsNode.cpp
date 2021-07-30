@@ -1,6 +1,5 @@
 
 #include "ArnoldOptionsNode.h"
-#include "render/RenderOptions.h"
 #include "session/SessionOptions.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
@@ -18,6 +17,9 @@
 #include <maya/MDGModifier.h>
 #include <maya/MDGMessage.h>
 #include <maya/MGlobal.h>
+#include <maya/MObject.h>
+#include <maya/MString.h>
+
 
 MTypeId CArnoldOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
@@ -30,6 +32,7 @@ MCallbackId CArnoldOptionsNode::sId;
 */
 
 MObject CArnoldOptionsNode::s_optionsNode = MObject();
+MObject CArnoldOptionsNode::s_renderGlobals;
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
@@ -190,6 +193,14 @@ MStatus CArnoldOptionsNode::initialize()
    // initialize the attribute helper
    s_attributes.SetNode("options");
 
+   s_renderGlobals = tAttr.create("renderGlobals", "gop", MFnData::kString);
+   tAttr.setKeyable(false);
+   MFnStringData strData;
+   MString stringDefault(MString("defaultRenderGlobals"));
+   MObject defObj = strData.create(stringDefault);
+   tAttr.setDefault(defObj);
+   addAttribute(s_renderGlobals);
+
    s_imageFormat = tAttr.create("imageFormat", "img", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_imageFormat);
@@ -209,7 +220,6 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
    
-   
    s_denoiseBeauty = nAttr.create("denoiseBeauty", "opdenb", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_denoiseBeauty);
@@ -217,6 +227,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_outputVarianceAOVs = nAttr.create("outputVarianceAOVs", "varaovs", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_outputVarianceAOVs);
+
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);

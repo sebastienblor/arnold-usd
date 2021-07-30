@@ -1,7 +1,7 @@
 #include "ArnoldStandInSubSceneOverride.h"
 
 #include "nodes/shape/ArnoldStandIns.h"
-#include "scene/MayaScene.h"
+#include "session/ArnoldSession.h"
 
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
@@ -179,7 +179,8 @@ CArnoldProceduralSubSceneOverride::CArnoldProceduralSubSceneOverride(const MObje
     mRenderLayerManagerChangeID = MEventMessage::addEventCallback("renderLayerManagerChange", renderLayerChangeCallback, this);
     mGlobalOptionsCreatedID = mGlobalOptionsChangedID = 0;
     mGlobalOptionsCreatedID = MDGMessage::addNodeAddedCallback(CArnoldProceduralSubSceneOverride::globalOptionsAdded, "aiOptions", this);
-    MObject arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
+    
+    MObject arnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions();
     if (!arnoldRenderOptionsNode.isNull())
         mGlobalOptionsChangedID = MNodeMessage::addAttributeChangedCallback(arnoldRenderOptionsNode, globalOptionsChanged, this);
 }
@@ -854,10 +855,9 @@ int CArnoldProceduralSubSceneOverride::getDrawOverride()
 
         if (localDrawOverride == 0) // use global settings
         {
-            MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
+            MObject ArnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions();
             if (!ArnoldRenderOptionsNode.isNull()) 
                 drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort(); 
-            
         }
         else
             drawOverride = localDrawOverride - 1;

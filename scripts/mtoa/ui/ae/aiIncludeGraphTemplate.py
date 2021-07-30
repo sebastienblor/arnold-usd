@@ -161,9 +161,6 @@ class AEaiIncludeGraphTemplate(OperatorAETemplate):
 
         ai.AiUniverseDestroy(universe)
 
-        if universeCreated:
-            ai.AiEnd()
-        
         targetVal = cmds.getAttr(plugName) or ''
         
         if targetVal == '' and defaultOperator != '':

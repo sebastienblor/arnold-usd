@@ -13,8 +13,6 @@
 
 AtNode* CFilterTranslator::CreateArnoldNodes()
 {
-   assert(AiUniverseIsActive());
-
    const char *arnoldName = m_impl->m_abstract.arnold.asChar();
 
    AtNode* created = AddArnoldNode(arnoldName/*, arnoldName*/);

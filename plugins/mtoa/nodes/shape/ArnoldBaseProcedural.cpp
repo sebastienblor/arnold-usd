@@ -12,7 +12,6 @@
 
 #include "translators/DagTranslator.h"
 #include "utils/Universe.h"
-#include "scene/MayaScene.h"
 #include "utils/MayaUtils.h"
 
 #include <ai_render.h>
@@ -183,7 +182,7 @@ void CArnoldBaseProcedural::postConstructor()
    // This call allows the shape to have shading groups assigned
    setRenderable(true);
    MObject me = thisMObject();
-   m_nodeDirtyId = MNodeMessage::addNodeDirtyCallback(me, NodeDirtyCallback, this);
+   m_nodeDirtyId = MNodeMessage::addNodeDirtyPlugCallback(me, NodeDirtyCallback, this);
 }
 
 MStatus CArnoldBaseProcedural::compute(const MPlug& plug, MDataBlock& data)
@@ -272,7 +271,7 @@ CArnoldProceduralData* CArnoldBaseProcedural::geometry()
    if (m_data == NULL || m_data->m_isDirty)
    {
          // If we are in a batch render, it is not needed and it will cause the render crash. 
-      if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+      if (IsBatch())
       {
          m_data->m_bbox.clear();
          return m_data;

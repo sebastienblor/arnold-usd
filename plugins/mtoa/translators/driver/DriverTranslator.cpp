@@ -5,8 +5,6 @@
 #include "translators/NodeTranslatorImpl.h"
 AtNode* CDriverTranslator::CreateArnoldNodes()
 {
-   assert(AiUniverseIsActive());
-
    // for now don't assume this attribute exists, since this is also the filter translator
    MStatus status;
    MPlug plug = FindMayaPlug("outputMode", &status);
@@ -16,7 +14,8 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
       // ("GUI Only", 0);
       // ("Batch Only", 1);
       // ("GUI and Batch", 2);
-      if ((mode == 0 && m_impl->m_session->IsBatch()) || (mode == 1 && !m_impl->m_session->IsBatch()))
+      bool isBatch = m_impl->m_session->IsBatchSession();
+      if ((mode == 0 && isBatch) || (mode == 1 && !isBatch))
          return NULL;
    }
 
@@ -28,15 +27,13 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
       // don't export display drivers during batch
       if (AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) && displayDriver)
       {
-         if (GetSessionMode() == MTOA_SESSION_BATCH)
+         if (m_impl->m_session->IsBatchSession())
             return NULL;
-      }
-      // don't export non-display drivers during IPR
-      else if (GetSessionMode() == MTOA_SESSION_IPR)
-         return NULL;
+      } else if (!GetSessionOptions().GetExportFileDrivers())
+         return NULL; // special case for maya IPR where we don't want any file driver
    }
 
-   AtNode* created = AddArnoldNode(driverType/*, driverType*/);
+   AtNode* created = AddArnoldNode(driverType);
 
    // we used to set this as the driver's name (using tags)
    // so until we're sure there wasn't a good reason for it I'm keeping this behaviour
@@ -68,16 +65,18 @@ void CDriverTranslator::Export(AtNode *shader)
    {
       MFnDependencyNode fnOpts(GetArnoldRenderOptions());
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
-         AiNodeSetBool(shader, "progressive", m_impl->m_session->IsProgressive());
+         AiNodeSetBool(shader, "progressive", m_impl->m_session->GetOptions().IsProgressive());
+      if (AiNodeEntryLookUpParameter(entry, "renderSession") != NULL)
+         AiNodeSetStr(shader, "renderSession", AtString(m_impl->m_session->GetSessionName().asChar()));
    } else
    {
       // not for display drivers, at least not for now
-
-
       int colorSpaceVal = FindMayaPlug("colorManagement").asInt();
 
       int cmEnabled = 0;
-      MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+      // if the export option for color managers is turned off, consider that color management is disabled #2995
+      if (!m_impl->m_session->IsFileExport() || (m_impl->m_session->GetOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) != 0)
+         MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
 
       if(cmEnabled)
       {

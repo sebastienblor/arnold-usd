@@ -55,14 +55,11 @@ public:
    static void MakeArnoldVisibilityFlags(CBaseAttrHelper& helper);
 
    /// Static function to force the export of a specific MDagPath and get the generated translator.
-   static CDagTranslator *ExportDagPath(const MDagPath &dagPath);
+   CDagTranslator *ExportDagPath(const MDagPath &dagPath);
 
    /// Returns true if this is one of the translate/rotate/scale parameters
-   static bool IsTransformPlug(const MPlug &plug);
-
-   /// Returns the arnold name for a corresponding maya dag path
-   static MString GetArnoldNaming(const MDagPath &dagPath);
-
+   bool IsTransformPlug(const MPlug &plug);
+   
    /// If this function returns false, children of this dag node won't be exported
    virtual bool ExportDagChildren() const {return true;}
 

@@ -91,6 +91,7 @@ def arnoldIprStop():
     cmds.arnoldIpr(mode='stop')
 
 def arnoldIprIsRunning():
+    # FIXME restore this function
     return cmds.arnoldIpr()
 
 def arnoldIprRender(width, height, doShadows, doGlowPass, camera):

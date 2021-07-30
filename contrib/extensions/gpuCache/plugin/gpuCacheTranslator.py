@@ -22,8 +22,7 @@ from ast import literal_eval
 
 from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
-from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
-                           ArnoldUniverseOnlyBegin, ArnoldUniverseEnd, NODE_TYPES, \
+from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, NODE_TYPES, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP, PARAM_IGNORELIST
@@ -228,7 +227,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         return section
 
     def userAttrsNew(self, nodeAttrName):
-        AiUniverseCreated = ArnoldUniverseOnlyBegin()
         subsections = {}
         for node_type in NODE_TYPES:
             layout = cmds.frameLayout(label=node_type.title(), collapse=True)
@@ -266,8 +264,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                         cmds.setParent('..')
             AiParamIteratorDestroy(paramIter)
             cmds.setParent('..')
-        if AiUniverseCreated: ArnoldUniverseEnd()
-
+        
         self.userAttrsReplace(nodeAttrName)
 
     def userAttrsReplace(self, nodeAttrName):

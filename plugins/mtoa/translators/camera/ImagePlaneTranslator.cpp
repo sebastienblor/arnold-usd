@@ -26,18 +26,10 @@ using namespace std;
 
 void CImagePlaneTranslator::Export(AtNode *node)
 {
-   //CNodeTranslator::Export(imagePlane);
-   ExportImagePlane();
-}
+   MDagPath camera = GetSessionOptions().GetExportCamera();
+   MFnDependencyNode camNode (camera.node());
+   m_camera =  camNode.name();
 
-void CImagePlaneTranslator::SetCamera(MString cameraName)
-{
-   m_camera = cameraName;
-   ExportImagePlane();
-}
-
-void CImagePlaneTranslator::ExportImagePlane()
-{
    MObject imgPlane = GetMayaObject();
    // get the dependency node of the image plane
    MFnDependencyNode fnRes(imgPlane);
@@ -204,14 +196,17 @@ void CImagePlaneTranslator::ExportImagePlane()
 
       // only set the color_space if the texture isn't a TX
       AiNodeSetStr(image, "color_space", "");
-      if (resolvedFilename.length() > 4)
-      {
-         MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
+      // if the export option for color managers is turned off, consider that color management is disabled #2995
+      if (!m_impl->m_session->IsFileExport() || (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) != 0)
+      {   
+         if (resolvedFilename.length() > 4)
+         {
+            MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
 
-         if (extension != ".tx" && extension !=  ".TX")
-            AiNodeSetStr(image, "color_space", colorSpace.asChar());
-      }
-      
+            if (extension != ".tx" && extension !=  ".TX")
+               AiNodeSetStr(image, "color_space", colorSpace.asChar());
+         }
+      }   
       AiNodeSetBool(image, "ignore_missing_textures", true);
       ProcessParameter(image, "missing_texture_color", AI_TYPE_RGBA, "aiOffscreenColor");
       
@@ -336,12 +331,3 @@ bool CImagePlaneTranslator::RequiresColorCorrect()
          IsRGBAttrDefault(FindMayaPlug("colorOffset"), 0.f, 0.f, 0.f) &&
          IsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f));
 }
-/*
-void CImagePlaneTranslator::NodeChanged(MObject& node, MPlug& plug)
-{
-   MString plugName = plug.partialName(false, false, false, false, false, true);
-   if (plugName == "displayMode")
-      SetUpdateMode(AI_RECREATE_NODE);
-
-   CNodeTranslator::NodeChanged(node, plug);
-}*/

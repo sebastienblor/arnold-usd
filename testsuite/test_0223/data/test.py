@@ -21,7 +21,7 @@ with open('synColorConfig.xml','w') as f:
 cmd = '%s --nomipmap --colorengine "syncolor" --colorconfig "%s" --colorconvert "Sony SLog2" "ACEScg" texture.jpg -o testrender.tif' \
     % (makeTxPath, synColor_path)
 
-print cmd
+print(cmd)
 
 os.system(cmd)
 

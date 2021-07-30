@@ -894,7 +894,6 @@ void CBaseAttrHelper::MakeInput(MObject& input, CAttrData& attrData)
       {
          MObject inputA;
          MakeInputRGBA(input, inputA, attrData);
-         // FIXME: !!!
          addAttribute(inputA);
          m_attributes[std::string(attrData.name.asChar()) + "A"] = inputA;
          break;

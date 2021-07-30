@@ -15,6 +15,8 @@ class CArnoldLightLinks{
 public:
    CArnoldLightLinks() 
    : m_numArnoldLights(0)
+   , m_options(nullptr)
+   , m_universe(nullptr)
    , m_lightMode(MTOA_LIGHTLINK_NONE)
    , m_shadowMode(MTOA_LIGHTLINK_NONE)
    {}
@@ -28,6 +30,8 @@ public:
    // and maybe for a different light linking mode later
    void ExportLightLinking(AtNode* shape, const MDagPath& path);
    void SetLinkingMode(int light, int shadow);
+   void SetOptions(CSessionOptions *options) {m_options = options;}
+   void SetUniverse(AtUniverse *universe) {m_universe= universe;}
 private:
    enum NodeLinkMode{
       MTOA_NODELINK_LINK,
@@ -53,6 +57,9 @@ private:
    std::vector<std::string> m_linkedShadows;
    std::vector<std::string> m_ignoredShadows;
    std::vector<AtNode*>     m_groupLights;
+
+   CSessionOptions *m_options;
+   AtUniverse *m_universe;
 
    
    int m_lightMode;

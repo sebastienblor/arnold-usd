@@ -20,9 +20,9 @@ public:
    CArnoldVolumeShape();
    virtual ~CArnoldVolumeShape();
 
-   virtual void postConstructor();
-   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
-   virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
+   void postConstructor() override;
+   MStatus compute(const MPlug& plug, MDataBlock& data) override;
+   MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray) override;
 
    virtual bool isBounded() const;
    virtual MBoundingBox boundingBox() const;
