@@ -6,8 +6,6 @@
 #include <maya/MPlugArray.h>
 #include <maya/MTimerMessage.h>
 #include <maya/MEventMessage.h>
-#include "render/RenderSession.h"
-#include "scene/MayaScene.h"
 
 
 AtNode* CImagerColorCurvesTranslator::CreateArnoldNodes()
