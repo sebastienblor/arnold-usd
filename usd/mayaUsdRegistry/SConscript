@@ -76,21 +76,32 @@ if not os.path.exists(usd_include_dir):
 ###### Now Maya USD registry 
 
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'usd')
-include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h', 'usdArnoldChaser.h']
-source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp', 'usdArnoldChaser.cpp']
+include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h', 'usdArnoldChaser.h', 'usdArnoldTranslators.h']
+source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp', 'usdArnoldChaser.cpp', 'usdArnoldTranslators.cpp']
 
 writer_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'translator', 'writer')
 writer_srcs = find_files_recursive(writer_dir, ['.c', '.cpp'])
 writer_includes = find_files_recursive(writer_dir, ['.h'])
+
 for writer_src in writer_srcs:
     source_files.append(os.path.join(writer_dir, writer_src))
 for writer_include in writer_includes:
     include_files.append(os.path.join(writer_dir, writer_include))
 
+common_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'common')
+common_srcs = find_files_recursive(common_dir, ['.c', '.cpp'])
+common_includes = find_files_recursive(common_dir, ['.h'])
+
+for common_src in common_srcs:
+    source_files.append(os.path.join(common_dir, common_src))
+for common_include in common_includes:
+    include_files.append(os.path.join(common_dir, common_include))
+
+
 mayausd_path = local_env['MAYAUSD_PATH']
 mayausd_include = os.path.join(mayausd_path, 'include')
 mayausd_lib = os.path.join(mayausd_path, 'lib')
-local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include, writer_dir])
+local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include, writer_dir, common_dir])
 local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
 
 local_env['BOOST_LIB_NAME']=boost_lib_name

@@ -29,12 +29,13 @@
 #include <mayaUsd/fileio/shaderReaderRegistry.h>
 #include <mayaUsd/fileio/shaderWriterRegistry.h>
 #include <mayaUsd/fileio/shading/shadingModeRegistry.h>
-
+#include <mayaUsd/fileio/schemaApiWriterRegistry.h>
 
 #include "mayaUsdRegistry.h"
 #include "usdArnoldShaderWriter.h"
 #include "usdArnoldShaderReader.h"
 #include "usdArnoldChaser.h"
+#include "usdArnoldTranslators.h"
 
 #include <pxr/base/tf/registryManager.h>
 #include <pxr/base/tf/staticTokens.h>
@@ -261,9 +262,19 @@ cmds.mayaUSDExport(
     chaser=['arnold'])
 */
 
+/*
 PXRUSDMAYA_DEFINE_EXPORT_CHASER_FACTORY(arnold, ctx)
 {
     return new ArnoldUsdChaser(ctx.GetStage(), ctx.GetDagToUsdMap());
-}
+}*/
+
+PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(mesh, ArnoldPolymeshAPI, ArnoldSchemaExporter);
+PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(nurbsCurves, ArnoldCurvesAPI, ArnoldSchemaExporter);
+PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(camera, ArnoldPerspCameraAPI, ArnoldSchemaExporter);
+PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(directionalLight, ArnoldDistantLightAPI, ArnoldSchemaExporter);
+PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(pointLight, ArnoldPointLightAPI, ArnoldSchemaExporter);
+PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(sphereLight, ArnoldSphereLightAPI, ArnoldSchemaExporter);
+PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(areaLight, ArnoldAreaLightAPI, ArnoldSchemaExporter);
+
 
 PXR_NAMESPACE_CLOSE_SCOPE
