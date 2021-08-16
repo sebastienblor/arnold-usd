@@ -184,6 +184,7 @@ vars.AddVariables(
     StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
     StringVariable('MAYAUSD_PATH_PYTHON2', 'Maya-USD installation root for python2', None),
     StringVariable('MOD_SUFFIX', 'Install another mod file with a given suffix', None),
+    StringVariable('TIMELIMIT', 'Time limit for each test (in seconds)', '300'),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline/master builds', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
@@ -234,8 +235,6 @@ env.Append(BUILDERS = {'MakeModule' : make_module})
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
-# Setting a timelimit for the testsuite (in seconds)
-# env['TIMELIMIT'] = 120.0
 
 # Set default amount of threads set to the cpu counts in this machine.
 # This can be overridden through command line by setting e.g. "abuild -j 1"
