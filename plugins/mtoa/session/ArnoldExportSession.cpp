@@ -139,7 +139,7 @@ MString CArnoldExportSession::GetExportFilename(const MString& customName,
    return assFileName;
 }
 
-void CArnoldExportSession::WriteScene(MString customFileName, const bool compressed, bool writeBox)
+void CArnoldExportSession::WriteScene(MString customFileName, const bool compressed, bool writeBox, bool append)
 {
    MString fileName;
    AtNode *options = AiUniverseGetOptions(GetUniverse());
@@ -215,6 +215,10 @@ void CArnoldExportSession::WriteScene(MString customFileName, const bool compres
       AiParamValueMapSetInt(params, AtString("mask"), m_sessionOptions.outputAssMask());
       AiParamValueMapSetBool(params, AtString("open_procs"), m_sessionOptions.expandProcedurals());
       AiParamValueMapSetBool(params, AtString("binary"), m_sessionOptions.useBinaryEncoding());
+      AiParamValueMapSetFlt(params, AtString("frame"), AiNodeGetFlt(options, "frame"));
+      if (append)
+         AiParamValueMapSetBool(params, AtString("append"), true);
+
       AiSceneWrite(m_universe, fileName.asChar(), params, mds);
       AiMetadataStoreDestroy(mds);
       AiParamValueMapDestroy(params);
