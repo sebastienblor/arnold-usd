@@ -194,11 +194,17 @@ void CImagePlaneTranslator::Export(AtNode *node)
 
       AiNodeSetStr(image, "filename", resolvedFilename.asChar());
 
-      // only set the color_space if the texture isn't a TX
-      AiNodeSetStr(image, "color_space", "");
-      // if the export option for color managers is turned off, consider that color management is disabled #2995
-      if (!m_impl->m_session->IsFileExport() || (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) != 0)
+      if (m_impl->m_session->IsFileExport() && (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
       {   
+         // if the export option for color managers is turned off, consider that color management is disabled #2995
+         // here we want to reset the color_space attribute so that it's left to arnold's "automatic" default mode,
+         // we don't want to force it to an empty string which behaves differently (see #MTOA-727)
+         AiNodeResetParameter(image, "color_space");
+      }
+      else 
+      {
+         // only set the color_space if the texture isn't a TX. Otherwise force it to an empty value (passthrough)
+         AiNodeSetStr(image, "color_space", "");
          if (resolvedFilename.length() > 4)
          {
             MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);

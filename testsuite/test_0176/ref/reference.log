@@ -1,37 +1,9 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0176\test_0176.log', using stdout instead
-
-Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
-Initialized VP2.0 renderer {
-  Version : 2016.3.78.11. Feature Level 5.
-  Adapter : Quadro K620/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:10.18.13.5413.
-  API : OpenGL V.4.5.
-  Max texture size : 16384 * 16384.
-  Max tex coords : 32
-  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
-  Shader compiler profile : (Best card profile)
-  Active stereo support available : 0
-  GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
-}
-OpenCL evaluator is attempting to initialize OpenCL.
-Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
- Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
-OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
-OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   492MB WARNING |  node "MayaClamp" is already installed
-00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   492MB WARNING |  node "MayaCondition" is already installed
-00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
-
-Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0176/test.ma line 9: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.64 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0176/test.ma
-Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0176\test.ma completed.
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.17763.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.17763.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa2\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0176', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0176'}
+ 
+ ==== Exec cmd ==== 
+ 
+"C:\Python27\python.exe" post_script.py . C:\arnold\mtoa2\external\OpenImageIO\bin\windows\oiiotool C:\solidangle\mtoadeploy\2022
+ 
+ Extracting channels from multi-layer images

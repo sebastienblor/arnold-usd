@@ -1,30 +1,28 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ARNOLD_TESTSUITE_COMMON': 'D:\\arnold\\mtoa\\testsuite\\common', 'COMSPEC': 'C:\\WINDOWS\\system32\\cmd.exe', 'TEMP': 'C:\\Users\\blaines\\AppData\\Local\\Temp', 'ADCLMHUB_LOG_DIR': 'D:\\arnold\\mtoa\\build\\windows_x86_64\\20180300\\msvc_opt\\testsuite\\test_0020', 'SystemDrive': 'C:', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'LIBPATH': 'C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.10240.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64', 'ADCLMHUB_LOG_LEVEL': 'T', 'PATH': 'C:\\solidangle\\mtoadeploy\\2018\\bin;D:\\arnold\\Maya-runtimes\\windows\\Maya2018\\bin;C:\\solidangle\\mtoadeploy\\2018\\lib;C:\\solidangle\\mtoadeploy\\2018\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\BIN\\amd64;C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\IDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64;C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\WINDOWS\\System32;.', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2018', 'SystemRoot': 'C:\\WINDOWS', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE;C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.10240.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\shared;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\um;C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\\\winrt'}
+ {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.17763.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.17763.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa2\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0020', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0020'}
  
  ==== Exec cmd ==== 
  
-D:\arnold\Maya-runtimes\windows\Maya2018\bin\Render -proj "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0020" -rd "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0020" -r arnold -x 160 -y 120  "D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0020\test.ma"
+Render -proj "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0020" -rd "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0020" -r arnold -x 160 -y 120  "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0020\test.ma"
  
  
-Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
-sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
-
+Starting "C:\Program Files\Autodesk\Maya2022\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
 
-  Version : 2016.11.40.12. Feature Level 5.
+  Version : 2016.11.62.12. Feature Level 5.
 
-  Adapter : Quadro K620/PCIe/SSE2
+  Adapter : Quadro RTX 4000/PCIe/SSE2
 
-  Vendor ID: 4318. Device ID : 5051
+  Vendor ID: 4318. Device ID : 7857
 
-  Driver : nvoglv64.dll:23.21.13.9103.
+  Driver : .
 
   API : OpenGL V.4.6.
 
   Max texture size : 16384 * 16384.
 
-  Max tex coords : 32
+  Max texture coords : 32
 
   Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
 
@@ -32,11 +30,11 @@ Initialized VP2.0 renderer {
 
   Active stereo support available : 0
 
-  GPU Memory Limit : 2048 MB.
+  GPU Memory Limit : 8192 MB.
 
-  CPU Memory Limit: 62185.1 MB.
+  CPU Memory Limit : 61896.3 MB.
 
-  MultiDraw consolidation: enabled
+  MultiDraw consolidation : enabled
 
 }
 
@@ -44,741 +42,177 @@ OpenCL evaluator is attempting to initialize OpenCL.
 
 Detected 1 OpenCL Platforms: 
 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.2.141.
 
- Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics cl_kernel_attribute_nv 
+
+ Selected matching OpenCL Platform: NVIDIA Corporation NVIDIA CUDA OpenCL 1.2 CUDA 10.2.141.
+
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
-00:00:00   419MB WARNING | [mtoa] [<built-in>] [node matrix_interpolate] Assigning temporary node id 1138176 to associated Maya type name aiMatrixInterpolate.
+00:00:00   961MB         | log started Thu Aug 19 17:40:43 2021
 
-00:00:00   422MB WARNING | [mtoa] [mandelbulb] [node mandelbulb] Assigning temporary node id 1138177 to associated Maya type name mandelbulb.
+00:00:00   961MB         | Arnold 7.0.0.0 [7132bb3c] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/08/18 16:20:52
 
-00:00:00   422MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138178 to associated Maya type name aiUsd.
+00:00:00   961MB         | running on REMS4QL1726, pid=41980
 
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+00:00:00   961MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
 
-File read in  0.43 seconds.
+00:00:00   961MB         |  NVIDIA driver version 442.50 (Optix 60600)
 
-File read in  0.43 seconds.
+00:00:00   961MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6229MB available) (NVLink:0)
 
-Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0020/test.ma
+00:00:00   961MB         |  Windows 10 (version 10.0, build 19041)
 
-00:00:00   526MB         | log started Sun Feb 17 20:50:03 2019
+00:00:00   961MB         |  soft limit for open files raised from 512 to 2048
 
-00:00:00   526MB         | Arnold 5.3.0.0.wip [b458484c] windows icc-17.0.2 oiio-2.1.0 osl-1.11.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 optix-6.0.0 2019/02/16 21:07:53
+00:00:00   961MB         |  
 
-00:00:00   526MB         | host application: MtoA 3.2.0.wip 04941e7f (develop) Maya 2018
+00:00:00   961MB         | loading plugins from C:\solidangle\mtoadeploy\2022\bin\..\plugins ...
 
-00:00:00   526MB         | running on REM8WCK8D2, pid=40548
+00:00:00   961MB         |  alembic_proc.dll: alembic uses Arnold 7.0.0.0
 
-00:00:00   526MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   961MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.0.0.0
 
-00:00:00   526MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   961MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 7.0.0.0
 
-00:00:00   526MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   961MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 7.0.0.0
 
-00:00:00   526MB         |  
+00:00:00   962MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 7.0.0.0
 
-00:00:00   526MB         | loading plugins from D:/arnold/custom_shapes ...
+00:00:00  1002MB         |  usd_proc.dll: usd uses Arnold 7.0.0.0
 
-00:00:00   526MB         |  mandelbulb.dll: mandelbulb uses Arnold 5.2.0.1
+00:00:00  1003MB         | loaded 6 plugins from 4 lib(s) in 0:00.14
 
-00:00:00   526MB         |  usd_proc.dll: usd uses Arnold 5.2.3.0.wip
+###############################################################################
 
-00:00:00   526MB         | loading plugins from C:/solidangle/mtoadeploy/2018/shaders ...
+Begin attempted read of a shade fragment XML file.
 
-00:00:00   526MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.3.0.0.wip
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
 
-00:00:00   526MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.3.0.0.wip
+Errors loading XML:
 
-00:00:00   526MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.3.0.0.wip
+-------------------------------------------------------------------------------
 
-00:00:00   526MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.3.0.0.wip
+Could not find file: aiRectangleAreaLight.xml
 
-00:00:00   526MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.3.0.0.wip
+-------------------------------------------------------------------------------
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkFloatConstant uses Arnold 5.3.0.0.wip
+End attempted read of fragment XML.
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkFloatComposite uses Arnold 5.3.0.0.wip
+###############################################################################
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkFloatCondition uses Arnold 5.3.0.0.wip
+00:00:00  1031MB ERROR   | [mtoa] [bifrostTranslator] Could not find arnold_bifrost in search path C:/Program Files/Autodesk/Bifrost/Maya2022/2.3.0.0-dev-202103301245-ac98f61/bifrost/
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkFloatCorrect uses Arnold 5.3.0.0.wip
+00:00:00  1034MB WARNING | Bifrost procedural could not be found: 
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkFloatLogic uses Arnold 5.3.0.0.wip
+00:00:00  1034MB WARNING | Bifrost procedural could not be found: 
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkFloatMask uses Arnold 5.3.0.0.wip
+Warning: file: C:/arnold/mtoa2/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0020/test.ma line 13977: Unrecognized node type 'nodeGraphEditorInfo'; preserving node information during this session.
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkFloatMath uses Arnold 5.3.0.0.wip
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkColorComposite uses Arnold 5.3.0.0.wip
+File read in  0.54 seconds.
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkColorCondition uses Arnold 5.3.0.0.wip
+Viewport 2.0 floating point render target is turned off.
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkColorConstant uses Arnold 5.3.0.0.wip
+Viewport 2.0 floating point render target is turned on for color management.
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkColorCorrect uses Arnold 5.3.0.0.wip
+Result: C:/arnold/mtoa2/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0020/test.ma
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkColorLogic uses Arnold 5.3.0.0.wip
+Exporting Arnold Scene...
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkColorMask uses Arnold 5.3.0.0.wip
+00:00:02  1083MB         |   [mtoa] RGBA attribute projection1.image has no alpha component: exporting as RGBA
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkColorMath uses Arnold 5.3.0.0.wip
+00:00:02  1083MB         |   [mtoa] RGBA attribute projection1.defaultColor has no alpha component: exporting as RGBA
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkChannels uses Arnold 5.3.0.0.wip
+Exporting Motion Data...
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkPremultiply uses Arnold 5.3.0.0.wip
+00:00:02  1111MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1.self_shadows: ProcessParameter should not be called during motion export
 
-00:00:00   526MB         |  lookdevkit_shaders.dll: ldkSimplexNoise uses Arnold 5.3.0.0.wip
+00:00:02  1111MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1.opaque: ProcessParameter should not be called during motion export
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 5.3.0.0.wip
+00:00:02  1111MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1.matte: ProcessParameter should not be called during motion export
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaClamp uses Arnold 5.3.0.0.wip
+00:00:02  1111MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1.receive_shadows: ProcessParameter should not be called during motion export
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 5.3.0.0.wip
+Error: nParticleShape1Cache1 (Cache File): `C:/arnold/mtoa2/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0020/cache/nParticleShape1` may have an invalid cache description or invalid, missing or empty cache file.
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaCondition uses Arnold 5.3.0.0.wip
+00:00:02  1111MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1.self_shadows: ProcessParameter should not be called during motion export
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaReverse uses Arnold 5.3.0.0.wip
+Updating Arnold Scene...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 5.3.0.0.wip
+00:00:03  1128MB         | 
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSamplerInfo1D uses Arnold 5.3.0.0.wip
+00:00:03  1128MB         | authorizing with default license managers: rlm, network, user ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSamplerInfo2D uses Arnold 5.3.0.0.wip
+00:00:31  1131MB WARNING | rendering with watermarks because of failed authorization:
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [rlm] error initializing license system:
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [clm.v1] license server was not set (51)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [clm.v2] SERVICE (1): timed-out after 30.0 sec(s) waiting for Agent to connect
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  environment variables:
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |         ARNOLD_LICENSE_ORDER   = (not set)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaFile uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |         ARNOLD_LICENSE_MANAGER = (not set)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [rlm]  solidangle_LICENSE     = (not set)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaRamp uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [rlm]  RLM_LICENSE            = (not set)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaProjection uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaChecker uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         |  [clm]  LM_LICENSE_FILE        = (not set)
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaBulge uses Arnold 5.3.0.0.wip
+00:00:31  1131MB         | 
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaCloth uses Arnold 5.3.0.0.wip
+00:03:11  1204MB         |  
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaGrid uses Arnold 5.3.0.0.wip
+00:03:11  1204MB         | releasing resources
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaFractal uses Arnold 5.3.0.0.wip
+Scene C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0020\test.ma completed.
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaNoise uses Arnold 5.3.0.0.wip
+00:03:11  1165MB         |   
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 5.3.0.0.wip
+00:03:11  1165MB         |  releasing resources
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 5.3.0.0.wip
+00:03:11  1143MB         |   unloading 13 plugins
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 5.3.0.0.wip
+00:03:11  1143MB         |    closing alembic_proc.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaLuminance uses Arnold 5.3.0.0.wip
+00:03:11  1143MB         |    closing cryptomatte.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaCloud uses Arnold 5.3.0.0.wip
+00:03:11  1143MB         |    closing synColor_shaders.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 5.3.0.0.wip
+00:03:11  1142MB         |    closing usd_proc.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSnow uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing hairPhysicalShader_shaders.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaContrast uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing lookdevkit_shaders.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing mtoa_shaders.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing renderSetup_shaders.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing xgenSpline_shaders.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing mtoa_ParticleInstancer_proc.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaBrownian uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing mtoa_ParticleVolume_proc.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaStucco uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing xgenSpline_procedural.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |    closing xgen_procedural.dll ...
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSetRange uses Arnold 5.3.0.0.wip
+00:03:11  1139MB         |   unloading plugins done
 
-00:00:00   526MB         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaColorToFloat uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaVectorToFloat uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaPointToFloat uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaPoint2ToFloat uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaWriteColor uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAovWriteColor uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaWriteFloat uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAovWriteFloat uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAnimFloat uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAnimPoint uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAnimVector uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAnimColor uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAnimMatrix uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaUserDataVector uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaUserDataColor uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaShadingEngine uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSamplerInfo3D uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAovWriteVector uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaAovWriteVector2 uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaNormalDisplacement uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaVectorDisplacement uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaUserDataBool uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaHair uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaMeshLightMaterial uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaUserDataVec2 uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaBump2D uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaFluid uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaMarble uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaMountain uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaWater uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaCrater uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaLeather uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaGranite uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaRock uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSingleShadingSwitch uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaDoubleShadingSwitch uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaTripleShadingSwitch uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaQuadShadingSwitch uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaFluidData uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaFluidTexture2D uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaSurfaceLuminance uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MtoaCameraUvMapper uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_shaders.dll: MayaFlatClosure uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyAbsFloatOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyAbs2FloatsOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyAbs3FloatsOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyAbsIntOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyRelFloatOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyRel2FloatsOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyRel3FloatsOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  renderSetup_shaders.dll: applyRelIntOverride uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  xgenSpline_shaders.dll: XGenHairMapping uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         | loading plugins from C:/solidangle/mtoadeploy/2018/procedurals ...
-
-00:00:00   526MB         |  mtoa_ParticleInstancer_proc.dll: particleInstancer uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_ParticleVolume_proc.dll: volume_particle uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  mtoa_ParticleVolume_proc.dll: implicit_particle uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  xgenSpline_procedural.dll: xgenProcedural uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  xgen_procedural.dll: xgen_procedural uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         | loaded 124 plugins from 11 lib(s) in 0:00.09
-
-00:00:00   526MB         | loading plugins from C:\solidangle\mtoadeploy\2018\bin\..\plugins ...
-
-00:00:00   526MB         |  alembic_proc.dll: alembic uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  cryptomatte.dll: cryptomatte uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 5.3.0.0.wip
-
-00:00:00   526MB         | loaded 5 plugins from 3 lib(s) in 0:00.00
-
-00:00:00   526MB         | loading plugin: C:/solidangle/mtoadeploy/2018/extensions/bifrost/1.5.0/bifrost_procedural_0_2.dll ...
-
-00:00:00   526MB         |  bifrost_procedural_0_2.dll: bifrost_polymesh uses Arnold 5.2.0.0
-
-00:00:00   527MB         |  bifrost_procedural_0_2.dll: bifrost_points uses Arnold 5.2.0.0
-
-00:00:00   527MB         |  bifrost_procedural_0_2.dll: bifrost_volume uses Arnold 5.2.0.0
-
-00:00:00   527MB         |  bifrost_procedural_0_2.dll: bifrost_implicit uses Arnold 5.2.0.0
-
-00:00:00   527MB         |  bifrost_procedural_0_2.dll: bifrost_blocks uses Arnold 5.2.0.0
-
-00:00:00   527MB         | loaded 5 plugins from 1 lib(s) in 0:00.05
-
-00:00:00   527MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-
-00:00:00   527MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-
-00:00:00   528MB WARNING |   [mtoa.translator]  mtoa_shaders: Maya node brownian1(brownian) does not have attribute exposure to match parameter exposure on Arnold node brownian1(MayaBrownian).
-
-00:00:00   528MB WARNING |   [mtoa.translator]  mtoa_shaders: Maya node volumeNoise1(volumeNoise) does not have attribute exposure to match parameter exposure on Arnold node volumeNoise1(MayaVolumeNoise).
-
-00:00:00   529MB WARNING |   [mtoa.translator]  mtoa_shaders: Maya node marble1(marble) does not have attribute exposure to match parameter exposure on Arnold node marble1(MayaMarble).
-
-00:00:00   529MB WARNING |   [mtoa.translator]  mtoa_shaders: Maya node leather1(leather) does not have attribute exposure to match parameter exposure on Arnold node leather1(MayaLeather).
-
-00:00:00   529MB WARNING |   [mtoa.translator]  mtoa_shaders: Maya node rock1(rock) does not have attribute exposure to match parameter exposure on Arnold node rock1(MayaRock).
-
-00:00:00   529MB         |   [mtoa] RGBA attribute projection1.image has no alpha component: exporting as RGBA
-
-00:00:00   530MB WARNING | [mtoa] [translator <built-in>] nParticleShape1.self_shadows: ProcessParameter should not be called during motion export
-
-00:00:00   530MB WARNING | [mtoa] [translator <built-in>] nParticleShape1.opaque: ProcessParameter should not be called during motion export
-
-00:00:00   530MB WARNING | [mtoa] [translator <built-in>] nParticleShape1.matte: ProcessParameter should not be called during motion export
-
-00:00:00   530MB WARNING | [mtoa] [translator <built-in>] nParticleShape1.receive_shadows: ProcessParameter should not be called during motion export
-
-00:00:00   530MB WARNING | [mtoa] [translator <built-in>] nParticleShape1.self_shadows: ProcessParameter should not be called during motion export
-
-00:00:00   530MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-
-00:00:00   530MB         | 
-
-00:00:00   530MB         | authorizing with default license managers: rlm, clm ...
-
-00:00:00   532MB WARNING | rendering with watermarks because of failed authorization:
-
-00:00:00   532MB         |  [rlm] error initializing license system:
-
-00:00:00   532MB         |  [rlm]  * Can't read license data (-102)
-
-00:00:00   532MB         |  [clm] product key not found (44)
-
-00:00:00   532MB         |  environment variables:
-
-00:00:00   532MB         |         ARNOLD_LICENSE_MANAGER = (not set)
-
-00:00:00   532MB         |  [rlm]  solidangle_LICENSE     = (not set)
-
-00:00:00   532MB         |  [rlm]  RLM_LICENSE            = (not set)
-
-00:00:00   532MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
-
-00:00:00   532MB         |  [clm]  LM_LICENSE_FILE        = (not set)
-
-00:00:00   532MB         | 
-
-00:00:00   532MB         | [color_manager] using color manager of type "color_manager_syncolor"
-
-00:00:00   532MB         | [color_manager_syncolor] synColor version 2018.0.80
-
-00:00:00   532MB         | [color_manager_syncolor] native catolog directory: D:/arnold/Maya-runtimes/windows/Maya2018_Update4/synColor
-00:00:00   532MB         | [color_manager_syncolor] optional custom catalog directory: C:/Users/blaines/Documents/maya/synColor/Shared/
-
-00:00:00   532MB         | [color_manager] rendering color space is "scene-linear Rec 709/sRGB" with declared chromaticities:
-
-00:00:00   532MB         |                 r(0.6400, 0.3300) g(0.3000, 0.6000) b(0.1500, 0.0600) and w(0.3127, 0.3290)
-
-00:00:00   544MB         |  
-
-00:00:00   544MB         | there are 2 lights and 16 objects:
-
-00:00:00   544MB         |       1 persp_camera
-
-00:00:00   544MB         |       1 distant_light
-
-00:00:00   544MB         |       1 skydome_light
-
-00:00:00   544MB         |      14 utility
-
-00:00:00   544MB         |       1 lambert
-
-00:00:00   544MB         |       1 standard_volume
-
-00:00:00   544MB         |      14 matrix_interpolate
-
-00:00:00   544MB         |       1 driver_tiff
-
-00:00:00   544MB         |       1 gaussian_filter
-00:00:00   544MB         |      14 polymesh
-
-00:00:00   544MB         |       1 points
-
-00:00:00   544MB         |       1 list_aggregate
-
-00:00:00   544MB         |       1 MayaProjection
-
-00:00:00   544MB         |       2 MayaCloud
-
-00:00:00   544MB         |       1 MayaSnow
-
-00:00:00   544MB         |       1 MayaSolidFractal
-
-00:00:00   544MB         |       1 MayaVolumeNoise
-
-00:00:00   544MB         |       1 MayaBrownian
-
-00:00:00   544MB         |       1 MayaStucco
-
-00:00:00   544MB         |       1 MayaEnvSphere
-
-00:00:00   544MB         |       1 MayaMarble
-
-00:00:00   544MB         |       1 MayaCrater
-00:00:00   544MB         |       1 MayaLeather
-00:00:00   544MB         |       1 MayaGranite
-
-00:00:00   544MB         |       1 MayaRock
-
-00:00:00   544MB         |       1 color_manager_syncolor
-00:00:00   544MB         |  
-
-00:00:00   544MB         | rendering image at 160 x 120, 3 AA samples
-
-00:00:00   544MB         |   AA samples max    <disabled>
-
-00:00:00   544MB         |   AA sample clamp   <disabled>
-
-00:00:00   544MB         |   diffuse           samples  2 / depth  1
-
-00:00:00   544MB         |   specular          samples  2 / depth  1
-
-00:00:00   544MB         |   transmission      samples  2 / depth  8
-
-00:00:00   544MB         |   volume indirect   <disabled by depth>
-
-00:00:00   544MB         |   total                          depth 10
-
-00:00:00   544MB         |   bssrdf            samples  2
-
-00:00:00   544MB         |   transparency      depth 10
-
-00:00:00   544MB         |  initializing 67 nodes ...
-
-00:00:00   545MB WARNING |   [polymesh] pSphereShape5: discarded 1 duplicate deformation keys
-
-00:00:00   545MB WARNING |   [polymesh] pSphereShape1: discarded 1 duplicate deformation keys
-
-00:00:00   545MB WARNING |   [polymesh] pSphereShape4: discarded 1 duplicate deformation keys
-
-00:00:00   545MB WARNING |   [polymesh] pSphereShape3: discarded 1 duplicate deformation keys
-
-00:00:00   545MB WARNING |   [polymesh] pSphereShape2: discarded 1 duplicate deformation keys
-
-00:00:00   545MB         |   creating root object list ...
-
-00:00:00   545MB         |  node initialization done in 0:00.07 (multithreaded)
-
-00:00:00   545MB         |  updating 68 nodes ...
-
-00:00:00   546MB         |   aiSkyDomeLightShape1: skydome_light using 1 sample, 2 volume samples
-
-00:00:00   546MB         |   directionalLightShape1: distant_light using 1 sample, 2 volume samples
-
-00:00:00   546MB         |   scene bounds: (-44.0890961 -52.3619614 -181.561203) -> (92.3205032 172.121033 200.967941)
-
-00:00:00   546MB         |  node update done in 0:00.00 (multithreaded)
-
-00:00:00   546MB         |  [aov] parsing 1 output statements ...
-
-00:00:00   546MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-
-00:00:00   546MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-
-00:00:00   546MB         |  [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
-
-00:00:00   546MB         |  starting 40 bucket workers of size 64x64 ...
-
-00:00:00   563MB         |     5% done - 11 rays/pixel
-
-00:00:00   564MB         |    20% done - 11 rays/pixel
-
-00:00:00   564MB         |    35% done - 0 rays/pixel
-
-00:00:00   564MB         |    55% done - 0 rays/pixel
-
-00:00:00   564MB         |    75% done - 0 rays/pixel
-
-00:00:00   564MB         |   100% done - 0 rays/pixel
-
-00:00:00   562MB         |  render done in 0:00.039
-
-00:00:00   562MB         |  [driver_tiff] writing file `D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0020/testrender.tif'
-
-00:00:00   562MB         | render done
-
-00:00:00   562MB         |  
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | scene creation time          0:00.32    machine utilization (1.93%) 
-
-00:00:00   562MB         |  plugin loading              0:00.15 
-
-00:00:00   562MB         |  unaccounted                 0:00.16 
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | frame time                   0:00.24    machine utilization (29.90%) 
-
-00:00:00   562MB         |  node init                   0:00.07 
-
-00:00:00   562MB         |  driver init/close           0:00.01 
-
-00:00:00   562MB         |  rendering                   0:00.03 
-
-00:00:00   562MB         |   pixel rendering            0:00.03 
-
-00:00:00   562MB         |  unaccounted                 0:00.11 
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | top session self-times by category 
-
-00:00:00   562MB         |  worker waiting                                                     0:00.46 (92.54%) 
-
-00:00:00   562MB         |  thread blocked                                                     0:00.01 ( 2.09%) 
-
-00:00:00   562MB         |  TraceCameraRay                                                     0:00.00 ( 1.70%) 
-
-00:00:00   562MB         |  Plugin loader                                                      0:00.00 ( 0.77%) 
-
-00:00:00   562MB         |  node_init                                                          0:00.00 ( 0.75%) 
-
-00:00:00   562MB         |  initializeAllNodes                                                 0:00.00 ( 0.38%) 
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | top session self-times by node 
-
-00:00:00   562MB         |  worker waiting                                                     0:00.46 (92.54%) 
-
-00:00:00   562MB         |  TraceCameraRay                                                     0:00.00 ( 1.70%) 
-
-00:00:00   562MB         |  polymesh:pSphereShape15                                            0:00.00 ( 1.35%) 
-
-00:00:00   562MB         |   thread blocked                                                    0:00.00 ( 1.34%) 
-
-00:00:00   562MB         |  Plugin loader                                                      0:00.00 ( 0.77%) 
-
-00:00:00   562MB         |  polymesh:pSphereShape14                                            0:00.00 ( 0.55%) 
-
-00:00:00   562MB         |  MayaLeather:leather1                                               0:00.00 ( 0.48%) 
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | peak CPU memory used      564.23MB 
-
-00:00:00   562MB         |  at startup               515.23MB 
-
-00:00:00   562MB         |  plugins                    6.53MB 
-
-00:00:00   562MB         |  AOV samples               44.01MB 
-
-00:00:00   562MB         |  output buffers            16.08MB 
-
-00:00:00   562MB         |  node overhead              0.03MB 
-
-00:00:00   562MB         |  message passing            0.08MB 
-
-00:00:00   562MB         |  memory pools              46.05MB 
-
-00:00:00   562MB         |  geometry                   0.19MB 
-
-00:00:00   562MB         |   polymesh                  0.19MB 
-
-00:00:00   562MB         |   points                    0.00MB 
-
-00:00:00   562MB         |  accel. structs             0.27MB 
-
-00:00:00   562MB         |  strings                   12.00MB 
-
-00:00:00   562MB         |  profiler                   0.03MB 
-
-00:00:00   562MB         |  unaccounted              -76.27MB 
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | ray counts                       ( /pixel, /sample) (% total) (avg. hits) (max hits)
-
-00:00:00   562MB         |  camera                   177898 (   9.27,    1.00) ( 84.37%) (     0.24) (       1)
-
-00:00:00   562MB         |  shadow                       13 (   0.00,    0.00) (  0.01%) (     0.23) (       1)
-
-00:00:00   562MB         |  volume_shadow             32943 (   1.72,    0.19) ( 15.62%) (     0.29) (       1)
-
-00:00:00   562MB         |  diffuse_reflect              12 (   0.00,    0.00) (  0.01%) (     0.17) (       1)
-
-00:00:00   562MB         |  total                    210866 (  10.98,    1.19) (100.00%) (     0.24) (       1)
-
-00:00:00   562MB         | by ray depth:              0     1
-
-00:00:00   562MB         |  total                   100.0%  0.0% 
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | ray marching samples             ( /ray  ) (% total) (segments)
-
-00:00:00   562MB         |  camera                    35861 (   8.71) ( 24.17%) (    4.16)
-
-00:00:00   562MB         |  shadow                       91 (   9.10) (  0.06%) (    8.50)
-
-00:00:00   562MB         |  volume_shadow            112322 (   4.80) ( 75.70%) (    3.86)
-
-00:00:00   562MB         |  diffuse_reflect             110 (   9.17) (  0.07%) (    8.42)
-
-00:00:00   562MB         |  total                    148384 (   5.39) (100.00%) (    3.91)
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | shader calls                     (  /pixel,  /sample) (% total)
-
-00:00:00   562MB         |  primary                  125768 (    6.55,     0.71) ( 15.77%)
-
-00:00:00   562MB         |  volume                   671748 (   34.99,     3.78) ( 84.23%)
-
-00:00:00   562MB         |  total                    797516 (   41.54,     4.48) (100.00%)
-
-00:00:00   562MB         | by ray depth:              0     1
-
-00:00:00   562MB         |  total                   99.8%  0.2% 
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | geometry                         (% hit ) (instances) (  init mem,  final mem)
-
-00:00:00   562MB         |  lists                         1 (100.0%) (        0) (      0.00,       0.00)
-
-00:00:00   562MB         |  polymeshes                   14 (100.0%) (        0) (      0.25,       0.19)
-
-00:00:00   562MB         |  points                        1 (100.0%) (        0) (      0.00,       0.00)
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | geometric elements               (      min) (       avg.) (      max)
-
-00:00:00   562MB         |  polygons                   5600 (      400) (      400.0) (      400)
-
-00:00:00   562MB         |  points                       12 (       12) (       12.0) (       12)
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | triangle tessellation            (      min) (       avg.) (      max) (/ element) (% total)
-
-00:00:00   562MB         |  polymeshes                10640 (      760) (      760.0) (      760) (     1.90) (100.00%)
-
-00:00:00   562MB         |  unique triangles          10640 
-
-00:00:00   562MB         |  CPU memory use             0.19MB 
-
-00:00:00   562MB         |   vertices                  0.06MB 
-
-00:00:00   562MB         |   vertex indices            0.02MB 
-
-00:00:00   562MB         |   packed normals            0.02MB 
-
-00:00:00   562MB         |   normal indices            0.02MB 
-
-00:00:00   562MB         |   uv coords                 0.02MB 
-
-00:00:00   562MB         |   uv coords idxs            0.02MB 
-
-00:00:00   562MB         |   uniform indices           0.01MB 
-
-00:00:00   562MB         |   userdata                  0.00MB 
-
-00:00:00   562MB         |  largest polymeshes by triangle count 
-
-00:00:00   562MB         |        760 tris -- pSphereShape5
-
-00:00:00   562MB         |        760 tris -- pSphereShape1
-
-00:00:00   562MB         |        760 tris -- pSphereShape18
-
-00:00:00   562MB         |        760 tris -- pSphereShape16
-
-00:00:00   562MB         |        760 tris -- pSphereShape17
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | number of warnings, warning type:
-
-00:00:00   562MB         |     3:  [mtoa.ext]  %s Found no translator named "%s"
-
-00:00:00   562MB         |    10:  [mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).
-
-00:00:00   562MB         |     8:  [mtoa] [translator %s] %s.%s: ProcessParameter should not be called during motion export
-
-00:00:00   562MB         |    14:  [polymesh] %s: discarded %d duplicate deformation keys
-
-00:00:00   562MB         |     1:  rendering with watermarks because of failed authorization:
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         | performance warnings:
-
-00:00:00   562MB WARNING |  Scene creation time could be reduced slightly by fixing the following issues:
-
-00:00:00   562MB         |   14 meshes were motion blurred even though they were static.
-
-00:00:00   562MB         | -----------------------------------------------------------------------------------
-
-00:00:00   562MB         |  
-
-00:00:00   562MB         | releasing resources
-
-00:00:00   542MB         | Arnold shutdown
-
-Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0020\test.ma completed.
+00:03:11  1139MB         |  Arnold shutdown
 

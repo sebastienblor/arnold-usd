@@ -1,360 +1,200 @@
 ==== Setting Path ===== 
  
- {'ARNOLD_TESTSUITE_COMMON': '/home/krishnan/dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/usr/autodesk/arnold/maya2020', 'PYMEL_SKIP_MEL_INIT': '1', 'ADCLMHUB_LOG_DIR': '/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353', 'MAYA_RENDER_DESC_PATH': '/usr/autodesk/arnold/maya2020', 'PATH': '/usr/autodesk/arnold/maya2020/bin;/usr/autodesk/maya2020/bin;/usr/autodesk/arnold/maya2020/lib;/usr/autodesk/arnold/maya2020/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'MAYA_DISABLE_CER': '1'}
+ {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.17763.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.17763.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa2\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0353', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0353'}
  
  ==== Exec cmd ==== 
  
-/usr/autodesk/maya2020/bin/Render -proj "/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353" -rd "/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353" -r arnold -x 160 -y 120  "/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/test.ma"
+Render -proj "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0353" -rd "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0353" -r arnold -x 160 -y 120  "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0353\test.ma"
  
  
-Starting "/usr/autodesk/maya2020/bin/maya"
-QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/usr/tmp/runtime-krishnan'
-00:00:00   371MB         | log started Tue Jan 12 15:08:58 2021
-00:00:00   371MB         | Arnold 6.2.0.0 [8c46d7e7] linux clang-10.0.1 oiio-2.2.1 osl-1.11.6 vdb-7.1.1 clm-2.0.0.235 rlm-12.4.2 optix-6.6.0 2021/01/12 02:56:27
-00:00:00   371MB         | running on ip-192-168-0-45.eu-west-1.compute.internal, pid=168059
-00:00:00   371MB         |  2 x Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz (24 cores, 48 logical) with 63847MB
-00:00:00   371MB         |  NVIDIA driver version 455.38 (Optix 60700)
-00:00:00   371MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 7982MB (7978MB available) (NVLink:0)
-00:00:00   371MB         |  GPU 1: Quadro GP100 @ 1442MHz (compute 6.0) with 16278MB (15186MB available) (NVLink:0)
-00:00:00   371MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1062.1.2.el7.x86_64
-00:00:00   371MB         |  soft limit for open files raised from 4096 to 4094
-00:00:00   371MB         |  
-00:00:00   371MB         | loading plugins from /usr/autodesk/arnold/maya2020/plug-ins/../bin/../plugins ...
-00:00:00   372MB         |  alembic_proc.so: alembic uses Arnold 6.2.0.0
-00:00:00   372MB         |  cryptomatte.so: cryptomatte uses Arnold 6.2.0.0
-00:00:00   372MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 6.2.0.0
-00:00:00   372MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 6.2.0.0
-00:00:00   375MB         |  usd_proc.so: usd uses Arnold 6.2.0.0
-00:00:00   375MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 6.2.0.0
-00:00:00   375MB         | loaded 6 plugins from 4 lib(s) in 0:00.00
-Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/2020/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/2020/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/2020/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
-00:00:00   379MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgenSpline_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
-00:00:00   379MB WARNING |  unable to load dynamic library /usr/autodesk/arnold/maya2020/procedurals/xgen_procedural.so: libAdskSeExpr.so: cannot open shared object file: No such file or directory
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
-libai.so already loaded
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
-Successfully registered renderer 'arnold'
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  3.2 seconds.
-Result: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/test.ma
-00:00:00   474MB         | log started Tue Jan 12 15:09:00 2021
-00:00:00   474MB         | Arnold 6.2.0.0 [8c46d7e7] linux clang-10.0.1 oiio-2.2.1 osl-1.11.6 vdb-7.1.1 clm-2.0.0.235 rlm-12.4.2 optix-6.6.0 2021/01/12 02:56:27
-00:00:00   474MB         | host application: MtoA 4.2.0 e1315a00 (develop) Maya 2020
-00:00:00   474MB         | running on ip-192-168-0-45.eu-west-1.compute.internal, pid=168059
-00:00:00   474MB         |  2 x Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz (24 cores, 48 logical) with 63847MB
-00:00:00   474MB         |  NVIDIA driver version 455.38 (Optix 60700)
-00:00:00   474MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 7982MB (7978MB available) (NVLink:0)
-00:00:00   474MB         |  GPU 1: Quadro GP100 @ 1442MHz (compute 6.0) with 16278MB (15204MB available) (NVLink:0)
-00:00:00   474MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1062.1.2.el7.x86_64
-00:00:00   474MB         |  soft limit for open files is set at 4094
-00:00:00   474MB         |  
-00:00:00   474MB         | loading plugins from /usr/autodesk/arnold/maya2020/shaders ...
-00:00:00   474MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderDiffuseColorAdapter uses Arnold 6.2.0.0
-00:00:00   474MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularWeightAdapter uses Arnold 6.2.0.0
-00:00:00   474MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularGlossAdapter uses Arnold 6.2.0.0
-00:00:00   474MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 6.2.0.0
-00:00:00   474MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkFloatConstant uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkFloatComposite uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkFloatCondition uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkFloatCorrect uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkFloatLogic uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkFloatMask uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkFloatMath uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkColorComposite uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkColorCondition uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkColorConstant uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkColorCorrect uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkColorLogic uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkColorMask uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkColorMath uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkChannels uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkPremultiply uses Arnold 6.2.0.0
-00:00:00   474MB         |  lookdevkit_shaders.so: ldkSimplexNoise uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyAbsFloatOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyAbs2FloatsOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyAbs3FloatsOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyAbsIntOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyRelFloatOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyRel2FloatsOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyRel3FloatsOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  renderSetup_shaders.so: applyRelIntOverride uses Arnold 6.2.0.0
-00:00:00   474MB         |  xgenSpline_shaders.so: XGenHairMapping uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaClamp uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaCondition uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaReverse uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaFile uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaRamp uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaProjection uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaChecker uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaBulge uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaCloth uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaGrid uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaFractal uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaNoise uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaCloud uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSnow uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaContrast uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaStucco uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaColorToFloat uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaVectorToFloat uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaPointToFloat uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaPoint2ToFloat uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaWriteColor uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAovWriteColor uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaWriteFloat uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAovWriteFloat uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAnimFloat uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAnimPoint uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAnimVector uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAnimColor uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAnimMatrix uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaUserDataVector uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaUserDataColor uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAovWriteVector uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaAovWriteVector2 uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaUserDataBool uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaHair uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaMeshLightMaterial uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaUserDataVec2 uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaBump2D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaFluid uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaMarble uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaMountain uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaWater uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaCrater uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaLeather uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaGranite uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaRock uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSingleShadingSwitch uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaDoubleShadingSwitch uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaTripleShadingSwitch uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaQuadShadingSwitch uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaFluidData uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaFluidTexture2D uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaSurfaceLuminance uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MtoaCameraUvMapper uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_shaders.so: MayaFlatClosure uses Arnold 6.2.0.0
-00:00:00   474MB         | loading plugins from /usr/autodesk/arnold/maya2020/procedurals ...
-00:00:00   474MB         |  mtoa_ParticleInstancer_proc.so: particleInstancer uses Arnold 6.2.0.0
-00:00:00   474MB         |  xgenSpline_procedural.so: xgenProcedural uses Arnold 6.2.0.0
-00:00:00   474MB         |  xgen_procedural.so: xgen_procedural uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_ParticleVolume_proc.so: volume_particle uses Arnold 6.2.0.0
-00:00:00   474MB         |  mtoa_ParticleVolume_proc.so: implicit_particle uses Arnold 6.2.0.0
-00:00:00   474MB         | loaded 121 plugins from 9 lib(s) in 0:00.01
-00:00:00   474MB         | loading plugins from /usr/autodesk/arnold/maya2020/plug-ins/../bin/../plugins ...
-00:00:00   474MB         |  alembic_proc.so: alembic uses Arnold 6.2.0.0
-00:00:00   475MB         |  cryptomatte.so: cryptomatte uses Arnold 6.2.0.0
-00:00:00   475MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 6.2.0.0
-00:00:00   475MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 6.2.0.0
-00:00:00   475MB         |  usd_proc.so: usd uses Arnold 6.2.0.0
-00:00:00   475MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 6.2.0.0
-00:00:00   475MB         | loaded 6 plugins from 4 lib(s) in 0:00.00
-00:00:00   505MB         | 
-00:00:00   505MB         | authorizing with default license managers: rlm, network, user ...
-00:00:04   509MB WARNING | rendering with watermarks because of failed authorization:
-00:00:04   509MB         |  [rlm] error initializing license system:
-00:00:04   509MB         |  [rlm]  * Can't read license data (-102)
-00:00:04   509MB         |  [clm.v1] generic license checkout error (22)
-00:00:04   509MB         |  [clm.v2] SERVICE (4): this product has not been registered with the licensing service yet
-00:00:04   509MB         |  environment variables:
-00:00:04   509MB         |         ARNOLD_LICENSE_ORDER   = (not set)
-00:00:04   509MB         |         ARNOLD_LICENSE_MANAGER = (not set)
-00:00:04   509MB         |  [rlm]  solidangle_LICENSE     = (not set)
-00:00:04   509MB         |  [rlm]  RLM_LICENSE            = (not set)
-00:00:04   509MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
-00:00:04   509MB         |  [clm]  LM_LICENSE_FILE        = (not set)
-00:00:04   509MB         | 
-00:00:04   525MB         | [color_manager] using color manager of type "color_manager_syncolor"
-00:00:04   526MB         | [color_manager_syncolor] synColor version 2018.0.80
-00:00:04   526MB         | [color_manager_syncolor] native catolog directory: /usr/autodesk/maya2020/synColor
-00:00:04   526MB         | [color_manager_syncolor] optional custom catalog directory: /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/synColor/Shared/
-00:00:04   526MB         | [color_manager] rendering color space is "scene-linear Rec 709/sRGB" with declared chromaticities:
-00:00:04   526MB         |                 r(0.6400, 0.3300) g(0.3000, 0.6000) b(0.1500, 0.0600) and w(0.3127, 0.3290)
-00:00:04   540MB         |  
-00:00:04   540MB         | there are 1 light and 4 objects:
-00:00:04   540MB         |       1 persp_camera
-00:00:04   540MB         |       1 quad_light
-00:00:04   540MB         |       1 utility
-00:00:04   540MB         |       1 flat
-00:00:04   540MB         |       2 standard_surface
-00:00:04   540MB         |       1 ramp_rgb
-00:00:04   540MB         |       1 driver_tiff
-00:00:04   540MB         |       1 gaussian_filter
-00:00:04   540MB         |       3 polymesh
-00:00:04   540MB         |       1 list_aggregate
-00:00:04   540MB         |       1 color_manager_syncolor
-00:00:04   540MB         |  
-00:00:04   540MB         | rendering image at 160 x 120, 3 AA samples
-00:00:04   540MB         |   AA samples max    <disabled>
-00:00:04   540MB         |   AA sample clamp   <disabled>
-00:00:04   540MB         |   diffuse           samples  2 / depth  1
-00:00:04   540MB         |   specular          samples  2 / depth  1
-00:00:04   540MB         |   transmission      samples  2 / depth  8
-00:00:04   540MB         |   volume indirect   <disabled by depth>
-00:00:04   540MB         |   total                          depth 10
-00:00:04   540MB         |   bssrdf            samples  2
-00:00:04   540MB         |   transparency      depth 10
-00:00:04   540MB         | initializing 15 nodes ...
-00:00:04   540MB         |  creating root object list ...
-00:00:04   540MB         | node initialization done in 0:00.00 (multithreaded)
-00:00:04   540MB         | updating 16 nodes ...
-00:00:04   540MB         |  /aiAreaLight1/aiAreaLightShape1: quad_light using 1 sample, 2 volume samples
-00:00:04   540MB         |  scene bounds: (1.72370625 160.168976 5.45973635) -> (4.21843481 162.663254 8.0590477)
-00:00:04   540MB         | node update done in 0:00.01 (multithreaded)
-00:00:04   540MB         | [aov] parsing 1 output statements ...
-00:00:04   540MB         | [aov] registered driver: "defaultArnoldDriver/driver_tiff.RGBA" (driver_tiff)
-00:00:04   540MB         | [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter/gaussian_filter" (gaussian_filter)
-00:00:04   540MB         | [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
-00:00:04   542MB         | starting 48 bucket workers of size 64x64 ...
-00:00:06   805MB         |    5% done - 362 rays/pixel
-00:00:06   805MB         |   20% done - 35 rays/pixel
-00:00:06   805MB         |   35% done - 206 rays/pixel
-00:00:06   805MB         |   60% done - 111 rays/pixel
-00:00:06   806MB         |   80% done - 72 rays/pixel
-00:00:06   806MB         |  100% done - 0 rays/pixel
-00:00:06   806MB         | render done in 0:02.234
-00:00:06   806MB         | [driver_tiff] writing file `/home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/testrender.tif'
-00:00:06   806MB         | render done
-00:00:06   806MB         |  
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | scene creation time          0:00.13    machine utilization (4.00%) 
-00:00:06   806MB         |  plugin loading              0:00.02 
-00:00:06   806MB         |  unaccounted                 0:00.11 
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | frame time                   0:06.75    machine utilization (5.12%) 
-00:00:06   806MB         |  node init                   0:00.01 
-00:00:06   806MB         |  driver init/close           0:00.02 
-00:00:06   806MB         |  rendering                   0:02.23 
-00:00:06   806MB         |   subdivision                0:00.03 
-00:00:06   806MB         |   accel building             0:00.11 
-00:00:06   806MB         |   pixel rendering            0:02.07 
-00:00:06   806MB         |  unaccounted                 0:04.48 
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | top session self-times by category 
-00:00:06   806MB         |  thread blocked                                                     0:01.86 (73.93%) 
-00:00:06   806MB         |  worker waiting                                                     0:00.21 ( 8.62%) 
-00:00:06   806MB         |  BVH::build                                                         0:00.09 ( 3.72%) 
-00:00:06   806MB         |  BVH::intersect                                                     0:00.05 ( 2.30%) 
-00:00:06   806MB         |   /frd_MDL_GRP/eyes_GRP/l_eye_GRP/l_sclera_GEO/l_sclera_GEOShape     0:00.04 ( 1.82%) 
-00:00:06   806MB         |  polymesh::intersect                                                0:00.05 ( 2.03%) 
-00:00:06   806MB         |   /frd_MDL_GRP/eyes_GRP/l_eye_GRP/l_sclera_GEO/l_sclera_GEOShape     0:00.04 ( 1.63%) 
-00:00:06   806MB         |  renderFrame                                                        0:00.04 ( 1.84%) 
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | top session self-times by node 
-00:00:06   806MB         |  polymesh:/frd_MDL_GRP/eyes_GRP/l_eye_GRP/l_sclera_GEO/l_sclera_GEOShape     0:02.08 (82.69%) 
-00:00:06   806MB         |   thread blocked                                                    0:01.85 (73.69%) 
-00:00:06   806MB         |   BVH::build                                                        0:00.09 ( 3.59%) 
-00:00:06   806MB         |   BVH::intersect                                                    0:00.04 ( 1.82%) 
-00:00:06   806MB         |   polymesh::intersect                                               0:00.04 ( 1.63%) 
-00:00:06   806MB         |   subdivision                                                       0:00.03 ( 1.22%) 
-00:00:06   806MB         |  worker waiting                                                     0:00.21 ( 8.62%) 
-00:00:06   806MB         |  renderFrame                                                        0:00.04 ( 1.84%) 
-00:00:06   806MB         |  standard_surface:frd_sclera_ai                                     0:00.04 ( 1.81%) 
-00:00:06   806MB         |   surface closure                                                   0:00.02 ( 1.05%) 
-00:00:06   806MB         |  polymesh:/frd_MDL_GRP/eyes_GRP/l_eye_GRP/l_iris_GEO/l_iris_GEOShape     0:00.04 ( 1.74%) 
-00:00:06   806MB         |  RenderBucket                                                       0:00.02 ( 0.83%) 
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | peak CPU memory used      943.37MB 
-00:00:06   806MB         |  at startup               474.44MB 
-00:00:06   806MB         |  plugins                    0.75MB 
-00:00:06   806MB         |  AOV samples                3.93MB 
-00:00:06   806MB         |  output buffers             0.54MB 
-00:00:06   806MB         |  framebuffers               0.47MB 
-00:00:06   806MB         |  node overhead              0.02MB 
-00:00:06   806MB         |  message passing            0.09MB 
-00:00:06   806MB         |  memory pools              34.05MB 
-00:00:06   806MB         |  geometry                  74.58MB 
-00:00:06   806MB         |   subdivs                  74.58MB 
-00:00:06   806MB         |  accel structs             56.06MB 
-00:00:06   806MB         |  strings                   24.25MB 
-00:00:06   806MB         |  profiler                   0.25MB 
-00:00:06   806MB         |  unaccounted              273.94MB 
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | ray counts                       ( /pixel, /sample) (% total) (avg. hits) (max hits)
-00:00:06   806MB         |  camera                   178252 (   9.28,    1.00) (  8.07%) (     1.03) (       4)
-00:00:06   806MB         |  shadow                   602414 (  31.38,    3.38) ( 27.27%) (     0.68) (       5)
-00:00:06   806MB         |  diffuse_reflect          411594 (  21.44,    2.31) ( 18.63%) (     0.38) (       3)
-00:00:06   806MB         |  specular_reflect         719717 (  37.49,    4.04) ( 32.57%) (     0.00) (       4)
-00:00:06   806MB         |  specular_transmit        297497 (  15.49,    1.67) ( 13.46%) (     0.72) (       3)
-00:00:06   806MB         |  total                   2209474 ( 115.08,   12.40) (100.00%) (     0.43) (       5)
-00:00:06   806MB         | by ray depth:              0     1     2     3     4     5     6     7     8
-00:00:06   806MB         |  total                   16.8% 65.9%  9.9%  6.6%  0.7%  0.0%  0.0%  0.0%  0.0% 
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | shader calls                     (  /pixel,  /sample) (% total)
-00:00:06   806MB         |  primary                  726469 (   37.84,     4.08) ( 47.21%)
-00:00:06   806MB         |  transparent_shadow       812394 (   42.31,     4.56) ( 52.79%)
-00:00:06   806MB         |  total                   1538863 (   80.15,     8.63) (100.00%)
-00:00:06   806MB         | by ray depth:              0     1     2     3     4     5     6     7     8
-00:00:06   806MB         |  total                   11.9% 51.4% 28.3%  6.7%  1.6%  0.1%  0.0%  0.0%  0.0% 
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | geometry                         (% hit ) (instances) (  init mem,  final mem)
-00:00:06   806MB         |  lists                         1 (100.0%) (        0) (      0.00,       0.00)
-00:00:06   806MB         |  subdivs                       3 (100.0%) (        0) (      1.03,      74.58)
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | geometric elements               (      min) (       avg.) (      max)
-00:00:06   806MB         |  subdiv patches            28420 (      260) (     9473.3) (    26112)
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | triangle tessellation            (      min) (       avg.) (      max) (/ element) (% total)
-00:00:06   806MB         |  subdivs                 3637120 (    32640) (  1212373.4) (  3342336) (   127.98) (100.00%)
-00:00:06   806MB         |   iterations 3+          3637120 (    32640) (  1212373.4) (  3342336) (   127.98) (100.00%)
-00:00:06   806MB         |  unique triangles        3637120 
-00:00:06   806MB         |  CPU memory use            74.58MB 
-00:00:06   806MB         |   vertices                 20.82MB 
-00:00:06   806MB         |   vertex indices           18.25MB 
-00:00:06   806MB         |   packed normals            6.94MB 
-00:00:06   806MB         |   normal indices            0.00MB 
-00:00:06   806MB         |   uv coords                 6.94MB 
-00:00:06   806MB         |   uv coords idxs           18.25MB 
-00:00:06   806MB         |   uniform indices           3.38MB 
-00:00:06   806MB         |   userdata                  0.00MB 
-00:00:06   806MB         |  largest polymeshes by triangle count 
-00:00:06   806MB         |    3342336 tris -- /frd_MDL_GRP/eyes_GRP/l_eye_GRP/l_sclera_GEO/l_sclera_GEOShape
-00:00:06   806MB         |     262144 tris -- /frd_MDL_GRP/eyes_GRP/l_eye_GRP/l_iris_GEO/l_iris_GEOShape
-00:00:06   806MB         |      32640 tris -- /frd_MDL_GRP/eyes_GRP/l_eye_GRP/l_pupil_GEO/l_pupil_GEOShape
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | number of warnings, warning type:
-00:00:06   806MB         |     1:  rendering with watermarks because of failed authorization:
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         | performance warnings:
-00:00:06   806MB WARNING |  Rendering CPU utilization was only 5%. Your render may be bound by a single threaded process or I/O.
-00:00:06   806MB         | -----------------------------------------------------------------------------------
-00:00:06   806MB         |  
-00:00:06   806MB         | releasing resources
-00:00:06   661MB         | Arnold shutdown
-Scene /home/krishnan/dev/mtoa/build/linux_x86_64/20200000/gcc_opt/testsuite/test_0353/test.ma completed.
+Starting "C:\Program Files\Autodesk\Maya2022\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+
+  Version : 2016.11.62.12. Feature Level 5.
+
+  Adapter : Quadro RTX 4000/PCIe/SSE2
+
+  Vendor ID: 4318. Device ID : 7857
+
+  Driver : .
+
+  API : OpenGL V.4.6.
+
+  Max texture size : 16384 * 16384.
+
+  Max texture coords : 32
+
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+
+  Shader compiler profile : (Best card profile)
+
+  Active stereo support available : 0
+
+  GPU Memory Limit : 8192 MB.
+
+  CPU Memory Limit : 61896.3 MB.
+
+  MultiDraw consolidation : enabled
+
+}
+
+OpenCL evaluator is attempting to initialize OpenCL.
+
+Detected 1 OpenCL Platforms: 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.2.141.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics cl_kernel_attribute_nv 
+
+ Selected matching OpenCL Platform: NVIDIA Corporation NVIDIA CUDA OpenCL 1.2 CUDA 10.2.141.
+
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+
+00:00:00   960MB         | log started Thu Aug 19 17:59:22 2021
+
+00:00:00   960MB         | Arnold 7.0.0.0 [7132bb3c] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/08/18 16:20:52
+
+00:00:00   960MB         | running on REMS4QL1726, pid=23104
+
+00:00:00   960MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
+
+00:00:00   960MB         |  NVIDIA driver version 442.50 (Optix 60600)
+
+00:00:00   960MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6404MB available) (NVLink:0)
+
+00:00:00   960MB         |  Windows 10 (version 10.0, build 19041)
+
+00:00:00   960MB         |  soft limit for open files raised from 512 to 2048
+
+00:00:00   960MB         |  
+
+00:00:00   960MB         | loading plugins from C:\solidangle\mtoadeploy\2022\bin\..\plugins ...
+
+00:00:00   960MB         |  alembic_proc.dll: alembic uses Arnold 7.0.0.0
+
+00:00:00   960MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.0.0.0
+
+00:00:00   960MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 7.0.0.0
+
+00:00:00   960MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 7.0.0.0
+
+00:00:00   962MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 7.0.0.0
+
+00:00:00  1003MB         |  usd_proc.dll: usd uses Arnold 7.0.0.0
+
+00:00:00  1003MB         | loaded 6 plugins from 4 lib(s) in 0:00.12
+
+###############################################################################
+
+Begin attempted read of a shade fragment XML file.
+
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+
+Errors loading XML:
+
+-------------------------------------------------------------------------------
+
+Could not find file: aiRectangleAreaLight.xml
+
+-------------------------------------------------------------------------------
+
+End attempted read of fragment XML.
+
+###############################################################################
+
+00:00:00  1031MB ERROR   | [mtoa] [bifrostTranslator] Could not find arnold_bifrost in search path C:/Program Files/Autodesk/Bifrost/Maya2022/2.3.0.0-dev-202103301245-ac98f61/bifrost/
+
+00:00:00  1033MB WARNING | Bifrost procedural could not be found: 
+
+00:00:00  1033MB WARNING | Bifrost procedural could not be found: 
+
+Warning: file: C:/arnold/mtoa2/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0353/test.ma line 11652: Unrecognized node type 'nodeGraphEditorInfo'; preserving node information during this session.
+
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+
+File read in  0.4 seconds.
+
+Viewport 2.0 floating point render target is turned off.
+
+Viewport 2.0 floating point render target is turned on for color management.
+
+Result: C:/arnold/mtoa2/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0353/test.ma
+
+Exporting Arnold Scene...
+
+Updating Arnold Scene...
+
+00:00:02  1142MB         | 
+
+00:00:02  1142MB         | authorizing with default license managers: rlm, network, user ...
+
+00:00:06  1144MB WARNING | rendering with watermarks because of failed authorization:
+
+00:00:06  1144MB         |  [rlm] error initializing license system:
+
+00:00:06  1144MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
+
+00:00:06  1144MB         |  [clm.v1] license server was not set (51)
+
+00:00:06  1144MB         |  [clm.v2] SERVICE (1): timed-out after 30.0 sec(s) waiting for Agent to connect
+
+00:00:06  1144MB         |  environment variables:
+
+00:00:06  1144MB         |         ARNOLD_LICENSE_ORDER   = (not set)
+
+00:00:06  1144MB         |         ARNOLD_LICENSE_MANAGER = (not set)
+
+00:00:06  1144MB         |  [rlm]  solidangle_LICENSE     = (not set)
+
+00:00:06  1144MB         |  [rlm]  RLM_LICENSE            = (not set)
+
+00:00:06  1144MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
+
+00:00:06  1144MB         |  [clm]  LM_LICENSE_FILE        = (not set)
+
+00:00:06  1144MB         | 
+
+00:00:41  1364MB         |  
+
+00:00:41  1364MB         | releasing resources
+
+Scene C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0353\test.ma completed.
+
+00:00:41  1178MB         |   
+
+00:00:41  1178MB         |  releasing resources
+
+00:00:41  1156MB         |   unloading 13 plugins
+
+00:00:41  1156MB         |    closing alembic_proc.dll ...
+
+00:00:41  1156MB         |    closing cryptomatte.dll ...
+
+00:00:41  1156MB         |    closing synColor_shaders.dll ...
+
+00:00:41  1155MB         |    closing usd_proc.dll ...
+
+00:00:41  1153MB         |    closing hairPhysicalShader_shaders.dll ...
+
+00:00:41  1153MB         |    closing lookdevkit_shaders.dll ...
+
+00:00:41  1153MB         |    closing mtoa_shaders.dll ...
+
+00:00:41  1152MB         |    closing renderSetup_shaders.dll ...
+
+00:00:41  1152MB         |    closing xgenSpline_shaders.dll ...
+
+00:00:41  1152MB         |    closing mtoa_ParticleInstancer_proc.dll ...
+
+00:00:41  1152MB         |    closing mtoa_ParticleVolume_proc.dll ...
+
+00:00:41  1152MB         |    closing xgenSpline_procedural.dll ...
+
+00:00:41  1152MB         |    closing xgen_procedural.dll ...
+
+00:00:41  1152MB         |   unloading plugins done
+
+00:00:41  1152MB         |  Arnold shutdown
+
