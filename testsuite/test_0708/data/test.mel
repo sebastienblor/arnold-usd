@@ -1,0 +1,1 @@
+arnoldExportAss -f "../out.usda" -boundingBox -asciiAss -mask 6399 -lightLinks 1 -shadowLinks 1 -startFrame 1.0 -endFrame 3.0 -frameStep 1.0 -fullPath-cam perspShape;
