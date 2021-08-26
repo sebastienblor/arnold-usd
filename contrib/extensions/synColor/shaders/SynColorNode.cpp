@@ -130,6 +130,8 @@ public:
 };
 
 bool ColorManagerData::m_initialization_library_done = false;
+static ColorManagerData s_colorData = ColorManagerData();
+static std::mutex s_mutex;
 
 namespace
 {
@@ -698,24 +700,37 @@ node_parameters
 
 node_initialize
 {
-   ColorManagerData* colorData = new ColorManagerData();
-   AiNodeSetLocalData(node, colorData);
+   s_mutex.lock();
+   
+   AiNodeSetLocalData(node, &s_colorData);
+   s_mutex.unlock();
 }
 
 node_update
 {
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
 
-   colorData->m_native_catalog_path     = AiNodeGetStr (node, DataStr::native_catalog_path);
-   colorData->m_custom_catalog_path     = AiNodeGetStr (node, DataStr::custom_catalog_path);
+   AtString native_catalog_path   = AiNodeGetStr (node, DataStr::native_catalog_path);
+   AtString custom_catalog_path   = AiNodeGetStr (node, DataStr::custom_catalog_path);
+   AtString ocioconfig_path       = AiNodeGetStr (node, DataStr::ocioconfig_path);
+   AtString rendering_color_space = AiNodeGetStr (node, DataStr::rendering_color_space);
 
-   colorData->m_ocioconfig_path         = AiNodeGetStr (node, DataStr::ocioconfig_path);
-   colorData->m_rendering_color_space   = AiNodeGetStr (node, DataStr::rendering_color_space);
-
-   colorData->m_input_transforms.clear();
-   colorData->m_output_transforms.clear();
-
-   initializeSynColor(colorData);
+   s_mutex.lock();
+   if (native_catalog_path   != colorData->m_native_catalog_path || 
+       custom_catalog_path   != colorData->m_custom_catalog_path ||
+       ocioconfig_path       != colorData->m_ocioconfig_path     ||
+       rendering_color_space != colorData->m_rendering_color_space)
+   {
+      // Only update the data if any of the input syncolor parameters has changed
+      colorData->m_native_catalog_path     = native_catalog_path;
+      colorData->m_custom_catalog_path     = custom_catalog_path;
+      colorData->m_ocioconfig_path         = ocioconfig_path;
+      colorData->m_rendering_color_space   = rendering_color_space;
+      colorData->m_input_transforms.clear();
+      colorData->m_output_transforms.clear();
+      initializeSynColor(colorData);
+   }
+   s_mutex.unlock();
 }
 
 // That methods returns true if a color transformation exists even if the
@@ -891,8 +906,6 @@ color_manager_get_color_space_name_by_index
 
 node_finish
 {
-   ColorManagerData* colorData =  (ColorManagerData*)AiNodeGetLocalData(node);
-   delete colorData;
 }
 
 node_loader
