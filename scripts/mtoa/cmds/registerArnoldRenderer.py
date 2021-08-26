@@ -283,10 +283,7 @@ def _register():
     #our mel proc overrides below.
     #
     mel.eval('source "createMayaSoftwareCommonGlobalsTab.mel"')
-    
-    utils.pyToMelProc(addOneTabToGlobalsWindow,
-                      [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
-                      useName=True)
+
     utils.pyToMelProc(renderSettingsTabLabel_melToUI,
                       [('string', 'mel')],
                       useName=True)
