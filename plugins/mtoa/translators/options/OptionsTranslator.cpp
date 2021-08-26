@@ -1847,7 +1847,6 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    {
       m_impl->m_session->RequestUpdateOptions();
    } */
+   CNodeTranslator::NodeChanged(node, plug);
    m_impl->m_session->RequestUpdateOptions();
-
-//   CNodeTranslator::NodeChanged(node, plug);
 }
