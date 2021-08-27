@@ -780,11 +780,24 @@ if int(maya_version_base) >= 2021:
             usd_version[USD_CUT_MAYAUSD_PATH] = mayausd_path_list[ind]
             ind = ind + 1
 
+mayapy_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy')
 
 if ENABLE_USD:
     print ('updating usd submodule...')
     system.execute('git submodule sync')
     system.execute('git submodule update --init --recursive')
+ 
+    # We need to ensure that jinja2 will be installed through mayapy   
+    mayapy_cmd = mayapy_bin + " -m pip install jinja2"
+    system.execute(mayapy_cmd)
+
+    # if we're also building for python2 usd modules, then we need to 
+    # install jijna2 in the mayapy2 environment
+    if usd_path_python2_count > 0:
+        mayapy2_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy2')
+        mayapy2_cmd = mayapy2_bin + " -m pip install jinja2"
+        system.execute(mayapy2_cmd)
+
     print ('done')     
 
 if system.os == 'windows':
@@ -1603,7 +1616,7 @@ if ENABLE_USD:
         usd_delegate = usd_version[USD_CUT_DELEGATE]
         if usd_delegate:
             hydrafolder = str(usd_delegate)
-            hydrafiles = find_files_recursive(hydrafolder, ['.dll', '.so', '.dylib', '.json'])
+            hydrafiles = find_files_recursive(hydrafolder, ['.dll', '.so', '.dylib', '.json', '.usda'])
             for p in hydrafiles:
                 (d, f) = os.path.split(p)
                 PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', 'hydra', usd_folder, d)]]

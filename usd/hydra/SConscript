@@ -36,6 +36,7 @@ lib_suffix = {'darwin' : '.dylib', 'linux'  : '.so', 'windows': '.dll'}.get(syst
 
 usd_install_dir = local_env['USD_PATH']
 usd_lib_dir = os.path.join(usd_install_dir, 'lib')
+usd_bin_dir = os.path.join(usd_install_dir, 'bin')
 
 usd_supported_modes = ['opt', 'debug', 'profile']
 
@@ -80,6 +81,9 @@ prefix_folder = 'tmp_hydra_{}'.format(local_env.get('USD_VERSION'))
 if pythonVersion == '2':
     prefix_folder += '_python2'
 
+usdGenSchema_cmd = 'mayapy2 "' if pythonVersion == '2' else 'mayapy "'
+usdGenSchema_cmd += os.path.join(usd_bin_dir, 'usdGenSchema') + '"'
+
 def _usd_delegate(target, source, env):
     usd_env = env.Clone()
     #########
@@ -87,18 +91,21 @@ def _usd_delegate(target, source, env):
       COMPILER = 'msvc' if system.is_windows else local_env['COMPILER'],
       ARNOLD_PATH         = local_env['ARNOLD'],
       USD_PATH= usd_install_dir,
-      USD_BIN= usd_lib_dir,
+      USD_LIB= usd_lib_dir,
+      USD_BIN= usd_bin_dir,
       TBB_LIB= usd_lib_dir,
       USD_BUILD_MODE = 'shared_libs',
       PREFIX_RENDER_DELEGATE= usd_delegate_folder,
       PREFIX_NDR_PLUGIN = usd_delegate_folder,
+      PREFIX_SCHEMAS = usd_delegate_folder,
+      PREFIX_USD_IMAGING_PLUGIN = usd_delegate_folder,
       PREFIX=prefix_folder,
-      BUILD_SCHEMAS=False,
+      BUILD_SCHEMAS=True,
       BUILD_RENDER_DELEGATE=True,
       BUILD_USD_WRITER=False,
       BUILD_PROCEDURAL=False,
       BUILD_TESTSUITE=False,
-      BUILD_USD_IMAGING_PLUGIN=False,
+      BUILD_USD_IMAGING_PLUGIN=True,
       BUILD_DOCS=False,
       BUILD_NDR_PLUGIN=True,
       BOOST_LIB= boost_lib,
@@ -110,7 +117,8 @@ def _usd_delegate(target, source, env):
       BOOST_LIB_NAME=boost_lib_name,
       PYTHON_INCLUDE=python_include,
       PYTHON_LIB=python_lib,
-      USD_LIB_PREFIX=usd_lib_prefix
+      USD_LIB_PREFIX=usd_lib_prefix,
+      USDGENSCHEMA_CMD=usdGenSchema_cmd
     )
     if platform.system().lower() == 'darwin':
         args['SDK_PATH']          = local_env['SDK_PATH']
@@ -147,18 +155,38 @@ def _usd_delegate(target, source, env):
 
     usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
     delegate_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
-   
+
+    # Append the mayapy bin path to the system PATH, so that running "usdGenSchema_cmd" will work
+    env_separator = ';' if platform.system().lower() == 'windows' else ':'
+    local_env.AppendENVPath('PATH', os.path.join(local_env['MAYA_ROOT'], 'bin'), envname='ENV', sep=env_separator, delete_existing=1)
+    os.environ['PATH'] += env_separator + os.path.join(local_env['MAYA_ROOT'], 'bin')
+    os.putenv('PATH', os.environ['PATH'])
+
     sub = subprocess.Popen([sys.executable] + delegate_args, cwd=usd_project)
     sub.communicate()
     if sub.returncode != 0:
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     ndr_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'ndrplugin-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
-   
     sub = subprocess.Popen([sys.executable] + ndr_args, cwd=usd_project)
     sub.communicate()
     if sub.returncode != 0:
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+
+    schemas_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'schemas-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+    sub = subprocess.Popen([sys.executable] + schemas_args, cwd=usd_project)
+    sub.communicate()
+    if sub.returncode != 0:
+        raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+     
+    imaging_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'usdimagingplugin-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+   
+    sub = subprocess.Popen([sys.executable] + imaging_args, cwd=usd_project)
+    sub.communicate()
+    if sub.returncode != 0:
+        raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
+
     return None
+
 
 delegate_action_log = 'Building USD {} render delegate '.format(local_env.get('USD_VERSION'))
 if pythonVersion == '2':
