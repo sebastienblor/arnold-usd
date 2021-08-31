@@ -715,7 +715,7 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "bump2d");
    
    CAttrData data;
-   data.defaultValue.BOOL() = true;
+   data.defaultValue.BOOL() = false;
    data.name = "aiFlipR";
    data.shortName = "flip_r";
    data.channelBox = false;
