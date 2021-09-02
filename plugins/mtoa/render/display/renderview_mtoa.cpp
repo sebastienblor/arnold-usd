@@ -1602,7 +1602,8 @@ void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientD
    }
 }
 void CRenderViewMtoA::ResolutionChangedCallback(void *data)
-{/*
+{
+
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
    
@@ -1631,26 +1632,37 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    float pixelAspectRatio = 1.f;
    bool updateRender = false;
    
+   int previousWidth = 1;
+   int previousHeight = 1;
+
+   CSessionOptions &options = session->GetOptions();
+   options.GetResolution(previousWidth, previousHeight);
+   
+
    MPlug plug = depNode.findPlug("width", true, &status);
    if (status == MS::kSuccess)
    {
       width = plug.asInt();
-      if (width != (int)renderOptions->width()) updateRender = true;
+      if (width != previousWidth) updateRender = true;
    }
    plug = depNode.findPlug("height", true, &status);
    if (status == MS::kSuccess)
    {
       height = plug.asInt();
-      if (height != (int)renderOptions->height()) updateRender = true;
+      if (height != previousHeight) updateRender = true;
    }
    plug = depNode.findPlug("deviceAspectRatio", true, &status);
    if (status == MS::kSuccess)
    {
       pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
-      if (std::abs(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
-      {
+      if (std::abs(pixelAspectRatio - 1.f) < 0.001)
+         pixelAspectRatio = 1.f;
+      else
+         pixelAspectRatio = 1.f / AiMax(AI_EPSILON, pixelAspectRatio);
+
+      float previousAspectRatio = AiNodeGetFlt(AiUniverseGetOptions(session->GetUniverse()), "pixel_aspect_ratio");
+      if (std::abs(pixelAspectRatio - previousAspectRatio) > AI_EPSILON)
          updateRender = true;
-      }
    }
 
    if(updateRender)
@@ -1666,7 +1678,6 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
       if (width  > 1 && height > 1 && pixelAspectRatio > 0.f)
          renderViewMtoA->Resize(width * pixelAspectRatio, height);
    }
-*/
 
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
