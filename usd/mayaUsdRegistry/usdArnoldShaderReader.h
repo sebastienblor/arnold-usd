@@ -38,7 +38,7 @@ public:
 #if MAYAUSD_MINOR_VERSION >= 13
     MAYAUSD_CORE_PUBLIC
     bool Read(UsdMayaPrimReaderContext& context) override;
-#elif MAYAUSD_MAJOR_VERSION >= 0
+#elif MAYAUSD_MAJOR_VERSION > 0
     MAYAUSD_CORE_PUBLIC
     bool Read(UsdMayaPrimReaderContext& context) override;
 #else

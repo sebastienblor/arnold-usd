@@ -151,7 +151,7 @@ UsdArnoldShaderReader::UsdArnoldShaderReader(
 bool UsdArnoldShaderReader::Read(UsdMayaPrimReaderContext& contextRef)
 {
     UsdMayaPrimReaderContext* context = &contextRef;
-#elif MAYAUSD_MAJOR_VERSION >= 0
+#elif MAYAUSD_MAJOR_VERSION > 0
 bool UsdArnoldShaderReader::Read(UsdMayaPrimReaderContext& contextRef)
 {
     UsdMayaPrimReaderContext* context = &contextRef;
