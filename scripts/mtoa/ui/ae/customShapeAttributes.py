@@ -1253,6 +1253,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         self.addControl('halfPrecision', label='Half Precision')
         self.addControl('preserveLayerName', label='Preserve Layer Name')
         self.addControl('exrTiled', label='Tiled')
+        self.addControl('multipart', label='Multipart')
         self.addControl('autocrop', label='Autocrop')
         self.addControl('append', label='Append')
         self.addControl('mergeAOVs', label='Merge AOVs')
@@ -1598,6 +1599,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         self.beginLayout("Metadata (name, type, value)", collapse=True)
         self.addCustom('custom_attributes', self.metadataNew, self.metadataReplace)
         self.endLayout()
+
+        
 
 templates.registerTranslatorUI(DeepEXRDriverTranslatorUI, 'aiAOVDriver', 'deepexr')
 

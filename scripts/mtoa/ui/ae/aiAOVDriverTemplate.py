@@ -26,6 +26,7 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         if maya_version >= 2017:
             self.addControl('colorManagement', label = 'Color Space')
 
+        self.addControl('aiUserOptions')
         self.addControl('lightPathExpression')
         self.addControl('lightGroups')
 
