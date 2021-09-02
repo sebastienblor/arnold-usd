@@ -16,6 +16,8 @@ CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) :
                            m_isPlayblasting(false)
 {
    AddUpdateCallbacks();
+   if (viewport)
+      m_sessionOptions.SetExportOverscan(true);
 }
 void CArnoldRenderViewSession::SetStatus(MString status)
 {

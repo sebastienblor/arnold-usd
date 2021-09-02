@@ -391,9 +391,11 @@ struct DLLEXPORT CSessionOptions
    void SetSupportGpu(bool b) {m_supportGpu = b;}
    bool GetSupportGpu() const {return m_supportGpu;}
 
-
    bool GetExportFileDrivers() const {return m_exportFileDrivers;}
    void SetExportFileDrivers(bool b) {m_exportFileDrivers = b;}
+
+   bool GetExportOverscan() const {return m_exportOverscan;}
+   void SetExportOverscan(bool b) {m_exportOverscan = b;}
 
 private:
 
@@ -512,4 +514,5 @@ private:
    bool m_supportStereoCameras;
    bool m_supportGpu;
    bool m_exportFileDrivers;
+   bool m_exportOverscan;
 };

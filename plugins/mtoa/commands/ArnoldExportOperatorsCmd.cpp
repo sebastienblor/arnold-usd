@@ -81,8 +81,6 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
       }
    }
 
-   //CArnoldSession *session = CSessionManager::FindActiveSession(exportSessionName);
-   // FIXME check what happens if an existing session is there
    CArnoldExportSession * session = new CArnoldExportSession();
 
    if (!CSessionManager::AddActiveSession(s_exportOperatorsSessionId, session))

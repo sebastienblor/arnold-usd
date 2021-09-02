@@ -1369,7 +1369,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    AiNodeSetFlt(options, "pixel_aspect_ratio", pixelAspectRatio);
 
-   if (false && useRenderRegion)
+   if (useRenderRegion)
    {
       AiNodeSetInt(options, "region_min_x", minx);
       AiNodeSetInt(options, "region_min_y", height - maxy - 1);

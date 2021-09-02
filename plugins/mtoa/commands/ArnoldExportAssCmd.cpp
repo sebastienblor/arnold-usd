@@ -168,9 +168,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       }
    }
 
-
-   //CArnoldSession *session = CSessionManager::FindActiveSession(exportSessionName);
-   // FIXME check what happens if an existing session is there
    CArnoldExportSession * session = new CArnoldExportSession();
 
    if (!CSessionManager::AddActiveSession(s_exportAssSessionId, session))
@@ -325,8 +322,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    }
    else
       cameras.append(MDagPath());
-        
-
+   
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);

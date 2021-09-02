@@ -79,8 +79,6 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   //CArnoldSession *session = CSessionManager::FindActiveSession(exportSessionName);
-   // FIXME check what happens if an existing session is there
    CArnoldExportSession * session = new CArnoldExportSession();
 
    if (!CSessionManager::AddActiveSession(s_exportMaterialXSessionId, session))

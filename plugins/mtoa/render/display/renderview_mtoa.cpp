@@ -532,12 +532,14 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
    // Callbacks for scene open/save, as well as render layers changes
    MStatus status;   
-   
-   /* FIXME do we want this for the viewport ?
+   if (m_rvSceneSaveCb == 0)
+   {
+      m_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
+   }
    if (m_rvSceneOpenCb == 0)
    {
       m_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
-   }*/
+   }
    if (m_rvLayerManagerChangeCb == 0)
    {
       m_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
@@ -782,6 +784,7 @@ void CRenderViewMtoA::ColorMgtRefreshed(void *data)
    renderViewMtoA->SetOption("Color Management.Refresh", "1");
    MGlobal::displayWarning("[mtoa] OCIO Context might have changed for input textures. If so, you may have to re-generate the textures using 'arnoldUpdateTx -f'");
 }
+
 void CRenderViewMtoA::SceneOpenCallback(void *data)
 {
    if (data == NULL) return;
@@ -1132,20 +1135,6 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
       }
    }
 
-/* FIXME : is it ok ?
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   if (renderSession)
-   {   
-      renderSession->SetRendering(false);
-      CMayaScene::End();
-
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
-      CMayaScene::ExecuteScript(renderGlobals.postMel);
-   }
-   */
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
 
@@ -1231,7 +1220,7 @@ CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
    float center_dist = (float)center.distanceTo(originalPosition);
 
    m_distFactor = center_dist * tanf(AiNodeGetFlt(arnold_camera, "fov") * AI_DTOR);
-// FIXME we need the universe
+
    m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
 }
 
@@ -1696,8 +1685,6 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 
 }
 
-
-// FIXME should we re-introduce this ?
 void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, void *data)
 {
    if (s_sequenceData == NULL){return;}
@@ -1706,7 +1693,6 @@ void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, 
 
    if (MProgressWindow::isCancelled())
    {
-      // FIXME CMayaScene::GetRenderSession()->InterruptRender(true);
       MProgressWindow::endProgress();
       rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
       rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
@@ -1768,8 +1754,6 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
       m_rvIdleCb = 0;
    } 
    // make sure no render is going on
-
-// FIXME    CMayaScene::GetRenderSession()->InterruptRender(true);
 
    if (s_sequenceData) 
    {
