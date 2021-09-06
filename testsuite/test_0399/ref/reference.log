@@ -1,0 +1,85 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_TESTSUITE_COMMON': '/home/krishnan/dev/arnold-mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/usr/autodesk/arnold/maya2022', 'PYMEL_SKIP_MEL_INIT': '1', 'ADCLMHUB_LOG_DIR': '/home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399', 'MAYA_RENDER_DESC_PATH': '/usr/autodesk/arnold/maya2022', 'PATH': '/usr/autodesk/arnold/maya2022/bin;/usr/autodesk/maya2022/bin;/usr/autodesk/arnold/maya2022/lib;/usr/autodesk/arnold/maya2022/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'ARNOLD_PLUGIN_PATH': '/home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/plugin', 'MAYA_DISABLE_CER': '1'}
+ 
+ ==== Exec cmd ==== 
+ 
+/usr/autodesk/maya2022/bin/Render -proj "/home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399" -rd "/home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399" -r arnold -x 160 -y 120  "/home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/test.ma"
+ 
+ 
+Starting "/home/krishnan/Autodesk/runTime/bin/maya"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/usr/tmp/runtime-krishnan'
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   446MB         | log started Thu Sep  2 22:02:40 2021
+00:00:00   446MB         | Arnold 7.0.0.0 [89c4854a] linux clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 debug 2021/09/02 10:56:19
+00:00:00   446MB         | running on mtlr90yqqj8.ads.autodesk.com, pid=64815
+00:00:00   446MB         |  2 x Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz (24 cores, 48 logical) with 63847MB
+00:00:00   446MB         |  NVIDIA driver version 455.38 (Optix 60700)
+00:00:00   446MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 7982MB (7978MB available) (NVLink:0)
+00:00:00   446MB         |  GPU 1: Quadro GP100 @ 1442MHz (compute 6.0) with 16278MB (14137MB available) (NVLink:0)
+00:00:00   446MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1062.1.2.el7.x86_64
+00:00:00   446MB         |  soft limit for open files changed from 4096 to 4094
+00:00:00   446MB         |  
+00:00:00   446MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in /usr/autodesk/arnold/maya2022/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:00   446MB         | loading plugins from /home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/plugin ...
+00:00:00   446MB         |  mtoaTest_shaders.so: mtoa_test_shader uses Arnold 7.0.0.0
+00:00:00   446MB         |  mtoaTest_shaders.so: mtoa_test_multi_out_shader uses Arnold 7.0.0.0
+00:00:00   446MB         | loaded 2 plugins from 1 lib(s) in 0:00.00
+00:00:00   446MB         | loading plugins from /usr/autodesk/arnold/maya2022/plug-ins/../bin/../plugins ...
+00:00:00   453MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 7.0.0.0
+00:00:00   453MB         |  alembic_proc.so: alembic uses Arnold 7.0.0.0
+00:00:00   453MB         |  cryptomatte.so: cryptomatte uses Arnold 7.0.0.0
+00:00:00   453MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.0.0.0
+00:00:00   453MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.0.0.0
+00:00:00   457MB         |  usd_proc.so: usd uses Arnold 7.0.0.0
+00:00:00   457MB         | loaded 6 plugins from 4 lib(s) in 0:00.02
+Warning: file: /home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/2022/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/2022/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/2022/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+00:00:00   465MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   465MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_multi_out_shader] Assigning temporary node id 1138177 to associated Maya type name aiMtoaTestMultiOutShader.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+File read in  1.6 seconds.
+Result: /home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/test.ma
+00:00:01   547MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in /usr/autodesk/arnold/maya2022/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:01   547MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in /usr/autodesk/arnold/maya2022/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+Exporting Arnold Scene...
+00:00:02   548MB         |  [adp] send payload 'ARNOLD.MTOA.MAYA.SHADER.EXPORT': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:02   557MB         |  [adp] send payload 'ARNOLD.MTOA.MAYA.SHADER.EXPORT': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:02   557MB         |  [adp] send payload 'ARNOLD.MTOA.MAYA.SHADER.EXPORT': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:02   557MB         |  [adp] send payload 'ARNOLD.MTOA.MAYA.SHADER.EXPORT': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:02   557MB         |  [adp] send payload 'ARNOLD.MTOA.MAYA.SHADER.EXPORT': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+Updating Arnold Scene...
+00:00:02   571MB         | 
+00:00:02   571MB         | authorizing with default license managers: rlm, network, user ...
+00:00:03   577MB         | [network] authorized for "87287ARNOL_2020_0F" in 0:01.66
+00:00:03   577MB         | [network] expiration date: permanent, in use: 1/500
+00:00:03   577MB         | 
+00:00:04   676MB         | [adp] send payload 'ARNOLD.SCENE.NODE.TYPES': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:04   676MB         | [adp] send payload 'ARNOLD.RENDER.OPTIONS': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:04   677MB         | [adp] send payload 'ARNOLD.RENDER.STATE': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:04   677MB         | [adp] send payload 'ARNOLD.RENDER.HINTS': status 0, session id 'c7fccb5e-5472-4e39-b17c-277254f88016'
+00:00:04   677MB         |  
+00:00:04   677MB         | releasing resources
+Scene /home/krishnan/dev/arnold-mtoa/build/linux_x86_64/20220100/gcc_debug/testsuite/test_0399/test.ma completed.
+00:00:05   677MB         |   
+00:00:05   677MB         |  releasing resources
+00:00:05   677MB         |   unloading 14 plugins
+00:00:05   677MB         |    closing mtoaTest_shaders.so ...
+00:00:05   677MB         |    closing synColor_shaders.so ...
+00:00:05   670MB         |    closing alembic_proc.so ...
+00:00:05   670MB         |    closing cryptomatte.so ...
+00:00:05   670MB         |    closing usd_proc.so ...
+00:00:05   670MB         |    closing hairPhysicalShader_shaders.so ...
+00:00:05   670MB         |    closing lookdevkit_shaders.so ...
+00:00:05   670MB         |    closing xgenSpline_shaders.so ...
+00:00:05   670MB         |    closing renderSetup_shaders.so ...
+00:00:05   670MB         |    closing mtoa_shaders.so ...
+00:00:05   669MB         |    closing mtoa_ParticleInstancer_proc.so ...
+00:00:05   669MB         |    closing xgen_procedural.so ...
+00:00:05   669MB         |    closing xgenSpline_procedural.so ...
+00:00:05   669MB         |    closing mtoa_ParticleVolume_proc.so ...
+00:00:05   669MB         |   unloading plugins done
+00:00:05   669MB         |  Arnold shutdown
