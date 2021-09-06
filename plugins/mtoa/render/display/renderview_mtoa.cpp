@@ -1184,14 +1184,20 @@ CRenderViewRotateManipulator *CRenderViewMtoA::GetRotateManipulator()
    return new CRenderViewMtoARotate();
 }
    
-CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
+CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator(),
+                                           m_init(false)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
-   if (arnold_camera == NULL) return;
-   
+}
+
+void CRenderViewMtoAPan::InitCamera()
+{     
+   AtNode *arnoldCamera = AiUniverseGetCamera(GetUniverse());
+   if (arnoldCamera == nullptr)
+      return;
+
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
-      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
+      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1213,20 +1219,23 @@ CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
 
    m_distFactor = 1.f;
    
-   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(arnold_camera)), "persp_camera") != 0) return;
+   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldCamera)), "persp_camera") != 0) return;
 
    MPoint originalPosition = m_camera.eyePoint(MSpace::kWorld);
    MPoint center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    float center_dist = (float)center.distanceTo(originalPosition);
 
-   m_distFactor = center_dist * tanf(AiNodeGetFlt(arnold_camera, "fov") * AI_DTOR);
+   m_distFactor = center_dist * tanf(AiNodeGetFlt(arnoldCamera, "fov") * AI_DTOR);
 
    m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
+   m_init = true;
 }
-
 void CRenderViewMtoAPan::MouseDelta(int deltaX, int deltaY)
 {
-      // get the delta factor relative to the width 
+   if (!m_init)
+      InitCamera();
+      
+   // get the delta factor relative to the width 
    float delta[2];
    delta[0] = (-m_distFactor * ((deltaX)/((float)m_width)));
    delta[1] = (m_distFactor * ((deltaY)/((float)m_width)));
@@ -1235,14 +1244,19 @@ void CRenderViewMtoAPan::MouseDelta(int deltaX, int deltaY)
    m_camera.set(newPosition, m_viewDirection, m_upDirection, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
 }
 
-CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
+CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator(),
+                                             m_init(false)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
-   if (arnold_camera == NULL) return;
-   
+}
+void CRenderViewMtoAZoom::InitCamera()
+{
+   AtNode *arnoldCamera = AiUniverseGetCamera(GetUniverse());
+   if (arnoldCamera == nullptr)
+      return;
+
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
-      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
+      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1264,10 +1278,14 @@ CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
    m_dist = (float)m_center.distanceTo(m_originalPosition);
 
    m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
+   m_init = true;
 }
 
 void CRenderViewMtoAZoom::MouseDelta(int deltaX, int deltaY)
 {
+   if (!m_init)
+      InitCamera();
+   
    float delta = (float)deltaX / (float)m_width;
 
    if (delta > 0.9f)
@@ -1415,13 +1433,18 @@ void CRenderViewMtoAZoom::FrameSelection()
 
 }
 
-CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator()
+CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator(), 
+                                                 m_init(false)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
-   if (arnold_camera == NULL) return;
+}
+void CRenderViewMtoARotate::InitCamera()
+{
+   AtNode *arnoldCamera = AiUniverseGetCamera(GetUniverse());
+   if (arnoldCamera == nullptr)
+      return;
 
-   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
-      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
+      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
 
    MSelectionList camList;
    camList.add(MString(camName.c_str()));
@@ -1441,20 +1464,20 @@ CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator()
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    m_centerDist = float(m_center.distanceTo(m_originalPosition));
    m_upDirection = m_camera.upDirection(MSpace::kWorld);
-   
-
+   m_init = true;
 }
-
 
 void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 {
+   if (!m_init)
+      InitCamera();
+
    MStatus status;
    MDagPath camTransform = m_cameraPath;
    camTransform.pop();
    MFnTransform transformPath(camTransform, &status);
    if (status != MS::kSuccess) 
       return;
-   
 
    MVector rightDirection = m_camera.rightDirection(MSpace::kWorld);
    MVector fElevationAxis = -rightDirection;
