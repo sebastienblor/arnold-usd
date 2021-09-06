@@ -301,4 +301,20 @@ void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
    // # velocity_scale
    float velocity_scale = FindProceduralPlug("abc_velocity_scale").asFloat();
    AiNodeSetFlt(node, "velocity_scale", velocity_scale);
+
+   MPlug plug = FindProceduralPlug("abc_curves_basis");
+   if (!plug.isNull())
+   {
+      int basis = plug.asShort();
+      if (basis != 0)
+      {
+
+         static const char* curveBasisList[] = {"auto", "bezier", "b-spline", "catmull-rom", "linear"};
+         AtString basis_param_name("curves:basis");
+         if (AiNodeLookUpUserParameter(node, basis_param_name) == nullptr)
+            AiNodeDeclare(node, basis_param_name, "constant STRING");
+         AiNodeSetStr(node, basis_param_name, AtString(curveBasisList[basis]));
+      }
+   }
+
 }

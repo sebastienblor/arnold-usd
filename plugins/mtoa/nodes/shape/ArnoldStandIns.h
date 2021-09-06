@@ -35,6 +35,7 @@ public:
    MString objectPath;
    MString abcLayers;
    float abcFps;
+   int abcCurvesBasis;
    bool m_updateFilename;
    bool m_loadFile;
    bool m_hasOverrides;
@@ -88,6 +89,7 @@ private:
    static MObject s_objectPath;
    static MObject s_abcLayers;
    static MObject s_abcFps;
+   static MObject s_abcCurvesBasis;
    static MObject s_overrides;
 
 }; // class CArnoldStandInShape

@@ -75,6 +75,7 @@ MObject CArnoldStandInShape::s_ignoreGroupNodes;
 MObject CArnoldStandInShape::s_objectPath;
 MObject CArnoldStandInShape::s_abcLayers;
 MObject CArnoldStandInShape::s_abcFps;
+MObject CArnoldStandInShape::s_abcCurvesBasis;
 MObject CArnoldStandInShape::s_overrides;
 
 CArnoldStandInData::CArnoldStandInData() : CArnoldProceduralData()
@@ -638,6 +639,15 @@ MStatus CArnoldStandInShape::initialize()
    data.name = "abcUseInstanceCache";
    data.shortName = "abc_use_instance_cache";
    s_attributes.MakeInputBoolean(data);
+
+   s_abcCurvesBasis = eAttr.create("abcCurvesBasis", "abc_curves_basis");
+   eAttr.addField("auto", 0);
+   eAttr.addField("bezier", 1);
+   eAttr.addField("b-spline", 2);
+   eAttr.addField("catmull-rom", 3);
+   eAttr.addField("linear", 4);
+   eAttr.setDefault(0);
+   addAttribute(s_abcCurvesBasis);
 
    return MStatus::kSuccess;
 }
