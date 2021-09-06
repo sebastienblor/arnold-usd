@@ -13,13 +13,13 @@ unordered_map<std::string, CArnoldSession *> CSessionManager::s_activeSessions;
 
 void FileOpenCallback(void *)
 {
+   CSessionManager::ClearActiveSessions();
+
    // something we might want to do when a new file is opened
    // We want to clear the caches, since the scene is changing (#3277)
    AiUniverseCacheFlush(AI_CACHE_ALL);
    // tell MtoaLog that mtoa_translation_info might change
    UpdateMtoaTranslationInfo();
-
-   CSessionManager::ClearActiveSessions();
 }
 
 

@@ -489,13 +489,19 @@ void ArnoldViewOverride::sPlayblasting(bool state, void* clientData)
 }
 void ArnoldViewOverride::sPreFileOpen(void* clientData)
 {
-    stopExistingOverrides("");
-
+    MGlobal::executeCommand("aiViewRegionCmd -delete;");
+    
     CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
     if (session)
+    {
         session->GetRenderView().CloseOptionsWindow();
+        CSessionManager::DeleteActiveSession(s_arnoldViewportSession);
+    }
 
     static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
+    stopExistingOverrides("");
+    s_activeViewport = MString("");
+    
     //MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");  
 }
 

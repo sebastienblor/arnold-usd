@@ -339,18 +339,21 @@ namespace // <anonymous>
 
 void CArnoldSession::Clear()
 {
-   ObjectToTranslatorMap::iterator it = m_translators.begin();
-   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
-   for ( ; it != itEnd; ++it)
-      delete it->second;
-   
-   m_translators.clear();
+   // First ensure there's no render in progress for this universe
    if (m_renderSession)
    {
       AiRenderInterrupt(m_renderSession, AI_BLOCKING);
       AiRenderSessionDestroy(m_renderSession);
       m_renderSession = nullptr;
    }
+
+   // Deleting the translators will delete the AtNodes
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+   for ( ; it != itEnd; ++it)
+      delete it->second;
+   
+   m_translators.clear();
    // if we had an explicit universe, let's create a new one
    if (m_universe)
    {      

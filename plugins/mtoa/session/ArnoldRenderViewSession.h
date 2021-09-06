@@ -9,7 +9,7 @@ class DLLEXPORT CArnoldRenderViewSession : public CArnoldSession
 public:
 
    CArnoldRenderViewSession(bool viewport = false);
-   virtual ~CArnoldRenderViewSession() {}
+   virtual ~CArnoldRenderViewSession();
    
    //void Export(MSelectionList* selected = NULL) override 
 
