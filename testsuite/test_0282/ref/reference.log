@@ -1,10 +1,10 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17763.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.17763.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.17763.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa2\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\2', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0282', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17763.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa2\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0282'}
+ {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\3', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.19041.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.19041.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\3', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0282', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'SystemRoot': 'C:\\Windows', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0282'}
  
  ==== Exec cmd ==== 
  
-Render -proj "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282" -rd "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282" -r arnold -x 160 -y 120  "C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282\test.ma"
+Render -proj "C:\arnold\mtoa\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282" -rd "C:\arnold\mtoa\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282" -r arnold -x 160 -y 120  "C:\arnold\mtoa\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282\test.ma"
  
  
 Starting "C:\Program Files\Autodesk\Maya2022\bin\mayabatch.exe"
@@ -52,29 +52,31 @@ OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
-00:00:00   960MB         | log started Thu Aug 19 17:56:11 2021
+00:00:00   960MB         | log started Tue Sep  7 11:22:42 2021
 
-00:00:00   960MB         | Arnold 7.0.0.0 [7132bb3c] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/08/18 16:20:52
+00:00:00   960MB         | Arnold 7.0.0.0 [ac96d91d] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/09/06 19:44:11
 
-00:00:00   960MB         | running on REMS4QL1726, pid=43240
+00:00:00   960MB         | running on REMS4QL1726, pid=56576
 
 00:00:00   960MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
 
 00:00:00   960MB         |  NVIDIA driver version 442.50 (Optix 60600)
 
-00:00:00   960MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6251MB available) (NVLink:0)
+00:00:00   960MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6306MB available) (NVLink:0)
 
 00:00:00   960MB         |  Windows 10 (version 10.0, build 19041)
 
-00:00:00   960MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   960MB         |  soft limit for open files changed from 512 to 2048
 
 00:00:00   960MB         |  
+
+00:00:00   960MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
 
 00:00:00   960MB         | loading plugins from C:\solidangle\mtoadeploy\2022\bin\..\plugins ...
 
 00:00:00   960MB         |  alembic_proc.dll: alembic uses Arnold 7.0.0.0
 
-00:00:00   961MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.0.0.0
+00:00:00   960MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.0.0.0
 
 00:00:00   961MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 7.0.0.0
 
@@ -84,7 +86,7 @@ OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 
 00:00:00  1003MB         |  usd_proc.dll: usd uses Arnold 7.0.0.0
 
-00:00:00  1003MB         | loaded 6 plugins from 4 lib(s) in 0:00.28
+00:00:00  1003MB         | loaded 6 plugins from 4 lib(s) in 0:00.13
 
 ###############################################################################
 
@@ -104,83 +106,87 @@ End attempted read of fragment XML.
 
 ###############################################################################
 
-00:00:01  1030MB ERROR   | [mtoa] [bifrostTranslator] Could not find arnold_bifrost in search path C:/Program Files/Autodesk/Bifrost/Maya2022/2.3.0.0-dev-202103301245-ac98f61/bifrost/
+00:00:00  1032MB ERROR   | [mtoa] [bifrostTranslator] Could not find arnold_bifrost in search path C:/Program Files/Autodesk/Bifrost/Maya2022/2.3.0.0-dev-202103301245-ac98f61/bifrost/
 
-00:00:01  1033MB WARNING | Bifrost procedural could not be found: 
+00:00:00  1034MB WARNING | Bifrost procedural could not be found: 
 
-00:00:01  1033MB WARNING | Bifrost procedural could not be found: 
+00:00:00  1034MB WARNING | Bifrost procedural could not be found: 
 
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  1.2 seconds.
+File read in  0.44 seconds.
 
 Viewport 2.0 floating point render target is turned off.
 
 Viewport 2.0 floating point render target is turned on for color management.
 
-Result: C:/arnold/mtoa2/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0282/test.ma
+Result: C:/arnold/mtoa/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0282/test.ma
+
+00:00:02  1074MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
+
+00:00:02  1075MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
 
 Exporting Arnold Scene...
 
-00:00:05  1077MB WARNING |   node entry "composite" is deprecated, and may be removed in the future
+00:00:02  1076MB WARNING |   node entry "composite" is deprecated, and may be removed in the future
 
 Updating Arnold Scene...
 
-00:00:10  1097MB WARNING | rendering with watermarks because of failed authorization:
+00:00:03  1097MB WARNING | rendering with watermarks because of failed authorization:
 
-00:00:10  1097MB         |  [rlm] error initializing license system:
+00:00:03  1097MB         |  [rlm] error initializing license system:
 
-00:00:10  1097MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
+00:00:03  1097MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
 
-00:00:10  1097MB         |  [clm.v1] license server was not set (51)
+00:00:03  1097MB         |  [clm.v1] license server was not set (51)
 
-00:00:10  1097MB         |  [clm.v2] SERVICE (1): timed-out after 30.0 sec(s) waiting for Agent to connect
+00:00:03  1097MB         |  [clm.v2] SERVICE (1): timed-out after 30.0 sec(s) waiting for Agent to connect
 
-00:00:10  1097MB         |  environment variables:
+00:00:03  1097MB         |  environment variables:
 
-00:00:10  1097MB         |         ARNOLD_LICENSE_ORDER   = (not set)
+00:00:03  1097MB         |         ARNOLD_LICENSE_ORDER   = (not set)
 
-00:00:10  1097MB         |         ARNOLD_LICENSE_MANAGER = (not set)
+00:00:03  1097MB         |         ARNOLD_LICENSE_MANAGER = (not set)
 
-00:00:10  1097MB         |  [rlm]  solidangle_LICENSE     = (not set)
+00:00:03  1097MB         |  [rlm]  solidangle_LICENSE     = (not set)
 
-00:00:10  1097MB         |  [rlm]  RLM_LICENSE            = (not set)
+00:00:03  1097MB         |  [rlm]  RLM_LICENSE            = (not set)
 
-00:00:10  1097MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
+00:00:03  1097MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
 
-00:00:10  1097MB         |  [clm]  LM_LICENSE_FILE        = (not set)
+00:00:03  1097MB         |  [clm]  LM_LICENSE_FILE        = (not set)
 
-Scene C:\arnold\mtoa2\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282\test.ma completed.
+Scene C:\arnold\mtoa\build\windows_x86_64\20220000\msvc_opt\testsuite\test_0282\test.ma completed.
 
-00:00:10  1107MB         |   unloading 13 plugins
+00:00:08  1105MB         |   unloading 13 plugins
 
-00:00:10  1107MB         |    closing alembic_proc.dll ...
+00:00:08  1105MB         |    closing alembic_proc.dll ...
 
-00:00:10  1106MB         |    closing cryptomatte.dll ...
+00:00:08  1105MB         |    closing cryptomatte.dll ...
 
-00:00:10  1106MB         |    closing synColor_shaders.dll ...
+00:00:08  1105MB         |    closing synColor_shaders.dll ...
 
-00:00:10  1106MB         |    closing usd_proc.dll ...
+00:00:08  1104MB         |    closing usd_proc.dll ...
 
-00:00:10  1103MB         |    closing hairPhysicalShader_shaders.dll ...
+00:00:08  1101MB         |    closing hairPhysicalShader_shaders.dll ...
 
-00:00:10  1103MB         |    closing lookdevkit_shaders.dll ...
+00:00:08  1101MB         |    closing lookdevkit_shaders.dll ...
 
-00:00:10  1103MB         |    closing mtoa_shaders.dll ...
+00:00:08  1101MB         |    closing mtoa_shaders.dll ...
 
-00:00:10  1103MB         |    closing renderSetup_shaders.dll ...
+00:00:08  1101MB         |    closing renderSetup_shaders.dll ...
 
-00:00:10  1103MB         |    closing xgenSpline_shaders.dll ...
+00:00:08  1101MB         |    closing xgenSpline_shaders.dll ...
 
-00:00:10  1103MB         |    closing mtoa_ParticleInstancer_proc.dll ...
+00:00:08  1101MB         |    closing mtoa_ParticleInstancer_proc.dll ...
 
-00:00:10  1103MB         |    closing mtoa_ParticleVolume_proc.dll ...
+00:00:08  1101MB         |    closing mtoa_ParticleVolume_proc.dll ...
 
-00:00:10  1102MB         |    closing xgenSpline_procedural.dll ...
+00:00:08  1101MB         |    closing xgenSpline_procedural.dll ...
 
-00:00:10  1102MB         |    closing xgen_procedural.dll ...
+00:00:08  1101MB         |    closing xgen_procedural.dll ...
 
-00:00:10  1102MB         |   unloading plugins done
+00:00:08  1101MB         |   unloading plugins done
 
-00:00:10  1102MB         |  Arnold shutdown
+00:00:08  1101MB         |  Arnold shutdown
 
