@@ -849,10 +849,6 @@ class ImagersUI(QtWidgets.QFrame):
 
 
 def createImagersWidgetForARV():
-    if (cmds.window("ImagersForARV", exists=True)):
-        return
-
-    window = cmds.window("ImagersForARV")
     imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame#', label='Imagers', borderVisible=False, labelVisible=False)
     currentWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
     imagersUI = ImagersUI(currentWidget, False)
