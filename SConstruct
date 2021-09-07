@@ -1119,6 +1119,7 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'osl'), glob.glob(os.path.join(ARNOLD, 'osl', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'ocio'), glob.glob(os.path.join(ARNOLD, 'ocio', '*')))
 # install all arnold sdk headers
 env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
 
@@ -1508,6 +1509,12 @@ for p in materialx_files:
         [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
     ]
 
+ocio_files = find_files_recursive(os.path.join(ARNOLD, 'ocio'), None)
+for p in ocio_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'ocio', p), os.path.join('ocio', d)]
+    ]
 osl_files = find_files_recursive(os.path.join(ARNOLD, 'osl'), None)
 for p in osl_files:
     (d, f) = os.path.split(p)
