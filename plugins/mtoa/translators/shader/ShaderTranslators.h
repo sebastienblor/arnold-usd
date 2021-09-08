@@ -135,7 +135,7 @@ protected:
    
 private:
    void ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut);
-   MString m_colorSpace;
+   std::string m_colorSpace;
 
    bool RequiresColorCorrect() const;
    bool RequiresUvTransform() const;
@@ -205,8 +205,6 @@ public:
    virtual void Export(AtNode* shader);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
-private:
-   MString m_colorSpace;
 };
 
 class CAiRoundCornersTranslator : public CShaderTranslator{

@@ -321,7 +321,7 @@ public:
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
       
    // Request an update of the TX textures generation
-   void RequestTxUpdate();
+   void RequestTxUpdate(const std::string &filename, const std::string &colorSpace);
 
    AtUniverse *GetUniverse();
    

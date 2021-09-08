@@ -87,7 +87,7 @@ public:
    void QueueForUpdate(CNodeTranslator * translator);
    void QueueForUpdate(const CNodeAttrHandle & handle);
    virtual void RequestUpdate();
-   void RequestUpdateTx() {m_updateTx = true; }
+   void RequestUpdateTx(const std::string &filename, const std::string &colorSpace);
    void RequestUpdateOptions() {m_updateOptions = true; RequestUpdate();}
    void RequestUpdateMotion() {m_updateMotion = true;}
    void RequestUpdateLightLinks() {m_updateLightLinks = true;}
@@ -163,6 +163,7 @@ protected:
    bool m_updateCallbacks;
    bool m_batch;
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
+   std::unordered_map<std::string, std::string> m_updateTxFiles;
 
    MCallbackId m_newNodeCallbackId;
    MCallbackId m_addParentCallbackId;

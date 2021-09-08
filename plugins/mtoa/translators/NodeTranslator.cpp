@@ -1166,9 +1166,9 @@ const double *CNodeTranslator::GetMotionFrames(unsigned int &count)
    return (count == 0) ? NULL : &motionFrames[0];
 }
 
-void CNodeTranslator::RequestTxUpdate()
+void CNodeTranslator::RequestTxUpdate(const std::string &filename, const std::string &colorSpace)
 {
-   m_impl->m_session->RequestUpdateTx();
+   m_impl->m_session->RequestUpdateTx(filename, colorSpace);
 }
 
 bool CNodeTranslator::IsExportingMotion() const

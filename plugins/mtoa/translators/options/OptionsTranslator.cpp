@@ -1206,8 +1206,7 @@ void COptionsTranslator::Export(AtNode *options)
             strcmp(paramName, "sss_bssrdf_samples") == 0 || strcmp(paramName, "volume_indirect_samples") == 0)
          {
             // deprecated parameters, don't do anything
-         }
-         else if (strcmp(paramName, "enable_progressive_render") == 0)
+         } else if (strcmp(paramName, "enable_progressive_render") == 0)
          {
             // only expose progressive render for interactive sessions 
             // FIXME is this the right criteria
@@ -1232,6 +1231,9 @@ void COptionsTranslator::Export(AtNode *options)
 
             } else
                AiNodeResetParameter(options, "ignore_list");
+         } else if (strcmp(paramName, "texture_use_existing_tx") == 0)
+         {
+            AiNodeSetBool(options, AtString("texture_use_existing_tx"), sessionOptions.GetUseExistingTx());
          }
          else
          {
