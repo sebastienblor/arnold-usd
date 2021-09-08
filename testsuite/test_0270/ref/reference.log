@@ -1,156 +1,156 @@
 ==== Setting Path ===== 
  
- {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\3', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.19041.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.19041.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\3', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0270', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0270'}
+ {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\4', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.19041.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.19041.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\4', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0270', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'SystemRoot': 'C:\\Windows', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0270'}
  
  ==== Exec cmd ==== 
  
 "C:\Python27\python.exe" post_script.py . C:\arnold\mtoa\external\OpenImageIO\bin\windows\oiiotool C:\solidangle\mtoadeploy\2022
  
- 00:00:00    55MB         | log started Tue Sep  7 11:22:19 2021
-00:00:00    55MB         | Arnold 7.0.0.0 [ac96d91d] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/09/06 19:44:11
-00:00:00    55MB         | running on REMS4QL1726, pid=35044
-00:00:00    55MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
-00:00:00    58MB         |  NVIDIA driver version 442.50 (Optix 60600)
-00:00:00    58MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6302MB available) (NVLink:0)
-00:00:00    58MB         |  Windows 10 (version 10.0, build 19041)
-00:00:00    58MB         |  soft limit for open files is set at 2048
-00:00:00    58MB         |  
-00:00:00    76MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
-00:00:00    76MB         | loading plugins from C:\solidangle\mtoadeploy\2022\bin\..\plugins ...
-00:00:00    81MB         | loaded 6 plugins from 4 lib(s) in 0:00.11
-00:00:00    81MB         | [kick] command: C:\solidangle\mtoadeploy\2022\bin\kick -dp -dw .\test_camera1.ass
-00:00:00    81MB         | loading plugins from . ...
-00:00:00    81MB         | no plugins loaded
+ 00:00:00    54MB         | log started Wed Sep  8 11:43:31 2021
+00:00:00    54MB         | Arnold 7.0.0.0 [39a25b5f] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/09/07 18:05:16
+00:00:00    54MB         | running on REMS4QL1726, pid=15252
+00:00:00    54MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
+00:00:00    57MB         |  NVIDIA driver version 442.50 (Optix 60600)
+00:00:00    57MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6385MB available) (NVLink:0)
+00:00:00    57MB         |  Windows 10 (version 10.0, build 19041)
+00:00:00    57MB         |  soft limit for open files is set at 2048
+00:00:00    57MB         |  
+00:00:00    75MB         | [color_manager_ocio] default ocio.config found in C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
+00:00:00    75MB         | loading plugins from C:\solidangle\mtoadeploy\2022\bin\..\plugins ...
+00:00:00    80MB         | loaded 6 plugins from 4 lib(s) in 0:00.11
+00:00:00    80MB         | [kick] command: C:\solidangle\mtoadeploy\2022\bin\kick -dp -dw .\test_camera1.ass
+00:00:00    80MB         | loading plugins from . ...
+00:00:00    80MB         | no plugins loaded
 00:00:00    83MB         | [ass] loading .\test_camera1.ass ...
 00:00:00    83MB         | [ass] read 27050 bytes, 8 nodes in 0:00.00
-00:00:00    84MB         | 
-00:00:00    84MB         | authorizing with default license managers: rlm, network, user ...
-00:00:25    89MB WARNING | rendering with watermarks because of failed authorization:
-00:00:25    89MB         |  [rlm] error initializing license system:
-00:00:25    89MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
-00:00:25    89MB         |  [clm.v1] license server was not set (51)
-00:00:25    89MB         |  [clm.v2] SERVICE (1): timed-out after 30.0 sec(s) waiting for Agent to connect
-00:00:25    89MB         |  environment variables:
-00:00:25    89MB         |         ARNOLD_LICENSE_ORDER   = (not set)
-00:00:25    89MB         |         ARNOLD_LICENSE_MANAGER = (not set)
-00:00:25    89MB         |  [rlm]  solidangle_LICENSE     = (not set)
-00:00:25    89MB         |  [rlm]  RLM_LICENSE            = (not set)
-00:00:25    89MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
-00:00:25    89MB         |  [clm]  LM_LICENSE_FILE        = (not set)
-00:00:25    89MB         | 
-00:00:25    90MB         | [color_manager] using color manager of type "color_manager_ocio"
-00:00:25    90MB WARNING | [color_manager_ocio] could not find a valid config
-00:00:26   104MB         |  
-00:00:26   104MB         | there are 1 light and 2 objects:
-00:00:26   104MB         |       2 persp_camera
-00:00:26   104MB         |       1 distant_light
-00:00:26   104MB         |       1 utility
-00:00:26   104MB         |       1 lambert
-00:00:26   104MB         |       1 driver_tiff
-00:00:26   104MB         |       1 gaussian_filter
-00:00:26   104MB         |       1 polymesh
-00:00:26   104MB         |       1 list_aggregate
-00:00:26   104MB         |       1 color_manager_ocio
-00:00:26   104MB         |  
-00:00:26   104MB         | rendering image at 160 x 120, 3 AA samples
-00:00:26   104MB         |   AA samples max    <disabled>
-00:00:26   104MB         |   AA sample clamp   <disabled>
-00:00:26   104MB         |   diffuse           samples  2 / depth  1
-00:00:26   104MB         |   specular          samples  2 / depth  1
-00:00:26   104MB         |   transmission      samples  2 / depth  8
-00:00:26   104MB         |   volume indirect   <disabled by depth>
-00:00:26   104MB         |   total                          depth 10
-00:00:26   104MB         |   bssrdf            samples  2
-00:00:26   104MB         |   transparency      depth 10
-00:00:26   104MB         | initializing 11 nodes ...
-00:00:26   105MB         |  creating root object list ...
-00:00:26   105MB         | node initialization done in 0:00.00 (multithreaded)
-00:00:26   105MB         | updating 12 nodes ...
-00:00:26   106MB         |  scene bounds: (-1.50000048 -0.500000238 -1.50000083) -> (1.50000012 0.50000006 1.50000036)
-00:00:26   106MB         | node update done in 0:00.00 (multithreaded)
-00:00:26   106MB         | [aov] parsing 1 output statements ...
-00:00:26   107MB         | [aov] registered driver: "defaultArnoldDriver/driver_tiff.RGBA" (driver_tiff)
-00:00:26   107MB         | [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter/gaussian_filter" (gaussian_filter)
-00:00:26   107MB         | [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
-00:00:26   107MB WARNING | [driver_tiff] defaultArnoldDriver/driver_tiff.RGBA: unable to convert to color space "sRGB", ignoring color transform
-00:00:26   108MB         | starting 64 bucket workers of size 64x64 ...
-00:00:30   158MB         | render done in 0:04.977
-00:00:30   158MB         | [driver_tiff] writing file `C:/arnold/mtoa/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0270/data/../testrender_camera1.tif'
-00:00:30   159MB         | render done
-00:00:31   155MB         |  
-00:00:31   155MB         | releasing resources
-00:00:31    98MB         | Arnold shutdown
-00:00:00    55MB         | log started Tue Sep  7 11:22:51 2021
-00:00:00    55MB         | Arnold 7.0.0.0 [ac96d91d] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/09/06 19:44:11
-00:00:00    55MB         | running on REMS4QL1726, pid=18088
+00:00:00    83MB         | 
+00:00:00    83MB         | authorizing with default license managers: rlm, network, user ...
+00:00:00    89MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00    89MB         |  [rlm] error initializing license system:
+00:00:00    89MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
+00:00:00    89MB         |  [clm.v1] license server was not set (51)
+00:00:00    89MB         |  [clm.v2] SERVICE (4): this product has not been registered with the licensing service yet
+00:00:00    89MB         |  environment variables:
+00:00:00    89MB         |         ARNOLD_LICENSE_ORDER   = (not set)
+00:00:00    89MB         |         ARNOLD_LICENSE_MANAGER = (not set)
+00:00:00    89MB         |  [rlm]  solidangle_LICENSE     = (not set)
+00:00:00    89MB         |  [rlm]  RLM_LICENSE            = (not set)
+00:00:00    89MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
+00:00:00    89MB         |  [clm]  LM_LICENSE_FILE        = (not set)
+00:00:00    89MB         | 
+00:00:00    90MB         | [color_manager] using color manager of type "color_manager_ocio"
+00:00:00    91MB         | [color_manager_ocio] using config file C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
+00:00:00    91MB         | [color_manager] rendering color space is "ACEScg"
+00:00:00   105MB         |  
+00:00:00   105MB         | there are 1 light and 2 objects:
+00:00:00   105MB         |       2 persp_camera
+00:00:00   105MB         |       1 distant_light
+00:00:00   105MB         |       1 utility
+00:00:00   105MB         |       1 lambert
+00:00:00   105MB         |       1 driver_tiff
+00:00:00   105MB         |       1 gaussian_filter
+00:00:00   105MB         |       1 polymesh
+00:00:00   105MB         |       1 list_aggregate
+00:00:00   105MB         |       1 color_manager_ocio
+00:00:00   105MB         |  
+00:00:00   105MB         | rendering image at 160 x 120, 3 AA samples
+00:00:00   105MB         |   AA samples max    <disabled>
+00:00:00   105MB         |   AA sample clamp   <disabled>
+00:00:00   105MB         |   diffuse           samples  2 / depth  1
+00:00:00   105MB         |   specular          samples  2 / depth  1
+00:00:00   105MB         |   transmission      samples  2 / depth  8
+00:00:00   105MB         |   volume indirect   <disabled by depth>
+00:00:00   105MB         |   total                          depth 10
+00:00:00   105MB         |   bssrdf            samples  2
+00:00:00   105MB         |   transparency      depth 10
+00:00:00   105MB         | initializing 11 nodes ...
+00:00:00   106MB         |  creating root object list ...
+00:00:00   106MB         | node initialization done in 0:00.00 (multithreaded)
+00:00:00   106MB         | updating 12 nodes ...
+00:00:00   106MB         |  scene bounds: (-1.50000048 -0.500000238 -1.50000083) -> (1.50000012 0.50000006 1.50000036)
+00:00:00   106MB         | node update done in 0:00.00 (multithreaded)
+00:00:00   106MB         | [aov] parsing 1 output statements ...
+00:00:00   107MB         | [aov] registered driver: "defaultArnoldDriver/driver_tiff.RGBA" (driver_tiff)
+00:00:00   107MB         | [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter/gaussian_filter" (gaussian_filter)
+00:00:00   107MB         | [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
+00:00:00   109MB         | starting 64 bucket workers of size 64x64 ...
+00:00:00   160MB         | render done in 0:00.114
+00:00:00   160MB         | [driver_tiff] writing file `C:/arnold/mtoa/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0270/data/../testrender_camera1.tif'
+00:00:00   161MB         | render done
+00:00:00   157MB         |  
+00:00:00   157MB         | releasing resources
+00:00:00    99MB         | Arnold shutdown
+00:00:00    54MB         | log started Wed Sep  8 11:43:32 2021
+00:00:00    55MB         | Arnold 7.0.0.0 [39a25b5f] windows clang-10.0.1 oiio-2.3.2 osl-1.12.0 vdb-7.1.1 clm-2.0.0.235 rlm-14.1.3 optix-6.6.0 2021/09/07 18:05:16
+00:00:00    55MB         | running on REMS4QL1726, pid=55184
 00:00:00    55MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
 00:00:00    58MB         |  NVIDIA driver version 442.50 (Optix 60600)
-00:00:00    58MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6330MB available) (NVLink:0)
+00:00:00    58MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8192MB (6401MB available) (NVLink:0)
 00:00:00    58MB         |  Windows 10 (version 10.0, build 19041)
 00:00:00    58MB         |  soft limit for open files is set at 2048
 00:00:00    58MB         |  
-00:00:00    76MB WARNING | [color_manager_ocio] unable to find default OCIO config, expected in C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
-00:00:00    76MB         | loading plugins from C:\solidangle\mtoadeploy\2022\bin\..\plugins ...
-00:00:00    81MB         | loaded 6 plugins from 4 lib(s) in 0:00.10
-00:00:00    81MB         | [kick] command: C:\solidangle\mtoadeploy\2022\bin\kick -dp -dw .\test_camera2.ass
-00:00:00    81MB         | loading plugins from . ...
-00:00:00    81MB         | no plugins loaded
-00:00:00    83MB         | [ass] loading .\test_camera2.ass ...
-00:00:00    84MB         | [ass] read 27050 bytes, 8 nodes in 0:00.00
-00:00:00    84MB         | 
-00:00:00    84MB         | authorizing with default license managers: rlm, network, user ...
-00:00:24    90MB WARNING | rendering with watermarks because of failed authorization:
-00:00:24    90MB         |  [rlm] error initializing license system:
-00:00:24    90MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
-00:00:24    90MB         |  [clm.v1] license server was not set (51)
-00:00:24    90MB         |  [clm.v2] SERVICE (1): timed-out after 30.0 sec(s) waiting for Agent to connect
-00:00:24    90MB         |  environment variables:
-00:00:24    90MB         |         ARNOLD_LICENSE_ORDER   = (not set)
-00:00:24    90MB         |         ARNOLD_LICENSE_MANAGER = (not set)
-00:00:24    90MB         |  [rlm]  solidangle_LICENSE     = (not set)
-00:00:24    90MB         |  [rlm]  RLM_LICENSE            = (not set)
-00:00:24    90MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
-00:00:24    90MB         |  [clm]  LM_LICENSE_FILE        = (not set)
-00:00:24    90MB         | 
-00:00:24    90MB         | [color_manager] using color manager of type "color_manager_ocio"
-00:00:24    91MB WARNING | [color_manager_ocio] could not find a valid config
-00:00:24   104MB         |  
-00:00:24   104MB         | there are 1 light and 2 objects:
-00:00:24   104MB         |       2 persp_camera
-00:00:24   104MB         |       1 distant_light
-00:00:24   104MB         |       1 utility
-00:00:24   104MB         |       1 lambert
-00:00:24   104MB         |       1 driver_tiff
-00:00:24   104MB         |       1 gaussian_filter
-00:00:24   104MB         |       1 polymesh
-00:00:24   104MB         |       1 list_aggregate
-00:00:24   104MB         |       1 color_manager_ocio
-00:00:24   104MB         |  
-00:00:24   104MB         | rendering image at 160 x 120, 3 AA samples
-00:00:24   104MB         |   AA samples max    <disabled>
-00:00:24   104MB         |   AA sample clamp   <disabled>
-00:00:24   104MB         |   diffuse           samples  2 / depth  1
-00:00:24   104MB         |   specular          samples  2 / depth  1
-00:00:24   104MB         |   transmission      samples  2 / depth  8
-00:00:24   104MB         |   volume indirect   <disabled by depth>
-00:00:24   104MB         |   total                          depth 10
-00:00:24   104MB         |   bssrdf            samples  2
-00:00:24   104MB         |   transparency      depth 10
-00:00:24   104MB         | initializing 11 nodes ...
-00:00:24   106MB         |  creating root object list ...
-00:00:24   106MB         | node initialization done in 0:00.00 (multithreaded)
-00:00:24   106MB         | updating 12 nodes ...
-00:00:24   106MB         |  scene bounds: (-1.50000048 -0.500000238 -1.50000083) -> (1.50000012 0.50000006 1.50000036)
-00:00:24   106MB         | node update done in 0:00.00 (multithreaded)
-00:00:24   106MB         | [aov] parsing 1 output statements ...
-00:00:24   106MB         | [aov] registered driver: "defaultArnoldDriver/driver_tiff.RGBA" (driver_tiff)
-00:00:24   106MB         | [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter/gaussian_filter" (gaussian_filter)
-00:00:24   106MB         | [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
-00:00:24   106MB WARNING | [driver_tiff] defaultArnoldDriver/driver_tiff.RGBA: unable to convert to color space "sRGB", ignoring color transform
-00:00:24   108MB         | starting 64 bucket workers of size 64x64 ...
-00:00:25   160MB         | render done in 0:00.324
-00:00:25   160MB         | [driver_tiff] writing file `C:/arnold/mtoa/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0270/data/../testrender_camera2.tif'
-00:00:25   161MB         | render done
-00:00:25   157MB         |  
-00:00:25   157MB         | releasing resources
-00:00:25    98MB         | Arnold shutdown
+00:00:00    75MB         | [color_manager_ocio] default ocio.config found in C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
+00:00:00    75MB         | loading plugins from C:\solidangle\mtoadeploy\2022\bin\..\plugins ...
+00:00:00    80MB         | loaded 6 plugins from 4 lib(s) in 0:00.10
+00:00:00    80MB         | [kick] command: C:\solidangle\mtoadeploy\2022\bin\kick -dp -dw .\test_camera2.ass
+00:00:00    80MB         | loading plugins from . ...
+00:00:00    80MB         | no plugins loaded
+00:00:00    82MB         | [ass] loading .\test_camera2.ass ...
+00:00:00    83MB         | [ass] read 27050 bytes, 8 nodes in 0:00.00
+00:00:00    83MB         | 
+00:00:00    83MB         | authorizing with default license managers: rlm, network, user ...
+00:00:00    89MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00    89MB         |  [rlm] error initializing license system:
+00:00:00    89MB         |  [rlm]  * Can't read license data (-102)No such file or directory (errno: 2)
+00:00:00    89MB         |  [clm.v1] license server was not set (51)
+00:00:00    89MB         |  [clm.v2] SERVICE (4): this product has not been registered with the licensing service yet
+00:00:00    89MB         |  environment variables:
+00:00:00    89MB         |         ARNOLD_LICENSE_ORDER   = (not set)
+00:00:00    89MB         |         ARNOLD_LICENSE_MANAGER = (not set)
+00:00:00    89MB         |  [rlm]  solidangle_LICENSE     = (not set)
+00:00:00    89MB         |  [rlm]  RLM_LICENSE            = (not set)
+00:00:00    89MB         |  [clm]  ADSKFLEX_LICENSE_FILE  = (not set)
+00:00:00    89MB         |  [clm]  LM_LICENSE_FILE        = (not set)
+00:00:00    89MB         | 
+00:00:00    90MB         | [color_manager] using color manager of type "color_manager_ocio"
+00:00:00    91MB         | [color_manager_ocio] using config file C:\solidangle\mtoadeploy\2022\bin\..\ocio\configs\arnold\config.ocio
+00:00:00    91MB         | [color_manager] rendering color space is "ACEScg"
+00:00:00   105MB         |  
+00:00:00   105MB         | there are 1 light and 2 objects:
+00:00:00   105MB         |       2 persp_camera
+00:00:00   105MB         |       1 distant_light
+00:00:00   105MB         |       1 utility
+00:00:00   105MB         |       1 lambert
+00:00:00   105MB         |       1 driver_tiff
+00:00:00   105MB         |       1 gaussian_filter
+00:00:00   105MB         |       1 polymesh
+00:00:00   105MB         |       1 list_aggregate
+00:00:00   105MB         |       1 color_manager_ocio
+00:00:00   105MB         |  
+00:00:00   105MB         | rendering image at 160 x 120, 3 AA samples
+00:00:00   105MB         |   AA samples max    <disabled>
+00:00:00   105MB         |   AA sample clamp   <disabled>
+00:00:00   105MB         |   diffuse           samples  2 / depth  1
+00:00:00   105MB         |   specular          samples  2 / depth  1
+00:00:00   105MB         |   transmission      samples  2 / depth  8
+00:00:00   105MB         |   volume indirect   <disabled by depth>
+00:00:00   105MB         |   total                          depth 10
+00:00:00   105MB         |   bssrdf            samples  2
+00:00:00   105MB         |   transparency      depth 10
+00:00:00   105MB         | initializing 11 nodes ...
+00:00:00   106MB         |  creating root object list ...
+00:00:00   106MB         | node initialization done in 0:00.00 (multithreaded)
+00:00:00   106MB         | updating 12 nodes ...
+00:00:00   106MB         |  scene bounds: (-1.50000048 -0.500000238 -1.50000083) -> (1.50000012 0.50000006 1.50000036)
+00:00:00   106MB         | node update done in 0:00.00 (multithreaded)
+00:00:00   106MB         | [aov] parsing 1 output statements ...
+00:00:00   106MB         | [aov] registered driver: "defaultArnoldDriver/driver_tiff.RGBA" (driver_tiff)
+00:00:00   106MB         | [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter/gaussian_filter" (gaussian_filter)
+00:00:00   106MB         | [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
+00:00:00   109MB         | starting 64 bucket workers of size 64x64 ...
+00:00:00   159MB         | render done in 0:00.168
+00:00:00   159MB         | [driver_tiff] writing file `C:/arnold/mtoa/build/windows_x86_64/20220000/msvc_opt/testsuite/test_0270/data/../testrender_camera2.tif'
+00:00:00   160MB         | render done
+00:00:00   156MB         |  
+00:00:00   156MB         | releasing resources
+00:00:00    99MB         | Arnold shutdown
