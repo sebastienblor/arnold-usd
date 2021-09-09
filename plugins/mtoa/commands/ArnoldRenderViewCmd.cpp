@@ -172,7 +172,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          session->OpenRenderView();
 
          if (mode == "render" || mode == "render_silent")
-            session->SetRenderViewOption("Run IPR", "1");      
+            session->SetRenderViewOption("Run IPR", "1");
          
          return MS::kSuccess;
       }

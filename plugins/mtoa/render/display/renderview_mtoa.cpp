@@ -1146,6 +1146,7 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
    
    MProgressWindow::endProgress();
 
+   SetOption("Run IPR", "0");
 
    if (m_session)
    {
