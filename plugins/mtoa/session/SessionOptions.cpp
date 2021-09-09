@@ -337,6 +337,7 @@ void CSessionOptions::Update()
    m_profile_file           = fnArnoldRenderOptions.findPlug("profile_file", true).asString();
 
    m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath", true).asString();
+   m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    SetupLog(); 
 }
 
