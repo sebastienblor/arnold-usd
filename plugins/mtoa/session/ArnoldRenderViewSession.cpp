@@ -23,7 +23,7 @@ CArnoldRenderViewSession::~CArnoldRenderViewSession()
 {
    // We're about to delete the current universe, before that we
    // want the renderview to clear its render session
-   GetRenderView().DisableRendering();
+   GetRenderView().FinishRender();
    GetRenderView().SetUniverse(nullptr);
 }
 void CArnoldRenderViewSession::SetStatus(MString status)
@@ -203,12 +203,11 @@ void CArnoldRenderViewSession::NewNode(MObject &node)
 
 void CArnoldRenderViewSession::Clear()
 {
-   AtUniverse *universe = m_universe;
    // First ensure the renderview cleared its own render session
-   GetRenderView().DisableRendering();
+   GetRenderView().FinishRender();
    GetRenderView().SetUniverse(nullptr);
    CArnoldSession::Clear();
-   GetRenderView().SetUniverse(universe);
+   GetRenderView().SetUniverse(m_universe);
    GetRenderView().RequestFullSceneUpdate();
 }
 void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)

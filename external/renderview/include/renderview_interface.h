@@ -69,8 +69,8 @@ public:
    // Adds a DCC-custom tab in the display settings
    void AddCustomTab(QWidget *widget, const char *tabName);
    
-   // Stops the rendering and clears the Arnold scene, but leave window visible
-   void DisableRendering();
+   // Stops the rendering session. Eventually turn off IPR
+   void FinishRender(bool stopIpr = false);
 
    // return the Qt Options Window
    QMainWindow *GetOptionsWindow();
