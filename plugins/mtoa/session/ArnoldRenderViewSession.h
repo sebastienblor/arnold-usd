@@ -33,7 +33,7 @@ public:
    void SetPlayblasting(bool b) {m_isPlayblasting = b;}
 
    void Clear() override;
-
+   AtRenderSession *GetRenderSession() override;
    
    CRenderViewMtoA &GetRenderView();
 protected:

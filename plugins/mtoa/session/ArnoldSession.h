@@ -123,7 +123,8 @@ public:
    
    static MObject GetDefaultArnoldRenderOptions();
    void SetCheckVisibility(bool b) {m_checkVisibility = b;}
-   AtRenderSession *GetRenderSession();
+   // Get a render session for this arnold session. Note that for the renderview it can be owned by ARV, so it shouldn't be cleared
+   virtual AtRenderSession *GetRenderSession();
    COptionsTranslator* GetOptionsTranslator() {return m_optionsTranslator;}
    AtNode *ExportColorManager();
 

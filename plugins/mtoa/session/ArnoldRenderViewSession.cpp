@@ -182,7 +182,7 @@ void CArnoldRenderViewSession::RequestUpdateImagers(bool listChanged)
    // Tell ARV to update the list of imagers
    GetRenderView().SetOption("Update Imagers", listChanged ? "Rewire Imagers" : "1");
    static AtString request_imager_update("request_imager_update");
-   AiRenderSetHintBool(GetRenderView().GetRenderSession(), request_imager_update, true);
+   AiRenderSetHintBool(GetRenderSession(), request_imager_update, true);
 }
 void CArnoldRenderViewSession::NewNode(MObject &node)
 {
@@ -201,6 +201,11 @@ void CArnoldRenderViewSession::NewNode(MObject &node)
    }   
 }
 
+// Here we return the render session owned by ARV
+AtRenderSession *CArnoldRenderViewSession::GetRenderSession()
+{
+   return GetRenderView().GetRenderSession();
+}
 void CArnoldRenderViewSession::Clear()
 {
    // First ensure the renderview cleared its own render session
