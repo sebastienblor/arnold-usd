@@ -18,6 +18,7 @@
 #include <maya/MFileIO.h>
 #include <maya/MFileObject.h>
 #include <maya/MRenderUtil.h>
+#include <maya/MDistance.h>
 
 #include <assert.h>
 
@@ -1234,6 +1235,10 @@ void COptionsTranslator::Export(AtNode *options)
          } else if (strcmp(paramName, "texture_use_existing_tx") == 0)
          {
             AiNodeSetBool(options, AtString("texture_use_existing_tx"), sessionOptions.GetUseExistingTx());
+         } else if (strcmp(paramName, "meters_per_unit") == 0)
+         {
+            MDistance dist(1.0 / sessionOptions.GetScaleFactor(), MDistance::uiUnit());
+            AiNodeSetFlt(options, "meters_per_unit", dist.asMeters());
          }
          else
          {

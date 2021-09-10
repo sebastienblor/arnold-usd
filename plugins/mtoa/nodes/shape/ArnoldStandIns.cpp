@@ -38,6 +38,7 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MDagPath.h>
 #include <maya/MDrawData.h>
+#include <maya/MDistance.h>
 #include <maya/MPlug.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MMatrix.h>
@@ -173,6 +174,10 @@ MStatus CArnoldStandInShape::LoadFile()
       AtNode* options = AiUniverseGetOptions(universe);
       AiNodeSetBool(options, "skip_license_check", true);
       AiNodeSetBool(options, "enable_dependency_graph", false);
+
+      MDistance dist(1.0, MDistance::uiUnit());
+      AiNodeSetFlt(AiUniverseGetOptions(proc_universe), "meters_per_unit", dist.asMeters());
+   
 
       // setup procedural search path
       MString proceduralPath = "";

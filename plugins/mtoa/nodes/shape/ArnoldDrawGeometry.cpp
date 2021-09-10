@@ -1,5 +1,5 @@
 #include "ArnoldDrawGeometry.h"
-
+#include <maya/MDistance.h>
 #include <maya/MMatrix.h>
 
 #if defined(_DARWIN)
@@ -479,6 +479,10 @@ CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* procNode, AtProcViewportMod
                        CArnoldDrawGeometry(procNode)
 {
    AtUniverse *universe = AiUniverse();
+   
+   MDistance dist(1.0, MDistance::uiUnit());
+   AiNodeSetFlt(AiUniverseGetOptions(AiNodeGetUniverse(procNode)), "meters_per_unit", dist.asMeters());
+
    AiProceduralViewport(procNode, universe, mode);
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
