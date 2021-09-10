@@ -1644,12 +1644,12 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    int height = 1;
    float pixelAspectRatio = 1.f;
    bool updateRender = false;
-   
-   int previousWidth = AiNodeGetInt(optionsNode, "xres");
-   int previousHeight = AiNodeGetInt(optionsNode, "yres");
 
    CSessionOptions &sessionOptions = session->GetOptions();
    AtNode *optionsNode = AiUniverseGetOptions(session->GetUniverse());
+
+   int previousWidth = AiNodeGetInt(optionsNode, "xres");
+   int previousHeight = AiNodeGetInt(optionsNode, "yres");
 
    // FIXME the code below is meant to reproduce what OptionsTranslator would do to 
    // determine the final resolution. This would have to be factorized, by making it 
