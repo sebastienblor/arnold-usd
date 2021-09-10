@@ -1645,51 +1645,57 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    float pixelAspectRatio = 1.f;
    bool updateRender = false;
    
-   int previousWidth = 1;
-   int previousHeight = 1;
+   int previousWidth = AiNodeGetInt(optionsNode, "xres");
+   int previousHeight = AiNodeGetInt(optionsNode, "yres");
 
-   CSessionOptions &options = session->GetOptions();
-   options.GetResolution(previousWidth, previousHeight);
-   
+   CSessionOptions &sessionOptions = session->GetOptions();
+   AtNode *optionsNode = AiUniverseGetOptions(session->GetUniverse());
 
+   // FIXME the code below is meant to reproduce what OptionsTranslator would do to 
+   // determine the final resolution. This would have to be factorized, by making it 
+   // a function in SessionOptions, so that we can call it from different places
    MPlug plug = depNode.findPlug("width", true, &status);
    if (status == MS::kSuccess)
-   {
       width = plug.asInt();
-      if (width != previousWidth) updateRender = true;
-   }
+
    plug = depNode.findPlug("height", true, &status);
    if (status == MS::kSuccess)
-   {
       height = plug.asInt();
-      if (height != previousHeight) updateRender = true;
-   }
-   plug = depNode.findPlug("deviceAspectRatio", true, &status);
-   if (status == MS::kSuccess)
-   {
-      pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
-      if (std::abs(pixelAspectRatio - 1.f) < 0.001)
-         pixelAspectRatio = 1.f;
-      else
-         pixelAspectRatio = 1.f / AiMax(AI_EPSILON, pixelAspectRatio);
+   
+   sessionOptions.GetResolution(width, height);
 
-      float previousAspectRatio = AiNodeGetFlt(AiUniverseGetOptions(session->GetUniverse()), "pixel_aspect_ratio");
-      if (std::abs(pixelAspectRatio - previousAspectRatio) > AI_EPSILON)
-         updateRender = true;
+   if (width != previousWidth || height != previousHeight)
+   {
+      updateRender = true;
+   } else 
+   {
+      plug = depNode.findPlug("deviceAspectRatio", true, &status);
+      if (status == MS::kSuccess)
+      {
+         pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
+         if (std::abs(pixelAspectRatio - 1.f) < 0.001)
+            pixelAspectRatio = 1.f;
+         else
+            pixelAspectRatio = 1.f / AiMax(AI_EPSILON, pixelAspectRatio);
+
+         float previousAspectRatio = AiNodeGetFlt(optionsNode, "pixel_aspect_ratio");
+         if (std::abs(pixelAspectRatio - previousAspectRatio) > AI_EPSILON)
+            updateRender = true;
+      }
    }
 
    if(updateRender)
    {
-      // FIXME we could probably do a simple re-render
-      // renderSession->InterruptRender(true);
-      // renderSession->SetResolution(width, height);
-      // renderViewMtoA->SetOption("Refresh Render", "1");
+      CNodeTranslator *optionsTranslator = session->GetOptionsTranslator();
+      if (optionsTranslator)
+      {
+         session->QueueForUpdate(optionsTranslator);
+         session->RequestUpdate();
       
-      renderViewMtoA->SetOption("Full IPR Update", "1");
-
-      // want to resize the window
+      /* // Not resizing the window anymore
       if (width  > 1 && height > 1 && pixelAspectRatio > 0.f)
-         renderViewMtoA->Resize(width * pixelAspectRatio, height);
+         renderViewMtoA->Resize(width * pixelAspectRatio, height);*/
+      }
    }
 
 }

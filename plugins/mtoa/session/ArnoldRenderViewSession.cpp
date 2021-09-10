@@ -25,6 +25,7 @@ CArnoldRenderViewSession::~CArnoldRenderViewSession()
    // want the renderview to clear its render session
    GetRenderView().FinishRender();
    GetRenderView().SetUniverse(nullptr);
+   GetRenderView().SetSession(nullptr);
 }
 void CArnoldRenderViewSession::SetStatus(MString status)
 {
