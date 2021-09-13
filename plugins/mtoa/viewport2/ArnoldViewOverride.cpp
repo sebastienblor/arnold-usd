@@ -81,19 +81,7 @@ MHWRender::DrawAPI ArnoldViewOverride::supportedDrawAPIs() const
 
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
-{
-    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
-    bool firstRender = (session == nullptr);
-
-    if (session == nullptr)
-    {
-        session = new CArnoldRenderViewSession(true);
-        CSessionManager::AddActiveSession(s_arnoldViewportSession, session);
-    }
-    if (session->IsExportingMotion())
-        return MS::kFailure;
-    CSessionOptions &sessionOptions = session->GetOptions();
-
+{    
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
     if (!theRenderer)
         return MStatus::kFailure;
@@ -130,6 +118,18 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         state = mRegionRenderStateMap[destination.asChar()];
     }
+    
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    bool firstRender = (session == nullptr);
+
+    if (session == nullptr)
+    {
+        session = new CArnoldRenderViewSession(true);
+        CSessionManager::AddActiveSession(s_arnoldViewportSession, session);
+    }
+    if (session->IsExportingMotion())
+        return MS::kFailure;
+    CSessionOptions &sessionOptions = session->GetOptions();
 
     // if there's no active scene, or if we switched to a new viewport, then this is considered as a first render
     if (destination != s_activeViewport)
