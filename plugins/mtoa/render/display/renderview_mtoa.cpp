@@ -1,6 +1,7 @@
 
 #include "renderview_mtoa.h"
 #include "session/ArnoldRenderViewSession.h"
+#include "session/SessionManager.h"
 
 #include <maya/MItDag.h>
 
@@ -581,12 +582,19 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
 /** When this funtion is invoked, it means that the whole scene needs to 
  * be re-exported from scratch.
- * FIXME : why should this code be different from a fresh new export ?
  **/
 void CRenderViewMtoA::UpdateFullScene()
 {
    if (m_session == nullptr)
-      return;
+   {
+      // When the renderview session is destroyed, the CRenderViewInterface remains alive (so that all options are kept).
+      // Therefore the viewer remains visible in the UI. If the user manually restarts the render, then we will be called 
+      // here, but there won't be any m_session. We must then create a new session before we continue with this function
+
+      m_session = new CArnoldRenderViewSession();
+      CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId(), m_session);
+      CArnoldRenderViewSession::CloseOtherViews(MString(CArnoldRenderViewSession::GetRenderViewSessionId().c_str()));
+   }
    
    std::string lastCamera = GetOption("Camera");
    SetUniverse(nullptr); // this ensures we delete the previous render session

@@ -25,7 +25,6 @@
 #include <vector>
 
 static bool s_wasVisible = false;
-static const std::string s_renderViewSessionId("renderView");
 MSyntax CArnoldRenderViewCmd::newSyntax()
 {
    MSyntax syntax;
@@ -92,12 +91,12 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    }
 
 
-   CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_renderViewSessionId);
+   CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId());
    bool sessionExisted = (session != nullptr);
    if (session == nullptr)
    {
       session = new CArnoldRenderViewSession();
-      CSessionManager::AddActiveSession(s_renderViewSessionId, session);
+      CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId(), session);
    }
 
    if (mode == "close")
@@ -160,9 +159,6 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "render" || mode == "open" || mode == "render_silent")
    {
-      // Close any viewports renderers before opening the ARV. (? should we close anything now ?)
-      // CRenderSession::CloseOtherViews("");
-
       s_wasVisible = true;
 
       if (sessionExisted)
@@ -172,7 +168,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          session->OpenRenderView();
 
          if (mode == "render" || mode == "render_silent")
+         {
+            // Restarting the render, we need to ensure other AVP sessions are closed first
+            CArnoldRenderViewSession::CloseOtherViews(MString(CArnoldRenderViewSession::GetRenderViewSessionId().c_str()));
             session->SetRenderViewOption("Run IPR", "1");
+         }
          
          return MS::kSuccess;
       }
@@ -190,7 +190,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          return MS::kSuccess;
       }
 
-
+      // We're about to export the scene and start a render, let's first close the other AVP sessions
+      CArnoldRenderViewSession::CloseOtherViews(MString(CArnoldRenderViewSession::GetRenderViewSessionId().c_str()));
       MDagPath renderCamera;
 
       // First check if a camera is specified
@@ -248,8 +249,6 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       else
          session->OpenRenderView();
 
-      // FIXME : Ensure the previous render is stopped ???
-
       if (is_region)
       {
          MString regionStr;
@@ -266,42 +265,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
    } else if (mode == "stop")
    {
-      CSessionManager::DeleteActiveSession(s_renderViewSessionId);
-      /*
-      if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
-      {
-         MGlobal::displayError("Error stopping Arnold IPR, Arnold Render session is not active.");
-         return MS::kFailure;
-      }
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      // abort the rendering
-      renderSession->InterruptRender();
-
-      CMayaScene::End();
-
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
-      CMayaScene::ExecuteScript(renderGlobals.postMel);
-
-      */
+      CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId());
    }
    else if (mode == "refresh")
    {
       session->RequestUpdate();
-
-      /*
-      if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
-      {
-         MGlobal::displayError("Error refreshing Arnold Render View, Arnold Render session is not active.");
-         return MS::kFailure;
-      }
-
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      if (is_region)
-         renderSession->SetRegion(region[0], region[1], region[2], region[3]);
-
-      renderSession->UpdateRenderView();
-      // only consider argument "region", ignore camera/width/height, etc...
-      */
    }  
 
    return status;

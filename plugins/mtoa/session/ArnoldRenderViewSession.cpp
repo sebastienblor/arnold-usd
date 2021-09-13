@@ -1,4 +1,5 @@
 #include "ArnoldRenderViewSession.h"
+#include "SessionManager.h"
 #include <maya/MGlobal.h>
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MRenderUtil.h>
@@ -6,8 +7,13 @@
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
 
+#include <string>
+
 static CRenderViewMtoA *s_renderView = nullptr;
 static CRenderViewMtoA *s_optionsView = nullptr;
+
+static const std::string s_renderViewSessionId = "arnoldRenderView";
+static const std::string s_arnoldViewportSessionId = "arnoldViewport";
 
 CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) : 
                            CArnoldSession(), 
@@ -21,11 +27,13 @@ CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) :
 }
 CArnoldRenderViewSession::~CArnoldRenderViewSession()
 {
+   CRenderViewMtoA &renderview = GetRenderView();
    // We're about to delete the current universe, before that we
    // want the renderview to clear its render session
-   GetRenderView().FinishRender();
-   GetRenderView().SetUniverse(nullptr);
-   GetRenderView().SetSession(nullptr);
+   renderview.FinishRender(true);
+   renderview.SetUniverse(nullptr);
+   renderview.SetSession(nullptr);
+   renderview.RequestFullSceneUpdate();
 }
 void CArnoldRenderViewSession::SetStatus(MString status)
 {
@@ -222,9 +230,14 @@ void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)
    bool viewFound = false;
    M3dView thisView;
 
-   if (destination.length() > 0)
-      viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+   if (destination != MString(s_renderViewSessionId.c_str()))
+   {
+      CSessionManager::DeleteActiveSession(s_renderViewSessionId);
 
+      if (destination.length() > 0)
+         viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+   }
+   
    // Close all but the destination render override if there is one
    // If the destination is an empty string it is the ARV.
    for (unsigned int i = 0, viewCount = M3dView::numberOf3dViews(); i < viewCount; ++i)
@@ -254,4 +267,15 @@ CRenderViewMtoA &CArnoldRenderViewSession::GetRenderView()
    } else
       s_renderView->SetSession(this);
    return *s_renderView;
+}
+
+const std::string &CArnoldRenderViewSession::GetRenderViewSessionId()
+{
+   return s_renderViewSessionId;
+}
+
+const std::string &CArnoldRenderViewSession::GetViewportSessionId()
+{
+   return s_arnoldViewportSessionId;
+
 }

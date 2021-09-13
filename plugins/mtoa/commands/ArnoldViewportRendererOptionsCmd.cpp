@@ -7,9 +7,6 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MGlobal.h>
 
-static std::string s_arnoldViewportSession("arnoldViewport");
-
-
 MSyntax CArnoldViewportRendererOptionsCmd::newSyntax()
 {
    MSyntax syntax;
@@ -49,22 +46,20 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       else
          mode = "close"; // closing ARV
    }
+   if (mode == "visChanged_cb")
+   {
+      MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox -mode visChanged");
+      return MS::kSuccess;
+   }
 
-   CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);   
-   bool sessionExisted = (session != nullptr);
+   MGlobal::displayWarning(mode);
+
+   CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());   
+   bool sessionExisted (session != nullptr);
    if (session == nullptr)
    {
-      s_wasVisible = true;
-      
       session = new CArnoldRenderViewSession(true);
-      CSessionManager::AddActiveSession(s_arnoldViewportSession, session);
-      CRenderViewMtoA &renderView = session->GetRenderView();
-      renderView.OpenMtoAViewportRendererOptions();
-      renderView.RequestFullSceneUpdate();
-      s_wasVisible = false;
-      renderView.CloseOptionsWindow();
-      CSessionManager::DeleteActiveSession(s_arnoldViewportSession);
-      return MS::kSuccess;
+      CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetViewportSessionId(), session);
    }
    
    CRenderViewMtoA &renderView = session->GetRenderView();
@@ -74,15 +69,9 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       s_wasVisible = true;
       renderView.SetViewportRendering(true);
       renderView.OpenMtoAViewportRendererOptions();
-      renderView.RequestFullSceneUpdate();
-      
       if (!sessionExisted)
-      {
-         s_wasVisible = false;
-         renderView.CloseOptionsWindow();
-         //MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
-      }
-
+         renderView.RequestFullSceneUpdate();
+   
    } else if (mode == "close")
    {  
       s_wasVisible = false;        

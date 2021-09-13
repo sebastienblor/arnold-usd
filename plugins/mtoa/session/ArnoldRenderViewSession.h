@@ -36,6 +36,10 @@ public:
    AtRenderSession *GetRenderSession() override;
    
    CRenderViewMtoA &GetRenderView();
+
+   static const std::string &GetRenderViewSessionId();
+   static const std::string &GetViewportSessionId();
+   
 protected:
    void NewNode(MObject &node) override;
    bool m_viewport;

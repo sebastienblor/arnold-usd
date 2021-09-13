@@ -27,7 +27,7 @@ static MString s_activeViewport(""); // store the name of the last active viewpo
 static unsigned int s_width = 0;
 static unsigned int s_height = 0;
 
-static std::string s_arnoldViewportSession("arnoldViewport");
+
 // For override creation we return a UI name so that it shows up in as a
 // renderer in the 3d viewport menus.
 // 
@@ -99,6 +99,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     //    The callback is used to stop any active rendering when the override is turned off.
     if (callbackIdMap.find(destination.asChar()) == callbackIdMap.end())
     {
+        // The below call will close the other arnold viewports, so it might destroy the previous AVP session. 
         stopExistingOverrides(destination);
 
         MCallbackId callbackID = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, this);
@@ -118,14 +119,14 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         state = mRegionRenderStateMap[destination.asChar()];
     }
-    
-    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
     bool firstRender = (session == nullptr);
 
     if (session == nullptr)
     {
         session = new CArnoldRenderViewSession(true);
-        CSessionManager::AddActiveSession(s_arnoldViewportSession, session);
+        CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetViewportSessionId(), session);
     }
     if (session->IsExportingMotion())
         return MS::kFailure;
@@ -298,6 +299,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
         MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
         MGlobal::executeCommand("arnoldViewOverrideOptionBox;");
+        // ensure the scene is fully rendered at next update
+        session->GetRenderView().RequestFullSceneUpdate();
 
         if (!state.enabled)
             session->SetRenderViewOption(MString("Run IPR"), "0");    
@@ -462,11 +465,11 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         s_activeViewport = MString("");
         
         // Close the options window and end the scene.
-        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
         if (session)
         {
             session->GetRenderView().CloseOptionsWindow(); // could it be done at deletion ?
-            CSessionManager::DeleteActiveSession(s_arnoldViewportSession);
+            CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
         }
     
         RegionRenderState state = static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()];
@@ -483,7 +486,7 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
 
 void ArnoldViewOverride::sPlayblasting(bool state, void* clientData)
 {
-    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
     if (session)
         session->SetPlayblasting(state);
 }
@@ -491,11 +494,11 @@ void ArnoldViewOverride::sPreFileOpen(void* clientData)
 {
     MGlobal::executeCommand("aiViewRegionCmd -delete;");
     
-    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
     if (session)
     {
         session->GetRenderView().CloseOptionsWindow();
-        CSessionManager::DeleteActiveSession(s_arnoldViewportSession);
+        CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
     }
 
     static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
@@ -582,7 +585,7 @@ const MHWRender::MShaderInstance * TextureBlit::shader()
 
     if (mShaderInstance)
     {
-        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
         std::string arvCrop = session ? session->GetRenderView().GetOption("Crop Region") : "";
         bool regionCropped = arvCrop == "1";
       
