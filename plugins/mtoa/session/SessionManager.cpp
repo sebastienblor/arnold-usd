@@ -120,3 +120,8 @@ void CSessionManager::ClearActiveSessions()
       iter->second->GetOptions().SetArnoldRenderOptions(MObject());
    }
 }
+
+unordered_map<std::string, CArnoldSession *> CSessionManager::GetActiveSessions()
+{
+   return s_activeSessions;
+}

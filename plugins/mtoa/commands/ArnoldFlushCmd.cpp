@@ -8,6 +8,7 @@
 #include <maya/MDagPath.h>
 #include <maya/MFnDependencyNode.h>
 
+#include "session/SessionManager.h"
 
 #include <ai_universe.h>
 #include <ai_nodes.h>
@@ -67,7 +68,6 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
    AiParamIteratorDestroy(nodeParam);
 }
 
-// FIXME !! how to deal with multiple universes
 MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 {
    
@@ -87,19 +87,26 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
    if (args.isFlagSet("skydome"))
    {
       AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
-
-      // also invalidate the textures connected to the skydome's color (#2541)
-      AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_LIGHT);
-      while (!AiNodeIteratorFinished(nodeIter))
+      auto activeSessions = CSessionManager::GetActiveSessions();
+      for (auto sessionIter : activeSessions)
       {
-         AtNode *node = AiNodeIteratorGetNext(nodeIter);
-         if (!AiNodeIs(node, skydome_light_str)) continue;
+         CArnoldSession *session = sessionIter.second;
+         if (session == nullptr)
+            continue;
+         AtUniverse *universe = session->GetUniverse();
+         // also invalidate the textures connected to the skydome's color (#2541)
+         AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(universe, AI_NODE_LIGHT);
+         while (!AiNodeIteratorFinished(nodeIter))
+         {
+            AtNode *node = AiNodeIteratorGetNext(nodeIter);
+            if (!AiNodeIs(node, skydome_light_str)) continue;
 
-         if (!AiNodeIsLinked(node, "color")) continue;
-         AtNode *link = AiNodeGetLink(node, "color");
-         FlushInvalidateConnectedTextures(link);
+            if (!AiNodeIsLinked(node, "color")) continue;
+            AtNode *link = AiNodeGetLink(node, "color");
+            FlushInvalidateConnectedTextures(link);
+         }
+         AiNodeIteratorDestroy(nodeIter);
       }
-      AiNodeIteratorDestroy(nodeIter);
    }
    
    if (args.isFlagSet("quads"))
