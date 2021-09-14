@@ -19,7 +19,8 @@ CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) :
                            CArnoldSession(), 
                            m_viewport(viewport),
                            m_active(false),
-                           m_isPlayblasting(false)
+                           m_isPlayblasting(false),
+                           m_optionsExported(false)
 {
    AddUpdateCallbacks();
    if (viewport)
@@ -100,14 +101,22 @@ void CArnoldRenderViewSession::OpenRenderView()
 {
    int width = 1024;
    int height = 1024;
-   // FIXME !!! at this stage the options were not translated, so we might not know yet what the resolution is.
-   // Should we check the render globals ?
    if (!m_sessionOptions.GetResolution(width, height))
    {
       MCommonRenderSettingsData renderGlobals;
       MRenderUtil::getCommonRenderSettings(renderGlobals);
       width = renderGlobals.width;
       height = renderGlobals.height;
+   }
+
+   if (!m_optionsExported)
+   {
+      // If the options have not been exported yet, xres and yres will be left to their default value.
+      // We want at least to set the proper width/height resolution, so that it shows properly in 
+      // the renderview buffer MTOA-744
+      AtNode *options= AiUniverseGetOptions(m_universe);
+      AiNodeSetInt(options, "xres", width);
+      AiNodeSetInt(options, "yres", height);
    }
    
    GetRenderView().SetUniverse(m_universe);
@@ -167,6 +176,7 @@ AtNode* CArnoldRenderViewSession::ExportOptions()
    GetRenderView().SetFrame((float)m_sessionOptions.GetExportFrame());
    GetRenderView().SetStatusInfo("");
    GetRenderView().SetLogging(m_sessionOptions.GetLogConsoleVerbosity(), m_sessionOptions.GetLogFileVerbosity());
+   m_optionsExported = true;
    return options;
 }
 void CArnoldRenderViewSession::InterruptRender()
@@ -222,6 +232,7 @@ void CArnoldRenderViewSession::Clear()
    GetRenderView().SetUniverse(nullptr);
    CArnoldSession::Clear();
    GetRenderView().SetUniverse(m_universe);
+   m_optionsExported = false;
    GetRenderView().RequestFullSceneUpdate();
 }
 void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)
@@ -230,6 +241,9 @@ void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)
    bool viewFound = false;
    M3dView thisView;
 
+   // If we start rendering with ARV, we will call this function with the renderview session name
+   // as the destination (as if it was a viewport panel name) . This allows us to distinguish 
+   // this use case and know when we need to kill the renderview session or not
    if (destination != MString(s_renderViewSessionId.c_str()))
    {
       CSessionManager::DeleteActiveSession(s_renderViewSessionId);

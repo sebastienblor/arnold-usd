@@ -47,4 +47,5 @@ protected:
 
    bool m_active;
    bool m_isPlayblasting;
+   bool m_optionsExported;
 }; 
