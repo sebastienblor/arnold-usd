@@ -281,9 +281,10 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
       }
       else
       {
-         int num_outputs = AiNodeEntryGetNumOutputs(AiNodeGetNodeEntry(srcArnoldNode));
-         int outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
-         MString component = GetComponentName(outputType,srcMayaPlug);
+         const AtNodeEntry* node_entry = AiNodeGetNodeEntry(srcArnoldNode);
+         int num_outputs = AiNodeEntryGetNumOutputs(node_entry);
+         int outputType = -1;
+         MString component;
 
          // num_outputs is 0 for all standard C Shaders and 1 for OSL shader with a single output 
          // We want to treat any outputs > 1 in a special way 
@@ -292,20 +293,26 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
             // If it's multiple output and a component connection 
             // we setup the 2nd argument to AiNodeLinkOutput to be 
             // outputAttr.component 
-            if (component.length() != 0 && srcMayaPlug.isChild()) 
+            if (srcMayaPlug.isChild()) 
             {
                MString parent = srcMayaPlug.parent().partialName(false, false, false, false, false, true);
-               component = parent + MString(".") + component;
+               const AtParamEntry* param_entry = AiNodeEntryLookUpOutput(node_entry, AtString(parent.asChar()));
+               outputType = AiParamGetType(param_entry);
+               component = parent + MString(".") + GetComponentName(outputType,srcMayaPlug);
             }
             else
-            {
                component = srcMayaPlug.partialName(false, false, false, false, false, true);
-            }
+         }
+         else
+         {
+            outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
+            component = GetComponentName(outputType,srcMayaPlug);
          }
          if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))
          {
-            AiMsgWarning("[mtoa] Could not link %s to %s.%s.",
+            AiMsgWarning("[mtoa] Could not link %s.%s to %s.%s.",
                AiNodeGetName(srcArnoldNode),
+               component.asChar(),
                AiNodeGetName(arnoldNode),
                arnoldParamName);
             return NULL;
