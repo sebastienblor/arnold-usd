@@ -52,8 +52,6 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       return MS::kSuccess;
    }
 
-   MGlobal::displayWarning(mode);
-
    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());   
    bool sessionExisted (session != nullptr);
    if (session == nullptr)
