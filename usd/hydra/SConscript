@@ -29,6 +29,11 @@ source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
 include_files = find_files_recursive(src_base_dir, ['.h'])
 
 mayaRoot = local_env['MAYA_ROOT']
+mayaVersion = int(local_env['MAYA_VERSION_BASE'])
+# For Maya 2022, python3 means python3.7
+# For Maya 2023, it is python3.9
+pythonMinor = '7' if mayaVersion < 2023 else '9'
+pythonDirChar = 'm' if mayaVersion < 2023 else ''
 
 lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
 lib_prefix = {'windows' : ''}.get(system.os, '')
@@ -45,23 +50,23 @@ boost_lib = os.path.join(usd_install_dir, 'lib')
 usd_lib_prefix = 'lib'
 
 if platform.system().lower() == 'darwin':
-    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'include', 'python3.7m')
-    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'lib')
+    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.{}'.format(pythonVersion, pythonMinor), 'include', 'python{}.{}{}'.format(pythonVersion, pythonMinor, pythonDirChar))
+    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.{}'.format(pythonVersion, pythonMinor), 'lib')
   
 else:
-    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python{}7'.format(pythonVersion), 'Python')
+    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python{}{}'.format(pythonVersion, pythonMinor), 'Python')
     python_lib = os.path.join(mayaRoot, 'lib')
 
 if platform.system().lower() == 'windows':
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-    boost_lib_name = 'boost_%s{}7-vc141-mt-x64-1_70'.format(pythonVersion)
+    boost_lib_name = 'boost_%s{}{}-vc141-mt-x64-1_70'.format(pythonVersion, pythonMinor)
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
     if pythonVersion == '2' and platform.system().lower() == 'linux':
         boost_lib_name = 'boost_%s'
     else:
-        boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+        boost_lib_name = 'boost_%s{}{}'.format(pythonVersion, pythonMinor)
 
 
 usd_delegate_folder = _targetPath.abspath
@@ -124,7 +129,7 @@ def _usd_delegate(target, source, env):
         args['SDK_PATH']          = local_env['SDK_PATH']
         args['SDK_VERSION']       = local_env['SDK_VERSION']
         args['MACOS_VERSION_MIN'] = local_env['MACOS_VERSION_MIN']
-        args['PYTHON_LIB_NAME']   = 'libpython{}.7'.format(pythonVersion)
+        args['PYTHON_LIB_NAME']   = 'libpython{}.{}'.format(pythonVersion, pythonMinor)
 
     if platform.system().lower() == 'linux':
         if local_env.get('SHCXX'):
@@ -133,12 +138,12 @@ def _usd_delegate(target, source, env):
             args['CXX_STANDARD'] = local_env['CXX_STANDARD']
         args['DISABLE_CXX11_ABI']=True 
         if pythonVersion == '3':
-            args['PYTHON_LIB_NAME']   = 'libpython3.7m'
+            args['PYTHON_LIB_NAME']   = 'libpython3.{}{}'.format(pythonMinor, pythonDirChar)
         else:
             args['PYTHON_LIB_NAME']   = 'libpython2.7'
 
     if platform.system().lower() == 'windows':
-        args['PYTHON_LIB_NAME']   = 'python{}7'.format(pythonVersion)
+        args['PYTHON_LIB_NAME']   = 'python{}{}'.format(pythonVersion, pythonMinor)
     
     build_dir = 'build_hydra_{}'.format(local_env.get('USD_VERSION'))
     if pythonVersion == '2':
