@@ -708,40 +708,48 @@ void CArnoldSession::Update()
    if (frameChanged && m_updateCallbacks) m_sessionOptions.SetExportFrame(frame);
 
 
-   if (m_updateOptions)
-   {
-      if (mtoa_translation_info)
-         MtoaDebugLog("[mtoa.session]     Updating Session Options");
-
-      // FIXME !!! ? renderSession->UpdateRenderOptions();
-      InitSessionOptions();
-   }
+   std::vector<bool> prevRequiresMotion;
 
    size_t previousUpdatedTranslators = 0;
 
    int updateRecursions = 0;
    static const int maxUpdateRecursions = 5;
 
+   // If we need to update the motion data, we first have to check 
+   // which translators used to require motion blur, BEFORE we update the session options
    if (m_updateMotion)
    {  
       if (mtoa_translation_info)
          MtoaDebugLog("[mtoa.session]    Updating Motion Blur data");
 
-      std::vector<bool> prevRequiresMotion;
+      
       prevRequiresMotion.reserve(m_translators.size());
 
       // stores requiresMotionData from all translators
-      ObjectToTranslatorMap::iterator it = m_translators.begin();
-      ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+      auto it = m_translators.begin();
+      auto itEnd = m_translators.end();
       for ( ; it != itEnd; ++it)
          prevRequiresMotion.push_back(it->second->RequiresMotionData());
 
+   }
 
-      // check again all translators
+   if (m_updateOptions)
+   {
+      if (mtoa_translation_info)
+         MtoaDebugLog("[mtoa.session]     Updating Session Options");
+
+      InitSessionOptions();
+   }
+
+   // Now check again all translators
+   if (m_updateMotion)
+   {
       int trIdx = 0;
-      for (it = m_translators.begin() ; it != itEnd; ++it, ++trIdx)
-      {
-         if (prevRequiresMotion[trIdx])
+      auto it = m_translators.begin();
+      auto itEnd = m_translators.end();
+      for (; it != itEnd; ++it, ++trIdx)
+      {         
+         if (trIdx < prevRequiresMotion.size() && prevRequiresMotion[trIdx])
          {
             // This translator used to be motion blurred
             if (!it->second->RequiresMotionData())
