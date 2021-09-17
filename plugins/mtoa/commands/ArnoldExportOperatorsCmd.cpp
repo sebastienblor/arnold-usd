@@ -131,7 +131,6 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
          MStatus listStatus;
          MDagPath dag;
          MObject objNode;
-         CNodeTranslator *tr = NULL;
          if (selected.getDagPath(i, dag) == MS::kSuccess)
          {
             dag.extendToShape();

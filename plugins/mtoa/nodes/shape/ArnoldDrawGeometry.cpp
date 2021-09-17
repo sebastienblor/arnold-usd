@@ -481,7 +481,7 @@ CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* procNode, AtProcViewportMod
    AtUniverse *universe = AiUniverse();
    
    MDistance dist(1.0, MDistance::uiUnit());
-   AiNodeSetFlt(AiUniverseGetOptions(AiNodeGetUniverse(procNode)), "meters_per_unit", dist.asMeters());
+   AiNodeSetFlt(AiUniverseGetOptions(AiNodeGetUniverse(procNode)), "meters_per_unit", (float)dist.asMeters());
 
    AiProceduralViewport(procNode, universe, mode);
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);

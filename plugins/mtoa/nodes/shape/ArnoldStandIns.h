@@ -61,7 +61,7 @@ public:
    
    static void* creator();
    static MStatus initialize();
-   virtual void updateGeometry();
+   void updateGeometry() override;
    
    static MTypeId id;
 

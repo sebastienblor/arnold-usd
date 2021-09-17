@@ -11,17 +11,17 @@ class CArnoldLightPortalNode
 
 public:
    CArnoldLightPortalNode();
-   virtual void postConstructor();
+   void postConstructor() override;
 
    static CStaticAttrHelper s_attributes;
 
    static void* creator();
    static MStatus initialize();
-   virtual MStatus   compute( const MPlug&, MDataBlock& );
-   virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
-   virtual bool            isBounded() const;
-   virtual MBoundingBox    boundingBox() const;
-   virtual bool            excludeAsLocator() const;
+   MStatus   compute( const MPlug&, MDataBlock& ) override;
+   void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus ) override;
+   bool            isBounded() const override;
+   MBoundingBox    boundingBox() const override;
+   bool            excludeAsLocator() const override;
    SchedulingType schedulingType()const override {return kParallel;}
 
    static MTypeId id;

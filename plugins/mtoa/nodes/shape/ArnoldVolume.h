@@ -24,14 +24,14 @@ public:
    MStatus compute(const MPlug& plug, MDataBlock& data) override;
    MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray) override;
 
-   virtual bool isBounded() const;
-   virtual MBoundingBox boundingBox() const;
+   bool isBounded() const override;
+   MBoundingBox boundingBox() const override;
 
    static void* creator();
    static MStatus initialize();
    MBoundingBox* geometry();
 
-   virtual MSelectionMask getShapeSelectionMask() const;
+   MSelectionMask getShapeSelectionMask() const override;
 
    static MTypeId id;
 private:
@@ -94,13 +94,13 @@ class CArnoldVolumeShapeUI: public MPxSurfaceShapeUI
 public:
    CArnoldVolumeShapeUI();
    virtual ~CArnoldVolumeShapeUI();
-   virtual void getDrawRequests(const MDrawInfo & info,
-         bool objectAndActiveOnly, MDrawRequestQueue & requests);
-   virtual void draw(const MDrawRequest & request, M3dView & view) const;
+   void getDrawRequests(const MDrawInfo & info,
+         bool objectAndActiveOnly, MDrawRequestQueue & requests) override;
+   void draw(const MDrawRequest & request, M3dView & view) const override;
    void getDrawRequestsWireFrame(MDrawRequest&, const MDrawInfo&);
-   
-   virtual bool select(MSelectInfo &selectInfo, MSelectionList &selectionList,
-         MPointArray &worldSpaceSelectPts) const;
+    
+   bool select(MSelectInfo &selectInfo, MSelectionList &selectionList,
+         MPointArray &worldSpaceSelectPts) const override;
 
    static void * creator();
    

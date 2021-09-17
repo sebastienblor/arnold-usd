@@ -136,7 +136,6 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
          {
             MString pname = plug.partialName();
             std::vector<CNodeTranslator*> translators;
-            std::vector<CNodeTranslator*>::iterator it;
             if (pname == "dsm")
             {
                // dag node
@@ -252,8 +251,6 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
 }
 void CObjectSetTranslator::FillMembersDagTranslators(MDagPath path, std::vector<CNodeTranslator*> &translators)
 {  
-   std::vector<CNodeTranslator*>::iterator it;
-   
    CNodeTranslator *elemTr = m_impl->m_session->GetActiveTranslator(CNodeAttrHandle(path));
    if (elemTr) 
       translators.push_back(elemTr);
@@ -289,7 +286,6 @@ void CObjectSetTranslator::FillMembersTranslators()
    MObject element;
    MDagPath path;
 
-   std::vector<CNodeTranslator*>::iterator it;
    unsigned int l = list.length();
    if (l > 0)
    {

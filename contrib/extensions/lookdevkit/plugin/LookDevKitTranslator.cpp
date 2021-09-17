@@ -163,9 +163,7 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
    }
    else if (nodeType == MString("premultiply"))
    {
-      AtNode *shuffle = AddArnoldNode("shuffle");
-      AtNode *cc = AddArnoldNode("color_correct", "premult");
-      return shuffle;
+      return AddArnoldNode("shuffle");
    }
    else
    {
@@ -195,9 +193,6 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       ExportRGBAChannels(shader, "input1", "colorA", "alphaA");
       ExportRGBAChannels(shader, "input2", "colorB", "alphaB");
 
-      bool linkedA = AiNodeIsLinked(shader, "input1");
-      bool linkedB = AiNodeIsLinked(shader, "input2");
-      
       ProcessParameter(shader, "mix2", AI_TYPE_FLOAT, "factor");
       AiNodeSetBool(shader, "enable3", false);
       AiNodeSetBool(shader, "enable4", false);
@@ -476,7 +471,6 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       AtNode *shuffleA = GetArnoldNode("shuffleA");
       AtNode *upstream = cc;
       AtNode *unpremultInput = NULL;
-      AtNode *shuffle = NULL;
       // unpremultiplyInput
       AiNodeUnlink(cc, "input");
       ProcessParameter(cc, "input", AI_TYPE_RGBA, "inColor");
@@ -645,7 +639,6 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       }
    } else if (nodeType == MString("floatCorrect"))
    {
-      AtNode *cc = shader;
       AtNode *clamp = GetArnoldNode("clamp");
       AtNode *gamma = GetArnoldNode("gamma");
 

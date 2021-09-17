@@ -195,7 +195,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
                         1.f);
 
          if (stepSize == 0.f)
-            stepSize = 0.01;
+            stepSize = 0.01f;
       }
       else
       {
