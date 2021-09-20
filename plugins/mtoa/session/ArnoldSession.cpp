@@ -86,6 +86,11 @@ void CArnoldSession::InitSessionOptions()
    m_sessionOptions.Update();
 }
 
+void CArnoldSession::UpdateSessionOptions()
+{
+   InitSessionOptions();
+}
+
 template <class T>
 static void ChangeCurrentFrame(T time, bool forceViewport = false)
 {   
@@ -408,7 +413,7 @@ void CArnoldSession::Export(MSelectionList* selected)
    // If the options have changed, we need to update CSessionOptions
    if (m_updateOptions)
    {
-      InitSessionOptions();
+      UpdateSessionOptions();
    }
 
 
@@ -738,7 +743,7 @@ void CArnoldSession::Update()
       if (mtoa_translation_info)
          MtoaDebugLog("[mtoa.session]     Updating Session Options");
 
-      InitSessionOptions();
+      UpdateSessionOptions();
    }
 
    // Now check again all translators

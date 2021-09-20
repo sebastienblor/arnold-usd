@@ -185,7 +185,7 @@ struct DLLEXPORT CSessionOptions
    void SetExportSlashSeparator(bool slashSeparator) {m_exportSlashSeparator = slashSeparator;}
    unsigned int GetExportNamespace() const {return (unsigned int) m_exportNamespace;}
 
-   void SetupLog() const;
+   void SetupLog(AtRenderSession *renderSession) const;
 
    MMatrix& ScaleMatrix(MMatrix& matrix) const;
    AtMatrix& ScaleMatrix(AtMatrix& matrix) const;

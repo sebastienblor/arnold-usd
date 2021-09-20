@@ -116,6 +116,35 @@ CSessionOptions::CSessionOptions(): m_options(MObject()),
    m_options = CArnoldSession::GetDefaultArnoldRenderOptions();
 }
 
+static MString ExpandMtoaLogPath(const MString &file)
+{
+   MString res = file;
+   if (file.substringW(0, 14) == MString("$MTOA_LOG_PATH/"))
+   {
+      if (getenv("MTOA_LOG_PATH") == 0)
+      {
+         MString workspaceFolder;
+         MGlobal::executeCommand("workspace -q -directory", workspaceFolder);
+         res = workspaceFolder + file.substringW(15, file.length());
+      }
+   }
+   int extPos = res.rindexW('.');
+   int frame;
+   MGlobal::executeCommand("currentTime -q", frame);
+   if (extPos > 0) // The file name has extension
+      res = res.substringW(0, extPos) + frame + res.substringW(extPos, res.length());
+   else
+   {
+      unsigned int slashPos = res.rindexW('/');
+      if (slashPos+1 < res.length()) // File name without extension
+         res = res +"."+ frame + ".log";
+      else // No file name
+         res = res + frame + ".log";
+   }
+   return res;
+}
+
+
 void CSessionOptions::Update()
 {
    MStatus status;
@@ -338,7 +367,24 @@ void CSessionOptions::Update()
    m_profile_file           = fnArnoldRenderOptions.findPlug("profile_file", true).asString();
 
    m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath", true).asString();
-   SetupLog(); 
+   
+   // Stats
+   if (m_stats_enable)
+   {
+      MString statsPath = ExpandMtoaLogPath(m_stats_file);
+      AiStatsSetFileName(statsPath.asChar());
+      AiStatsSetMode((AtStatsMode)m_stats_mode);
+   } else
+      AiStatsSetFileName("");
+
+   // Profile
+   if (m_profile_enable)
+   {
+      MString profilePath = ExpandMtoaLogPath(m_profile_file);
+      AiProfileSetFileName(profilePath.asChar());
+   } else
+      AiProfileSetFileName("");
+
 }
 
 void CSessionOptions::UpdateMotionFrames()
@@ -553,35 +599,7 @@ MString CSessionOptions::GetArnoldNaming(const MObject &object) const
    return name;
 }
 
-static MString ExpandMtoaLogPath(const MString &file)
-{
-   MString res = file;
-   if (file.substringW(0, 14) == MString("$MTOA_LOG_PATH/"))
-   {
-      if (getenv("MTOA_LOG_PATH") == 0)
-      {
-         MString workspaceFolder;
-         MGlobal::executeCommand("workspace -q -directory", workspaceFolder);
-         res = workspaceFolder + file.substringW(15, file.length());
-      }
-   }
-   int extPos = res.rindexW('.');
-   int frame;
-   MGlobal::executeCommand("currentTime -q", frame);
-   if (extPos > 0) // The file name has extension
-      res = res.substringW(0, extPos) + frame + res.substringW(extPos, res.length());
-   else
-   {
-      unsigned int slashPos = res.rindexW('/');
-      if (slashPos+1 < res.length()) // File name without extension
-         res = res +"."+ frame + ".log";
-      else // No file name
-         res = res + frame + ".log";
-   }
-   return res;
-}
-
-void CSessionOptions::SetupLog() const
+void CSessionOptions::SetupLog(AtRenderSession *renderSession) const
 {
    if ((m_log_filename != "") && (m_log_to_file))
    {
@@ -589,7 +607,7 @@ void CSessionOptions::SetupLog() const
       // if there are no such environment variables are declared
       MString logPath = ExpandMtoaLogPath(m_log_filename);
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
-      AiMsgSetLogFileFlags(m_log_verbosity);
+      AiMsgSetLogFileFlags(renderSession, m_log_verbosity);
       AiMsgResetCallback();
    } else if (m_log_to_console && !IsBatch())
    {
@@ -606,25 +624,9 @@ void CSessionOptions::SetupLog() const
    
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
-      AiMsgSetConsoleFlags(m_log_verbosity | AI_LOG_COLOR);   
+      AiMsgSetConsoleFlags(renderSession, m_log_verbosity | AI_LOG_COLOR);   
    
-   // Stats
-   if (m_stats_enable)
-   {
-      MString statsPath = ExpandMtoaLogPath(m_stats_file);
-      AiStatsSetFileName(statsPath.asChar());
-      AiStatsSetMode((AtStatsMode)m_stats_mode);
-   } else
-      AiStatsSetFileName("");
-
-   // Profile
-   if (m_profile_enable)
-   {
-      MString profilePath = ExpandMtoaLogPath(m_profile_file);
-      AiProfileSetFileName(profilePath.asChar());
-   } else
-      AiProfileSetFileName("");
-
+   
 }
 
 int CSessionOptions::GetLogConsoleVerbosity() const

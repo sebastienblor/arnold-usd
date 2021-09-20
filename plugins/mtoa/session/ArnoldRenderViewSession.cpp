@@ -44,6 +44,9 @@ void CArnoldRenderViewSession::SetStatus(MString status)
 void CArnoldRenderViewSession::CloseRenderView()
 {
    GetRenderView().CloseRenderView();
+   if (!m_viewport)
+      CSessionManager::DeleteActiveSession(s_renderViewSessionId);
+
 }
 
 void CArnoldRenderViewSession::SetRenderViewOption(const MString &option, const MString &value)
@@ -96,6 +99,19 @@ MString CArnoldRenderViewSession::GetRenderViewOption(const MString &option)
    return MString(res.c_str());
 }
 
+// Some additional options data need to be setup for ARV
+static void FillRenderViewOptions(CRenderViewMtoA &renderview, CSessionOptions &sessionOptions)
+{
+   renderview.SetFrame((float)sessionOptions.GetExportFrame());
+   renderview.SetStatusInfo("");
+   AtRenderSession *renderSession = renderview.GetRenderSession();
+   if (renderSession)
+      sessionOptions.SetupLog(renderSession);
+   
+   renderview.SetLogging(sessionOptions.GetLogConsoleVerbosity(), 
+                         sessionOptions.GetLogFileVerbosity());
+   
+}
 
 void CArnoldRenderViewSession::OpenRenderView()
 {
@@ -121,9 +137,8 @@ void CArnoldRenderViewSession::OpenRenderView()
    
    GetRenderView().SetUniverse(m_universe);
    GetRenderView().OpenMtoARenderView(width, height);
-   GetRenderView().SetFrame((float)m_sessionOptions.GetExportFrame());
-   GetRenderView().SetStatusInfo("");
-   GetRenderView().SetLogging(m_sessionOptions.GetLogConsoleVerbosity(), m_sessionOptions.GetLogFileVerbosity());
+
+   FillRenderViewOptions(GetRenderView(), m_sessionOptions);
 }
 
 void CArnoldRenderViewSession::SetCamerasList()
@@ -173,11 +188,21 @@ MStatus CArnoldRenderViewSession::ExportCameras(MSelectionList* selected)
 AtNode* CArnoldRenderViewSession::ExportOptions()
 {
    AtNode *options = CArnoldSession::ExportOptions();
-   GetRenderView().SetFrame((float)m_sessionOptions.GetExportFrame());
-   GetRenderView().SetStatusInfo("");
-   GetRenderView().SetLogging(m_sessionOptions.GetLogConsoleVerbosity(), m_sessionOptions.GetLogFileVerbosity());
    m_optionsExported = true;
+
+   FillRenderViewOptions(GetRenderView(), m_sessionOptions);
    return options;
+}
+
+
+// This function will be called every time the options node was modified during IPR
+void CArnoldRenderViewSession::UpdateSessionOptions()
+{
+   // First call the parent class that will update the sessionOptions
+   CArnoldSession::UpdateSessionOptions();
+   // Then, ensure we provide the correct data to ARV
+   FillRenderViewOptions(GetRenderView(), m_sessionOptions);
+   
 }
 void CArnoldRenderViewSession::InterruptRender()
 {
