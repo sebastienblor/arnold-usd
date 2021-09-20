@@ -217,6 +217,38 @@ class ImagerColorCurvesARVUI(ImagerBaseUI):
         self.buildUI('rampG')
         self.buildUI('rampB')
         self.endLayout()
+        self.beginLayout("Color Space", collapse=True)
+        self.addCustom('workingColorSpace', self.colorSpaceNew, self.colorSpaceReplace)
+        self.endLayout()
+
+    def colorSpaceEdit(self, attrName) :
+        lookValue = cmds.optionMenu(self.colorSpaces, q = True , value = True)
+        cmds.setAttr(attrName, lookValue, type='string')
+
+    def colorSpaceNew(self, attrName) :
+        cmds.rowColumnLayout( numberOfColumns=1, columnWidth=[(1,220)], columnAlign=[(1, 'left')], columnAttach=[(1, 'left', 0)]) 
+        self.colorSpaces = cmds.optionMenu( label='Working Color Space', changeCommand = lambda *args: self.colorSpaceEdit(attrName))
+        cmds.setParent('..')
+        self.colorSpaceReplace(attrName)
+
+    def colorSpaceReplace(self, attrName) :
+        cmds.optionMenu(self.colorSpaces , edit=True, changeCommand = lambda *args: self.colorSpaceEdit(attrName))
+        for m in cmds.optionMenu(self.colorSpaces, q=True, itemListLong=True) or []:
+            cmds.deleteUI(m)
+        color_space_value = cmds.getAttr(attrName)
+        color_spaces = cmds.colorManagementPrefs(q=True, inputSpaceNames=True)
+        index = 1
+        count = 1
+        for color in color_spaces:
+            if (not color_space_value):
+                # TODO need to get current working colorspace
+                if (str(color) == str("ACES2065-1")):
+                    index = count
+            elif (str(color) == str(color_space_value)):
+                index = count
+            cmds.menuItem(parent=self.colorSpaces, label=str(color))
+            count +=1
+        cmds.optionMenu(self.colorSpaces, edit=True, sl = index)
     
     def buildUI(self, attributeName):
 
