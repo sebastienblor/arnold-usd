@@ -92,6 +92,8 @@ struct DLLEXPORT CSessionOptions
    friend class CMayaScene;
    friend class CArnoldSession;
 
+   // Update the session options based on the current maya settings
+   void Update();
 
    // --- Getters
 
@@ -401,9 +403,7 @@ private:
 
    CSessionOptions();
    // Setters : private as this is not meant to be modified
-
-   
-   void Update();
+  
    void UpdateMotionFrames();
 
    static void ReplaceSlashes(MString& str, bool isDir = false)
