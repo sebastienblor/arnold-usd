@@ -169,6 +169,7 @@ void CSessionOptions::Update()
       m_motion.range_type      = MTOA_MBLUR_TYPE_START;
       m_motion.motion_frames   = 0;
    }
+   m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    UpdateMotionFrames();
 
    plug = fnArnoldRenderOptions.findPlug("absolute_texture_paths", true);
@@ -337,7 +338,6 @@ void CSessionOptions::Update()
    m_profile_file           = fnArnoldRenderOptions.findPlug("profile_file", true).asString();
 
    m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath", true).asString();
-   m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    SetupLog(); 
 }
 
