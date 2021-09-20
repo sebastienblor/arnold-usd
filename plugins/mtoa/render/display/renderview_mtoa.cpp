@@ -587,14 +587,23 @@ void CRenderViewMtoA::UpdateFullScene()
 {
    if (m_session == nullptr)
    {
+      // For viewport rendering, we should always have a non-empty session, 
+      // which should have been created in ArnoldViewOverride
+      if (m_viewportRendering)
+         return;
+
       // When the renderview session is destroyed, the CRenderViewInterface remains alive (so that all options are kept).
       // Therefore the viewer remains visible in the UI. If the user manually restarts the render, then we will be called 
       // here, but there won't be any m_session. We must then create a new session before we continue with this function
 
       m_session = new CArnoldRenderViewSession();
       CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId(), m_session);
+   } 
+
+   // Ensure that every time we call Update Full Scene no AVP session is active. We can't do this for 
+   // AVP as it would require the panel name
+   if (!m_viewportRendering)
       CArnoldRenderViewSession::CloseOtherViews(MString(CArnoldRenderViewSession::GetRenderViewSessionId().c_str()));
-   }
    
    std::string lastCamera = GetOption("Camera");
    SetUniverse(nullptr); // this ensures we delete the previous render session
