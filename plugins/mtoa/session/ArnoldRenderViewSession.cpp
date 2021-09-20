@@ -92,8 +92,11 @@ void CArnoldRenderViewSession::ObjectNameChanged(MObject &node, const MString &s
 
 MString CArnoldRenderViewSession::GetRenderViewOption(const MString &option)
 {
-   std::string res(GetRenderView().GetOption(option.asChar()));
-   return MString(res.c_str());
+   const char *resChar = GetRenderView().GetOption(option.asChar());
+   if (resChar == nullptr)
+      return MString();
+
+   return MString(resChar);
 }
 
 
