@@ -96,12 +96,6 @@ static void ChangeCurrentFrame(T time, bool forceViewport = false)
 {   
    // time can be either MTime or double
 
-   // Ensure we don't do anything for AVP
-   /*
-   FIXME
-   if (sessionMode == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
-      return;
-      */
    MTime currentTime = MAnimControl::currentTime();
    if (currentTime == time)
       return;
