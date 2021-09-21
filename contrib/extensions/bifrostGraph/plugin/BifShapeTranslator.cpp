@@ -530,7 +530,7 @@ void CBifShapeTranslator::Export( AtNode *shape )
    }
 
    if (RequiresShaderExport())
-      ExportShaders(shape);
+      ExportShaders();
 
    ExportProcedural(shape);
    // ARNOLD-76 : we don't want to set the common shape parameters (self_shadows / opaque / etc...)
@@ -555,9 +555,8 @@ static bool namespaceEndsWith(const std::string& str, const std::string& compare
 }
 
 
-void CBifShapeTranslator::ExportShaders(AtNode *shape)
+void CBifShapeTranslator::ExportShaders()
 {
-
    if (!BifrostUtils::LoadBifrostProcedural())
       return;
 

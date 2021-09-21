@@ -428,7 +428,7 @@ CArnoldDrawGInstance::CArnoldDrawGInstance(AtNode *node, const AtMatrix &m, bool
 
                                           CArnoldDrawGeometry(node),
                                           m_matrix(m),
-                                          m_inheritXForm(m_inheritXForm)
+                                          m_inheritXForm(inheritXForm)
 {
 }
 

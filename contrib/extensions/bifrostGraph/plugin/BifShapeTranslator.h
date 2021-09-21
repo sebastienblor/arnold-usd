@@ -24,7 +24,7 @@ public:
    {
       return new CBifShapeTranslator();
    }
-   void ExportShaders(AtNode* shape);
+   void ExportShaders() override;
    void NodeChanged(MObject& node, MPlug& plug) override; 
 
 protected:

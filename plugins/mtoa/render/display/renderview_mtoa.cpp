@@ -75,13 +75,6 @@ static QWidget *s_optWorkspaceControl = NULL;
 #include <maya/MPlugArray.h>
 #include <maya/MQtUtil.h>
 
-
-#ifdef _DARWIN
-static Qt::WindowFlags RvQtFlags = Qt::Tool;
-#else
-static Qt::WindowFlags RvQtFlags = Qt::Window|Qt::WindowSystemMenuHint|Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
-#endif
-
 struct CARVSequenceData
 {
    float first;
