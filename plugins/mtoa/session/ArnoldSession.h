@@ -55,6 +55,7 @@ public:
    virtual void Update();
 
    void InitSessionOptions();
+   virtual void UpdateSessionOptions();
 
    AtUniverse *GetUniverse() {return m_universe;}
    CSessionOptions &GetOptions() {return m_sessionOptions;}

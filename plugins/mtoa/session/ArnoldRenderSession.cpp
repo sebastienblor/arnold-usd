@@ -23,6 +23,7 @@ CArnoldRenderSession::CArnoldRenderSession() :
                            CArnoldSession(),
                            m_renderCallback(nullptr),
                            m_driverNode(nullptr),
+                           m_displayProgress(false),
                            m_pausedIPR(false),
                            m_IPRIdleCallbackId(0),
                            m_renderThread(nullptr),
@@ -52,6 +53,7 @@ CArnoldRenderSession::~CArnoldRenderSession()
 bool CArnoldRenderSession::BatchRender()
 {
    AtRenderSession *renderSession = GetRenderSession();
+   m_sessionOptions.SetupLog(renderSession);
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_BATCH);
    MString filename;
 
@@ -116,6 +118,7 @@ bool CArnoldRenderSession::Render()
    AiRenderInterrupt(renderSession, AI_BLOCKING);
    MComputation comp;
    comp.beginComputation();
+   m_sessionOptions.SetupLog(renderSession);
 
    AiRenderSetHintBool(renderSession, AtString("progressive"), m_sessionOptions.IsProgressive());
    int minAA = AiMin(1, m_sessionOptions.progressiveInitialLevel());
@@ -324,6 +327,8 @@ void CArnoldRenderSession::IPR()
       m_renderThread = nullptr; 
    }
    AtRenderSession *renderSession = GetRenderSession();
+
+   m_sessionOptions.SetupLog(renderSession);
 
    if (AiRenderGetStatus(renderSession) == AI_RENDER_STATUS_NOT_STARTED)
    {

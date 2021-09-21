@@ -22,6 +22,7 @@ public:
    void SetCamerasList();
    void SetStatus(MString status) override;
    AtNode* ExportOptions() override;
+   void UpdateSessionOptions() override;
    MStatus ExportCameras(MSelectionList* selected = NULL) override;
    void Render(bool ipr = true);
    void RequestUpdate() override;
