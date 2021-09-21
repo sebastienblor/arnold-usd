@@ -218,6 +218,14 @@ void CArnoldRenderViewSession::UpdateSessionOptions()
       m_sessionOptions.DisableMotionBlur();
    
 }
+void CArnoldRenderViewSession::ChangeCurrentFrame(MTime time, bool forceViewport)
+{
+   // Don't do anything if we're in an AVP session, we don't want to 
+   // change the current frame as it could recursively update a viewport render
+   if (!m_viewport)
+      CArnoldSession::ChangeCurrentFrame(time, forceViewport);
+}
+
 void CArnoldRenderViewSession::InterruptRender()
 {
    GetRenderView().InterruptRender();

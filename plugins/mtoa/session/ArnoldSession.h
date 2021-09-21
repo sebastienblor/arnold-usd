@@ -57,6 +57,8 @@ public:
    void InitSessionOptions();
    virtual void UpdateSessionOptions();
 
+   virtual void ChangeCurrentFrame(MTime time, bool forceViewport);
+
    AtUniverse *GetUniverse() {return m_universe;}
    CSessionOptions &GetOptions() {return m_sessionOptions;}
 

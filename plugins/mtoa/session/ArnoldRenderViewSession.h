@@ -23,6 +23,7 @@ public:
    void SetStatus(MString status) override;
    AtNode* ExportOptions() override;
    void UpdateSessionOptions() override;
+   void ChangeCurrentFrame(MTime time, bool forceViewport) override;
    MStatus ExportCameras(MSelectionList* selected = NULL) override;
    void Render(bool ipr = true);
    void RequestUpdate() override;
