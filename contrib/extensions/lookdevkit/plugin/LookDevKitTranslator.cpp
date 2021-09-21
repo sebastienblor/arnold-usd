@@ -163,7 +163,9 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
    }
    else if (nodeType == MString("premultiply"))
    {
-      return AddArnoldNode("shuffle");
+      AtNode *shuffle = AddArnoldNode("shuffle");
+      AddArnoldNode("color_correct", "premult");
+      return shuffle;
    }
    else
    {
