@@ -605,7 +605,9 @@ void CRenderViewMtoA::UpdateFullScene()
    if (!m_viewportRendering)
       CArnoldRenderViewSession::CloseOtherViews(MString(CArnoldRenderViewSession::GetRenderViewSessionId().c_str()));
    
-   std::string lastCamera = GetOption("Camera");
+   const char *lastCameraPtr = GetOption("Camera");
+   std::string lastCamera = (lastCameraPtr != nullptr) ? std::string(lastCameraPtr) : std::string();
+   
    SetUniverse(nullptr); // this ensures we delete the previous render session
    m_session->Clear();
 

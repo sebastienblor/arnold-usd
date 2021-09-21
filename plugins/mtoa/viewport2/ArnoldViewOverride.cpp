@@ -306,8 +306,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             session->SetRenderViewOption(MString("Run IPR"), "0");    
         else
         {
-            std::string isIPRRunning(session->GetRenderView().GetOption("Run IPR"));
-            if (isIPRRunning == "0")
+            MString isIPRRunning = session->GetRenderViewOption(MString("Run IPR"));
+            if (isIPRRunning == MString("0"))
                 restoreIPR = true;
         } 
 
@@ -317,8 +317,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         session->SetRenderViewOption(MString("Crop Region"),useRegionStr);
     }
 
-    std::string arvCrop = (session) ? session->GetRenderView().GetOption("Crop Region") : "";
-    bool regionCropped = (arvCrop == "1");
+    MString arvCrop = (session) ? session->GetRenderViewOption(MString("Crop Region")) : MString();
+    bool regionCropped = (arvCrop == MString("1"));
     
     if (regionCropped != sessionOptions.UseRenderRegion())
 	{
@@ -346,8 +346,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     }
 
 
-    std::string arvRunIpr = (session) ? session->GetRenderView().GetOption("Run IPR") : "";
-    state.enabled = (restoreIPR) ? true : arvRunIpr != "0";
+    MString arvRunIpr = (session) ? session->GetRenderViewOption(MString("Run IPR")) : MString();
+    state.enabled = (restoreIPR) ? true : arvRunIpr != MString("0");
     mRegionRenderStateMap[destination.asChar()] = state;
 
     // if the session is not rendering, but the state is enabled
@@ -586,8 +586,8 @@ const MHWRender::MShaderInstance * TextureBlit::shader()
     if (mShaderInstance)
     {
         CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
-        std::string arvCrop = session ? session->GetRenderView().GetOption("Crop Region") : "";
-        bool regionCropped = arvCrop == "1";
+        MString arvCrop = session ? session->GetRenderViewOption(MString("Crop Region")) : MString();
+        bool regionCropped = arvCrop == MString("1");
       
         mShaderInstance->setParameter("gUseScissorRect", regionCropped);
         mShaderInstance->setParameter("gScissorRect", &ViewRectangle()[0]);
