@@ -93,32 +93,40 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId());
    bool sessionExisted = (session != nullptr);
-   if (session == nullptr)
-   {
+   if (!sessionExisted)
       session = new CArnoldRenderViewSession();
-      CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId(), session);
-   }
-
-   if (mode == "close")
-   {  
-      s_wasVisible = false;      
-      session->CloseRenderView();
-      return MS::kSuccess;
-   }
+      
    
+   // For option / getoption, we don't need to keep the session alive, so we'll delete it before we return
    if (args.isFlagSet("option"))
    {
       MString option = args.flagArgumentString("option", 0);
       MString value = args.flagArgumentString("option", 1);
       session->SetRenderViewOption(option, value);
+      if (!sessionExisted)
+         delete session;
       return MS::kSuccess;
    }
    if (args.isFlagSet("getoption"))
    {
       MString option = args.flagArgumentString("get", 0);
       setResult(session->GetRenderViewOption(option));
+      if (!sessionExisted)
+         delete session;
       return MS::kSuccess;
    }
+   
+   // if we have just created the renderview session, we now need to register it
+   if (!sessionExisted)
+      CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId(), session);
+   
+   if (mode == "close")
+   {  
+      s_wasVisible = false;      
+      session->CloseRenderView();
+      return MS::kSuccess;
+   }
+
 
 /* this doesn't seem to be used anymore
    if (args.isFlagSet("status"))
