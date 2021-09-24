@@ -91,17 +91,11 @@ void CArnoldSession::UpdateSessionOptions()
    InitSessionOptions();
 }
 
-template <class T>
-static void ChangeCurrentFrame(T time, bool forceViewport = false)
+void CArnoldSession::ChangeCurrentFrame(MTime time, bool forceViewport)
 {   
+
    // time can be either MTime or double
 
-   // Ensure we don't do anything for AVP
-   /*
-   FIXME
-   if (sessionMode == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
-      return;
-      */
    MTime currentTime = MAnimControl::currentTime();
    if (currentTime == time)
       return;
@@ -611,7 +605,7 @@ void CArnoldSession::Export(MSelectionList* selected)
       {
          if (step == (unsigned int)currentFrameIndex)
             continue; // current frame, has already been exported above
-         ChangeCurrentFrame(MTime(m_sessionOptions.m_motion_frames[step], MTime::uiUnit()));
+         ChangeCurrentFrame(MTime(m_sessionOptions.m_motion_frames[step], MTime::uiUnit()), false);
          
          if (MtoaTranslationInfo())
          {
@@ -645,7 +639,7 @@ void CArnoldSession::Export(MSelectionList* selected)
          (*trIt)->PostExport((*trIt)->m_impl->m_atNode);
 
 
-      ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()));
+      ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()), false);
       m_isExportingMotion = false;
    }
 
@@ -1098,7 +1092,7 @@ UPDATE_BEGIN:
          // we don't need to change the current frame. However we still need to process
          // the export for every step. Otherwise some AtArray keys could be missing
          if (mbRequiresFrameChange)
-            ChangeCurrentFrame(MTime(motionFrames[step], MTime::uiUnit()));
+            ChangeCurrentFrame(MTime(motionFrames[step], MTime::uiUnit()), false);
 
          // set the motion step as it will be used by translators to fill the arrays
          // at the right index
@@ -1133,7 +1127,7 @@ UPDATE_BEGIN:
 
       // we've done enough harm, let's restore the current frame...
       if (mbRequiresFrameChange)
-         ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()));
+         ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()), false);
 
       // we're done exporting motion now
       m_isExportingMotion = false;

@@ -102,6 +102,7 @@ struct DLLEXPORT CSessionOptions
    inline const ArnoldShadowLinkMode& GetShadowLinkMode() const {return m_shadowlink;}
    inline const MDagPath& GetExportCamera() const { return m_camera; }
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return (m_motion.enable_mask & type) != 0; }
+   inline void DisableMotionBlur() {m_motion.enable_mask = MTOA_MBLUR_DISABLE;}
    inline unsigned int GetRangeType() const {return m_motion.range_type;}
    inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }
    inline double GetExportFrame() const { return m_frame; }

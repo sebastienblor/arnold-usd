@@ -24,7 +24,13 @@ CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) :
 {
    AddUpdateCallbacks();
    if (viewport)
+   {
       m_sessionOptions.SetExportOverscan(true);
+      
+      // We need to ensure motion blur is disabled for AVP, otherwise
+      // changing the current frame could force a new render   
+      m_sessionOptions.DisableMotionBlur();
+   }
 }
 CArnoldRenderViewSession::~CArnoldRenderViewSession()
 {
@@ -205,8 +211,21 @@ void CArnoldRenderViewSession::UpdateSessionOptions()
    CArnoldSession::UpdateSessionOptions();
    // Then, ensure we provide the correct data to ARV
    FillRenderViewOptions(GetRenderView(), m_sessionOptions);
+
+   // We need to ensure motion blur is disabled for AVP, otherwise
+   // changing the current frame could force a new render
+   if (m_viewport)
+      m_sessionOptions.DisableMotionBlur();
    
 }
+void CArnoldRenderViewSession::ChangeCurrentFrame(MTime time, bool forceViewport)
+{
+   // Don't do anything if we're in an AVP session, we don't want to 
+   // change the current frame as it could recursively update a viewport render
+   if (!m_viewport)
+      CArnoldSession::ChangeCurrentFrame(time, forceViewport);
+}
+
 void CArnoldRenderViewSession::InterruptRender()
 {
    GetRenderView().InterruptRender();
