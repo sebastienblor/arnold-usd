@@ -605,7 +605,12 @@ void CMaterialView::InitOptions()
 
       // Check if we're rendering in GPU or CPU
       bool gpuRender = false;
-      // FIXME this code is duplicated from OptionsTranslator, we should rather handle the whole export from there
+      /* 
+      ** Forcing Material View to always only use the CPU becase of a current limitation that prevents multiple GPU
+      ** render sessions.
+      */
+
+      /* FIXME this code is duplicated from OptionsTranslator, we should rather handle the whole export from there
       if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
       {
          MPlug gpuPlug = fnArnoldRenderOptions.findPlug("renderDevice", true);
@@ -613,7 +618,7 @@ void CMaterialView::InitOptions()
             gpuRender = gpuPlug.asBool();
 
          AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
-      }
+      }*/
       if (gpuRender)
       {
 
