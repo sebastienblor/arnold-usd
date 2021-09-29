@@ -1075,6 +1075,7 @@ MObject CBaseAttrHelper::MakeMultipleOutput(CAttrData& data)
    MObject output;
    switch (data.type)
    {
+      case AI_TYPE_INT:
       case AI_TYPE_UINT:
       {
          MakeOutputInt(output, data);
