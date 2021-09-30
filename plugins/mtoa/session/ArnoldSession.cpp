@@ -91,13 +91,14 @@ void CArnoldSession::UpdateSessionOptions()
    InitSessionOptions();
 }
 
-void CArnoldSession::ChangeCurrentFrame(MTime time, bool forceViewport)
+void CArnoldSession::ChangeCurrentFrame(double time, bool forceViewport)
 {   
+   MTime mtime(time, MTime::uiUnit());
 
    // time can be either MTime or double
 
    MTime currentTime = MAnimControl::currentTime();
-   if (currentTime == time)
+   if (currentTime == mtime)
       return;
 
    // viewFrame will force the refresh of the viewport. This seems to be needed in batch render
@@ -106,9 +107,9 @@ void CArnoldSession::ChangeCurrentFrame(MTime time, bool forceViewport)
    // However, for other "motion" frames, it's better to use "setCurrentTime" which doesn't force a refresh 
    // of the viewport (until next maya "idle").
    if (forceViewport)
-      MGlobal::viewFrame(time); 
+      MGlobal::viewFrame(mtime); 
    else
-      MAnimControl::setCurrentTime(time); 
+      MAnimControl::setCurrentTime(mtime); 
 }
 
 
@@ -605,7 +606,7 @@ void CArnoldSession::Export(MSelectionList* selected)
       {
          if (step == (unsigned int)currentFrameIndex)
             continue; // current frame, has already been exported above
-         ChangeCurrentFrame(MTime(m_sessionOptions.m_motion_frames[step], MTime::uiUnit()), false);
+         ChangeCurrentFrame(m_sessionOptions.m_motion_frames[step], false);
          
          if (MtoaTranslationInfo())
          {
@@ -639,7 +640,7 @@ void CArnoldSession::Export(MSelectionList* selected)
          (*trIt)->PostExport((*trIt)->m_impl->m_atNode);
 
 
-      ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()), false);
+      ChangeCurrentFrame(m_sessionOptions.GetExportFrame(), false);
       m_isExportingMotion = false;
    }
 
@@ -1092,7 +1093,7 @@ UPDATE_BEGIN:
          // we don't need to change the current frame. However we still need to process
          // the export for every step. Otherwise some AtArray keys could be missing
          if (mbRequiresFrameChange)
-            ChangeCurrentFrame(MTime(motionFrames[step], MTime::uiUnit()), false);
+            ChangeCurrentFrame(motionFrames[step], false);
 
          // set the motion step as it will be used by translators to fill the arrays
          // at the right index
@@ -1127,7 +1128,7 @@ UPDATE_BEGIN:
 
       // we've done enough harm, let's restore the current frame...
       if (mbRequiresFrameChange)
-         ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()), false);
+         ChangeCurrentFrame(m_sessionOptions.GetExportFrame(), false);
 
       // we're done exporting motion now
       m_isExportingMotion = false;
