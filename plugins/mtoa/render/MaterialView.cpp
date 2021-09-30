@@ -602,6 +602,11 @@ void CMaterialView::InitOptions()
       AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth"), true).asInt());
       AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth"), true).asInt());
 
+      MString texture_searchpath = fnArnoldRenderOptions.findPlug("texture_searchpath", true).asString();
+      if (texture_searchpath.length() > 0)
+         AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+
+      COptionsTranslator::AddProjectFoldersToSearchPaths(options);
 
       // Check if we're rendering in GPU or CPU
       bool gpuRender = false;
