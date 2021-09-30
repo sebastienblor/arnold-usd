@@ -27,7 +27,7 @@ class ImagerDenoiserOIDNUI(ImagerBaseUI):
         super(ImagerDenoiserOIDNUI, self).setup()
         self.beginLayout("Main", collapse=False)
         self.addControl('outputSuffix', annotation='')
-        self.addControl('useFeatureAovs', annotation='')
+        self.addControl('albedo', label = "Albedo", annotation = 'Name of the albedo AOV. Can be set to empty string to disable albedo feature AOV')
         self.endLayout()
 
 
