@@ -182,11 +182,11 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
     // Say that xxx.r links both to yyy.p and zzz.q. Since we'll create xxx->rgbx_to_float(r), we will link
     // rgbx_to_float(r) to both yyy.p and zzz.q
     map < pair< AtNode*, int> , AtNode* > rgbx_mode_map; 
-    int output_component = -1;
+    int output_component, output_param = -1;
 
     for (auto& p : m_parameters)
     {
-        AtNode* input_node = AiNodeGetLink(p.m_node, p.m_param_name.c_str(), &output_component);
+        AtNode* input_node = AiNodeGetLinkOutput(p.m_node, p.m_param_name.c_str(), output_param, output_component );
         
         AtNode* adapter = NULL;
         pair< AtNode*, int> pr(input_node, output_component);
@@ -196,7 +196,18 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
             adapter = rgbx_mode_map[pr];
         else
         {
-            int input_node_entry_type = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(input_node));
+            int input_node_entry_type;
+            // output param is -1 for the default node output,
+            // 0 or greater otherwise - which means it's multiple outputs
+            if (output_param >= 0)
+            {
+                auto node_entry = AiNodeGetNodeEntry(input_node) ;
+                auto param_entry = AiNodeEntryGetOutput(node_entry,output_param);
+                input_node_entry_type = AiParamGetType(param_entry);
+            }
+            else
+                input_node_entry_type = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(input_node));
+
             int input_node_nb_components = GetTypeNbComponents(input_node_entry_type);
             if (input_node_nb_components < 3 || input_node_nb_components > 4) // no vec2
                 continue;
