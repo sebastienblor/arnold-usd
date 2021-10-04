@@ -627,6 +627,8 @@ void CRenderViewMtoA::UpdateFullScene()
    // Restore the proper cameras
    MDagPathArray cameras = CArnoldSession::GetRenderCameras(true);
    CSessionOptions &options = m_session->GetOptions();
+   // Ensure the session options are up-to-date in case they were modified while no render was in progress (MTOA-864)
+   options.Update();
    
    if (cameras.length() > 0)
    {
