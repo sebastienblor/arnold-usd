@@ -60,6 +60,8 @@ CMaterialView::CMaterialView()
 
 CMaterialView::~CMaterialView()
 {
+   // The material view owns its own arnold session, so we need to clear it here
+   delete m_arnoldSession;
 }
 
 AtRenderStatus MaterialViewUpdateCallback(void *private_data, AtRenderUpdateType update_type, const AtRenderUpdateInfo *update_info)
@@ -459,15 +461,11 @@ bool CMaterialView::BeginSession()
       // We are already active. We should never get here.
       return true;
    }
-   //MSwatchRenderBase::enableSwatchRender(false);
-
-   m_arnoldSession = (CArnoldSession *)CSessionManager::FindActiveSession("MaterialView");
+   // For Material View, we're not storing the session in the session manager, but we just store it locally in this class
    if (!m_arnoldSession) 
    {
       m_arnoldSession = new CArnoldSession();
-      CSessionManager::AddActiveSession("MaterialView", m_arnoldSession);
       m_arnoldSession->SetCheckVisibility(false);
-      // do we really want to disable use existing TX ?
       m_renderSession = m_arnoldSession->GetRenderSession();
    }
    CSessionOptions &sessionOptions = m_arnoldSession->GetOptions();
@@ -513,7 +511,7 @@ void CMaterialView::EndSession()
 //   AiNodeEntryUninstall("materialview_display");
 
    m_renderSession = nullptr;
-   CSessionManager::DeleteActiveSession("MaterialView");
+   delete m_arnoldSession;
    m_arnoldSession = nullptr;
    // End our scene session
    
@@ -902,5 +900,13 @@ void CMaterialView::Abort()
    if (s_instance)
    {
       s_instance->DoAbort();
+   }
+}
+
+void CMaterialView::End()
+{
+   if (s_instance)
+   {
+      s_instance->EndSession();
    }
 }
