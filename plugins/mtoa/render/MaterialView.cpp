@@ -473,6 +473,7 @@ bool CMaterialView::BeginSession()
    CSessionOptions &sessionOptions = m_arnoldSession->GetOptions();
    sessionOptions.SetUseExistingTx(true);
    sessionOptions.SetAutoTx(false);
+   sessionOptions.DisableMotionBlur();
 
    // Install our driver
    if (AiNodeEntryLookUp("materialview_display") == nullptr)
