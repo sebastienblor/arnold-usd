@@ -1,6 +1,7 @@
 #include "../common/XgArnoldExpand.h"
 
 #include "extension/Extension.h"
+#include "extension/ExtensionsManager.h"
 #include "utils/time.h"
 
 #include <maya/MFileObject.h>
@@ -13,6 +14,29 @@
 #include <maya/MDagPathArray.h>
 
 #include "XGenTranslator.h"
+
+static bool s_loadedProcedural = false;
+
+static bool LoadXGenProcedural()
+{
+   if (s_loadedProcedural)
+      return true;
+
+   if (AiNodeEntryLookUp("xgen_procedural") != NULL)
+   {
+      s_loadedProcedural = true;
+      return true;
+   }
+   MString mtoaProcPath;
+   MGlobal::executeCommand("getenv MTOA_PATH", mtoaProcPath);
+   MString xgenProcPath = mtoaProcPath + MString("procedurals/");
+   CExtension *extension = CExtensionsManager::GetExtensionByName("xgenTranslator");
+   if (!extension)
+         return false;
+   extension->LoadArnoldPlugin("xgen_procedural", xgenProcPath);
+   s_loadedProcedural = true;
+   return true;
+}
 
 
 static void SetEnv(const MString& env, const MString& val)
@@ -65,8 +89,10 @@ inline bool alembicExists(const std::string& name)
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {   
    m_expandedProcedurals.clear();
-   //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
-   return AddArnoldNode("xgen_procedural");
+   if (LoadXGenProcedural())
+      return AddArnoldNode("xgen_procedural");
+   
+   return NULL;
 }
 
 void CXgDescriptionTranslator::Delete()
