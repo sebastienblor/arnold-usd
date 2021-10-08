@@ -51,6 +51,7 @@ public:
    static void Suspend();
    static void Resume();
    static void Abort();
+   static void End();
 
 private:
    bool BeginSession();

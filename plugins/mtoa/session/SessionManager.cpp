@@ -1,4 +1,5 @@
 #include "SessionManager.h"
+#include "render/MaterialView.h"
 #include <ai_msg.h>
 #include <ai_nodes.h>
 #include <ai_ray.h>
@@ -105,6 +106,9 @@ void CSessionManager::End()
    s_activeSessions.clear();
    // tell MtoaLog that mtoa_translation_info might change
    UpdateMtoaTranslationInfo();
+
+   // Tell the material view to end its session
+   CMaterialView::End();
 
    if (AiUniverseIsActive())
       AiEnd();
