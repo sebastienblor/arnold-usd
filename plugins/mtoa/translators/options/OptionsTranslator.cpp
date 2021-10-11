@@ -1238,7 +1238,7 @@ void COptionsTranslator::Export(AtNode *options)
          } else if (strcmp(paramName, "meters_per_unit") == 0)
          {
             MDistance dist(1.0 / sessionOptions.GetScaleFactor(), MDistance::uiUnit());
-            AiNodeSetFlt(options, "meters_per_unit", dist.asMeters());
+            AiNodeSetFlt(options, "meters_per_unit", (float)dist.asMeters());
          }
          else
          {
@@ -1798,17 +1798,34 @@ void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
 #endif
    if (texture_searchpath != "")
       texture_searchpath += pathsep;
+
+   bool addTexturePath = false;
+   bool addProceduralPath = false;
    for (unsigned int i = 0; i < sourceImagesDirs.length(); ++i)
    {
+      // check if the current texture search path already contains the source image dir
+      if (texture_searchpath.indexW(sourceImagesDirs[i]) >= 0)
+         continue;
+
+      addTexturePath = true;
       texture_searchpath += sourceImagesDirs[i];
       if (i != (sourceImagesDirs.length() -1))
          texture_searchpath += pathsep;
    }
-   if (procedural_searchpath != "")
-      procedural_searchpath += pathsep;
-   procedural_searchpath += projectPath;
-   AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
-   AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
+   
+   // check if the procedural search path already contains the project path
+   if (procedural_searchpath.indexW(projectPath) < 0)
+   {
+      if (procedural_searchpath != "")
+         procedural_searchpath += pathsep;
+
+      addProceduralPath = true;
+      procedural_searchpath += projectPath;
+   }
+   if (addTexturePath)
+      AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+   if (addProceduralPath)
+      AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
 }
 
 void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
