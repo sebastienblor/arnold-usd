@@ -9,6 +9,9 @@ _stageCacheDict = {}
 global _stageNames
 _stageNames = {}
 
+global _sessionName
+_sessionName = ''
+
 def UsdArnoldUnregisterListener(cacheId):
     global _stageCacheDict
     stageCallback = _stageCacheDict.get(cacheId)
@@ -19,10 +22,10 @@ def UsdArnoldUnregisterListener(cacheId):
     if stageName:
         _stageNames.pop(cacheId)
 
-
-def UsdArnoldListener(cacheId, shapeName):
+def UsdArnoldListener(cacheId, shapeName, sessionName = 'arnoldRenderView'):
     global _stageCacheDict
     global _stageNames
+    global _sessionName
 
     stageCache = UsdUtils.StageCache.Get()
     id = Usd.StageCache.Id.FromLongInt(cacheId);
@@ -34,6 +37,7 @@ def UsdArnoldListener(cacheId, shapeName):
 
     _stageCacheDict[cacheId] = Tf.Notice.Register(Usd.Notice.StageContentsChanged, OnStageContentsChanged, stage)
     _stageNames[cacheId] = shapeName
+    _sessionName = sessionName
 
 def OnStageContentsChanged(notice, stage):
     # the USD stage has changed, we need to tell MtoA to update the render if an interactive render is going on
@@ -42,7 +46,7 @@ def OnStageContentsChanged(notice, stage):
         return
     id = stageCache.GetId(stage)
     cacheId = id.ToLongInt()
-    cmds.arnoldScene(_stageNames.get(cacheId), mode='update_selected')
+    cmds.arnoldScene(_stageNames.get(cacheId), mode='update_selected', session=_sessionName)
     
     
     
