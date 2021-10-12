@@ -108,7 +108,9 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    bool listAllNewNodes = false;
    bool listRootNodes = false;
    bool listAllNodes = false;
-   std::string sessionId = (args.isFlagSet("session")) ? std::string(args.flagArgumentString("session", 0).asChar()) : s_arnoldSceneSessionId;
+   // If the "session" argument is specified in the command, we will look for the expected arnold session ID.
+   // Otherwise, we'll use the default one for arnoldScene command (s_arnoldSceneSessionId)
+   std::string sessionId = args.isFlagSet("session") ? std::string(args.flagArgumentString("session", 0).asChar()) : s_arnoldSceneSessionId;
    CArnoldSession *session = CSessionManager::FindActiveSession(sessionId);
    if (args.isFlagSet("query"))
    {
