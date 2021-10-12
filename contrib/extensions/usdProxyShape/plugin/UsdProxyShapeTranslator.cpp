@@ -16,6 +16,7 @@
 
 
 #include "UsdProxyShapeTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -191,6 +192,8 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
             cmd += cacheId;
             cmd += ",'";
             cmd += GetMayaNodeName();
+            cmd += "','";
+            cmd += m_impl->m_session->GetSessionName();
             cmd += "')";
             MGlobal::executePythonCommand(cmd);
          }
