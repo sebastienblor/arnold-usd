@@ -74,7 +74,22 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    else if (args.isFlagSet("loadExtension", 0))
    {
       MString extPath = args.flagArgumentString("loadExtension", 0);
-      CExtensionsManager::LoadExtension(extPath);
+      int basenameIndex = extPath.rindexW('/');
+      CExtension *extension = nullptr;
+      if (basenameIndex > 0)
+      {         
+         MString basename = extPath.substring(0, basenameIndex - 1);
+         MString filename = extPath.substring(basenameIndex + 1, extPath.length() -1);
+         extension = CExtensionsManager::LoadExtension(filename, basename);
+      } else
+      {
+         extension = CExtensionsManager::LoadExtension(extPath);   
+      }
+      // If an extension was loaded, we need to register it, 
+      // to ensure it will be found during translation
+      if (extension)
+         CExtensionsManager::RegisterExtension(extension); 
+      
    }
    else if (args.isFlagSet("unloadExtension", 0))
    {
