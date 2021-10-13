@@ -19,14 +19,15 @@ public:
    CBifrostShapeNode();
    virtual ~CBifrostShapeNode();
 
-   virtual void postConstructor();
+   void postConstructor() override;
 
    CAbMayaNode m_abstract;
    static MTypeId id;
 
    static void* creator();
    static MStatus initialize();
-   virtual void updateGeometry();
+   void updateGeometry() override;
+   SchedulingType schedulingType()const override {return kSerial;}
    
    static CAbMayaNode s_abstract;
    static MString s_classification;   

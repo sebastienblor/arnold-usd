@@ -52,14 +52,14 @@ private:
 	bool shouldDraw(const MDagPath& camera) const;
 
 	// GL component names for drawing and picking
-	MGLuint fActiveName, fTopName, fRightName, fBottomName, fLeftName, fNoneName;
+    MGLuint fActiveName, fTopName, fRightName, fBottomName, fLeftName, fNoneName;
     MGLuint fTopLeftName, fTopRightName, fBottomLeftName, fBottomRightName, fAllName;
 
 	// Modified mouse position used for updating manipulator
 	MPoint fMousePoint;
 
     bool fInitialized;
-	bool fDrawManip;
+    bool fDrawManip;
     bool fDrawAsMouseOver;
     MFloatPoint mViewRectangle;
     MFloatPoint mDragRectangle;

@@ -15,20 +15,20 @@ public:
       m_vpRenderSelect(-1)
    {}
 
-   virtual void Export(AtNode* curve);
-   virtual void ExportMotion(AtNode* curve);
-   virtual bool RequiresMotionData();
+   void Export(AtNode* curve) override;
+   void ExportMotion(AtNode* curve) override;
+   bool RequiresMotionData() override;
    static void NodeInitializer(CAbTranslator context);
-   AtNode* CreateArnoldNodes();
+   AtNode* CreateArnoldNodes() override;
    static void* creator()
    {
       return new CBifShapeTranslator();
    }
-   virtual void ExportShaders(AtNode* shape);
-   virtual void NodeChanged(MObject& node, MPlug& plug); 
+   void ExportShaders() override;
+   void NodeChanged(MObject& node, MPlug& plug) override; 
 
 protected:
-   virtual void PostExport(AtNode *node);
+   void PostExport(AtNode *node) override;
 
    int m_vpRenderSelect;
 };

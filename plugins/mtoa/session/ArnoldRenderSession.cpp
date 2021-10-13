@@ -27,8 +27,9 @@ CArnoldRenderSession::CArnoldRenderSession() :
                            m_pausedIPR(false),
                            m_IPRIdleCallbackId(0),
                            m_renderThread(nullptr),
-                           m_idle_cb(0),
-                           m_comp(0)
+                           m_comp(0),
+                           m_idle_cb(0)
+                           
 {
 }
 CArnoldRenderSession::~CArnoldRenderSession()

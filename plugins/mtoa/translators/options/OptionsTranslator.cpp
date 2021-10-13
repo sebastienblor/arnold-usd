@@ -1289,7 +1289,6 @@ void COptionsTranslator::Export(AtNode *options)
       MFnDependencyNode fnNode (camera.node());
       MPlug imagePlanePlug = fnNode.findPlug("imagePlane", true);
 
-      CNodeTranslator *imgTranslator = NULL;
       MStatus status;
 
       if (imagePlanePlug.numConnectedElements() > 0)

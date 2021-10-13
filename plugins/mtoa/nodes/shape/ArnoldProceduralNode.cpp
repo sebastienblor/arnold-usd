@@ -260,7 +260,7 @@ void CArnoldProceduralNode::updateGeometry()
    AtNode *proc = (translator) ? translator->GetArnoldNode() : NULL;
 
    MDistance dist(1.0, MDistance::uiUnit());
-   AiNodeSetFlt(AiUniverseGetOptions(proc_universe), "meters_per_unit", dist.asMeters());
+   AiNodeSetFlt(AiUniverseGetOptions(proc_universe), "meters_per_unit", (float)dist.asMeters());
 
    if (proc)
    {

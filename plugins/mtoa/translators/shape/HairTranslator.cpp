@@ -171,7 +171,7 @@ void CHairTranslator::Export( AtNode *curve )
 
          AiNodeLink(multShader, "diffuse_color", shader);
 
-         ProcessParameter(multShader, "input1", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));
+         ProcessParameter(multShader, "input1", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor", true));
          // need to multiply the color with ramp_rgb
          MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale", true), &status);
          if (status)

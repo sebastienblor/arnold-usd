@@ -372,7 +372,6 @@ MPlug CNodeTranslatorImpl::FindMayaOverridePlug(const MString &attrName, MStatus
    MPlug plug;
    MStatus status(MStatus::kSuccess);   
    // Check if a set override this plug's value
-   std::vector<CNodeTranslator*>::iterator it;
    std::vector<CNodeTranslator*> translators;
    unsigned int novr = m_overrideSets.size();
    

@@ -36,21 +36,25 @@ static std::string s_arnoldViewportSession("arnoldViewport");
 //
 // class implementation
 //
+    MGLuint fActiveName, fTopName, fRightName, fBottomName, fLeftName, fNoneName;
+    MGLuint fTopLeftName, fTopRightName, fBottomLeftName, fBottomRightName, fAllName;
+
 ArnoldViewRegionManipulator::ArnoldViewRegionManipulator()
 : MPxManipulatorNode()
-, fInitialized(false)
 , fActiveName(0)
 , fTopName(0)
 , fRightName(0)
 , fBottomName(0)
 , fLeftName(0)
+, fNoneName(0)
 , fTopLeftName(0)
 , fTopRightName(0)
 , fBottomLeftName(0)
 , fBottomRightName(0)
 , fAllName(0)
-, fNoneName(0)
 , fMousePoint(MPoint())
+, fInitialized(false)
+, fDrawManip(false)
 , fDrawAsMouseOver(false)
 {
     mViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);

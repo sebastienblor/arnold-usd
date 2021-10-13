@@ -22,20 +22,6 @@
 #define new DEBUG_NEW
 #endif
 
-namespace 
-{
-
-void SleepMS(unsigned int ms)
-{
-#ifdef _WIN64
-   Sleep(ms);
-#else
-   usleep(ms*1000);
-#endif
-}
-
-}
-
 extern const AtNodeMethods* materialview_driver_mtd;
 CMaterialView* CMaterialView::s_instance = NULL;
 
@@ -65,9 +51,7 @@ CMaterialView::~CMaterialView()
 }
 
 AtRenderStatus MaterialViewUpdateCallback(void *private_data, AtRenderUpdateType update_type, const AtRenderUpdateInfo *update_info)
-{
-   CMaterialView *material_view = (CMaterialView *)private_data;
-
+{   
    AtRenderStatus status = AI_RENDER_STATUS_RENDERING;
    if (update_type == AI_RENDER_UPDATE_FINISHED)
       status = AI_RENDER_STATUS_FINISHED;
@@ -78,7 +62,6 @@ AtRenderStatus MaterialViewUpdateCallback(void *private_data, AtRenderUpdateType
    
    return status;
 }
-static int ass_counter = 0;
 
 MStatus CMaterialView::startAsync(const JobParams& params)
 {
@@ -759,9 +742,7 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    else
    {
       CNodeTranslator* translator = it->second;
-      AtNode *trNode = translator->GetArnoldNode();
       arnoldNode = UpdateNode(translator, updateMode, updateConnections);
-
    }
 
    if (arnoldNode)

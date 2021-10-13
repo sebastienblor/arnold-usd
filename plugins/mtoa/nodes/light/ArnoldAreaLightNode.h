@@ -31,12 +31,12 @@ public:
    void                    postConstructor() override;
    static void             attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
    MStatus                 compute(const MPlug& plug, MDataBlock& data) override;
-   virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
-   virtual bool            isBounded() const;
-   virtual MBoundingBox    boundingBox() const;
+   void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus ) override;
+   bool            isBounded() const override;
+   MBoundingBox    boundingBox() const override;
    static  void *          creator();
    static  MStatus         initialize();
-   virtual bool            excludeAsLocator() const;
+   bool            excludeAsLocator() const override;
 
    static CStaticAttrHelper s_attributes;
 

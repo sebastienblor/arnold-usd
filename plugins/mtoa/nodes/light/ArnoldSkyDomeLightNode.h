@@ -10,13 +10,13 @@ class CArnoldSkyDomeLightNode
 {
 
 public:
-   virtual void postConstructor();
+   void postConstructor() override;
 
    static void* creator();
    static MStatus initialize();
-   virtual MStatus   compute( const MPlug&, MDataBlock& );
-   virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
-   virtual MSelectionMask getShapeSelectionMask() const;
+   MStatus   compute( const MPlug&, MDataBlock& ) override;
+   void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status) override;
+   MSelectionMask getShapeSelectionMask() const override;
    static MTypeId id;
    SchedulingType schedulingType()const override {return kParallel;}
    

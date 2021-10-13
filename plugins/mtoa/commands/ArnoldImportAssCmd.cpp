@@ -100,7 +100,6 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, const MString con
    // If this is multiple outputs 
    if(connected_output.length() >0 ) 
    {
-      int exists = 0;
       fullTargetAttr = MString(targetMayaNode.c_str()) + MString(".") + connected_output;
    }
    else

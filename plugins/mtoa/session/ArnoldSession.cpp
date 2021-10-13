@@ -692,7 +692,6 @@ void CArnoldSession::Update()
    MStatus status;
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
-   std::vector<ObjectToTranslatorPair>::iterator itObj;
    size_t objectsToUpdateCount;
    bool newDag, exportMotion, motionBlur, mbRequiresFrameChange;
    int currentFrameIndex;
@@ -744,7 +743,7 @@ void CArnoldSession::Update()
    // Now check again all translators
    if (m_updateMotion)
    {
-      int trIdx = 0;
+      unsigned int trIdx = 0;
       auto it = m_translators.begin();
       auto itEnd = m_translators.end();
       for (; it != itEnd; ++it, ++trIdx)

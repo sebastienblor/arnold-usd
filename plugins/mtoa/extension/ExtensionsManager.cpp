@@ -197,18 +197,14 @@ MStatus CExtensionsManager::LoadExtensionLibrary(CExtension *extension)
    void *pluginLib = LibraryLoad(extension->GetExtensionFile().asChar());
    if (pluginLib == NULL)
    {
-      MString msg = MString("[mtoa] Error loading extension library: ")+ MString(LibraryLastError());
-      AiMsgWarning(msg.asChar());
-
+      AiMsgWarning("[mtoa] Error loading extension library: %s", LibraryLastError());
       return MStatus::kFailure;
    }
    extension->m_impl->m_library = pluginLib;
    void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
    if (initializer == NULL)
    {            
-      MString msg = MString("[mtoa] Error initializing extension library: ") + MString(LibraryLastError());
-      AiMsgWarning(msg.asChar());
-
+      AiMsgWarning("[mtoa] Error initializing extension library: %s", LibraryLastError());
       LibraryUnload(pluginLib);
       return MStatus::kFailure;
    }

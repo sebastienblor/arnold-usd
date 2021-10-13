@@ -122,8 +122,6 @@ MStatus CArnoldStandInShape::LoadFile()
    
    MString assfile = geom->filename;
    float frameStep = geom->frame + geom->frameOffset;
-   bool AiUniverseCreated = false;
-   bool free_render = false;
    AtUniverse *universe = NULL;
    if (assfile != "" || geom->m_hasOverrides)
    {       
@@ -207,7 +205,6 @@ MStatus CArnoldStandInShape::LoadFile()
       proceduralPath += getProjectFolderPath();
       AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());      
 
-      AtNode* procedural = 0;
       AtNode *proc = NULL;
       if (isAss)
       {

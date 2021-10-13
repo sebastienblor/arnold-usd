@@ -428,7 +428,7 @@ CArnoldDrawGInstance::CArnoldDrawGInstance(AtNode *node, const AtMatrix &m, bool
 
                                           CArnoldDrawGeometry(node),
                                           m_matrix(m),
-                                          m_inheritXForm(m_inheritXForm)
+                                          m_inheritXForm(inheritXForm)
 {
 }
 
@@ -481,7 +481,7 @@ CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* procNode, AtProcViewportMod
    AtUniverse *universe = AiUniverse();
    
    MDistance dist(1.0, MDistance::uiUnit());
-   AiNodeSetFlt(AiUniverseGetOptions(AiNodeGetUniverse(procNode)), "meters_per_unit", dist.asMeters());
+   AiNodeSetFlt(AiUniverseGetOptions(AiNodeGetUniverse(procNode)), "meters_per_unit", (float)dist.asMeters());
 
    AiProceduralViewport(procNode, universe, mode);
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
