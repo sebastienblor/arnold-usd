@@ -90,8 +90,16 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       // If an extension was loaded, we need to register it, 
       // to ensure it will be found during translation
       if (extension)
-         CExtensionsManager::RegisterExtension(extension); 
-      
+      {
+         MStatus regStatus = CExtensionsManager::RegisterExtension(extension); 
+         if (regStatus != MS::kSuccess)
+         {
+            MGlobal::displayError(MString("Could not register extension ") + extPath);
+         }
+      } else
+      {
+         MGlobal::displayError(MString("Could not load extension ") + extPath);
+      }      
    }
    else if (args.isFlagSet("unloadExtension", 0))
    {
