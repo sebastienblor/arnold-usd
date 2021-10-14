@@ -77,7 +77,9 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       int basenameIndex = extPath.rindexW('/');
       CExtension *extension = nullptr;
       if (basenameIndex > 0)
-      {         
+      {
+         // Eventually split the filename into a folder basename, and the actual
+         // extension file to load #MTOA-847
          MString basename = extPath.substring(0, basenameIndex - 1);
          MString filename = extPath.substring(basenameIndex + 1, extPath.length() -1);
          extension = CExtensionsManager::LoadExtension(filename, basename);
