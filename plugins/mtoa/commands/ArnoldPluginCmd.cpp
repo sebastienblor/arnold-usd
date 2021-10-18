@@ -92,14 +92,17 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       if (extension)
       {
          MStatus regStatus = CExtensionsManager::RegisterExtension(extension); 
-         if (regStatus != MS::kSuccess)
+         if (regStatus == MS::kSuccess)
+         {
+            MGlobal::displayInfo(MString("Successfully registered extension ") + extPath);
+         } else
          {
             MGlobal::displayError(MString("Could not register extension ") + extPath);
          }
       } else
       {
          MGlobal::displayError(MString("Could not load extension ") + extPath);
-      }      
+      }
    }
    else if (args.isFlagSet("unloadExtension", 0))
    {
