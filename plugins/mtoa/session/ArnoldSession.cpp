@@ -2132,6 +2132,17 @@ void CArnoldSession::ClearUpdateCallbacks()
       MMessage::removeCallback(m_removeParentCallbackId);
       m_removeParentCallbackId = 0;
    }
+   if (m_hiddenNodeCb != 0)
+   {
+      MMessage::removeCallback(m_hiddenNodeCb);
+      m_hiddenNodeCb = 0;
+   }
+   for(auto &hiddenObjectCallback : m_hiddenObjectsCallbacks)
+   {
+      MNodeMessage::removeCallback(hiddenObjectCallback.second);
+   }
+   m_hiddenObjectsCallbacks.clear();
+
    ObjectToTranslatorMap::iterator it = m_translators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_translators.end();
    for ( ; it != itEnd; ++it)
