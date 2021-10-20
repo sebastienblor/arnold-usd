@@ -9,4 +9,3 @@ from .style import *
 from .treeStyle import *
 from .transverser import BaseTransverser
 
-from .tests import *

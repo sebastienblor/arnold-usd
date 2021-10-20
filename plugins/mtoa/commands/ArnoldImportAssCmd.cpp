@@ -85,7 +85,7 @@ MSyntax CArnoldImportAssCmd::newSyntax()
 
 static const char* s_outAttrs[] = {"outColor", "outValue", "out", "message", NULL};
 
-static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, const unordered_map<std::string, std::string> &arnoldToMayaNames)
+static bool ConnectMayaFromArnold(const MString &mayaFullAttr, const MString connected_output, AtNode *target, const unordered_map<std::string, std::string> &arnoldToMayaNames)
 {
    if (target == NULL)
       return false; // shit happens...
@@ -94,26 +94,32 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, c
    unordered_map<std::string, std::string>::const_iterator it = arnoldToMayaNames.find(targetArnoldNode);
    if (it == arnoldToMayaNames.end())
       return false; // didn't find the connected node in my maya scene
-   
-   std::string targetMayaNode = it->second;
 
-   int ind = 0;
-   while(s_outAttrs[ind])
+   std::string targetMayaNode = it->second;
+   MString fullTargetAttr;
+   // If this is multiple outputs 
+   if(connected_output.length() >0 ) 
    {
-      int exists = 0;
-      MString fullTargetAttr = MString(targetMayaNode.c_str()) + MString(".") + MString(s_outAttrs[ind]);
-      MString cmd = MString("objExists ") + fullTargetAttr;
-      MGlobal::executeCommand(cmd, exists);  
-      if (exists)
-      {
-         MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + MString(" ") + mayaFullAttr;
-         MGlobal::displayInfo(connectCmd);
-         MGlobal::executeCommand(connectCmd);
-         return true;
-      }
-      ind++;
+      fullTargetAttr = MString(targetMayaNode.c_str()) + MString(".") + connected_output;
    }
-   return false;
+   else
+   {
+      int ind = 0;
+      while(s_outAttrs[ind])
+      {
+         int exists = 0;
+         MString attr = MString(targetMayaNode.c_str()) + MString(".") + MString(s_outAttrs[ind]);
+         MString cmd = MString("objExists ") + attr;
+         MGlobal::executeCommand(cmd, exists);
+         if (exists)
+            fullTargetAttr = attr;
+         ind++;
+      }
+   }
+   MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + MString(" ") + mayaFullAttr;
+   MGlobal::displayInfo(connectCmd);
+   MGlobal::executeCommand(connectCmd);
+   return true;
 }
 
 MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUniverse* universe)
@@ -145,7 +151,6 @@ MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUni
    AxFtoAMaterialSetUniverse(material, universe);
    AxFtoAMaterialSetTextureNamePrefix(material, "importAxf_");
    AxFtoAMaterialSetNodeNamePrefix(material, "importAxf_");
-   AtNode* root_node = AxFtoAMaterialGetRootNode(material);
    AxFtoAMaterialWriteTextures(material);
    AxFtoAFileClose(axf_file);
    AxFtoASessionEnd();
@@ -194,6 +199,29 @@ std::string ConvertStringAttribute(const AtNode *node, const char *paramName)
        i = str.find("\"", i+2);
    }
    return str;
+}
+
+std::map<uint8_t, std::vector<std::string>> param_components = 
+{
+   {AI_TYPE_RGB,     {"r", "g", "b"}},
+   {AI_TYPE_RGBA,    {"r", "g", "b", "a"}},
+   {AI_TYPE_VECTOR,  {"x", "y", "z"}},
+   {AI_TYPE_VECTOR2, {"x", "y"}}
+};
+
+std::string getComponentName(uint8_t param_type, int component_idx)
+{
+   if (component_idx < 0)
+      return "";
+
+   auto find_param = param_components.find(param_type);
+   if (find_param != param_components.end())
+   {
+      auto components = find_param->second;
+      return components.at(component_idx);
+   }
+
+   return "";
 }
 
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
@@ -293,6 +321,29 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       MGlobal::executeCommand(createCmd, mayaName);
       arnoldToMayaNames[nodeName] = std::string(mayaName.asChar());
       nodesToConvert.push_back(node);
+      
+      bool isOsl = AiNodeIs(node, osl_str);
+      if (isOsl)
+      {
+         // OSL is special, we need to set its attribute "code" first.
+         // Then we need to go through the same code as when we decide
+         // to compile the code, through the attribute editor. This will 
+         // create all the maya node attributes corresponding to the ones 
+         // declared in the OSL code. Only after this, we can iterate over the attributes
+         // to convert them to Maya.
+         std::string str = ConvertStringAttribute(node, "code");
+         MString cmd = "setAttr " + mayaName + MString(".code ") ;
+         cmd += "-type \"string\" \"";
+         cmd += str.c_str();
+         cmd += "\"";
+         MGlobal::executeCommand(cmd);
+         MString pythonCmd = MString("import mtoa.osl;mtoa.osl.OSLSceneModel(\"");
+         pythonCmd += MString(str.c_str());
+         pythonCmd += MString("\",\"");
+         pythonCmd += mayaName;
+         pythonCmd += "\")";
+         MGlobal::executePythonCommand(pythonCmd);
+      }
    }
    AiNodeIteratorDestroy(iter);
 
@@ -306,28 +357,6 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       std::string mayaName = arnoldToMayaNames[nodeName];
 
       bool isOsl = AiNodeIs(node, osl_str);
-      if (isOsl)
-      {
-         // OSL is special, we need to set its attribute "code" first.
-         // Then we need to go through the same code as when we decide
-         // to compile the code, through the attribute editor. This will 
-         // create all the maya node attributes corresponding to the ones 
-         // declared in the OSL code. Only after this, we can iterate over the attributes
-         // to convert them to Maya.
-         std::string str = ConvertStringAttribute(node, "code");
-         MString cmd = "setAttr " + MString(mayaName.c_str()) + MString(".code ") ;
-         cmd += "-type \"string\" \"";
-         cmd += str.c_str();
-         cmd += "\"";
-         MGlobal::executeCommand(cmd);
-         MString pythonCmd = MString("import mtoa.osl;mtoa.osl.OSLSceneModel(\"");
-         pythonCmd += MString(str.c_str());
-         pythonCmd += MString("\",\"");
-         pythonCmd += MString(mayaName.c_str());
-         pythonCmd += "\")";
-         MGlobal::executePythonCommand(pythonCmd);
-      }
-
       // loop over this arnold node parameters
       AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
       while (!AiParamIteratorFinished(nodeParam))
@@ -357,8 +386,23 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          // First check if the attribute is linked
          if (AiNodeIsLinked(node, paramName))
          {
-            // FIXME: we should be checking for component links as well
-            ConnectMayaFromArnold(mayaFullAttr, (AtNode*)AiNodeGetLink(node, paramName), arnoldToMayaNames);
+            int output_param, output_comp;
+            AtNode* connected_node = AiNodeGetLinkOutput(node, paramName, output_param, output_comp);
+            MString connected_attr;
+            if (output_param >= 0)
+            {
+               auto node_entry = AiNodeGetNodeEntry(connected_node) ;
+               auto param_entry = AiNodeEntryGetOutput(node_entry,output_param);
+               MString connected_output(AiParamGetName(param_entry));
+               connected_attr = MString(AiParamGetName(param_entry).c_str());
+               // If the connection has a component
+               if (output_comp > -1)
+               {
+                  const std::string output_component = getComponentName(AiNodeEntryGetOutputType(node_entry), output_comp);
+                  connected_attr += MString(".")+ MString(output_component.c_str());
+               }
+            }
+            ConnectMayaFromArnold(mayaFullAttr, connected_attr , connected_node, arnoldToMayaNames);
          } else
          {
             bool setAttrValue = true;
@@ -437,7 +481,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                case AI_TYPE_NODE:
                case AI_TYPE_POINTER:
                   setAttrValue = false; // we won't need to set the attribute value since we're connecting it
-                  ConnectMayaFromArnold(mayaFullAttr, (AtNode*)AiNodeGetPtr(node, paramName), arnoldToMayaNames);
+                  ConnectMayaFromArnold(mayaFullAttr, MString(), (AtNode*)AiNodeGetPtr(node, paramName), arnoldToMayaNames);
                   
                break;
                }
@@ -554,8 +598,8 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                            }
                            {
                            case AI_TYPE_NODE:
-                           case AI_TYPE_POINTER:  
-                              ConnectMayaFromArnold(mayaArrayAttr, (AtNode*)AiArrayGetPtr(arr, i), arnoldToMayaNames);
+                           case AI_TYPE_POINTER:
+                              ConnectMayaFromArnold(mayaArrayAttr, MString(), (AtNode*)AiArrayGetPtr(arr, i), arnoldToMayaNames);
                            break;
                            }
                            case AI_TYPE_MATRIX:

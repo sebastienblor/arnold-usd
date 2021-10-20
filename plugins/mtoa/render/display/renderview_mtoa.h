@@ -167,7 +167,9 @@ public:
    virtual void MouseDelta(int deltaX, int deltaY);
 
 private:
+   void InitCamera();
 
+   bool m_init;
    MDagPath m_cameraPath;
    MFnCamera m_camera;
    
@@ -194,7 +196,9 @@ public:
    virtual void FrameSelection();
 
 private:
+   void InitCamera();
    
+   bool m_init;
    MDagPath m_cameraPath;
    MFnCamera m_camera;
    
@@ -217,7 +221,9 @@ public:
    virtual void MouseDelta(int deltaX, int deltaY);
 
 private:
-   
+   void InitCamera();
+
+   bool m_init;
    MDagPath m_cameraPath;
    MFnCamera m_camera;
    

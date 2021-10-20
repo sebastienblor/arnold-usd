@@ -32,15 +32,16 @@ MSyntax CArnoldSceneCmd::newSyntax()
    MSyntax syntax;
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("l", "list",  MSyntax::kString);
+   syntax.addFlag("s", "session",  MSyntax::kString);
    syntax.addFlag("q", "query"); // returns true is there's currently an active arnold scene
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
 
-static inline CArnoldSession *InitArnoldSceneSession()
+static inline CArnoldSession *InitArnoldSceneSession(const std::string &sessionId)
 {
-   CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
+   CArnoldSession *session = CSessionManager::FindActiveSession(sessionId);
    if (session == nullptr)
    {
       // here we want to use the default (implicit) universe.
@@ -48,7 +49,7 @@ static inline CArnoldSession *InitArnoldSceneSession()
       // and then access it through the arnold API. For this to work, we need the
       // nodes to be in the default universe
       session = new CArnoldSession(true, true); 
-      CSessionManager::AddActiveSession(s_arnoldSceneSessionId, session);
+      CSessionManager::AddActiveSession(sessionId, session);
    }
    return session;
 }
@@ -107,7 +108,10 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    bool listAllNewNodes = false;
    bool listRootNodes = false;
    bool listAllNodes = false;
-   CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
+   // If the "session" argument is specified in the command, we will look for the expected arnold session ID.
+   // Otherwise, we'll use the default one for arnoldScene command (s_arnoldSceneSessionId)
+   std::string sessionId = args.isFlagSet("session") ? std::string(args.flagArgumentString("session", 0).asChar()) : s_arnoldSceneSessionId;
+   CArnoldSession *session = CSessionManager::FindActiveSession(sessionId);
    if (args.isFlagSet("query"))
    {
       setResult(session != nullptr);
@@ -148,23 +152,23 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       // export with an empty selection list so that options, etc...
       // are properly initialized
       MSelectionList list;
-      InitArnoldSceneSession()->Export(&list);
+      InitArnoldSceneSession(sessionId)->Export(&list);
    }
    else if (mode == "destroy")
    {
       if (session)
       {
          // This will delete all the AtNodes that were created in the default universe
-         CSessionManager::DeleteActiveSession(s_arnoldSceneSessionId);
+         CSessionManager::DeleteActiveSession(sessionId);
       }
    }
    else if (mode == "convert_scene")
    {
-      InitArnoldSceneSession()->Export();
+      InitArnoldSceneSession(sessionId)->Export();
    }
    else if (mode == "convert_selected") 
    {
-      CArnoldSession *session = InitArnoldSceneSession();
+      CArnoldSession *session = InitArnoldSceneSession(sessionId);
       
       MSelectionList sel = ComputeSelectionList(args);
 
@@ -204,10 +208,12 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    }
    else if (mode == "update_selected") 
    {
-      CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
+      CArnoldSession *session = CSessionManager::FindActiveSession(sessionId);
       if (session == nullptr)
-         return MS::kFailure;
-      
+      {
+         MGlobal::displayError(MString("[mtoa] Arnold Session not found : ") + MString(sessionId.c_str()));
+         return MS::kSuccess;
+      }
       MSelectionList sel = ComputeSelectionList(args);
       std::vector<CNodeTranslator *> translators;
       GetTranslatorsList(sel, session, translators);
@@ -217,9 +223,12 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       }
    } else if (mode == "destroy_selected") 
    {
-      CArnoldSession *session = CSessionManager::FindActiveSession(s_arnoldSceneSessionId);
+      CArnoldSession *session = CSessionManager::FindActiveSession(sessionId);
       if (session == nullptr)
-         return MS::kFailure;
+      {
+         MGlobal::displayError(MString("[mtoa] Arnold Session not found : ") + MString(sessionId.c_str()));
+         return MS::kSuccess;
+      }
 
       MSelectionList sel = ComputeSelectionList(args);
       std::vector<CNodeTranslator *> translators;

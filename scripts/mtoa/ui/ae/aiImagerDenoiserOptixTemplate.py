@@ -23,28 +23,6 @@ class ImagerDenoiserOptixUI(ImagerBaseUI):
     def __init__(self, parent=None, nodeName = None, template=None):
         super(ImagerDenoiserOptixUI, self).__init__(parent, nodeName, template)
 
-    def doChangeFilter(self):
-        if not cmds.objExists('defaultArnoldFilter'):
-            return
-        cmds.setAttr('defaultArnoldFilter.aiTranslator', 'box', type="string")
-        self.filterMsgReplace('message')
-    
-    def filterMsgNew(self, nodeAttr):
-
-        cmds.setUITemplate('attributeEditorTemplate', pst=True)
-        cmds.rowColumnLayout( numberOfColumns=2, columnAlign=[(1, 'left'),(2, 'right')], columnAttach=[(1, 'left', 0), (2, 'both', 0)], columnWidth=[(1,145),(2,80)] )
-        self.filterTextCtrl = cmds.text(label='   A box filter is required for   \n    better denoising results  ')
-        self.filterButtonCtrl = cmds.button(label='Set Box Filter', al='right', w=85, h=25, command=lambda *args: self.doChangeFilter())
-        cmds.setUITemplate(ppt=True)
-        self.filterMsgReplace(nodeAttr)
-        
-    def filterMsgReplace(self, nodeAttr):
-        filter = cmds.getAttr('defaultArnoldFilter.aiTranslator', asString=True)
-        enabled = False if filter == 'box' else True
-        cmds.text(self.filterTextCtrl, edit=True, enable = enabled)
-        cmds.button(self.filterButtonCtrl, edit=True, enable = enabled)
-       
-
     def setup(self):
         super(ImagerDenoiserOptixUI, self).setup()
         self.beginLayout("Main", collapse=False)
@@ -54,8 +32,6 @@ class ImagerDenoiserOptixUI(ImagerBaseUI):
         self.addControl('clampMin', annotation='', hideMapButton = True)
         self.addControl('clampMax', annotation='', hideMapButton = True)
         self.addControl('useFeatureAovs', annotation='')
-        self.addSeparator()
-        self.addCustom("message", self.filterMsgNew, self.filterMsgReplace)
         self.endLayout()
 
 

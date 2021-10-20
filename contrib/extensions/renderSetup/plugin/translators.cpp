@@ -16,7 +16,6 @@ void CApplyRelIntOverrideTranslator::Export( AtNode* shader)
     MFnDependencyNode mnode(this->GetMayaObject());
     AtNode* multiply = GetArnoldNode("multiply");
     AtNode* add = GetArnoldNode("offset");
-    AtNode* float_to_int = shader;
     const float orig = mnode.findPlug("original", true).asFloat();
     if (mnode.findPlug("enabled", true).asBool())
     {
@@ -119,7 +118,7 @@ void CApplyRelFloat3OverrideTranslator::Export( AtNode* shader)
     }
     else
     {
-        AiNodeSetRGB(add, "input1", orig[0],orig[2],orig[3]);
+        AiNodeSetRGB(add, "input1", orig[0],orig[1],orig[2]);
         AiNodeSetRGB(multiply, "input2", 0,0,0);
         AiNodeSetRGB(multiply, "input1", 0,0,0);
     }

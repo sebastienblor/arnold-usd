@@ -11,7 +11,7 @@ def setOperatorOptions(options):
     for option, value in options.items():
         if type(value) in [bool, int]:
             cmds.optionVar(intValue=("arnold_{}".format(option), value))
-        elif type(value) in [str, unicode]:
+        elif isinstance(value, utils.string_types):
             cmds.optionVar(stringValue=("arnold_{}".format(option), value))
 
 def getOperatorOptions(mergeOptions=False):
@@ -30,7 +30,7 @@ def getOperatorOptions(mergeOptions=False):
         if not cmds.optionVar(exists="arnold_{}".format(option)):
             if type(default) in [bool, int]:
                 cmds.optionVar(intValue=("arnold_{}".format(option), default))
-            elif type(default) in [str, unicode]:
+            elif isinstance(default, utils.string_types):
                 cmds.optionVar(stringValue=("arnold_{}".format(option), default))
         else:
             options[option] = cmds.optionVar(query="arnold_{}".format(option))

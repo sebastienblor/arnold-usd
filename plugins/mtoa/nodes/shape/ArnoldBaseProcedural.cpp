@@ -163,7 +163,7 @@ size_t CArnoldProceduralData::VisibleGeometryCount(StandinSelectionFilter filter
    return ComputeVisibleGeometries(filter, &m_geometryList);
 }
 
-CArnoldBaseProcedural::CArnoldBaseProcedural() : m_nodeDirtyId(0), m_data(NULL)
+CArnoldBaseProcedural::CArnoldBaseProcedural() : m_data(NULL), m_nodeDirtyId(0)
 {
 }
 
@@ -226,7 +226,7 @@ MBoundingBox CArnoldBaseProcedural::boundingBox() const
       MBoundingBox(MPoint(-1.0f, -1.0f, -1.0f), MPoint(1.0f, 1.0f, 1.0f));
 
    CArnoldBaseProcedural* nonConstThis = const_cast<CArnoldBaseProcedural*> (this);
-   CArnoldProceduralData* geom = nonConstThis->geometry();
+   nonConstThis->geometry();
    MPoint bbMin = m_data->m_bbox.min();
    MPoint bbMax = m_data->m_bbox.max();
 
@@ -315,14 +315,12 @@ void CArnoldBaseProcedural::UpdateSelectedItems()
    }
    
    CArnoldBaseProcedural* nonConstThis = const_cast<CArnoldBaseProcedural*> (this);
-   CArnoldProceduralData* geom = nonConstThis->geometry();
+   nonConstThis->geometry();
    m_data->m_isSelected = false;
    for (CArnoldDrawGeometry::geometryListIterType it = m_data->m_geometryList.begin(); it != m_data->m_geometryList.end(); ++it)
    {
       CArnoldDrawGeometry* g = it->second;
       MString nodeName(it->first.c_str());
-
-      bool selected = false;
 
       if (g)
       {

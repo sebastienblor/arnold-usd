@@ -17,8 +17,8 @@ public:
    {
    }
 
-   virtual bool excludeAsLocator() const;
-   virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
+   bool excludeAsLocator() const override;
+   void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status) override;
 
    static void* creator();
    static MStatus initialize();

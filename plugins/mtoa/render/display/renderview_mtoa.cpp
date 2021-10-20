@@ -1,6 +1,7 @@
 
 #include "renderview_mtoa.h"
 #include "session/ArnoldRenderViewSession.h"
+#include "session/SessionManager.h"
 
 #include <maya/MItDag.h>
 
@@ -73,13 +74,6 @@ static QWidget *s_optWorkspaceControl = NULL;
 #include <maya/MTimerMessage.h>
 #include <maya/MPlugArray.h>
 #include <maya/MQtUtil.h>
-
-
-#ifdef _DARWIN
-static Qt::WindowFlags RvQtFlags = Qt::Tool;
-#else
-static Qt::WindowFlags RvQtFlags = Qt::Window|Qt::WindowSystemMenuHint|Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
-#endif
 
 struct CARVSequenceData
 {
@@ -532,12 +526,14 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
    // Callbacks for scene open/save, as well as render layers changes
    MStatus status;   
-   
-   /* FIXME do we want this for the viewport ?
+   if (m_rvSceneSaveCb == 0)
+   {
+      m_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
+   }
    if (m_rvSceneOpenCb == 0)
    {
       m_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
-   }*/
+   }
    if (m_rvLayerManagerChangeCb == 0)
    {
       m_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
@@ -579,14 +575,32 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
 /** When this funtion is invoked, it means that the whole scene needs to 
  * be re-exported from scratch.
- * FIXME : why should this code be different from a fresh new export ?
  **/
 void CRenderViewMtoA::UpdateFullScene()
 {
    if (m_session == nullptr)
-      return;
+   {
+      // For viewport rendering, we should always have a non-empty session, 
+      // which should have been created in ArnoldViewOverride
+      if (m_viewportRendering)
+         return;
+
+      // When the renderview session is destroyed, the CRenderViewInterface remains alive (so that all options are kept).
+      // Therefore the viewer remains visible in the UI. If the user manually restarts the render, then we will be called 
+      // here, but there won't be any m_session. We must then create a new session before we continue with this function
+
+      m_session = new CArnoldRenderViewSession();
+      CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId(), m_session);
+   } 
+
+   // Ensure that every time we call Update Full Scene no AVP session is active. We can't do this for 
+   // AVP as it would require the panel name
+   if (!m_viewportRendering)
+      CArnoldRenderViewSession::CloseOtherViews(MString(CArnoldRenderViewSession::GetRenderViewSessionId().c_str()));
    
-   std::string lastCamera = GetOption("Camera");
+   const char *lastCameraPtr = GetOption("Camera");
+   std::string lastCamera = (lastCameraPtr != nullptr) ? std::string(lastCameraPtr) : std::string();
+   
    SetUniverse(nullptr); // this ensures we delete the previous render session
    m_session->Clear();
 
@@ -606,6 +620,8 @@ void CRenderViewMtoA::UpdateFullScene()
    // Restore the proper cameras
    MDagPathArray cameras = CArnoldSession::GetRenderCameras(true);
    CSessionOptions &options = m_session->GetOptions();
+   // Ensure the session options are up-to-date in case they were modified while no render was in progress (MTOA-864)
+   options.Update();
    
    if (cameras.length() > 0)
    {
@@ -782,6 +798,7 @@ void CRenderViewMtoA::ColorMgtRefreshed(void *data)
    renderViewMtoA->SetOption("Color Management.Refresh", "1");
    MGlobal::displayWarning("[mtoa] OCIO Context might have changed for input textures. If so, you may have to re-generate the textures using 'arnoldUpdateTx -f'");
 }
+
 void CRenderViewMtoA::SceneOpenCallback(void *data)
 {
    if (data == NULL) return;
@@ -1132,20 +1149,6 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
       }
    }
 
-/* FIXME : is it ok ?
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   if (renderSession)
-   {   
-      renderSession->SetRendering(false);
-      CMayaScene::End();
-
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
-      CMayaScene::ExecuteScript(renderGlobals.postMel);
-   }
-   */
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
 
@@ -1157,6 +1160,7 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
    
    MProgressWindow::endProgress();
 
+   SetOption("Run IPR", "0");
 
    if (m_session)
    {
@@ -1195,14 +1199,20 @@ CRenderViewRotateManipulator *CRenderViewMtoA::GetRotateManipulator()
    return new CRenderViewMtoARotate();
 }
    
-CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
+CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator(),
+                                           m_init(false)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
-   if (arnold_camera == NULL) return;
-   
+}
+
+void CRenderViewMtoAPan::InitCamera()
+{     
+   AtNode *arnoldCamera = AiUniverseGetCamera(GetUniverse());
+   if (arnoldCamera == nullptr)
+      return;
+
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
-      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
+      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1224,20 +1234,23 @@ CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
 
    m_distFactor = 1.f;
    
-   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(arnold_camera)), "persp_camera") != 0) return;
+   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldCamera)), "persp_camera") != 0) return;
 
    MPoint originalPosition = m_camera.eyePoint(MSpace::kWorld);
    MPoint center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    float center_dist = (float)center.distanceTo(originalPosition);
 
-   m_distFactor = center_dist * tanf(AiNodeGetFlt(arnold_camera, "fov") * AI_DTOR);
-// FIXME we need the universe
-   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
-}
+   m_distFactor = center_dist * tanf(AiNodeGetFlt(arnoldCamera, "fov") * AI_DTOR);
 
+   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
+   m_init = true;
+}
 void CRenderViewMtoAPan::MouseDelta(int deltaX, int deltaY)
 {
-      // get the delta factor relative to the width 
+   if (!m_init)
+      InitCamera();
+      
+   // get the delta factor relative to the width 
    float delta[2];
    delta[0] = (-m_distFactor * ((deltaX)/((float)m_width)));
    delta[1] = (m_distFactor * ((deltaY)/((float)m_width)));
@@ -1246,14 +1259,19 @@ void CRenderViewMtoAPan::MouseDelta(int deltaX, int deltaY)
    m_camera.set(newPosition, m_viewDirection, m_upDirection, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
 }
 
-CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
+CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator(),
+                                             m_init(false)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
-   if (arnold_camera == NULL) return;
-   
+}
+void CRenderViewMtoAZoom::InitCamera()
+{
+   AtNode *arnoldCamera = AiUniverseGetCamera(GetUniverse());
+   if (arnoldCamera == nullptr)
+      return;
+
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
-      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
+      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1275,10 +1293,14 @@ CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
    m_dist = (float)m_center.distanceTo(m_originalPosition);
 
    m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
+   m_init = true;
 }
 
 void CRenderViewMtoAZoom::MouseDelta(int deltaX, int deltaY)
 {
+   if (!m_init)
+      InitCamera();
+   
    float delta = (float)deltaX / (float)m_width;
 
    if (delta > 0.9f)
@@ -1426,13 +1448,18 @@ void CRenderViewMtoAZoom::FrameSelection()
 
 }
 
-CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator()
+CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator(), 
+                                                 m_init(false)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera(GetUniverse());
-   if (arnold_camera == NULL) return;
+}
+void CRenderViewMtoARotate::InitCamera()
+{
+   AtNode *arnoldCamera = AiUniverseGetCamera(GetUniverse());
+   if (arnoldCamera == nullptr)
+      return;
 
-   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
-      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
+      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
 
    MSelectionList camList;
    camList.add(MString(camName.c_str()));
@@ -1452,20 +1479,20 @@ CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator()
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    m_centerDist = float(m_center.distanceTo(m_originalPosition));
    m_upDirection = m_camera.upDirection(MSpace::kWorld);
-   
-
+   m_init = true;
 }
-
 
 void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 {
+   if (!m_init)
+      InitCamera();
+
    MStatus status;
    MDagPath camTransform = m_cameraPath;
    camTransform.pop();
    MFnTransform transformPath(camTransform, &status);
    if (status != MS::kSuccess) 
       return;
-   
 
    MVector rightDirection = m_camera.rightDirection(MSpace::kWorld);
    MVector fElevationAxis = -rightDirection;
@@ -1602,7 +1629,8 @@ void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientD
    }
 }
 void CRenderViewMtoA::ResolutionChangedCallback(void *data)
-{/*
+{
+
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
    
@@ -1630,43 +1658,59 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    int height = 1;
    float pixelAspectRatio = 1.f;
    bool updateRender = false;
-   
+
+   CSessionOptions &sessionOptions = session->GetOptions();
+   AtNode *optionsNode = AiUniverseGetOptions(session->GetUniverse());
+
+   int previousWidth = AiNodeGetInt(optionsNode, "xres");
+   int previousHeight = AiNodeGetInt(optionsNode, "yres");
+
+   // FIXME the code below is meant to reproduce what OptionsTranslator would do to 
+   // determine the final resolution. This would have to be factorized, by making it 
+   // a function in SessionOptions, so that we can call it from different places
    MPlug plug = depNode.findPlug("width", true, &status);
    if (status == MS::kSuccess)
-   {
       width = plug.asInt();
-      if (width != (int)renderOptions->width()) updateRender = true;
-   }
+
    plug = depNode.findPlug("height", true, &status);
    if (status == MS::kSuccess)
-   {
       height = plug.asInt();
-      if (height != (int)renderOptions->height()) updateRender = true;
-   }
-   plug = depNode.findPlug("deviceAspectRatio", true, &status);
-   if (status == MS::kSuccess)
+   
+   sessionOptions.GetResolution(width, height);
+
+   if (width != previousWidth || height != previousHeight)
    {
-      pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
-      if (std::abs(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
+      updateRender = true;
+   } else 
+   {
+      plug = depNode.findPlug("deviceAspectRatio", true, &status);
+      if (status == MS::kSuccess)
       {
-         updateRender = true;
+         pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
+         if (std::abs(pixelAspectRatio - 1.f) < 0.001)
+            pixelAspectRatio = 1.f;
+         else
+            pixelAspectRatio = 1.f / AiMax(AI_EPSILON, pixelAspectRatio);
+
+         float previousAspectRatio = AiNodeGetFlt(optionsNode, "pixel_aspect_ratio");
+         if (std::abs(pixelAspectRatio - previousAspectRatio) > AI_EPSILON)
+            updateRender = true;
       }
    }
 
    if(updateRender)
    {
-      // FIXME we could probably do a simple re-render
-      // renderSession->InterruptRender(true);
-      // renderSession->SetResolution(width, height);
-      // renderViewMtoA->SetOption("Refresh Render", "1");
+      CNodeTranslator *optionsTranslator = session->GetOptionsTranslator();
+      if (optionsTranslator)
+      {
+         session->QueueForUpdate(optionsTranslator);
+         session->RequestUpdate();
       
-      renderViewMtoA->SetOption("Full IPR Update", "1");
-
-      // want to resize the window
+      /* // Not resizing the window anymore
       if (width  > 1 && height > 1 && pixelAspectRatio > 0.f)
-         renderViewMtoA->Resize(width * pixelAspectRatio, height);
+         renderViewMtoA->Resize(width * pixelAspectRatio, height);*/
+      }
    }
-*/
 
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
@@ -1685,8 +1729,6 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 
 }
 
-
-// FIXME should we re-introduce this ?
 void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, void *data)
 {
    if (s_sequenceData == NULL){return;}
@@ -1695,7 +1737,6 @@ void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, 
 
    if (MProgressWindow::isCancelled())
    {
-      // FIXME CMayaScene::GetRenderSession()->InterruptRender(true);
       MProgressWindow::endProgress();
       rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
       rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
@@ -1757,8 +1798,6 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
       m_rvIdleCb = 0;
    } 
    // make sure no render is going on
-
-// FIXME    CMayaScene::GetRenderSession()->InterruptRender(true);
 
    if (s_sequenceData) 
    {

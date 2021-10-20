@@ -971,6 +971,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('abc_pull_user_params', label='Pull User Params')
         # visibility_ignore
         self.addControl('abc_visibility_ignore', label='Ignore Visibility Attributes')
+        # curves basis menu
+        self.addControl('abc_curves_basis', label='Curves Basis', annotation='auto=Detect from alembic file, (b-spline, catmull-rom, linear) force the basis to these interpolations')
         # radius_attribute
         self.addControl('abc_radius_attribute', label='Radius Attrbute Name')
         # radius_default

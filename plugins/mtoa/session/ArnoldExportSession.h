@@ -25,7 +25,7 @@ public:
                             MStatus *ReturnStatus=NULL) const;
    /// Export and ass file.
    /// \param customFileName file to export too.
-   void WriteScene(MString customFileName, const bool compressed=false, const bool writeBox=false);
+   void WriteScene(MString customFileName, const bool compressed=false, const bool writeBox=false, bool append = false);
    
 	bool IsFileExport() const override {return true;}
 

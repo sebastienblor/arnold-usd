@@ -35,8 +35,16 @@ public:
         const UsdMayaPrimReaderArgs& readerArgs,
         const TfToken&               mayaNodeTypeName);
 
+#if MAYAUSD_MINOR_VERSION >= 13
+    MAYAUSD_CORE_PUBLIC
+    bool Read(UsdMayaPrimReaderContext& context) override;
+#elif MAYAUSD_MAJOR_VERSION > 0
+    MAYAUSD_CORE_PUBLIC
+    bool Read(UsdMayaPrimReaderContext& context) override;
+#else
     MAYAUSD_CORE_PUBLIC
     bool Read(UsdMayaPrimReaderContext* context) override;
+#endif
 
     MAYAUSD_CORE_PUBLIC
     TfToken GetMayaNameForUsdAttrName(const TfToken& usdAttrName) const override;

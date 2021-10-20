@@ -108,6 +108,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    int lightLinks  = -1;
    int shadowLinks = -1;
    double startframe, endframe, framestep;
+   bool mergeFrames = false;
 
    // Batch mode
    bool batch = argDB.isFlagSet("batch") ? true : false;
@@ -132,16 +133,20 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       }
       else if (nchars > 4 && customFileName.substringW(nchars-4, nchars) == ".usd")
       {
+         // For USD files, we don't want to add the frame number to the filename
          customFileName = customFileName.substringW(0, nchars-5);
          assExtension = "usd";
+         mergeFrames = true;
       } else if (nchars > 5 && customFileName.substringW(nchars-5, nchars) == ".usda")
       {
          customFileName = customFileName.substringW(0, nchars-6);
          assExtension = "usda";
+         mergeFrames = true;
       } else if (nchars > 5 && customFileName.substringW(nchars-5, nchars) == ".usdc")
       {
          customFileName = customFileName.substringW(0, nchars-6);
          assExtension = "usdc";
+         mergeFrames = true;
       }
    }
    // Rendered render layer
@@ -163,9 +168,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       }
    }
 
-
-   //CArnoldSession *session = CSessionManager::FindActiveSession(exportSessionName);
-   // FIXME check what happens if an existing session is there
    CArnoldExportSession * session = new CArnoldExportSession();
 
    if (!CSessionManager::AddActiveSession(s_exportAssSessionId, session))
@@ -320,8 +322,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    }
    else
       cameras.append(MDagPath());
-        
-
+   
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
@@ -392,12 +393,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                                  assExtension,
                                                  renderLayer,
                                                  createDirectory,
-                                                 isSequence,
+                                                 isSequence && !mergeFrames,
                                                  subFrames,
                                                  batch, &status);
 
          appendToResult(curfilename);
-         session->WriteScene(curfilename, compressed, writeBox);
+         session->WriteScene(curfilename, compressed, writeBox, mergeFrames && (curframe != startframe));
       }
       session->Clear();
 

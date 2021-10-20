@@ -22,7 +22,6 @@ protected:
 
 
    MString m_camera;
-   MString m_colorSpace;
    bool RequiresColorCorrect();
 
 };

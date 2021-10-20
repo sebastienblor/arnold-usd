@@ -38,6 +38,7 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MDagPath.h>
 #include <maya/MDrawData.h>
+#include <maya/MDistance.h>
 #include <maya/MPlug.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MMatrix.h>
@@ -75,6 +76,7 @@ MObject CArnoldStandInShape::s_ignoreGroupNodes;
 MObject CArnoldStandInShape::s_objectPath;
 MObject CArnoldStandInShape::s_abcLayers;
 MObject CArnoldStandInShape::s_abcFps;
+MObject CArnoldStandInShape::s_abcCurvesBasis;
 MObject CArnoldStandInShape::s_overrides;
 
 CArnoldStandInData::CArnoldStandInData() : CArnoldProceduralData()
@@ -120,8 +122,6 @@ MStatus CArnoldStandInShape::LoadFile()
    
    MString assfile = geom->filename;
    float frameStep = geom->frame + geom->frameOffset;
-   bool AiUniverseCreated = false;
-   bool free_render = false;
    AtUniverse *universe = NULL;
    if (assfile != "" || geom->m_hasOverrides)
    {       
@@ -173,6 +173,10 @@ MStatus CArnoldStandInShape::LoadFile()
       AiNodeSetBool(options, "skip_license_check", true);
       AiNodeSetBool(options, "enable_dependency_graph", false);
 
+      MDistance dist(1.0, MDistance::uiUnit());
+      AiNodeSetFlt(AiUniverseGetOptions(proc_universe), "meters_per_unit", dist.asMeters());
+   
+
       // setup procedural search path
       MString proceduralPath = "";
       MSelectionList list;
@@ -201,7 +205,6 @@ MStatus CArnoldStandInShape::LoadFile()
       proceduralPath += getProjectFolderPath();
       AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());      
 
-      AtNode* procedural = 0;
       AtNode *proc = NULL;
       if (isAss)
       {
@@ -638,6 +641,15 @@ MStatus CArnoldStandInShape::initialize()
    data.name = "abcUseInstanceCache";
    data.shortName = "abc_use_instance_cache";
    s_attributes.MakeInputBoolean(data);
+
+   s_abcCurvesBasis = eAttr.create("abcCurvesBasis", "abc_curves_basis");
+   eAttr.addField("auto", 0);
+   eAttr.addField("bezier", 1);
+   eAttr.addField("b-spline", 2);
+   eAttr.addField("catmull-rom", 3);
+   eAttr.addField("linear", 4);
+   eAttr.setDefault(0);
+   addAttribute(s_abcCurvesBasis);
 
    return MStatus::kSuccess;
 }

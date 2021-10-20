@@ -147,9 +147,19 @@ UsdArnoldShaderReader::UsdArnoldShaderReader(
 {
 }
 
-/* override */
+#if MAYAUSD_MINOR_VERSION >= 13
+bool UsdArnoldShaderReader::Read(UsdMayaPrimReaderContext& contextRef)
+{
+    UsdMayaPrimReaderContext* context = &contextRef;
+#elif MAYAUSD_MAJOR_VERSION > 0
+bool UsdArnoldShaderReader::Read(UsdMayaPrimReaderContext& contextRef)
+{
+    UsdMayaPrimReaderContext* context = &contextRef;
+#else
 bool UsdArnoldShaderReader::Read(UsdMayaPrimReaderContext* context)
 {
+#endif
+
     const UsdPrim&       prim = _GetArgs().GetUsdPrim();
     const UsdShadeShader shaderSchema = UsdShadeShader(prim);
     if (!shaderSchema)

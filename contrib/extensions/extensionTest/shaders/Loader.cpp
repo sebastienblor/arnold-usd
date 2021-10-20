@@ -3,6 +3,7 @@
 #include <cstdio>
 
 extern const AtNodeMethods* MtoaTestShaderMtd;
+extern const AtNodeMethods* MtoaTestMultipleOutputShaderMtd;
 
 node_loader
 {
@@ -14,6 +15,13 @@ node_loader
         node->name         = "mtoa_test_shader";
         node->node_type    = AI_NODE_SHADER;
         break;
+
+    case 1:
+        node->methods      = MtoaTestMultipleOutputShaderMtd;
+        node->output_type  = AI_TYPE_BOOLEAN;
+        node->name         = "mtoa_test_multi_out_shader";
+        node->node_type    = AI_NODE_SHADER;
+        return true;
 
     default:
         return false;

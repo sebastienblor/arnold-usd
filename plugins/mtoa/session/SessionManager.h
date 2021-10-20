@@ -17,7 +17,7 @@ public:
    static CArnoldSession *FindActiveSession(const std::string &name);
    static void ClearActiveSessions();
    static void End();
-     
+   static unordered_map<std::string, CArnoldSession *> GetActiveSessions();
 private:
    CSessionManager() {}
 

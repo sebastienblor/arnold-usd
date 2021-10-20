@@ -50,9 +50,9 @@ CAOV::CAOV(const CAOV &rhs)
      m_lightGroupsList(rhs.m_lightGroupsList),
      m_lightGroups(rhs.m_lightGroups),
      m_globalAov(rhs.m_globalAov),
+     m_denoise(rhs.m_denoise),
      m_shaderPlug(rhs.m_shaderPlug),
-     m_camera(rhs.m_camera),
-     m_denoise(rhs.m_denoise)
+     m_camera(rhs.m_camera)
 {
 }
 

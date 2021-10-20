@@ -81,8 +81,6 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
       }
    }
 
-   //CArnoldSession *session = CSessionManager::FindActiveSession(exportSessionName);
-   // FIXME check what happens if an existing session is there
    CArnoldExportSession * session = new CArnoldExportSession();
 
    if (!CSessionManager::AddActiveSession(s_exportOperatorsSessionId, session))
@@ -133,7 +131,6 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
          MStatus listStatus;
          MDagPath dag;
          MObject objNode;
-         CNodeTranslator *tr = NULL;
          if (selected.getDagPath(i, dag) == MS::kSuccess)
          {
             dag.extendToShape();

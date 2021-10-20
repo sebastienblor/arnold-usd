@@ -905,7 +905,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          bool exported = false;
          MFnDependencyNode shadingGroupNode(shadingGroups[sh]);
          
-         MPlug messagePlug = shadingGroupNode.findPlug("message");
+         MPlug messagePlug = shadingGroupNode.findPlug("message", true);
          if (!messagePlug.isNull())
          {
             AtNode *shader = ExportConnectedNode(messagePlug);

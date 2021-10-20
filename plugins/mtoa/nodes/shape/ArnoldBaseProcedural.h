@@ -58,10 +58,10 @@ public:
 
    void postConstructor() override;
    MStatus compute(const MPlug& plug, MDataBlock& data) override;
-   virtual bool isBounded() const;
-   virtual MBoundingBox boundingBox() const;
+   bool isBounded() const override;
+   MBoundingBox boundingBox() const override;
    
-   virtual MSelectionMask getShapeSelectionMask() const;
+   MSelectionMask getShapeSelectionMask() const override;
    
    CArnoldProceduralData* geometry();
    virtual void updateGeometry();

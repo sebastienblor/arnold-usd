@@ -106,9 +106,8 @@ void CDriverTranslator::Export(AtNode *shader)
       }
       else
       {
-         AiNodeSetStr(shader, "color_space", "");
+         AiNodeResetParameter(shader, "color_space");
       }
-
    }
     
 }

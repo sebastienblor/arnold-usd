@@ -1,6 +1,7 @@
 #include "XGenSplineTranslator.h"
 #include "../common/XgSplineArnoldExpand.h"
 #include "extension/Extension.h"
+#include "extension/ExtensionsManager.h"
 #include "utils/time.h"
 
 #include <maya/MFnDagNode.h>
@@ -11,6 +12,31 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+
+static bool s_loadedProcedural = false;
+
+static bool LoadXGenSplineProcedural()
+{
+   if (s_loadedProcedural)
+      return true;
+
+   if (AiNodeEntryLookUp("xgenProcedural") != NULL)
+   {
+      s_loadedProcedural = true;
+      return true;
+   }
+   MString mtoaProcPath;
+   MGlobal::executeCommand("getenv MTOA_PATH", mtoaProcPath);
+   MString xgenProcPath = mtoaProcPath + MString("procedurals/");
+   CExtension *extension = CExtensionsManager::GetExtensionByName("xgenSplineTranslator");
+   if (!extension)
+         return false;
+   extension->LoadArnoldPlugin("xgenSpline_procedural", xgenProcPath);
+   s_loadedProcedural = true;
+   return true;
+
+}
 
 void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -37,7 +63,10 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 AtNode* CXgSplineDescriptionTranslator::CreateArnoldNodes()
 {
    m_expandedProcedurals.clear();
-   return AddArnoldNode("xgenProcedural");
+   if (LoadXGenSplineProcedural())
+      return AddArnoldNode("xgenProcedural");
+
+   return NULL;
 }
 
 

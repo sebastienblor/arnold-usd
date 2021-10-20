@@ -18,9 +18,9 @@ public:
    static MStatus initialize();
    
    void postConstructor() override;
-   virtual void draw(M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus);
-   virtual bool isBounded() const;
-   virtual MBoundingBox boundingBox() const;   
+   void draw(M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus) override;
+   bool isBounded() const override;
+   MBoundingBox boundingBox() const override;   
    
    static const MTypeId id;      
 private:

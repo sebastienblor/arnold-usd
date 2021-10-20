@@ -468,6 +468,12 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    AiNodeSetStr(options, "pin_threads", "off");
    AiNodeSetInt(options, "threads", 4);
 
+   MString texture_searchpath = fnOptions.findPlug("texture_searchpath", true).asString();
+   if (texture_searchpath.length() > 0)
+      AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+
+   COptionsTranslator::AddProjectFoldersToSearchPaths(options);
+
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
    std::string outputsStr ("RGBA RGBA ");

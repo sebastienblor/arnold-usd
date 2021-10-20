@@ -1,4 +1,5 @@
 #include "SessionManager.h"
+#include "render/MaterialView.h"
 #include <ai_msg.h>
 #include <ai_nodes.h>
 #include <ai_ray.h>
@@ -13,13 +14,13 @@ unordered_map<std::string, CArnoldSession *> CSessionManager::s_activeSessions;
 
 void FileOpenCallback(void *)
 {
+   CSessionManager::ClearActiveSessions();
+
    // something we might want to do when a new file is opened
    // We want to clear the caches, since the scene is changing (#3277)
    AiUniverseCacheFlush(AI_CACHE_ALL);
    // tell MtoaLog that mtoa_translation_info might change
    UpdateMtoaTranslationInfo();
-
-   CSessionManager::ClearActiveSessions();
 }
 
 
@@ -106,6 +107,9 @@ void CSessionManager::End()
    // tell MtoaLog that mtoa_translation_info might change
    UpdateMtoaTranslationInfo();
 
+   // Tell the material view to end its session
+   CMaterialView::End();
+
    if (AiUniverseIsActive())
       AiEnd();
 
@@ -119,4 +123,9 @@ void CSessionManager::ClearActiveSessions()
       iter->second->Clear();
       iter->second->GetOptions().SetArnoldRenderOptions(MObject());
    }
+}
+
+unordered_map<std::string, CArnoldSession *> CSessionManager::GetActiveSessions()
+{
+   return s_activeSessions;
 }

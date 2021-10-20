@@ -184,6 +184,7 @@ vars.AddVariables(
     StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
     StringVariable('MAYAUSD_PATH_PYTHON2', 'Maya-USD installation root for python2', None),
     StringVariable('MOD_SUFFIX', 'Install another mod file with a given suffix', None),
+    StringVariable('TIMELIMIT', 'Time limit for each test (in seconds)', '300'),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline/master builds', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
@@ -234,8 +235,6 @@ env.Append(BUILDERS = {'MakeModule' : make_module})
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
-# Setting a timelimit for the testsuite (in seconds)
-# env['TIMELIMIT'] = 120.0
 
 # Set default amount of threads set to the cpu counts in this machine.
 # This can be overridden through command line by setting e.g. "abuild -j 1"
@@ -781,11 +780,24 @@ if int(maya_version_base) >= 2021:
             usd_version[USD_CUT_MAYAUSD_PATH] = mayausd_path_list[ind]
             ind = ind + 1
 
+mayapy_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy')
 
 if ENABLE_USD:
     print ('updating usd submodule...')
     system.execute('git submodule sync')
     system.execute('git submodule update --init --recursive')
+ 
+    # We need to ensure that jinja2 will be installed through mayapy   
+    mayapy_cmd = mayapy_bin + " -m pip install jinja2"
+    system.execute(mayapy_cmd)
+
+    # if we're also building for python2 usd modules, then we need to 
+    # install jijna2 in the mayapy2 environment
+    if usd_path_python2_count > 0:
+        mayapy2_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy2')
+        mayapy2_cmd = mayapy2_bin + " -m pip install jinja2"
+        system.execute(mayapy2_cmd)
+
     print ('done')     
 
 if system.os == 'windows':
@@ -1107,6 +1119,7 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'osl'), glob.glob(os.path.join(ARNOLD, 'osl', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'ocio'), glob.glob(os.path.join(ARNOLD, 'ocio', '*')))
 # install all arnold sdk headers
 env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
 
@@ -1496,6 +1509,12 @@ for p in materialx_files:
         [os.path.join(ARNOLD, 'materialx', p), os.path.join('materialx', d)]
     ]
 
+ocio_files = find_files_recursive(os.path.join(ARNOLD, 'ocio'), None)
+for p in ocio_files:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join(ARNOLD, 'ocio', p), os.path.join('ocio', d)]
+    ]
 osl_files = find_files_recursive(os.path.join(ARNOLD, 'osl'), None)
 for p in osl_files:
     (d, f) = os.path.split(p)
@@ -1604,7 +1623,7 @@ if ENABLE_USD:
         usd_delegate = usd_version[USD_CUT_DELEGATE]
         if usd_delegate:
             hydrafolder = str(usd_delegate)
-            hydrafiles = find_files_recursive(hydrafolder, ['.dll', '.so', '.dylib', '.json'])
+            hydrafiles = find_files_recursive(hydrafolder, ['.dll', '.so', '.dylib', '.json', '.usda'])
             for p in hydrafiles:
                 (d, f) = os.path.split(p)
                 PACKAGE_FILES += [[os.path.join(hydrafolder, p), os.path.join('usd', 'hydra', usd_folder, d)]]

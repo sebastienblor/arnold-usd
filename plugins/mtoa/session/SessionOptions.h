@@ -92,6 +92,8 @@ struct DLLEXPORT CSessionOptions
    friend class CMayaScene;
    friend class CArnoldSession;
 
+   // Update the session options based on the current maya settings
+   void Update();
 
    // --- Getters
 
@@ -100,6 +102,7 @@ struct DLLEXPORT CSessionOptions
    inline const ArnoldShadowLinkMode& GetShadowLinkMode() const {return m_shadowlink;}
    inline const MDagPath& GetExportCamera() const { return m_camera; }
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return (m_motion.enable_mask & type) != 0; }
+   inline void DisableMotionBlur() {m_motion.enable_mask = MTOA_MBLUR_DISABLE;}
    inline unsigned int GetRangeType() const {return m_motion.range_type;}
    inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }
    inline double GetExportFrame() const { return m_frame; }
@@ -183,7 +186,7 @@ struct DLLEXPORT CSessionOptions
    void SetExportSlashSeparator(bool slashSeparator) {m_exportSlashSeparator = slashSeparator;}
    unsigned int GetExportNamespace() const {return (unsigned int) m_exportNamespace;}
 
-   void SetupLog() const;
+   void SetupLog(AtRenderSession *renderSession) const;
 
    MMatrix& ScaleMatrix(MMatrix& matrix) const;
    AtMatrix& ScaleMatrix(AtMatrix& matrix) const;
@@ -391,17 +394,17 @@ struct DLLEXPORT CSessionOptions
    void SetSupportGpu(bool b) {m_supportGpu = b;}
    bool GetSupportGpu() const {return m_supportGpu;}
 
-
    bool GetExportFileDrivers() const {return m_exportFileDrivers;}
    void SetExportFileDrivers(bool b) {m_exportFileDrivers = b;}
+
+   bool GetExportOverscan() const {return m_exportOverscan;}
+   void SetExportOverscan(bool b) {m_exportOverscan = b;}
 
 private:
 
    CSessionOptions();
    // Setters : private as this is not meant to be modified
-
-   
-   void Update();
+  
    void UpdateMotionFrames();
 
    static void ReplaceSlashes(MString& str, bool isDir = false)
@@ -512,4 +515,5 @@ private:
    bool m_supportStereoCameras;
    bool m_supportGpu;
    bool m_exportFileDrivers;
+   bool m_exportOverscan;
 };

@@ -52,12 +52,12 @@ public:
    void DrawSphereFilled(float radius, int divisionsX, int divisionsY);
    unsigned int NumSampleBase();
 
-   virtual MStatus connectionMade( const MPlug& plug,
+   MStatus connectionMade( const MPlug& plug,
 											 const MPlug& otherPlug,
-											 bool asSrc );
-	virtual MStatus connectionBroken( const MPlug& plug,
+											 bool asSrc ) override;
+	MStatus connectionBroken( const MPlug& plug,
 											 const MPlug& otherPlug,
-											 bool asSrc );
+											 bool asSrc ) override;
 	static void nodeDirtyEventCallback(MObject& node, MPlug& plug, void* clientData);
    MCallbackId m_dirtyCallbackId;
 

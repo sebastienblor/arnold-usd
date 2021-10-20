@@ -444,8 +444,9 @@ void CCameraTranslator::RequestUpdate()
 void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.partialName(false, false, false, false, false, true);
-   
-   // FIXME !!!! WHY ?????? if (plugName == "overscan" && !((GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering()))) return; // don't skip this in viewport rendering
+   CSessionOptions &options = m_impl->m_session->GetOptions();
+
+   if (plugName == "overscan" && !options.GetExportOverscan()) return;
 
    if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
 
@@ -461,14 +462,14 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 
 float CCameraTranslator::GetFocalFactor() const
 {
-   /* FIXME why ????
-   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
-   {
-      MPlug overscanPlug = FindMayaPlug("overscan");
-      if (!overscanPlug.isNull())
-         return 1.f / AiMax(overscanPlug.asFloat(), AI_EPSILON);
+   CSessionOptions &options = m_impl->m_session->GetOptions();
+   if (!options.GetExportOverscan())
+      return 1.f;
 
-   }
-   */
+   // We need to take into account overscan for AVP
+   MPlug overscanPlug = FindMayaPlug("overscan");
+   if (!overscanPlug.isNull())
+      return 1.f / AiMax(overscanPlug.asFloat(), AI_EPSILON);
+
    return 1.f;
 }

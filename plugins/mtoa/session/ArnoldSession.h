@@ -55,6 +55,9 @@ public:
    virtual void Update();
 
    void InitSessionOptions();
+   virtual void UpdateSessionOptions();
+
+   virtual void ChangeCurrentFrame(double time, bool forceViewport);
 
    AtUniverse *GetUniverse() {return m_universe;}
    CSessionOptions &GetOptions() {return m_sessionOptions;}
@@ -87,7 +90,7 @@ public:
    void QueueForUpdate(CNodeTranslator * translator);
    void QueueForUpdate(const CNodeAttrHandle & handle);
    virtual void RequestUpdate();
-   void RequestUpdateTx() {m_updateTx = true; }
+   void RequestUpdateTx(const std::string &filename, const std::string &colorSpace);
    void RequestUpdateOptions() {m_updateOptions = true; RequestUpdate();}
    void RequestUpdateMotion() {m_updateMotion = true;}
    void RequestUpdateLightLinks() {m_updateLightLinks = true;}
@@ -123,7 +126,8 @@ public:
    
    static MObject GetDefaultArnoldRenderOptions();
    void SetCheckVisibility(bool b) {m_checkVisibility = b;}
-   AtRenderSession *GetRenderSession();
+   // Get a render session for this arnold session. Note that for the renderview it can be owned by ARV, so it shouldn't be cleared
+   virtual AtRenderSession *GetRenderSession();
    COptionsTranslator* GetOptionsTranslator() {return m_optionsTranslator;}
    AtNode *ExportColorManager();
 
@@ -163,6 +167,7 @@ protected:
    bool m_updateCallbacks;
    bool m_batch;
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
+   std::unordered_map<std::string, std::string> m_updateTxFiles;
 
    MCallbackId m_newNodeCallbackId;
    MCallbackId m_addParentCallbackId;

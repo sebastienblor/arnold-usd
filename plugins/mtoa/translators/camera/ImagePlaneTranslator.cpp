@@ -141,80 +141,43 @@ void CImagePlaneTranslator::Export(AtNode *node)
 
       // check if filename has changed. If it has we tell ArnoldSession to update tx
       MString prevFilename = AiNodeGetStr(image, "filename").c_str();
+      AtString prevColorSpace = AiNodeGetStr(image, "color_space");
 
       MString resolvedFilename = imageName; // do we need to do anything else to resolve the filename ?
 
 
-      MString colorSpace = FindMayaPlug("colorSpace").asString();
-      
-      bool requestUpdateTx = (colorSpace != m_colorSpace);
-      m_colorSpace = colorSpace;
-
-      if (!requestUpdateTx)
-      {
-         // Color Space is the same, so let's check if the filename was modified
-         int prevFilenameLength = prevFilename.length();
-
-         if (prevFilenameLength > 0)
-         {
-            // compare against previous filename to see if we need to re-generate the TX
-            if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
-            {
-               // Previous Filename was .tx, either because of "use existing tx", 
-               // or because it's explicitely targeting the .tx
-               MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
-
-               int dotPos = resolvedFilename.rindexW(".");
-               if (dotPos > 0)
-               {
-                  MString basename = resolvedFilename.substring(0, dotPos - 1);
-                  
-                  // Let's compare the basenames (without extension)
-                  if (prevBasename != basename)
-                  {
-                     // the basename was modified, this needs an update of TX
-                     requestUpdateTx = true;
-                  } else
-                  {
-                     //basename hasn't changed. However, I'm probably setting it back to non-tx here
-                     // so let's keep the previous one (where Use Tx was applied)
-                     resolvedFilename = prevFilename;
-                  }
-               }
-            } else
-            {
-               // if previous filename and new one are exactly identical, it's useless to update Tx
-               requestUpdateTx = (prevFilename != resolvedFilename);
-            }
-         } else if (resolvedFilename.length() > 0)
-         {
-            requestUpdateTx = true;
-         }
-      }
-
       AiNodeSetStr(image, "filename", resolvedFilename.asChar());
 
-      // only set the color_space if the texture isn't a TX
-      AiNodeSetStr(image, "color_space", "");
-      // if the export option for color managers is turned off, consider that color management is disabled #2995
-      if (!m_impl->m_session->IsFileExport() || (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) != 0)
+      if (m_impl->m_session->IsFileExport() && (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
       {   
+         // if the export option for color managers is turned off, consider that color management is disabled #2995
+         // here we want to reset the color_space attribute so that it's left to arnold's "automatic" default mode,
+         // we don't want to force it to an empty string which behaves differently (see #MTOA-727)
+         AiNodeResetParameter(image, "color_space");
+      }
+      else 
+      {
+         // only set the color_space if the texture isn't a TX. Otherwise force it to an empty value (passthrough)
+         AiNodeSetStr(image, "color_space", FindMayaPlug("colorSpace").asString().asChar());
          if (resolvedFilename.length() > 4)
          {
             MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
 
-            if (extension != ".tx" && extension !=  ".TX")
-               AiNodeSetStr(image, "color_space", colorSpace.asChar());
+            if (extension == ".tx" || extension ==  ".TX")
+            {
+               AiNodeSetStr(image, "color_space", "");
+            }
          }
       }   
+
+      AtString colorSpace = AiNodeGetStr(image, "color_space");
+      if (GetSessionOptions().GetAutoTx() && 
+            ((!IsExported()) || (colorSpace != prevColorSpace) || (prevFilename != resolvedFilename)))
+         RequestTxUpdate(std::string(resolvedFilename.asChar()), std::string(colorSpace.c_str()));   
+
       AiNodeSetBool(image, "ignore_missing_textures", true);
       ProcessParameter(image, "missing_texture_color", AI_TYPE_RGBA, "aiOffscreenColor");
       
-      if (requestUpdateTx)
-      {
-         m_impl->m_session->RequestUpdateTx();
-      }
-
       if (coverageOriginX < 0)
          coverageX = AiMax((double)AI_EPSILON, coverageX + coverageOriginX);
       if (coverageOriginY < 0)

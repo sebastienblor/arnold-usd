@@ -9,7 +9,7 @@ class DLLEXPORT CArnoldRenderViewSession : public CArnoldSession
 public:
 
    CArnoldRenderViewSession(bool viewport = false);
-   virtual ~CArnoldRenderViewSession() {}
+   virtual ~CArnoldRenderViewSession();
    
    //void Export(MSelectionList* selected = NULL) override 
 
@@ -22,6 +22,8 @@ public:
    void SetCamerasList();
    void SetStatus(MString status) override;
    AtNode* ExportOptions() override;
+   void UpdateSessionOptions() override;
+   void ChangeCurrentFrame(double time, bool forceViewport) override;
    MStatus ExportCameras(MSelectionList* selected = NULL) override;
    void Render(bool ipr = true);
    void RequestUpdate() override;
@@ -33,9 +35,13 @@ public:
    void SetPlayblasting(bool b) {m_isPlayblasting = b;}
 
    void Clear() override;
-
+   AtRenderSession *GetRenderSession() override;
    
    CRenderViewMtoA &GetRenderView();
+
+   static const std::string &GetRenderViewSessionId();
+   static const std::string &GetViewportSessionId();
+   
 protected:
    void NewNode(MObject &node) override;
    bool m_viewport;
@@ -43,4 +49,5 @@ protected:
 
    bool m_active;
    bool m_isPlayblasting;
+   bool m_optionsExported;
 }; 

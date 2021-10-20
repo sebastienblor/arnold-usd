@@ -1,4 +1,5 @@
 #include "ArnoldRenderViewSession.h"
+#include "SessionManager.h"
 #include <maya/MGlobal.h>
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MRenderUtil.h>
@@ -6,16 +7,40 @@
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
 
+#include <string>
+
 static CRenderViewMtoA *s_renderView = nullptr;
 static CRenderViewMtoA *s_optionsView = nullptr;
+
+static const std::string s_renderViewSessionId = "arnoldRenderView";
+static const std::string s_arnoldViewportSessionId = "arnoldViewport";
 
 CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) : 
                            CArnoldSession(), 
                            m_viewport(viewport),
                            m_active(false),
-                           m_isPlayblasting(false)
+                           m_isPlayblasting(false),
+                           m_optionsExported(false)
 {
    AddUpdateCallbacks();
+   if (viewport)
+   {
+      m_sessionOptions.SetExportOverscan(true);
+      
+      // We need to ensure motion blur is disabled for AVP, otherwise
+      // changing the current frame could force a new render   
+      m_sessionOptions.DisableMotionBlur();
+   }
+}
+CArnoldRenderViewSession::~CArnoldRenderViewSession()
+{
+   CRenderViewMtoA &renderview = GetRenderView();
+   // We're about to delete the current universe, before that we
+   // want the renderview to clear its render session
+   renderview.FinishRender(true);
+   renderview.SetUniverse(nullptr);
+   renderview.SetSession(nullptr);
+   renderview.RequestFullSceneUpdate();
 }
 void CArnoldRenderViewSession::SetStatus(MString status)
 {
@@ -25,6 +50,9 @@ void CArnoldRenderViewSession::SetStatus(MString status)
 void CArnoldRenderViewSession::CloseRenderView()
 {
    GetRenderView().CloseRenderView();
+   if (!m_viewport)
+      CSessionManager::DeleteActiveSession(s_renderViewSessionId);
+
 }
 
 void CArnoldRenderViewSession::SetRenderViewOption(const MString &option, const MString &value)
@@ -73,17 +101,31 @@ void CArnoldRenderViewSession::ObjectNameChanged(MObject &node, const MString &s
 
 MString CArnoldRenderViewSession::GetRenderViewOption(const MString &option)
 {
-   std::string res(GetRenderView().GetOption(option.asChar()));
-   return MString(res.c_str());
+   const char *resChar = GetRenderView().GetOption(option.asChar());
+   if (resChar == nullptr)
+      return MString();
+
+   return MString(resChar);
 }
 
+// Some additional options data need to be setup for ARV
+static void FillRenderViewOptions(CRenderViewMtoA &renderview, CSessionOptions &sessionOptions)
+{
+   renderview.SetFrame((float)sessionOptions.GetExportFrame());
+   renderview.SetStatusInfo("");
+   AtRenderSession *renderSession = renderview.GetRenderSession();
+   if (renderSession)
+      sessionOptions.SetupLog(renderSession);
+   
+   renderview.SetLogging(sessionOptions.GetLogConsoleVerbosity(), 
+                         sessionOptions.GetLogFileVerbosity());
+   
+}
 
 void CArnoldRenderViewSession::OpenRenderView()
 {
    int width = 1024;
    int height = 1024;
-   // FIXME !!! at this stage the options were not translated, so we might not know yet what the resolution is.
-   // Should we check the render globals ?
    if (!m_sessionOptions.GetResolution(width, height))
    {
       MCommonRenderSettingsData renderGlobals;
@@ -91,12 +133,21 @@ void CArnoldRenderViewSession::OpenRenderView()
       width = renderGlobals.width;
       height = renderGlobals.height;
    }
+
+   if (!m_optionsExported)
+   {
+      // If the options have not been exported yet, xres and yres will be left to their default value.
+      // We want at least to set the proper width/height resolution, so that it shows properly in 
+      // the renderview buffer MTOA-744
+      AtNode *options= AiUniverseGetOptions(m_universe);
+      AiNodeSetInt(options, "xres", width);
+      AiNodeSetInt(options, "yres", height);
+   }
    
    GetRenderView().SetUniverse(m_universe);
    GetRenderView().OpenMtoARenderView(width, height);
-   GetRenderView().SetFrame((float)m_sessionOptions.GetExportFrame());
-   GetRenderView().SetStatusInfo("");
-   GetRenderView().SetLogging(m_sessionOptions.GetLogConsoleVerbosity(), m_sessionOptions.GetLogFileVerbosity());
+
+   FillRenderViewOptions(GetRenderView(), m_sessionOptions);
 }
 
 void CArnoldRenderViewSession::SetCamerasList()
@@ -146,11 +197,35 @@ MStatus CArnoldRenderViewSession::ExportCameras(MSelectionList* selected)
 AtNode* CArnoldRenderViewSession::ExportOptions()
 {
    AtNode *options = CArnoldSession::ExportOptions();
-   GetRenderView().SetFrame((float)m_sessionOptions.GetExportFrame());
-   GetRenderView().SetStatusInfo("");
-   GetRenderView().SetLogging(m_sessionOptions.GetLogConsoleVerbosity(), m_sessionOptions.GetLogFileVerbosity());
+   m_optionsExported = true;
+
+   FillRenderViewOptions(GetRenderView(), m_sessionOptions);
    return options;
 }
+
+
+// This function will be called every time the options node was modified during IPR
+void CArnoldRenderViewSession::UpdateSessionOptions()
+{
+   // First call the parent class that will update the sessionOptions
+   CArnoldSession::UpdateSessionOptions();
+   // Then, ensure we provide the correct data to ARV
+   FillRenderViewOptions(GetRenderView(), m_sessionOptions);
+
+   // We need to ensure motion blur is disabled for AVP, otherwise
+   // changing the current frame could force a new render
+   if (m_viewport)
+      m_sessionOptions.DisableMotionBlur();
+   
+}
+void CArnoldRenderViewSession::ChangeCurrentFrame(double time, bool forceViewport)
+{
+   // Don't do anything if we're in an AVP session, we don't want to 
+   // change the current frame as it could recursively update a viewport render
+   if (!m_viewport)
+      CArnoldSession::ChangeCurrentFrame(time, forceViewport);
+}
+
 void CArnoldRenderViewSession::InterruptRender()
 {
    GetRenderView().InterruptRender();
@@ -173,7 +248,7 @@ void CArnoldRenderViewSession::RequestUpdateImagers(bool listChanged)
    // Tell ARV to update the list of imagers
    GetRenderView().SetOption("Update Imagers", listChanged ? "Rewire Imagers" : "1");
    static AtString request_imager_update("request_imager_update");
-   AiRenderSetHintBool(GetRenderView().GetRenderSession(), request_imager_update, true);
+   AiRenderSetHintBool(GetRenderSession(), request_imager_update, true);
 }
 void CArnoldRenderViewSession::NewNode(MObject &node)
 {
@@ -192,10 +267,19 @@ void CArnoldRenderViewSession::NewNode(MObject &node)
    }   
 }
 
+// Here we return the render session owned by ARV
+AtRenderSession *CArnoldRenderViewSession::GetRenderSession()
+{
+   return GetRenderView().GetRenderSession();
+}
 void CArnoldRenderViewSession::Clear()
 {
+   // First ensure the renderview cleared its own render session
+   GetRenderView().FinishRender();
+   GetRenderView().SetUniverse(nullptr);
    CArnoldSession::Clear();
    GetRenderView().SetUniverse(m_universe);
+   m_optionsExported = false;
    GetRenderView().RequestFullSceneUpdate();
 }
 void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)
@@ -204,9 +288,17 @@ void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)
    bool viewFound = false;
    M3dView thisView;
 
-   if (destination.length() > 0)
-      viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+   // If we start rendering with ARV, we will call this function with the renderview session name
+   // as the destination (as if it was a viewport panel name) . This allows us to distinguish 
+   // this use case and know when we need to kill the renderview session or not
+   if (destination != MString(s_renderViewSessionId.c_str()))
+   {
+      CSessionManager::DeleteActiveSession(s_renderViewSessionId);
 
+      if (destination.length() > 0)
+         viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+   }
+   
    // Close all but the destination render override if there is one
    // If the destination is an empty string it is the ARV.
    for (unsigned int i = 0, viewCount = M3dView::numberOf3dViews(); i < viewCount; ++i)
@@ -236,4 +328,15 @@ CRenderViewMtoA &CArnoldRenderViewSession::GetRenderView()
    } else
       s_renderView->SetSession(this);
    return *s_renderView;
+}
+
+const std::string &CArnoldRenderViewSession::GetRenderViewSessionId()
+{
+   return s_renderViewSessionId;
+}
+
+const std::string &CArnoldRenderViewSession::GetViewportSessionId()
+{
+   return s_arnoldViewportSessionId;
+
 }

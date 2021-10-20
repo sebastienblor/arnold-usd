@@ -69,8 +69,8 @@ public:
    // Adds a DCC-custom tab in the display settings
    void AddCustomTab(QWidget *widget, const char *tabName);
    
-   // Stops the rendering and clears the Arnold scene, but leave window visible
-   void DisableRendering();
+   // Stops the rendering session. Eventually turn off IPR
+   void FinishRender(bool stopIpr = false);
 
    // return the Qt Options Window
    QMainWindow *GetOptionsWindow();
@@ -237,7 +237,7 @@ private:
 class AI_RV_DLLEXPORT CRenderViewPanManipulator
 {
 public:
-   CRenderViewPanManipulator() {}
+   CRenderViewPanManipulator() : m_universe(nullptr) {}
    virtual ~CRenderViewPanManipulator() {}
 
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
@@ -250,7 +250,7 @@ protected:
 class AI_RV_DLLEXPORT CRenderViewZoomManipulator
 {
 public:
-   CRenderViewZoomManipulator() {}
+   CRenderViewZoomManipulator() : m_universe(nullptr) {}
    virtual ~CRenderViewZoomManipulator() {}
 
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
@@ -265,7 +265,7 @@ protected:
 class AI_RV_DLLEXPORT CRenderViewRotateManipulator
 {
 public:
-   CRenderViewRotateManipulator() {}
+   CRenderViewRotateManipulator() : m_universe(nullptr) {}
    virtual ~CRenderViewRotateManipulator() {}
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
    void SetUniverse(AtUniverse *universe) {m_universe = universe;}

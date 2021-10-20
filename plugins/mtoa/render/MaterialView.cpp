@@ -22,20 +22,6 @@
 #define new DEBUG_NEW
 #endif
 
-namespace 
-{
-
-void SleepMS(unsigned int ms)
-{
-#ifdef _WIN64
-   Sleep(ms);
-#else
-   usleep(ms*1000);
-#endif
-}
-
-}
-
 extern const AtNodeMethods* materialview_driver_mtd;
 CMaterialView* CMaterialView::s_instance = NULL;
 
@@ -60,12 +46,12 @@ CMaterialView::CMaterialView()
 
 CMaterialView::~CMaterialView()
 {
+   // The material view owns its own arnold session, so we need to clear it here
+   delete m_arnoldSession;
 }
 
 AtRenderStatus MaterialViewUpdateCallback(void *private_data, AtRenderUpdateType update_type, const AtRenderUpdateInfo *update_info)
-{
-   CMaterialView *material_view = (CMaterialView *)private_data;
-
+{   
    AtRenderStatus status = AI_RENDER_STATUS_RENDERING;
    if (update_type == AI_RENDER_UPDATE_FINISHED)
       status = AI_RENDER_STATUS_FINISHED;
@@ -76,7 +62,6 @@ AtRenderStatus MaterialViewUpdateCallback(void *private_data, AtRenderUpdateType
    
    return status;
 }
-static int ass_counter = 0;
 
 MStatus CMaterialView::startAsync(const JobParams& params)
 {
@@ -459,20 +444,17 @@ bool CMaterialView::BeginSession()
       // We are already active. We should never get here.
       return true;
    }
-   //MSwatchRenderBase::enableSwatchRender(false);
-
-   m_arnoldSession = (CArnoldSession *)CSessionManager::FindActiveSession("MaterialView");
+   // For Material View, we're not storing the session in the session manager, but we just store it locally in this class
    if (!m_arnoldSession) 
    {
       m_arnoldSession = new CArnoldSession();
-      CSessionManager::AddActiveSession("MaterialView", m_arnoldSession);
       m_arnoldSession->SetCheckVisibility(false);
-      // do we really want to disable use existing TX ?
       m_renderSession = m_arnoldSession->GetRenderSession();
    }
    CSessionOptions &sessionOptions = m_arnoldSession->GetOptions();
    sessionOptions.SetUseExistingTx(true);
    sessionOptions.SetAutoTx(false);
+   sessionOptions.DisableMotionBlur();
 
    // Install our driver
    if (AiNodeEntryLookUp("materialview_display") == nullptr)
@@ -512,7 +494,7 @@ void CMaterialView::EndSession()
 //   AiNodeEntryUninstall("materialview_display");
 
    m_renderSession = nullptr;
-   CSessionManager::DeleteActiveSession("MaterialView");
+   delete m_arnoldSession;
    m_arnoldSession = nullptr;
    // End our scene session
    
@@ -602,10 +584,20 @@ void CMaterialView::InitOptions()
       AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth"), true).asInt());
       AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth"), true).asInt());
 
+      MString texture_searchpath = fnArnoldRenderOptions.findPlug("texture_searchpath", true).asString();
+      if (texture_searchpath.length() > 0)
+         AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+
+      COptionsTranslator::AddProjectFoldersToSearchPaths(options);
 
       // Check if we're rendering in GPU or CPU
       bool gpuRender = false;
-      // FIXME this code is duplicated from OptionsTranslator, we should rather handle the whole export from there
+      /* 
+      ** Forcing Material View to always only use the CPU becase of a current limitation that prevents multiple GPU
+      ** render sessions.
+      */
+
+      /* FIXME this code is duplicated from OptionsTranslator, we should rather handle the whole export from there
       if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
       {
          MPlug gpuPlug = fnArnoldRenderOptions.findPlug("renderDevice", true);
@@ -613,7 +605,7 @@ void CMaterialView::InitOptions()
             gpuRender = gpuPlug.asBool();
 
          AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
-      }
+      }*/
       if (gpuRender)
       {
 
@@ -750,9 +742,7 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    else
    {
       CNodeTranslator* translator = it->second;
-      AtNode *trNode = translator->GetArnoldNode();
       arnoldNode = UpdateNode(translator, updateMode, updateConnections);
-
    }
 
    if (arnoldNode)
@@ -891,5 +881,13 @@ void CMaterialView::Abort()
    if (s_instance)
    {
       s_instance->DoAbort();
+   }
+}
+
+void CMaterialView::End()
+{
+   if (s_instance)
+   {
+      s_instance->EndSession();
    }
 }

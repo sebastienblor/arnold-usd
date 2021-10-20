@@ -86,19 +86,19 @@ void CArnoldSession::InitSessionOptions()
    m_sessionOptions.Update();
 }
 
-template <class T>
-static void ChangeCurrentFrame(T time, bool forceViewport = false)
+void CArnoldSession::UpdateSessionOptions()
+{
+   InitSessionOptions();
+}
+
+void CArnoldSession::ChangeCurrentFrame(double time, bool forceViewport)
 {   
+   MTime mtime(time, MTime::uiUnit());
+
    // time can be either MTime or double
 
-   // Ensure we don't do anything for AVP
-   /*
-   FIXME
-   if (sessionMode == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
-      return;
-      */
    MTime currentTime = MAnimControl::currentTime();
-   if (currentTime == time)
+   if (currentTime == mtime)
       return;
 
    // viewFrame will force the refresh of the viewport. This seems to be needed in batch render
@@ -107,9 +107,9 @@ static void ChangeCurrentFrame(T time, bool forceViewport = false)
    // However, for other "motion" frames, it's better to use "setCurrentTime" which doesn't force a refresh 
    // of the viewport (until next maya "idle").
    if (forceViewport)
-      MGlobal::viewFrame(time); 
+      MGlobal::viewFrame(mtime); 
    else
-      MAnimControl::setCurrentTime(time); 
+      MAnimControl::setCurrentTime(mtime); 
 }
 
 
@@ -339,18 +339,21 @@ namespace // <anonymous>
 
 void CArnoldSession::Clear()
 {
-   ObjectToTranslatorMap::iterator it = m_translators.begin();
-   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
-   for ( ; it != itEnd; ++it)
-      delete it->second;
-   
-   m_translators.clear();
+   // First ensure there's no render in progress for this universe
    if (m_renderSession)
    {
       AiRenderInterrupt(m_renderSession, AI_BLOCKING);
       AiRenderSessionDestroy(m_renderSession);
       m_renderSession = nullptr;
    }
+
+   // Deleting the translators will delete the AtNodes
+   ObjectToTranslatorMap::iterator it = m_translators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+   for ( ; it != itEnd; ++it)
+      delete it->second;
+   
+   m_translators.clear();
    // if we had an explicit universe, let's create a new one
    if (m_universe)
    {      
@@ -364,6 +367,7 @@ void CArnoldSession::Clear()
    // ClearUpdateCallbacks(); we shouldn't have to clear the update callbacks, since the session type is not meant to change
    m_masterInstances.clear();
    m_optionsTranslator = nullptr;
+   m_updateTxFiles.clear();
  
 }
 
@@ -404,7 +408,7 @@ void CArnoldSession::Export(MSelectionList* selected)
    // If the options have changed, we need to update CSessionOptions
    if (m_updateOptions)
    {
-      InitSessionOptions();
+      UpdateSessionOptions();
    }
 
 
@@ -602,7 +606,7 @@ void CArnoldSession::Export(MSelectionList* selected)
       {
          if (step == (unsigned int)currentFrameIndex)
             continue; // current frame, has already been exported above
-         ChangeCurrentFrame(MTime(m_sessionOptions.m_motion_frames[step], MTime::uiUnit()));
+         ChangeCurrentFrame(m_sessionOptions.m_motion_frames[step], false);
          
          if (MtoaTranslationInfo())
          {
@@ -636,7 +640,7 @@ void CArnoldSession::Export(MSelectionList* selected)
          (*trIt)->PostExport((*trIt)->m_impl->m_atNode);
 
 
-      ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()));
+      ChangeCurrentFrame(m_sessionOptions.GetExportFrame(), false);
       m_isExportingMotion = false;
    }
 
@@ -688,7 +692,6 @@ void CArnoldSession::Update()
    MStatus status;
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
-   std::vector<ObjectToTranslatorPair>::iterator itObj;
    size_t objectsToUpdateCount;
    bool newDag, exportMotion, motionBlur, mbRequiresFrameChange;
    int currentFrameIndex;
@@ -704,40 +707,48 @@ void CArnoldSession::Update()
    if (frameChanged && m_updateCallbacks) m_sessionOptions.SetExportFrame(frame);
 
 
-   if (m_updateOptions)
-   {
-      if (mtoa_translation_info)
-         MtoaDebugLog("[mtoa.session]     Updating Session Options");
-
-      // FIXME !!! ? renderSession->UpdateRenderOptions();
-      InitSessionOptions();
-   }
+   std::vector<bool> prevRequiresMotion;
 
    size_t previousUpdatedTranslators = 0;
 
    int updateRecursions = 0;
    static const int maxUpdateRecursions = 5;
 
+   // If we need to update the motion data, we first have to check 
+   // which translators used to require motion blur, BEFORE we update the session options
    if (m_updateMotion)
    {  
       if (mtoa_translation_info)
          MtoaDebugLog("[mtoa.session]    Updating Motion Blur data");
 
-      std::vector<bool> prevRequiresMotion;
+      
       prevRequiresMotion.reserve(m_translators.size());
 
       // stores requiresMotionData from all translators
-      ObjectToTranslatorMap::iterator it = m_translators.begin();
-      ObjectToTranslatorMap::iterator itEnd = m_translators.end();
+      auto it = m_translators.begin();
+      auto itEnd = m_translators.end();
       for ( ; it != itEnd; ++it)
          prevRequiresMotion.push_back(it->second->RequiresMotionData());
 
+   }
 
-      // check again all translators
-      int trIdx = 0;
-      for (it = m_translators.begin() ; it != itEnd; ++it, ++trIdx)
-      {
-         if (prevRequiresMotion[trIdx])
+   if (m_updateOptions)
+   {
+      if (mtoa_translation_info)
+         MtoaDebugLog("[mtoa.session]     Updating Session Options");
+
+      UpdateSessionOptions();
+   }
+
+   // Now check again all translators
+   if (m_updateMotion)
+   {
+      unsigned int trIdx = 0;
+      auto it = m_translators.begin();
+      auto itEnd = m_translators.end();
+      for (; it != itEnd; ++it, ++trIdx)
+      {         
+         if (trIdx < prevRequiresMotion.size() && prevRequiresMotion[trIdx])
          {
             // This translator used to be motion blurred
             if (!it->second->RequiresMotionData())
@@ -1081,7 +1092,7 @@ UPDATE_BEGIN:
          // we don't need to change the current frame. However we still need to process
          // the export for every step. Otherwise some AtArray keys could be missing
          if (mbRequiresFrameChange)
-            ChangeCurrentFrame(MTime(motionFrames[step], MTime::uiUnit()));
+            ChangeCurrentFrame(motionFrames[step], false);
 
          // set the motion step as it will be used by translators to fill the arrays
          // at the right index
@@ -1116,7 +1127,7 @@ UPDATE_BEGIN:
 
       // we've done enough harm, let's restore the current frame...
       if (mbRequiresFrameChange)
-         ChangeCurrentFrame(MTime(m_sessionOptions.GetExportFrame(), MTime::uiUnit()));
+         ChangeCurrentFrame(m_sessionOptions.GetExportFrame(), false);
 
       // we're done exporting motion now
       m_isExportingMotion = false;
@@ -1176,46 +1187,45 @@ void CArnoldSession::SetStatus(MString status)
    MGlobal::displayInfo(status);
 }
 
+void CArnoldSession::RequestUpdateTx(const std::string &filename, const std::string &colorSpace)
+{
+   if (filename.empty())
+      return;
+   size_t filenameLength = filename.length();
+   std::string extension = (filenameLength > 4) ? filename.substr(filenameLength - 3) : "";
 
+   if (extension == ".tx" || extension == ".TX")
+      return;
+
+   m_updateTx = true; 
+   auto iter = m_updateTxFiles.find(filename);
+   if (iter != m_updateTxFiles.end())
+   {
+      // We already have that filename is our list
+      if (colorSpace == iter->second)
+         return;
+
+      // At this point we have the same filename being used multiple times, but with different color spaces.
+      // We can't handle this currently, so we need to raise an error
+      AiMsgWarning("[mtoa.autotx]  %s is referenced multiple times with different color spaces. Forcing to %s for all instances of this texture", filename.c_str(), colorSpace.c_str());
+   }
+   m_updateTxFiles[filename] = colorSpace;      
+}
 
 void CArnoldSession::ExportTxFiles()
 {
-   bool autoTx = m_sessionOptions.GetAutoTx();
-   bool useTx = m_sessionOptions.GetUseExistingTx();
+   if (!m_sessionOptions.GetAutoTx())
+      return;
 
-   if (useTx == false && autoTx == false) return;
-
+   if (m_updateTxFiles.empty())
+      return;
+   
    if (MtoaTranslationInfo())
       MtoaDebugLog("[mtoa.session]    Updating TX files");
 
    const MStringArray &searchPaths = m_sessionOptions.GetTextureSearchPaths();
 
-   bool progressBar = autoTx && (MGlobal::mayaState() == MGlobal::kInteractive);
-
-   std::vector<CNodeTranslator *> textureNodes;
-   textureNodes.reserve(100); // completely empirical value, to avoid first allocations
-
-
-   ObjectToTranslatorMap::iterator it = m_translators.begin();
-   ObjectToTranslatorMap::iterator itEnd = m_translators.end();
-
-   static const AtString image_str("image");
-
-   for ( ; it != itEnd; ++it)
-   {
-      CNodeTranslator *translator = it->second;
-      if (translator == NULL) continue;
-
-      AtNode *node = translator->GetArnoldNode();
-      if (node == NULL) continue;
-
-      if (AiNodeIs(node, image_str)) textureNodes.push_back(translator);
-      
-   }
-
-   if (textureNodes.empty())
-      return; // nothing to do regarding textures
-
+   bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
 
    // First, let's get Color management configuration files
 
@@ -1233,7 +1243,7 @@ void CArnoldSession::ExportTxFiles()
       MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);      
    }
 
-   unordered_map<std::string, std::string> textureColorSpaces;
+   unordered_map<AtString, AtString, AtStringHash> textureColorSpaces;
 
    MStringArray expandedFilenames;
    std::string txArguments;
@@ -1241,77 +1251,29 @@ void CArnoldSession::ExportTxFiles()
    std::vector<bool> listConvertTx;
    std::vector<std::string> listArguments;
    
-   std::vector<AtNode *> listNodes;
    MStringArray  listFullPaths;
 
    MString txFilename;
 
 
-   listNodes.reserve(textureNodes.size());
-   listTextures.reserve(textureNodes.size());
-   listArguments.reserve(textureNodes.size());
+   listTextures.reserve(m_updateTxFiles.size());
+   listArguments.reserve(m_updateTxFiles.size());
 
 //============= Part 1 : get the list of textures that  need to be converted to TX
-// or replaced by the .tx version
 
-
-   for (size_t i = 0; i < textureNodes.size(); ++i)
+   // Loop over the image nodes that requested a Tx update
+   for (auto iter : m_updateTxFiles)
    {
-      CNodeTranslator *translator = textureNodes[i];
-      if (translator == NULL) continue;
-
-      AtNode *node = translator->GetArnoldNode();
-      if (node == NULL) continue;
-      
-      MString filename = AiNodeGetStr(node, "filename").c_str();
-      if (filename.length() == 0)
-         continue;
-
-      std::string filenameStr = filename.asChar();
-
-      MPlug autoTxPlug = translator->FindMayaPlug("autoTx");
-      if (autoTxPlug.isNull())
-         autoTxPlug = translator->FindMayaPlug("aiAutoTx");
-
-      bool fileAutoTx = autoTx && (!autoTxPlug.isNull()) && autoTxPlug.asBool();
-
-      MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
-      std::string colorSpaceStr = colorSpace.asChar();
-
-      unordered_map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
-      if (it == textureColorSpaces.end())
-      {
-         textureColorSpaces[filenameStr] = colorSpaceStr;
-      } else
-      {
-         // already dealt with this filename, skip the auto-tx
-         if (colorSpaceStr != it->second)
-         {
-            AiMsgWarning("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
-         }
-
-         fileAutoTx = false; // => we don't want that texture to be converted to TX   
-      }
-
-      // Xheck texture extension, if .tx => set fileAutoTx = false
-      int filenameLength = filename.numChars();
-
-      // empty filename, nothing to do
-      if (filenameLength == 0)
-         continue;
-
-      if (filenameLength > 4 && filename.substring(filenameLength - 3, filenameLength - 1) == ".tx")
-         fileAutoTx = false;
-      
-
-      // no auto-tx, no use tx, nothing to do here
-      if ((!fileAutoTx) && (!useTx))
-         continue;
+      // We're assuming that only image shaders are in this list, OR
+      // any other custom shader that has "filename" and "color_space" attributes
+      const std::string &filename = iter.first;
+      const std::string &colorSpace = iter.second;
+      MString filenameStr(filename.c_str());
+      MString colorSpaceStr(colorSpace.c_str());
 
       MString searchPath = "";
-      MString searchFilename = filename;
+      MString searchFilename = filenameStr;
       
-
       // First we need to get the path to the expanded filename(s)
       expandedFilenames = expandFilename(searchFilename);
 
@@ -1324,37 +1286,20 @@ void CArnoldSession::ExportTxFiles()
          for (unsigned int t = 0; t < searchPaths.length(); ++t)
          {
             searchPath = searchPaths[t];
-            searchFilename = searchPath + filename;
+            searchFilename = searchPath + filenameStr;
             expandedFilenames = expandFilename(searchFilename);
 
             // found some files, no need to continue
             if (expandedFilenames.length() > 0)
                break;
-
          }
       }
 
-      // append the AtNode as well as its resolved filename
-      // so that use-tx can verify if the tx file does exist
-      // (even though we're not converting it to TX now)
-      listNodes.push_back(node);
-
-      if (expandedFilenames.length() > 0)
-         listFullPaths.append(searchFilename);
-      else
-         listFullPaths.append("");
-
-
-      if (!fileAutoTx)
-         continue;
-
       txArguments = "-v -u --unpremult --oiio";
-      if (cmEnabled && colorSpace != renderingSpace && colorSpace.length() > 0)
+      if (cmEnabled && colorSpaceStr != renderingSpace && colorSpace.length() > 0)
       {
-         //txArguments += " --colorengine syncolor --colorconfig ";
-         //txArguments += colorConfig.asChar();
          txArguments += " --colorconvert \"";
-         txArguments += colorSpace.asChar();
+         txArguments += colorSpace;
          txArguments += "\" \"";
          txArguments += renderingSpace.asChar();
          txArguments += "\"";
@@ -1376,8 +1321,8 @@ void CArnoldSession::ExportTxFiles()
 
          std::string bitdepth_args = "";
 
-         if (cmEnabled && colorSpace != renderingSpace &&
-            colorSpace.toLowerCase() != MString("raw") && bitdepth <= 8)
+         if (cmEnabled && colorSpaceStr != renderingSpace &&
+            colorSpaceStr.toLowerCase() != MString("raw") && bitdepth <= 8)
          {
             bitdepth_args += " --format exr -d half --compression dwaa";
          }
@@ -1485,7 +1430,7 @@ void CArnoldSession::ExportTxFiles()
          progressStatus += " (";
          progressStatus += (unsigned int)(index + 1);
          progressStatus += "/";
-         progressStatus += (unsigned int)textureNodes.size();
+         progressStatus += (unsigned int)m_updateTxFiles.size();
          progressStatus += ")";
 
          while (progressStatus.length() < 50)
@@ -1494,7 +1439,7 @@ void CArnoldSession::ExportTxFiles()
          }
 
          MProgressWindow::setProgressStatus(progressStatus);
-         MProgressWindow::setProgress(index * 100 / textureNodes.size());
+         MProgressWindow::setProgress(index * 100 / m_updateTxFiles.size());
       }      
    }
    if (progressBar && progressStarted)
@@ -1510,53 +1455,7 @@ void CArnoldSession::ExportTxFiles()
       AiTextureInvalidate(AtString(txFilename.asChar()));     
 
    }
-//============= Part 3 : Use existing TX. Loop over the list of nodes and eventually replace the extension
-//  by .tx. 
-
-   // FIXME now that we're out of Maya, should we multi-thread this ?
-   if (useTx)
-   {
-      // loop over listNodes
-      // get the previously used search path
-      for (size_t i = 0; i < listNodes.size(); ++i)
-      {
-         AtNode *imgNode = listNodes[i];
-         if (imgNode == NULL)
-            continue;
-
-         MString filename = MString(AiNodeGetStr(imgNode, "filename").c_str());
-
-         MString txFilename = (listFullPaths[i].numChars() > 0) ? listFullPaths[i] : filename;
-         txFilename = txFilename.substring(0, txFilename.rindexW(".")) + MString("tx");
-
-         MStringArray expandedFilenames = expandFilename(txFilename);
-
-         // if no TX file was found, check the search paths,
-         // but only do this if the current search path (listFullPaths[i]) was empty,
-         // which happens if the original texture wasn't found on disk
-         if (expandedFilenames.length() == 0 && listFullPaths[i].numChars() == 0)
-         {            
-            for (unsigned int s = 0; s < searchPaths.length(); ++s)
-            {
-               MString searchFilename = searchPaths[s] + txFilename;
-               expandedFilenames = expandFilename(searchFilename);
-               
-               // we found the texture, stop searching
-               if (expandedFilenames.length() > 0) break;
-            }
-         }
-
-         // TX files were found, we can replace the extension to TX
-         if (expandedFilenames.length() > 0)
-         {
-            filename = txFilename;
-            m_sessionOptions.FormatTexturePath(filename);
-            AiNodeSetStr(imgNode, "filename", filename.asChar()); 
-            // since we replace the filename by TX we need to reset the color space
-            AiNodeSetStr(imgNode, "color_space", AtString(""));
-         }
-      }
-   }
+   m_updateTxFiles.clear();
 }
 
 // This function removes the translator from our list of 
@@ -2233,6 +2132,17 @@ void CArnoldSession::ClearUpdateCallbacks()
       MMessage::removeCallback(m_removeParentCallbackId);
       m_removeParentCallbackId = 0;
    }
+   if (m_hiddenNodeCb != 0)
+   {
+      MMessage::removeCallback(m_hiddenNodeCb);
+      m_hiddenNodeCb = 0;
+   }
+   for(auto &hiddenObjectCallback : m_hiddenObjectsCallbacks)
+   {
+      MNodeMessage::removeCallback(hiddenObjectCallback.second);
+   }
+   m_hiddenObjectsCallbacks.clear();
+
    ObjectToTranslatorMap::iterator it = m_translators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_translators.end();
    for ( ; it != itEnd; ++it)

@@ -1,47 +1,9 @@
-Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'MASH_Audio.filename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 8: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
-Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 13: filePathEditor: Attribute 'svgToPoly.svgFilepath' is invalid or is not designated 'usedAsFilename'.
-Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been registered already.
-Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
-00:00:00   221MB ERROR   | [mtoa.attr] Arnold parameter "options.preserve_scene_data" does not exist.
-00:00:00   229MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
-00:00:00   229MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
-Successfully registered renderer 'arnold'
-polySphere -r 1 -sx 20 -sy 20 -ax 0 1 0 -cuv 2 -ch 1;
-Result: pSphere1 polySphere1
-circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0 -s 8 -ch 1; objectMoveCommand;
-circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0 -s 8 -ch 1; objectMoveCommand;
-Successfully deregistered renderer 'arnold'
-Successfully deregistered Arnold nodes
-[mtoa] Successfully deregisterdd 'arnoldRender' command.
-[mtoa] Successfully deregisterdd 'arnoldIpr' command.
-[mtoa] Successfully deregisterdd 'arnoldBakeGeo' command.
-[mtoa] Successfully deregisterdd 'arnoldRenderToTexture' command.
-[mtoa] Successfully deregisterdd 'arnoldExportAss' command.
-[mtoa] Successfully deregisterdd 'arnoldPlugins' command.
-[mtoa] Successfully deregisterdd 'arnoldListAttributes' command.
-[mtoa] Successfully deregisterdd 'arnoldTemperatureToColor' command.
-[mtoa] Successfully deregisterdd 'arnoldFlushCache' command.
-[mtoa] Successfully deregisterdd 'arnoldCopyAsAdmin' command.
-[mtoa] Successfully deregisterdd 'arnoldRenderView' command.
-[mtoa] Successfully deregisterdd 'arnoldUpdateTx' command.
-[mtoa] Successfully deregisterdd 'arnoldScene' command.
-[mtoa] Successfully deregisterdd 'arnoldLicense' command.
-Successfully deregistered Arnold material view renderer
-Successfully deregistered Arnold swatch renderer
-Successfully deregistered tx texture file
-Successfully deregistered Arnold ass file exporter
-Successfully deregistered Arnold ass file importer
-Warning: file: C:/Users/blaines/Documents/maya/projects/default/scenes/test1.ma line 361: Selected nodes were ignored since the 'scene' flag was used.
-Warning: particleShape1: No cache file found for this object, runup may be needed. Check your workspace particles directory.
-Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
-Warning: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
-File read in  0.024 seconds.
-post_script
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\4', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.19041.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.19041.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\solidangle\\mtoadeploy\\2022\\bin;C:\\Program Files\\Autodesk\\Maya2022\\bin;C:\\solidangle\\mtoadeploy\\2022\\lib;C:\\solidangle\\mtoadeploy\\2022\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\\\MSBuild\\15.0\\bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\4', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0398', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2022', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20220000\\msvc_opt\\testsuite\\test_0398'}
+ 
+ ==== Exec cmd ==== 
+ 
+"C:\Python27\python.exe" post_script.py . C:\arnold\mtoa\external\OpenImageIO\bin\windows\oiiotool C:\solidangle\mtoadeploy\2022
+ 
+ C:\arnold\mtoa\external\OpenImageIO\bin\windows\oiiotool --create 160x120 3 -d uint8 --fill:color=0,1,0 160x120 -o .\testrender.tif

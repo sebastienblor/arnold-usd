@@ -44,25 +44,31 @@ if system.os == 'windows' and local_env['MODE'] == 'opt':
     MSVC_FLAGS += " /Fd"+local_env['BUILD_BASE_DIR']+"\\mayaUsdRegistry_tmp.pdb"
     local_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 
+mayaRoot = local_env['MAYA_ROOT']
+mayaVersion = int(local_env['MAYA_VERSION_BASE'])
+# For Maya 2022, python3 means python3.7
+# For Maya 2023, it is python3.9
+pythonMinor = '7' if mayaVersion < 2023 else '9'
+pythonDirChar = 'm' if mayaVersion < 2023 else ''
 
 if platform.system().lower() == 'darwin':
-    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'include', 'python3.7m')
-    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.7'.format(pythonVersion), 'lib')
+    python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.{}'.format(pythonVersion, pythonMinor), 'include', 'python{}.{}{}'.format(pythonVersion, pythonMinor, pythonDirChar))
+    python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.{}'.format(pythonVersion, pythonMinor), 'lib')
     
 else:
-    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python{}7'.format(pythonVersion), 'Python')
+    python_include = os.path.join(local_env['MAYA_INCLUDE_PATH'], 'Python{}{}'.format(pythonVersion, pythonMinor), 'Python')
     python_lib = os.path.join(mayaRoot, 'lib')
 
 if platform.system().lower() == 'windows':
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-    boost_lib_name = 'boost_%s{}7-vc141-mt-x64-1_70'.format(pythonVersion)
+    boost_lib_name = 'boost_%s{}{}-vc141-mt-x64-1_70'.format(pythonVersion, pythonMinor)
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
     if pythonVersion == '2' and platform.system().lower() == 'linux':
         boost_lib_name = 'boost_%s'
     else:
-        boost_lib_name = 'boost_%s{}7'.format(pythonVersion)
+        boost_lib_name = 'boost_%s{}{}'.format(pythonVersion, pythonMinor)
 
 if not os.path.exists(python_include):
     print("Python includes not found %s"% python_include)
@@ -126,17 +132,17 @@ usd_libs = [
 local_env.Append(LIBS = usd_libs)
 local_env.Append(LIBS = ['mayaUsd'])
 if platform.system().lower() == 'darwin':
-    local_env['PYTHON_LIB_NAME'] = 'libpython{}.7'.format(pythonVersion)
-    local_env.Append(LIBS = ['python{}.7'.format(pythonVersion), boost_lib_name.replace('%s', 'python')])
+    local_env['PYTHON_LIB_NAME'] = 'libpython{}.{}'.format(pythonVersion, pythonMinor)
+    local_env.Append(LIBS = ['python{}.{}'.format(pythonVersion, pythonMinor), boost_lib_name.replace('%s', 'python')])
 
 if platform.system().lower() == 'linux':
     if pythonVersion == '3':
-        local_env['PYTHON_LIB_NAME']   = 'libpython3.7m'
+        local_env['PYTHON_LIB_NAME']   = 'libpython3.{}{}'.format(pythonMinor, pythonDirChar)
     else:
         local_env['PYTHON_LIB_NAME']   = 'libpython2.7'
 
 if platform.system().lower() == 'windows':
-    local_env['PYTHON_LIB_NAME']   = 'python{}7'.format(pythonVersion)  
+    local_env['PYTHON_LIB_NAME']   = 'python{}{}'.format(pythonVersion, pythonMinor)  
 
 MAYAUSD_REGISTRY = local_env.SharedLibrary('mayaUsdRegistry', source_files, LIBPREFIX='')
 

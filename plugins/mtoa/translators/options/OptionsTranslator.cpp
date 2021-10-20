@@ -18,6 +18,7 @@
 #include <maya/MFileIO.h>
 #include <maya/MFileObject.h>
 #include <maya/MRenderUtil.h>
+#include <maya/MDistance.h>
 
 #include <assert.h>
 
@@ -1206,8 +1207,7 @@ void COptionsTranslator::Export(AtNode *options)
             strcmp(paramName, "sss_bssrdf_samples") == 0 || strcmp(paramName, "volume_indirect_samples") == 0)
          {
             // deprecated parameters, don't do anything
-         }
-         else if (strcmp(paramName, "enable_progressive_render") == 0)
+         } else if (strcmp(paramName, "enable_progressive_render") == 0)
          {
             // only expose progressive render for interactive sessions 
             // FIXME is this the right criteria
@@ -1232,6 +1232,13 @@ void COptionsTranslator::Export(AtNode *options)
 
             } else
                AiNodeResetParameter(options, "ignore_list");
+         } else if (strcmp(paramName, "texture_use_existing_tx") == 0)
+         {
+            AiNodeSetBool(options, AtString("texture_use_existing_tx"), sessionOptions.GetUseExistingTx());
+         } else if (strcmp(paramName, "meters_per_unit") == 0)
+         {
+            MDistance dist(1.0 / sessionOptions.GetScaleFactor(), MDistance::uiUnit());
+            AiNodeSetFlt(options, "meters_per_unit", (float)dist.asMeters());
          }
          else
          {
@@ -1282,7 +1289,6 @@ void COptionsTranslator::Export(AtNode *options)
       MFnDependencyNode fnNode (camera.node());
       MPlug imagePlanePlug = fnNode.findPlug("imagePlane", true);
 
-      CNodeTranslator *imgTranslator = NULL;
       MStatus status;
 
       if (imagePlanePlug.numConnectedElements() > 0)
@@ -1369,7 +1375,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    AiNodeSetFlt(options, "pixel_aspect_ratio", pixelAspectRatio);
 
-   if (false && useRenderRegion)
+   if (useRenderRegion)
    {
       AiNodeSetInt(options, "region_min_x", minx);
       AiNodeSetInt(options, "region_min_y", height - maxy - 1);
@@ -1791,17 +1797,34 @@ void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
 #endif
    if (texture_searchpath != "")
       texture_searchpath += pathsep;
+
+   bool addTexturePath = false;
+   bool addProceduralPath = false;
    for (unsigned int i = 0; i < sourceImagesDirs.length(); ++i)
    {
+      // check if the current texture search path already contains the source image dir
+      if (texture_searchpath.indexW(sourceImagesDirs[i]) >= 0)
+         continue;
+
+      addTexturePath = true;
       texture_searchpath += sourceImagesDirs[i];
       if (i != (sourceImagesDirs.length() -1))
          texture_searchpath += pathsep;
    }
-   if (procedural_searchpath != "")
-      procedural_searchpath += pathsep;
-   procedural_searchpath += projectPath;
-   AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
-   AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
+   
+   // check if the procedural search path already contains the project path
+   if (procedural_searchpath.indexW(projectPath) < 0)
+   {
+      if (procedural_searchpath != "")
+         procedural_searchpath += pathsep;
+
+      addProceduralPath = true;
+      procedural_searchpath += projectPath;
+   }
+   if (addTexturePath)
+      AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+   if (addProceduralPath)
+      AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
 }
 
 void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
@@ -1847,7 +1870,6 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    {
       m_impl->m_session->RequestUpdateOptions();
    } */
+   CNodeTranslator::NodeChanged(node, plug);
    m_impl->m_session->RequestUpdateOptions();
-
-//   CNodeTranslator::NodeChanged(node, plug);
 }

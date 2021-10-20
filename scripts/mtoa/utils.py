@@ -384,7 +384,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     
     maya.OpenMayaRender.MRenderUtil.getCommonRenderSettings(settings)
     if isSequence is None:
-        isSequence = settings.isAnimated()
+        isSequence = settings.isAnimated() and not settings.isMovieFormat()
     if isSequence:
         schemes = ('',
                    '.<Frame>.<Extension>',
@@ -400,6 +400,8 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
                    '.<Extension>',
                    '',
                    '.<Extension>',
+                   '.<Extension>',
+                   '',
                    '.<Extension>')
 
     path += schemes[settings.namingScheme]

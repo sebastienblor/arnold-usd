@@ -15,6 +15,7 @@
 #include <maya/MDrawInfo.h>
 #include <maya/MSelectInfo.h>
 #include <maya/MViewport2Renderer.h>
+#include <maya/MDistance.h>
 
 #include "ArnoldProceduralNode.h"
 #include "nodes/ShaderUtils.h"
@@ -257,6 +258,10 @@ void CArnoldProceduralNode::updateGeometry()
    CNodeTranslator *translator = session->ExportNode(me);
    
    AtNode *proc = (translator) ? translator->GetArnoldNode() : NULL;
+
+   MDistance dist(1.0, MDistance::uiUnit());
+   AiNodeSetFlt(AiUniverseGetOptions(proc_universe), "meters_per_unit", (float)dist.asMeters());
+
    if (proc)
    {
       AtProcViewportMode viewport_mode = AI_PROC_BOXES;

@@ -576,6 +576,7 @@ class ImagersUI(QtWidgets.QFrame):
         self.parent = parent
         self.parentMayaName = toMayaName(parent)
         self.listOnly = listOnly
+        self.currentSelectedNode = None
         self.scriptJobs = []
         self.nodes = []
 
@@ -646,6 +647,12 @@ class ImagersUI(QtWidgets.QFrame):
 
     @QtCore.Slot(str)
     def showItemProperties(self, node):
+
+        # if the new node is the same as the current one do nothing
+        if node == self.currentSelectedNode:
+            return
+        else:
+            self.currentSelectedNode = node
 
         if self.scrollAreaWidgetContents:
             # clear the scrollAreaWidgetContents
@@ -842,10 +849,6 @@ class ImagersUI(QtWidgets.QFrame):
 
 
 def createImagersWidgetForARV():
-    if (cmds.window("ImagersForARV", exists=True)):
-        return
-
-    window = cmds.window("ImagersForARV")
     imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame#', label='Imagers', borderVisible=False, labelVisible=False)
     currentWidget = toQtObject(imagerShadersFrame, QtWidgets.QWidget)
     imagersUI = ImagersUI(currentWidget, False)

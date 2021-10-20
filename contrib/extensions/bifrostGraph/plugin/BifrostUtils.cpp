@@ -32,14 +32,6 @@ static MString s_bifrostProcedural = "libarnold_bifrost";
 
 static MString s_bifrostProceduralPath = "";
 
-// 2 GB, e.g. 2^31 elements of single bytes, matching limits of Arnold 5.4.0.0 and earlier
-// (newer versions have a fix allowing the full 2^32 elements, or 4 GB per array key)
-static const size_t ARNOLD_MAX_BYTE_ARRAY_SIZE = size_t(2) * 1024UL * 1024UL * 1024UL;
-// 32 GB, e.g. 2^31 elements of 16-byte RGBAs, matching the max size of any array key possible in Arnold
-static const size_t ARNOLD_MAX_PARAMETER_BYTES = size_t(2) * 1024UL * 1024UL * 1024UL * sizeof(AtRGBA);
-
-static const size_t MAX_PATH_LENGTH = 4096;
-
 // Input is a file that ends with the maya scene (.ma or .mb), subtract off the
 // extension and make it unique for this node and time sample.
 
