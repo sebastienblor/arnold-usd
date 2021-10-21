@@ -153,6 +153,7 @@ def _usd_procedural(target, source, env):
         raise SCons.Errors.UserError('arnold-usd scons file not found')
 
     usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
+    # Note that these builds should run with a single thread, since MtoA's Scons is already running this job in parallel with others #MTOA-869
     args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'procedural-install', '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
    
     sub = subprocess.Popen([sys.executable] + args, cwd=usd_project)
