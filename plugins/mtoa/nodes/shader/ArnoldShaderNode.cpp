@@ -71,7 +71,6 @@ MStatus CArnoldShaderNode::initialize()
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
-
    CStaticAttrHelper helper(CArnoldShaderNode::addAttribute, nodeEntry);
 
    // maya.attrs is a metadata (true by default) used to prevent the creation of attributes in the existing maya nodes
@@ -94,8 +93,21 @@ MStatus CArnoldShaderNode::initialize()
             int param_type = AiParamGetType(param);
             data.isArray = false;
             data.type = param_type;
-            data.name = MString(paramName);
-            data.shortName = MString(paramName);
+            AtString attrName, attrShortName;
+
+            // If it's has a single output, let's check if there's a mtd file 
+            // providing additional information about the name
+            if (num_outputs == 1)
+            {
+               if (AiMetaDataGetStr(nodeEntry, NULL, "maya.output_name", &attrName))
+                  data.name = MString(attrName);
+               else
+                  data.name = MString(paramName);
+               if (AiMetaDataGetStr(nodeEntry, NULL, "maya.output_shortname", &attrShortName))
+                  data.shortName = MString(attrShortName);
+               else
+                  data.shortName = MString(paramName);
+            }
             MObject attr = helper.MakeMultipleOutput(data);
             outputExists = (attr != MObject::kNullObj);
             addAttribute(attr);
