@@ -200,7 +200,7 @@ public:
    void MakeOutputBoolean(MObject& attrib, CAttrData& data);
    void MakeOutputFloat(MObject& attrib, CAttrData& data);
    void MakeOutputRGB(MObject& attrib, CAttrData& data, bool isCustom = false);
-   void MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
+   void MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrData& data, bool isCustom = false);
    void MakeOutputVector(MObject& attrib, CAttrData& data);
    void MakeOutputVector2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
    void MakeOutputString(MObject& attrib, CAttrData& data);

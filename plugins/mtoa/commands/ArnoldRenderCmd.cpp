@@ -387,8 +387,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
          session->Clear(); // clear the session and re-export the scene from scratch
          session->SetBatch(batch); // batch means that we're not displaying the render
+         sessionOptions.ClearCamera(); // Clear the previously set camera before updating everything in the session options.
          // Update the session options so that everything is up-to-date (frame, log file, etc...) #MTOA-740
-         sessionOptions.Update(); 
+         sessionOptions.Update();
          sessionOptions.SetSupportStereoCameras(true);
 
          session->Export(selectedPtr);

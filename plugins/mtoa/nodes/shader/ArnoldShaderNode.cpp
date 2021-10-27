@@ -71,7 +71,6 @@ MStatus CArnoldShaderNode::initialize()
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
-
    CStaticAttrHelper helper(CArnoldShaderNode::addAttribute, nodeEntry);
 
    // maya.attrs is a metadata (true by default) used to prevent the creation of attributes in the existing maya nodes
@@ -94,8 +93,28 @@ MStatus CArnoldShaderNode::initialize()
             int param_type = AiParamGetType(param);
             data.isArray = false;
             data.type = param_type;
-            data.name = MString(paramName);
-            data.shortName = MString(paramName);
+            AtString attrName, attrShortName;
+
+            // Check if a metadata maya.output_name (output_shortname) is present on the parameter
+            // If not check if such a metadata is present on the node. There can
+            // only be one such metadata on the node, so we check this only if
+            // the num_outputs is 1. This is to help with backwards compatability
+            // of custom shader that have one outputs pre Arnold 7.0 #MTOA-880
+
+            if (AiMetaDataGetStr(nodeEntry, paramName, "maya.output_name", &attrName))
+                  data.name = MString(attrName);
+            else if (num_outputs == 1 && AiMetaDataGetStr(nodeEntry, NULL, "maya.output_name", &attrName))
+               data.name = MString(attrName);
+            else
+               data.name = MString(paramName);
+
+            if (AiMetaDataGetStr(nodeEntry, paramName, "maya.output_shortname", &attrShortName))
+               data.shortName = MString(attrShortName);
+            else if (num_outputs == 1 && AiMetaDataGetStr(nodeEntry, NULL, "maya.output_shortname", &attrShortName))
+               data.name = MString(attrName);
+            else
+               data.shortName = MString(paramName);
+
             MObject attr = helper.MakeMultipleOutput(data);
             outputExists = (attr != MObject::kNullObj);
             addAttribute(attr);
