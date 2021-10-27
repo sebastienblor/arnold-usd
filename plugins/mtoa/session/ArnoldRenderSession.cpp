@@ -73,9 +73,15 @@ bool CArnoldRenderSession::BatchRender()
    {
       AtRenderStatus status = AiRenderGetStatus(renderSession);
       if (status == AI_RENDER_STATUS_FINISHED)
+      {
+         AiRenderEnd(renderSession);
          return true;
+      }
       if (status == AI_RENDER_STATUS_FAILED)
+      {
+         AiRenderEnd(renderSession);
          return false;
+      }
 #ifdef WIN32
       Sleep(0);
 #else
