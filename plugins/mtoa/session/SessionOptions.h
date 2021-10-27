@@ -263,7 +263,15 @@ struct DLLEXPORT CSessionOptions
       m_useBinaryEncoding = ube;
    }
 
-   void SetCamera(MDagPath& camera);
+   void SetCamera(MDagPath& camera)
+   {
+      m_camera = camera;
+   }
+
+   void ClearCamera()
+   {
+      m_camera = MDagPath();
+   }
 
    void SetRenderViewPanelName(const MString &panel)
    {
