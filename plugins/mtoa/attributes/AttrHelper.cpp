@@ -1001,11 +1001,15 @@ void CBaseAttrHelper::MakeOutputRGB(MObject& attrib, CAttrData& data, bool isCus
    MAKE_OUTPUT(nAttr, attrib);
 }
 
-void CBaseAttrHelper::MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrData& data)
+void CBaseAttrHelper::MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrData& data, bool isCustom)
 {
    MFnNumericAttribute nAttr;
+   if (!isCustom)
+      attrib = nAttr.createColor(OUT_COLOR_NAME, data.shortName);
+   else
+      attrib = nAttr.createColor(data.name, data.shortName);
 
-   attrib = nAttr.createColor(OUT_COLOR_NAME, data.shortName);
+
    nAttr.setArray(data.isArray);
    MAKE_OUTPUT(nAttr, attrib);
 
@@ -1100,7 +1104,7 @@ MObject CBaseAttrHelper::MakeMultipleOutput(CAttrData& data)
       case AI_TYPE_RGBA:
       {
          MObject outputA;
-         MakeOutputRGBA(output, outputA, data);
+         MakeOutputRGBA(output, outputA, data, true);
          m_attributes[OUT_ALPHA_NAME.asChar()] = outputA;
          break;
       }
