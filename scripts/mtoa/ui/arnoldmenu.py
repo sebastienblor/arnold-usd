@@ -15,6 +15,7 @@ import mtoa.denoise
 import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
+from maya.app.renderSetup.lightEditor.views import editorUI
 from maya.api import OpenMaya
 try:
     import urllib2 as urllib
@@ -235,8 +236,7 @@ def arnoldConvertDeprecated():
 
     
 def arnoldLightManager():
-    win = mtoa.lightManager.MtoALightManager()
-    win.create()
+    editorUI.createLightEditorWindow()
 
 def arnoldBakeGeo():
     objFilter = "Obj File (*.obj)"
