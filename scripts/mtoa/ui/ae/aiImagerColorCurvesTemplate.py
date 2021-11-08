@@ -4,7 +4,6 @@ from maya import stringTable
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
-import maya.internal.common.ae.ramp as aeramp
 
 TOP =  "top"
 BOTTOM = "bottom"
