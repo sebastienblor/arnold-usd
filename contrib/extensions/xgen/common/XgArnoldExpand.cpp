@@ -19,6 +19,7 @@
 
 #include <XgRenderAPI.h>
 #include <XgRenderAPIUtils.h>
+#include <xgen/src/xgcore/XgExpression.h>
 
 
 using namespace XGenRenderAPI;
@@ -329,6 +330,9 @@ int Procedural::Init(AtNode* node, bool procParent)
       delete m_merged_data;
       m_merged_data = NULL;
    }
+   
+   // clear the PTex cache for this patch
+   XgExpression::clearPtexs();
    return 1;
 }
 
