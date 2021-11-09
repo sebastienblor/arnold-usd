@@ -1118,7 +1118,16 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
    }
 
    if (connectionCallback)
+   {
       MMessage::removeCallback(connectionCallback);
+      connectionCallback = 0;
+   }
+
+   if (sceneOpenCallback)
+   {
+      MMessage::removeCallback(sceneOpenCallback);
+      sceneOpenCallback = 0;
+   }
 
    if (AiUniverseIsActive())
       ArnoldEnd();
@@ -1547,8 +1556,17 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    SetEnv("MTOA_EXTENSIONS_PATH", s_mtoa_extensions_path_orig);
    SetEnv("ARNOLD_PLUGIN_PATH", s_arnold_plugin_path_orig);
 
-   MMessage::removeCallback(connectionCallback);
-   MMessage::removeCallback(sceneOpenCallback);
+   if (connectionCallback)
+   {
+      MMessage::removeCallback(connectionCallback);
+      connectionCallback = 0;
+   }
+
+   if (sceneOpenCallback)
+   {
+      MMessage::removeCallback(sceneOpenCallback);
+      sceneOpenCallback = 0;
+   }
    
    ArnoldEnd();
    return returnStatus;
