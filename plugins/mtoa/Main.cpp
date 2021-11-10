@@ -118,6 +118,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
 #include <maya/MTemplateCommand.h>
+#include <maya/MSceneMessage.h>
 
 #include <ai.h>
 
@@ -126,6 +127,7 @@ static MString s_mtoa_extensions_path_orig = MString("");
 namespace // <anonymous>
 {
    MCallbackId connectionCallback;
+   MCallbackId sceneOpenCallback;
 
    static void SetEnv(const MString& env, const MString& val)
    {
@@ -1116,11 +1118,32 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
    }
 
    if (connectionCallback)
+   {
       MMessage::removeCallback(connectionCallback);
+      connectionCallback = 0;
+   }
+
+   if (sceneOpenCallback)
+   {
+      MMessage::removeCallback(sceneOpenCallback);
+      sceneOpenCallback = 0;
+   }
 
    if (AiUniverseIsActive())
       ArnoldEnd();
 
+}
+
+void CreateDefaultArnoldRenderOptions(void *data)
+{
+   MObject options;
+   MSelectionList list;
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() == 0)
+   {
+       // defaultArnoldRenderOptions doesn't exist, we need to initialize it
+      MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()");
+   }
 }
 
 DLLEXPORT MStatus initializePlugin(MObject object)
@@ -1133,6 +1156,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MStatus status, returnStatus;
    returnStatus = MStatus::kSuccess;
    connectionCallback = 0;
+   sceneOpenCallback = 0;
 
    bool isBatch = IsBatch();
 
@@ -1359,6 +1383,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
+   if (isBatch)
+   {
+      // if we are in batch mode we should check if a valid options node  exists after opening the secne file,
+      // otherwise we get errors when running in batch see MTOA-848
+      sceneOpenCallback = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CreateDefaultArnoldRenderOptions);
+   }
+
    return returnStatus;
 }
 
@@ -1525,7 +1556,17 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    SetEnv("MTOA_EXTENSIONS_PATH", s_mtoa_extensions_path_orig);
    SetEnv("ARNOLD_PLUGIN_PATH", s_arnold_plugin_path_orig);
 
-   MMessage::removeCallback(connectionCallback);
+   if (connectionCallback)
+   {
+      MMessage::removeCallback(connectionCallback);
+      connectionCallback = 0;
+   }
+
+   if (sceneOpenCallback)
+   {
+      MMessage::removeCallback(sceneOpenCallback);
+      sceneOpenCallback = 0;
+   }
    
    ArnoldEnd();
    return returnStatus;
