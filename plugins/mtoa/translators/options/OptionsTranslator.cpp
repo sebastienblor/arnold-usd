@@ -445,9 +445,9 @@ void COptionsTranslator::ExportAOVs()
    } else if (outputVariance && beautyFilter && !IsInteractiveSession()) // don't dump the denoising AOVs in interactive renders
    {
       //== We need to dump the necessary outputs for noice.
-      //== First, let's find the "beauty" AOV. Let's also check if the N, Z, diffuse_albedo are already present in the list of AOVs.
+      //== First, let's find the "beauty" AOV. Let's also check if the N, Z, denoise_albedo are already present in the list of AOVs.
       //== If they are, we need to verify that they have the same filter as the beauty. Otherwise we'll need to duplicate those AOVs for noice.
-      bool create_Z = true, create_N = true, create_diffuse_albedo = true;
+      bool create_Z = true, create_N = true, create_denoise_albedo = true;
       int beauty_index = -1;
       for (size_t j = 0, aovDataSize = m_aovData.size(); j < aovDataSize; ++j)
       {         
@@ -455,9 +455,9 @@ void COptionsTranslator::ExportAOVs()
          if (aovData.name == MString("RGBA") || aovData.name == MString("RGB"))
          {
             beauty_index = (int)j;
-         } else if (aovData.name == MString("Z") || aovData.name == MString("N") || aovData.name == MString("diffuse_albedo"))
+         } else if (aovData.name == MString("Z") || aovData.name == MString("N") || aovData.name == MString("denoise_albedo"))
          {
-            bool &create_noice_aov = ((aovData.name == MString("Z")) ? create_Z : ((aovData.name == MString("N")) ? create_N : create_diffuse_albedo));
+            bool &create_noice_aov = ((aovData.name == MString("Z")) ? create_Z : ((aovData.name == MString("N")) ? create_N : create_denoise_albedo));
             // now check if the outputs have the good filter
             for (size_t i = 0, aovOutputsSize = aovData.outputs.size(); i < aovOutputsSize; ++i)
             {
@@ -520,8 +520,8 @@ void COptionsTranslator::ExportAOVs()
          if (create_N)
             m_aovData.push_back(ComputeNoiceAov(MString("N"), AI_TYPE_VECTOR, m_aovData[beauty_index]));
 
-         if (create_diffuse_albedo)
-            m_aovData.push_back(ComputeNoiceAov(MString("diffuse_albedo"), AI_TYPE_RGB, m_aovData[beauty_index]));
+         if (create_denoise_albedo)
+            m_aovData.push_back(ComputeNoiceAov(MString("denoise_albedo"), AI_TYPE_RGB, m_aovData[beauty_index]));
          
       }
    }

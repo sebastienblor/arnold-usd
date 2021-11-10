@@ -115,7 +115,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
             ["<builtin> albedo                                                      C[DSV]A" , "C[DSV]A"],
             ["<builtin> diffuse_direct                                           C<RD>L", "C<RD>L"],
             ["<builtin> diffuse_indirect                                        C<RD>[DSVOB].*", "C<RD>[DSVOB].*"],
-            ["<builtin> diffuse_albedo                                         C<RD>A", "C<RD>A"],
+            ["<builtin> denoise_albedo                                         C<RD>A", "C<RD>A"],
             ["<builtin> specular_direct                                         C<RS[^'coat']>L" , "C<RS[^'coat']>L"],
             ["<builtin> specular_indirect                                      C<RS[^'coat']>[DSVOB].*" , "C<RS[^'coat']>[DSVOB].*"],
             ["<builtin> specular_albedo                                       C<RS[^'coat']>A" , "C<RS[^'coat']>A"],
