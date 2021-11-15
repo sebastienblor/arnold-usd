@@ -144,6 +144,13 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
                  "Publisher" "Autodesk"
 
+  StrCpy $R7 "$INSTDIR\license\LicensingUpdater.exe"
+  ; run the updater tool
+  IfFileExists "$R7" 0 +5
+  ExecWait '"$R7"' $1
+  ${If} $1 != 0
+      DetailPrint "[WARNING] Failed to update Autodesk Licensing"
+  ${EndIf}
 SectionEnd
 
 Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariables
@@ -194,16 +201,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
           ${EndIf}
       ${EndIf}
     ${EndIf}
-    
-    StrCpy $R7 "$INSTDIR\license\LicensingUpdater.exe"
-      ; run the updater tool
-      IfFileExists "$R7" 0 +5
-      ExecWait '"$R7"' $1
-      ${If} $1 != 0
-          DetailPrint "[WARNING] Failed to update Autodesk Licensing"
-      ${EndIf}
 
-     
 SectionEnd
 
 
