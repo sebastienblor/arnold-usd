@@ -7,6 +7,6 @@
 
 namespace MtoAADPPayloads
 {
-DLLEXPORT    void ADPPostShaderUsed(const std::string shader_name);
+DLLEXPORT    void ADPPostShaderUsed(const std::string shader_name, AtRenderSession* render_session);
 DLLEXPORT    void ADPPostProductMetadata();
 }
