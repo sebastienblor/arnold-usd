@@ -81,7 +81,7 @@ std::unordered_map<std::string, std::string> shaders_map = {
 {"water","AS_MTOA_SHADER"}
 };
 
-void MtoAADPPayloads::ADPPostShaderUsed(const std::string shader_name)
+void MtoAADPPayloads::ADPPostShaderUsed(const std::string shader_name, AtRenderSession* render_session)
 {
     if (shader_name.size() == 0)
             return;
@@ -94,6 +94,7 @@ void MtoAADPPayloads::ADPPostShaderUsed(const std::string shader_name)
     {
         AiParamValueMapSetStr(param_value_map, AtString("SHADER_NAME"), AtString(shader_name.c_str()));
         AiParamValueMapSetStr(param_value_map, AtString("EXPORT_TYPE"), AtString(shaders_map[shader_name].c_str()));
+        AiParamValueMapSetPtr(param_value_map,AI_ADP_PAYLOAD_HINT_RENDER_SESSION, static_cast<void*>(render_session));
         AiADPSendPayload("MTOA.MAYA.SHADER.EXPORT", param_value_map);
         AiParamValueMapDestroy(param_value_map);
     }

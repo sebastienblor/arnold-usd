@@ -220,7 +220,7 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
       MtoaDebugLog(log);
    }
    
-   MtoAADPPayloads::ADPPostShaderUsed(GetMayaNodeTypeName().asChar());
+   MtoAADPPayloads::ADPPostShaderUsed(GetMayaNodeTypeName().asChar(),m_session->GetRenderSession());
    ExportDccName();
 }
 
