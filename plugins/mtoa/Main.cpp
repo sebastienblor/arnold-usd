@@ -461,12 +461,8 @@ namespace // <anonymous>
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
-<<<<<<< HEAD
       bool isBatch = IsBatch();
 
-=======
-      bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
->>>>>>> Clearing up couts
       MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
       // STANDINS
@@ -496,10 +492,6 @@ namespace // <anonymous>
                      node.initialize, node.type, node.classification);
          CHECK_MSTATUS(status);
       }
-<<<<<<< HEAD
-=======
-
->>>>>>> Clearing up couts
       // Get a CExtension for the builtin nodes
       CExtensionsManager::SetMayaPlugin(object);
       CExtensionsManager::CreatePluginLoadedCallback();
