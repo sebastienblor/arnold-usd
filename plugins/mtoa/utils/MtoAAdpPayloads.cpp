@@ -89,15 +89,14 @@ void MtoAADPPayloads::ADPPostShaderUsed(const std::string shader_name, AtRenderS
     if (shaders_map.find(shader_name) == shaders_map.end()) 
         return ; 
     
-    AtParamValueMap* param_value_map = AiParamValueMap();
-    if (param_value_map != nullptr )
-    {
-        AiParamValueMapSetStr(param_value_map, AtString("SHADER_NAME"), AtString(shader_name.c_str()));
-        AiParamValueMapSetStr(param_value_map, AtString("EXPORT_TYPE"), AtString(shaders_map[shader_name].c_str()));
-        AiParamValueMapSetPtr(param_value_map,AI_ADP_PAYLOAD_HINT_RENDER_SESSION, static_cast<void*>(render_session));
-        AiADPSendPayload("MTOA.MAYA.SHADER.EXPORT", param_value_map);
-        AiParamValueMapDestroy(param_value_map);
-    }
+    AtParamValueMap* attributes = AiParamValueMap();
+    AtParamValueMap* hints = AiParamValueMap();
+    AiParamValueMapSetStr(attributes, AtString("SHADER_NAME"), AtString(shader_name.c_str()));
+    AiParamValueMapSetStr(attributes, AtString("EXPORT_TYPE"), AtString(shaders_map[shader_name].c_str()));
+    AiParamValueMapSetPtr(hints,AI_ADP_PAYLOAD_HINT_RENDER_SESSION, static_cast<void*>(render_session));
+    AiADPSendPayload("MTOA.MAYA.SHADER.EXPORT", attributes, hints);
+    AiParamValueMapDestroy(attributes);
+    AiParamValueMapDestroy(hints);
 }
 
 void MtoAADPPayloads::ADPPostProductMetadata()
