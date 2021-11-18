@@ -121,7 +121,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    bool expandProcedurals = sessionOptions.expandProcedurals();
    bool useBinaryEncoding = sessionOptions.useBinaryEncoding();
    bool forceTranslateShadingEngines = sessionOptions.forceTranslateShadingEngines();
-   bool progressiveRefinement = sessionOptions.IsProgressive();
+   sessionOptions.SetProgressive(false); // no progressive renders for this command (MTOA-909)
    bool exportAllShadingGroups = sessionOptions.GetExportAllShadingGroups();
    bool exportFullPaths = sessionOptions.GetExportFullPath();
 
@@ -220,8 +220,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
             else
             {
-               if (!progressiveRefinement)
-                  kickRenderFlags += " -dp";
+               kickRenderFlags += " -dp"; // no progressive for final frame rendering
                
 #ifdef _WIN32
                kickCmd = "Start kick " + kickRenderFlags + " \"" + assFileNames[0] + "\"";
