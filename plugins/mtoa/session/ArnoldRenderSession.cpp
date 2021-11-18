@@ -55,6 +55,9 @@ bool CArnoldRenderSession::BatchRender()
    AtRenderSession *renderSession = GetRenderSession();
    m_sessionOptions.SetupLog(renderSession);
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_BATCH);
+   // Here we just want a final frame render, no progressive (MTOA-909)
+   AiRenderSetHintBool(renderSession, AtString("progressive"), false);
+
    MString filename;
 
    if (m_displayProgress && m_optionsTranslator)
@@ -126,10 +129,9 @@ bool CArnoldRenderSession::Render()
    comp.beginComputation();
    m_sessionOptions.SetupLog(renderSession);
 
-   AiRenderSetHintBool(renderSession, AtString("progressive"), m_sessionOptions.IsProgressive());
-   int minAA = AiMin(1, m_sessionOptions.progressiveInitialLevel());
-   AiRenderSetHintInt(renderSession, AtString("progressive_min_AA_samples"), minAA);
-   AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
+   // Here we just want a final frame render, no progressive (MTOA-909)
+   AiRenderSetHintBool(renderSession, AtString("progressive"), false);
+   
    AiRenderBegin(renderSession);
    float lastProgress = -1.f;
 
