@@ -129,6 +129,7 @@ bool CArnoldRenderSession::Render()
    comp.beginComputation();
    m_sessionOptions.SetupLog(renderSession);
 
+   AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
    // Here we just want a final frame render, no progressive (MTOA-909)
    AiRenderSetHintBool(renderSession, AtString("progressive"), false);
    
