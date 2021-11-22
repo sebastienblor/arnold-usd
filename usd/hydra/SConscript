@@ -159,7 +159,8 @@ def _usd_delegate(target, source, env):
         raise SCons.Errors.UserError('arnold-usd scons file not found')
 
     usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
-    delegate_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '{}'.format(local_env.GetOption('num_jobs'))] + ['{}={}'.format(k, v) for k, v in args.items()]
+    # Note that these builds should run with a single thread, since MtoA's Scons is already running this job in parallel with others #MTOA-869
+    delegate_args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'delegate-install', '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
 
     # Append the mayapy bin path to the system PATH, so that running "usdGenSchema_cmd" will work
     env_separator = ';' if platform.system().lower() == 'windows' else ':'
