@@ -5,6 +5,7 @@
 #include "translators/NodeTranslator.h"
 #include "translators/DagTranslator.h"
 #include "session/SessionManager.h"
+#include "session/ArnoldExportSession.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -48,7 +49,7 @@ static inline CArnoldSession *InitArnoldSceneSession(const std::string &sessionI
       // The goal of this command is for users to convert a scene in memory
       // and then access it through the arnold API. For this to work, we need the
       // nodes to be in the default universe
-      session = new CArnoldSession(true, true); 
+      session = new CArnoldSceneSession(); 
       CSessionManager::AddActiveSession(sessionId, session);
    }
    return session;
@@ -166,9 +167,10 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    {
       InitArnoldSceneSession(sessionId)->Export();
    }
-   else if (mode == "convert_selected") 
+   else if (mode == "convert_selected" || mode == "convert_mayausd") 
    {
       CArnoldSession *session = InitArnoldSceneSession(sessionId);
+      session->GetOptions().SetMayaUsd(mode == "convert_mayausd");
       
       MSelectionList sel = ComputeSelectionList(args);
 

@@ -750,6 +750,11 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
 
 void CPolygonGeometryTranslator::ExportShaders()
 {
+   // To be determined, if shaders should be exported during maya usd exports
+   /*
+   if (GetSessionOptions().IsMayaUsd())
+      return;
+   */
    ExportMeshShaders(GetArnoldNode(), m_dagPath);
 }
 
@@ -1034,8 +1039,8 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    
    //
    // GEOMETRY
-   //  
-   bool mayaUsdExport = false;//GetSessionOptions().IsMayaUsd();
+//  
+   bool mayaUsdExport = GetSessionOptions().IsMayaUsd();
    
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
@@ -1066,7 +1071,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       std::vector<unsigned int> arnoldPolygonHoles;
 
       // Get UVs
-      bool exportUVs = GetUVs(geometry, uvs, uvNames);
+      bool exportUVs = mayaUsdExport ? false : GetUVs(geometry, uvs, uvNames);
 
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, 
@@ -1496,11 +1501,13 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 
 AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {   
-   // if (!GetSessionOptions().IsMayaUsd())
-   ExportMatrix(polymesh);
+   // Don't export matrices during mayaUsd exports
+   if (!GetSessionOptions().IsMayaUsd())
+      ExportMatrix(polymesh);
 
    ExportMeshParameters(polymesh);
-   if (RequiresShaderExport())
+   // TODO: to be determined, if shaders should be skipped during mayaUSD exports
+   if (RequiresShaderExport()/* && !GetSessionOptions().IsMayaUsd()*/)
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
    // if enabled, double check motion deform
@@ -1524,8 +1531,8 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    int instanceNum = m_dagPath.instanceNumber();
    int masterInstanceNum = masterInstance.instanceNumber();
 
-   //if (!GetSessionOptions().IsMayaUsd())
-   ExportMatrix(instance);
+   if (!GetSessionOptions().IsMayaUsd())
+      ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);

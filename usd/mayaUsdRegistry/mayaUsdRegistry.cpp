@@ -26,16 +26,17 @@
 #include <dlfcn.h>
 #endif
 
+#include <iostream>
+
+
 #include <mayaUsd/fileio/shaderReaderRegistry.h>
 #include <mayaUsd/fileio/shaderWriterRegistry.h>
 #include <mayaUsd/fileio/shading/shadingModeRegistry.h>
-#include <mayaUsd/fileio/schemaApiWriterRegistry.h>
+//#include <mayaUsd/fileio/schemaApiWriterRegistry.h>
 
 #include "mayaUsdRegistry.h"
 #include "usdArnoldShaderWriter.h"
 #include "usdArnoldShaderReader.h"
-#include "usdArnoldChaser.h"
-#include "usdArnoldTranslators.h"
 
 #include <pxr/base/tf/registryManager.h>
 #include <pxr/base/tf/staticTokens.h>
@@ -73,6 +74,7 @@ TF_DEFINE_PRIVATE_TOKENS(
 );
 // clang-format on
 
+/*
 REGISTER_SHADING_MODE_EXPORT_MATERIAL_CONVERSION(
     _tokens->conversionName,
     _tokens->renderContext,
@@ -84,7 +86,7 @@ REGISTER_SHADING_MODE_IMPORT_MATERIAL_CONVERSION(
     _tokens->renderContext,
     _tokens->niceName,
     _tokens->importDescription);
-
+*/
 namespace {
 
 std::string _MakeCamelCase(const std::string &s, bool prefix)
@@ -242,7 +244,7 @@ const ArnoldShaderMap &GetMayaToArnoldUsdAttrs(const std::string &shader)
 {    
     return s_mayaToUsdAttributes[shader];
 }
-
+/*
 
 TF_REGISTRY_FUNCTION(UsdMayaShaderWriterRegistry)
 {
@@ -253,7 +255,7 @@ TF_REGISTRY_FUNCTION(UsdMayaShaderReaderRegistry)
 {
     _RegisterMayaNodes(UsdArnoldShaderReader::RegisterReader);
 }
-
+*/
 /*
 The chaser can be executed with a command like :
 cmds.mayaUSDExport(
@@ -262,12 +264,9 @@ cmds.mayaUSDExport(
     chaser=['arnold'])
 */
 
-/*
-PXRUSDMAYA_DEFINE_EXPORT_CHASER_FACTORY(arnold, ctx)
-{
-    return new ArnoldUsdChaser(ctx.GetStage(), ctx.GetDagToUsdMap());
-}*/
 
+
+/*
 PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(mesh, ArnoldPolymeshAPI, ArnoldSchemaExporter);
 PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(nurbsCurves, ArnoldCurvesAPI, ArnoldSchemaExporter);
 PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(camera, ArnoldPerspCameraAPI, ArnoldSchemaExporter);
@@ -275,6 +274,6 @@ PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(directionalLight, ArnoldDistantLightAPI, A
 PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(pointLight, ArnoldPointLightAPI, ArnoldSchemaExporter);
 PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(sphereLight, ArnoldSphereLightAPI, ArnoldSchemaExporter);
 PXRUSDMAYA_REGISTER_SCHEMA_API_WRITER(areaLight, ArnoldAreaLightAPI, ArnoldSchemaExporter);
-
+*/
 
 PXR_NAMESPACE_CLOSE_SCOPE

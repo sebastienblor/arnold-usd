@@ -65,7 +65,7 @@ bool CSessionManager::DeleteActiveSession(const std::string &name)
 {
    std::lock_guard<AtMutex> guard(s_lock);
    auto it = s_activeSessions.find(name);
-   if (it == s_activeSessions.end())
+   if (it == s_activeSessions.end() || it->second == nullptr)
       return false;
 
    delete it->second; // delete the session

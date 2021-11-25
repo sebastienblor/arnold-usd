@@ -84,7 +84,8 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    if (IsExportingMotion())
    {
       // for motion steps, only set the matrix at current step
-      // mayaUSD : if (!GetSessionOptions().IsMayaUsd())
+      // During mayaUSD exports, we don't want to export matrices
+      if (!GetSessionOptions().IsMayaUsd())
       {
          AtMatrix matrix;
          GetMatrix(matrix);
@@ -125,7 +126,8 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    
    ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
 
-   // mayaUSD if (!GetSessionOptions().IsMayaUsd())
+   // For mayaUSD exports, we don't want to export matrices
+   if (!GetSessionOptions().IsMayaUsd())
    {
       GetMatrix(matrix);
       

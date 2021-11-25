@@ -407,6 +407,9 @@ struct DLLEXPORT CSessionOptions
 
    bool GetExportOverscan() const {return m_exportOverscan;}
    void SetExportOverscan(bool b) {m_exportOverscan = b;}
+   
+   bool IsMayaUsd() const {return m_mayaUsd;}
+   void SetMayaUsd(bool b) {m_mayaUsd = b;}
 
 private:
 
@@ -524,4 +527,5 @@ private:
    bool m_supportGpu;
    bool m_exportFileDrivers;
    bool m_exportOverscan;
+   bool m_mayaUsd;
 };

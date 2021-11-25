@@ -62,8 +62,11 @@ CArnoldSession::~CArnoldSession()
 {
    ObjectToTranslatorMap::iterator it = m_translators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_translators.end();
-   for ( ; it != itEnd; ++it)
+   for ( ; it != itEnd; ++it) {
+      if (m_universe == nullptr)
+         it->second->Delete();
       delete it->second;
+   }
    
    if (m_renderSession)
    {

@@ -82,8 +82,8 @@ if not os.path.exists(usd_include_dir):
 ###### Now Maya USD registry 
 
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'usd')
-include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h', 'usdArnoldChaser.h', 'usdArnoldTranslators.h']
-source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp', 'usdArnoldChaser.cpp', 'usdArnoldTranslators.cpp']
+include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h', 'usdArnoldTranslators.h']
+source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp', 'usdArnoldTranslators.cpp']
 
 writer_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'translator', 'writer')
 writer_srcs = find_files_recursive(writer_dir, ['.c', '.cpp'])
