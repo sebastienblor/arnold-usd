@@ -159,12 +159,27 @@ if not os.path.exists(registryResourceFolder):
     os.makedirs(registryResourceFolder)
 registryResourceFile = os.path.join(registryResourceFolder, 'plugInfo.json')
 file = open(registryResourceFile, 'w')
-registryResource = "{\n\t\"Plugins\": [\n\t\t{\n\t\t\t\"Info\": {\n\t\t\t\t\"UsdMaya\": {\"ShadingModePlugin\": {\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"LibraryPath\": \"../"
+
+registryResource = "{\n"
+registryResource += "\t\"Plugins\": [\n"
+registryResource += "\t\t{\n"
+registryResource += "\t\t\t\"Info\": {\n"
+registryResource += "\t\t\t\t\"UsdMaya\": {\n"
+registryResource += "\t\t\t\t\t\"JobContextPlugin\": {},\n"
+registryResource += "\t\t\t\t\t\"ShadingModePlugin\": {},\n"
+registryResource += "\t\t\t\t\t\"SchemaApiAdaptor\": {\n"
+registryResource += "\t\t\t\t\t\t\"providesTranslator\": [\n"
+registryResource += "\t\t\t\t\t\t\t\"mesh\", \"curves\", \"directionalLight\", \"pointLight\", \"areaLight\", \"camera\"]\n"
+registryResource += "\t\t\t\t\t}\n"
+registryResource += "\t\t\t\t}\n"
+registryResource += "\t\t\t},\n"
+registryResource += "\t\t\t\"LibraryPath\": \"../"
 registryLib = MAYAUSD_REGISTRY
 if isinstance(registryLib, SCons.Node.NodeList):
     registryLib = registryLib[0]
 registryResource += os.path.basename(str(registryLib))
 registryResource += "\",\n\t\t\t\"Name\": \"mayaUsdRegistry\",\n\t\t\t\"ResourcePath\": \"resources\",\n\t\t\t\"Root\": \"..\",\n\t\t\t\"Type\": \"library\"\n\t\t}\n\t]\n}\n"
+
 file.write(registryResource)
 file.close()
 

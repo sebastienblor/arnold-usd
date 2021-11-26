@@ -35,6 +35,7 @@
 #include "writer.h"
 #include "registry.h"
 #include "prim_writer.h"
+#include "usdArnoldTranslators.h"
 
 #include <mayaUsd/fileio/jobContextRegistry.h>
 #include <mayaUsd/fileio/jobs/jobArgs.h>
@@ -287,5 +288,55 @@ PXRUSDMAYA_DEFINE_EXPORT_CHASER_FACTORY(ArnoldUsdChaser, ctx)
 {
     return new ArnoldUsdChaser(ctx.GetStage(), ctx.GetDagToUsdMap());
 }
+
+
+ArnoldDagWriter::ArnoldDagWriter(
+    const MFnDependencyNode& depNodeFn,
+    const SdfPath&           usdPath,
+    UsdMayaWriteJobContext&  jobCtx)
+    : UsdMayaPrimWriter(depNodeFn, usdPath, jobCtx)
+{
+    Write(UsdTimeCode::Default());
+}
+
+/* virtual */
+void ArnoldDagWriter::Write(const UsdTimeCode& usdTime)
+{
+    MStatus status;
+    UsdMayaPrimWriter::Write(usdTime);
+    // Since write() above will take care of any animation on the node's
+    // transform, we only want to proceed here if:
+    // - We are at the default time and NO attributes on the shape are animated.
+    //    OR
+    // - We are at a non-default time and some attribute on the shape IS animated.
+    if (usdTime.IsDefault() == _HasAnimCurves()) {
+        return;
+    }
+    MFnDependencyNode depFn(GetMayaObject());
+    MString nodeName = depFn.name();
+    std::string pythonCmd = "import maya.cmds as cmds;nodes = [\"";
+    pythonCmd += nodeName.asChar();
+    pythonCmd += "\"]; cmds.arnoldScene(nodes, mode=\"convert_mayausd\")";
+    MGlobal::executePythonCommand(pythonCmd.c_str()); 
+    
+    UsdArnoldWriter writer;
+    writer.SetUsdStage(GetUsdStage()); 
+    if (!usdTime.IsDefault())
+        writer.SetFrame(usdTime.GetValue());
+
+    writer.SetMask(AI_NODE_LIGHT |AI_NODE_SHAPE | AI_NODE_OPERATOR); // change the mask depending on the node type
+    writer.Write(nullptr);
+}
+
+
+PXRUSDMAYA_REGISTER_WRITER(aiSkyDomeLight, ArnoldDagWriter);
+PXRUSDMAYA_REGISTER_WRITER(aiAreaLight, ArnoldDagWriter);
+PXRUSDMAYA_REGISTER_WRITER(aiPhotometricLight, ArnoldDagWriter);
+PXRUSDMAYA_REGISTER_WRITER(aiLightPortal, ArnoldDagWriter);
+PXRUSDMAYA_REGISTER_WRITER(aiMeshPortal, ArnoldDagWriter);
+PXRUSDMAYA_REGISTER_WRITER(aiStandIn, ArnoldDagWriter);
+PXRUSDMAYA_REGISTER_WRITER(aiVolume, ArnoldDagWriter);
+PXRUSDMAYA_REGISTER_WRITER(aiCurveCollector, ArnoldDagWriter);
+
 
 PXR_NAMESPACE_CLOSE_SCOPE

@@ -5,19 +5,25 @@
 
 #include <unordered_map>
 #include <string>
+#include <mayaUsd/fileio/primWriterRegistry.h>
+#include <mayaUsd/fileio/primWriter.h>
+#include <mayaUsd/fileio/writeJobContext.h>
+
+PXR_NAMESPACE_OPEN_SCOPE
 
 
-//PXR_NAMESPACE_OPEN_SCOPE
-
-/*
-class ArnoldSchemaExporter : public UsdMayaSchemaApiWriter
+/// Exports Arnold DAG nodes
+class ArnoldDagWriter : public UsdMayaPrimWriter
 {
 public:
-    ArnoldSchemaExporter(const UsdMayaPrimWriterSharedPtr& primWriter, UsdMayaWriteJobContext& jobCtx);
-    void Write(const UsdTimeCode& time) override;
-    void PostExport() override;
+    ArnoldDagWriter(
+        const MFnDependencyNode& depNodeFn,
+        const SdfPath&           usdPath,
+        UsdMayaWriteJobContext&  jobCtx);
+
+    void Write(const UsdTimeCode& usdTime) override;
 };
-*/
-//PXR_NAMESPACE_CLOSE_SCOPE
+
+PXR_NAMESPACE_CLOSE_SCOPE
 
 #endif
