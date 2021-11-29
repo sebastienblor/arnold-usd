@@ -67,8 +67,8 @@ TF_DEFINE_PRIVATE_TOKENS(
     (ArnoldPointLightAPI)
     (ArnoldSphereLightAPI)
     (ArnoldAreaLightAPI)
-    (arnold_shader, "primvars:arnold:shader")
-    (arnold_camera, "arnold:camera")
+    ((arnold_shader, "primvars:arnold:shader"))
+    ((arnold_camera, "arnold:camera"))
 );
 
 PXR_NAMESPACE_OPEN_SCOPE
