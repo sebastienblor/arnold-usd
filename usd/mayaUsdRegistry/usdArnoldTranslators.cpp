@@ -55,11 +55,11 @@
 
 
 static std::vector<UsdPrim> s_arnoldData;
+static std::string s_renderCamera;
 
 TF_DEFINE_PRIVATE_TOKENS(
     _tokens,
-
-    // USD
+    (arnold)
     (ArnoldPolymeshAPI)
     (ArnoldCurvesAPI)
     (ArnoldPerspCameraAPI)
@@ -67,6 +67,8 @@ TF_DEFINE_PRIVATE_TOKENS(
     (ArnoldPointLightAPI)
     (ArnoldSphereLightAPI)
     (ArnoldAreaLightAPI)
+    (arnold_shader, "primvars:arnold:shader")
+    (arnold_camera, "arnold:camera")
 );
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -167,7 +169,13 @@ public:
         if (prim.IsA<UsdLuxLight>())
             mask = AI_NODE_LIGHT;
         else if (prim.IsA<UsdGeomCamera>())
+        {
             mask = AI_NODE_CAMERA;
+            // check if this camera is renderable
+            // Set the export camera
+            if (depFn.findPlug("renderable", true).asBool())
+               s_renderCamera = prim.GetPath().GetText();
+        }
         else
             s_arnoldData.push_back(prim);
 
@@ -218,7 +226,6 @@ ArnoldUsdChaser::ArnoldUsdChaser(
     pythonCmd += nodeName.asChar();
     pythonCmd += "\"]; cmds.arnoldScene(nodes, mode=\"convert_mayausd\", list=\"newNodes\")";
     MGlobal::executePythonCommand(pythonCmd.c_str()); 
-    TfToken arnoldContext("arnold");
     
     UsdArnoldWriter writer;
     writer.SetUsdStage(stage); 
@@ -234,7 +241,7 @@ ArnoldUsdChaser::ArnoldUsdChaser(
         if (!mat)
             continue; 
 
-        UsdAttribute attr = prim.GetAttribute(TfToken("primvars:arnold:shader"));
+        UsdAttribute attr = prim.GetAttribute(_tokens->arnold_shader);
         if (!attr)
             continue;
 
@@ -255,19 +262,29 @@ ArnoldUsdChaser::ArnoldUsdChaser(
         UsdPrim shaderPrim = stage->GetPrimAtPath(SdfPath(shader.c_str()));
         if (shaderPrim)
         {
-            UsdShadeOutput surfaceOutput = mat.CreateSurfaceOutput(arnoldContext);
+            UsdShadeOutput surfaceOutput = mat.CreateSurfaceOutput(_tokens->arnold);
             std::string surfaceTargetName = shader + std::string(".outputs:surface");
             surfaceOutput.ConnectToSource(SdfPath(surfaceTargetName));
             attr.Clear();
         }
     }
     s_arnoldData.clear();
-
     // for meshes/curves, get the exported material. Then add an arnold context connection on the material to the shader
     // need to get the material before writer. Then re-introduce this connection after it, and delete the new materials primitive
     
     MGlobal::executeCommand("arnoldScene -mode \"destroy\"");
 
+    static SdfPath s_optionsPath("/options");
+
+    // Finally, set the export camera in the optios node
+    UsdPrim optionsPrim = stage->GetPrimAtPath(s_optionsPath);
+    if (optionsPrim)
+    {
+        UsdAttribute camAttr = optionsPrim.CreateAttribute(_tokens->arnold_camera, SdfValueTypeNames->String, false);
+        if (camAttr && stage->GetPrimAtPath(s_optionsPath))
+            camAttr.Set(s_renderCamera);
+
+    }
 }
 bool ArnoldUsdChaser::ExportDefault()
 {
