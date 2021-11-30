@@ -33,6 +33,8 @@ namespace {
    };
 }
 
+static std::unordered_set<std::string> s_loadedPlugins;
+
 void ExpandEnvVariables(MString& str)
 {
    std::string str2 = str.asChar();
@@ -367,7 +369,17 @@ void CSessionOptions::Update()
    m_profile_file           = fnArnoldRenderOptions.findPlug("profile_file", true).asString();
 
    m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath", true).asString();
-   
+   if (m_plugin_searchpath.length() > 0)
+   {
+      std::string searchPath(m_plugin_searchpath.asChar());
+      if (s_loadedPlugins.find(searchPath) == s_loadedPlugins.end())
+      {
+         //This plugin wasn't loaded yet, let's ask Arnold to load it
+         AiLoadPlugins(searchPath.c_str());
+         // now let's store this path so that we don't need to load it again
+         s_loadedPlugins.insert(searchPath);
+      }
+   }
    // Stats
    if (m_stats_enable)
    {

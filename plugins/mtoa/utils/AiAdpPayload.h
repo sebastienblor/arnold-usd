@@ -14,6 +14,9 @@
 #include "ai_map.h"
 #include "ai_string.h"
 
+// forward declares
+class AtRenderSession;
+
 /**
  * We can set a render hint to label payloads with a render context, e.g.
  * \code
@@ -37,6 +40,10 @@
 #define AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH AtString("material_swatch")  // editor, swatch, etc.
 #define AI_ADP_RENDER_CONTEXT_OTHER           AtString("other")            // file interop, procs, etc.
 
+// Payload hints
+const AtString AI_ADP_PAYLOAD_HINT_ADD_RENDER_ID("add_render_id");         // Enable/disable render id injection
+const AtString AI_ADP_PAYLOAD_HINT_RENDER_SESSION("render_session");       // Render session pointer
+
 /**
  * Send a payload to Autodesk Analytics
  * 
@@ -51,9 +58,9 @@
  * AiParamValueMapDestroy(attributes);
  * \endcode
  *
- * @param name        Name of the payload
- * @param attributes  Payload attributes
- * @param hints       Payload hints
+ * @param name            Name of the payload
+ * @param attributes      Payload attributes
+ * @param hints           Payload hints
  * 
  * @return 0 if the payload was sent successfully, otherwise an error code
  */
