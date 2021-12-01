@@ -22,6 +22,10 @@ public:
         UsdMayaWriteJobContext&  jobCtx);
 
     void Write(const UsdTimeCode& usdTime) override;
+
+private:
+    mutable std::string m_parentScope;
+    mutable bool m_mergeTransformShapes;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

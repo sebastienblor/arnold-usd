@@ -230,6 +230,10 @@ void CSessionOptions::Update()
    if (!plug.isNull())
       m_exportDagTransformNames = (plug.asInt() == MTOA_EXPORT_DAG_TRANSFORM);
 
+   plug = fnArnoldRenderOptions.findPlug("exportPrefix", true);
+   if (!plug.isNull())
+      m_exportPrefix = plug.asString();
+
    plug = fnArnoldRenderOptions.findPlug("texture_searchpath", true);
    if (!plug.isNull())
    {

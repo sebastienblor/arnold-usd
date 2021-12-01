@@ -53,9 +53,12 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
+#include <iostream>
 
 static std::vector<UsdPrim> s_arnoldData;
 static std::string s_renderCamera;
+static std::string s_optionsNode;
+static const MString s_tmpOptionsNodeName = "tmpArnoldMayaUsdOptions";
 
 TF_DEFINE_PRIVATE_TOKENS(
     _tokens,
@@ -113,6 +116,35 @@ public:
         const UsdPrimDefinition* schemaPrimDef)
         : UsdMayaSchemaApiAdaptor(object, schemaName, schemaPrimDef)
     {
+        if (s_optionsNode.empty())
+        {
+            MSelectionList list;
+            list.add(s_tmpOptionsNodeName);
+            if (list.length() > 0)
+                return;
+
+            // Here we want to create a new "options" node, inheriting from the default one,
+            // so that we can override its attributes. It's a bit hacky, but for now it's
+            // a simple way to get this to work : We're creating a new aiOptions node, and while 
+            // looping over all of its attributes we're connecting them to the corresponding ones
+            // in defaultArnoldRenderOptions. This way we can provide this new options node to 
+            // "arnoldScene" and the export will be done with this new node. Once the export is
+            // finished, we can delete this temporary node.
+
+            MString optStr = "import maya.cmds as cmds\n";
+            optStr += MString("tmpOptions = cmds.createNode(\"aiOptions\", name=\"")+ s_tmpOptionsNodeName + MString("\")\n");
+            optStr += "attrs = cmds.listAttr(\"defaultArnoldRenderOptions\", hd=True,iu=True, c=True)\n";
+            optStr += "for attr in attrs:\n";
+            optStr  += "    if attr in ['exportMayaUsd','exportFullPaths','exportSeparator', 'exportDagName', 'exportPrefix']:\n";
+            optStr  += "        continue\n";
+            optStr += "    try:\n";
+            optStr += "        cmds.connectAttr('defaultArnoldRenderOptions.{}'.format(attr), '{}.{}'.format(tmpOptions, attr))\n";
+            optStr += "    except RuntimeError as err:\n";
+            optStr += "        pass\n";
+            optStr += "cmds.setAttr('{}.exportMayaUsd'.format(tmpOptions), 1)\n";
+            MGlobal::executePythonCommand(optStr);
+            s_optionsNode = s_tmpOptionsNodeName.asChar();
+        }
     }
 
     ~ArnoldSchemaExporter() override { }
@@ -133,6 +165,10 @@ public:
         if (depFn.setObject(_handle.object()) != MS::kSuccess)
             return false;
 
+        m_parentScope = std::string(jobArgs.parentScope.GetString());
+        if (!m_parentScope.empty())
+            m_parentScope += "/";
+        m_mergeTransformShapes = jobArgs.mergeTransformAndShape;
         return true;
     }
 
@@ -147,9 +183,39 @@ public:
             return false;
 
         MString nodeName = depFn.name();
-        std::string pythonCmd = "import maya.cmds as cmds;nodes = [\"";
+        // we'll be passing the tmp options node to "arnoldScene", 
+        // so we want to set properly its attributes "exportDagName" and "exportPrefix"
+        // to ensure they're consistent with mayausd
+        std::string pythonCmd = "import maya.cmds as cmds;";
+        if (!s_optionsNode.empty())
+        {
+            pythonCmd += "cmds.setAttr(\"";
+            pythonCmd += s_optionsNode;
+            pythonCmd += ".exportDagName\",";
+            if (m_mergeTransformShapes)
+                pythonCmd += "1";
+            else
+                pythonCmd += "0";
+
+            if (!m_parentScope.empty())
+            {
+                pythonCmd += ");cmds.setAttr(\"";
+                pythonCmd += s_optionsNode;
+                pythonCmd += ".exportPrefix\",\"";
+                pythonCmd += m_parentScope;
+                pythonCmd += "\", type='string'";
+            }
+        }
+        pythonCmd += ");nodes = [\"";
         pythonCmd += nodeName.asChar();
-        pythonCmd += "\"]; cmds.arnoldScene(nodes, mode=\"convert_mayausd\", list=\"newNodes\")";
+        pythonCmd += "\"]; cmds.arnoldScene(nodes, mode=\"convert_selected\",";
+        if (!s_optionsNode.empty())
+        {
+            pythonCmd += "options=\"";
+            pythonCmd += s_optionsNode;
+            pythonCmd += "\",";
+        }
+        pythonCmd += "list=\"newNodes\")";
         MStringArray res;
         MGlobal::executePythonCommand(pythonCmd.c_str(), res); 
         if (res.length() > 0)
@@ -180,13 +246,14 @@ public:
             s_arnoldData.push_back(prim);
 
         writer.SetMask(mask); // change the mask depending on the node type
-        
-        // add a flag to keep the existing material if it exists ? or always do it in append mode ?
+
         writer.Write(nullptr);
 
         MGlobal::executeCommand("arnoldScene -mode \"destroy\"");
         return true;
     }
+    mutable std::string m_parentScope;
+    mutable bool m_mergeTransformShapes;
 };
 
 PXRUSDMAYA_REGISTER_SCHEMA_API_ADAPTOR(mesh, ArnoldPolymeshAPI, ArnoldSchemaExporter);
@@ -224,15 +291,20 @@ ArnoldUsdChaser::ArnoldUsdChaser(
     MString nodeName = "defaultArnoldRenderOptions";
     std::string pythonCmd = "import maya.cmds as cmds;nodes = [\"";
     pythonCmd += nodeName.asChar();
-    pythonCmd += "\"]; cmds.arnoldScene(nodes, mode=\"convert_mayausd\", list=\"newNodes\")";
+    pythonCmd += "\"]; cmds.arnoldScene(nodes, mode=\"convert_selected\",";
+    if (!s_optionsNode.empty())
+    {
+        pythonCmd += "options=\"";
+        pythonCmd += s_optionsNode;
+        pythonCmd += "\",";
+    }
+    pythonCmd += " list=\"newNodes\")";
     MGlobal::executePythonCommand(pythonCmd.c_str()); 
     
     UsdArnoldWriter writer;
     writer.SetUsdStage(stage); 
     
-    writer.SetMask(AI_NODE_ALL); // change the mask depending on the node type
-    
-    // add a flag to keep the existing material if it exists ? or always do it in append mode ?
+    writer.SetMask(AI_NODE_ALL); 
     writer.Write(nullptr);
 
     for (auto prim : s_arnoldData)
@@ -298,6 +370,13 @@ bool ArnoldUsdChaser::ExportFrame(const UsdTimeCode& frame)
 
 bool ArnoldUsdChaser::PostExport()
 {
+    if (!s_optionsNode.empty())
+    {
+        MString cmd = "delete ";
+        cmd += MString(s_optionsNode.c_str());
+        MGlobal::executeCommand(cmd);
+        s_optionsNode = "";
+    }
     return true;
 }
 
@@ -313,6 +392,11 @@ ArnoldDagWriter::ArnoldDagWriter(
     UsdMayaWriteJobContext&  jobCtx)
     : UsdMayaPrimWriter(depNodeFn, usdPath, jobCtx)
 {
+    const UsdMayaJobExportArgs& jobArgs = jobCtx.GetArgs();
+    m_parentScope = std::string(jobArgs.parentScope.GetString());
+    if (!m_parentScope.empty())
+        m_parentScope += "/";
+    m_mergeTransformShapes = jobArgs.mergeTransformAndShape;
     Write(UsdTimeCode::Default());
 }
 
@@ -333,7 +417,35 @@ void ArnoldDagWriter::Write(const UsdTimeCode& usdTime)
     MString nodeName = depFn.name();
     std::string pythonCmd = "import maya.cmds as cmds;nodes = [\"";
     pythonCmd += nodeName.asChar();
-    pythonCmd += "\"]; cmds.arnoldScene(nodes, mode=\"convert_mayausd\")";
+    pythonCmd += "\"];";
+    if (!s_optionsNode.empty())
+    {
+        pythonCmd += "cmds.setAttr(\"";
+        pythonCmd += s_optionsNode;
+        pythonCmd += ".exportDagName\",";
+        if (m_mergeTransformShapes)
+            pythonCmd += "1";
+        else
+            pythonCmd += "0";
+
+        if (!m_parentScope.empty())
+        {
+            pythonCmd += ");cmds.setAttr(\"";
+            pythonCmd += s_optionsNode;
+            pythonCmd += ".exportPrefix\",\"";
+            pythonCmd += m_parentScope;
+            pythonCmd += "\", type='string'";
+        }
+        pythonCmd += ");";
+    }
+    pythonCmd += "cmds.arnoldScene(nodes,";
+    if (!s_optionsNode.empty())
+    {
+        pythonCmd += "options=\"";
+        pythonCmd += s_optionsNode;
+        pythonCmd += "\",";
+    }
+    pythonCmd += " mode=\"convert_selected\")";
     MGlobal::executePythonCommand(pythonCmd.c_str()); 
     
     UsdArnoldWriter writer;

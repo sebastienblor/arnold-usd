@@ -35,12 +35,13 @@ MSyntax CArnoldSceneCmd::newSyntax()
    syntax.addFlag("l", "list",  MSyntax::kString);
    syntax.addFlag("s", "session",  MSyntax::kString);
    syntax.addFlag("q", "query"); // returns true is there's currently an active arnold scene
+   syntax.addFlag("o", "options",  MSyntax::kString);
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
 
-static inline CArnoldSession *InitArnoldSceneSession(const std::string &sessionId)
+static inline CArnoldSession *InitArnoldSceneSession(const std::string &sessionId, const MString &optionsNode)
 {
    CArnoldSession *session = CSessionManager::FindActiveSession(sessionId);
    if (session == nullptr)
@@ -50,7 +51,22 @@ static inline CArnoldSession *InitArnoldSceneSession(const std::string &sessionI
       // and then access it through the arnold API. For this to work, we need the
       // nodes to be in the default universe
       session = new CArnoldSceneSession(); 
+      if (optionsNode.length() > 0)
+      {
+         MSelectionList list;
+         MObject node;
+         list.add(optionsNode);
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            if (!node.isNull())
+            {
+               session->GetOptions().SetArnoldRenderOptions(node);
+            }
+         }
+      }
       CSessionManager::AddActiveSession(sessionId, session);
+
    }
    return session;
 }
@@ -122,6 +138,8 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    MString listValue = (args.isFlagSet("list")) ? args.flagArgumentString("list", 0) : "";
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "create";
 
+   MString optionsNode = (args.isFlagSet("options")) ? args.flagArgumentString("options", 0) : "";
+
    if (listValue == "new_nodes")
       listAllNewNodes = true;
    else if (listValue == "nodes" && mode == "convert_selected")
@@ -153,7 +171,7 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       // export with an empty selection list so that options, etc...
       // are properly initialized
       MSelectionList list;
-      InitArnoldSceneSession(sessionId)->Export(&list);
+      InitArnoldSceneSession(sessionId, optionsNode)->Export(&list);
    }
    else if (mode == "destroy")
    {
@@ -165,17 +183,14 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    }
    else if (mode == "convert_scene")
    {
-      InitArnoldSceneSession(sessionId)->Export();
+      InitArnoldSceneSession(sessionId, optionsNode)->Export();
    }
-   else if (mode == "convert_selected" || mode == "convert_mayausd") 
+   else if (mode == "convert_selected") 
    {
-      CArnoldSession *session = InitArnoldSceneSession(sessionId);
-      session->GetOptions().SetMayaUsd(mode == "convert_mayausd");
-      
+      CArnoldSession *session = InitArnoldSceneSession(sessionId, optionsNode);
       MSelectionList sel = ComputeSelectionList(args);
 
       session->Export(&sel);
-
       // Even though we called Export(&sel) we must ensure that each of the selected nodes was properly exported.
       // The problem is that this function is only exporting cameras, shapes, lights, etc... so it's not fully doing what we expect
       if (session)

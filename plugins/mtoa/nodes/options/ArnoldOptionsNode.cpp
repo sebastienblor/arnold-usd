@@ -112,6 +112,7 @@ MObject CArnoldOptionsNode::s_export_full_paths;
 MObject CArnoldOptionsNode::s_export_separator;
 MObject CArnoldOptionsNode::s_export_namespace;
 MObject CArnoldOptionsNode::s_export_dag_name;
+MObject CArnoldOptionsNode::s_export_prefix;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
 MObject CArnoldOptionsNode::s_postTranslationCallback;
@@ -715,7 +716,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Shape", MTOA_EXPORT_DAG_SHAPE);
    eAttr.addField("Transform", MTOA_EXPORT_DAG_TRANSFORM);
    addAttribute(s_export_dag_name);
-   
+
+   s_export_prefix = tAttr.create("exportPrefix", "export_prefix", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_export_prefix);   
 
    s_export_shading_engine = nAttr.create("exportShadingEngine", "export_shading_engine", MFnNumericData::kBoolean);
    nAttr.setKeyable(false);
@@ -833,7 +837,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setStorable(false);
    nAttr.setHidden(true);
    nAttr.setReadable(true);
-   nAttr.setWritable(false);
    nAttr.setDefault(false);
    addAttribute(mayaUsdExport);
 
