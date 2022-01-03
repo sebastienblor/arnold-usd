@@ -148,7 +148,7 @@ def buildSettingsString(settings):
         for key, value in items :
             if value is True:
                 yield '-%s' % key
-            elif key is "exportPrefix":
+            elif key == "exportPrefix":
                 yield '-%s %s' % (key, value)
             elif value is not False:
                 yield '-%s %r' % (key, value)
