@@ -1,14 +1,14 @@
 #include "Metadata.h"
 
 #include <ai_msg.h>
-
+#include "utils/ConstantStrings.h"
 #include <maya/MGlobal.h>
 
 #include <cstring>
 
 AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry)
 {
-   const char* param = AiParamGetName(paramEntry);
+   const AtString param = AiParamGetName(paramEntry);
    const AtParamValue* real = AiParamGetDefault(paramEntry);
    AtParamValue value;
    memcpy(&value, real, sizeof(AtParamValue));
@@ -27,7 +27,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_INT:
       {
          int result;
-         if (AiMetaDataGetInt(entry, param, "default", &result))
+         if (AiMetaDataGetInt(entry, param, str::_default, &result))
          {
                value.INT() = result;
          }
@@ -40,7 +40,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_UINT:
       {
          int result;
-         if (AiMetaDataGetInt(entry, param, "default", &result))
+         if (AiMetaDataGetInt(entry, param, str::_default, &result))
          {
                value.UINT() = result;
          }
@@ -53,7 +53,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_BOOLEAN:
       {
          bool result;
-         if (AiMetaDataGetBool(entry, param, "default", &result))
+         if (AiMetaDataGetBool(entry, param, str::_default, &result))
          {
                value.BOOL() = result;
          }
@@ -66,7 +66,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_FLOAT:
       {
          float result;
-         if (AiMetaDataGetFlt(entry, param, "default", &result))
+         if (AiMetaDataGetFlt(entry, param, str::_default, &result))
          {
                value.FLT() = result;
          }
@@ -79,7 +79,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_VECTOR:
       {
          AtVector result;
-         if (AiMetaDataGetVec(entry, param, "default", &result))
+         if (AiMetaDataGetVec(entry, param, str::_default, &result))
          {
                value.VEC() = result;
          }
@@ -92,7 +92,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_VECTOR2:
       {
          AtVector2 result;
-         if (AiMetaDataGetVec2(entry, param, "default", &result))
+         if (AiMetaDataGetVec2(entry, param, str::_default, &result))
          {
                value.VEC2() = result;
          }
@@ -106,7 +106,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_RGBA:
       {
          AtRGB result;
-         if (AiMetaDataGetRGB(entry, param, "default", &result))
+         if (AiMetaDataGetRGB(entry, param, str::_default, &result))
          {
                value.RGB() = result;
          }
@@ -123,7 +123,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_STRING:
       {
          AtString result;
-         if (AiMetaDataGetStr(entry, param, "default", &result))
+         if (AiMetaDataGetStr(entry, param, str::_default, &result))
          {
                value.STR() = result;
          }

@@ -1,5 +1,6 @@
 #include "DriverTranslator.h"
 #include "utils/Universe.h"
+#include "utils/ConstantStrings.h"
 #include "session/ArnoldSession.h"
 #include <assert.h>
 #include "translators/NodeTranslatorImpl.h"
@@ -20,12 +21,12 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
    }
 
    const char* driverType = m_impl->m_abstract.arnold.asChar();
-   const AtNodeEntry* entry = AiNodeEntryLookUp(driverType);
+   const AtNodeEntry* entry = AiNodeEntryLookUp(AtString(driverType));
    if (entry != NULL)
    {
       bool displayDriver = false;
       // don't export display drivers during batch
-      if (AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) && displayDriver)
+      if (AiMetaDataGetBool(entry, AtString(), str::display_driver, &displayDriver) && displayDriver)
       {
          if (m_impl->m_session->IsBatchSession())
             return NULL;
@@ -40,7 +41,7 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
    std::string name = AiNodeGetName(created);
    name += "/";
    name += driverType;
-   AiNodeSetStr(created, "name", name.c_str());
+   AiNodeSetStr(created, str::name, AtString(name.c_str()));
 
    m_baseName = name;
    return created;
@@ -54,20 +55,21 @@ void CDriverTranslator::Export(AtNode *shader)
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-      const char* paramName = AiParamGetName(paramEntry);
+      const AtString paramName = AiParamGetName(paramEntry);
 
-      if (strcmp(paramName, "name") != 0 && strcmp(paramName, "layer_selection") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
+      if (paramName != str::name && paramName != str::layer_selection) 
+         ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
 
    bool displayDriver = false;
-   if (AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) && displayDriver)
+   if (AiMetaDataGetBool(entry, AtString(), str::display_driver, &displayDriver) && displayDriver)
    {
       MFnDependencyNode fnOpts(GetArnoldRenderOptions());
-      if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
-         AiNodeSetBool(shader, "progressive", m_impl->m_session->GetOptions().IsProgressive());
-      if (AiNodeEntryLookUpParameter(entry, "renderSession") != NULL)
-         AiNodeSetStr(shader, "renderSession", AtString(m_impl->m_session->GetSessionName().asChar()));
+      if (AiNodeEntryLookUpParameter(entry, str::progressive) != NULL)
+         AiNodeSetBool(shader, str::progressive, m_impl->m_session->GetOptions().IsProgressive());
+      if (AiNodeEntryLookUpParameter(entry, str::renderSession) != NULL)
+         AiNodeSetStr(shader, str::renderSession, AtString(m_impl->m_session->GetSessionName().asChar()));
    } else
    {
       // not for display drivers, at least not for now
@@ -82,12 +84,12 @@ void CDriverTranslator::Export(AtNode *shader)
       {
          if (colorSpaceVal == 0)
          {
-            AiNodeSetStr(shader, "color_space", "");
+            AiNodeSetStr(shader, str::color_space, AtString());
          } else if (colorSpaceVal == 1)
          {
             MString viewTransform;
             MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
-            AiNodeSetStr(shader, "color_space", viewTransform.asChar());      
+            AiNodeSetStr(shader, str::color_space, AtString(viewTransform.asChar()));
          } else 
          {
             int cmOutputEnabled = 0;
@@ -97,16 +99,16 @@ void CDriverTranslator::Export(AtNode *shader)
             {
                MString colorSpace;
                MGlobal::executeCommand("colorManagementPrefs -q -outputTransformName", colorSpace);
-               AiNodeSetStr(shader, "color_space", colorSpace.asChar());  
+               AiNodeSetStr(shader, str::color_space, AtString(colorSpace.asChar()));  
             } else
             {
-               AiNodeSetStr(shader, "color_space", "");
+               AiNodeSetStr(shader, str::color_space, AtString());
             }
          }
       }
       else
       {
-         AiNodeResetParameter(shader, "color_space");
+         AiNodeResetParameter(shader, str::color_space);
       }
    }
     
@@ -117,7 +119,7 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
    MString maya = context.maya;
    MString arnold = context.arnold;
    MString provider = context.provider;
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(arnold.asChar()));
 
    CExtensionAttrHelper helper(maya, nodeEntry, "");
    // inputs

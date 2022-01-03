@@ -1,6 +1,7 @@
 #include "UtilityFunctions.h"
 #include <string>
 #include <algorithm>
+#include "utils/ConstantStrings.h"
 static const std::string s_constantStr("constant ");
 static const std::string s_constantArrayStr("constant ARRAY ");
 static const std::string s_uniformStr("uniform ");
@@ -12,7 +13,7 @@ bool AiNodeDeclareConstant(AtNode* node, const char* name, unsigned int type)
       return false;
 
    std::string declStr = s_constantStr + AiParamGetTypeName(type);
-   return AiNodeDeclare(node, name, declStr.c_str());
+   return AiNodeDeclare(node, AtString(name), AtString(declStr.c_str()));
 }
 
 bool AiNodeDeclareConstantArray(AtNode* node, const char* name, unsigned int type)
@@ -21,7 +22,7 @@ bool AiNodeDeclareConstantArray(AtNode* node, const char* name, unsigned int typ
       return false;
 
    std::string declStr = s_constantArrayStr + AiParamGetTypeName(type);
-   return AiNodeDeclare(node, name, declStr.c_str());
+   return AiNodeDeclare(node, AtString(name), AtString(declStr.c_str()));
 }
 
 bool AiNodeDeclareUniform(AtNode* node, const char* name, unsigned int type)
@@ -30,7 +31,7 @@ bool AiNodeDeclareUniform(AtNode* node, const char* name, unsigned int type)
       return false;
 
    std::string declStr = s_uniformStr + AiParamGetTypeName(type);
-   return AiNodeDeclare(node, name, declStr.c_str());
+   return AiNodeDeclare(node, AtString(name), AtString(declStr.c_str()));
 }
 
 bool AiNodeDeclareVarying(AtNode* node, const char* name, unsigned int type)
@@ -39,5 +40,5 @@ bool AiNodeDeclareVarying(AtNode* node, const char* name, unsigned int type)
       return false;
 
    std::string declStr = s_varyingStr + AiParamGetTypeName(type);
-   return AiNodeDeclare(node, name, declStr.c_str());
+   return AiNodeDeclare(node, AtString(name), AtString(declStr.c_str()));
 }

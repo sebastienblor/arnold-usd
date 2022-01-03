@@ -1,15 +1,8 @@
 #include "FilterTranslator.h"
 #include "utils/Universe.h"
 #include "translators/NodeTranslatorImpl.h"
+#include "utils/ConstantStrings.h"
 #include <assert.h>
-
-/*
-
-   As a quick fix for 1.2.0.3 I'm adding the scaling of the
-   distance like parameters here, instead of to the process parameter.
-   This HAVE to be removed for 1.2.1.0.
-
-*/
 
 AtNode* CFilterTranslator::CreateArnoldNodes()
 {
@@ -22,7 +15,7 @@ AtNode* CFilterTranslator::CreateArnoldNodes()
    std::string name = AiNodeGetName(created);
    name += "/";
    name += arnoldName;
-   AiNodeSetStr(created, "name", name.c_str());
+   AiNodeSetStr(created, str::name, AtString(name.c_str()));
 
    return created;
 }
@@ -35,9 +28,9 @@ void CFilterTranslator::Export(AtNode *shader)
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-      const char* paramName = AiParamGetName(paramEntry);
+      const AtString paramName = AiParamGetName(paramEntry);
 
-      if (strcmp(paramName, "name") != 0)
+      if (paramName != str::name)
          ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
@@ -48,7 +41,7 @@ void CFilterTranslator::NodeInitializer(CAbTranslator context)
    MString maya = context.maya;
    MString arnold = context.arnold;
    MString provider = context.provider;
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(arnold.asChar()));
 
    CExtensionAttrHelper helper(maya, nodeEntry);
    // inputs
@@ -64,13 +57,4 @@ void CFilterTranslator::NodeInitializer(CAbTranslator context)
    }
    AiParamIteratorDestroy(nodeParam);
 
-}
-
-// We used to override this function to do nothing at all, which disabled update callbacks
-// for all filter nodes. This prevented IPR from working properly (#3273), so I'm re-enabling this.
-// We could completely remove this function, but it would break binary compatibility, so for now
-// I'm leaving it here.
-void CFilterTranslator::AddUpdateCallbacks()
-{
-   CNodeTranslator::AddUpdateCallbacks();
 }
