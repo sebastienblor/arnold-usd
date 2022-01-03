@@ -49,7 +49,11 @@
 
 #include <pxr/usd/usdGeom/camera.h>
 #include <pxr/usd/usdGeom/mesh.h>
+#if PXR_VERSION >= 2111
+#include <pxr/usd/usdLux/lightAPI.h>
+#else
 #include <pxr/usd/usdLux/light.h>
+#endif
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
@@ -232,7 +236,11 @@ public:
             writer.SetFrame(usdTime.GetValue());
 
         int mask = AI_NODE_SHAPE |AI_NODE_SHADER;
+#if PXR_VERSION >= 2111
+        if (prim.HasAPI<UsdLuxLightAPI>())
+#else
         if (prim.IsA<UsdLuxLight>())
+#endif
             mask = AI_NODE_LIGHT;
         else if (prim.IsA<UsdGeomCamera>())
         {
