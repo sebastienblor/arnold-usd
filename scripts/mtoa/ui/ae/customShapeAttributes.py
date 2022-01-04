@@ -449,25 +449,25 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
 
     def minPixelCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        isEnabled = cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) != 1
         cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
         cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
-        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        isEnabled = cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) != 1
         cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True,
                             attribute=attrName, enable=isEnabled)
 
     def indirectDiffuseCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        isEnabled = cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) != 1
         cmds.attrFieldSliderGrp("HairTemplateIndirectDiffuse", label="Indirect Diffuse",
                             attribute=attrName, enable=isEnabled)
         cmds.setUITemplate(popTemplate=True)
     
     def indirectDiffuseUpdate(self, attrName):
-        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        isEnabled = cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) != 1
         cmds.attrFieldSliderGrp("HairTemplateIndirectDiffuse", edit=True,
                             attribute=attrName, enable=isEnabled)
 
@@ -530,13 +530,13 @@ templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def minPixelCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        isEnabled = cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) != 1
         cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
         cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
-        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        isEnabled = cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) != 1
         cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
                             attribute=attrName, enable=isEnabled)
     
@@ -694,7 +694,7 @@ class CameraTemplate(templates.AttributeTemplate):
         for i in range(0,len(points)):
             cmds.setAttr(attr+'['+str(i)+'].aiShutterCurveX',float(points[i][0]))
             cmds.setAttr(attr+'['+str(i)+'].aiShutterCurveY',float(points[i][1]))
-            if i is 0:
+            if i == 0:
                 curveString += points[i][1] +"," + points[i][0] +",1"
             else:
                 curveString += ","+points[i][1] +"," + points[i][0] +",1"

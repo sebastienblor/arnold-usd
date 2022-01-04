@@ -148,7 +148,7 @@ class StandInTransverser(ProceduralTransverser):
         if filename not in FILE_CACHE.keys():
             self.getRootObjectInfo(self.nodeName)
 
-        if len(FILE_CACHE[filename]) is 1:
+        if len(FILE_CACHE[filename]) == 1:
             numNodes = 0
             if filename:
                 numNodes = self.getNumNodes(filename)

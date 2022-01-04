@@ -1153,7 +1153,7 @@ def createArnoldOperatorSettings():
 
 def arnoldMotionBlurPositionChanged(*args):
     sel = cmds.optionMenuGrp('mb_position', q=True, select=True) - 1
-    if (sel is 3):
+    if (sel == 3):
         cmds.attrControlGrp('mb_motion_frames', edit=True, enable=False)
         cmds.attrControlGrp('mb_motion_range_start', edit=True, enable=True)
         cmds.attrControlGrp('mb_motion_range_end', edit=True, enable=True)
