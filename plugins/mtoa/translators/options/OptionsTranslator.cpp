@@ -1393,7 +1393,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    // We used to apply outputOverscan only for batch & ass.
    MString overscanString = FindMayaPlug("outputOverscan").asString();
-   /*
+   
    if (overscanString != "" && !useRenderRegion)
    {
       float overscanL = 0.0f;
@@ -1451,7 +1451,7 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
       AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
       
-   }*/
+   }
 
 
    ExportAtmosphere(options);   
