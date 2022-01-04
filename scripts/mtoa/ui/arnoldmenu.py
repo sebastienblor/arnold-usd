@@ -165,14 +165,11 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+ai.AiGetVersionString()
-    
-    arnoldAcknowledgements = u"\nDeveloped by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez, Pál Mezei,\nMichael Farnsworth, Adam Felt, Bernard Kwok, Niklas Harrysson,\nJonathan Feldstein, Cynthia Beauchemin, Patrick Hodoul,\nSebastien Blaineau-Ortega, Ashley Handscomb Retallack, \nKrishnan Ramachandran\n\n"
-    arnoldAcknowledgements += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant, Ryan Harvey, \nYvonne Yeung, Michael Wile, Nicholas Verschelde,\nStephen Blair, Nikola Milosevic, Orn Gunnarsson"
 
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
     w = cmds.window("AboutArnold", title="About")
-    cmds.window("AboutArnold", edit=True, width=520, height=550)
+    cmds.window("AboutArnold", edit=True, width=520, height=280)
     cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,20), (2, 52), (3, 50), (4, 380)] )
 
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
@@ -198,25 +195,20 @@ def arnoldAboutDialog():
         cmds.text(label="")
         cmds.text(label="")
         cmds.button(label=' Get Latest ', c=lambda *args: cmds.launch(webPage= 'https://www.arnoldrenderer.com/arnold/download/'))
-     
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(align="left",label=arnoldAcknowledgements)
 
     cmds.text(label="");cmds.text(label="");cmds.text(label="");
-    
     cmds.scrollField(editable=False, wordWrap=True, font="plainLabelFont", height=200, text=legaltext)
-    
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
-
-    cmds.text(label="");cmds.text(label="\n");cmds.text(label="");cmds.text(label="")
 
     cmds.text(label="")
     cmds.text(label="")
     cmds.button( width=150,label='OK', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)') )
+    cmds.text(label="")
+
+    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+
     cmds.setParent( '..' )
-    
+
     cmds.showWindow(w)
 
 def arnoldLicenseManager():
