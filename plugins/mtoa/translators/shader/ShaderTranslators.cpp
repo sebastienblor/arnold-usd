@@ -3,6 +3,7 @@
 #include "platform/Platform.h"
 #include "../NodeTranslatorImpl.h"
 #include "../../common/UnorderedContainer.h"
+#include "attributes/AttrHelper.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -125,28 +126,17 @@ AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
 
 void CSkyShaderTranslator::Export(AtNode* shader)
 {
-   MFnDependencyNode trNode(m_dagPath.transform());
-
-   MTransformationMatrix tmatrix(m_dagPath.inclusiveMatrix());
-   MEulerRotation erotate = tmatrix.eulerRotation();
-   AiNodeSetFlt(shader, "X_angle", static_cast<float>(-MAngle(erotate[0]).asDegrees()));
-   AiNodeSetFlt(shader, "Y_angle", static_cast<float>(MAngle(erotate[1]).asDegrees()));
-   AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-MAngle(erotate[2]).asDegrees()));
-
-   double scale[3];
-   tmatrix.getScale(scale, MSpace::kTransform);
-   // Invert in Z to account for the env sphere being viewed from inside
-   AiNodeSetVec(shader, "X", 1.0f/static_cast<float>(scale[0]), 0.0f, 0.0f);
-   AiNodeSetVec(shader, "Y", 0.0f, 1.0f/static_cast<float>(scale[1]), 0.0f);
-   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, 1.0f/static_cast<float>(scale[2]));
-
    ProcessParameter(shader, "color",     AI_TYPE_RGB);
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
-
-   AtByte visibility = ComputeVisibility();
-   AiNodeSetBool(shader, "opaque_alpha", (int)(visibility & AI_RAY_CAMERA));
-   AiNodeSetInt(shader, "visibility", visibility);
+   ProcessParameter(shader, "X",         AI_TYPE_VECTOR);
+   ProcessParameter(shader, "Y",         AI_TYPE_VECTOR);
+   ProcessParameter(shader, "Z",         AI_TYPE_VECTOR);
+   ProcessParameter(shader, "X_angle",   AI_TYPE_FLOAT);
+   ProcessParameter(shader, "Y_angle",   AI_TYPE_FLOAT);
+   ProcessParameter(shader, "Z_angle",   AI_TYPE_FLOAT);
+   ProcessParameter(shader, "visibility",AI_TYPE_BYTE);
+   ProcessParameter(shader, "opaque_alpha", AI_TYPE_BOOLEAN);
 }
 
 // Lambert
