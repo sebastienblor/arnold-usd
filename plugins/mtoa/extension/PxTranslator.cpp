@@ -12,7 +12,7 @@
 #include "translators/imager/ImagerTranslator.h"
 #include "translators/imager/ImagerLightMixerTranslator.h"
 #include "translators/imager/ImagerColorCurvesTranslator.h"
-
+#include "utils/ConstantStrings.h"
 // A translator proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
                              const MString &providerName,
@@ -36,7 +36,7 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
    if (name.numChars() == 0)
    {
       AtString translatorName;
-      if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.translator", &translatorName))
+      if (AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::maya_translator, &translatorName))
       {
          SetName(MString(translatorName));
       }
@@ -48,7 +48,7 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
    
    // get the maya.isdefault metadata, this tells us if this translator should be the default one
    // when multiple translators are set for a given maya node 
-   AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.isdefault", &isdefault);
+   AiMetaDataGetBool(arnoldNodeEntry, AtString(), str::maya_isdefault, &isdefault);
 
    // If no explicit translator was specified, choose a default one using Arnold node type
    // TODO : use metadata for a finer choice of base translator classes ?

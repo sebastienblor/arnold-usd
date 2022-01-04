@@ -4,6 +4,7 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "utils/Universe.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 #include "translators/NodeTranslatorImpl.h"
 #include "ExtensionImpl.h"
@@ -427,7 +428,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          if (plugin.numChars() == 0) // builtin
             continue; 
          bool createProcedural;
-         if (!(AiMetaDataGetBool(nentry, NULL, "maya.procedural", &createProcedural) && createProcedural))
+         if (!(AiMetaDataGetBool(nentry, AtString(), str::maya_procedural, &createProcedural) && createProcedural))
             continue;
 
       }
@@ -440,7 +441,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
       {
          // If the Arnold node is marked as a node that should be ignored
          bool hide;
-         if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
+         if (AiMetaDataGetBool(nentry, AtString(), str::maya_hide, &hide) && hide)
          {
             if (MtoaTranslationInfo())
                MtoaDebugLog("[mtoa] ["+m_impl->m_extensionName+"] [node "+nodeName+"] Marked as hidden.");

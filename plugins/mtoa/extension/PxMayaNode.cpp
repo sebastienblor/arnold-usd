@@ -24,6 +24,7 @@
 #include "nodes/shader/ArnoldStandardHairNode.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 #include <ai_metadata.h>
 
 // A Maya node class proxy
@@ -60,31 +61,31 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    const char* ext = provider.asChar();
 
    // int arnoldNodeType = AiNodeEntryGetType(arnoldNodeEntry);
-   MString arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
+   const AtString arnoldNodeTypeName = AtString(AiNodeEntryGetTypeName(arnoldNodeEntry));
    // If Maya node type name and ids were not specified
    if (name.numChars() == 0)
    {
       // get maya type name from metadata
       AtString mayaNodeNameMtd;
-      if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &mayaNodeNameMtd))
+      if (AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::maya_name, &mayaNodeNameMtd))
       {
          SetName(MString(mayaNodeNameMtd));
       }
-      else if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.counterpart", &mayaNodeNameMtd))
+      else if (AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::maya_counterpart, &mayaNodeNameMtd))
       {
          AiMsgWarning("[mtoa] [%s] [node %s] The use of the maya.counterpart metadata is deprecated, use maya.name instead.",
                ext, node);
          SetName(MString(mayaNodeNameMtd));
       }
-      else if (arnoldNodeTypeName == "camera")
+      else if (arnoldNodeTypeName == str::camera)
       {
          SetName("camera");
       }
-      else if (arnoldNodeTypeName == "driver")
+      else if (arnoldNodeTypeName == str::driver)
       {
          SetName("aiAOVDriver");
       }
-      else if (arnoldNodeTypeName == "filter")
+      else if (arnoldNodeTypeName == str::filter)
       {
          SetName("aiAOVFilter");
       }
@@ -97,17 +98,17 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    {
       // get maye typeId from metadata
       int nodeId;
-      if (AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.id", &nodeId))
+      if (AiMetaDataGetInt(arnoldNodeEntry, AtString(), str::maya_id, &nodeId))
       {
          id = MTypeId(nodeId);
       }
-      else if (AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.counterpart_id", &nodeId))
+      else if (AiMetaDataGetInt(arnoldNodeEntry, AtString(), str::maya_counterpart_id, &nodeId))
       {
          AiMsgWarning("[mtoa] [%s] [node %s] The use of the maya.counterpart_id metadata is deprecated, use maya.id instead.",
                ext, node);
          id = MTypeId(nodeId);
       }
-      else if (arnoldNodeTypeName == "camera")
+      else if (arnoldNodeTypeName == str::camera)
       {
          id = MTypeId(MAYA_NODEID_CAMERA);
       }
@@ -116,13 +117,13 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    if (MPxNode::kLast == type)
    {
       AtString nodeTypeMtd;
-      if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.type", &nodeTypeMtd))
+      if (AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::maya_type, &nodeTypeMtd))
       {
-         if (strcmp(nodeTypeMtd, "kLocatorNode") == 0)
+         if (nodeTypeMtd == str::kLocatorNode)
          {
             type = MPxNode::kLocatorNode;
          }
-         else if (strcmp(nodeTypeMtd, "kDependNode") == 0)
+         else if (nodeTypeMtd == str::kDependNode)
          {
             type = MPxNode::kDependNode;
          }
@@ -140,19 +141,19 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    while (!AiParamIteratorFinished(paramIt))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(paramIt);
-      const char* paramName = AiParamGetName(paramEntry);
+      const AtString paramName = AiParamGetName(paramEntry);
       // skip the special "name" parameter
-      if (strcmp(paramName, "name") != 0)
+      if (paramName != str::name)
       {
          bool hide = false;
-         if (!AiMetaDataGetBool(arnoldNodeEntry, paramName, "maya.hide", &hide) || !hide)
+         if (!AiMetaDataGetBool(arnoldNodeEntry, paramName, str::maya_hide, &hide) || !hide)
          {
             CAttrData attrData;
             helper.GetAttrData(paramName, attrData);
 
             // AOVs
             int aovType;
-            if (AiMetaDataGetInt(arnoldNodeEntry, paramName, "aov.type", &aovType))
+            if (AiMetaDataGetInt(arnoldNodeEntry, paramName, str::aov_type, &aovType))
             {
                // assert that we're a string parameter
                if (AiParamGetType(paramEntry) != AI_TYPE_STRING)
@@ -171,7 +172,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    AiParamIteratorDestroy(paramIt);
 
    bool aovShader = m_aovShader = false;
-   if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "aov_shader", &aovShader))
+   if (AiMetaDataGetBool(arnoldNodeEntry, AtString(), str::aov_shader, &aovShader))
       m_aovShader = true;
    
 
@@ -185,20 +186,20 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    bool isAutoProcedural = false;
 
    AtString drawdbClassificationMtd;
-   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.drawdb", &drawdbClassificationMtd))
+   if (AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::maya_drawdb, &drawdbClassificationMtd))
    {
       drawdbClassification = MString(":drawdb/") + MString(drawdbClassificationMtd);
    }
    if (NULL == creator)
    {      
-      if (arnoldNodeTypeName == "light")
+      if (arnoldNodeTypeName == str::light)
       {
          // TODO : define a base light class
          // creator = CArnoldSkyDomeLightShaderNode::creator;
          // initialize = CArnoldSkyDomeLightShaderNode::initialize;
          type = MPxNode::kLocatorNode;
       }
-      else if (arnoldNodeTypeName == "shader")
+      else if (arnoldNodeTypeName == str::shader)
       {
          if (id == ARNOLD_NODEID_STANDARD) //aiStandard node
          {
@@ -434,29 +435,27 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          }
          type = MPxNode::kDependNode;
       }
-      else if (arnoldNodeTypeName == "shape")
+      else if (arnoldNodeTypeName == str::shape)
       {
-         if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.procedural", &isAutoProcedural) && isAutoProcedural)
+         if (AiMetaDataGetBool(arnoldNodeEntry, AtString(), str::maya_procedural, &isAutoProcedural) && isAutoProcedural)
          {
             creator    = CArnoldProceduralNode::creator;
             initialize = CArnoldProceduralNode::initialize;
             abstract   = &CArnoldProceduralNode::s_abstract;
-            classification = "drawdb/subscene/arnold/procedural/" + arnoldNodeTypeName;
+            classification = MString("drawdb/subscene/arnold/procedural/") + MString(arnoldNodeTypeName.c_str());
          }
-      } else if (arnoldNodeTypeName == "operator")
+      } else if (arnoldNodeTypeName == str::_operator)
       {
          creator    = CArnoldOperatorNode::creator;
          initialize = CArnoldOperatorNode::initialize;
          abstract   = &CArnoldOperatorNode::s_abstract;
 
-      } else if (arnoldNodeTypeName == "driver")
+      } else if (arnoldNodeTypeName == str::driver)
       {
          // Special case for drivers
          AtString subtypeMtd;
-         static AtString subtypeStr("subtype");
-         static AtString imagerStr("imager");
-
-         if (AiMetaDataGetStr(arnoldNodeEntry, NULL, subtypeStr, &subtypeMtd) && subtypeMtd == imagerStr)
+         
+         if (AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::subtype, &subtypeMtd) && subtypeMtd == str::imager)
          {         
             creator    = CArnoldImagerNode::creator;
             initialize = CArnoldImagerNode::initialize;
@@ -470,15 +469,15 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    {
       // classification metadata
       AtString classificationMtd;
-      if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classificationMtd))
+      if (!AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::maya_classification, &classificationMtd))
       {
          classificationMtd = AtString(CLASSIFY_SHADER.asChar());
       }
       
-      if(strcmp("light/filter", classificationMtd) == 0)
+      if(classificationMtd == str::light__filter)
       {
          AtString lights;
-         if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.lights", &lights))
+         if (AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::maya_lights, &lights))
          {
             MString cmd = "from mtoa.lightFilters import addLightFilterClassification;addLightFilterClassification('" + MString(lights) + "','"+ MString(name) +"')";
             CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));

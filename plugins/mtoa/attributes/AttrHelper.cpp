@@ -3,6 +3,7 @@
 #include "attributes/Metadata.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_metadata.h>
 #include <ai_msg.h>
@@ -55,7 +56,7 @@ bool CBaseAttrHelper::IsHidden(const char* paramName) const
       return true;
 
    bool hide;
-   if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.hide", &hide) && hide)
+   if (AiMetaDataGetBool(m_nodeEntry, AtString(paramName), str::maya_hide, &hide) && hide)
       return true;
    else
       return false;
@@ -67,7 +68,7 @@ bool CBaseAttrHelper::IsHidden(const char* paramName) const
 MString CBaseAttrHelper::GetMayaAttrName(const char* paramName) const
 {
    AtString attrName;
-   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+   if (AiMetaDataGetStr(m_nodeEntry, AtString(paramName), str::maya_name, &attrName))
    {
       MString attrNameStr(attrName.c_str());
       return attrNameStr;
@@ -85,7 +86,7 @@ MString CBaseAttrHelper::GetMayaAttrName(const char* paramName) const
 MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName) const
 {
    AtString attrShortName;
-   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+   if (AiMetaDataGetStr(m_nodeEntry, AtString(paramName), str::maya_shortname, &attrShortName))
       return MString(attrShortName);
    else
       return m_prefix + paramName;
@@ -98,17 +99,18 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       AiMsgError("[mtoa.attr] A valid node entry must be passed to query data for parameter \"%s\"", paramName);
       return false;
    }
+   AtString paramNameStr(paramName);
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
    const AtParamEntry* paramEntry;
    // If the attribute is an output that is not the default use a different lookup call
    if (isOutput)
    {
-      paramEntry = AiNodeEntryLookUpOutput(m_nodeEntry, AtString(paramName));
+      paramEntry = AiNodeEntryLookUpOutput(m_nodeEntry, paramNameStr);
    }
    else
    {
-      paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, AtString(paramName));
+      paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramNameStr);
    }
    
     
@@ -125,18 +127,18 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
    const char* typeName = AiParamGetTypeName(data.type);
 
    bool keyable;
-   if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.keyable", &keyable) && keyable)
+   if (AiMetaDataGetBool(m_nodeEntry, paramNameStr, str::maya_keyable, &keyable) && keyable)
       data.keyable = true;
    else
       data.keyable = false;
 
    bool connectable;
-   if (!AiMetaDataGetBool(m_nodeEntry, paramName, "maya.connectable", &connectable))
+   if (!AiMetaDataGetBool(m_nodeEntry, paramNameStr, str::maya_connectable, &connectable))
       connectable = true;
    data.linkable = connectable;
 
    bool channelBox;
-   if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.channelbox", &channelBox) && channelBox)
+   if (AiMetaDataGetBool(m_nodeEntry, paramNameStr, str::maya_channelbox, &channelBox) && channelBox)
       channelBox = true;
    else
       channelBox = false; 
@@ -154,8 +156,8 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       //
       // Also, by convention, matrix arrays with name "matrix" are animatable
       // attributes.
-      if ((AiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
-           (data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0))
+      if ((AiMetaDataGetBool(m_nodeEntry, paramNameStr, str::animatable, &animatable) && animatable) ||
+           (data.type == AI_TYPE_MATRIX && paramNameStr == str::matrix))
       {
          data.isArray = false;
          // since this parameter is not to be treated as an array within maya,
@@ -210,22 +212,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       case AI_TYPE_INT:
       {
          int val;
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::min, &val))
          {
             data.min.INT() = val;
             data.hasMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::max, &val))
          {
             data.max.INT() = val;
             data.hasMax = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::softmin, &val))
          {
             data.softMin.INT() = val;
             data.hasSoftMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::softmax, &val))
          {
             data.softMax.INT() = val;
             data.hasSoftMax = true;
@@ -235,22 +237,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       case AI_TYPE_BYTE:
       {
          int val;
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::min, &val))
          {
             data.min.BYTE() = (int)val;
             data.hasMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::max, &val))
          {
             data.max.BYTE() = (int)val;
             data.hasMax = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::softmin, &val))
          {
             data.softMin.BYTE() = (int)val;
             data.hasSoftMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::softmax, &val))
          {
             data.softMax.BYTE() = (int)val;
             data.hasSoftMax = true;
@@ -260,22 +262,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       case AI_TYPE_UINT:
       {
          int val;
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::min, &val))
          {
             data.min.INT() = (val < 0 ? 0 : val);
             data.hasMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::max, &val))
          {
             data.max.INT() = (val < 0 ? 0 : val);
             data.hasMax = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::softmin, &val))
          {
             data.softMin.INT() = (val < 0 ? 0 : val);
             data.hasSoftMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         if (AiMetaDataGetInt(m_nodeEntry, paramNameStr, str::softmax, &val))
          {
             data.softMax.INT() = (val < 0 ? 0 : val);
             data.hasSoftMax = true;
@@ -285,22 +287,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       case AI_TYPE_FLOAT:
       {
          float val;
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "min", &val))
+         if (AiMetaDataGetFlt(m_nodeEntry, paramNameStr, str::min, &val))
          {
             data.min.FLT() = val;
             data.hasMin = true;
          }
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "max", &val))
+         if (AiMetaDataGetFlt(m_nodeEntry, paramNameStr, str::max, &val))
          {
             data.max.FLT() = val;
             data.hasMax = true;
          }
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmin", &val))
+         if (AiMetaDataGetFlt(m_nodeEntry, paramNameStr, str::softmin, &val))
          {
             data.softMin.FLT() = val;
             data.hasSoftMin = true;
          }
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmax", &val))
+         if (AiMetaDataGetFlt(m_nodeEntry, paramNameStr, str::softmax, &val))
          {
             data.softMax.FLT() = val;
             data.hasSoftMax = true;
@@ -309,7 +311,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       }
       case AI_TYPE_ENUM:
       {
-         const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+         const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramNameStr);
          for (int ei=0;;ei++)
          {
             const char* enumStr = AiEnumGetString(AiParamGetEnum(paramEntry), ei);
@@ -325,7 +327,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data, bool i
       {
          data.stringDefault = data.defaultValue.STR();
          bool usedAsFilename = false;
-         if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.usedAsFilename", &usedAsFilename))
+         if (AiMetaDataGetBool(m_nodeEntry, paramNameStr, str::maya_usedAsFilename, &usedAsFilename))
             data.usedAsFilename = usedAsFilename;       
 
       }
@@ -1167,14 +1169,14 @@ MObject CBaseAttrHelper::MakeOutput()
    
    CAttrData data;
    data.isArray = false;
-   if (!AiMetaDataGetInt(m_nodeEntry, NULL, "maya.output", &data.type))
+   if (!AiMetaDataGetInt(m_nodeEntry, AtString(), str::maya_output, &data.type))
    {
       data.type = AiNodeEntryGetOutputType(m_nodeEntry);
    }
    const char* typeName = AiParamGetTypeName(data.type);
    AtString attrName;
 
-   if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.output_name", &attrName))
+      if (AiMetaDataGetStr(m_nodeEntry, AtString(), str::maya_output_name, &attrName))
    {
       data.name = MString(attrName);
    }
@@ -1191,7 +1193,7 @@ MObject CBaseAttrHelper::MakeOutput()
       }
    }
    AtString attrShortName;
-   if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.output_shortname", &attrShortName))
+   if (AiMetaDataGetStr(m_nodeEntry, AtString(), str::maya_output_shortname, &attrShortName))
    {
       data.shortName = MString(attrShortName);
    }
@@ -1285,14 +1287,14 @@ void CBaseAttrHelper::ReadPrefixMetadata()
    if (m_nodeEntry != NULL)
    {
       AtString tmp;
-      if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.attr_prefix", &tmp))
+      if (AiMetaDataGetStr(m_nodeEntry, AtString(), str::maya_attr_prefix, &tmp))
          m_prefix = tmp;
    }
 }
 
 void CBaseAttrHelper::SetNode(const char* arnoldNodeName)
 {
-   m_nodeEntry = AiNodeEntryLookUp(arnoldNodeName);
+   m_nodeEntry = AiNodeEntryLookUp(AtString(arnoldNodeName));
    ReadPrefixMetadata();
 };
 

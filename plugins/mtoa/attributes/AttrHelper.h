@@ -149,7 +149,7 @@ public:
       ReadPrefixMetadata();
    }
    CBaseAttrHelper(const MString& arnoldNodeEntryName, const MString& prefix="") :
-      m_nodeEntry(AiNodeEntryLookUp(arnoldNodeEntryName.asChar())),
+      m_nodeEntry(AiNodeEntryLookUp(AtString(arnoldNodeEntryName.asChar()))),
       m_attrNum(0),
       m_prefix(prefix)
    {
