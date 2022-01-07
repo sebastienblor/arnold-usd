@@ -221,7 +221,7 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    }
    
    // We need to use a null render session, because at this stage (during export) 
-   // it's not supposed yet #MTOA-957
+   // it's not supposed to exist yet #MTOA-956
    MtoAADPPayloads::ADPPostShaderUsed(GetMayaNodeTypeName().asChar(), nullptr);
    ExportDccName();
 }
