@@ -220,7 +220,9 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
       MtoaDebugLog(log);
    }
    
-   MtoAADPPayloads::ADPPostShaderUsed(GetMayaNodeTypeName().asChar(),m_session->GetRenderSession());
+   // We need to use a null render session, because at this stage (during export) 
+   // it's not supposed to exist yet #MTOA-956
+   MtoAADPPayloads::ADPPostShaderUsed(GetMayaNodeTypeName().asChar(), nullptr);
    ExportDccName();
 }
 
