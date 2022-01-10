@@ -3,6 +3,7 @@
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnDependencyNode.h>
+#include <maya/MNodeClass.h>
 #include <ai.h>
 
 MString getFileName(MCommonRenderSettingsData::MpathType pathType,
@@ -162,4 +163,12 @@ bool IsRGBAttrDefault(MPlug plug, float valueR, float valueG, float valueB)
 bool IsBatch()
 {
    return (MGlobal::mayaState() == MGlobal::kBatch || MGlobal::mayaState() == MGlobal::kLibraryApp);
+}
+
+bool MayaNodeTypeExists(const MString &mayaTypeName)
+{
+   MNodeClass mayaNodeClass(mayaTypeName);
+   if (MTypeId(MFn::kInvalid) == mayaNodeClass.typeId())
+      return false;
+   return true;
 }

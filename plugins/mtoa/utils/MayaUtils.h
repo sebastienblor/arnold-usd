@@ -37,3 +37,4 @@ DLLEXPORT bool IsBoolAttrDefault(MPlug plug, bool value);
 DLLEXPORT bool IsVec2AttrDefault(MPlug plug, float valueX, float valueY);
 DLLEXPORT bool IsRGBAttrDefault(MPlug plug, float valueR, float valueG, float valueB);
 DLLEXPORT bool IsBatch();
+DLLEXPORT bool MayaNodeTypeExists(const MString &mayaTypeName);
