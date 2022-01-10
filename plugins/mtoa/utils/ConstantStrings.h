@@ -84,6 +84,7 @@ ASTR(shape);
 ASTR(subtype);
 ASTR(softmax);
 ASTR(softmin);
+ASTR(append);
 
 
 

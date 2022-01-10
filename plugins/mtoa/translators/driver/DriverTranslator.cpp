@@ -56,8 +56,13 @@ void CDriverTranslator::Export(AtNode *shader)
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const AtString paramName = AiParamGetName(paramEntry);
-
-      if (paramName != str::name && paramName != str::layer_selection) 
+      MPlug tile = FindMayaPlug("tiled");
+      if ( paramName ==  str::append && !tile.asBool())
+      {
+         AiMsgDebug("[mtoa] driverexr Cannot append to exr without tiled being set to true. Ignoring append");
+         continue;
+      }
+      if (paramName != str::name && paramName != str::layer_selection)
          ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
