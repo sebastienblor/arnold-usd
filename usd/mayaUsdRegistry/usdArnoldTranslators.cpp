@@ -79,11 +79,12 @@ TF_DEFINE_PRIVATE_TOKENS(
 );
 
 PXR_NAMESPACE_OPEN_SCOPE
+#ifdef MTOA_USD_CHASER
 
 REGISTER_EXPORT_JOB_CONTEXT_FCT(
     Arnold,
-    "Arnold Export",
-    "Arnold export")
+    "Arnold",
+    "Arnold")
 {
     VtDictionary extraArgs;
     extraArgs[UsdMayaJobExportArgsTokens->apiSchema]
@@ -393,6 +394,7 @@ PXRUSDMAYA_DEFINE_EXPORT_CHASER_FACTORY(ArnoldUsdChaser, ctx)
     return new ArnoldUsdChaser(ctx.GetStage(), ctx.GetDagToUsdMap());
 }
 
+#endif
 
 ArnoldDagWriter::ArnoldDagWriter(
     const MFnDependencyNode& depNodeFn,

@@ -10,6 +10,11 @@
 #include <mayaUsd/fileio/writeJobContext.h>
 
 PXR_NAMESPACE_OPEN_SCOPE
+#if MAYAUSD_MINOR_VERSION >= 15
+#define MTOA_USD_CHASER 1
+#elif MAYAUSD_MAJOR_VERSION > 0
+#define MTOA_USD_CHASER 1
+#endif
 
 
 /// Exports Arnold DAG nodes
