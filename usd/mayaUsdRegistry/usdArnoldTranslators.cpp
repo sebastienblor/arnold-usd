@@ -37,7 +37,6 @@
 #include "prim_writer.h"
 #include "usdArnoldTranslators.h"
 
-#include <mayaUsd/fileio/jobContextRegistry.h>
 #include <mayaUsd/fileio/jobs/jobArgs.h>
 #include <mayaUsd/fileio/schemaApiAdaptor.h>
 #include <mayaUsd/fileio/schemaApiAdaptorRegistry.h>
@@ -80,6 +79,8 @@ TF_DEFINE_PRIVATE_TOKENS(
 
 PXR_NAMESPACE_OPEN_SCOPE
 #ifdef MTOA_USD_CHASER
+
+#include <mayaUsd/fileio/jobContextRegistry.h>
 
 REGISTER_EXPORT_JOB_CONTEXT_FCT(
     Arnold,
