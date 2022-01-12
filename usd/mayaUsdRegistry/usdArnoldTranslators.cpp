@@ -26,8 +26,6 @@
 #include <dlfcn.h>
 #endif
 
-//#include "usdArnoldTranslators.h"
-#include <mayaUsd\fileio\utils\writeUtil.h>
 #include <maya/MGlobal.h>
 #include <maya/MAnimControl.h>
 #include <ai_nodes.h>
@@ -45,6 +43,10 @@
 #include <mayaUsd/fileio/shaderWriter.h>
 #include <mayaUsd/fileio/writeJobContext.h>
 #include <mayaUsd/fileio/chaser/exportChaserRegistry.h>
+#ifdef MTOA_USD_CHASER
+#include <mayaUsd/fileio/jobContextRegistry.h>
+#include <mayaUsd\fileio\utils\writeUtil.h>
+#endif
 
 #include <pxr/usd/usdGeom/camera.h>
 #include <pxr/usd/usdGeom/mesh.h>
