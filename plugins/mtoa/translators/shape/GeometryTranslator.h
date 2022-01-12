@@ -49,7 +49,9 @@ protected:
          AtArray*& normals,
          MSpace::Space space=MSpace::kObject,
          bool force=false);
-   bool GetNormals(const MObject& geometry,
+   // the function is virtual in case a specialized class wants to 
+   // override it to provide custom normals #MTOA-367
+   virtual bool GetNormals(const MObject& geometry,
            const float*& normals);
    bool GetTangents(const MObject &geometry,
          AtArray*& tangents,
