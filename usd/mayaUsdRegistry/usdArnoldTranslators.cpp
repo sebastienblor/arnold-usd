@@ -36,16 +36,15 @@
 #include "usdArnoldTranslators.h"
 
 #include <mayaUsd/fileio/jobs/jobArgs.h>
-#include <mayaUsd/fileio/schemaApiAdaptor.h>
-#include <mayaUsd/fileio/schemaApiAdaptorRegistry.h>
-
 #include <mayaUsd/base/api.h>
 #include <mayaUsd/fileio/shaderWriter.h>
 #include <mayaUsd/fileio/writeJobContext.h>
-#include <mayaUsd/fileio/chaser/exportChaserRegistry.h>
 #ifdef MTOA_USD_CHASER
 #include <mayaUsd/fileio/jobContextRegistry.h>
 #include <mayaUsd\fileio\utils\writeUtil.h>
+#include <mayaUsd/fileio/schemaApiAdaptor.h>
+#include <mayaUsd/fileio/schemaApiAdaptorRegistry.h>
+#include <mayaUsd/fileio/chaser/exportChaserRegistry.h>
 #endif
 
 #include <pxr/usd/usdGeom/camera.h>
