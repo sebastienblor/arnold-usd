@@ -3,6 +3,7 @@ import platform
 import sys
 import SCons.Action
 import subprocess
+import shutil
 
 import utils as sa
 
@@ -18,6 +19,17 @@ Import('maya_env')
 local_env = maya_env.Clone()
 _targetPath = local_env.Dir('.')
 globals()['MAYAUSD_REGISTRY'] = []
+
+if not os.path.exists(_targetPath.abspath):
+    os.makedirs(_targetPath.abspath)
+
+build_writer_dir = os.path.join(_targetPath.abspath, 'writer')
+if not os.path.exists(build_writer_dir):
+    os.makedirs(build_writer_dir)
+
+build_common_dir = os.path.join(_targetPath.abspath, 'common')
+if not os.path.exists(build_common_dir):
+    os.makedirs(build_common_dir)
 
 pythonVersion = '3'
 if local_env.get('MTOA_USD_PYTHON'):
@@ -89,8 +101,10 @@ writer_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'tra
 writer_srcs = find_files_recursive(writer_dir, ['.c', '.cpp'])
 writer_includes = find_files_recursive(writer_dir, ['.h'])
 
+
 for writer_src in writer_srcs:
-    source_files.append(os.path.join(writer_dir, writer_src))
+    shutil.copyfile(os.path.join(writer_dir, writer_src), os.path.join(build_writer_dir, writer_src))
+    source_files.append(os.path.join(build_writer_dir, writer_src))
 for writer_include in writer_includes:
     include_files.append(os.path.join(writer_dir, writer_include))
 
@@ -99,7 +113,8 @@ common_srcs = find_files_recursive(common_dir, ['.c', '.cpp'])
 common_includes = find_files_recursive(common_dir, ['.h'])
 
 for common_src in common_srcs:
-    source_files.append(os.path.join(common_dir, common_src))
+    shutil.copyfile(os.path.join(common_dir, common_src), os.path.join(build_common_dir, common_src))
+    source_files.append(os.path.join(build_common_dir, common_src))
 for common_include in common_includes:
     include_files.append(os.path.join(common_dir, common_include))
 
@@ -148,8 +163,7 @@ MAYAUSD_REGISTRY = local_env.SharedLibrary('mayaUsdRegistry', source_files, LIBP
 
 # Write the file plugInfo.json at the root of the registry folder
 plugInfoFile = os.path.join(_targetPath.abspath, 'plugInfo.json')
-if not os.path.exists(_targetPath.abspath):
-    os.makedirs(_targetPath.abspath)
+
 file = open(plugInfoFile, 'w')
 file.write("{\n\t\"Includes\": [ \"*/resources/\" ]\n}")
 file.close()
