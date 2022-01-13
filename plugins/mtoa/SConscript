@@ -150,7 +150,7 @@ elif system.os == 'darwin':
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
 
 if local_env['ENABLE_ALEMBIC']:
-    alembic_version = '1.8.2'
+    alembic_version = '1.8.3'
     alembic_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'alembic-'+alembic_version)
     ilmbase_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'ilmbase')
     abc_lib_dir = os.path.join(alembic_extern_path, 'lib', system.os)
