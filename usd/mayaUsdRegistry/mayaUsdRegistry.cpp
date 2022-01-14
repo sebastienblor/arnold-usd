@@ -26,13 +26,9 @@
 #include <dlfcn.h>
 #endif
 
-#include <iostream>
-
-
 #include <mayaUsd/fileio/shaderReaderRegistry.h>
 #include <mayaUsd/fileio/shaderWriterRegistry.h>
 #include <mayaUsd/fileio/shading/shadingModeRegistry.h>
-//#include <mayaUsd/fileio/schemaApiWriterRegistry.h>
 
 #include "mayaUsdRegistry.h"
 #include "usdArnoldShaderWriter.h"

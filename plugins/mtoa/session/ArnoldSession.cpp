@@ -63,6 +63,10 @@ CArnoldSession::~CArnoldSession()
    ObjectToTranslatorMap::iterator it = m_translators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_translators.end();
    for ( ; it != itEnd; ++it) {
+      // If we're using the default universe, we won't be able 
+      // to destroy it, and therefore the AtNodes won't be automatically deleted.
+      // In this case, explicitely ask the translator to delete the AtNode before
+      // the translator is removed
       if (m_universe == nullptr)
          it->second->Delete();
       delete it->second;

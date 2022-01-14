@@ -41,6 +41,8 @@ MSyntax CArnoldSceneCmd::newSyntax()
    return syntax;
 }
 
+// Create and register the ArnoldSession if it doesn't exist yet. If a specific aiOptions node is provided,
+// use it instead of the default one in the SessionOptions
 static inline CArnoldSession *InitArnoldSceneSession(const std::string &sessionId, const MString &optionsNode)
 {
    CArnoldSession *session = CSessionManager::FindActiveSession(sessionId);

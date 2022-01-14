@@ -750,11 +750,6 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
 
 void CPolygonGeometryTranslator::ExportShaders()
 {
-   // To be determined, if shaders should be exported during maya usd exports
-   /*
-   if (GetSessionOptions().IsMayaUsd())
-      return;
-   */
    ExportMeshShaders(GetArnoldNode(), m_dagPath);
 }
 
@@ -1039,7 +1034,10 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    
    //
    // GEOMETRY
-//  
+   //  
+
+   // For mayaUSD exports, we want to skip the export of the data already handled
+   // by MayaUSD : vertices, uvs, 
    bool mayaUsdExport = GetSessionOptions().IsMayaUsd();
    
    unsigned int numVerts = fnMesh.numVertices();
@@ -1506,8 +1504,7 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
       ExportMatrix(polymesh);
 
    ExportMeshParameters(polymesh);
-   // TODO: to be determined, if shaders should be skipped during mayaUSD exports
-   if (RequiresShaderExport()/* && !GetSessionOptions().IsMayaUsd()*/)
+   if (RequiresShaderExport())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
    // if enabled, double check motion deform
