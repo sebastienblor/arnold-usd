@@ -39,12 +39,8 @@
 
 // Reserve 2 digits for patch number, 2 digits for the minor number and the rest
 // for the major.
-#define ALEMBIC_LIBRARY_VERSION 1 * 10000 + 7 * 100 + 11
+#define ALEMBIC_LIBRARY_VERSION 1 * 10000 + 8 * 100 + 3
 
 /* #undef ALEMBIC_WITH_HDF5 */
-
-/* #undef ALEMBIC_LIB_USES_BOOST */
-
-/* #undef ALEMBIC_LIB_USES_TR1 */
 
 #endif
