@@ -611,7 +611,7 @@ MString CSessionOptions::GetArnoldNaming(const MObject &object) const
    return name;
 }
 
-void CSessionOptions::SetupLog(AtRenderSession *renderSession) const
+void CSessionOptions::SetupLog(AtUniverse *universe) const
 {
    if ((m_log_filename != "") && (m_log_to_file))
    {
@@ -619,7 +619,7 @@ void CSessionOptions::SetupLog(AtRenderSession *renderSession) const
       // if there are no such environment variables are declared
       MString logPath = ExpandMtoaLogPath(m_log_filename);
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
-      AiMsgSetLogFileFlags(renderSession, m_log_verbosity);
+      AiMsgSetLogFileFlags(universe, m_log_verbosity);
       AiMsgResetCallback();
    } else if (m_log_to_console && !IsBatch())
    {
@@ -636,7 +636,7 @@ void CSessionOptions::SetupLog(AtRenderSession *renderSession) const
    
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
-      AiMsgSetConsoleFlags(renderSession, m_log_verbosity | AI_LOG_COLOR);   
+      AiMsgSetConsoleFlags(universe, m_log_verbosity | AI_LOG_COLOR);   
    
    
 }

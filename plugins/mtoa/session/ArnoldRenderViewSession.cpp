@@ -113,9 +113,9 @@ static void FillRenderViewOptions(CRenderViewMtoA &renderview, CSessionOptions &
 {
    renderview.SetFrame((float)sessionOptions.GetExportFrame());
    renderview.SetStatusInfo("");
-   AtRenderSession *renderSession = renderview.GetRenderSession();
-   if (renderSession)
-      sessionOptions.SetupLog(renderSession);
+   AtUniverse *universe = renderview.GetUniverse();
+   if (universe)
+      sessionOptions.SetupLog(universe);
    
    renderview.SetLogging(sessionOptions.GetLogConsoleVerbosity(), 
                          sessionOptions.GetLogFileVerbosity());
