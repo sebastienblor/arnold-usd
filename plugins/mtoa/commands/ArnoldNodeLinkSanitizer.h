@@ -44,5 +44,5 @@ private:
     AtNode* CreateNode(const AtString in_node_entry_name);
     void    GetParameterValue(AtNode* in_node, string in_param_name, float* out_value);
 
-    const string m_rgba_from_int[4] = { "r", "g", "b", "a" };
+    const AtString m_rgba_from_int[4] = { AtString("r"), AtString("g"), AtString("b"), AtString("a") };
 };

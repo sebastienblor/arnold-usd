@@ -179,19 +179,19 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
          if (stat == MStatus::kSuccess && plug.isConnected())
          {
             MString arnoldName = options.GetArnoldNaming(plug.source().node());
-            surface = AiNodeLookUpByName(universe, arnoldName.asChar());
+            surface = AiNodeLookUpByName(universe, AtString(arnoldName.asChar()));
          }
          plug = setFn.findPlug("displacementShader", true, &stat);
          if (stat == MStatus::kSuccess && plug.isConnected() )
          {
             MString arnoldName = options.GetArnoldNaming(plug.source().node());
-            disp = AiNodeLookUpByName(universe, arnoldName.asChar());
+            disp = AiNodeLookUpByName(universe, AtString(arnoldName.asChar()));
          }
          plug = setFn.findPlug("volumeShader", true, &stat);
          if (stat == MStatus::kSuccess && plug.isConnected())
          {
             MString arnoldName = options.GetArnoldNaming(plug.source().node());
-            volume = AiNodeLookUpByName(universe, arnoldName.asChar());
+            volume = AiNodeLookUpByName(universe, AtString(arnoldName.asChar()));
          }
          AiMaterialxWriteMaterial(filename.asChar(), it->first.c_str() , surface , volume, disp);
       }

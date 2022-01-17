@@ -1,6 +1,8 @@
 #include "LookSwitchTranslator.h"
 #include "utils/Universe.h"
+#include "utils/ConstantStrings.h"
 #include "translators/NodeTranslatorImpl.h"
+#include "translators/DagTranslator.h"
 #include "translators/DagTranslator.h"
 #include <maya/MPlugArray.h>
 
@@ -14,7 +16,7 @@ void CLookSwitchTranslator::Export(AtNode *shader)
    // loop the look entries
    MPlug index = FindMayaPlug("index");
    unsigned int active_input = (unsigned int)index.asInt();
-   AiNodeSetInt(shader, "index", active_input);
+   AiNodeSetInt(shader, str::index, active_input);
 
    // loop the look entries
    MPlug looks = FindMayaPlug("looks");

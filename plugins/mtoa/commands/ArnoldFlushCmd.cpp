@@ -14,15 +14,9 @@
 #include <ai_nodes.h>
 #include <ai_texture.h>
 
-
-
 #include "utils/MakeTx.h"
 #include "utils/MtoaLog.h"
-
-
-static const AtString image_str("image");
-static const AtString skydome_light_str("skydome_light");
-
+#include "utils/ConstantStrings.h"
 
 MSyntax CArnoldFlushCmd::newSyntax()
 {
@@ -41,10 +35,10 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
 {
    if(node == NULL) return;
 
-   if(AiNodeIs(node, image_str))
+   if(AiNodeIs(node, str::image))
    {
       // this is an image node
-      MString filename = AiNodeGetStr(node, "filename").c_str();
+      MString filename = AiNodeGetStr(node, str::filename).c_str();
       MStringArray expandedFilenames = expandFilename(filename);
       for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
       {
@@ -82,11 +76,11 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 
 
    if (args.isFlagSet("textures"))
-      AiUniverseCacheFlush(AI_CACHE_TEXTURE);
+      AiUniverseCacheFlush(nullptr, AI_CACHE_TEXTURE);
    
    if (args.isFlagSet("skydome"))
    {
-      AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+      AiUniverseCacheFlush(nullptr, AI_CACHE_BACKGROUND);
       auto activeSessions = CSessionManager::GetActiveSessions();
       for (auto sessionIter : activeSessions)
       {
@@ -99,7 +93,7 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
          while (!AiNodeIteratorFinished(nodeIter))
          {
             AtNode *node = AiNodeIteratorGetNext(nodeIter);
-            if (!AiNodeIs(node, skydome_light_str)) continue;
+            if (!AiNodeIs(node, str::skydome_light)) continue;
 
             if (!AiNodeIsLinked(node, "color")) continue;
             AtNode *link = AiNodeGetLink(node, "color");
@@ -109,12 +103,15 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
       }
    }
    
+   // Note that we flush the cache on the default universe, as this will
+   // currently do it for all active universes
    if (args.isFlagSet("quads"))
-      AiUniverseCacheFlush(AI_CACHE_QUAD);
+      AiUniverseCacheFlush(nullptr, AI_CACHE_QUAD);
    
    if (args.isFlagSet("flushall"))
-      AiUniverseCacheFlush(AI_CACHE_ALL);
+      AiUniverseCacheFlush(nullptr, AI_CACHE_ALL);
    
+   // FIXME : we're not looking at the right universe for the "selected" node
    if (exportSelected)
    {
       MSelectionList activeList;
@@ -145,13 +142,13 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 
          // note that this considers the node has the same name in maya and arnold
          // based on the same code as ARV "shade with selected"
-         AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
+         AtNode *selected = AiNodeLookUpByName(nullptr, AtString(nodeFn.name().asChar()));
 
          if (selected)
          {
-            if (AiNodeIs(selected, image_str))
+            if (AiNodeIs(selected, str::image))
             {
-               MString filename = AiNodeGetStr(selected, "filename").c_str();
+               MString filename = AiNodeGetStr(selected, str::filename).c_str();
                MStringArray expandedFilenames = expandFilename(filename);
                for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
                {

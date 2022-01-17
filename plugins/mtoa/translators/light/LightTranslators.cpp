@@ -1,4 +1,5 @@
 #include "LightTranslators.h"
+#include "utils/ConstantStrings.h"
 #include <maya/MFnAreaLight.h>
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
@@ -15,8 +16,8 @@ void CDirectionalLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "angle", FindMayaPlug("aiAngle").asFloat());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetFlt(light, str::angle, FindMayaPlug("aiAngle").asFloat());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CDirectionalLightTranslator::NodeInitializer(CAbTranslator context)
@@ -39,12 +40,12 @@ void CPointLightTranslator::Export(AtNode* light)
    MFnPointLight fnLight(m_dagPath);
 
    double radius = FindMayaPlug("aiRadius").asDouble() *  GetSessionOptions().GetScaleFactor(); 
-   AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
+   AiNodeSetFlt(light, str::radius, static_cast<float>(radius)); 
 
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
 
-   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
-   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   AiNodeSetFlt(light, str::camera, FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, str::transmission, FindMayaPlug("aiTransmission").asFloat());
    
 }
 
@@ -70,18 +71,18 @@ void CSpotLightTranslator::Export(AtNode* light)
 
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + AiMax(0.0, fnLight.penumbraAngle()) * 2.0f) * AI_RTOD));
-   AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
-   AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
+   AiNodeSetFlt(light, str::cone_angle, static_cast<float>((fnLight.coneAngle() + AiMax(0.0, fnLight.penumbraAngle()) * 2.0f) * AI_RTOD));
+   AiNodeSetFlt(light, str::penumbra_angle, static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
+   AiNodeSetFlt(light, str::cosine_power, static_cast<float>(fnLight.dropOff()));
 
    double radius = FindMayaPlug("aiRadius").asDouble() * GetSessionOptions().GetScaleFactor(); 
-   AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
+   AiNodeSetFlt(light, str::radius, static_cast<float>(radius)); 
 
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
 
-   AiNodeSetFlt(light, "aspect_ratio", FindMayaPlug("aiAspectRatio").asFloat());
-   AiNodeSetFlt(light, "lens_radius", FindMayaPlug("aiLensRadius").asFloat());
-   AiNodeSetFlt(light, "roundness", FindMayaPlug("aiRoundness").asFloat());
+   AiNodeSetFlt(light, str::aspect_ratio, FindMayaPlug("aiAspectRatio").asFloat());
+   AiNodeSetFlt(light, str::lens_radius, FindMayaPlug("aiLensRadius").asFloat());
+   AiNodeSetFlt(light, str::roundness, FindMayaPlug("aiRoundness").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
@@ -104,7 +105,7 @@ void CQuadLightTranslator::Export(AtNode* light)
 {
    if (m_flushCache)
    {
-      AiUniverseCacheFlush(AI_CACHE_QUAD);
+      AiUniverseCacheFlush(GetUniverse(), AI_CACHE_QUAD);
       m_flushCache = false;
    }
    
@@ -117,15 +118,15 @@ void CQuadLightTranslator::Export(AtNode* light)
    vertices[1] = AtVector(-1, -1, 0);
    vertices[2] = AtVector(-1, 1, 0);
 
-   AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_VECTOR, vertices));
+   AiNodeSetArray(light, str::vertices, AiArrayConvert(4, 1, AI_TYPE_VECTOR, vertices));
 
-   AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
-   AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
-   AiNodeSetFlt(light, "roundness", FindMayaPlug("aiRoundness").asFloat());
-   AiNodeSetFlt(light, "soft_edge", FindMayaPlug("aiSoftEdge").asFloat());
+   AiNodeSetInt(light, str::resolution, FindMayaPlug("aiResolution").asInt());
+   AiNodeSetFlt(light, str::spread, FindMayaPlug("aiSpread").asFloat());
+   AiNodeSetFlt(light, str::roundness, FindMayaPlug("aiRoundness").asFloat());
+   AiNodeSetFlt(light, str::soft_edge, FindMayaPlug("aiSoftEdge").asFloat());
    
    //AiNodeSetBool(light, "portal", FindMayaPlug("aiPortal").asBool()); removed it from here as we now have a dedicated light portal node
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
    
    // This translator is used both for Maya Area light and Arnold Quad light. Maya light has the shadowColor attribute,
    // so, if this attribute is found, it has already been exported in the CLightTranslator::Export method
@@ -133,7 +134,7 @@ void CQuadLightTranslator::Export(AtNode* light)
    MPlug shadowColorPlug = FindMayaPlug("shadowColor");
    if (shadowColorPlug.isNull())
    {
-      AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
+      AiNodeSetRGB(light, str::shadow_color, FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
    }
 
    // Check if "color" is connected to a texture.
@@ -143,8 +144,8 @@ void CQuadLightTranslator::Export(AtNode* light)
    colorPlug.connectedTo(conn, true, false);
    m_colorTexture = (conn.length() > 0);
 
-   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
-   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   AiNodeSetFlt(light, str::camera, FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, str::transmission, FindMayaPlug("aiTransmission").asFloat());
    
 }
 
@@ -186,17 +187,17 @@ void CCylinderLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
    
-   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
+   AiNodeSetRGB(light, str::shadow_color, FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
 
    MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
-   AiNodeSetFlt(light, "radius", float (scale[0]+scale[2])/2.0f);
+   AiNodeSetFlt(light, str::radius, float (scale[0]+scale[2])/2.0f);
 
-   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
-   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   AiNodeSetFlt(light, str::camera, FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, str::transmission, FindMayaPlug("aiTransmission").asFloat());
    
 }
 
@@ -217,18 +218,18 @@ void CDiskLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
-   AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetFlt(light, str::spread, FindMayaPlug("aiSpread").asFloat());
 
-   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
+   AiNodeSetRGB(light, str::shadow_color, FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
    
    MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
-   AiNodeSetFlt(light, "radius", float (scale[0]+scale[1])/2.0f);
+   AiNodeSetFlt(light, str::radius, float (scale[0]+scale[1])/2.0f);
 
-   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
-   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   AiNodeSetFlt(light, str::camera, FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, str::transmission, FindMayaPlug("aiTransmission").asFloat());
    
 }
 
@@ -248,23 +249,23 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
 {
    if (m_flushCache)
    {
-      AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+      AiUniverseCacheFlush(GetUniverse(), AI_CACHE_BACKGROUND);
       m_flushCache = false;
    }
    
    CLightTranslator::Export(light);
 
-   AiNodeSetInt(light, "resolution", FindMayaPlug("resolution").asInt());
-   AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
-   AiNodeSetInt(light, "portal_mode", FindMayaPlug("portal_mode").asInt());
-   AiNodeSetFlt(light, "camera", FindMayaPlug("camera").asFloat());
-   AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
-   AiNodeSetBool(light, "aov_indirect", FindMayaPlug("aiAovIndirect").asBool());
+   AiNodeSetInt(light, str::resolution, FindMayaPlug("resolution").asInt());
+   AiNodeSetInt(light, str::format, FindMayaPlug("format").asInt());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light, str::portal_mode, FindMayaPlug("portal_mode").asInt());
+   AiNodeSetFlt(light, str::camera, FindMayaPlug("camera").asFloat());
+   AiNodeSetFlt(light, str::transmission, FindMayaPlug("transmission").asFloat());
+   AiNodeSetBool(light, str::aov_indirect, FindMayaPlug("aiAovIndirect").asBool());
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
    if (!shadowColorPlug.isNull())
    {
-      AiNodeSetRGB(light, "shadow_color", shadowColorPlug.child(0).asFloat(), 
+      AiNodeSetRGB(light, str::shadow_color, shadowColorPlug.child(0).asFloat(), 
               shadowColorPlug.child(1).asFloat(), shadowColorPlug.child(2).asFloat());
    }
 }
@@ -298,19 +299,19 @@ void CSkyDomeLightTranslator::NodeChanged(MObject& node, MPlug& plug)
 void CPhotometricLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
-   AiNodeSetFlt(light, "radius", FindMayaPlug("aiRadius").asFloat());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetFlt(light, str::radius, FindMayaPlug("aiRadius").asFloat());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
 
    MString filename = FindMayaPlug("aiFilename").asString();
 
    filename = filename.expandEnvironmentVariablesAndTilde();
    GetSessionOptions().FormatTexturePath(filename);
    
-   AiNodeSetStr(light, "filename", filename.asChar());
+   AiNodeSetStr(light, str::filename, AtString(filename.asChar()));
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
    if (!shadowColorPlug.isNull())
    {
-      AiNodeSetRGB(light, "shadow_color", shadowColorPlug.child(0).asFloat(), 
+      AiNodeSetRGB(light, str::shadow_color, shadowColorPlug.child(0).asFloat(), 
               shadowColorPlug.child(1).asFloat(), shadowColorPlug.child(2).asFloat());
    }
 }
@@ -390,7 +391,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
    for (int i = 0; i < m_numVertices; ++i)
       AiArraySetVec(vlist, i + vlistOffset, vertices[i]);
 
-   AiNodeSetArray(meshNode, "vlist", vlist);
+   AiNodeSetArray(meshNode, str::vlist, vlist);
 
    const int numPolygons = mesh.numPolygons();
    AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
@@ -404,7 +405,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       AiArraySetUInt(nsides, i, vertexCount);
    }
 
-   AiNodeSetArray(meshNode, "nsides", nsides);
+   AiNodeSetArray(meshNode, str::nsides, nsides);
 
    bool exportUVs = false;
    int numUVSets = mesh.numUVSets();
@@ -429,7 +430,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
             atv.y = vArray[j];
             AiArraySetVec2(uv, j, atv);
          }
-         AiNodeSetArray(meshNode, "uvlist", uv);
+         AiNodeSetArray(meshNode, str::uvlist, uv);
       }
    }
 
@@ -457,32 +458,32 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
          ++id;
       }
    }
-   AiNodeSetArray(meshNode, "vidxs", vidxs);
+   AiNodeSetArray(meshNode, str::vidxs, vidxs);
    if (exportUVs)
-      AiNodeSetArray(meshNode, "uvidxs", uvidxs);
+      AiNodeSetArray(meshNode, str::uvidxs, uvidxs);
 
-   AiNodeSetPtr(meshNode, "shader", NULL);
+   AiNodeSetPtr(meshNode, str::shader, NULL);
 
    const int subdivision = FindMayaPlug("aiSubdivType").asInt();
    if (subdivision!=0)
    {
       if (subdivision==1)
-         AiNodeSetStr(meshNode, "subdiv_type",           "catclark");
+         AiNodeSetStr(meshNode, str::subdiv_type, str::catclark);
       else
-         AiNodeSetStr(meshNode, "subdiv_type",           "linear");
-      AiNodeSetByte(meshNode, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
-      AiNodeSetInt(meshNode, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(meshNode, "subdiv_adaptive_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
-      AiNodeSetInt(meshNode, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
-      AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
-      AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
+         AiNodeSetStr(meshNode, str::subdiv_type, str::linear);
+      AiNodeSetByte(meshNode, str::subdiv_iterations, FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(meshNode, str::subdiv_adaptive_metric, FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(meshNode, str::subdiv_adaptive_error, FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(meshNode, str::subdiv_adaptive_space, FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
+      AiNodeSetInt(meshNode, str::subdiv_uv_smoothing,  FindMayaPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetBool(meshNode, str::subdiv_smooth_derivs, FindMayaPlug("aiSubdivSmoothDerivs").asBool());
    }
    if (RequiresMotionData())
    {
       double motionStart, motionEnd;
       GetSessionOptions().GetMotionRange(motionStart, motionEnd);
-      AiNodeSetFlt(meshNode, "motion_start", (float)motionStart);
-      AiNodeSetFlt(meshNode, "motion_end", (float)motionEnd);
+      AiNodeSetFlt(meshNode, str::motion_start, (float)motionStart);
+      AiNodeSetFlt(meshNode, str::motion_end, (float)motionEnd);
    }
    return meshNode;
 }
@@ -500,9 +501,9 @@ void CMeshLightTranslator::Export(AtNode* light)
    
    MFnDependencyNode fnDepNode(m_dagPath.node());
    
-   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(),
+   AiNodeSetRGB(light, str::shadow_color, FindMayaPlug("aiShadowColorR").asFloat(),
            FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
    
    MObject meshObject = GetMeshObject();
    AtNode* meshNode = ExportSimpleMesh(meshObject);
@@ -516,7 +517,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    
    ExportUserAttributes(meshNode, GetMayaObject(), this);
 
-   AiNodeSetPtr(light, "mesh", meshNode);
+   AiNodeSetPtr(light, str::mesh, meshNode);
 
    AtNode* shaderTwoSided = GetArnoldNode("two_sided");
    AtNode* shaderRaySwitch = GetArnoldNode("shader");
@@ -525,43 +526,43 @@ void CMeshLightTranslator::Export(AtNode* light)
    if (shaderTwoSided == NULL || shaderMult == NULL || shaderRaySwitch == NULL)
       return; // shouldn't happen
 
-   AiNodeSetPtr(meshNode, "shader", shaderRaySwitch);
+   AiNodeSetPtr(meshNode, str::shader, shaderRaySwitch);
 
-   AiNodeLink(shaderMult, "front", shaderTwoSided);
+   AiNodeLink(shaderMult, str::front, shaderTwoSided);
    // "back" should remain empty, so that it renders black on backfacing polygons
    
-   AiNodeLink(shaderTwoSided, "camera", shaderRaySwitch);
-   AiNodeLink(shaderTwoSided, "specular_transmission", shaderRaySwitch);
+   AiNodeLink(shaderTwoSided, str::camera, shaderRaySwitch);
+   AiNodeLink(shaderTwoSided, str::specular_transmission, shaderRaySwitch);
    // other ray types should render black
 
    if (FindMayaPlug("aiUseColorTemperature").asBool())
    {
       AtRGB color = ConvertKelvinToRGB(FindMayaPlug("aiColorTemperature").asFloat());
-      AiNodeSetRGB(shaderMult, "input1", color.r, color.g, color.b);
+      AiNodeSetRGB(shaderMult, str::input1, color.r, color.g, color.b);
    }
    else
-      ProcessParameter(shaderMult, "input1", AI_TYPE_RGB, FindMayaPlug("color"));
+      ProcessParameter(shaderMult, str::input1, AI_TYPE_RGB, FindMayaPlug("color"));
 
-   AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
+   AiNodeSetArray(meshNode, str::matrix, AiArrayCopy(AiNodeGetArray(light, str::matrix)));
    if (fnDepNode.findPlug("lightVisible", true).asBool())
    {
-      AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);      
+      AiNodeSetByte(meshNode, str::visibility, AI_RAY_ALL);      
       AtRGB colorMultiplier = AI_RGB_WHITE;
-      colorMultiplier = colorMultiplier * AiNodeGetFlt(light, "intensity") * 
-         powf(2.f, AiNodeGetFlt(light, "exposure"));      
+      colorMultiplier = colorMultiplier * AiNodeGetFlt(light, str::intensity) * 
+         powf(2.f, AiNodeGetFlt(light, str::exposure));      
       // if normalize is set to false, we need to multiply
       // the color with the surface area
       // doing a very simple triangulation, good for
       // approximating the Arnold one
-      if (AiNodeGetBool(light, "normalize"))
+      if (AiNodeGetBool(light, str::normalize))
          NormalizeColor(meshObject, colorMultiplier);
       
-      AiNodeSetRGB(shaderMult, "input2", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
+      AiNodeSetRGB(shaderMult, str::input2, colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
    }
    else
    {
-      AiNodeSetByte(meshNode, "visibility", AI_RAY_SPECULAR_REFLECT);
-      AiNodeSetRGB(shaderMult, "input2", 0.f, 0.f, 0.f);
+      AiNodeSetByte(meshNode, str::visibility, AI_RAY_SPECULAR_REFLECT);
+      AiNodeSetRGB(shaderMult, str::input2, 0.f, 0.f, 0.f);
    }
 }
 
@@ -605,14 +606,14 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
    GetMatrix(matrix);
    int step = GetMotionStep();
    
-   AtArray* matrices = AiNodeGetArray(light, "matrix");
+   AtArray* matrices = AiNodeGetArray(light, str::matrix);
    AiArraySetMtx(matrices, step, matrix);
    
-   AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
+   AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, str::mesh);
    if (meshNode != NULL) // just simply copy the matrices
    {
-      AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
-      AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
+      AiNodeSetArray(meshNode, str::matrix, AiArrayCopy(AiNodeGetArray(light, str::matrix)));
+      AtArray* vlist = AiNodeGetArray(meshNode, str::vlist);
 
       // As motion deform was disabled, I just allocated a single key
       if (AiArrayGetNumKeys(vlist) == 1)
@@ -636,7 +637,7 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
          for (int i = 0; i < m_numVertices; ++i)
             AiArraySetVec(vlist_new, i, AiArrayGetVec(vlist, i));
 
-         AiNodeSetArray(meshNode, "vlist", vlist_new);
+         AiNodeSetArray(meshNode, str::vlist, vlist_new);
       }
       else
       {

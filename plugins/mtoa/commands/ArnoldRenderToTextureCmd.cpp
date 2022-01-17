@@ -2,6 +2,7 @@
 #include "../extension/ExtensionsManager.h"
 #include "../translators/shader/ShaderTranslator.h"
 #include "../utils/BuildID.h"
+#include "../utils/ConstantStrings.h"
 #include "utils/MtoAAdpPayloads.h"
 #include "session/ArnoldSession.h"
 #include "session/SessionManager.h"
@@ -263,7 +264,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          }
       }
       AtNode* options_node = AiUniverseGetOptions(universe);
-      AiNodeSetPtr(options_node, "color_manager", NULL);
+      AiNodeSetPtr(options_node, str::color_manager, NULL);
 
       int resolution = 512; // default value
       if (argDB.isFlagSet("resolution"))
@@ -274,15 +275,15 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       options.SetResolution(resolution, resolution);
       // I guess that setting the renderSession's resolution
       // is enough, but let's make sure....
-      AiNodeSetInt(options_node, "xres", resolution);
-      AiNodeSetInt(options_node, "yres", resolution);
+      AiNodeSetInt(options_node, str::xres, resolution);
+      AiNodeSetInt(options_node, str::yres, resolution);
 
       
       if (argDB.isFlagSet("aa_samples"))
       {
          int aa_samples = 1;
          argDB.getFlagArgument("aa_samples", 0, aa_samples);
-         AiNodeSetInt(options_node, "AA_samples", aa_samples);
+         AiNodeSetInt(options_node, str::AA_samples, aa_samples);
       }
       
       // create a filter
@@ -293,21 +294,21 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          filterType += "_filter";
       }
       
-      AtNode *filterNode = AiNode(universe, filterType.asChar());
+      AtNode *filterNode = AiNode(universe, AtString(filterType.asChar()));
       if (filterNode == 0)
       {
          MString errLog = "[mtoa] Render to Texture : Unknown filter type ";
          errLog += filterType;
          MGlobal::displayWarning(errLog.asChar());
-         filterNode = AiNode(universe, "gaussian_filter");
+         filterNode = AiNode(universe, str::gaussian_filter);
       }
 
-      static std::string filterName("defaultArnoldFilter/cameraMapperFilter");
-      AiNodeSetStr(filterNode, "name", filterName.c_str());
+      static const AtString filterName("defaultArnoldFilter/cameraMapperFilter");
+      AiNodeSetStr(filterNode, str::name, filterName);
 
       double filterWidth = 2.0;
       if (argDB.isFlagSet("filter_width")) argDB.getFlagArgument("filter_width", 0, filterWidth);
-      AiNodeSetFlt(filterNode, "width", (float)filterWidth);
+      AiNodeSetFlt(filterNode, str::width, (float)filterWidth);
 
       double normalOffset = 0.1;
       if (argDB.isFlagSet("normal_offset")) argDB.getFlagArgument("normal_offset", 0, normalOffset);
@@ -365,12 +366,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       
       // create a driver that will write the output texture
       static std::string uvMapperDriverName ("defaultArnoldDriver/cameraMapperOutput");
-      AtNode *driver = AiNode(universe, "driver_exr", uvMapperDriverName.c_str());
+      AtNode *driver = AiNode(universe, str::driver_exr, AtString(uvMapperDriverName.c_str()));
       
       if (extendEdges)
-         AiNodeSetBool(driver, "tiled", false);
+         AiNodeSetBool(driver, str::tiled, false);
 
-      AtArray *prevOutputs = AiNodeGetArray(options_node, "outputs");
+      AtArray *prevOutputs = AiNodeGetArray(options_node, str::outputs);
       if (enableAovs && prevOutputs && AiArrayGetNumElements(prevOutputs) > 1)
       {
          MString mainFilter;
@@ -413,7 +414,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             aovDriverName += ".";
             aovDriverName += aovName.asChar();
 
-            AiNodeSetStr(aovDriver, "name", aovDriverName.c_str());
+            AiNodeSetStr(aovDriver, str::name, AtString(aovDriverName.c_str()));
             newAovElem += aovDriverName.c_str();
 
             aovDrivers.push_back(aovDriver);
@@ -426,24 +427,23 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       AtArray *outputs = AiArrayAllocate(outputsList.size(), 1, AI_TYPE_STRING);
 
       for (size_t aov = 0; aov < outputsList.size(); ++aov)
-         AiArraySetStr(outputs, aov, outputsList[aov].c_str());
+         AiArraySetStr(outputs, aov, AtString(outputsList[aov].c_str()));
 
       // assign it to the render options
-      AiNodeSetArray(options_node, "outputs", outputs);
+      AiNodeSetArray(options_node, str::outputs, outputs);
 
       MString mayaVersion = MGlobal::mayaVersion();     
       MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
       AiSetAppString(appString.asChar());
 
       // We need to ensure that a render camera is set, otherwise subdivision might fail (#3264)
-      AtNode *renderCam = (AtNode*)AiNodeGetPtr(options_node, "camera");
+      AtNode *renderCam = (AtNode*)AiNodeGetPtr(options_node, str::camera);
       if (renderCam == NULL)
       {      
          // Please don't tell anyone that I'm creating a dummy camera here,
          // it will be deleted at the end of this function anyway.
-         renderCam = AiNode(universe, "persp_camera");
-         AiNodeSetStr(renderCam, "name", "__mtoa_baking_cam");
-         AiNodeSetPtr(options_node, "camera", (void*)renderCam);
+         renderCam = AiNode(universe, str::persp_camera, str::__mtoa_baking_cam);
+         AiNodeSetPtr(options_node, str::camera, (void*)renderCam);
       }
 
       // Dirty hack... this is initializing all the polymeshes triangles
@@ -457,7 +457,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       AiRenderEnd(renderSession);
 
       std::vector<AtNode*> nodes;
-      static const AtString polymesh_str("polymesh");
       // convert list of Maya selection to list of AtNodes selection
       for (unsigned int i = 0; i < selected.length(); ++i)
       {
@@ -470,7 +469,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          }
          MFnDagNode dagNode(dagPath);
          MString meshName = options.GetArnoldNaming(dagPath);
-         AtNode* node = AiNodeLookUpByName(universe, meshName.asChar());
+         AtNode* node = AiNodeLookUpByName(universe, AtString(meshName.asChar()));
 
          if (node == NULL)
          {
@@ -506,14 +505,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                // test if the root parent node is the one I'm treating
                if (rootNode != node) continue;
                
-               if (AiNodeIs(loopNode, polymesh_str) )
+               if (AiNodeIs(loopNode, str::polymesh) )
                {
                   nodes.push_back(loopNode);
                }
             }
             AiNodeIteratorDestroy(nodeIter);
 
-         } else if (AiNodeIs(node, polymesh_str))
+         } else if (AiNodeIs(node, str::polymesh))
          {
             nodes.push_back(node);
          } else
@@ -529,10 +528,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       {
          AtNode *mesh = nodes[i];
          
-         const char *meshName = AiNodeGetName(mesh);
+         std::string meshName = AiNodeGetName(mesh);
          std::string fullMeshName = meshName;
 
-         if (AiNodeLookUpByName(universe, meshName) == NULL)
+         if (AiNodeLookUpByName(universe, AtString(meshName.c_str())) == NULL)
          {
             // this name isn't enough to find the node in the scene.
             // We might need to set its full path name
@@ -580,21 +579,21 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          // specific shader to be assigned to geometry
          if (shaderNode)
          {
-            AiNodeSetPtr(mesh, "shader", shaderNode);
+            AiNodeSetPtr(mesh, str::shader, shaderNode);
          }
          // get assigned shader name
          const char* shader_name = NULL;
          {
-            AtNode* shader = (AtNode*)AiNodeGetPtr(mesh, "shader");
+            AtNode* shader = (AtNode*)AiNodeGetPtr(mesh, str::shader);
             if (shader)
                shader_name = AiNodeGetName(shader);
          }
 
          std::string meshNameStr = meshName;
-         if (AiNodeLookUpUserParameter(mesh, "dcc_name"))
+         if (AiNodeLookUpUserParameter(mesh, str::dcc_name))
          {
             // if the user data "dcc_name" exists, I want to use it for the output image filename
-            meshNameStr = AiNodeGetStr(mesh, "dcc_name"); 
+            meshNameStr = AiNodeGetStr(mesh, str::dcc_name); 
          }
          MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshNameStr.c_str()));
 
@@ -610,17 +609,17 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             std::replace( shaderNameStr.begin(), shaderNameStr.end(), '/', '_'); // replace all '/' to '_'
             std::replace( shaderNameStr.begin(), shaderNameStr.end(), '|', '_'); // replace all '|'to '_'
          }
-         AtByte sidedness = AiNodeGetByte(mesh, "sidedness");
+         AtByte sidedness = AiNodeGetByte(mesh, str::sidedness);
          // remove camera sidedness since we're offsetting towards the normal's direction
          // this could remove some artefacts caused by the normal offset
          sidedness &= ~AI_RAY_CAMERA; 
-         AiNodeSetByte(mesh, "sidedness", sidedness);
-         AiNodeSetBool(mesh, "opaque", true); // force opaque to true since a transparent material wouldn't work at all
+         AiNodeSetByte(mesh, str::sidedness, sidedness);
+         AiNodeSetBool(mesh, str::opaque, true); // force opaque to true since a transparent material wouldn't work at all
          
          if (allUdims || udimsSet.size()>0)
          {
 
-            AtArray* uv_list = AiNodeGetArray(mesh, "uvlist");
+            AtArray* uv_list = AiNodeGetArray(mesh, str::uvlist);
 
             /// find all affected udims
             if (allUdims)
@@ -654,7 +653,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
                // comment for mayabatch
                std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
-               AtNode *camera = AiNode(universe, "uv_camera", "cameraUvBaker");
+               AtNode *camera = AiNode(universe, str::uv_camera, str::cameraUvBaker);
                if (camera == 0)
                {
                   CSessionManager::DeleteActiveSession(s_renderToTextureSessionId);
@@ -663,20 +662,20 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                }
 
                
-               AiNodeSetPtr(camera, "mesh", (void*) mesh);
-               AiNodeSetStr(camera, "uv_set", uvSet.asChar());
-               AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
-               AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
+               AiNodeSetPtr(camera, str::mesh, (void*) mesh);
+               AiNodeSetStr(camera, str::uv_set, AtString(uvSet.asChar()));
+               AiNodeSetFlt(camera, str::u_offset, (float)(-u_offset -uStart));
+               AiNodeSetFlt(camera, str::v_offset, (float)(-v_offset -vStart));
 
-               AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
-               AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
-               AiNodeSetBool(camera, "extend_edges", extendEdges);
-               AiNodeSetFlt(camera, "offset", (float)normalOffset);
+               AiNodeSetFlt(camera, str::u_scale, (float)(1. / AiMax((float)uScale, AI_EPSILON)));
+               AiNodeSetFlt(camera, str::v_scale, (float)(1. / AiMax((float)vScale, AI_EPSILON)));
+               AiNodeSetBool(camera, str::extend_edges, extendEdges);
+               AiNodeSetFlt(camera, str::offset, (float)normalOffset);
                // need to adjust the near plane to make sure it's not bigger than the offset
-               AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
-               AiNodeSetPtr(options_node, "camera", camera);
+               AiNodeSetFlt(camera, str::near_clip, (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, str::near_clip)));
+               AiNodeSetPtr(options_node, str::camera, camera);
                
-               AiNodeSetStr(driver, "filename", filename.c_str());
+               AiNodeSetStr(driver, str::filename, AtString(filename.c_str()));
 
                MString filenameStr(filename.c_str());
 
@@ -694,7 +693,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   }
 
                   aovFilename += ".exr";
-                  AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.asChar());
+                  AiNodeSetStr(aovDrivers[aov], str::filename, AtString(aovFilename.asChar()));
                }
                AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
 
@@ -712,8 +711,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   if (progressBar)
                   {
                      float progress = 0;
-                     static AtString total_progress_str("total_progress");
-                     AiRenderGetHintFlt(renderSession, total_progress_str, progress);
+                     AiRenderGetHintFlt(renderSession, str::total_progress, progress);
                      if (progress != lastProgress)
                      {
                         lastProgress = progress;
@@ -738,7 +736,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          // render without udims
          else
          {
-            AtNode *camera = AiNode(universe, "uv_camera");
+            AtNode *camera = AiNode(universe, str::uv_camera, str::cameraUvBaker);
             if (camera == 0)
             {
                CSessionManager::DeleteActiveSession(s_renderToTextureSessionId);
@@ -758,22 +756,21 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             filename += ".exr";
 
-            AiNodeSetStr(camera, "name", "cameraUvBaker");
-            AiNodeSetPtr(camera, "mesh", (void*)mesh);
-            AiNodeSetFlt(camera, "offset", (float)normalOffset);
+            AiNodeSetPtr(camera, str::mesh, (void*)mesh);
+            AiNodeSetFlt(camera, str::offset, (float)normalOffset);
             // need to adjust the near plane to make sure it's not bigger than the offset
-            AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
+            AiNodeSetFlt(camera, str::near_clip, (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, str::near_clip)));
 
-            AiNodeSetFlt(camera, "u_offset", (float)(-uStart));
-            AiNodeSetFlt(camera, "v_offset", (float)(-vStart));
-            AiNodeSetBool(camera, "extend_edges", extendEdges);
+            AiNodeSetFlt(camera, str::u_offset, (float)(-uStart));
+            AiNodeSetFlt(camera, str::v_offset, (float)(-vStart));
+            AiNodeSetBool(camera, str::extend_edges, extendEdges);
 
-            AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
-            AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
+            AiNodeSetFlt(camera, str::u_scale, (float)(1. / AiMax((float)uScale, AI_EPSILON)));
+            AiNodeSetFlt(camera, str::v_scale, (float)(1. / AiMax((float)vScale, AI_EPSILON)));
 
-            AiNodeSetPtr(options_node, "camera", camera);
-            AiNodeSetStr(camera, "uv_set", uvSet.asChar());
-            AiNodeSetStr(driver, "filename", filename.asChar());
+            AiNodeSetPtr(options_node, str::camera, camera);
+            AiNodeSetStr(camera, str::uv_set, AtString(uvSet.asChar()));
+            AiNodeSetStr(driver, str::filename, AtString(filename.asChar()));
 
             for (size_t aov = 0; aov < aovDrivers.size(); ++aov)
             {
@@ -789,7 +786,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                }
 
                aovFilename += ".exr";
-               AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.asChar());
+               AiNodeSetStr(aovDrivers[aov], str::filename, AtString(aovFilename.asChar()));
             }
             AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
             AiRenderBegin(renderSession);

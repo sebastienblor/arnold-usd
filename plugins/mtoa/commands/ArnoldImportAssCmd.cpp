@@ -25,6 +25,7 @@
 
 #include <math.h>
 #include "utils/Universe.h"
+#include "utils/ConstantStrings.h"
 // These functions were copied from AttrHelper.cpp
 MString ArnoldToMayaStyle(MString s)
 {
@@ -57,10 +58,10 @@ MString ArnoldToMayaStyle(MString s)
    return name;
 }
 
-static MString ArnoldToMayaAttrName(const AtNodeEntry *nodeEntry, const char* paramName) 
+static MString ArnoldToMayaAttrName(const AtNodeEntry *nodeEntry, const AtString &paramName) 
 {   
    AtString attrName;
-   if (AiMetaDataGetStr(nodeEntry, paramName, "maya.name", &attrName))
+   if (AiMetaDataGetStr(nodeEntry, paramName, str::maya_name, &attrName))
    {
       MString attrNameStr(attrName.c_str());
       return attrNameStr;
@@ -69,7 +70,7 @@ static MString ArnoldToMayaAttrName(const AtNodeEntry *nodeEntry, const char* pa
    // Note that we're first testing if maya.name is explicitely defined. In some case, the attribute can 
    // be hidden because we don't want it to be created in the maya node definition (eg standard_surface.normal)
    bool hidden = false;
-   if (AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hidden) && hidden)
+   if (AiMetaDataGetBool(nodeEntry, paramName, str::maya_hide, &hidden) && hidden)
       return MString("");
    
    return ArnoldToMayaStyle(MString(paramName));
@@ -179,7 +180,7 @@ std::string ConvertStringAttribute(const AtNode *node, const char *paramName)
 {
    // We need to protect some characters as we'll end up running a setAttr
    // MEL command
-   std::string str = std::string(AiNodeGetStr(node, paramName));
+   std::string str = std::string(AiNodeGetStr(node, AtString(paramName)));
    std::string::size_type i = str.find('\\');
    while (i != std::string::npos)
    {
@@ -308,7 +309,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       MString mayaTypeName = ArnoldToMayaStyle(MString("ai_")+MString(nodeEntryName.c_str()));
 
       AtString mayaNodeNameMtd;
-      if (AiMetaDataGetStr(nodeEntry, NULL, "maya.name", &mayaNodeNameMtd))
+      if (AiMetaDataGetStr(nodeEntry, AtString(), str::maya_name, &mayaNodeNameMtd))
          mayaTypeName = MString(mayaNodeNameMtd.c_str());
 
       MString mayaName;
@@ -362,14 +363,13 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       while (!AiParamIteratorFinished(nodeParam))
       {
          const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-         const char* paramName = AiParamGetName(paramEntry);
-         std::string paramNameStr(paramName);
-         if (paramNameStr == "name")
+         AtString paramName = AiParamGetName(paramEntry);
+         if (paramName == str::name)
             continue;
 
          // For OSL, we already converted the attribute "code", we must not do it again
          // (otherwise Arnold might recompile it under the hood)
-         if (isOsl && paramNameStr == "code")
+         if (isOsl && paramName == str::code)
             continue;
 
          MString mayaAttrName = ArnoldToMayaAttrName(nodeEntry, paramName);
@@ -471,7 +471,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                }
                {
                case AI_TYPE_STRING:
-                  std::string str = ConvertStringAttribute(node, paramName);
+                  std::string str = ConvertStringAttribute(node, paramName.c_str());
                   attrValue += "-type \"string\" \"";
                   attrValue += str.c_str();
                   attrValue += "\"";
@@ -627,17 +627,17 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          }
       }
       AiParamIteratorDestroy(nodeParam);
-      if (AiNodeLookUpUserParameter(node, "material_surface"))
+      if (AiNodeLookUpUserParameter(node, str::material_surface))
       {
-         AtString shadingGroup = AiNodeGetStr(node, "material_surface");
+         AtString shadingGroup = AiNodeGetStr(node, str::material_surface);
          std::string shg = GetShadingGroup(shadingGroup.c_str(), arnoldToMayaShadingEngines);
          MString connectCmd = MString("connectAttr -f ") + MString(mayaName.c_str()) + MString(".outColor ") + MString(shg.c_str()) + MString(".surfaceShader");
          // MGlobal::displayInfo(connectCmd);
          MGlobal::executeCommand(connectCmd);
       }
-      if (AiNodeLookUpUserParameter(node, "material_displacement"))
+      if (AiNodeLookUpUserParameter(node, str::material_displacement))
       {
-         AtString shadingGroup = AiNodeGetStr(node, "material_displacement");
+         AtString shadingGroup = AiNodeGetStr(node, str::material_displacement);
          std::string shg = GetShadingGroup(shadingGroup.c_str(), arnoldToMayaShadingEngines);
          MString connectCmd = MString("connectAttr -f ") + MString(mayaName.c_str()) + MString(".outColor ") + MString(shg.c_str()) + MString(".displacementShader");
          // MGlobal::displayInfo(connectCmd);
