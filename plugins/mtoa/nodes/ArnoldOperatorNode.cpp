@@ -2,6 +2,7 @@
 #include "nodes/ArnoldOperatorNode.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "extension/ExtensionsManager.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -41,7 +42,7 @@ MStatus CArnoldOperatorNode::initialize()
    // to add them to the list of existing operators in the arnold menu
    CExtensionsManager::AddOperator(maya);
 
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(arnold.asChar()));
 
    CStaticAttrHelper helper(CArnoldOperatorNode::addAttribute, nodeEntry);
    MObject outputAttr = helper.MakeOutput();
@@ -57,7 +58,7 @@ MStatus CArnoldOperatorNode::initialize()
       if (paramNameStr != "name")
       {
          bool hide = false;
-         if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
+         if (!AiMetaDataGetBool(nodeEntry, AtString(paramName), str::maya_hide, &hide) || !hide)
          {
             CAttrData attrData;
             helper.GetAttrData(paramName, attrData);

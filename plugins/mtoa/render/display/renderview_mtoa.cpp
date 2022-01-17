@@ -2,6 +2,7 @@
 #include "renderview_mtoa.h"
 #include "session/ArnoldRenderViewSession.h"
 #include "session/SessionManager.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MItDag.h>
 
@@ -615,7 +616,7 @@ void CRenderViewMtoA::UpdateFullScene()
    MGlobal::executeCommand(renderGlobals.postRenderMel);
 
    // Make sure the caches are flushed (#3369)
-   AiUniverseCacheFlush(AI_CACHE_ALL);
+   AiUniverseCacheFlush(nullptr, AI_CACHE_ALL);
 
    // Restore the proper cameras
    MDagPathArray cameras = CArnoldSession::GetRenderCameras(true);
@@ -745,7 +746,7 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes, CArnoldRend
       name = MFnDependencyNode(objNode).name();
    }
 
-   AtNode *selected = AiNodeLookUpByName(session->GetUniverse(), name.asChar());
+   AtNode *selected = AiNodeLookUpByName(session->GetUniverse(), AtString(name.asChar()));
    if (selected) selectedNodes.push_back(selected);
    
 }
@@ -910,11 +911,11 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
       AtUniverse *universe = (renderViewMtoA->m_session) ? renderViewMtoA->m_session->GetUniverse() : nullptr;
       MFnDependencyNode nodeFn( objNode );
 
-      AtNode *selected_shader = AiNodeLookUpByName (universe, nodeFn.name().asChar());
+      AtNode *selected_shader = AiNodeLookUpByName (universe, AtString(nodeFn.name().asChar()));
       if (selected_shader == NULL && dagSel.isValid())
       {
          MString selName = (renderViewMtoA->m_session) ? renderViewMtoA->m_session->GetOptions().GetArnoldNaming(dagSel) : dagSel.partialPathName();
-         selected_shader = AiNodeLookUpByName(universe, selName.asChar());
+         selected_shader = AiNodeLookUpByName(universe, AtString(selName.asChar()));
       }
 
       if(selected_shader) selection.push_back(selected_shader);
@@ -1043,7 +1044,7 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
    if (paramName == "camera")
    {
 
-      AtNode *cam = (AtNode*)AiNodeGetPtr(node, "camera");
+      AtNode *cam = (AtNode*)AiNodeGetPtr(node, str::camera);
       if (cam == NULL) return;
 
       std::string cameraName = AiNodeGetName(cam);
@@ -1211,8 +1212,8 @@ void CRenderViewMtoAPan::InitCamera()
       return;
 
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
-      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, str::dcc_name)) ? 
+      AiNodeGetStr(arnoldCamera, str::dcc_name) : AtString(AiNodeGetName(arnoldCamera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1234,15 +1235,15 @@ void CRenderViewMtoAPan::InitCamera()
 
    m_distFactor = 1.f;
    
-   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldCamera)), "persp_camera") != 0) return;
+   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldCamera)), str::persp_camera) != 0) return;
 
    MPoint originalPosition = m_camera.eyePoint(MSpace::kWorld);
    MPoint center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    float center_dist = (float)center.distanceTo(originalPosition);
 
-   m_distFactor = center_dist * tanf(AiNodeGetFlt(arnoldCamera, "fov") * AI_DTOR);
+   m_distFactor = center_dist * tanf(AiNodeGetFlt(arnoldCamera, str::fov) * AI_DTOR);
 
-   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
+   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), str::xres);
    m_init = true;
 }
 void CRenderViewMtoAPan::MouseDelta(int deltaX, int deltaY)
@@ -1270,8 +1271,8 @@ void CRenderViewMtoAZoom::InitCamera()
       return;
 
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
-      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, str::dcc_name)) ? 
+      AiNodeGetStr(arnoldCamera, str::dcc_name) : AtString(AiNodeGetName(arnoldCamera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1292,7 +1293,7 @@ void CRenderViewMtoAZoom::InitCamera()
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    m_dist = (float)m_center.distanceTo(m_originalPosition);
 
-   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), "xres");
+   m_width = AiNodeGetInt(AiUniverseGetOptions(GetUniverse()), str::xres);
    m_init = true;
 }
 
@@ -1326,8 +1327,8 @@ void CRenderViewMtoAZoom::WheelDelta(float delta)
    if (arnold_camera == NULL) return;
    
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, "dcc_name")) ? 
-      AiNodeGetStr(arnold_camera, "dcc_name") : AtString(AiNodeGetName(arnold_camera));
+   AtString camName = (AiNodeLookUpUserParameter(arnold_camera, str::dcc_name)) ? 
+      AiNodeGetStr(arnold_camera, str::dcc_name) : AtString(AiNodeGetName(arnold_camera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1383,8 +1384,8 @@ void CRenderViewMtoAZoom::FrameSelection()
    if (arnoldCamera == NULL) return;
    
    MSelectionList camList;
-   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
-      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, str::dcc_name)) ? 
+      AiNodeGetStr(arnoldCamera, str::dcc_name) : AtString(AiNodeGetName(arnoldCamera));
 
    camList.add(MString(camName.c_str()));
 
@@ -1458,8 +1459,8 @@ void CRenderViewMtoARotate::InitCamera()
    if (arnoldCamera == nullptr)
       return;
 
-   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, "dcc_name")) ? 
-      AiNodeGetStr(arnoldCamera, "dcc_name") : AtString(AiNodeGetName(arnoldCamera));
+   AtString camName = (AiNodeLookUpUserParameter(arnoldCamera, str::dcc_name)) ? 
+      AiNodeGetStr(arnoldCamera, str::dcc_name) : AtString(AiNodeGetName(arnoldCamera));
 
    MSelectionList camList;
    camList.add(MString(camName.c_str()));
@@ -1662,8 +1663,8 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    CSessionOptions &sessionOptions = session->GetOptions();
    AtNode *optionsNode = AiUniverseGetOptions(session->GetUniverse());
 
-   int previousWidth = AiNodeGetInt(optionsNode, "xres");
-   int previousHeight = AiNodeGetInt(optionsNode, "yres");
+   int previousWidth = AiNodeGetInt(optionsNode, str::xres);
+   int previousHeight = AiNodeGetInt(optionsNode, str::yres);
 
    // FIXME the code below is meant to reproduce what OptionsTranslator would do to 
    // determine the final resolution. This would have to be factorized, by making it 
@@ -1692,7 +1693,7 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
          else
             pixelAspectRatio = 1.f / AiMax(AI_EPSILON, pixelAspectRatio);
 
-         float previousAspectRatio = AiNodeGetFlt(optionsNode, "pixel_aspect_ratio");
+         float previousAspectRatio = AiNodeGetFlt(optionsNode, str::pixel_aspect_ratio);
          if (std::abs(pixelAspectRatio - previousAspectRatio) > AI_EPSILON)
             updateRender = true;
       }

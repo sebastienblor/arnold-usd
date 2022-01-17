@@ -19,7 +19,7 @@ int GetFlagsFromVerbosityLevel(unsigned int level)
    return flags;
 }
 
-DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs)
+DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, AtParamValueMap* metadata, void* user_ptr)
 {
    /*
    const char *header = "[mtoa] %s";
@@ -97,8 +97,8 @@ DLLEXPORT void MtoaSetupLogging(int logFlags)
    if (getenv("MTOA_LOG_PATH") != 0)
       AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
 
-   AiMsgSetConsoleFlags(logFlags | AI_LOG_COLOR);
-   AiMsgSetLogFileFlags(logFlags);
+   AiMsgSetConsoleFlags(nullptr, logFlags | AI_LOG_COLOR);
+   AiMsgSetLogFileFlags(nullptr, logFlags);
    // Not working correctly until we can add to callback rather than replace it,
    // or have access to original callback code
    // AiMsgSetCallback(MtoaLogCallback);

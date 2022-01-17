@@ -186,7 +186,7 @@ struct DLLEXPORT CSessionOptions
    void SetExportSlashSeparator(bool slashSeparator) {m_exportSlashSeparator = slashSeparator;}
    unsigned int GetExportNamespace() const {return (unsigned int) m_exportNamespace;}
 
-   void SetupLog(AtUniverse *universe) const;
+   void SetupLog(AtUniverse *universe);
 
    MMatrix& ScaleMatrix(MMatrix& matrix) const;
    AtMatrix& ScaleMatrix(AtMatrix& matrix) const;
@@ -500,6 +500,7 @@ private:
    unsigned int m_progressive_initial_level;
    unsigned int m_threads;
    unsigned int m_stats_mode;
+   unsigned int m_log_callbackId;
 
    bool m_useRenderRegion;
    bool m_clearBeforeRender; 

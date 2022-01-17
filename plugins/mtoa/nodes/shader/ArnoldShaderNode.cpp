@@ -4,6 +4,7 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "attributes/Metadata.h"
 #include "render/AOV.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MRenderUtil.h>
@@ -70,7 +71,7 @@ MStatus CArnoldShaderNode::initialize()
    MString arnold = s_abstract.arnold;
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(arnold.asChar()));
    CStaticAttrHelper helper(CArnoldShaderNode::addAttribute, nodeEntry);
 
    // maya.attrs is a metadata (true by default) used to prevent the creation of attributes in the existing maya nodes
@@ -78,7 +79,7 @@ MStatus CArnoldShaderNode::initialize()
    bool createAttrs = true;
    std::vector<MObject> output_attrs;
    bool outputExists = false;
-   if (!AiMetaDataGetBool(nodeEntry, NULL, "maya.attrs", &createAttrs) || createAttrs)
+   if (!AiMetaDataGetBool(nodeEntry, AtString(), str::maya_attrs, &createAttrs) || createAttrs)
    {
       int num_outputs = AiNodeEntryGetNumOutputs(nodeEntry);
       // Create Multiple outputs. Note that the default output for every arnold node is not considered 
@@ -90,6 +91,7 @@ MStatus CArnoldShaderNode::initialize()
             CAttrData data;
             const AtParamEntry* param = AiNodeEntryGetOutput(nodeEntry,i);
             const char* paramName = AiParamGetName(param);
+            const AtString paramNameStr(paramName);
             int param_type = AiParamGetType(param);
             data.isArray = false;
             data.type = param_type;
@@ -101,16 +103,16 @@ MStatus CArnoldShaderNode::initialize()
             // the num_outputs is 1. This is to help with backwards compatability
             // of custom shader that have one outputs pre Arnold 7.0 #MTOA-880
 
-            if (AiMetaDataGetStr(nodeEntry, paramName, "maya.output_name", &attrName))
+            if (AiMetaDataGetStr(nodeEntry, paramNameStr, str::maya_output_name, &attrName))
                   data.name = MString(attrName);
-            else if (num_outputs == 1 && AiMetaDataGetStr(nodeEntry, NULL, "maya.output_name", &attrName))
+            else if (num_outputs == 1 && AiMetaDataGetStr(nodeEntry, AtString(), str::maya_output_name, &attrName))
                data.name = MString(attrName);
             else
                data.name = MString(paramName);
 
-            if (AiMetaDataGetStr(nodeEntry, paramName, "maya.output_shortname", &attrShortName))
+            if (AiMetaDataGetStr(nodeEntry, paramNameStr, str::maya_output_shortname, &attrShortName))
                data.shortName = MString(attrShortName);
-            else if (num_outputs == 1 && AiMetaDataGetStr(nodeEntry, NULL, "maya.output_shortname", &attrShortName))
+            else if (num_outputs == 1 && AiMetaDataGetStr(nodeEntry, AtString(), str::maya_output_shortname, &attrShortName))
                data.name = MString(attrName);
             else
                data.shortName = MString(paramName);
@@ -199,7 +201,7 @@ MStatus CArnoldShaderNode::initialize()
          if (strcmp(paramName, "name") != 0)
          {
             bool hide = false;
-            if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
+            if (!AiMetaDataGetBool(nodeEntry, AtString(paramName), str::maya_hide, &hide) || !hide)
             {
                CAttrData attrData;
                helper.GetAttrData(paramName, attrData);
