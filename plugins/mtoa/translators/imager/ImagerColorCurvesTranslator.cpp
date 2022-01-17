@@ -57,7 +57,7 @@ void CImagerColorCurvesTranslator::ExportRampCurve(AtNode *shader, const std::st
    MObject oint = fnNode.attribute(ramp_plug_interp);
    ProcessArrayParameter(shader, arnold_ramp_interpolation_attr.c_str(), plug, AI_TYPE_INT, &oint);
 
-   AtArray *interpArray = AiNodeGetArray(shader, arnold_ramp_interpolation_attr.c_str());
+   AtArray *interpArray = AiNodeGetArray(shader, AtString(arnold_ramp_interpolation_attr.c_str()));
    unsigned int numElems = (interpArray) ? AiArrayGetNumElements(interpArray) : 0;
    for (unsigned int i = 0; i < numElems; ++i)
    {

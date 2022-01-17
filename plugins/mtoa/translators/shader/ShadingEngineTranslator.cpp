@@ -3,6 +3,7 @@
 #include "../DagTranslator.h"
 #include "session/ArnoldSession.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 CShadingEngineTranslator::~CShadingEngineTranslator()
 {
@@ -144,8 +145,8 @@ void CShadingEngineTranslator::Export(AtNode *node)
          if (aovWriteNode == NULL)
             aovWriteNode = AddArnoldNode(aovNodeName.asChar(), tag.asChar()); 
 
-         AiNodeSetStr(aovWriteNode, "aov_name", aovValue.asChar());
-         AiNodeLink(aovNode, "aov_input", aovWriteNode);
+         AiNodeSetStr(aovWriteNode, str::aov_name, AtString(aovValue.asChar()));
+         AiNodeLink(aovNode, str::aov_input, aovWriteNode);
          
          if (!aovWriteNodes.empty())
             AiNodeLink(aovWriteNode, "passthrough", aovWriteNodes.back());

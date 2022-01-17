@@ -1,10 +1,9 @@
 #include "OperatorTranslator.h"
 #include "utils/Universe.h"
+#include "utils/ConstantStrings.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/DagTranslator.h"
 #include <maya/MPlugArray.h>
-
-static AtString set_parameter_str("set_parameter");
 
 AtNode* COperatorTranslator::CreateArnoldNodes()
 {
@@ -50,7 +49,7 @@ void COperatorTranslator::Export(AtNode *shader)
       }
    }
 
-   AtArray *prevArray = AiNodeGetArray(shader, "inputs");
+   AtArray *prevArray = AiNodeGetArray(shader, str::inputs);
    bool needUpdate = true;
    if (prevArray)
    {
@@ -70,9 +69,9 @@ void COperatorTranslator::Export(AtNode *shader)
    }
 
    if (needUpdate) // only set the parameter if inputs have actually changed
-      AiNodeSetArray(shader, "inputs", array);
+      AiNodeSetArray(shader, str::inputs, array);
 
-   if (AiNodeIs(shader, set_parameter_str ))
+   if (AiNodeIs(shader, str::set_parameter ))
       ExportAssignedShaders(shader);      
 
 }
@@ -85,7 +84,7 @@ void COperatorTranslator::NodeInitializer(CAbTranslator context)
 // We could derive operator translator classes to handle this, but for now it's still quite simple
 void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
 {
-   AtArray *assignments = AiNodeGetArray(shader, "assignment");
+   AtArray *assignments = AiNodeGetArray(shader, str::assignment);
    if (assignments == NULL)
       return;
    unsigned int numAssignments = AiArrayGetNumElements(assignments);
