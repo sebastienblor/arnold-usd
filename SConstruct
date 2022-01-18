@@ -212,9 +212,9 @@ if system.os == 'windows':
 
     msvc_version = '14.0'
 
-    # Visual Studio 2019
-    if int(maya_version_base) >= 2022 or tmp_env['MAYA_MAINLINE']:
-        msvc_version = '14.2'
+    # Visual Studio 2017
+    if int(maya_version_base) >= 2021 or tmp_env['MAYA_MAINLINE']:
+        msvc_version = '14.1'
     
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
