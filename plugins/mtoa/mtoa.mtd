@@ -1794,7 +1794,7 @@
         max                 FLOAT   1.0
     [attr emission]
         min                 FLOAT   0.0
-        max                 FLOAT   1.0
+        softmax             FLOAT   1.0
     [attr blackbody_kelvin]
         min                 FLOAT   0.0
         softmax             FLOAT   20000.0
