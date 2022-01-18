@@ -1394,8 +1394,9 @@ void COptionsTranslator::Export(AtNode *options)
    // We used to apply outputOverscan only for batch & ass.
    MString overscanString = FindMayaPlug("outputOverscan").asString();
    
-   if (overscanString != "" && !useRenderRegion && session->GetExportOverscan())
+   if (overscanString != "" && !useRenderRegion && session->GetExportResolutionOverscan())
    {
+      std::cout << "<<<<<< Exporting overscan >>>>>>" << "\n";
       float overscanL = 0.0f;
       float overscanR = 0.0f;
       float overscanT = 0.0f;

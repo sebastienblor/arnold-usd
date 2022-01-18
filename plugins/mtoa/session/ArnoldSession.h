@@ -66,8 +66,8 @@ public:
    bool IsBatchSession() const {return m_batch;}
    void SetBatch(bool b) {m_batch = b;}
    bool IsInteractiveSession() const {return m_updateCallbacks;}
-   bool GetExportOverscan() const {return m_exportOverscan;}
-   void SetExportOverscan(bool b) {m_exportOverscan = b;}
+   bool GetExportResolutionOverscan() const {return m_exportOverscan;}
+   void SetExportResolutionOverscan(bool b) {m_exportOverscan = b;}
 
    virtual void Clear();
 
