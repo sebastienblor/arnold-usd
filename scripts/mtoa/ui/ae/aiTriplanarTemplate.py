@@ -17,9 +17,10 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
         
         self.beginLayout("Input", collapse=False)
         self.addControl("input", label="Input")
+        self.addControl('inputPerAxis', label = "Input Per Axis", changeCommand=lambda *args: self.updateParamsVisibility(self.nodeName), annotation = " This enables a texture input per each axis")
         self.addControl("inputY", label="InputY")
         self.addControl("inputZ", label="InputZ")
-        self.addControl('inputPerAxis', label = "Enable Per Axis Input", changeCommand=lambda *args: self.updateParamsVisibility(self.nodeName))
+        
         self.endLayout()
 
         self.beginLayout("Transform", collapse=False)
@@ -29,6 +30,7 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
         self.addControl("coordSpace")
         self.addControl("prefName")
         self.addControl("blend")
+        self.addControl("flipOnOppositeDirection", annotation = "Flip the uv's on the opposite direction to match with Maya's triplanar projection")
 
         self.endLayout()
 
