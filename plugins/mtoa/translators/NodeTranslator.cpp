@@ -695,7 +695,7 @@ void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, E
          AtArray* arr = AiArrayAllocate(length, 1, ATTR);
          for (unsigned int i = 0; i < length; ++i)
             TExportUserAttributeData<ATTR, T>(arr, data, i);
-         AiNodeSetArray(node, attrName, arr);
+         AiNodeSetArray(node, AtString(attrName), arr);
       }
    }
 }
@@ -990,7 +990,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 {
    if (arnoldParamType == AI_TYPE_UNDEFINED)
    {
-      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), arnoldParamName);
+      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), AtString(arnoldParamName));
       const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
       arnoldParamType = AiArrayGetType(defaultValue->ARRAY());
    }
@@ -1093,7 +1093,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
 
 void CNodeTranslator::NodeInitializer(CAbTranslator context)
 {
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(context.arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(context.arnold.asChar()));
    if (nodeEntry == NULL)
       return;
 

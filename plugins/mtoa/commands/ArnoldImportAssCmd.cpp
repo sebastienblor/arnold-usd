@@ -282,8 +282,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    unordered_map<std::string, std::string>  arnoldToMayaNames;
    unordered_map<std::string, std::string>  arnoldToMayaShadingEngines;
    std::vector<AtNode *> nodesToConvert;
-   static AtString osl_str("osl");
-
+   
    // First Loop to create the imported nodes, and fill the map from arnold to maya nodes
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, mask);
    while (!AiNodeIteratorFinished(iter))
@@ -304,7 +303,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       // Exception for osl shaders, the AtNodeEntry that we receive is different from the "builtin" one (#4334)
       // It doesn't have any of the metadatas we'll query below. Let's switch to using the good one.
       if (nodeEntryName == "osl")
-         nodeEntry = AiNodeEntryLookUp(osl_str);
+         nodeEntry = AiNodeEntryLookUp(str::osl);
       
       MString mayaTypeName = ArnoldToMayaStyle(MString("ai_")+MString(nodeEntryName.c_str()));
 
@@ -323,7 +322,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       arnoldToMayaNames[nodeName] = std::string(mayaName.asChar());
       nodesToConvert.push_back(node);
       
-      bool isOsl = AiNodeIs(node, osl_str);
+      bool isOsl = AiNodeIs(node, str::osl);
       if (isOsl)
       {
          // OSL is special, we need to set its attribute "code" first.
@@ -357,7 +356,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       std::string nodeName = AiNodeGetName(node);
       std::string mayaName = arnoldToMayaNames[nodeName];
 
-      bool isOsl = AiNodeIs(node, osl_str);
+      bool isOsl = AiNodeIs(node, str::osl);
       // loop over this arnold node parameters
       AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
       while (!AiParamIteratorFinished(nodeParam))

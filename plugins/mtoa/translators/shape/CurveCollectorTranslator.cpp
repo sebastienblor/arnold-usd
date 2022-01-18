@@ -1,5 +1,6 @@
 #include "CurveCollectorTranslator.h"
 #include "../NodeTranslatorImpl.h"
+#include "utils/ConstantStrings.h"
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
 #include <maya/MDagPathArray.h>
@@ -444,7 +445,7 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
             shader = AddArnoldNode("standard_hair", "hairShader");
 
       }
-      AiNodeSetPtr(curve, "shader", shader);
+      AiNodeSetPtr(curve, str::shader, shader);
    }   
 
    m_sampleRate = 5;
@@ -458,13 +459,13 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
 
    // curve specific Arnold render settings.
    plug = FindMayaPlug("aiMinPixelWidth");
-   if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
+   if (!plug.isNull()) AiNodeSetFlt(curve, str::min_pixel_width, plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes, 2 == oriented
    plug = FindMayaPlug("aiMode");
-   if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
+   if (!plug.isNull()) AiNodeSetInt(curve, str::mode, plug.asInt());
 
-   AiNodeSetStr(curve, "basis", "catmull-rom");
+   AiNodeSetStr(curve, str::basis, str::catmull_rom);
 
    CCurvesData curvesData;
    // get all the positions
@@ -511,10 +512,10 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
 
 
    if (!widthConnected && !hasWidthProfile)
-      AiNodeSetFlt(curve, "radius", globalWidth / 2.f);
+      AiNodeSetFlt(curve, str::radius, globalWidth / 2.f);
 
    // if curves mode is "oriented" we need to output the orientations
-   bool needOrientation = (AiNodeGetInt(curve, "mode") == 2);
+   bool needOrientation = (AiNodeGetInt(curve, str::mode) == 2);
 
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
@@ -547,7 +548,7 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
       // Set num points
       AiArraySetInt(curveNumPoints, i, numPointsInterpolation);
    }
-   AiNodeSetArray(curve, "num_points", curveNumPoints);
+   AiNodeSetArray(curve, str::num_points, curveNumPoints);
 
    // FIXME verify the first call to IsMotionBlurEnabled() is not necessary
    bool deformedPoints = IsMotionBlurEnabled() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && RequiresMotionData();
@@ -600,19 +601,19 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
       // duplicate last CV for this curve
       AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex - 1]);
    }
-   AiNodeSetArray(curve, "points", curvePoints);
+   AiNodeSetArray(curve, str::points, curvePoints);
 
    if (needOrientation)
-      AiNodeSetArray(curve, "orientations", orientVectors);
+      AiNodeSetArray(curve, str::orientations, orientVectors);
 
    if (referenceCurvePoints)
    {
-      AiNodeDeclare(curve, "Pref", "varying POINT");
-      AiNodeSetArray(curve, "Pref", referenceCurvePoints);
+      AiNodeDeclare(curve, str::Pref, str::varying_POINT);
+      AiNodeSetArray(curve, str::Pref, referenceCurvePoints);
    }
 
    if (curveWidths)
-      AiNodeSetArray(curve, "radius", curveWidths);
+      AiNodeSetArray(curve, str::radius, curveWidths);
 
    // clear the widths per resolution
    for (size_t i = 0; i < curvesData.curveWidthsPerResolution.size(); ++i)
@@ -639,7 +640,7 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    MStatus stat;
 
       // if curves mode is "oriented" we need to output the orientations
-   bool needOrientation = (AiNodeGetInt(curve, "mode") == 2);
+   bool needOrientation = (AiNodeGetInt(curve, str::mode) == 2);
 
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
@@ -651,8 +652,8 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    }
 
    // just export the points for motion steps
-   AtArray *curvePoints = AiNodeGetArray(curve, "points");
-   AtArray *orientVectors = (needOrientation) ? AiNodeGetArray(curve, "orientations") : NULL;
+   AtArray *curvePoints = AiNodeGetArray(curve, str::points);
+   AtArray *orientVectors = (needOrientation) ? AiNodeGetArray(curve, str::orientations) : NULL;
 
    unsigned int totalNumPointsInterp = AiArrayGetNumElements(curvePoints);
 

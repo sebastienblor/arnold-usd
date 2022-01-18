@@ -625,7 +625,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             if (child == NULL)
                child = m_tr.AddArnoldNode("flat", closureName.c_str());
 
-            AiNodeSetRGB(child, "color", col.r, col.g, col.b);
+            AiNodeSetRGB(child, str::color, col.r, col.g, col.b);
             AiNodeLink(child, arnoldParamNameStr, arnoldNode);
          }
 
@@ -696,27 +696,28 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          {
             // This is one element from a RGB / RGBA / VEC / VEC2 parameter
             std::string baseParam = paramNameStr.substr(0, paramNameLength - 2);
+            AtString baseParamStr(baseParam.c_str());
             std::string component = paramNameStr.substr(paramNameLength - 1, 1);
-            const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, baseParam.c_str());
+            const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, baseParamStr);
             if (paramEntry)
             {
                switch(AiParamGetType(paramEntry))
                {
                   {
                   case AI_TYPE_RGB:
-                     AtRGB col = AiNodeGetRGB(arnoldNode, baseParam.c_str());
+                     AtRGB col = AiNodeGetRGB(arnoldNode, baseParamStr);
                      if (component == "r")
                         col.r = val;
                      else if (component == "g")
                         col.g = val;
                      else if (component == "b")
                         col.b = val;
-                     AiNodeSetRGB(arnoldNode, (const char *)baseParam.c_str(), col.r, col.g, col.b);
+                     AiNodeSetRGB(arnoldNode, baseParamStr, col.r, col.g, col.b);
                   break;
                   }
                   {
                   case AI_TYPE_RGBA:
-                     AtRGBA col = AiNodeGetRGBA(arnoldNode, baseParam.c_str());
+                     AtRGBA col = AiNodeGetRGBA(arnoldNode, baseParamStr);
                      if (component == "r")
                         col.r = val;
                      else if (component == "g")
@@ -725,31 +726,31 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                         col.b = val;
                      else if (component == "a")
                         col.a = val;
-                     AiNodeSetRGBA(arnoldNode, (const char *)baseParam.c_str(), col.r, col.g, col.b, col.a);
+                     AiNodeSetRGBA(arnoldNode, baseParamStr, col.r, col.g, col.b, col.a);
 
                   break;
                   }
                   {
                   case AI_TYPE_VECTOR:
-                     AtVector vec = AiNodeGetVec(arnoldNode, baseParam.c_str());
+                     AtVector vec = AiNodeGetVec(arnoldNode, baseParamStr);
                      if (component == "x")
                         vec.x = val;
                      else if (component == "y")
                         vec.y = val;
                      else if (component == "z")
                         vec.z = val;
-                     AiNodeSetVec(arnoldNode, (const char *)baseParam.c_str(), vec.x, vec.y, vec.z);
+                     AiNodeSetVec(arnoldNode, baseParamStr, vec.x, vec.y, vec.z);
 
                   break;
                   }
                   {
                   case AI_TYPE_VECTOR2:
-                     AtVector2 vec = AiNodeGetVec(arnoldNode, baseParam.c_str());
+                     AtVector2 vec = AiNodeGetVec(arnoldNode, baseParamStr);
                      if (component == "x")
                         vec.x = val;
                      else if (component == "y")
                         vec.y = val;
-                     AiNodeSetVec2(arnoldNode, (const char *)baseParam.c_str(), vec.x, vec.y);
+                     AiNodeSetVec2(arnoldNode, baseParamStr, vec.x, vec.y);
                   break;
                   }
                   default:
@@ -1021,7 +1022,7 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
       break;
    case AI_TYPE_STRING:
       {
-         AiArraySetStr(array, i, elem.asString().asChar());
+         AiArraySetStr(array, i, AtString(elem.asString().asChar()));
       }
       break;
    case AI_TYPE_VECTOR:
@@ -1075,13 +1076,8 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          
          AtNode *node = m_tr.GetArnoldNode();
          bool isVolume = false;
-         static const AtString polymeshStr("polymesh");
-         static const AtString pointsStr("points");
-         static const AtString sphereStr("sphere");
-         static const AtString boxStr("box");
-         static const AtString proceduralStr("procedural");
-
-         if (AiNodeIs(node, polymeshStr) || AiNodeIs(node, pointsStr) || AiNodeIs(node, boxStr) || AiNodeIs(node, sphereStr))
+         
+         if (AiNodeIs(node, str::polymesh) || AiNodeIs(node, str::points) || AiNodeIs(node, str::box) || AiNodeIs(node, str::sphere))
          {
             MFnDependencyNode fnDGNode(m_tr.GetMayaObject());
             MPlug stepSizePlug = fnDGNode.findPlug("stepSize", true);
@@ -1092,7 +1088,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
                isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
 
          }
-         else if (AiNodeIs(node, proceduralStr)) // standins
+         else if (AiNodeIs(node, str::procedural)) // standins
             isVolume = false;
          else
          {
@@ -1162,10 +1158,10 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
                {
                   // Set the user data material_surface / material_volume on the root shader, 
                   // so that it returns the name of the shading engine
-                  std::string user_data = (isVolume) ? "material_volume" : "material_surface";
-                  if (AiNodeLookUpUserParameter(node, user_data.c_str()) == NULL)
-                     AiNodeDeclare(node, user_data.c_str(), "constant STRING");   
-                  AiNodeSetStr(node, user_data.c_str(), AtString(sgNode.name().asChar()));
+                  AtString user_data = (isVolume) ? str::material_volume : str::material_surface;
+                  if (AiNodeLookUpUserParameter(node, user_data) == NULL)
+                     AiNodeDeclare(node, user_data, str::constant_STRING);   
+                  AiNodeSetStr(node, user_data, AtString(sgNode.name().asChar()));
 
                   // Check if there's displacement assigned to our shading engine
                   MPlug plug = sgNode.findPlug("displacementShader", true);
@@ -1180,9 +1176,9 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
                         AtNode *dispNode = ExportConnectedNode(connections[0]);
                         if (dispNode)
                         {
-                           if (AiNodeLookUpUserParameter(dispNode, "material_displacement") == NULL)
-                              AiNodeDeclare(dispNode, "material_displacement", "constant STRING");   
-                           AiNodeSetStr(dispNode, "material_displacement", AtString(sgNode.name().asChar()));
+                           if (AiNodeLookUpUserParameter(dispNode, str::material_displacement) == NULL)
+                              AiNodeDeclare(dispNode, str::material_displacement, str::constant_STRING);   
+                           AiNodeSetStr(dispNode, str::material_displacement, AtString(sgNode.name().asChar()));
                         }
                      }
                   }
@@ -1208,7 +1204,7 @@ void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
    // Exporting the unexposed options parameter
    MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
    if (!plug.isNull())
-      AiNodeSetAttributes(anode, plug.asString().asChar());
+      AiNodeSetAttributes(anode, AtString(plug.asString().asChar()));
 }
 MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
 {
@@ -1224,7 +1220,7 @@ MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* ta
       name = name + AI_TAG_SEP + tag;
 
    // If name is alredy used, create a new one
-   if(AiNodeLookUpByName(m_tr.GetUniverse(), name.asChar()))
+   if(AiNodeLookUpByName(m_tr.GetUniverse(), AtString(name.asChar())))
    {
       char tmpName[MAX_NAME_SIZE];
       name = NodeUniqueName(nodeType, tmpName);
