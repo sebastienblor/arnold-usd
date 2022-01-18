@@ -30,7 +30,7 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
         self.addControl("coordSpace")
         self.addControl("prefName")
         self.addControl("blend")
-        self.addControl("flipOnOppositeDirection", annotation = "Flip the uv's on the opposite direction to match with Maya's triplanar projection")
+        self.addControl("flipOnOppositeDirection", annotation = "Flip the direction of the projection.Set this to false to match with Maya's triplanar projection")
 
         self.endLayout()
 
