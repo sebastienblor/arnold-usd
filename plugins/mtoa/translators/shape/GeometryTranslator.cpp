@@ -14,6 +14,7 @@
 #include <maya/MUintArray.h>
 #include <maya/MItMeshEdge.h>
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 #include <algorithm>
 
 #include "utils/time.h"
@@ -864,13 +865,13 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
-         AiNodeSetPtr(polymesh, "shader", shader);
+         AiNodeSetPtr(polymesh, str::shader, shader);
       }
       else
       {
          AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
                GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
-         AiNodeSetPtr(polymesh, "shader", NULL);
+         AiNodeSetPtr(polymesh, str::shader, NULL);
       }
 
       // DISPLACEMENT MATERIAL EXPORT
@@ -887,7 +888,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          GetDisplacement(dispNode, maximumDisplacementPadding, enableAutoBump);
          
             AtNode* dispImage(ExportConnectedNode(connections[0]));
-         AiNodeSetPtr(polymesh, "disp_map", dispImage);         
+         AiNodeSetPtr(polymesh, str::disp_map, dispImage);         
       }
    }
 
@@ -947,16 +948,16 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       
       const size_t numMeshShaders = meshShaders.size();
       if (numMeshShaders > 0)
-         AiNodeSetArray(polymesh, "shader", AiArrayConvert(numMeshShaders, 1, AI_TYPE_NODE, &meshShaders[0]));
+         AiNodeSetArray(polymesh, str::shader, AiArrayConvert(numMeshShaders, 1, AI_TYPE_NODE, &meshShaders[0]));
       else
-         AiNodeSetPtr(polymesh, "shader", NULL);
+         AiNodeSetPtr(polymesh, str::shader, NULL);
 
       const size_t numMeshDisps = meshDisps.size();
       for (size_t i = 0; i < numMeshDisps; ++i)
       {
          if (meshDisps[i] != 0)
          {
-            AiNodeSetArray(polymesh, "disp_map", AiArrayConvert(numMeshDisps, 1, AI_TYPE_NODE, &meshDisps[0]));
+            AiNodeSetArray(polymesh, str::disp_map, AiArrayConvert(numMeshDisps, 1, AI_TYPE_NODE, &meshDisps[0]));
             break;
          }
       }
@@ -997,7 +998,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // it does not matter what shader index we use so we just fill it in with 0's here.
       // Note the geometry processing adds the holes at the end so we also add the per face data 
       // for the holes at the end too.
-      AtArray *holesArray = AiNodeGetArray(polymesh, "polygon_holes");
+      AtArray *holesArray = AiNodeGetArray(polymesh, str::polygon_holes);
       if (holesArray != NULL)
       {
          // we already exported some holes here
@@ -1011,17 +1012,17 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       int numFaceShaders = (int)shidxs.size();
       if (numFaceShaders > 0)
       {
-         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_BYTE, &(shidxs[0])));
+         AiNodeSetArray(polymesh, str::shidxs, AiArrayConvert(numFaceShaders, 1, AI_TYPE_BYTE, &(shidxs[0])));
       }
    }
 
    // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
    // it only influences the computation of the displacement bounds
-   AiNodeSetFlt(polymesh, "disp_height",  FindMayaPlug("aiDispHeight").asFloat());
-   AiNodeSetFlt(polymesh, "disp_padding", AiMax(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
-   AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaPlug("aiDispZeroValue").asFloat());
-   AiNodeSetBool(polymesh, "disp_autobump", FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
-   AiNodeSetByte(polymesh, "autobump_visibility", FindMayaPlug("aiAutobumpVisibility").asInt());
+   AiNodeSetFlt(polymesh, str::disp_height,  FindMayaPlug("aiDispHeight").asFloat());
+   AiNodeSetFlt(polymesh, str::disp_padding, AiMax(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
+   AiNodeSetFlt(polymesh, str::disp_zero_value, FindMayaPlug("aiDispZeroValue").asFloat());
+   AiNodeSetBool(polymesh, str::disp_autobump, FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
+   AiNodeSetByte(polymesh, str::autobump_visibility, FindMayaPlug("aiAutobumpVisibility").asInt());
 
 }
 
@@ -1093,52 +1094,52 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          if (tangentidxs)
          {
             // Per-face-vertex "indexed" user data
-            if (AiNodeLookUpUserParameter(polymesh, "tangent") == NULL)
-               AiNodeDeclare(polymesh, "tangent", "indexed VECTOR");
-            if (AiNodeLookUpUserParameter(polymesh, "bitangent") == NULL)
-               AiNodeDeclare(polymesh, "bitangent", "indexed VECTOR");
-            AiNodeSetArray(polymesh, "tangent", tangents);
-            AiNodeSetArray(polymesh, "bitangent", bitangents);
+            if (AiNodeLookUpUserParameter(polymesh, str::tangent) == NULL)
+               AiNodeDeclare(polymesh, str::tangent, str::indexed_VECTOR);
+            if (AiNodeLookUpUserParameter(polymesh, str::bitangent) == NULL)
+               AiNodeDeclare(polymesh, str::bitangent, str::indexed_VECTOR);
+            AiNodeSetArray(polymesh, str::tangent, tangents);
+            AiNodeSetArray(polymesh, str::bitangent, bitangents);
             
-            if (AiNodeLookUpUserParameter(polymesh, "tangentidxs") == NULL)
-               AiNodeDeclare(polymesh, "tangentidxs", "indexed UINT");
-            if (AiNodeLookUpUserParameter(polymesh, "bitangentidxs") == NULL)
-               AiNodeDeclare(polymesh, "bitangentidxs", "indexed UINT");
-            AiNodeSetArray(polymesh, "tangentidxs", tangentidxs);
-            AiNodeSetArray(polymesh, "bitangentidxs", bitangentidxs);
+            if (AiNodeLookUpUserParameter(polymesh, str::tangentidxs) == NULL)
+               AiNodeDeclare(polymesh, str::tangentidxs, str::indexed_UINT);
+            if (AiNodeLookUpUserParameter(polymesh, str::bitangentidxs) == NULL)
+               AiNodeDeclare(polymesh, str::bitangentidxs, str::indexed_UINT);
+            AiNodeSetArray(polymesh, str::tangentidxs, tangentidxs);
+            AiNodeSetArray(polymesh, str::bitangentidxs, bitangentidxs);
          } else
          {
             // per-vertex user data
-            if (AiNodeLookUpUserParameter(polymesh, "tangent") == NULL)
-               AiNodeDeclare(polymesh, "tangent", "varying VECTOR");
-            if (AiNodeLookUpUserParameter(polymesh, "bitangent") == NULL)
-               AiNodeDeclare(polymesh, "bitangent", "varying VECTOR");
-            AiNodeSetArray(polymesh, "tangent", tangents);
-            AiNodeSetArray(polymesh, "bitangent", bitangents);
+            if (AiNodeLookUpUserParameter(polymesh, str::tangent) == NULL)
+               AiNodeDeclare(polymesh, str::tangent, str::varying_VECTOR);
+            if (AiNodeLookUpUserParameter(polymesh, str::bitangent) == NULL)
+               AiNodeDeclare(polymesh, str::bitangent, str::varying_VECTOR);
+            AiNodeSetArray(polymesh, str::tangent, tangents);
+            AiNodeSetArray(polymesh, str::bitangent, bitangents);
          }
       }
 
       if (exportReferenceObjects)
       {
          if (exportRefVerts)
-            AiNodeDeclare(polymesh, "Pref", "varying VECTOR");
+            AiNodeDeclare(polymesh, str::Pref, str::varying_VECTOR);
          if (exportRefNorms)
          {
-            AiNodeDeclare(polymesh, "Nref", "indexed VECTOR");
-            AiNodeDeclare(polymesh, "Nrefidxs", "indexed UINT");
+            AiNodeDeclare(polymesh, str::Nref, str::indexed_VECTOR);
+            AiNodeDeclare(polymesh, str::Nrefidxs, str::indexed_UINT);
          }
          if (exportRefTangents)
          {                        
             if (reftangentidxs)
             {               
-               AiNodeDeclare(polymesh, "Tref", "indexed VECTOR");
-               AiNodeDeclare(polymesh, "BTref", "indexed VECTOR");
-               AiNodeDeclare(polymesh, "Trefidxs", "indexed UINT");
-               AiNodeDeclare(polymesh, "BTrefidxs", "indexed UINT");
+               AiNodeDeclare(polymesh, str::Tref, str::indexed_VECTOR);
+               AiNodeDeclare(polymesh, str::BTref, str::indexed_VECTOR);
+               AiNodeDeclare(polymesh, str::Trefidxs, str::indexed_UINT);
+               AiNodeDeclare(polymesh, str::BTrefidxs, str::indexed_UINT);
             } else
             {
-               AiNodeDeclare(polymesh, "Tref", "varying VECTOR");
-               AiNodeDeclare(polymesh, "BTref", "varying VECTOR");
+               AiNodeDeclare(polymesh, str::Tref, str::varying_VECTOR);
+               AiNodeDeclare(polymesh, str::BTref, str::varying_VECTOR);
             }
          }
       }
@@ -1151,12 +1152,12 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          while (it != vcolors.end())
          {
             if (it->second.size() == numVerts * 4)
-               AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+               AiNodeDeclare(polymesh, AtString(it->first.c_str()), str::varying_RGBA);
             else
             {
-               AiNodeDeclare(polymesh, it->first.c_str(), "indexed RGBA");
+               AiNodeDeclare(polymesh, AtString(it->first.c_str()), str::indexed_RGBA);
                std::string userDataIdxName = it->first + "idxs";
-               AiNodeDeclare(polymesh, userDataIdxName.c_str(), "indexed UINT");
+               AiNodeDeclare(polymesh, AtString(userDataIdxName.c_str()), str::indexed_UINT);
             }
 
             ++it;
@@ -1167,9 +1168,9 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       {
          // No deformation motion blur, so we create normal arrays
          if (exportVertices)
-            AiNodeSetArray(polymesh, "vlist", AiArrayConvert(numVerts * 3, 1, AI_TYPE_FLOAT, &(vertices[0])));
+            AiNodeSetArray(polymesh, str::vlist, AiArrayConvert(numVerts * 3, 1, AI_TYPE_FLOAT, &(vertices[0])));
          if (exportNormals)
-            AiNodeSetArray(polymesh, "nlist", AiArrayConvert(numNorms * 3, 1, AI_TYPE_FLOAT, &(normals[0])));
+            AiNodeSetArray(polymesh, str::nlist, AiArrayConvert(numNorms * 3, 1, AI_TYPE_FLOAT, &(normals[0])));
       }
       else
       {
@@ -1206,7 +1207,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                   vec.z += motionVector->b * motionRange;
                   AiArraySetVec(verticesArray, i + numVerts, vec);
                }
-               AiNodeSetArray(polymesh, "vlist", verticesArray);
+               AiNodeSetArray(polymesh, str::vlist, verticesArray);
             }
             if (exportNormals)
             {
@@ -1221,7 +1222,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                   AiArraySetVec(normalsArray, i, vec);
                   AiArraySetVec(normalsArray, i + numNorms, vec);
                }
-               AiNodeSetArray(polymesh, "nlist", normalsArray);
+               AiNodeSetArray(polymesh, str::nlist, normalsArray);
             }
          }
          else
@@ -1230,32 +1231,32 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             {
                AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
                SetKeyData(vlist_array, step, vertices);
-               AiNodeSetArray(polymesh, "vlist", vlist_array);
+               AiNodeSetArray(polymesh, str::vlist, vlist_array);
             }
             if (exportNormals)
             {
                AtArray* nlist_array = AiArrayAllocate(numNorms, GetNumMotionSteps(), AI_TYPE_VECTOR);
                SetKeyData(nlist_array, step, normals);
-               AiNodeSetArray(polymesh, "nlist", nlist_array);
+               AiNodeSetArray(polymesh, str::nlist, nlist_array);
             }
          }
       }
 
       if (exportCompIDs)
       {
-         AiNodeSetArray(polymesh, "nsides", nsides);
-         AiNodeSetArray(polymesh, "vidxs", vidxs);
+         AiNodeSetArray(polymesh, str::nsides, nsides);
+         AiNodeSetArray(polymesh, str::vidxs, vidxs);
          if (exportNormals)
-            AiNodeSetArray(polymesh, "nidxs", nidxs);
+            AiNodeSetArray(polymesh, str::nidxs, nidxs);
 
          if (!arnoldPolygonHoles.empty())
          {
             numFaceVertices = AiArrayGetNumElements(vidxs); // the amount of face vertices gets bigger with the holes
             AtArray *polygonHoles = AiArrayConvert(arnoldPolygonHoles.size(), 1, AI_TYPE_UINT, &arnoldPolygonHoles[0]);
-            AiNodeSetArray(polymesh, "polygon_holes", polygonHoles);
+            AiNodeSetArray(polymesh, str::polygon_holes, polygonHoles);
 
             // make sure shidx has the proper amount of elements
-            AtArray *shidxArray = AiNodeGetArray(polymesh, "shidxs");
+            AtArray *shidxArray = AiNodeGetArray(polymesh, str::shidxs);
             
             if (shidxArray != NULL)
             {
@@ -1271,7 +1272,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                   AiArrayUnmap(shidxArray); // is it necessary ?
 
                   AtArray* newShidxArray = AiArrayConvert(polyCount, 1, AI_TYPE_BYTE, &newShidxList[0]);
-                  AiNodeSetArray(polymesh, "shidxs", newShidxArray);
+                  AiNodeSetArray(polymesh, str::shidxs, newShidxArray);
 
                }
             }
@@ -1294,21 +1295,21 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                AtVector v = AiM4PointByMatrixMult(worldMatrix, *(vRefVertices + i));
                AiArraySetVec(aRefVertices, i, v);
             }
-            AiNodeSetArray(polymesh, "Pref", aRefVertices);
+            AiNodeSetArray(polymesh, str::Pref, aRefVertices);
          }
          if (exportRefNorms)
          {
-            AiNodeSetArray(polymesh, "Nref", refNormals);
-            AiNodeSetArray(polymesh, "Nrefidxs", rnidxs);
+            AiNodeSetArray(polymesh, str::Nref, refNormals);
+            AiNodeSetArray(polymesh, str::Nrefidxs, rnidxs);
          }
          if (exportRefTangents)
          {
-            AiNodeSetArray(polymesh, "Tref", refTangents);
-            AiNodeSetArray(polymesh, "BTref", refBitangents);
+            AiNodeSetArray(polymesh, str::Tref, refTangents);
+            AiNodeSetArray(polymesh, str::BTref, refBitangents);
             if (reftangentidxs)
             {
-               AiNodeSetArray(polymesh, "Trefidxs", reftangentidxs);
-               AiNodeSetArray(polymesh, "BTrefidxs", refBitangentidxs);
+               AiNodeSetArray(polymesh, str::Trefidxs, reftangentidxs);
+               AiNodeSetArray(polymesh, str::BTrefidxs, refBitangentidxs);
             }
          }
       }
@@ -1318,17 +1319,17 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          {
             if ( AiArrayGetNumElements(uvs[0]) > 0 )
             {
-               AiNodeSetArray(polymesh, "uvlist", uvs[0]);
-               AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
+               AiNodeSetArray(polymesh, str::uvlist, uvs[0]);
+               AiNodeSetArray(polymesh, str::uvidxs, uvidxs[0]);
             }
             for (size_t i = 1; i < uvs.size(); ++i)
             {
                if (uvNames.size() > i && uvidxs.size() > i)
                {
                   MString idxsName = uvNames[i] + MString("idxs");
-                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed VECTOR2");
-                  AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
-                  AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+                  AiNodeDeclare(polymesh, AtString(uvNames[i].asChar()), str::indexed_VECTOR2);
+                  AiNodeSetArray(polymesh, AtString(uvNames[i].asChar()), uvs[i]);
+                  AiNodeSetArray(polymesh, AtString(idxsName.asChar()), uvidxs[i]);
                }
             }
          }
@@ -1339,16 +1340,16 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          while (it != vcolors.end())
          {
             if (it->second.size() == numVerts * 4)
-               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
+               AiNodeSetArray(polymesh, AtString(it->first.c_str()), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
             else
             {
-               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numFaceVertices, 1, AI_TYPE_RGBA, &(it->second[0])));
+               AiNodeSetArray(polymesh, AtString(it->first.c_str()), AiArrayConvert(numFaceVertices, 1, AI_TYPE_RGBA, &(it->second[0])));
                std::vector<unsigned int> userDataIdx(numFaceVertices);
                for (size_t i = 0; i < numFaceVertices; ++i)
                   userDataIdx[i] = i;
 
                std::string userDataIdxName = it->first + "idxs";
-               AiNodeSetArray(polymesh, userDataIdxName.c_str(), AiArrayConvert(numFaceVertices, 1, AI_TYPE_UINT, &(userDataIdx[0])));
+               AiNodeSetArray(polymesh, AtString(userDataIdxName.c_str()), AiArrayConvert(numFaceVertices, 1, AI_TYPE_UINT, &(userDataIdx[0])));
             }
             ++it;
          }
@@ -1410,8 +1411,8 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                }
             }
 
-            AiNodeSetArray(polymesh, "crease_idxs", aCreaseEdges);
-            AiNodeSetArray(polymesh, "crease_sharpness", aCreaseData);
+            AiNodeSetArray(polymesh, str::crease_idxs, aCreaseEdges);
+            AiNodeSetArray(polymesh, str::crease_sharpness, aCreaseData);
          }         
       }
    }
@@ -1422,7 +1423,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // Vertices
       if (exportVertices)
       {
-         AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
+         AtArray* vlist_array = AiNodeGetArray(polymesh, str::vlist);
          if (vlist_array == NULL)
             return;
          if (AiArrayGetNumElements(vlist_array) != numVerts)
@@ -1435,7 +1436,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // Normals
       if (exportNormals)
       {
-         AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
+         AtArray* nlist_array = AiNodeGetArray(polymesh, str::nlist);
          if (AiArrayGetNumElements(nlist_array) != numNorms)
             AiMsgError("[mtoa.translator]  %-30s | Number of normals changed between motion steps: %d -> %d",
                        GetMayaNodeName().asChar(), AiArrayGetNumElements(nlist_array), numNorms);
@@ -1459,18 +1460,18 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    // Check if custom attributes have been created, ignore them otherwise
    if (FindMayaPlug("aiSubdivType").isNull()) return;
 
-   AiNodeSetBool(polymesh, "smoothing", FindMayaPlug("smoothShading").asBool());
+   AiNodeSetBool(polymesh, str::smoothing, FindMayaPlug("smoothShading").asBool());
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
+      AiNodeSetByte(polymesh, str::sidedness, AI_RAY_ALL);
    else
    {
-      AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetByte(polymesh, "sidedness", 0);
+      AiNodeSetBool(polymesh, str::invert_normals, FindMayaPlug("opposite").asBool());
+      AiNodeSetByte(polymesh, str::sidedness, 0);
    }
 
-   AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
-   AiNodeSetFlt(polymesh, "volume_padding", FindMayaPlug("aiVolumePadding").asFloat());
+   AiNodeSetFlt(polymesh, str::step_size, FindMayaPlug("aiStepSize").asFloat());
+   AiNodeSetFlt(polymesh, str::volume_padding, FindMayaPlug("aiVolumePadding").asFloat());
    
    // Subdivision surfaces
    //
@@ -1478,16 +1479,17 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    if (subdivision!=0)
    {
       if (subdivision==1)
-         AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
+         AiNodeSetStr(polymesh, str::subdiv_type, str::catclark);
       else
-         AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-      AiNodeSetByte(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
-      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(polymesh, "subdiv_adaptive_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
-      AiNodeSetInt(polymesh, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
-      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
-      AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
-      AiNodeSetBool(polymesh, "subdiv_frustum_ignore", FindMayaPlug("aiSubdivFrustumIgnore").asBool());
+         AiNodeSetStr(polymesh, str::subdiv_type, str::linear);
+
+      AiNodeSetByte(polymesh, str::subdiv_iterations, FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(polymesh, str::subdiv_adaptive_metric, FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(polymesh, str::subdiv_adaptive_error, FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(polymesh, str::subdiv_adaptive_space, FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
+      AiNodeSetInt(polymesh, str::subdiv_uv_smoothing, FindMayaPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetBool(polymesh, str::subdiv_smooth_derivs, FindMayaPlug("aiSubdivSmoothDerivs").asBool());
+      AiNodeSetBool(polymesh, str::subdiv_frustum_ignore, FindMayaPlug("aiSubdivFrustumIgnore").asBool());
    }
 }
 
@@ -1499,11 +1501,11 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
    ProcessRenderFlags(polymesh);
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
+      AiNodeSetByte(polymesh, str::sidedness, AI_RAY_ALL);
    else
    {
-      AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetByte(polymesh, "sidedness", 0);
+      AiNodeSetBool(polymesh, str::invert_normals, FindMayaPlug("opposite").asBool());
+      AiNodeSetByte(polymesh, str::sidedness, 0);
    }
 
    if (RequiresShaderExport())
@@ -1512,8 +1514,8 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
 
    MFnMesh fnMesh(m_geometry);
    MBoundingBox bbox = fnMesh.boundingBox();
-   AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
-   AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
+   AiNodeSetVec(polymesh, str::min, (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
+   AiNodeSetVec(polymesh, str::max, (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
    //AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
@@ -1547,11 +1549,11 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
 
    ExportMatrix(instance);
 
-   AiNodeSetPtr(instance, "node", masterNode);
-   AiNodeSetBool(instance, "inherit_xform", false);
+   AiNodeSetPtr(instance, str::node, masterNode);
+   AiNodeSetBool(instance, str::inherit_xform, false);
    
    AtByte visibility = ComputeVisibility();
-   AiNodeSetByte(instance, "visibility", visibility);
+   AiNodeSetByte(instance, str::visibility, visibility);
 
    if (RequiresShaderExport())
    {
@@ -1615,7 +1617,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
          }
 
          AtNode* shader = ExportConnectedNode(shaderPlug);
-         AiNodeSetPtr(instance, "shader", shader);
+         AiNodeSetPtr(instance, str::shader, shader);
       }
    }
    // Export light linking per instance

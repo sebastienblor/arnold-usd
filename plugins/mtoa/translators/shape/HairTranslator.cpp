@@ -1,4 +1,5 @@
 #include "HairTranslator.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -190,10 +191,10 @@ void CHairTranslator::Export( AtNode *curve )
             MObject oint = fnDepNodeHair.attribute("hairColorScale_Interp");
             ProcessArrayParameter(rampShader, "interpolation", rampPlug, AI_TYPE_INT, &oint);
 
-            AiNodeSetStr(rampShader, "type", "v");
-            AiNodeSetStr(rampShader, "use_implicit_uvs", "curves_only");              
+            AiNodeSetStr(rampShader, str::type, str::v);
+            AiNodeSetStr(rampShader, str::use_implicit_uvs, str::curves_only);
          }
-         AiNodeSetFlt(shader, "diffuse", 1.f);
+         AiNodeSetFlt(shader, str::diffuse, 1.f);
 
          MPlug opacPlug = fnDepNodeHair.findPlug("opacity", true);
          MPlugArray connections;
@@ -203,7 +204,7 @@ void CHairTranslator::Export( AtNode *curve )
          else
          {
             float opacity = opacPlug.asFloat();
-            AiNodeSetRGB(shader, "opacity", opacity, opacity, opacity);
+            AiNodeSetRGB(shader, str::opacity, opacity, opacity, opacity);
          }
 
          MPlug transPlug = fnDepNodeHair.findPlug("translucence", true);
@@ -214,14 +215,14 @@ void CHairTranslator::Export( AtNode *curve )
          else
          {
             float translucence = transPlug.asFloat();
-            AiNodeSetRGB(shader, "transmission_tint", translucence, translucence, translucence);
+            AiNodeSetRGB(shader, str::transmission_tint, translucence, translucence, translucence);
          }
          ProcessParameter(shader, "specular_tint", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor", true));
-         AiNodeSetRGB(shader, "specular2_tint", 0.f, 0.f, 0.f);
+         AiNodeSetRGB(shader, str::specular2_tint, 0.f, 0.f, 0.f);
          float specRoughness = fnDepNodeHair.findPlug("specularPower", true).asFloat();
-         AiNodeSetFlt(shader, "roughness", 1.f / specRoughness);
+         AiNodeSetFlt(shader, str::roughness, 1.f / specRoughness);
          plug = fnDepNodeHair.findPlug("aiIndirectDiffuse", true);
-         AiNodeSetFlt(shader, "indirect_diffuse", plug.asFloat());
+         AiNodeSetFlt(shader, str::indirect_diffuse, plug.asFloat());
          
          plug = fnDepNodeHair.findPlug("castShadows", true);
 
@@ -231,10 +232,10 @@ void CHairTranslator::Export( AtNode *curve )
             visibility = visibility & ~AI_RAY_SHADOW;
          
       }
-      AiNodeSetPtr(curve, "shader", shader);
+      AiNodeSetPtr(curve, str::shader, shader);
    }
    
-   AiNodeSetByte(curve, "visibility", visibility);  
+   AiNodeSetByte(curve, str::visibility, visibility);  
    
    // Export hair data   
    MRenderLineArray mainLines;
@@ -295,13 +296,13 @@ void CHairTranslator::Export( AtNode *curve )
 
    plug = fnDepNodeHair.findPlug("aiOpaque", true);
    if (!plug.isNull())
-      AiNodeSetBool(curve, "opaque", plug.asBool());
+      AiNodeSetBool(curve, str::opaque, plug.asBool());
    plug = fnDepNodeHair.findPlug("aiSelfShadows", true);
    if (!plug.isNull())
-      AiNodeSetBool(curve, "self_shadows", plug.asBool());
+      AiNodeSetBool(curve, str::self_shadows, plug.asBool());
    plug = fnDepNodeHair.findPlug("receiveShadows", true);
    if (!plug.isNull())
-      AiNodeSetBool(curve, "receive_shadows", plug.asBool());
+      AiNodeSetBool(curve, str::receive_shadows, plug.asBool());
    
    int step = GetMotionStep();
 
@@ -370,47 +371,47 @@ void CHairTranslator::Export( AtNode *curve )
       }
    }
    
-   AiNodeSetArray(curve, "points", curvePoints); 
-   AiNodeSetArray(curve, "num_points", curveNumPoints);
-   AiNodeSetArray(curve, "radius", curveWidths);
+   AiNodeSetArray(curve, str::points, curvePoints); 
+   AiNodeSetArray(curve, str::num_points, curveNumPoints);
+   AiNodeSetArray(curve, str::radius, curveWidths);
    if (exportCurveColors)
    {
-      AiNodeDeclare(curve, "colors", "varying  RGB");
-      AiNodeSetArray(curve, "colors", curveColors);
+      AiNodeDeclare(curve, str::colors, str::varying_RGB);
+      AiNodeSetArray(curve, str::colors, curveColors);
    }
    
    if (m_export_curve_uvs)
    {
-      AiNodeSetArray(curve, "uvs", curveParamCoord);
+      AiNodeSetArray(curve, str::uvs, curveParamCoord);
    }
 
    // Hair specific Arnold render settings.
    plug = fnDepNodeHair.findPlug("aiMinPixelWidth", true);
-   if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
+   if (!plug.isNull()) AiNodeSetFlt(curve, str::min_pixel_width, plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
    plug = fnDepNodeHair.findPlug("aiMode", true);
-   if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
+   if (!plug.isNull()) AiNodeSetInt(curve, str::mode, plug.asInt());
 
-   AiNodeSetStr(curve, "basis", "catmull-rom");
+   AiNodeSetStr(curve, str::basis, str::catmull_rom);
    
    if (RequiresMotionData())
    {
       double motionStart, motionEnd;
       GetSessionOptions().GetMotionRange(motionStart, motionEnd);
-      AiNodeSetFlt(curve, "motion_start", (float)motionStart);
-      AiNodeSetFlt(curve, "motion_end", (float)motionEnd);
+      AiNodeSetFlt(curve, str::motion_start, (float)motionStart);
+      AiNodeSetFlt(curve, str::motion_end, (float)motionEnd);
    }
    
    mainLines.deleteArray();
 
    if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
    {
-      if (AiNodeLookUpUserParameter(curve, "maya_full_name") == NULL)
-         AiNodeDeclare(curve, "maya_full_name", "constant STRING");
+      if (AiNodeLookUpUserParameter(curve, str::maya_full_name) == NULL)
+         AiNodeDeclare(curve, str::maya_full_name, str::constant_STRING);
    
       MString fullName = m_dagPath.fullPathName();
-      AiNodeSetStr(curve, "maya_full_name", AtString(fullName.asChar()));
+      AiNodeSetStr(curve, str::maya_full_name, AtString(fullName.asChar()));
    }
 
 
@@ -435,7 +436,7 @@ void CHairTranslator::ExportMotion(AtNode *curve)
    const unsigned int numLines = mainLines.length();
    MStatus status;
    
-   AtArray* curvePoints = AiNodeGetArray(curve, "points");
+   AtArray* curvePoints = AiNodeGetArray(curve, str::points);
    
    unsigned int iid = GetMotionStep() * m_numPointsInterpolation;
    for (unsigned int i = 0; i < numLines; ++i)

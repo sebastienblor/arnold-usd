@@ -1,7 +1,7 @@
 #include "ParticleTranslator.h"
 #include "attributes/AttrHelper.h"
 #include "utils/MtoaLog.h"
-
+#include "utils/ConstantStrings.h"
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
 #include <maya/MFnParticleSystem.h>
@@ -162,7 +162,7 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
       AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       {
-         AiNodeSetPtr(particle, "shader", rootShader);
+         AiNodeSetPtr(particle, str::shader, rootShader);
       }
    }
 }
@@ -243,16 +243,16 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    m_minPixelWidth = m_fnParticleSystem.findPlug("aiMinPixelWidth", true).asFloat();
    if (renderType != PARTICLE_TYPE_BLOBBYSURFACE && renderType != PARTICLE_TYPE_CLOUD)
-      AiNodeSetFlt(particle, "min_pixel_width", m_minPixelWidth);
+      AiNodeSetFlt(particle, str::min_pixel_width, m_minPixelWidth);
    else
    {
       float falloffExponent = m_fnParticleSystem.findPlug("aiFalloffExponent", true).asFloat();
       bool smoothStepFalloff = m_fnParticleSystem.findPlug("aiSmoothStepFalloff", true).asBool();
       int implicitSamples = m_fnParticleSystem.findPlug("aiImplicitSamples", true).asInt();
-      AiNodeSetFlt(particle, "falloff_exponent", falloffExponent);
-      AiNodeSetBool(particle, "smooth_step", smoothStepFalloff);
+      AiNodeSetFlt(particle, str::falloff_exponent, falloffExponent);
+      AiNodeSetBool(particle, str::smooth_step, smoothStepFalloff);
       if (renderType == PARTICLE_TYPE_BLOBBYSURFACE)
-         AiNodeSetUInt(particle, "samples", static_cast<uint32_t>(implicitSamples));
+         AiNodeSetUInt(particle, str::samples, static_cast<uint32_t>(implicitSamples));
    }
 
    // TODO implement streak and tube formats
@@ -260,10 +260,10 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    switch (renderType)
    {
       case PARTICLE_TYPE_SPHERE:
-         AiNodeSetStr(particle, "mode", "sphere");
+         AiNodeSetStr(particle, str::mode, str::sphere);
          break;
       case PARTICLE_TYPE_SPRITE:
-         AiNodeSetStr(particle, "mode", "quad");
+         AiNodeSetStr(particle, str::mode, str::quad);
          m_isSprite = true;
          break;
       case PARTICLE_TYPE_BLOBBYSURFACE:
@@ -273,16 +273,16 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          constantUserData = true;
          break;
       case PARTICLE_TYPE_TUBE:
-         AiNodeSetStr(particle, "mode", "sphere");
+         AiNodeSetStr(particle, str::mode, str::sphere);
          break;
       default: // points
          {
             if (pointsAs == 1)
-               AiNodeSetStr(particle, "mode", "sphere");
+               AiNodeSetStr(particle, str::mode, str::sphere);
             else if (pointsAs == 2)
-               AiNodeSetStr(particle, "mode", "quad");
+               AiNodeSetStr(particle, str::mode, str::quad);
             else
-               AiNodeSetStr(particle, "mode", "disk");
+               AiNodeSetStr(particle, str::mode, str::disk);
          }
          break;
    }
@@ -291,7 +291,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    if (renderType == PARTICLE_TYPE_MULTIPOINT || renderType == PARTICLE_TYPE_MULTISTREAK) // multiPoint/multiStreak
    {
       m_doMultiPoint = true;
-      AiNodeDeclare(particle, "particleMultiIndex", constantUserData ? "constant ARRAY INT" : "uniform INT");
+      AiNodeDeclare(particle, str::particleMultiIndex, constantUserData ? str::constant_ARRAY_INT : str::uniform_INT);
       MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", true, &status));
       if ( MS::kSuccess == status )
       {
@@ -313,18 +313,18 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    if (!m_isOpaque)
       m_hasOpacity = m_fnParticleSystem.hasOpacity();  // if all opacity is  1, this will return 0
 
-   AiNodeSetBool(particle, "opaque", m_isOpaque);
+   AiNodeSetBool(particle, str::opaque, m_isOpaque);
 
    // get the array of rgbPPs
    if (m_hasRGB)
    {
-      AiNodeDeclare(particle, "rgbPP", constantUserData ? "constant ARRAY RGB" : "uniform RGB");
+      AiNodeDeclare(particle, str::rgbPP, constantUserData ? str::constant_ARRAY_RGB : str::uniform_RGB);
    }
 
    // get the array of opacities
    if (m_hasOpacity)
    {
-      AiNodeDeclare(particle, "opacityPP", constantUserData ? "constant ARRAY FLOAT" : "uniform FLOAT");
+      AiNodeDeclare(particle, str::opacityPP, constantUserData ? str::constant_ARRAY_FLOAT : str::uniform_FLOAT);
    }
 
    // radius is a bit more complicated.   radiusPP overrides everything except spritePP widths
@@ -332,7 +332,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    if (m_exportId)
    {
-      AiNodeDeclare(particle, "particleId", constantUserData ? "constant ARRAY INT" : "uniform INT");
+      AiNodeDeclare(particle, str::particleId, constantUserData ? str::constant_ARRAY_INT : str::uniform_INT);
    }
 
    if (!m_hasRadiusPP || m_isSprite)
@@ -1429,24 +1429,24 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    }// end m_particleIDMap  iteration
 
    //write the points
-   AiNodeSetArray(particle, "points", a_positionArray);
+   AiNodeSetArray(particle, str::points, a_positionArray);
 
    //write the radius
-   AiNodeSetArray(particle, "radius", a_radiusArray);
+   AiNodeSetArray(particle, str::radius, a_radiusArray);
 
    if (m_isSprite)
-      AiNodeSetArray(particle, "aspect", a_aspectArray);
+      AiNodeSetArray(particle, str::aspect, a_aspectArray);
 
    if (m_exportId)
-      AiNodeSetArray(particle, "particleId", a_ParticleIdArray);
+      AiNodeSetArray(particle, str::particleId, a_ParticleIdArray);
 
    if (m_doMultiPoint)
-      AiNodeSetArray(particle, "particleMultiIndex", a_ParticleMultiIndexArray);
+      AiNodeSetArray(particle, str::particleMultiIndex, a_ParticleMultiIndexArray);
 
    if(m_hasRGB)
-      AiNodeSetArray(particle, "rgbPP", a_rgbPPArray);
+      AiNodeSetArray(particle, str::rgbPP, a_rgbPPArray);
    if (m_hasOpacity)
-      AiNodeSetArray(particle, "opacityPP", a_opacityPPArray);
+      AiNodeSetArray(particle, str::opacityPP, a_opacityPPArray);
 
    if (m_doExtraAttributes)
    {
@@ -1479,8 +1479,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          }
          // memory cleanup
          delete doubleIt->second;
-         AiNodeDeclare(particle, doubleIt->first.c_str(), constantUserData ? "constant ARRAY FLOAT" : "uniform FLOAT");
-         AiNodeSetArray(particle, doubleIt->first.c_str(), a_attributes);
+         AtString attrName(doubleIt->first.c_str());
+         AiNodeDeclare(particle, attrName, constantUserData ? str::constant_ARRAY_FLOAT : str::uniform_FLOAT);
+         AiNodeSetArray(particle, attrName, a_attributes);
 
       }
       for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
@@ -1509,8 +1510,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          // memory cleanup
          //std::cout << "cleaning up extra Vector attr memory " << vecIt->second[s] << std::endl;
          delete vecIt->second;
-         AiNodeDeclare(particle, vecIt->first.c_str(), constantUserData ? "constant ARRAY VECTOR" : "uniform VECTOR");
-         AiNodeSetArray(particle, vecIt->first.c_str(), a_attributes);
+         AtString attrName(vecIt->first.c_str());
+         AiNodeDeclare(particle, attrName, constantUserData ? str::constant_ARRAY_VECTOR : str::uniform_VECTOR);
+         AiNodeSetArray(particle, attrName, a_attributes);
 
       }
       for(intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
@@ -1538,8 +1540,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          // memory cleanup
          //std::cout << "cleaning up extra Int attr memory " << vecIt->second[s] << std::endl;
          delete vecIt->second;
-         AiNodeDeclare(particle, intIt->first.c_str(), constantUserData ? "constant ARRAY INT" : "uniform INT");
-         AiNodeSetArray(particle, intIt->first.c_str(), a_attributes);
+         AtString attrName(intIt->first.c_str());
+         AiNodeDeclare(particle, attrName, constantUserData ? str::constant_ARRAY_INT : str::uniform_INT);
+         AiNodeSetArray(particle, attrName, a_attributes);
       }
    }
 }
@@ -1674,12 +1677,12 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    int masterInstanceNum =  masterInstance.instanceNumber();
    int instanceNum =  m_dagPath.instanceNumber();
 
-   AiNodeSetStr(instance, "name", GetSessionOptions().GetArnoldNaming(m_dagPath).asChar());
+   AiNodeSetStr(instance, str::name, AtString(GetSessionOptions().GetArnoldNaming(m_dagPath).asChar()));
 
    ExportMatrix(instance);
 
-   AiNodeSetPtr(instance, "node", masterNode);
-   AiNodeSetBool(instance, "inherit_xform", false);
+   AiNodeSetPtr(instance, str::node, masterNode);
+   AiNodeSetBool(instance, str::inherit_xform, false);
 
    //
    // SHADERS
@@ -1708,7 +1711,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    {
       //FIXME : Is it ok to assume that the shader is the first Dag member ?
       AtNode *shader = ExportConnectedNode(iogConnections[0]);
-      AiNodeSetPtr(instance, "shader", shader);
+      AiNodeSetPtr(instance, str::shader, shader);
    }
 
    return instance;
@@ -1743,8 +1746,8 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
       {
           // Multiply in the step_scale because the points node doesn't have a step_scale parameter
           float stepScale = m_fnParticleSystem.findPlug("aiStepScale", true).asFloat();
-          float curStepSize = AiNodeGetFlt(particle, "step_size");
-          AiNodeSetFlt(particle, "step_size", curStepSize * stepScale);
+          float curStepSize = AiNodeGetFlt(particle, str::step_size);
+          AiNodeSetFlt(particle, str::step_size, curStepSize * stepScale);
       }
       else
       {

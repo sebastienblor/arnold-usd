@@ -204,7 +204,7 @@ MStatus CArnoldStandInShape::LoadFile()
          proceduralPath += pathsep;
       }
       proceduralPath += getProjectFolderPath();
-      AiNodeSetStr(options, str::procedural_searchpath, proceduralPath.asChar());
+      AiNodeSetStr(options, str::procedural_searchpath, AtString(proceduralPath.asChar()));
 
       AtNode *proc = NULL;
       if (isAss)
