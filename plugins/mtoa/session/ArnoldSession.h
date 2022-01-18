@@ -66,6 +66,8 @@ public:
    bool IsBatchSession() const {return m_batch;}
    void SetBatch(bool b) {m_batch = b;}
    bool IsInteractiveSession() const {return m_updateCallbacks;}
+   bool GetExportOverscan() const {return m_exportOverscan;}
+   void SetExportOverscan(bool b) {m_exportOverscan = b;}
 
    virtual void Clear();
 
@@ -162,6 +164,7 @@ protected:
    bool m_updateLightLinks;
    bool m_checkVisibility; // FIXME for material viewer, turn it off
    bool m_checkRenderLayer;
+   bool m_exportOverscan;
    
    bool m_requestUpdate;
    bool m_updateCallbacks;
