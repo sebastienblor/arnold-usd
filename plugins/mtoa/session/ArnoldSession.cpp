@@ -45,7 +45,6 @@ CArnoldSession::CArnoldSession(bool initOptions, bool defaultUniverse)
    m_checkRenderLayer = true;
    m_batch = false;
    m_optionsTranslator = nullptr;
-   m_exportOverscan = true;
 
    m_requestUpdate = false;
    m_newNodeCallbackId = 0;

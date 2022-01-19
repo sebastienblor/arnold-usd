@@ -408,6 +408,9 @@ struct DLLEXPORT CSessionOptions
    bool GetExportCameraOverscan() const {return m_exportCameraOverscan;}
    void SetExportCameraOverscan(bool b) {m_exportCameraOverscan = b;}
 
+   bool GetExportResolutionOverscan() const {return m_exportResolutionOverscan;}
+   void SetExportResolutionOverscan(bool b) {m_exportResolutionOverscan = b;}
+
 private:
 
    CSessionOptions();
@@ -524,4 +527,5 @@ private:
    bool m_supportGpu;
    bool m_exportFileDrivers;
    bool m_exportCameraOverscan;
+   bool m_exportResolutionOverscan;
 };

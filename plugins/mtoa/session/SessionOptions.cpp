@@ -109,7 +109,8 @@ CSessionOptions::CSessionOptions(): m_options(MObject()),
                                     m_supportStereoCameras(false),
                                     m_supportGpu(true),
                                     m_exportFileDrivers(true),
-                                    m_exportCameraOverscan(false)
+                                    m_exportCameraOverscan(false),
+                                    m_exportResolutionOverscan(true)
 
 
 {
