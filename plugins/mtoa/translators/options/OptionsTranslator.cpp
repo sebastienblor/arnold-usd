@@ -1396,7 +1396,6 @@ void COptionsTranslator::Export(AtNode *options)
    
    if (overscanString != "" && !useRenderRegion && session->GetExportResolutionOverscan())
    {
-      std::cout << "<<<<<< Exporting overscan >>>>>>" << "\n";
       float overscanL = 0.0f;
       float overscanR = 0.0f;
       float overscanT = 0.0f;
