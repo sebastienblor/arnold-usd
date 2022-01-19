@@ -439,7 +439,7 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
    MString plugName = plug.partialName(false, false, false, false, false, true);
    CSessionOptions &options = m_impl->m_session->GetOptions();
 
-   if (plugName == "overscan" && !options.GetExportOverscan()) return;
+   if (plugName == "overscan" && !options.GetExportCameraOverscan()) return;
 
    if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
 
@@ -456,7 +456,7 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 float CCameraTranslator::GetFocalFactor() const
 {
    CSessionOptions &options = m_impl->m_session->GetOptions();
-   if (!options.GetExportOverscan())
+   if (!options.GetExportCameraOverscan())
       return 1.f;
 
    // We need to take into account overscan for AVP
