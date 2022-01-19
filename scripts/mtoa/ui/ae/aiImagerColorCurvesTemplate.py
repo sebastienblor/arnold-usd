@@ -1,6 +1,8 @@
 import maya.cmds as cmds
 import maya.mel as mel
 from maya import stringTable
+# importing the ramp module forces the string table to be populated otherwise we get an error see MTOA-941
+from maya.internal.common.ae import ramp
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
