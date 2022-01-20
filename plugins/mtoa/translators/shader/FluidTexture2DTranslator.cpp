@@ -1,4 +1,5 @@
 #include "FluidTexture2DTranslator.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MFnFluid.h>
 
@@ -20,7 +21,7 @@ inline void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName,
       else
          AiArraySetFlt(array, i, cVoxel);
    }
-   AiNodeSetArray(fluid, paramName, array);
+   AiNodeSetArray(fluid, AtString(paramName), array);
 }
 
 void CFluidTexture2DTranslator::ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName)
@@ -41,9 +42,9 @@ void CFluidTexture2DTranslator::ExportFloatGradient(MPlug plug, AtNode* node, co
       AiArraySetFlt(values, i, plugElement.child(1).asFloat());
       AiArraySetInt(interps, i, plugElement.child(2).asInt());
    }
-   AiNodeSetArray(node, positions_name.asChar(), positions);
-   AiNodeSetArray(node, values_name.asChar(), values);
-   AiNodeSetArray(node, interps_name.asChar(), interps);
+   AiNodeSetArray(node, AtString(positions_name.asChar()), positions);
+   AiNodeSetArray(node, AtString(values_name.asChar()), values);
+   AiNodeSetArray(node, AtString(interps_name.asChar()), interps);
 }
 
 void CFluidTexture2DTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName)
@@ -59,14 +60,14 @@ void CFluidTexture2DTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
    const MString interps_name = MString(paramName) + MString("_interps");   
    // check for the existing links, and unlink them
    // this is required to be able to change the connections in ipr
-   AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
+   AtArray* valuesOld = AiNodeGetArray(node, AtString(values_name.asChar()));
    unsigned oldNelements = AiArrayGetNumElements(valuesOld);
    for (unsigned i = 0; i < oldNelements; i++)
    {
       MString attributeName = values_name + MString("[");
       attributeName += i;
       attributeName += "]";
-      AtNode* linkedNode = AiNodeGetLink(node, attributeName.asChar());
+      AtNode* linkedNode = AiNodeGetLink(node, AtString(attributeName.asChar()));
       if (linkedNode != 0)
          AiNodeUnlink(node, attributeName.asChar());
    }
@@ -84,7 +85,7 @@ void CFluidTexture2DTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
          MString attributeName = values_name + MString("[");
          attributeName += i;
          attributeName += "]";
-         AiNodeLink(connectedColor, attributeName.asChar(), node);
+         AiNodeLink(connectedColor, AtString(attributeName.asChar()), node);
       }
       else
       {
@@ -95,30 +96,31 @@ void CFluidTexture2DTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
       }
       AiArraySetInt(interps, i, plugElement.child(2).asInt());
    }
-   AiNodeSetArray(node, positions_name.asChar(), positions);
-   AiNodeSetArray(node, values_name.asChar(), values);
-   AiNodeSetArray(node, interps_name.asChar(), interps);
+   AiNodeSetArray(node, AtString(positions_name.asChar()), positions);
+   AiNodeSetArray(node, AtString(values_name.asChar()), values);
+   AiNodeSetArray(node, AtString(interps_name.asChar()), interps);
 }
 
 
 inline void SetContentsGradientMode(AtNode* node, const char* parameter, MFnFluid::FluidGradient fluidGradient)
 {
+   const AtString paramName(parameter);
    if (fluidGradient == MFnFluid::kConstant)
-      AiNodeSetStr(node, parameter, "Constant");
+      AiNodeSetStr(node, paramName, AtString("Constant"));
    else if (fluidGradient == MFnFluid::kXGradient)
-      AiNodeSetStr(node, parameter, "X Gradient");
+      AiNodeSetStr(node, paramName, AtString("X Gradient"));
    else if (fluidGradient == MFnFluid::kYGradient)
-      AiNodeSetStr(node, parameter, "Y Gradient");
+      AiNodeSetStr(node, paramName, AtString("Y Gradient"));
    else if (fluidGradient == MFnFluid::kZGradient)
-      AiNodeSetStr(node, parameter, "Z Gradient");
+      AiNodeSetStr(node, paramName, AtString("Z Gradient"));
    else if (fluidGradient == MFnFluid::kNegXGradient)
-      AiNodeSetStr(node, parameter, "-X Gradient");
+      AiNodeSetStr(node, paramName, AtString("-X Gradient"));
    else if (fluidGradient == MFnFluid::kNegYGradient)
-      AiNodeSetStr(node, parameter, "-Y Gradient");
+      AiNodeSetStr(node, paramName, AtString("-Y Gradient"));
    else if (fluidGradient == MFnFluid::kNegZGradient)
-      AiNodeSetStr(node, parameter, "-Z Gradient");      
+      AiNodeSetStr(node, paramName, AtString("-Z Gradient"));
    else if (fluidGradient == MFnFluid::kCenterGradient)
-      AiNodeSetStr(node, parameter, "Center Gradient");
+      AiNodeSetStr(node, paramName, AtString("Center Gradient"));
 };
 
 void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
@@ -129,18 +131,18 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
    const int colorGradientType = mayaFluidNode.findPlug("colorInput", true).asShort();
 
    ExportRGBGradient(mayaFluidNode.findPlug("color", true), fluid2d, "color_gradient");
-   AiNodeSetInt(fluid2d, "color_gradient_type", colorGradientType);
-   AiNodeSetFlt(fluid2d, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias", true).asFloat());
+   AiNodeSetInt(fluid2d, str::color_gradient_type, colorGradientType);
+   AiNodeSetFlt(fluid2d, str::color_gradient_input_bias, mayaFluidNode.findPlug("colorInputBias", true).asFloat());
    
    const int incandescenceGradientType = mayaFluidNode.findPlug("incandescenceInput", true).asShort();
    ExportRGBGradient(mayaFluidNode.findPlug("incandescence", true), fluid2d, "incandescence_gradient");
-   AiNodeSetInt(fluid2d, "incandescence_gradient_type", incandescenceGradientType);
-   AiNodeSetFlt(fluid2d, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias", true).asFloat());   
+   AiNodeSetInt(fluid2d, str::incandescence_gradient_type, incandescenceGradientType);
+   AiNodeSetFlt(fluid2d, str::incandescence_gradient_input_bias, mayaFluidNode.findPlug("incandescenceInputBias", true).asFloat());   
    
    const int opacityGradientType = mayaFluidNode.findPlug("opacityInput", true).asShort();
    ExportFloatGradient(mayaFluidNode.findPlug("opacity", true), fluid2d, "opacity_gradient");
-   AiNodeSetInt(fluid2d, "opacity_gradient_type", opacityGradientType);
-   AiNodeSetFlt(fluid2d, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias", true).asFloat());
+   AiNodeSetInt(fluid2d, str::opacity_gradient_type, opacityGradientType);
+   AiNodeSetFlt(fluid2d, str::opacity_gradient_input_bias, mayaFluidNode.findPlug("opacityInputBias", true).asFloat());
 
    ProcessParameter(fluid2d, "dropoff_shape", AI_TYPE_INT, "dropoffShape");
    ProcessParameter(fluid2d, "edge_dropoff", AI_TYPE_FLOAT, "edgeDropoff");
@@ -148,14 +150,14 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
 
    MPlug renderInterpolatorPlug = FindMayaPlug("renderInterpolator");
    if (!renderInterpolatorPlug.isNull())
-      AiNodeSetInt(fluid2d, "filter_type", renderInterpolatorPlug.asInt() == 3 ? 1 : 0);   
+      AiNodeSetInt(fluid2d, str::filter_type, renderInterpolatorPlug.asInt() == 3 ? 1 : 0);   
 
    unsigned int xRes, yRes;
 
    mayaFluid.getResolution(xRes, yRes);
 
-   AiNodeSetInt(fluid2d, "xres", xRes);
-   AiNodeSetInt(fluid2d, "yres", yRes);
+   AiNodeSetInt(fluid2d, str::xres, xRes);
+   AiNodeSetInt(fluid2d, str::yres, yRes);
 
    MFnFluid::FluidMethod fluidMethod;
    MFnFluid::FluidGradient fluidGradient;
@@ -168,11 +170,11 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid2d, "density_method", "Gradient");
+      AiNodeSetStr(fluid2d, str::density_method, AtString("Gradient"));
       SetContentsGradientMode(fluid2d, "density_gradient", fluidGradient);
    }
    else
-      AiNodeSetStr(fluid2d, "density_method", "Grid");
+      AiNodeSetStr(fluid2d, str::density_method, AtString("Grid"));
 
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid2d, mayaFluid.density(), "density", numVoxels);
@@ -181,11 +183,11 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid2d, "fuel_method", "Gradient");
+      AiNodeSetStr(fluid2d, str::fuel_method, AtString("Gradient"));
       SetContentsGradientMode(fluid2d, "fuel_gradient", fluidGradient);
    }
    else
-      AiNodeSetStr(fluid2d, "fuel_method", "Grid");
+      AiNodeSetStr(fluid2d, str::fuel_method, AtString("Grid"));
    
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid2d, mayaFluid.fuel(), "fuel", numVoxels);
@@ -194,11 +196,11 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid2d, "temperature_method", "Gradient");
+      AiNodeSetStr(fluid2d, str::temperature_method, AtString("Gradient"));
       SetContentsGradientMode(fluid2d, "temperature_gradient", fluidGradient);
    }
    else
-      AiNodeSetStr(fluid2d, "temperature_method", "Grid");
+      AiNodeSetStr(fluid2d, str::temperature_method, AtString("Grid"));
    
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid2d, mayaFluid.temperature(), "temperature", numVoxels);
@@ -207,11 +209,11 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid2d, "velocity_method", "Gradient");
+      AiNodeSetStr(fluid2d, str::velocity_method, AtString("Gradient"));
       SetContentsGradientMode(fluid2d, "velocity_gradient", fluidGradient);
    }
    else
-      AiNodeSetStr(fluid2d, "velocity_method", "Grid");
+      AiNodeSetStr(fluid2d, str::velocity_method, AtString("Grid"));
    
    if (fluidMethod != MFnFluid::kZero)
    {
@@ -228,7 +230,7 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
             cVector.z = cVector.z < AI_EPSILON ? 0.f : cVector.z;
             AiArraySetVec(array, i, cVector);
          }
-         AiNodeSetArray(fluid2d, "velocity", array);
+         AiNodeSetArray(fluid2d, str::velocity, array);
       }
    }
    
@@ -242,7 +244,7 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
          AtVector2 cCoord(u[i], v[i]);
          AiArraySetVec2(array, i, cCoord);
       }
-      AiNodeSetArray(fluid2d, "coordinates", array);
+      AiNodeSetArray(fluid2d, str::coordinates, array);
    }
    
    MFnFluid::ColorMethod colorMethod;
@@ -264,7 +266,7 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;
             AiArraySetRGB(array, i, cColor);
          }
-         AiNodeSetArray(fluid2d, "colors", array);
+         AiNodeSetArray(fluid2d, str::colors, array);
       }
    }
 }

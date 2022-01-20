@@ -8,6 +8,7 @@
 
 #include "common/UnorderedContainer.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 
 CShaderTranslator::~CShaderTranslator()
@@ -55,14 +56,14 @@ void CShaderTranslator::ExportMotion(AtNode *shader)
       if (animNode == NULL)
          continue;
       
-      AtArray* matrices = AiNodeGetArray(animNode, "matrix");
+      AtArray* matrices = AiNodeGetArray(animNode, str::matrix);
       // First search a parameter with the same name as maya
       MPlug plug = FindMayaPlug(paramName);
       if (plug.isNull())
       {
          // couldn't find it, let's see if it has a maya.name metadata pointing to a different attr name
          AtString attrName;
-         if (AiMetaDataGetStr(nentry, paramName, "maya.name", &attrName))
+         if (AiMetaDataGetStr(nentry, AtString(paramName), str::maya_name, &attrName))
             plug = FindMayaPlug(attrName.c_str());
          
       }

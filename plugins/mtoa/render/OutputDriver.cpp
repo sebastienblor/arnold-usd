@@ -5,6 +5,7 @@
 #include "session/SessionOptions.h"
 #include "session/SessionManager.h"
 #include "session/ArnoldRenderSession.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_critsec.h>
 #include <ai_drivers.h>
@@ -60,7 +61,7 @@ node_initialize
 {
    COutputDriverData *data = new COutputDriverData();
    AiNodeSetLocalData(node, data);
-   data->swatchPixels = (float*)AiNodeGetPtr(node, "swatch");
+   data->swatchPixels = (float*)AiNodeGetPtr(node, str::swatch);
    MString cameraName = "";
    AtUniverse *universe = AiNodeGetUniverse(node);
    AtNode* cameraNode = AiUniverseGetCamera(universe);
@@ -116,10 +117,10 @@ driver_extension
 driver_open
 {
    COutputDriverData *data = (COutputDriverData*)AiNodeGetLocalData(node);
-   data->gamma = AiNodeGetFlt(node, "gamma");
+   data->gamma = AiNodeGetFlt(node, str::gamma);
    data->clearBeforeRender = true ;// FIXME !!! CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
 
-   void *swatchPtr = AiNodeGetPtr(node, "swatch");
+   void *swatchPtr = AiNodeGetPtr(node, str::swatch);
    if (swatchPtr)
    {
       data->swatchImageWidth = display_window.maxx - display_window.minx + 1;
@@ -128,7 +129,7 @@ driver_open
       unsigned int imageWidth  = display_window.maxx - display_window.minx + 1;
       unsigned int imageHeight = display_window.maxy - display_window.miny + 1;
 
-      data->isProgressive = AiNodeGetBool(node, "progressive");
+      data->isProgressive = AiNodeGetBool(node, str::progressive);
 
       if (  (data_window.maxx == display_window.maxx) &&
             (data_window.maxy == display_window.maxy) &&
@@ -160,7 +161,7 @@ driver_open
 
       if (data->firstOpen)
       {
-         std::string renderSessionName = AiNodeGetStr(node, "renderSession").c_str();
+         std::string renderSessionName = AiNodeGetStr(node, str::renderSession).c_str();
          CArnoldRenderSession *session = (CArnoldRenderSession*)CSessionManager::FindActiveSession(renderSessionName);
          if (session)
          {
@@ -511,8 +512,8 @@ void RenderBegin(AtNode *node, CDisplayUpdateMessage & msg)
    AtNode *cam = AiUniverseGetCamera(universe);
    if (cam)
    {
-      AtString camName = (AiNodeLookUpUserParameter(cam, "dcc_name")) ? 
-         AiNodeGetStr(cam, "dcc_name") : AtString(AiNodeGetName(cam));
+      AtString camName = (AiNodeLookUpUserParameter(cam, str::dcc_name)) ? 
+         AiNodeGetStr(cam, str::dcc_name) : AtString(AiNodeGetName(cam));
       
       list.add(camName.c_str());
       if (list.length() > 0)
@@ -610,7 +611,7 @@ static void ReadRenderViewOptionVars(int* optionVars)
 void GenerateRenderViewCaptionCmd(AtNode *node, time_t elapsed, unsigned int mem_used, MString& cmd)
 {
    COutputDriverData *data = (COutputDriverData*)AiNodeGetLocalData(node);     
-   std::string sessionName = AiNodeGetStr(node, "renderSession").c_str();
+   std::string sessionName = AiNodeGetStr(node, str::renderSession).c_str();
    CArnoldRenderSession *session = (CArnoldRenderSession *)CSessionManager::FindActiveSession(sessionName);
    if (session == nullptr)
       return;
@@ -700,7 +701,7 @@ void RenderEnd(AtNode *node)
 {
    COutputDriverData *data = (COutputDriverData*)AiNodeGetLocalData(node);     
 
-   std::string sessionName = AiNodeGetStr(node, "renderSession").c_str();
+   std::string sessionName = AiNodeGetStr(node, str::renderSession).c_str();
    CArnoldRenderSession *session = (CArnoldRenderSession *)CSessionManager::FindActiveSession(sessionName);
    // clear callbacks
    
@@ -733,20 +734,20 @@ void BeginImage(AtNode *node)
    AtUniverse *universe = (node) ? AiNodeGetUniverse(node) : nullptr;
 
    AtNode* options = AiUniverseGetOptions(universe);
-   data->AA_Samples               = AiNodeGetInt(options, "AA_samples");
-   data->GI_diffuse_samples       = AiNodeGetInt(options, "GI_diffuse_samples");
-   data->GI_specular_samples      = AiNodeGetInt(options, "GI_specular_samples");
-   data->GI_transmission_samples  = AiNodeGetInt(options, "GI_transmission_samples");
-   data->GI_sss_samples           = AiNodeGetInt(options, "GI_sss_samples");
-   data->GI_volume_samples        = AiNodeGetInt(options, "GI_volume_samples");
+   data->AA_Samples               = AiNodeGetInt(options, str::AA_samples);
+   data->GI_diffuse_samples       = AiNodeGetInt(options, str::GI_diffuse_samples);
+   data->GI_specular_samples      = AiNodeGetInt(options, str::GI_specular_samples);
+   data->GI_transmission_samples  = AiNodeGetInt(options, str::GI_transmission_samples);
+   data->GI_sss_samples           = AiNodeGetInt(options, str::GI_sss_samples);
+   data->GI_volume_samples        = AiNodeGetInt(options, str::GI_volume_samples);
 
    data->start_time = time(NULL);
    if (data->isRegion)
    {
-      const int region_min_x = AiNodeGetInt(options, "region_min_x");
-      const int region_min_y = AiNodeGetInt(options, "region_min_y");
-      const int region_max_x = AiNodeGetInt(options, "region_max_x");
-      const int region_max_y = AiNodeGetInt(options, "region_max_y");
+      const int region_min_x = AiNodeGetInt(options, str::region_min_x);
+      const int region_min_y = AiNodeGetInt(options, str::region_min_y);
+      const int region_max_x = AiNodeGetInt(options, str::region_max_x);
+      const int region_max_y = AiNodeGetInt(options, str::region_max_y);
       data->totalPixels = (region_max_x - region_min_x + 1) * (region_max_y - region_min_y + 1);
    }
    else

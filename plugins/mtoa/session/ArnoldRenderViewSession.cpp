@@ -6,6 +6,7 @@
 #include <maya/M3dView.h>
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 #include <string>
 
@@ -140,8 +141,8 @@ void CArnoldRenderViewSession::OpenRenderView()
       // We want at least to set the proper width/height resolution, so that it shows properly in 
       // the renderview buffer MTOA-744
       AtNode *options= AiUniverseGetOptions(m_universe);
-      AiNodeSetInt(options, "xres", width);
-      AiNodeSetInt(options, "yres", height);
+      AiNodeSetInt(options, str::xres, width);
+      AiNodeSetInt(options, str::yres, height);
    }
    
    GetRenderView().SetUniverse(m_universe);

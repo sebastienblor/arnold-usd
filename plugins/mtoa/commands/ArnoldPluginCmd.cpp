@@ -3,6 +3,7 @@
 #include "attributes/AttrHelper.h"
 #include "utils/Universe.h"
 #include "utils/BuildID.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
@@ -121,7 +122,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    {
       MString nodeName = args.flagArgumentString("getAttrData", 0);
       MStringArray result;
-      const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(nodeName.asChar());
+      const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(AtString(nodeName.asChar()));
       if (nodeEntry == NULL)
       {
          MString err = "Unknown arnold node \"";
@@ -137,13 +138,14 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          const char* paramName = AiParamGetName(paramEntry);
          if (!helper.IsHidden(paramName))
          {
+            AtString paramNameStr(paramName);
             result.append(paramName);
             result.append(helper.GetMayaAttrName(paramName));
             AtString label("");
-            AiMetaDataGetStr(nodeEntry, paramName, "label", &label);
+            AiMetaDataGetStr(nodeEntry, paramNameStr, str::label, &label);
             result.append(label.c_str());
             AtString desc("");
-            AiMetaDataGetStr(nodeEntry, paramName, "desc", &desc);
+            AiMetaDataGetStr(nodeEntry, paramNameStr, str::desc, &desc);
             result.append(desc.c_str());
          }
       }

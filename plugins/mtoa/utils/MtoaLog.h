@@ -17,7 +17,7 @@
 
 DLLEXPORT int GetFlagsFromVerbosityLevel(unsigned int level);
 
-DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs);
+DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, AtParamValueMap* metadata, void* user_ptr);
 
 DLLEXPORT void MtoaSetupLogging(int logflags = DEFAULT_LOG_FLAGS);
 

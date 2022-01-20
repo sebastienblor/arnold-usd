@@ -4,6 +4,7 @@
 #include "attributes/Components.h"
 #include "common/UtilityFunctions.h"
 #include <utils/MtoAAdpPayloads.h>
+#include <utils/ConstantStrings.h>
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -236,8 +237,8 @@ void CNodeTranslatorImpl::ExportDccName()
       options.GetExportNamespace() == MTOA_EXPORT_NAMESPACE_ON)
       return; // No need to export dcc_name in this scenario
 
-   AiNodeDeclare(m_atRoot, "dcc_name", "constant STRING");   
-   AiNodeSetStr(m_atRoot, "dcc_name", AtString(m_tr.GetMayaNodeName().asChar()));
+   AiNodeDeclare(m_atRoot, str::dcc_name, str::constant_STRING);   
+   AiNodeSetStr(m_atRoot, str::dcc_name, AtString(m_tr.GetMayaNodeName().asChar()));
 }
 
 
@@ -249,7 +250,7 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
 {
    MPlugArray connections;
    plug.connectedTo(connections, true, false);
-
+   const AtString arnoldParamNameStr(arnoldParamName);
    if (connections.length() > 0)
    {
       // process connections
@@ -279,7 +280,7 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          // there is no way of assigning the value of a message attribute other than via a connection.
          // In the case of a NODE/message connection we should not use AiNodeLink, which is used to delay evaluation
          // of a parameter until render, we should just set the value.
-         AiNodeSetPtr(arnoldNode, arnoldParamName, srcArnoldNode);
+         AiNodeSetPtr(arnoldNode, arnoldParamNameStr, srcArnoldNode);
       }
       else
       {
@@ -310,7 +311,7 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
             outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
             component = GetComponentName(outputType,srcMayaPlug);
          }
-         if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))
+         if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamNameStr))
          {
             AiMsgWarning("[mtoa] Could not link %s.%s to %s.%s.",
                AiNodeGetName(srcArnoldNode),
@@ -558,7 +559,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                                                   int arnoldParamType, const MPlug& plug)
 {   
    MStatus status;
-
+   const AtString arnoldParamNameStr(arnoldParamName);
    if (plug.isArray())
    {
       if (arnoldParamType != AI_TYPE_ARRAY)
@@ -586,9 +587,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          if (numChildren== 3)
          {
             AtRGB col(plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-            AtRGB prevCol = AiNodeGetRGB(arnoldNode, arnoldParamName);
+            AtRGB prevCol = AiNodeGetRGB(arnoldNode, arnoldParamNameStr);
             if (col != prevCol)
-               AiNodeSetRGB(arnoldNode, arnoldParamName, col.r, col.g, col.b);
+               AiNodeSetRGB(arnoldNode, arnoldParamNameStr, col.r, col.g, col.b);
          }
          else if (numChildren == 0)
          {
@@ -596,9 +597,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             // value in the 3 channels
             float val = plug.asFloat();
             AtRGB col(val, val, val);
-            AtRGB prevCol = AiNodeGetRGB(arnoldNode, arnoldParamName);
+            AtRGB prevCol = AiNodeGetRGB(arnoldNode, arnoldParamNameStr);
             if (col != prevCol)
-               AiNodeSetRGB(arnoldNode, arnoldParamName, col.r, col.g, col.b);
+               AiNodeSetRGB(arnoldNode, arnoldParamNameStr, col.r, col.g, col.b);
          } else
          {
             AiMsgError("[mtoa] Improper RGB attribute %s",
@@ -624,8 +625,8 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             if (child == NULL)
                child = m_tr.AddArnoldNode("flat", closureName.c_str());
 
-            AiNodeSetRGB(child, "color", col.r, col.g, col.b);
-            AiNodeLink(child, arnoldParamName, arnoldNode);
+            AiNodeSetRGB(child, str::color, col.r, col.g, col.b);
+            AiNodeLink(child, arnoldParamNameStr, arnoldNode);
          }
 
       }
@@ -639,9 +640,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          if (numChildren== 4)
          {
             AtRGBA col(plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
-            AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamName);
+            AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamNameStr);
             if (col != prevCol)
-               AiNodeSetRGBA(arnoldNode, arnoldParamName, col.r, col.g, col.b, col.a);
+               AiNodeSetRGBA(arnoldNode, arnoldParamNameStr, col.r, col.g, col.b, col.a);
          }
          else if (numChildren== 3)
          {
@@ -651,16 +652,16 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             if (stat == MS::kSuccess)
             {
                AtRGBA col(plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), alphaPlug.asFloat());
-               AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamName);
+               AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamNameStr);
                if (col != prevCol)
-                  AiNodeSetRGBA(arnoldNode, arnoldParamName,
+                  AiNodeSetRGBA(arnoldNode, arnoldParamNameStr,
                              col.r, col.g, col.b, col.a);
             }
             else
             {
                AiMsgInfo("[mtoa] RGBA attribute %s has no alpha component: exporting as RGBA",
                             plug.partialName(true, false, false, false, false, true).asChar());
-               AiNodeSetRGBA(arnoldNode, arnoldParamName,
+               AiNodeSetRGBA(arnoldNode, arnoldParamNameStr,
                             plug.child(0).asFloat(),
                             plug.child(1).asFloat(),
                             plug.child(2).asFloat(),
@@ -672,9 +673,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             // value in the R,G,B channels and set A = 1
             float val = plug.asFloat();
             AtRGBA col(val, val, val, 1.f);
-            AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamName);
+            AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamNameStr);
             if (col != prevCol)
-               AiNodeSetRGBA(arnoldNode, arnoldParamName, col.r, col.g, col.b, col.a);
+               AiNodeSetRGBA(arnoldNode, arnoldParamNameStr, col.r, col.g, col.b, col.a);
          }
          else
          {
@@ -689,33 +690,34 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
 
          const AtNodeEntry* nentry = AiNodeGetNodeEntry(arnoldNode);
 
-         std::string paramNameStr(arnoldParamName);
+         std::string paramNameStr(arnoldParamNameStr);
          size_t paramNameLength = paramNameStr.length();
          if (paramNameLength > 2 && paramNameStr[paramNameLength - 2] == '.')
          {
             // This is one element from a RGB / RGBA / VEC / VEC2 parameter
             std::string baseParam = paramNameStr.substr(0, paramNameLength - 2);
+            AtString baseParamStr(baseParam.c_str());
             std::string component = paramNameStr.substr(paramNameLength - 1, 1);
-            const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, baseParam.c_str());
+            const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, baseParamStr);
             if (paramEntry)
             {
                switch(AiParamGetType(paramEntry))
                {
                   {
                   case AI_TYPE_RGB:
-                     AtRGB col = AiNodeGetRGB(arnoldNode, baseParam.c_str());
+                     AtRGB col = AiNodeGetRGB(arnoldNode, baseParamStr);
                      if (component == "r")
                         col.r = val;
                      else if (component == "g")
                         col.g = val;
                      else if (component == "b")
                         col.b = val;
-                     AiNodeSetRGB(arnoldNode, (const char *)baseParam.c_str(), col.r, col.g, col.b);
+                     AiNodeSetRGB(arnoldNode, baseParamStr, col.r, col.g, col.b);
                   break;
                   }
                   {
                   case AI_TYPE_RGBA:
-                     AtRGBA col = AiNodeGetRGBA(arnoldNode, baseParam.c_str());
+                     AtRGBA col = AiNodeGetRGBA(arnoldNode, baseParamStr);
                      if (component == "r")
                         col.r = val;
                      else if (component == "g")
@@ -724,31 +726,31 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                         col.b = val;
                      else if (component == "a")
                         col.a = val;
-                     AiNodeSetRGBA(arnoldNode, (const char *)baseParam.c_str(), col.r, col.g, col.b, col.a);
+                     AiNodeSetRGBA(arnoldNode, baseParamStr, col.r, col.g, col.b, col.a);
 
                   break;
                   }
                   {
                   case AI_TYPE_VECTOR:
-                     AtVector vec = AiNodeGetVec(arnoldNode, baseParam.c_str());
+                     AtVector vec = AiNodeGetVec(arnoldNode, baseParamStr);
                      if (component == "x")
                         vec.x = val;
                      else if (component == "y")
                         vec.y = val;
                      else if (component == "z")
                         vec.z = val;
-                     AiNodeSetVec(arnoldNode, (const char *)baseParam.c_str(), vec.x, vec.y, vec.z);
+                     AiNodeSetVec(arnoldNode, baseParamStr, vec.x, vec.y, vec.z);
 
                   break;
                   }
                   {
                   case AI_TYPE_VECTOR2:
-                     AtVector2 vec = AiNodeGetVec(arnoldNode, baseParam.c_str());
+                     AtVector2 vec = AiNodeGetVec(arnoldNode, baseParamStr);
                      if (component == "x")
                         vec.x = val;
                      else if (component == "y")
                         vec.y = val;
-                     AiNodeSetVec2(arnoldNode, (const char *)baseParam.c_str(), vec.x, vec.y);
+                     AiNodeSetVec2(arnoldNode, baseParamStr, vec.x, vec.y);
                   break;
                   }
                   default:
@@ -758,7 +760,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          } else
          {
             // check for scaling
-            AtMetaDataIterator* miter = AiNodeEntryGetMetaDataIterator(nentry, arnoldParamName);
+            AtMetaDataIterator* miter = AiNodeEntryGetMetaDataIterator(nentry, arnoldParamNameStr);
             while(!AiMetaDataIteratorFinished(miter))
             {
                const AtMetaDataEntry* mentry = AiMetaDataIteratorGetNext(miter);
@@ -771,9 +773,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             }
             AiMetaDataIteratorDestroy(miter);
          
-            float prevVal = AiNodeGetFlt(arnoldNode, arnoldParamName);
+            float prevVal = AiNodeGetFlt(arnoldNode, arnoldParamNameStr);
             if (val != prevVal)
-               AiNodeSetFlt(arnoldNode, arnoldParamName, val);
+               AiNodeSetFlt(arnoldNode, arnoldParamNameStr, val);
          }
       }
       break;
@@ -784,9 +786,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          MFnNumericData numData(numObj);
          numData.getData2Float(x, y);
 
-         AtVector2 prevVal = AiNodeGetVec2(arnoldNode, arnoldParamName);
+         AtVector2 prevVal = AiNodeGetVec2(arnoldNode, arnoldParamNameStr);
          if (prevVal.x != x || prevVal.y != y)
-            AiNodeSetVec2(arnoldNode, arnoldParamName, x, y);
+            AiNodeSetVec2(arnoldNode, arnoldParamNameStr, x, y);
       }
       break;
    case AI_TYPE_MATRIX:
@@ -811,13 +813,13 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                   continue;
                AiArraySetMtx(matrices, s, mtx);
             }
-            AiNodeSetMatrix(arnoldNode, arnoldParamName, mtx);
+            AiNodeSetMatrix(arnoldNode, arnoldParamNameStr, mtx);
 
             // Set the parameter for the interpolation node
-            AiNodeSetArray(animNode, "matrix", matrices);
+            AiNodeSetArray(animNode, str::matrix, matrices);
             // link to our node
 
-            AiNodeLink(animNode, arnoldParamName, arnoldNode);
+            AiNodeLink(animNode, arnoldParamNameStr, arnoldNode);
          }
          else
          {
@@ -826,42 +828,42 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             MFnMatrixData matData(matObj);
             MMatrix mm = matData.matrix();
             m_tr.ConvertMatrix(am, mm);
-            AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
+            AiNodeSetMatrix(arnoldNode, arnoldParamNameStr, am);
          }
       }
       break;
    case AI_TYPE_BOOLEAN:
       {
          bool val = plug.asBool();
-         bool prevVal = AiNodeGetBool(arnoldNode, arnoldParamName);
+         bool prevVal = AiNodeGetBool(arnoldNode, arnoldParamNameStr);
          if (val != prevVal)
-            AiNodeSetBool(arnoldNode, arnoldParamName, val);
+            AiNodeSetBool(arnoldNode, arnoldParamNameStr, val);
       }
       break;
    case AI_TYPE_INT:
    case AI_TYPE_ENUM:
       {
          int val = plug.asInt();
-         int prevVal = AiNodeGetInt(arnoldNode, arnoldParamName);
+         int prevVal = AiNodeGetInt(arnoldNode, arnoldParamNameStr);
          if (val != prevVal)
-            AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
+            AiNodeSetInt(arnoldNode, arnoldParamNameStr, plug.asInt());
       }
       break;
    case AI_TYPE_UINT:
       {
          // no uint in maya MPlug
          unsigned int val = (unsigned int)plug.asInt();
-         unsigned int prevVal = AiNodeGetUInt(arnoldNode, arnoldParamName);
+         unsigned int prevVal = AiNodeGetUInt(arnoldNode, arnoldParamNameStr);
          if (val != prevVal)
-            AiNodeSetUInt(arnoldNode, arnoldParamName, val);
+            AiNodeSetUInt(arnoldNode, arnoldParamNameStr, val);
       }
       break;
    case AI_TYPE_STRING:
       {
          MString val = plug.asString();
-         MString prevVal = AiNodeGetStr(arnoldNode, arnoldParamName).c_str();
+         MString prevVal = AiNodeGetStr(arnoldNode, arnoldParamNameStr).c_str();
          if (val != prevVal)
-            AiNodeSetStr(arnoldNode, arnoldParamName, plug.asString().asChar());
+            AiNodeSetStr(arnoldNode, arnoldParamNameStr, AtString(plug.asString().asChar()));
       }
       break;
    case AI_TYPE_VECTOR:
@@ -869,9 +871,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          AtVector val (plug.child(0).asFloat(),
                       plug.child(1).asFloat(),
                       plug.child(2).asFloat());
-         AtVector prevVal = AiNodeGetVec(arnoldNode, arnoldParamName);
+         AtVector prevVal = AiNodeGetVec(arnoldNode, arnoldParamNameStr);
          if (val != prevVal)
-            AiNodeSetVec(arnoldNode, arnoldParamName, val.x, val.y, val.z);
+            AiNodeSetVec(arnoldNode, arnoldParamNameStr, val.x, val.y, val.z);
       }
       break;
    case AI_TYPE_NODE:
@@ -890,9 +892,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       break;
    case AI_TYPE_BYTE:
       unsigned char val = (unsigned char)plug.asChar();
-      unsigned char prevVal = AiNodeGetByte(arnoldNode, arnoldParamName);
+      unsigned char prevVal = AiNodeGetByte(arnoldNode, arnoldParamNameStr);
       if (val != prevVal)
-         AiNodeSetByte(arnoldNode, arnoldParamName, val);
+         AiNodeSetByte(arnoldNode, arnoldParamNameStr, val);
       break;
    }
    return NULL;
@@ -1020,7 +1022,7 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
       break;
    case AI_TYPE_STRING:
       {
-         AiArraySetStr(array, i, elem.asString().asChar());
+         AiArraySetStr(array, i, AtString(elem.asString().asChar()));
       }
       break;
    case AI_TYPE_VECTOR:
@@ -1074,13 +1076,8 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          
          AtNode *node = m_tr.GetArnoldNode();
          bool isVolume = false;
-         static const AtString polymeshStr("polymesh");
-         static const AtString pointsStr("points");
-         static const AtString sphereStr("sphere");
-         static const AtString boxStr("box");
-         static const AtString proceduralStr("procedural");
-
-         if (AiNodeIs(node, polymeshStr) || AiNodeIs(node, pointsStr) || AiNodeIs(node, boxStr) || AiNodeIs(node, sphereStr))
+         
+         if (AiNodeIs(node, str::polymesh) || AiNodeIs(node, str::points) || AiNodeIs(node, str::box) || AiNodeIs(node, str::sphere))
          {
             MFnDependencyNode fnDGNode(m_tr.GetMayaObject());
             MPlug stepSizePlug = fnDGNode.findPlug("stepSize", true);
@@ -1091,7 +1088,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
                isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
 
          }
-         else if (AiNodeIs(node, proceduralStr)) // standins
+         else if (AiNodeIs(node, str::procedural)) // standins
             isVolume = false;
          else
          {
@@ -1161,10 +1158,10 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
                {
                   // Set the user data material_surface / material_volume on the root shader, 
                   // so that it returns the name of the shading engine
-                  std::string user_data = (isVolume) ? "material_volume" : "material_surface";
-                  if (AiNodeLookUpUserParameter(node, user_data.c_str()) == NULL)
-                     AiNodeDeclare(node, user_data.c_str(), "constant STRING");   
-                  AiNodeSetStr(node, user_data.c_str(), AtString(sgNode.name().asChar()));
+                  AtString user_data = (isVolume) ? str::material_volume : str::material_surface;
+                  if (AiNodeLookUpUserParameter(node, user_data) == NULL)
+                     AiNodeDeclare(node, user_data, str::constant_STRING);   
+                  AiNodeSetStr(node, user_data, AtString(sgNode.name().asChar()));
 
                   // Check if there's displacement assigned to our shading engine
                   MPlug plug = sgNode.findPlug("displacementShader", true);
@@ -1179,9 +1176,9 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
                         AtNode *dispNode = ExportConnectedNode(connections[0]);
                         if (dispNode)
                         {
-                           if (AiNodeLookUpUserParameter(dispNode, "material_displacement") == NULL)
-                              AiNodeDeclare(dispNode, "material_displacement", "constant STRING");   
-                           AiNodeSetStr(dispNode, "material_displacement", AtString(sgNode.name().asChar()));
+                           if (AiNodeLookUpUserParameter(dispNode, str::material_displacement) == NULL)
+                              AiNodeDeclare(dispNode, str::material_displacement, str::constant_STRING);   
+                           AiNodeSetStr(dispNode, str::material_displacement, AtString(sgNode.name().asChar()));
                         }
                      }
                   }
@@ -1207,7 +1204,7 @@ void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
    // Exporting the unexposed options parameter
    MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
    if (!plug.isNull())
-      AiNodeSetAttributes(anode, plug.asString().asChar());
+      AiNodeSetAttributes(anode, AtString(plug.asString().asChar()));
 }
 MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
 {
@@ -1223,7 +1220,7 @@ MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* ta
       name = name + AI_TAG_SEP + tag;
 
    // If name is alredy used, create a new one
-   if(AiNodeLookUpByName(m_tr.GetUniverse(), name.asChar()))
+   if(AiNodeLookUpByName(m_tr.GetUniverse(), AtString(name.asChar())))
    {
       char tmpName[MAX_NAME_SIZE];
       name = NodeUniqueName(nodeType, tmpName);

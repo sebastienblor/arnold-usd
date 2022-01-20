@@ -12,6 +12,7 @@
 #include "translators/DagTranslator.h"
 #include "utils/Universe.h"
 #include "utils/MayaUtils.h"
+#include "utils/ConstantStrings.h"
 #include "session/ArnoldSession.h"
 
 #include <ai_render.h>
@@ -170,11 +171,11 @@ MStatus CArnoldStandInShape::LoadFile()
       universe = AiUniverse();
 
       AtNode* options = AiUniverseGetOptions(universe);
-      AiNodeSetBool(options, "skip_license_check", true);
-      AiNodeSetBool(options, "enable_dependency_graph", false);
+      AiNodeSetBool(options, str::skip_license_check, true);
+      AiNodeSetBool(options, str::enable_dependency_graph, false);
 
       MDistance dist(1.0, MDistance::uiUnit());
-      AiNodeSetFlt(AiUniverseGetOptions(proc_universe), "meters_per_unit", dist.asMeters());
+      AiNodeSetFlt(AiUniverseGetOptions(proc_universe), str::meters_per_unit, float(dist.asMeters()));
    
 
       // setup procedural search path
@@ -203,23 +204,23 @@ MStatus CArnoldStandInShape::LoadFile()
          proceduralPath += pathsep;
       }
       proceduralPath += getProjectFolderPath();
-      AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());      
+      AiNodeSetStr(options, str::procedural_searchpath, AtString(proceduralPath.asChar()));
 
       AtNode *proc = NULL;
       if (isAss)
       {
-         proc = AiNode(proc_universe, "procedural",  name().asChar());
+         proc = AiNode(proc_universe, str::procedural, AtString(name().asChar()));
       }
       if (isAbc)
       {
-         proc = AiNode(proc_universe, "alembic", name().asChar());
-         AiNodeSetFlt(proc, "frame", frameStep);
+         proc = AiNode(proc_universe, str::alembic, AtString(name().asChar()));
+         AiNodeSetFlt(proc, str::frame, frameStep);
 
          MPlug fpsPlug(thisMObject(), s_abcFps);
-         AiNodeSetFlt(proc, "fps", fpsPlug.asFloat());
+         AiNodeSetFlt(proc, str::fps, fpsPlug.asFloat());
          // AiNodeSetBool(proc, "make_instance", true); // test if this speeds things up
          MPlug objectPathPlug(thisMObject(), s_objectPath);
-         AiNodeSetStr(proc, "objectpath", objectPathPlug.asString().asChar());
+         AiNodeSetStr(proc, str::objectpath, AtString(objectPathPlug.asString().asChar()));
          // add the layers
          MPlug layerPlug(thisMObject(), s_abcLayers);
          MString layersString =  layerPlug.asString();
@@ -232,15 +233,15 @@ MStatus CArnoldStandInShape::LoadFile()
            for (unsigned int i=0; i < layerList.length(); i++)
               AiArraySetStr(layersArray, i, layerList[i].asChar());
 
-           AiNodeSetArray(proc, "layers", layersArray);
+           AiNodeSetArray(proc, str::layers, layersArray);
          }
       }
       else if (isUsd)
       {
-         proc = AiNode(proc_universe, "usd", name().asChar());
-         AiNodeSetFlt(proc, "frame", frameStep);
+         proc = AiNode(proc_universe, str::usd, AtString(name().asChar()));
+         AiNodeSetFlt(proc, str::frame, frameStep);
          MPlug objectPathPlug(thisMObject(), s_objectPath);
-         AiNodeSetStr(proc, "object_path", objectPathPlug.asString().asChar());
+         AiNodeSetStr(proc, str::object_path, AtString(objectPathPlug.asString().asChar()));
          if (geom->m_hasOverrides)
          {
             MPlug overridesPlug(thisMObject(), s_overrides);
@@ -249,14 +250,14 @@ MStatus CArnoldStandInShape::LoadFile()
             for (int o = 0; o < numOverrides; ++o)
                AiArraySetStr(overridesArray, o, overridesPlug[o].asString().asChar());
             
-            AiNodeSetArray(proc, "overrides", overridesArray);
+            AiNodeSetArray(proc, str::overrides, overridesArray);
          }
       } else
-         proc = AiNode(proc_universe, "procedural", name().asChar());
+         proc = AiNode(proc_universe, str::procedural, AtString(name().asChar()));
 
       if (proc)
       {
-        AiNodeSetStr(proc, "filename", geom->filename.asChar());
+        AiNodeSetStr(proc, str::filename, AtString(geom->filename.asChar()));
         processRead = true;
 
         AtProcViewportMode viewport_mode = AI_PROC_BOXES;
@@ -347,7 +348,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
    AtString boundsStr;
    
    if (AiMetadataStoreLoadFromASS(mds, path_val.asChar()) && 
-       AiMetadataStoreGetStr(mds, AtString("bounds"), &boundsStr))
+       AiMetadataStoreGetStr(mds, str::bounds, &boundsStr))
    {
       MString bounds(boundsStr.c_str());
       MStringArray boundsElems;

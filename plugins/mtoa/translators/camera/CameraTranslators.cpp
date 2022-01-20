@@ -1,6 +1,7 @@
 #include "CameraTranslators.h"
 #include <maya/MPlugArray.h>
 
+#include "utils/ConstantStrings.h"
 using namespace std;
 
 void CStandardCameraTranslator::Export(AtNode* camera)
@@ -118,7 +119,7 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
    }
    if (!uvRemapNode.isNull())
    {      
-      AiNodeLink(ExportConnectedNode(conns[0]), "uv_remap", camera);
+      AiNodeLink(ExportConnectedNode(conns[0]), str::uv_remap, camera);
    }
    else
    {
@@ -129,26 +130,26 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, GetMotionStep(), fov);
-      AiNodeSetArray(camera, "fov", fovs);
+      AiNodeSetArray(camera, str::fov, fovs);
 
       AtArray* lensTiltAngles = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
       AtVector2 lensTiltAngle(FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
       AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
-      AiNodeSetArray(camera, "lens_tilt_angle", lensTiltAngles);
+      AiNodeSetArray(camera, str::lens_tilt_angle, lensTiltAngles);
 
       AtArray* lensShifts = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
       AtVector2 lensShift(FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
       AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
-      AiNodeSetArray(camera, "lens_shift", lensShifts);
+      AiNodeSetArray(camera, str::lens_shift, lensShifts);
    }
    else
    {
-      AiNodeSetFlt(camera, "fov", fov);
-      AiNodeSetVec2(camera, "lens_tilt_angle", FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
-      AiNodeSetVec2(camera, "lens_shift", FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
+      AiNodeSetFlt(camera, str::fov, fov);
+      AiNodeSetVec2(camera, str::lens_tilt_angle, FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
+      AiNodeSetVec2(camera, str::lens_shift, FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
    }
-   ProcessParameter(camera, "radial_distortion", AI_TYPE_FLOAT, "aiRadialDistortion");
-   ProcessParameter(camera, "radial_distortion_type", AI_TYPE_ENUM, "aiRadialDistortionType");
+   ProcessParameter(camera, str::radial_distortion, AI_TYPE_FLOAT, "aiRadialDistortion");
+   ProcessParameter(camera, str::radial_distortion_type, AI_TYPE_ENUM, "aiRadialDistortionType");
 }
 
 void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)
@@ -201,14 +202,14 @@ void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera)
    ExportCameraData(camera);
    ExportImagePlanes();
 
-   AtArray* fovs = AiNodeGetArray(camera, "fov");
+   AtArray* fovs = AiNodeGetArray(camera, str::fov);
    AiArraySetFlt(fovs, GetMotionStep(), fov);
 
-   AtArray* lensTiltAngles = AiNodeGetArray(camera, "lens_tilt_angle");
+   AtArray* lensTiltAngles = AiNodeGetArray(camera, str::lens_tilt_angle);
    AtVector2 lensTiltAngle(FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
    AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
 
-   AtArray* lensShifts = AiNodeGetArray(camera, "lens_shift");
+   AtArray* lensShifts = AiNodeGetArray(camera, str::lens_shift);
    AtVector2 lensShift(FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
    AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
 }
@@ -330,7 +331,7 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    ExportImagePlanes();
 
    MPlug plug = FindMayaPlug("aiAutocrop");
-   AiNodeSetBool(camera, "autocrop", plug.asBool());
+   AiNodeSetBool(camera, str::autocrop, plug.asBool());
 
    //plug = FindMayaPlug("aiFiltermap");
    //AiNodeSetRGB(camera, "aiFiltermap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
@@ -339,11 +340,11 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, GetMotionStep(), fov);
-      AiNodeSetArray(camera, "fov", fovs);
+      AiNodeSetArray(camera, str::fov, fovs);
    }
    else
    {
-      AiNodeSetFlt(camera, "fov", fov);
+      AiNodeSetFlt(camera, str::fov, fov);
    }
 }
 
@@ -354,7 +355,7 @@ void CFishEyeCameraTranslator::ExportMotion(AtNode* camera)
    ExportCameraData(camera);
    ExportImagePlanes();
 
-   AtArray* fovs = AiNodeGetArray(camera, "fov");
+   AtArray* fovs = AiNodeGetArray(camera, str::fov);
    AiArraySetFlt(fovs, GetMotionStep(), fov);
 }
 
@@ -404,7 +405,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
    ExportImagePlanes();
 
    MPlug plug = FindMayaPlug("aiProjective");
-   AiNodeSetBool(camera, "projective", plug.asBool());
+   AiNodeSetBool(camera, str::projective, plug.asBool());
 
    if (RequiresMotionData())
    {
@@ -413,13 +414,13 @@ void CCylCameraTranslator::Export(AtNode* camera)
       AtArray* v_fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(h_fovs, step, fovs[0]);
       AiArraySetFlt(v_fovs, step, fovs[1]);
-      AiNodeSetArray(camera, "horizontal_fov", h_fovs);
-      AiNodeSetArray(camera, "vertical_fov", v_fovs);
+      AiNodeSetArray(camera, str::horizontal_fov, h_fovs);
+      AiNodeSetArray(camera, str::vertical_fov, v_fovs);
    }
    else
    {
-      AiNodeSetFlt(camera, "horizontal_fov", fovs[0]);
-      AiNodeSetFlt(camera, "vertical_fov", fovs[1]);
+      AiNodeSetFlt(camera, str::horizontal_fov, fovs[0]);
+      AiNodeSetFlt(camera, str::vertical_fov, fovs[1]);
    }
 }
 
@@ -432,10 +433,10 @@ void CCylCameraTranslator::ExportMotion(AtNode* camera)
    ExportCameraData(camera);
    ExportImagePlanes();
 
-   AtArray* h_fovs = AiNodeGetArray(camera, "horizontal_fov");
+   AtArray* h_fovs = AiNodeGetArray(camera, str::horizontal_fov);
    AiArraySetFlt(h_fovs, step, fovs[0]);
    
-   AtArray* v_fovs = AiNodeGetArray(camera, "vertical_fov");
+   AtArray* v_fovs = AiNodeGetArray(camera, str::vertical_fov);
    AiArraySetFlt(v_fovs, step, fovs[1]);
 }
 

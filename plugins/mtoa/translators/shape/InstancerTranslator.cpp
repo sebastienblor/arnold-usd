@@ -11,6 +11,7 @@
 #include <maya/MFnDagNode.h>
 #include "utils/time.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 
 
@@ -670,7 +671,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
          if (idx >= (int)m_objectNames.length()) continue;
 
          AtNode *instance = NULL;
-         AtNode* obj = AiNodeLookUpByName(GetUniverse(), m_objectNames[idx].asChar());
+         AtNode* obj = AiNodeLookUpByName(GetUniverse(), AtString(m_objectNames[idx].asChar()));
 
          MString instanceKey = "inst";
          instanceKey += globalIndex;
@@ -685,10 +686,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
             AddExistingArnoldNode(instance, instanceKey.asChar());
             AiNodeSetDisabled(instance, false);
             // no motion blur on lighs
-            AtMatrix origM = AiNodeGetMatrix(instance, "matrix");
+            AtMatrix origM = AiNodeGetMatrix(instance, str::matrix);
             AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
             AtMatrix total_matrix = AiM4Mult(particleMatrix, origM);
-            AiNodeSetMatrix(instance, "matrix", total_matrix);
+            AiNodeSetMatrix(instance, str::matrix, total_matrix);
          } else
          { 
             // Regular instances
@@ -700,16 +701,16 @@ void CInstancerTranslator::PostExport(AtNode *node)
                // We no longer set the name of these instances since AddArnoldNode already does,
                // and takes the prefix into account (#2684)
             }
-            AiNodeSetPtr(instance, "node", obj);
-            AiNodeSetBool(instance, "inherit_xform", true);
-            AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
+            AiNodeSetPtr(instance, str::node, obj);
+            AiNodeSetBool(instance, str::inherit_xform, true);
+            AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
          }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
         
          // need this in case instance sources are hidden
          AtByte visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
-         AiNodeSetByte(instance, "visibility", visibility);
+         AiNodeSetByte(instance, str::visibility, visibility);
 
          // add the custom user selected attributes to export
          unordered_map<std::string, MVectorArray>::iterator custVect;
@@ -717,38 +718,42 @@ void CInstancerTranslator::PostExport(AtNode *node)
          {
 
             MVector vecAttrValue = custVect->second[j];
+            AtString attrName(custVect->first.c_str());
             if (MString(custVect->first.c_str()) == "rgbPP")
             {
                if (m_cloneInstances[idx]) // override the light color
-                  AiNodeSetRGB(instance, "color", (float)vecAttrValue.x, (float)vecAttrValue.y, (float)vecAttrValue.z); 
-                   
-               if (!AiNodeLookUpUserParameter(instance, custVect->first.c_str()))
-                  AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
-               AiNodeSetRGB(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
+                  AiNodeSetRGB(instance, str::color, (float)vecAttrValue.x, (float)vecAttrValue.y, (float)vecAttrValue.z); 
+               
+               if (!AiNodeLookUpUserParameter(instance, attrName))
+                  AiNodeDeclare(instance, attrName, str::constant_RGB);
+               AiNodeSetRGB(instance, attrName,(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
             }
             else
             {
-               if (!AiNodeLookUpUserParameter(instance, custVect->first.c_str()))
-                  AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
-               AiNodeSetVec(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
+
+               if (!AiNodeLookUpUserParameter(instance, attrName))
+                  AiNodeDeclare(instance, attrName, str::constant_VECTOR);
+               AiNodeSetVec(instance, attrName,(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
             }
          }
          unordered_map<std::string, MDoubleArray>::iterator custDouble;
          for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
          {
             float doubleAttrValue = (float)custDouble->second[j];
-            if (!AiNodeLookUpUserParameter(instance, custDouble->first.c_str()))
-               AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
-            AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
+            AtString attrName(custDouble->first.c_str());
+            if (!AiNodeLookUpUserParameter(instance, attrName))
+               AiNodeDeclare(instance, attrName, str::constant_FLOAT);
+            AiNodeSetFlt(instance, attrName, doubleAttrValue );
 
          }
          unordered_map<std::string, MIntArray>::iterator custInt;
          for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
          {
             int intAttrValue = custInt->second[j];
-            if (!AiNodeLookUpUserParameter(instance, custInt->first.c_str()))
-               AiNodeDeclare(instance, custInt->first.c_str(), "constant INT");
-            AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
+            AtString attrName(custInt->first.c_str());
+            if (!AiNodeLookUpUserParameter(instance, attrName))
+               AiNodeDeclare(instance, attrName, str::constant_INT);
+            AiNodeSetInt(instance, attrName, intAttrValue );
 
          }
       }

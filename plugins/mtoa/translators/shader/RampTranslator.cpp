@@ -29,6 +29,7 @@
 #include <fstream>
 
 #include <utils/MayaUtils.h>
+#include <utils/ConstantStrings.h>
 
 
 std::vector<std::string> VECSTR {"x", "y", "z"};
@@ -107,8 +108,8 @@ void CRampTranslator::Export(AtNode* shader)
       // and link to its input
       if (uvTransformNode)
       {
-         AiNodeLinkOutput(uvTransformNode, "r", shader, "input");
-         AiNodeSetStr(shader, "type", "custom");
+         AiNodeLinkOutput(uvTransformNode, str::r, shader, str::input);
+         AiNodeSetStr(shader, str::type, str::custom);
       }
       else if (m_custom_uvs)
       {
@@ -139,14 +140,14 @@ void CRampTranslator::Export(AtNode* shader)
       ExportRampKeys(shader); // export colors, positions, interpolations
 
       // Set UVset on the ramp and the eventual second ramp
-      AiNodeSetStr(shader, "uvset", m_uvSet.asChar());
+      AiNodeSetStr(shader, str::uvset, AtString(m_uvSet.asChar()));
       // FIXME also need to set it eventually to ramp_float shaders....
       if (FindMayaPlug("aiCurveImplicitUvs").asBool())
-         AiNodeSetStr(shader, "use_implicit_uvs", "curves_only");
+         AiNodeSetStr(shader, str::use_implicit_uvs, str::curves_only);
       else
-         AiNodeSetStr(shader, "use_implicit_uvs", "off");
+         AiNodeSetStr(shader, str::use_implicit_uvs, str::off);
 
-      AiNodeSetBool(shader, "wrap_uvs", true);
+      AiNodeSetBool(shader, str::wrap_uvs, true);
 
       if (m_type == RT_UV || m_type == RT_TARTAN)
       {
@@ -159,24 +160,24 @@ void CRampTranslator::Export(AtNode* shader)
             ramp2 = AddArnoldNode("ramp_rgb", "ramp2");
          
          AiNodeLinkOutput(uvTransformNode, "g", ramp2, "input");
-         AiNodeSetStr(ramp2, "type", "custom");
+         AiNodeSetStr(ramp2, str::type, str::custom);
          ExportRampKeys(ramp2); // export colors, positions, interpolations
-         AiNodeSetStr(ramp2, "uvset", AiNodeGetStr(shader, "uvset"));
-         AiNodeSetStr(ramp2, "use_implicit_uvs", AiNodeGetStr(shader, "use_implicit_uvs"));
+         AiNodeSetStr(ramp2, str::uvset, AiNodeGetStr(shader, str::uvset));
+         AiNodeSetStr(ramp2, str::use_implicit_uvs, AiNodeGetStr(shader, str::use_implicit_uvs));
 
          if (uvTransformNode)
          {
-            AiNodeSetBool(uvTransformNode, "mirror_u", true);
-            AiNodeSetBool(uvTransformNode, "mirror_v", true);
-            AtVector2 repeat = AiNodeGetVec2(uvTransformNode, "repeat");
-            AiNodeSetVec2(uvTransformNode, "repeat", repeat.x * 2.f, repeat.y * 2.f);
-            AtVector2 translate = AiNodeGetVec2(uvTransformNode, "translate_frame");
-            AiNodeSetVec2(uvTransformNode, "translate_frame", translate.x  + 0.5f, translate.y + 0.5f);
+            AiNodeSetBool(uvTransformNode, str::mirror_u, true);
+            AiNodeSetBool(uvTransformNode, str::mirror_v, true);
+            AtVector2 repeat = AiNodeGetVec2(uvTransformNode, str::repeat);
+            AiNodeSetVec2(uvTransformNode, str::repeat, repeat.x * 2.f, repeat.y * 2.f);
+            AtVector2 translate = AiNodeGetVec2(uvTransformNode, str::translate_frame);
+            AiNodeSetVec2(uvTransformNode, str::translate_frame, translate.x  + 0.5f, translate.y + 0.5f);
          }
 
          AiNodeLink(shader, "A", comp_uv);
          AiNodeLink(ramp2, "B", comp_uv);
-         AiNodeSetStr(comp_uv, "operation", (m_type == RT_UV) ? "multiply" : "average");
+         AiNodeSetStr(comp_uv, str::operation, (m_type == RT_UV) ? str::multiply : str::average);
          shader = comp_uv; // this is the root shader now, in case we have a color correct node
       }
    } else
@@ -260,18 +261,18 @@ void CRampTranslator::Export(AtNode* shader)
 
          if (FindMayaPlug("aiCurveImplicitUvs").asBool())
          {
-            AiNodeSetStr(rampFloat, "use_implicit_uvs", "curves_only");
-            AiNodeSetStr(rampFloat2, "use_implicit_uvs", "curves_only");
+            AiNodeSetStr(rampFloat, str::use_implicit_uvs, str::curves_only);
+            AiNodeSetStr(rampFloat2, str::use_implicit_uvs, str::curves_only);
          } else
          {
-            AiNodeSetStr(rampFloat, "use_implicit_uvs", "off");
-            AiNodeSetStr(rampFloat2, "use_implicit_uvs", "off");
+            AiNodeSetStr(rampFloat, str::use_implicit_uvs, str::off);
+            AiNodeSetStr(rampFloat2, str::use_implicit_uvs, str::off);
          }
 
          ExportRampType(rampFloat, RT_U);
          ExportRampType(rampFloat2, RT_V);
-         AiNodeSetStr(rampFloat, "uvset", m_uvSet.asChar());
-         AiNodeSetStr(rampFloat2, "uvset", m_uvSet.asChar());
+         AiNodeSetStr(rampFloat, str::uvset, AtString(m_uvSet.asChar()));
+         AiNodeSetStr(rampFloat2, str::uvset, AtString(m_uvSet.asChar()));
          AiNodeLink(rampFloat2, "mix", mixLeft);
          AiNodeLink(rampFloat2, "mix", mixRight);
          AiNodeLink(rampFloat, "mix", shader);
@@ -303,8 +304,8 @@ AtNode *CRampTranslator::ExportUnwrap(AtNode *target)
       MFnDependencyNode srcNodeFn(srcObj);
       if (srcNodeFn.typeName() == "place2dTexture")
       {
-         AiNodeSetStr(unwrap, "wrap_frame_u", (srcNodeFn.findPlug("wrapU", true).asBool()) ? "periodic" : "color");
-         AiNodeSetStr(unwrap, "wrap_frame_v", (srcNodeFn.findPlug("wrapV", true).asBool()) ? "periodic" : "color");
+         AiNodeSetStr(unwrap, str::wrap_frame_u, (srcNodeFn.findPlug("wrapU", true).asBool()) ? str::periodic : str::color);
+         AiNodeSetStr(unwrap, str::wrap_frame_v, (srcNodeFn.findPlug("wrapV", true).asBool()) ? str::periodic : str::color);
       }
    }
    
@@ -335,15 +336,15 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
       if (noise == NULL)
          noise = AddArnoldNode("noise", "hue_noise");
       AiNodeLink(noise, "hue_shift", colorCorrectNode);
-      AiNodeSetStr(noise, "coord_space", "uv");
-      AiNodeSetStr(noise, "mode", "scalar");
+      AiNodeSetStr(noise, str::coord_space, str::uv);
+      AiNodeSetStr(noise, str::mode, str::scalar);
       float noiseFreq = FindMayaPlug("hueNoiseFreq").asFloat();
-      AiNodeSetVec(noise, "scale", 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
-      AiNodeSetVec(noise, "offset", 0.75, 0.75, 0.75);
-      AiNodeSetFlt(noise, "amplitude", 1.f);
+      AiNodeSetVec(noise, str::scale, 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
+      AiNodeSetVec(noise, str::offset, 0.75, 0.75, 0.75);
+      AiNodeSetFlt(noise, str::amplitude, 1.f);
       float hueNoise = FindMayaPlug("hueNoise").asFloat();
-      AiNodeSetRGB(noise, "color1", 1.f - hueNoise, 1.f - hueNoise, 1.f - hueNoise);
-      AiNodeSetRGB(noise, "color2", 1.f + hueNoise, 1.f + hueNoise, 1.f + hueNoise);
+      AiNodeSetRGB(noise, str::color1, 1.f - hueNoise, 1.f - hueNoise, 1.f - hueNoise);
+      AiNodeSetRGB(noise, str::color2, 1.f + hueNoise, 1.f + hueNoise, 1.f + hueNoise);
    } else
       AiNodeUnlink(colorCorrectNode, "hue_shift");
 
@@ -353,15 +354,15 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
       if (noise == NULL)
          noise = AddArnoldNode("noise", "sat_noise");
       AiNodeLink(noise, "saturation", colorCorrectNode);
-      AiNodeSetStr(noise, "coord_space", "uv");
-      AiNodeSetStr(noise, "mode", "scalar");
+      AiNodeSetStr(noise, str::coord_space, str::uv);
+      AiNodeSetStr(noise, str::mode, str::scalar);
       float noiseFreq = FindMayaPlug("satNoiseFreq").asFloat();
-      AiNodeSetVec(noise, "scale", 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
-      AiNodeSetVec(noise, "offset", 0.75, 0.75, 0.75);
-      AiNodeSetFlt(noise, "amplitude", 1.f);
+      AiNodeSetVec(noise, str::scale, 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
+      AiNodeSetVec(noise, str::offset, 0.75, 0.75, 0.75);
+      AiNodeSetFlt(noise, str::amplitude, 1.f);
       float satNoise = FindMayaPlug("satNoise").asFloat();
-      AiNodeSetRGB(noise, "color1", 1.f - satNoise, 1.f - satNoise, 1.f - satNoise);
-      AiNodeSetRGB(noise, "color2", 1.f + satNoise, 1.f + satNoise, 1.f + satNoise);
+      AiNodeSetRGB(noise, str::color1, 1.f - satNoise, 1.f - satNoise, 1.f - satNoise);
+      AiNodeSetRGB(noise, str::color2, 1.f + satNoise, 1.f + satNoise, 1.f + satNoise);
    }  else
       AiNodeUnlink(colorCorrectNode, "saturation");
 
@@ -371,20 +372,20 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
       AtNode *noise = GetArnoldNode("val_noise");
       if (noise == NULL)
          noise = AddArnoldNode("noise", "val_noise");
-      AtRGB mult = AiNodeGetRGB(colorCorrectNode, "multiply");
+      AtRGB mult = AiNodeGetRGB(colorCorrectNode, str::multiply);
       
-      AiNodeSetRGB(noise, "color2", mult.r, mult.g, mult.b);
+      AiNodeSetRGB(noise, str::color2, mult.r, mult.g, mult.b);
       
       AiNodeLink(noise, "multiply", colorCorrectNode);
-      AiNodeSetStr(noise, "coord_space", "uv");
-      AiNodeSetStr(noise, "mode", "scalar");
+      AiNodeSetStr(noise, str::coord_space, str::uv);
+      AiNodeSetStr(noise, str::mode, str::scalar);
       float noiseFreq = FindMayaPlug("valNoiseFreq").asFloat();
-      AiNodeSetVec(noise, "scale", 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
-      AiNodeSetVec(noise, "offset", 0.75, 0.75, 0.75);
-      AiNodeSetFlt(noise, "amplitude", 1.f);
+      AiNodeSetVec(noise, str::scale, 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
+      AiNodeSetVec(noise, str::offset, 0.75, 0.75, 0.75);
+      AiNodeSetFlt(noise, str::amplitude, 1.f);
       float valNoise = FindMayaPlug("valNoise").asFloat();
-      AiNodeSetRGB(noise, "color1", mult.r * (1.f - valNoise), mult.g*(1.f - valNoise),mult.b*(1.f - valNoise));
-      AiNodeSetRGB(noise, "color2", mult.r*(1.f + valNoise),mult.g*(1.f + valNoise), mult.g*(1.f + valNoise));
+      AiNodeSetRGB(noise, str::color1, mult.r * (1.f - valNoise), mult.g*(1.f - valNoise),mult.b*(1.f - valNoise));
+      AiNodeSetRGB(noise, str::color2, mult.r * (1.f + valNoise),mult.g*(1.f + valNoise), mult.g*(1.f + valNoise));
       
    } 
    
@@ -401,7 +402,7 @@ void CRampTranslator::ExportRampKeys(AtNode *shader)
    ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
    MObject ocol = fnNode.attribute("color");
    ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);   
-   AtArray *posArray = AiNodeGetArray(shader, "position");
+   AtArray *posArray = AiNodeGetArray(shader, str::position);
    int numPositions = (posArray) ? AiArrayGetNumElements(posArray) : 1;
 
    // In ramp_rgb the interpolation is an array, but we should be able to set a single value
@@ -432,7 +433,7 @@ void CRampTranslator::ExportRampKeys(AtNode *shader)
          interpVector.assign(numPositions, 8);
       break;
    };
-   AiNodeSetArray(shader, "interpolation", AiArrayConvert((unsigned int)interpVector.size(), 1, AI_TYPE_INT, &interpVector[0]));
+   AiNodeSetArray(shader, str::interpolation, AiArrayConvert((unsigned int)interpVector.size(), 1, AI_TYPE_INT, &interpVector[0]));
 
 }
 
@@ -441,28 +442,28 @@ void CRampTranslator::ExportRampType(AtNode *rampShader, RampType type)
 {
    if (m_custom_uvs)
    {
-      AiNodeSetStr(rampShader, "type", "custom");
+      AiNodeSetStr(rampShader, str::type, str::custom);
       return;
    }
    switch(type)
    {
       case RT_V:
-         AiNodeSetStr(rampShader, "type", "v");
+         AiNodeSetStr(rampShader, str::type, str::v);
       break;
       case RT_U:
-         AiNodeSetStr(rampShader, "type", "u");
+         AiNodeSetStr(rampShader, str::type, str::u);
       break;
       case RT_DIAGONAL:
-         AiNodeSetStr(rampShader, "type", "diagonal");
+         AiNodeSetStr(rampShader, str::type, str::diagonal);
       break;
       case RT_RADIAL:
-         AiNodeSetStr(rampShader, "type", "radial");
+         AiNodeSetStr(rampShader, str::type, str::radial);
       break;
       case RT_CIRCULAR:
-         AiNodeSetStr(rampShader, "type", "circular");
+         AiNodeSetStr(rampShader, str::type, str::circular);
       break;
       case RT_BOX:
-         AiNodeSetStr(rampShader, "type", "box");
+         AiNodeSetStr(rampShader, str::type, str::box);
       break;
       default:
       break;
@@ -557,26 +558,26 @@ AtNode* CRampTranslator::ExportUvTransform()
          ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
          if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
          {
-            AtRGBA col = AiNodeGetRGBA(uvTransformNode, "wrap_frame_color");
-            AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
+            AtRGBA col = AiNodeGetRGBA(uvTransformNode, str::wrap_frame_color);
+            AiNodeSetRGBA(uvTransformNode, str::wrap_frame_color, col.r, col.g, col.b, 0.f);
          }
          // if not linked, set alpha to zero
          ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV", true));
          ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset", true));
 
          float rotateFrame = srcNodeFn.findPlug("rotateFrame", true).asFloat();
-         AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
+         AiNodeSetFlt(uvTransformNode, str::rotate_frame, rotateFrame * 180.f / AI_PI);
          //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame", true));
          ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame", true));
          float rotateUV = srcNodeFn.findPlug("rotateUV", true).asFloat();
-         AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);
+         AiNodeSetFlt(uvTransformNode, str::rotate, rotateUV * 180.f / AI_PI);
          ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger", true));
          ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV", true));
       }
    }
 
-   AiNodeSetRGBA(uvTransformNode, "passthrough", 0.f, 0.f, 0.f, 1.f);
-   AiNodeSetStr(uvTransformNode, "uvset", m_uvSet.asChar());
+   AiNodeSetRGBA(uvTransformNode, str::passthrough, 0.f, 0.f, 0.f, 1.f);
+   AiNodeSetStr(uvTransformNode, str::uvset, AtString(m_uvSet.asChar()));
    // if we set the uvset on the uv_transform node, it should not be set on the linked shaders
 
    AtNode *uvTransformWave = NULL;
@@ -594,11 +595,11 @@ AtNode* CRampTranslator::ExportUvTransform()
       if (noise == NULL)
          noise = AddArnoldNode("noise", "noise");
 
-      AiNodeSetStr(noise, "coord_space", "uv");
-      AiNodeSetStr(noise, "mode", "scalar");
+      AiNodeSetStr(noise, str::coord_space, str::uv);
+      AiNodeSetStr(noise, str::mode, str::scalar);
       float noiseFreq = FindMayaPlug("noiseFreq").asFloat();
-      AiNodeSetVec(noise, "scale", 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
-      AiNodeSetVec(noise, "offset", 0.75, 0.75, 0.75);
+      AiNodeSetVec(noise, str::scale, 16*noiseFreq, 16*noiseFreq, 16*noiseFreq);
+      AiNodeSetVec(noise, str::offset, 0.75, 0.75, 0.75);
       AiNodeLink(noise, "offset", uvTransformNode);
       ProcessParameter(noise, "amplitude", AI_TYPE_FLOAT, "noise");
 
@@ -609,8 +610,8 @@ AtNode* CRampTranslator::ExportUvTransform()
          if (uvTransformWave == NULL)
             uvTransformWave = AddArnoldNode("uv_transform", "uv_wave");
 
-         AiNodeSetRGBA(uvTransformWave, "passthrough", 0.f, 0.f, 0.f, 1.f);
-         AiNodeLink(uvTransformWave, "passthrough", uvTransformNode);
+         AiNodeSetRGBA(uvTransformWave, str::passthrough, 0.f, 0.f, 0.f, 1.f);
+         AiNodeLink(uvTransformWave, str::passthrough, uvTransformNode);
       } 
    } 
 
@@ -624,7 +625,7 @@ AtNode* CRampTranslator::ExportUvTransform()
       // we link multiply to the offset of uvTransform that is used for the wave
       AiNodeLink(mult, "offset", uvTransformWave ? uvTransformWave : uvTransformNode);
       // multiply's input1 has the uWave, vWave values, they will be multiplied by the trigo's result
-      AiNodeSetRGB(mult, "input1", -FindMayaPlug("uWave").asFloat(), FindMayaPlug("vWave").asFloat(), 0.f);
+      AiNodeSetRGB(mult, str::input1, -FindMayaPlug("uWave").asFloat(), FindMayaPlug("vWave").asFloat(), 0.f);
 
       AtNode *state_u = NULL;
       AtNode *state_v = NULL;
@@ -635,14 +636,14 @@ AtNode* CRampTranslator::ExportUvTransform()
          state_v = GetArnoldNode("state_v");
          if (state_v == NULL)
             state_v = AddArnoldNode("state_float", "state_v");
-         AiNodeSetStr(state_v, "variable", "v");
+         AiNodeSetStr(state_v, str::variable, str::v);
       }
       if (vWave)
       {
          state_u = GetArnoldNode("state_u");
          if (state_u == NULL)
             state_u = AddArnoldNode("state_float", "state_u");
-         AiNodeSetStr(state_u, "variable", "u");
+         AiNodeSetStr(state_u, str::variable, str::u);
       }
 
       AtNode *trigo = GetArnoldNode("trigo");
@@ -651,13 +652,13 @@ AtNode* CRampTranslator::ExportUvTransform()
 
       // trigo's input is linked to the UV values that are needed
       AiNodeUnlink(trigo, "input");
-      AiNodeSetRGB(trigo, "input", 0.f, 0.f, 0.f);
+      AiNodeSetRGB(trigo, str::input, 0.f, 0.f, 0.f);
       if (state_v)
          AiNodeLink(state_v, "input.r", trigo);
       if (state_u)
          AiNodeLink(state_u, "input.g", trigo);
-      AiNodeSetFlt(trigo, "frequency", AI_PITIMES2); // this is what MayaRamp's code was doing....
-      AiNodeSetStr(trigo, "function", "sin");
+      AiNodeSetFlt(trigo, str::frequency, AI_PITIMES2); // this is what MayaRamp's code was doing....
+      AiNodeSetStr(trigo, str::function, str::sin);
 
       // trigo is linked to the 2nd input of multiply
       AiNodeLink(trigo, "input2", mult);
@@ -669,14 +670,14 @@ AtNode* CRampTranslator::ExportUvTransform()
    if (rampFloat == NULL)
    {
       rampFloat = AddArnoldNode("ramp_float", "ramp_float");
-      AiNodeSetArray(rampFloat, "interpolation", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+      AiNodeSetArray(rampFloat, str::interpolation, AiArray(2, 1, AI_TYPE_INT, 1, 1));
    }
    // if we're in UV / Tartan, it should be ramps with U & V types
-   AiNodeSetStr(rampFloat, "uvset", ""); // the uvset was already set on the uv_transform node
+   AiNodeSetStr(rampFloat, str::uvset, AtString()); // the uvset was already set on the uv_transform node
    if (FindMayaPlug("aiCurveImplicitUvs").asBool())
-      AiNodeSetStr(rampFloat, "use_implicit_uvs", "curves_only");
+      AiNodeSetStr(rampFloat, str::use_implicit_uvs, str::curves_only);
    else
-      AiNodeSetStr(rampFloat, "use_implicit_uvs", "off");
+      AiNodeSetStr(rampFloat, str::use_implicit_uvs, str::off);
    
    AtNode *rampFloat2 = NULL;
 
@@ -689,7 +690,7 @@ AtNode* CRampTranslator::ExportUvTransform()
 
       ExportRampType(rampFloat, RT_U);
       ExportRampType(rampFloat2, RT_V);
-      AiNodeSetStr(rampFloat2, "uvset", ""); // the uvset was already set on the uv_transform node
+      AiNodeSetStr(rampFloat2, str::uvset, AtString()); // the uvset was already set on the uv_transform node
       AiNodeLink(rampFloat, "passthrough.r", uvTransformWave ? uvTransformWave : uvTransformNode);
       AiNodeLink(rampFloat2, "passthrough.g", uvTransformWave ? uvTransformWave : uvTransformNode);
    } else

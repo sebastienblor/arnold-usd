@@ -1137,7 +1137,7 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
       sceneOpenCallback = 0;
    }
 
-   if (AiUniverseIsActive())
+   if (AiArnoldIsActive())
       ArnoldEnd();
 
 }

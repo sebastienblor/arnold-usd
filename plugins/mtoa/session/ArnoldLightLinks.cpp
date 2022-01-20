@@ -2,6 +2,7 @@
 
 #include "SessionOptions.h"
 #include "translators/DagTranslator.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MSelectionList.h>
 #include <maya/MObject.h>
@@ -59,7 +60,6 @@ void CArnoldLightLinks::SetLinkingMode(int light, int shadow)
    m_lightMode = light;
    m_shadowMode = shadow;
 }
-static const AtString mesh_light_str("mesh_light");
 /**
  *   Parse All lights in the Arnold scene, and create
  *   a hash map to access each AtNode quickly by its name
@@ -77,7 +77,7 @@ void CArnoldLightLinks::ParseLights()
       // keep a list of all Mesh-Lights in our scene, 
       // as they have to be treated in a specific way 
       // (they don't correspond to a light in maya)
-      if (AiNodeIs(node, mesh_light_str)) m_arnoldMeshLights.push_back(node);
+      if (AiNodeIs(node, str::mesh_light)) m_arnoldMeshLights.push_back(node);
    }
    AiNodeIteratorDestroy(niter);
    m_numArnoldLights = m_arnoldLights.size();
@@ -177,7 +177,7 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                int prevMeshLightCount = 0;
                for (size_t i = 0; i < lights.size(); ++i)
                {
-                  if (AiNodeIs(lights[i], mesh_light_str)) prevMeshLightCount++;
+                  if (AiNodeIs(lights[i], str::mesh_light)) prevMeshLightCount++;
                }
 
                // if this amount is the same as our "mesh lights" list, then the user
@@ -549,26 +549,26 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
       // Follow Maya's light linking in Arnold
       if (FillLights(m_linkedLights, m_ignoredLights))
       {
-         AiNodeSetBool(shape, "use_light_group", true);
+         AiNodeSetBool(shape, str::use_light_group, true);
 
          // m_groupLights contains now the exact list of lights to be applied to current Shape
          AtArray* lightsArray = AiArrayAllocate((AtUInt32)m_groupLights.size(), 1, AI_TYPE_NODE);
          for (size_t i = 0; i < m_groupLights.size(); ++i)            
             AiArraySetPtr(lightsArray, (AtUInt32)i, m_groupLights[i]);
          
-         AiNodeSetArray(shape, "light_group", lightsArray);
+         AiNodeSetArray(shape, str::light_group, lightsArray);
 
          if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
          {
             // copy light linking to shadow linking
-            AiNodeSetBool(shape, "use_shadow_group", true);
-            AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lightsArray));
+            AiNodeSetBool(shape, str::use_shadow_group, true);
+            AiNodeSetArray(shape, str::shadow_group, AiArrayCopy(lightsArray));
          }            
       } else
       {
          // resetting this for IPR
-         AiNodeSetBool(shape, "use_light_group", false);
-         AiNodeResetParameter(shape, "light_group");
+         AiNodeSetBool(shape, str::use_light_group, false);
+         AiNodeResetParameter(shape, str::light_group);
       }
    }
 
@@ -577,18 +577,18 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
       //Follow Shadow linking from Maya
       if (FillLights(m_linkedShadows, m_ignoredShadows))
       {
-         AiNodeSetBool(shape, "use_shadow_group", true);
+         AiNodeSetBool(shape, str::use_shadow_group, true);
 
          // m_groupLights contains now the exact list of lights to be applied to current Shape
          AtArray* lightsArray = AiArrayAllocate((AtUInt32)m_groupLights.size(), 1, AI_TYPE_NODE);
          for (size_t i = 0; i < m_groupLights.size(); ++i)            
             AiArraySetPtr(lightsArray, (AtUInt32)i, m_groupLights[i]);
 
-         AiNodeSetArray(shape, "shadow_group", lightsArray);
+         AiNodeSetArray(shape, str::shadow_group, lightsArray);
       } else
       {
-         AiNodeSetBool(shape, "use_shadow_group", false);
-         AiNodeResetParameter(shape, "shadow_group");
+         AiNodeSetBool(shape, str::use_shadow_group, false);
+         AiNodeResetParameter(shape, str::shadow_group);
       }
    }
 }

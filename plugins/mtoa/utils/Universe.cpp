@@ -13,6 +13,7 @@
 
 #include <maya/MGlobal.h>
 #include "../utils/BuildID.h"
+#include "../utils/ConstantStrings.h"
 
 extern const AtNodeMethods* mtoa_driver_mtd;
 
@@ -38,7 +39,7 @@ void InstallNodes()
 {
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
-      if (AiNodeEntryLookUp("renderview_display") == nullptr)
+      if (AiNodeEntryLookUp(str::renderview_display) == nullptr)
          AiNodeEntryInstall(AI_NODE_DRIVER,
                          AI_TYPE_NONE,
                          "renderview_display",
@@ -52,7 +53,7 @@ void InstallNodes()
 
 bool ArnoldBegin(int logFlags)
 {
-   if (!AiUniverseIsActive())
+   if (!AiArnoldIsActive())
    {
       // Report MtoA product usage to ADP
       MtoAADPPayloads::ADPPostProductMetadata();

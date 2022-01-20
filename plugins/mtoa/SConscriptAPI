@@ -57,7 +57,7 @@ source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'DagTranslator.cpp'),
                     os.path.join('translators', 'ObjectSetTranslator.cpp')]
 
-source_files_rem =  [os.path.join('utils', 'DrawUtils.cpp')]
+source_files_rem =  [os.path.join('utils', 'DrawUtils.cpp'), os.path.join('utils', 'ConstantStrings.cpp')]
 
 for file_rem in source_files_rem:
     source_files.remove(file_rem)

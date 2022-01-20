@@ -1,4 +1,5 @@
 #include "CurveTranslator.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -191,9 +192,9 @@ void CCurveTranslator::Export( AtNode *curve )
             
          MString hairShaderName = fnDepNodeCurve.name();
          hairShaderName += "_hairShader";
-         AiNodeSetStr(shader, "name", hairShaderName.asChar());
+         AiNodeSetStr(shader, str::name, AtString(hairShaderName.asChar()));
       }
-      AiNodeSetPtr(curve, "shader", shader);
+      AiNodeSetPtr(curve, str::shader, shader);
    }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate
@@ -222,30 +223,29 @@ void CCurveTranslator::Export( AtNode *curve )
                     curveColors);
 
    // Extra attributes
-   AiNodeDeclare(curve, "colors",                  "uniform  ARRAY RGB");
+   AiNodeDeclare(curve, str::colors, str::uniform_ARRAY_RGB);
 
    if (exportReferenceObject)
    {
-      AiNodeDeclare(curve, "Pref", "varying VECTOR");
-      AiNodeSetArray(curve, "Pref", referenceCurvePoints);
+      AiNodeDeclare(curve, str::Pref, str::varying_VECTOR);
+      AiNodeSetArray(curve, str::Pref, referenceCurvePoints);
    }
 
    // curve specific Arnold render settings.
    plug = FindMayaPlug("aiMinPixelWidth");
-   if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
+   if (!plug.isNull()) AiNodeSetFlt(curve, str::min_pixel_width, plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
    plug = FindMayaPlug("aiMode");
-   if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
+   if (!plug.isNull()) AiNodeSetInt(curve, str::mode, plug.asInt());
 
-   AiNodeSetStr(curve, "basis", "catmull-rom");
+   AiNodeSetStr(curve, str::basis, str::catmull_rom);
 
    // Set all arrays on the curve node
-   AiNodeSetArray(curve, "radius",                    curveWidths);
-   AiNodeSetArray(curve, "num_points",                curveNumPoints);
-   AiNodeSetArray(curve, "points",                    curvePoints);
-   AiNodeSetArray(curve, "colors",                    curveColors);
-
+   AiNodeSetArray(curve, str::radius, curveWidths);
+   AiNodeSetArray(curve, str::num_points, curveNumPoints);
+   AiNodeSetArray(curve, str::points, curvePoints);
+   AiNodeSetArray(curve, str::colors, curveColors);
 }
 
 void CCurveTranslator::ExportMotion(AtNode *curve)
@@ -259,7 +259,6 @@ void CCurveTranslator::ExportMotion(AtNode *curve)
    // Same for object deformation, early out if it's not set.
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
-
    // Get curve lines
    MObject objectCurveShape(m_dagPath.node());
    exportReferenceObject = false;
@@ -269,9 +268,9 @@ void CCurveTranslator::ExportMotion(AtNode *curve)
    if (stat == MStatus::kSuccess)
    {
    ProcessCurveLines(step,
-                    AiNodeGetArray(curve, "points"),
+                    AiNodeGetArray(curve, str::points),
                     0,
-                    mayaCurve.widthConnected ? AiNodeGetArray(curve, "radius") : 0,
+                    mayaCurve.widthConnected ? AiNodeGetArray(curve, str::radius) : 0,
                     0);
    }
 }

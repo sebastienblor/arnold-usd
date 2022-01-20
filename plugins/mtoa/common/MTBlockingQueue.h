@@ -17,17 +17,15 @@ public:
    , m_notEmpty(true, false)
    , m_notFull(true, true)
    {
-      AiCritSecInit(&m_accessCritSec);
    }
 
    ~CMTBlockingQueue()
    {
-      AiCritSecClose(&m_accessCritSec);
    }
 
    void clear()
    {
-      AiCritSecEnter(&m_accessCritSec);
+      std::lock_guard<AtMutex> guard(m_accessCritSec);
       m_notEmpty.unset();
       m_notFull.set();
       while (!m_queue.empty())
@@ -38,19 +36,17 @@ public:
          }
          m_queue.pop();
       }
-      AiCritSecLeave(&m_accessCritSec);
    }
 
    bool push(T& data)
    {
-      AiCritSecEnter(&m_accessCritSec);
+      std::lock_guard<AtMutex> guard(m_accessCritSec);
       bool result = false;
       if (!isFull())
       {
          m_queue.push(data);
          result = true;
       }
-      AiCritSecLeave(&m_accessCritSec);
 
       if (!isEmpty())
          m_notEmpty.set();
@@ -62,15 +58,15 @@ public:
 
    bool pop(T& data)
    {
-      AiCritSecEnter(&m_accessCritSec);
       bool result = false;
+      std::lock_guard<AtMutex> guard(m_accessCritSec);
       if (!isEmpty())
       {
          data = m_queue.front();
          m_queue.pop();
          result = true;
       }
-      AiCritSecLeave(&m_accessCritSec);
+   
 
       if (isEmpty())
          m_notEmpty.unset();
@@ -111,7 +107,7 @@ protected:
    std::queue<T> m_queue;
    unsigned int  m_maxSize;
 
-   AtCritSec     m_accessCritSec;
+   AtMutex       m_accessCritSec;
    CEvent        m_notEmpty;
    CEvent        m_notFull;
 

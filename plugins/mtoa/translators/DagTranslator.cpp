@@ -6,6 +6,7 @@
 #include <maya/MDagPathArray.h>
 #include <maya/MFnTransform.h>
 #include "NodeTranslatorImpl.h"
+#include "utils/ConstantStrings.h"
 
 void CDagTranslator::Init()
 {
@@ -50,7 +51,7 @@ void CDagTranslator::Export(AtNode* node)
 // For Motion Blur only re-export the transform matrix
 void CDagTranslator::ExportMotion(AtNode* node)
 {
-   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), "matrix"))
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), str::matrix))
       ExportMatrix(node);   
 }
 bool CDagTranslator::IsTransformPlug(const MPlug &plug)
@@ -79,10 +80,10 @@ void CDagTranslatorImpl::ExportDccName()
    if (m_atRoot == NULL)
       return;
    // Always export dcc_name now that we export full paths by default
-   AiNodeDeclare(m_atRoot, "dcc_name", "constant STRING");   
+   AiNodeDeclare(m_atRoot, str::dcc_name, str::constant_STRING);   
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
    MString name = dagTr->GetMayaDagPath().partialPathName();
-   AiNodeSetStr(m_atRoot, "dcc_name", AtString(name.asChar()));
+   AiNodeSetStr(m_atRoot, str::dcc_name, AtString(name.asChar()));
 }
 
 MString CDagTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
@@ -198,16 +199,16 @@ void CDagTranslator::ExportMatrix(AtNode* node)
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
          AiArraySetMtx(matrices, GetMotionStep(), matrix);
-         AiNodeSetArray(node, "matrix", matrices);
+         AiNodeSetArray(node, str::matrix, matrices);
       }
       else
       {
-         AiNodeSetMatrix(node, "matrix", matrix);
+         AiNodeSetMatrix(node, str::matrix, matrix);
       }
    }
    else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
    {
-      AtArray* matrices = AiNodeGetArray(node, "matrix");
+      AtArray* matrices = AiNodeGetArray(node, str::matrix);
       if (matrices)
       {
          int step = GetMotionStep();

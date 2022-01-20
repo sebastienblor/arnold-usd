@@ -8,6 +8,7 @@
 #include "common/UtilityFunctions.h"
 #include "session/ArnoldSession.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -254,7 +255,7 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 
 AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 {
-   const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
+   const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(AtString(type));
    // Make sure that the given type of node exists
    if (nodeEntry == NULL)
    {
@@ -263,7 +264,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
    MString nodeName = m_impl->MakeArnoldName(type, tag);
    AtString nodeNameStr(nodeName.asChar());
-   AtNode* node = AiNode(m_impl->m_session->GetUniverse(), type, nodeNameStr);
+   AtNode* node = AiNode(m_impl->m_session->GetUniverse(), AtString(type), nodeNameStr);
    AddExistingArnoldNode(node, tag);
    return node;
 }
@@ -385,7 +386,7 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
       if (arnoldNode)
       {
          MString name = translator->m_impl->MakeArnoldName(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
-         AiNodeSetStr(arnoldNode, "name", name.asChar());
+         AiNodeSetStr(arnoldNode, str::name, AtString(name.asChar()));
 
          if (MtoaTranslationInfo())
             MtoaDebugLog("[mtoa.translator.ipr]  "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": NameChangedCallback");
@@ -536,55 +537,55 @@ void TExportAttribute(AtNode* node, MPlug& plug, const char* attrName) { }
 template <>
 void TExportAttribute<AI_TYPE_BYTE>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetByte(node, attrName, plug.asChar());
+   AiNodeSetByte(node, AtString(attrName), plug.asChar());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_INT>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetInt(node, attrName, plug.asInt());
+   AiNodeSetInt(node, AtString(attrName), plug.asInt());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_BOOLEAN>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetBool(node, attrName, plug.asBool());
+   AiNodeSetBool(node, AtString(attrName), plug.asBool());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_FLOAT>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetFlt(node, attrName, plug.asFloat());
+   AiNodeSetFlt(node, AtString(attrName), plug.asFloat());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_RGB>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetRGB(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetRGB(node, AtString(attrName), plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_RGBA>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetRGBA(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+   AiNodeSetRGBA(node, AtString(attrName), plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_VECTOR>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetVec(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetVec(node, AtString(attrName), plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_VECTOR2>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetVec2(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat());
+   AiNodeSetVec2(node, AtString(attrName), plug.child(0).asFloat(), plug.child(1).asFloat());
 }
 
 template <>
 void TExportAttribute<AI_TYPE_STRING>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetStr(node, attrName, plug.asString().asChar());
+   AiNodeSetStr(node, AtString(attrName), AtString(plug.asString().asChar()));
 }
 
 typedef bool (*declarationPointer)(AtNode*, const char*, unsigned int);
@@ -599,7 +600,7 @@ static declarationPointer declarationPointers[] = {
 template <signed ATTR>
 void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
 {
-   if (AiNodeLookUpUserParameter(node, attrName) == NULL)
+   if (AiNodeLookUpUserParameter(node, AtString(attrName)) == NULL)
    {
       if (!declarationPointers[declType](node, attrName, ATTR)) return;
    }
@@ -608,7 +609,7 @@ void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, 
    AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
    for (unsigned int i = 0; i < numElements; ++i)
       TExportArrayAttribute<ATTR>(arr, plug, i);
-   AiNodeSetArray(node, attrName, arr);
+   AiNodeSetArray(node, AtString(attrName), arr);
 
 }
 
@@ -619,10 +620,11 @@ void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttr
       TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
    else
    {
+      AtString attrNameStr(attrName);
 
-      if (AiNodeLookUpUserParameter(node, attrName) == NULL)
+      if (AiNodeLookUpUserParameter(node, attrNameStr) == NULL)
       {
-         if (!AiNodeDeclareConstant(node, attrName, ATTR)) return;
+         if (!AiNodeDeclareConstant(node, attrNameStr, ATTR)) return;
       }
 
       TExportAttribute<ATTR>(node, plug, attrName);
@@ -638,7 +640,7 @@ void TExportUserAttributeData(AtArray* array, T& data, unsigned int element)
 template <>
 void TExportUserAttributeData<AI_TYPE_STRING, MFnStringArrayData>(AtArray* array, MFnStringArrayData& data, unsigned int element)
 {
-   AiArraySetStr(array, element, data[element].asChar());
+   AiArraySetStr(array, element, AtString(data[element].asChar()));
 }
 
 template <>
@@ -693,7 +695,7 @@ void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, E
          AtArray* arr = AiArrayAllocate(length, 1, ATTR);
          for (unsigned int i = 0; i < length; ++i)
             TExportUserAttributeData<ATTR, T>(arr, data, i);
-         AiNodeSetArray(node, attrName, arr);
+         AiNodeSetArray(node, AtString(attrName), arr);
       }
    }
 }
@@ -830,6 +832,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
       }
       else if (oAttr.hasFn(MFn::kMessageAttribute) && (attributeDeclaration == DECLARATION_CONSTANT))
       {
+         AtString anameStr(aname);
          // Handling message array attributes #2183
          if (pAttr.isArray())
          {
@@ -840,8 +843,8 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
                MPlug elem = pAttr.elementByPhysicalIndex(i);
                translator->m_impl->ProcessConstantArrayElement(AI_TYPE_NODE, array, i, elem);
             }
-            if (!AiNodeDeclare(anode, aname, "constant ARRAY NODE")) continue;
-            AiNodeSetArray(anode, aname, array);
+            if (!AiNodeDeclare(anode, anameStr, str::constant_ARRAY_NODE)) continue;
+               AiNodeSetArray(anode, anameStr, array);
          } else
          {
             MPlugArray pArr;
@@ -852,11 +855,11 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
                AtNode* connectedNode = translator->ExportConnectedNode(connectedPlug);
                if (connectedNode != 0)
                {
-                  if (AiNodeLookUpUserParameter(anode, aname) == NULL) 
+                  if (AiNodeLookUpUserParameter(anode, anameStr) == NULL) 
                   {
                      if (!AiNodeDeclareConstant(anode, aname, AI_TYPE_NODE)) continue;
                   }
-                  AiNodeSetPtr(anode, aname, connectedNode);
+                  AiNodeSetPtr(anode, anameStr, connectedNode);
                }
             }
          }
@@ -952,8 +955,9 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    //      AiNodeGetName(arnoldNode), arnoldParamName, AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
 
    bool acceptLinks = false;
+   const AtString arnoldParamNameStr(arnoldParamName);
    // if the linkable metadata is not set, then only link if the node is a shader or param type is Node pointer
-   if (!AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), arnoldParamName, "linkable", &acceptLinks))
+   if (!AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), arnoldParamNameStr, str::linkable, &acceptLinks))
    {
       if (arnoldParamType == AI_TYPE_NODE)
          acceptLinks = true;
@@ -971,8 +975,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       //   cannot unlink "ramp2.color.r" as the attribute was not separately linked
       // In order to avoid this warning we would need to do the unlinking inside an attributeChanged callback, where
       // we could know for certain that a plug had been disconnected, instead of calling it blindly as we do now.
-      if (AiNodeIsLinked(arnoldNode, arnoldParamName))
-         AiNodeUnlink(arnoldNode, arnoldParamName);
+      if (AiNodeIsLinked(arnoldNode, arnoldParamNameStr))
+         AiNodeUnlink(arnoldNode, arnoldParamNameStr);
       AtNode *connected = m_impl->ProcessParameterInputs(arnoldNode, plug, arnoldParamName, arnoldParamType);
       // if we're connected, we're done, otherwise call ProcessConstantParameter
       if (connected != NULL)
@@ -986,7 +990,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 {
    if (arnoldParamType == AI_TYPE_UNDEFINED)
    {
-      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), arnoldParamName);
+      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), AtString(arnoldParamName));
       const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
       arnoldParamType = AiArrayGetType(defaultValue->ARRAY());
    }
@@ -1002,6 +1006,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 //         else
 //            plug.getExistingArrayAttributeIndices(indices);
 
+   AtString arnoldParamNameStr(arnoldParamName);
    // for now do all elements
    AtArray* array = NULL;
    if (arnoldParamType == AI_TYPE_NODE)
@@ -1025,10 +1030,10 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
             AtNode* linkedNode = ExportConnectedNode(inputs[i]);
             AiArraySetPtr(array, i, linkedNode);
          }
-         AiNodeSetArray(arnoldNode, arnoldParamName, array);
+         AiNodeSetArray(arnoldNode, arnoldParamNameStr, array);
       }
       else
-         AiNodeResetParameter(arnoldNode, arnoldParamName);
+         AiNodeResetParameter(arnoldNode, arnoldParamNameStr);
    }
    else
    {
@@ -1046,9 +1051,9 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
             }
             m_impl->ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
          }
-         AiNodeSetArray(arnoldNode, arnoldParamName, array);
+         AiNodeSetArray(arnoldNode, arnoldParamNameStr, array);
       } else
-         AiNodeResetParameter(arnoldNode, arnoldParamName);
+         AiNodeResetParameter(arnoldNode, arnoldParamNameStr);
       
    }
 }
@@ -1088,14 +1093,14 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
 
 void CNodeTranslator::NodeInitializer(CAbTranslator context)
 {
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(context.arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(context.arnold.asChar()));
    if (nodeEntry == NULL)
       return;
 
    // maya.attrs is a metadata (true by default) used to prevent the creation of attributes in the existing maya nodes
    // It avoids to set maya.hide on each of the parameters
    bool createAttrs = true;
-   if (AiMetaDataGetBool(nodeEntry, NULL, "maya.attrs", &createAttrs) && (!createAttrs))
+   if (AiMetaDataGetBool(nodeEntry, AtString(), str::maya_attrs, &createAttrs) && (!createAttrs))
       return; 
    
    CExtensionAttrHelper helper(context.maya, context.arnold);

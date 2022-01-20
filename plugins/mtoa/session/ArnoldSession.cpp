@@ -17,6 +17,7 @@
 #include "translators/NodeTranslatorImpl.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MakeTx.h"
+#include "utils/ConstantStrings.h"
 #include "nodes/ShaderUtils.h"
 #include "attributes/Components.h"
 
@@ -531,9 +532,10 @@ void CArnoldSession::Export(MSelectionList* selected)
                      else if (shaderAttrs[a] == MString("displacementShader"))
                         user_data = "material_displacement";
                      
-                     if (AiNodeLookUpUserParameter(shaderNode, user_data.c_str()) == NULL)
-                        AiNodeDeclare(shaderNode, user_data.c_str(), "constant STRING");   
-                     AiNodeSetStr(shaderNode, user_data.c_str(), AtString(shEngineNode.name().asChar()));
+                     AtString userDataStr(user_data.c_str());
+                     if (AiNodeLookUpUserParameter(shaderNode, userDataStr) == NULL)
+                        AiNodeDeclare(shaderNode, userDataStr, str::constant_STRING);   
+                     AiNodeSetStr(shaderNode, userDataStr, AtString(shEngineNode.name().asChar()));
                   }
 
                   if (shaderAttrs[a] == MString("aiSurfaceShader") ||
@@ -2447,8 +2449,8 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
 MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
 {   
    // first check if an object exists with the same name ?
-   MString arnoldName = (AiNodeLookUpUserParameter(node, "dcc_name") != nullptr) ? 
-      MString(AiNodeGetStr(node, "dcc_name")) : MString(AiNodeGetName(node));
+   MString arnoldName = (AiNodeLookUpUserParameter(node, str::dcc_name) != nullptr) ? 
+      MString(AiNodeGetStr(node, str::dcc_name)) : MString(AiNodeGetName(node));
    // slashes should be replaced by pipes
    static MString slashStr("/");
    static MString pipeStr("|");

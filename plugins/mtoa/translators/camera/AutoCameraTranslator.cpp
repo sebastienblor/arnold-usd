@@ -1,5 +1,6 @@
 #include "AutoCameraTranslator.h"
 #include "../NodeTranslatorImpl.h"
+#include "utils/ConstantStrings.h"
 
 AtNode* CAutoCameraTranslator::CreateArnoldNodes()
 {
@@ -35,7 +36,7 @@ void CAutoCameraTranslator::Export(AtNode* camera)
    }
    AiParamIteratorDestroy(nodeParam);
 
-   const AtParamEntry* pentry = AiNodeEntryLookUpParameter(nentry, "fov");
+   const AtParamEntry* pentry = AiNodeEntryLookUpParameter(nentry, str::fov);
    if (pentry != 0)
    {
       if (AiParamGetType(pentry) == AI_TYPE_FLOAT)
@@ -61,10 +62,10 @@ void CAutoCameraTranslator::Export(AtNode* camera)
       {
          AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
          AiArraySetFlt(fovs, GetMotionStep(), GetFOV(camera));
-         AiNodeSetArray(camera, "fov", fovs);
+         AiNodeSetArray(camera, str::fov, fovs);
       }
       else
-         AiNodeSetFlt(camera, "fov", GetFOV(camera));
+         AiNodeSetFlt(camera, str::fov, GetFOV(camera));
    }
 }
 
@@ -73,7 +74,7 @@ void CAutoCameraTranslator::ExportMotion(AtNode* camera)
    ExportCameraData(camera);
    if (m_fovAnimated)
    {      
-      AtArray* fovs = AiNodeGetArray(camera, "fov");
+      AtArray* fovs = AiNodeGetArray(camera, str::fov);
       AiArraySetFlt(fovs, GetMotionStep(), GetFOV(camera));
    }
 }

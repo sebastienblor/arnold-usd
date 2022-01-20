@@ -87,6 +87,7 @@ CSessionOptions::CSessionOptions(): m_options(MObject()),
                                     m_progressive_initial_level(0),
                                     m_threads(0),
                                     m_stats_mode(0),
+                                    m_log_callbackId(0),
                                     m_useRenderRegion(false),
                                     m_clearBeforeRender(false),
                                     m_forceSceneUpdateBeforeIPRRefresh(false),
@@ -611,8 +612,9 @@ MString CSessionOptions::GetArnoldNaming(const MObject &object) const
    return name;
 }
 
-void CSessionOptions::SetupLog(AtUniverse *universe) const
+void CSessionOptions::SetupLog(AtUniverse *universe)
 {
+   bool needCallback = false;
    if ((m_log_filename != "") && (m_log_to_file))
    {
       // this replaces the MAYA_PROJECT_PATH with the actual project path
@@ -620,7 +622,6 @@ void CSessionOptions::SetupLog(AtUniverse *universe) const
       MString logPath = ExpandMtoaLogPath(m_log_filename);
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
       AiMsgSetLogFileFlags(universe, m_log_verbosity);
-      AiMsgResetCallback();
    } else if (m_log_to_console && !IsBatch())
    {
       // no "Log to File" enabled, and we're not doing batch rendering.
@@ -628,17 +629,21 @@ void CSessionOptions::SetupLog(AtUniverse *universe) const
       // that invokes Maya log functions.
       // The reason why we don't always enable it is that it should also 
       // handle the "log to file" and we prefer letting arnold do it.
+      needCallback = true;
+   } 
 
-      AiMsgResetCallback();
-      AiMsgSetCallback(MtoaLogCallback);
-   } else
-      AiMsgResetCallback();
+   if (needCallback && m_log_callbackId == 0)
+   {
+      m_log_callbackId = AiMsgRegisterCallback(MtoaLogCallback, AI_LOG_ALL, (void*)this);
+   } else if (!needCallback && m_log_callbackId != 0)
+   {
+      AiMsgDeregisterCallback(m_log_callbackId);
+      m_log_callbackId = 0;
+   }
    
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
       AiMsgSetConsoleFlags(universe, m_log_verbosity | AI_LOG_COLOR);   
-   
-   
 }
 
 int CSessionOptions::GetLogConsoleVerbosity() const

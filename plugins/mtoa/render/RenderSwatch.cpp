@@ -7,6 +7,7 @@
 #include "utils/time.h"
 #include "utils/AiAdpPayload.h"
 #include "utils/MayaUtils.h"
+#include "utils/ConstantStrings.h"
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
 
@@ -163,16 +164,15 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene(CArnoldSession *session)
       if (typeName == "aiHair" || typeName == "aiStandardHair")
       {
 
-         geometry = AiNode(universe, "sphere");
+         geometry = AiNode(universe, str::sphere, str::geometry);
          if (NULL != geometry)
          {
-            AiNodeSetStr(geometry, "name", "geometry");
-            AiNodeSetBool(geometry, "opaque", false);
+            AiNodeSetBool(geometry, str::opaque, false);
             AtMatrix matrix = {{ { 1.0f, 0.0f, 0.0f, 0.0f },
                                { 0.0f, -1.0f, 0.0f, 0.0f },
                                { 0.0f, 0.0f, 1.0f, 0.0f },
                                { 0.0f, 0.0f, 0.0f, 1.0f } }};
-            AiNodeSetMatrix(geometry, "matrix", matrix);
+            AiNodeSetMatrix(geometry, str::matrix, matrix);
          }
       }
       else
@@ -180,14 +180,13 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene(CArnoldSession *session)
          geometry = PolySphere(universe);
          if (NULL != geometry)
          {
-            AiNodeSetStr(geometry, "name", "geometry");
-            AiNodeSetByte(geometry, "subdiv_iterations", 1);
-            AiNodeSetBool(geometry, "opaque", false);
+            AiNodeSetStr(geometry, str::name, str::geometry);
+            AiNodeSetByte(geometry, str::subdiv_iterations, 1);
+            AiNodeSetBool(geometry, str::opaque, false);
          }
       }
-      AtNode* camera = AiNode(universe, "persp_camera");
-      AiNodeSetStr(camera, "name", "camera");
-      AiNodeSetVec(camera, "position", 0.f, 0.f, 1.14f);
+      AtNode* camera = AiNode(universe, str::persp_camera, str::camera);
+      AiNodeSetVec(camera, str::position, 0.f, 0.f, 1.14f);
    }
 
    // Export the swatched shading node
@@ -232,15 +231,15 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    AtUniverse *universe = AiNodeGetUniverse(arnoldNode);
    // Assign what needs to be on geometry
 
-   AtNode* geometry = AiNodeLookUpByName(universe, "geometry");
+   AtNode* geometry = AiNodeLookUpByName(universe, str::geometry);
 
    // Assign exported geometry shader or use default one
    if (m_swatchClass == SWATCH_SHADER)
    {
-      AiNodeSetPtr(geometry, "shader", arnoldNode);
+      AiNodeSetPtr(geometry, str::shader, arnoldNode);
    } else {
-      AtNode* defaultShader = AiNode(universe, "standard_surface", "default");
-      AiNodeSetPtr(geometry, "shader", defaultShader);
+      AtNode* defaultShader = AiNode(universe, str::standard_surface, str::_default);
+      AiNodeSetPtr(geometry, str::shader, defaultShader);
    }
 
    // If we are swatching a light or light filter
@@ -258,22 +257,21 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       frame[3] = AtVector(0.707107f, -0.408248f, 0.57735f);
       matrix = AiM4Frame(frame[0], frame[1], frame[2], frame[3]);
 
-      if (strcmp(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)), "mesh_light") == 0)
+      if (strcmp(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)), str::mesh_light) == 0)
       {
          // Special case for mesh lights.
          // The mesh can be of any size and shape and will not give a consistent 
          // result. So instead use a quad light stand-in with the same properties.
-         AtNode *light = AiNode(universe, "quad_light");
-         AiNodeSetStr(light, "name", "light");
-         AiNodeSetMatrix(light, "matrix", matrix);
-         AtRGB color = AiNodeGetRGB(arnoldNode, "color");
-         AiNodeSetRGB(light,  "color", color.r, color.g, color.b);
-         AiNodeSetFlt(light,  "intensity",       AiNodeGetFlt(arnoldNode, "intensity"));
-         AiNodeSetFlt(light,  "exposure",        AiNodeGetFlt(arnoldNode, "exposure"));
-         AiNodeSetInt(light,  "samples",         AiNodeGetInt(arnoldNode, "samples"));
-         AiNodeSetBool(light, "normalize",       AiNodeGetBool(arnoldNode, "normalize"));
-         AiNodeSetFlt(light,  "diffuse",         AiNodeGetFlt(arnoldNode, "diffuse"));
-         AiNodeSetFlt(light,  "specular",        AiNodeGetFlt(arnoldNode, "specular"));
+         AtNode *light = AiNode(universe, str::quad_light, str::light);
+         AiNodeSetMatrix(light, str::matrix, matrix);
+         AtRGB color = AiNodeGetRGB(arnoldNode, str::color);
+         AiNodeSetRGB(light,  str::color, color.r, color.g, color.b);
+         AiNodeSetFlt(light,  str::intensity,       AiNodeGetFlt(arnoldNode, str::intensity));
+         AiNodeSetFlt(light,  str::exposure,        AiNodeGetFlt(arnoldNode, str::exposure));
+         AiNodeSetInt(light,  str::samples,         AiNodeGetInt(arnoldNode, str::samples));
+         AiNodeSetBool(light, str::normalize,       AiNodeGetBool(arnoldNode, str::normalize));
+         AiNodeSetFlt(light,  str::diffuse,         AiNodeGetFlt(arnoldNode, str::diffuse));
+         AiNodeSetFlt(light,  str::specular,        AiNodeGetFlt(arnoldNode, str::specular));
 
          // Hide original mesh light
          AtNode* meshNode = translator->GetArnoldNode("mesh");
@@ -284,35 +282,33 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       }
       else
       {
-         AiNodeSetMatrix(arnoldNode, "matrix", matrix);
+         AiNodeSetMatrix(arnoldNode, str::matrix, matrix);
       }
    }
    else if (m_swatchClass == SWATCH_LIGHTFILTER || m_swatchClass == SWATCH_ATMOSPHERE)
    {
       // Use a spot light at -1, 1, 1 looking at 0, 0, 0
       // to preview light filters and atmosphere effects
-      AtNode *light = AiNode(universe, "spot_light");
-      AiNodeSetStr(light, "name", "light");
-      AiNodeSetFlt(light, "intensity", 1.f);
-      AiNodeSetVec(light, "position", -1.f, 1.f, 1.f);
-      AiNodeSetVec(light, "look_at", 0.f, 0.f, 0.f);
+      AtNode *light = AiNode(universe, str::spot_light, str::light);
+      AiNodeSetFlt(light, str::intensity, 1.f);
+      AiNodeSetVec(light, str::position, -1.f, 1.f, 1.f);
+      AiNodeSetVec(light, str::look_at, 0.f, 0.f, 0.f);
       // AiNodeSetFlt(light, "cone_angle", 30.f);
 
       if (m_swatchClass == SWATCH_LIGHTFILTER)
       {
-         AiNodeSetPtr(light, "filters", arnoldNode);
+         AiNodeSetPtr(light, str::filters, arnoldNode);
       }
       else if (m_swatchClass == SWATCH_ATMOSPHERE)
       {
-         AiNodeSetBool(light, "cast_volumetric_shadows", true);
+         AiNodeSetBool(light, str::cast_volumetric_shadows, true);
       }
    }
    else
    {
       // Default light for swatching shaders etc
-      AtNode *light = AiNode(universe, "distant_light");
-      AiNodeSetStr(light, "name", "light");
-      AiNodeSetVec(light, "direction", 1.0f, -1.f, -1.0f);
+      AtNode *light = AiNode(universe, str::distant_light, str::light);
+      AiNodeSetVec(light, str::direction, 1.0f, -1.f, -1.0f);
    }
 
    // Set the global options for background and atmosphere
@@ -320,30 +316,29 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    AtNode * const options = AiUniverseGetOptions(universe);
    
    MTime ct = MAnimControl::currentTime();
-   AiNodeSetFlt(options, "frame", (float)ct.value());
+   AiNodeSetFlt(options, str::frame, (float)ct.value());
 
    // If we are swatching an environment (background) shader
    if (m_swatchClass == SWATCH_ENVIRONMENT)
    {
-      AiNodeSetPtr(options, "background", arnoldNode);
+      AiNodeSetPtr(options, str::background, arnoldNode);
    }
    else
    {
       // Add a default sky shader to get solid alpha
       // TODO : options to use a custom environment for swatches or use render setting's?
-      AtNode* background = AiNode(universe, "sky");
-      AiNodeSetStr(background, "name", "background");
-      AiNodeSetRGB (background, "color", 0.0f, 0.0f, 0.0f);
-      AiNodeSetPtr(options, "background", background);
+      AtNode* background = AiNode(universe, str::sky, str::background);
+      AiNodeSetRGB (background, str::color, 0.0f, 0.0f, 0.0f);
+      AiNodeSetPtr(options, str::background, background);
    }
 
    // If we are swatching an atmosphere shader
    if (m_swatchClass == SWATCH_ATMOSPHERE)
    {
-      AiNodeSetPtr(options, "atmosphere", arnoldNode);
+      AiNodeSetPtr(options, str::atmosphere, arnoldNode);
    }
-   AiNodeSetBool(options, "skip_license_check", true);
-   AiNodeSetBool(options, "texture_automip", false);
+   AiNodeSetBool(options, str::skip_license_check, true);
+   AiNodeSetBool(options, str::texture_automip, false);
 
    return MStatus::kSuccess;
 }
@@ -451,26 +446,25 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    // Use the render view output driver. It will *not* be displayed
    // in the render view, we're just using the Arnold Node.
    // See DisplayUpdateQueueToMImage() for how we get the image.
-   AtNode* render_view = AiNode(universe, "renderview_display", "swatch_renderview_display");
+   AtNode* render_view = AiNode(universe, str::renderview_display, str::swatch_renderview_display);
    
-   AiNodeSetPtr(render_view, "swatch", image().floatPixels());
+   AiNodeSetPtr(render_view, str::swatch, image().floatPixels());
 
 
-   AtNode* filter = AiNode(universe, "gaussian_filter");
-   AiNodeSetStr(filter, "name", "swatch_renderview_filter");
-   AiNodeSetFlt(filter, "width", 2.0f);
+   AtNode* filter = AiNode(universe, str::gaussian_filter, str::swatch_renderview_filter);
+   AiNodeSetFlt(filter, str::width, 2.0f);
 
    AtNode* options = AiUniverseGetOptions(universe);
 
    COptionsTranslator::AddProjectFoldersToSearchPaths(options);
-   AiNodeDeclare(options, "is_swatch", "constant BOOL");
-   AiNodeSetBool(options, "is_swatch", true);
-   AiNodeSetStr(options, "pin_threads", "off");
-   AiNodeSetInt(options, "threads", 4);
+   AiNodeDeclare(options, str::is_swatch, str::constant_BOOL);
+   AiNodeSetBool(options, str::is_swatch, true);
+   AiNodeSetStr(options, str::pin_threads, str::off);
+   AiNodeSetInt(options, str::threads, 4);
 
    MString texture_searchpath = fnOptions.findPlug("texture_searchpath", true).asString();
    if (texture_searchpath.length() > 0)
-      AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+      AiNodeSetStr(options, str::texture_searchpath, AtString(texture_searchpath.asChar()));
 
    COptionsTranslator::AddProjectFoldersToSearchPaths(options);
 
@@ -482,19 +476,19 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    outputsStr += AiNodeGetName(render_view);
    
    AiArraySetStr(outputs, 0, outputsStr.c_str());
-   AiNodeSetArray(options, "outputs", outputs);
+   AiNodeSetArray(options, str::outputs, outputs);
 
    // Most options should be read from an ass so just need to set the res and
    // guess a reasonable bucket size.
-   AiNodeSetInt(options, "xres", res);
-   AiNodeSetInt(options, "yres", res);
-   AiNodeSetInt(options, "bucket_size", res/4);
-   AiNodeSetInt(options, "GI_sss_samples", 4);
+   AiNodeSetInt(options, str::xres, res);
+   AiNodeSetInt(options, str::yres, res);
+   AiNodeSetInt(options, str::bucket_size, res/4);
+   AiNodeSetInt(options, str::GI_sss_samples, 4);
 
 
    // Start the render on the current thread.
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_MATERIAL_SWATCH);
-   AiRenderSetHintBool(renderSession, AtString("progressive"), false);
+   AiRenderSetHintBool(renderSession, str::progressive, false);
    AiRenderBegin(renderSession);
    
    while (true)
@@ -604,7 +598,7 @@ bool CRenderSwatchGenerator::doIteration()
 // This will create a polygon sphere for swatching
 AtNode* CRenderSwatchGenerator::PolySphere(AtUniverse *universe)
 {
-   AtNode *sph = AiNode(universe, "polymesh");
+   AtNode *sph = AiNode(universe, str::polymesh);
 
    AtArray *nsides = AiArray( 64, 1, AI_TYPE_UINT,
                               4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -674,15 +668,15 @@ AtNode* CRenderSwatchGenerator::PolySphere(AtUniverse *universe)
 
    AtArray *uvlist = AiArrayConvert(79, 1, AI_TYPE_VECTOR2, &(uvs[0]));
 
-   AiNodeSetArray(sph, "nsides", nsides);
-   AiNodeSetArray(sph, "vidxs", vidxs);
-   AiNodeSetArray(sph, "uvidxs", uvidxs);
-   AiNodeSetArray(sph, "vlist", vlist);
-   AiNodeSetArray(sph, "uvlist", uvlist);
+   AiNodeSetArray(sph, str::nsides, nsides);
+   AiNodeSetArray(sph, str::vidxs, vidxs);
+   AiNodeSetArray(sph, str::uvidxs, uvidxs);
+   AiNodeSetArray(sph, str::vlist, vlist);
+   AiNodeSetArray(sph, str::uvlist, uvlist);
 
    // Add tangents for better anisotropic preview
-   AiNodeDeclare(sph, "tangent", "varying VECTOR");
-   AiNodeDeclare(sph, "bitangent", "varying VECTOR");
+   AiNodeDeclare(sph, str::tangent, str::varying_VECTOR);
+   AiNodeDeclare(sph, str::bitangent, str::varying_VECTOR);
 
    float tgts[174] =       {
                               -0.65328145f, -6.9356688e-08f, -0.65328145f, -0.92387944f, -1.7763568e-15f, -1.4901161e-08f,
@@ -733,13 +727,13 @@ AtNode* CRenderSwatchGenerator::PolySphere(AtUniverse *universe)
 
    AtArray *bitgtlist = AiArrayConvert(58, 1, AI_TYPE_VECTOR, &(bitgts[0]));
 
-   AiNodeSetArray(sph, "tangent", tgtlist);
-   AiNodeSetArray(sph, "bitangent", bitgtlist);
+   AiNodeSetArray(sph, str::tangent, tgtlist);
+   AiNodeSetArray(sph, str::bitangent, bitgtlist);
 
    // TODO : in some cases might be interesting to use more subdivision (displacement)
    // while in some cases it's not (wireframe shader)
-   AiNodeSetBool(sph, "smoothing", true);
-   AiNodeSetStr(sph, "subdiv_type", "catclark");
+   AiNodeSetBool(sph, str::smoothing, true);
+   AiNodeSetStr(sph, str::subdiv_type, str::catclark);
 
    return sph;
 }
