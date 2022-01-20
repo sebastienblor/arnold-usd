@@ -24,9 +24,11 @@ CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) :
                            m_optionsExported(false)
 {
    AddUpdateCallbacks();
+   m_sessionOptions.SetExportResolutionOverscan(false); // MTOA-942 disable overscan for ARV otherwise this causes a crash (ARNOLD-11990)
    if (viewport)
    {
-      m_sessionOptions.SetExportOverscan(true);
+      m_sessionOptions.SetExportResolutionOverscan(true); 
+      m_sessionOptions.SetExportCameraOverscan(true);
       
       // We need to ensure motion blur is disabled for AVP, otherwise
       // changing the current frame could force a new render   
