@@ -411,6 +411,8 @@ struct DLLEXPORT CSessionOptions
    bool GetExportResolutionOverscan() const {return m_exportResolutionOverscan;}
    void SetExportResolutionOverscan(bool b) {m_exportResolutionOverscan = b;}
 
+   bool IsMayaUsd() const {return m_mayaUsd;}
+   void SetMayaUsd(bool b) {m_mayaUsd = b;}
 private:
 
    CSessionOptions();
@@ -529,4 +531,5 @@ private:
    bool m_exportFileDrivers;
    bool m_exportCameraOverscan;
    bool m_exportResolutionOverscan;
+   bool m_mayaUsd;
 };

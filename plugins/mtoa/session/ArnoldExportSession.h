@@ -33,3 +33,11 @@ private:
    AtBBox GetBoundingBox();
 
 }; 
+
+class DLLEXPORT CArnoldSceneSession : public CArnoldSession
+{
+public:
+   CArnoldSceneSession() : CArnoldSession(true, true) {}
+   virtual ~CArnoldSceneSession() {}
+   bool IsFileExport() const override {return true;}
+};

@@ -112,6 +112,7 @@ MObject CArnoldOptionsNode::s_export_full_paths;
 MObject CArnoldOptionsNode::s_export_separator;
 MObject CArnoldOptionsNode::s_export_namespace;
 MObject CArnoldOptionsNode::s_export_dag_name;
+MObject CArnoldOptionsNode::s_export_prefix;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
 MObject CArnoldOptionsNode::s_postTranslationCallback;
@@ -715,7 +716,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Shape", MTOA_EXPORT_DAG_SHAPE);
    eAttr.addField("Transform", MTOA_EXPORT_DAG_TRANSFORM);
    addAttribute(s_export_dag_name);
-   
+
+   s_export_prefix = tAttr.create("exportPrefix", "export_prefix", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_export_prefix);   
 
    s_export_shading_engine = nAttr.create("exportShadingEngine", "export_shading_engine", MFnNumericData::kBoolean);
    nAttr.setKeyable(false);
@@ -826,6 +830,15 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setHidden(true);   
    nAttr.setWritable(false);
    addAttribute(legacyTextureSpecularBlur);
+
+   // internal parameter, so that we can trigger a mayaUSD export without re-exporting 
+   // the builtin parameters on builtin shapes (e.g. vertex positions, etc...)
+   MObject mayaUsdExport = nAttr.create("exportMayaUsd", "export_maya_usd", MFnNumericData::kBoolean);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setDefault(false);
+   addAttribute(mayaUsdExport);
 
 //   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";

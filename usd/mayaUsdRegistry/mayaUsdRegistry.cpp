@@ -70,6 +70,7 @@ TF_DEFINE_PRIVATE_TOKENS(
 );
 // clang-format on
 
+#ifdef MTOA_USD_CHASER
 REGISTER_SHADING_MODE_EXPORT_MATERIAL_CONVERSION(
     _tokens->conversionName,
     _tokens->renderContext,
@@ -81,6 +82,7 @@ REGISTER_SHADING_MODE_IMPORT_MATERIAL_CONVERSION(
     _tokens->renderContext,
     _tokens->niceName,
     _tokens->importDescription);
+#endif
 
 namespace {
 
@@ -240,7 +242,7 @@ const ArnoldShaderMap &GetMayaToArnoldUsdAttrs(const std::string &shader)
     return s_mayaToUsdAttributes[shader];
 }
 
-
+#ifdef MTOA_USD_CHASER
 TF_REGISTRY_FUNCTION(UsdMayaShaderWriterRegistry)
 {
     _RegisterMayaNodes(UsdArnoldShaderWriter::RegisterWriter);
@@ -250,6 +252,15 @@ TF_REGISTRY_FUNCTION(UsdMayaShaderReaderRegistry)
 {
     _RegisterMayaNodes(UsdArnoldShaderReader::RegisterReader);
 }
+#endif
+
+/*
+The chaser can be executed with a command like :
+cmds.mayaUSDExport(
+    file="output.usd",
+    frameRange=[1, 10],
+    chaser=['arnold'])
+*/
 
 
 PXR_NAMESPACE_CLOSE_SCOPE
