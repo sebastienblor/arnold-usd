@@ -3,6 +3,7 @@
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
 #include "utils/MayaUtils.h"
+#include "utils/ConstantStrings.h"
 #include "session/ArnoldSession.h"
 #include "translators/NodeTranslatorImpl.h"
 
@@ -78,8 +79,8 @@ void CImagePlaneTranslator::Export(AtNode *node)
    if (type >= 2 || displayMode <= 1)
    {
       AiNodeUnlink(colorCorrect, "input");
-      AiNodeSetRGBA(colorCorrect, "input", 0.f, 0.f, 0.f, 0.f);
-      AiNodeSetFlt(colorCorrect, "alpha_multiply", 0.f);      
+      AiNodeSetRGBA(colorCorrect, str::input, 0.f, 0.f, 0.f, 0.f);
+      AiNodeSetFlt(colorCorrect, str::alpha_multiply, 0.f);      
    }
    else
    {
@@ -89,12 +90,12 @@ void CImagePlaneTranslator::Export(AtNode *node)
          if (rgba_to_float == NULL)
             rgba_to_float = AddArnoldNode("rgba_to_float", "conv");
 
-         AiNodeSetStr(rgba_to_float, "mode", (displayMode == 5) ? "a" : "luminance");
-         AiNodeLink(rgba_to_float, "input", colorCorrect);
-         AiNodeLink(uv_transform, "input", rgba_to_float);
+         AiNodeSetStr(rgba_to_float, str::mode, (displayMode == 5) ? str::a : str::luminance);
+         AiNodeLink(rgba_to_float, str::input, colorCorrect);
+         AiNodeLink(uv_transform, str::input, rgba_to_float);
 
       } else
-         AiNodeLink(uv_transform, "input", colorCorrect);
+         AiNodeLink(uv_transform, str::input, colorCorrect);
 
       ProcessParameter(colorCorrect, "multiply", AI_TYPE_RGB, "colorGain");
       ProcessParameter(colorCorrect, "add", AI_TYPE_RGB, "colorOffset");
@@ -123,7 +124,7 @@ void CImagePlaneTranslator::Export(AtNode *node)
    if (type == 0)
    {
       // Image
-      AiNodeLink(image, "passthrough", uv_transform);
+      AiNodeLink(image, str::passthrough, uv_transform);
 
       MString imageName;
       MImage mImage;
@@ -140,42 +141,42 @@ void CImagePlaneTranslator::Export(AtNode *node)
       }
 
       // check if filename has changed. If it has we tell ArnoldSession to update tx
-      MString prevFilename = AiNodeGetStr(image, "filename").c_str();
-      AtString prevColorSpace = AiNodeGetStr(image, "color_space");
+      MString prevFilename = AiNodeGetStr(image, str::filename).c_str();
+      AtString prevColorSpace = AiNodeGetStr(image, str::color_space);
 
       MString resolvedFilename = imageName; // do we need to do anything else to resolve the filename ?
 
 
-      AiNodeSetStr(image, "filename", resolvedFilename.asChar());
+      AiNodeSetStr(image, str::filename, AtString(resolvedFilename.asChar()));
 
       if (m_impl->m_session->IsFileExport() && (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
       {   
          // if the export option for color managers is turned off, consider that color management is disabled #2995
          // here we want to reset the color_space attribute so that it's left to arnold's "automatic" default mode,
          // we don't want to force it to an empty string which behaves differently (see #MTOA-727)
-         AiNodeResetParameter(image, "color_space");
+         AiNodeResetParameter(image, str::color_space);
       }
       else 
       {
          // only set the color_space if the texture isn't a TX. Otherwise force it to an empty value (passthrough)
-         AiNodeSetStr(image, "color_space", FindMayaPlug("colorSpace").asString().asChar());
+         AiNodeSetStr(image, str::color_space, AtString(FindMayaPlug("colorSpace").asString().asChar()));
          if (resolvedFilename.length() > 4)
          {
             MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
 
             if (extension == ".tx" || extension ==  ".TX")
             {
-               AiNodeSetStr(image, "color_space", "");
+               AiNodeSetStr(image, str::color_space, AtString());
             }
          }
       }   
 
-      AtString colorSpace = AiNodeGetStr(image, "color_space");
+      AtString colorSpace = AiNodeGetStr(image, str::color_space);
       if (GetSessionOptions().GetAutoTx() && 
             ((!IsExported()) || (colorSpace != prevColorSpace) || (prevFilename != resolvedFilename)))
          RequestTxUpdate(std::string(resolvedFilename.asChar()), std::string(colorSpace.c_str()));   
 
-      AiNodeSetBool(image, "ignore_missing_textures", true);
+      AiNodeSetBool(image, str::ignore_missing_textures, true);
       ProcessParameter(image, "missing_texture_color", AI_TYPE_RGBA, "aiOffscreenColor");
       
       if (coverageOriginX < 0)
@@ -183,7 +184,7 @@ void CImagePlaneTranslator::Export(AtNode *node)
       if (coverageOriginY < 0)
          coverageY = AiMax((double)AI_EPSILON, coverageY + coverageOriginY);
       
-      AiNodeSetVec2(uv_transform, "coverage",  (float)iWidth / (float)coverageX , (float)iHeight / (float)coverageY);
+      AiNodeSetVec2(uv_transform, str::coverage,  (float)iWidth / (float)coverageX , (float)iHeight / (float)coverageY);
 
       if (iAspect != planeAspect)
       {
@@ -220,8 +221,8 @@ void CImagePlaneTranslator::Export(AtNode *node)
          }
       }
       ProcessParameter(uv_transform, "wrap_frame_color", AI_TYPE_RGBA, "aiOffscreenColor");
-      AiNodeSetStr(uv_transform, "wrap_frame_u", "color");
-      AiNodeSetStr(uv_transform, "wrap_frame_v", "color");
+      AiNodeSetStr(uv_transform, str::wrap_frame_u, str::color);
+      AiNodeSetStr(uv_transform, str::wrap_frame_v, str::color);
    } else
    {
       // Connect shader to uv_transform
@@ -232,7 +233,7 @@ void CImagePlaneTranslator::Export(AtNode *node)
          AtNode *sourceTexture = ExportConnectedNode(conn[0]);
          if (sourceTexture)
          {
-            AiNodeLink(sourceTexture, "passthrough", uv_transform);
+            AiNodeLink(sourceTexture, str::passthrough, uv_transform);
          }
 
       }
@@ -240,15 +241,15 @@ void CImagePlaneTranslator::Export(AtNode *node)
       coverageOriginX = coverageOriginY = 0.0;
       scaleX = planeSizeX;
       scaleY = planeSizeY;
-      AiNodeSetStr(uv_transform, "wrap_frame_u", "periodic");
-      AiNodeSetStr(uv_transform, "wrap_frame_v", "periodic");
-      AiNodeResetParameter(uv_transform, "coverage");
+      AiNodeSetStr(uv_transform, str::wrap_frame_u, str::periodic);
+      AiNodeSetStr(uv_transform, str::wrap_frame_v, str::periodic);
+      AiNodeResetParameter(uv_transform, str::coverage);
    }
 
    float rotate = FindMayaPlug("rotate").asFloat() * AI_RTOD;
-   AiNodeSetFlt(uv_transform, "rotate", rotate);
-   AiNodeSetVec2(uv_transform, "translate_frame", (float)offsetX, (float)offsetY);
-   AiNodeSetVec2(uv_transform, "scale_frame", 1.f / AiMax(AI_EPSILON, (float)scaleX), 1.f / AiMax(AI_EPSILON, (float)(scaleY)));
+   AiNodeSetFlt(uv_transform, str::rotate, rotate);
+   AiNodeSetVec2(uv_transform, str::translate_frame, (float)offsetX, (float)offsetY);
+   AiNodeSetVec2(uv_transform, str::scale_frame, 1.f / AiMax(AI_EPSILON, (float)scaleX), 1.f / AiMax(AI_EPSILON, (float)(scaleY)));
    
    // FIXME we're not supporting coverageOrigin here
    // AiNodeSetVec2(uv_transform, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);

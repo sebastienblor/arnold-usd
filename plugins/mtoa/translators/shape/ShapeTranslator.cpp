@@ -11,6 +11,7 @@
 #include <common/UtilityFunctions.h>
 #include <utils/HashUtils.h>
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 void CShapeTranslator::Init()
 {
@@ -44,7 +45,7 @@ void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
          AtArray* array = AiArrayAllocate(numSets, 1, AI_TYPE_STRING);
          for (unsigned int i = 0; i < numSets; ++i)
             AiArraySetStr(array, i, traceSetArray[i].asChar());
-         AiNodeSetArray(node, "trace_sets", array);
+         AiNodeSetArray(node, str::trace_sets, array);
       }
    }
 }
@@ -53,7 +54,7 @@ void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetByte(node, "visibility", ComputeVisibility());
+   AiNodeSetByte(node, str::visibility, ComputeVisibility());
 
    MPlug plug;
 
@@ -68,9 +69,9 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
       MString setname = plug.asString();
       if (setname != "")
       {
-         if (AiNodeLookUpUserParameter(node, "sss_setname") == NULL)
-            AiNodeDeclareConstant(node, "sss_setname", AI_TYPE_STRING);
-         AiNodeSetStr(node, "sss_setname", setname.asChar());
+         if (AiNodeLookUpUserParameter(node, str::sss_setname) == NULL)
+            AiNodeDeclareConstant(node, str::sss_setname, AI_TYPE_STRING);
+         AiNodeSetStr(node, str::sss_setname, AtString(setname.asChar()));
       }
    }   
    plug = FindMayaPlug("aiToonId", &status);
@@ -79,9 +80,9 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
       MString toonId = plug.asString();
       if (toonId != "")
       {
-         if (AiNodeLookUpUserParameter(node, "toon_id") == NULL)
-            AiNodeDeclareConstant(node, "toon_id", AI_TYPE_STRING);
-         AiNodeSetStr(node, "toon_id", toonId.asChar());
+         if (AiNodeLookUpUserParameter(node, str::toon_id) == NULL)
+            AiNodeDeclareConstant(node, str::toon_id, AI_TYPE_STRING);
+         AiNodeSetStr(node, str::toon_id, AtString(toonId.asChar()));
       }
    }   
    
@@ -90,23 +91,23 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
    MFnDependencyNode dnode(m_dagPath.node(), &status);
    if (status)
-      AiNodeSetUInt(node, "id",  getHash(node));
+      AiNodeSetUInt(node, str::id,  getHash(node));
 
    if (RequiresMotionData())
    {
       double motionStart, motionEnd;
       GetSessionOptions().GetMotionRange(motionStart, motionEnd);
-      AiNodeSetFlt(node, "motion_start", (float)motionStart);
-      AiNodeSetFlt(node, "motion_end", (float)motionEnd);
+      AiNodeSetFlt(node, str::motion_start, (float)motionStart);
+      AiNodeSetFlt(node, str::motion_end, (float)motionEnd);
    }
 
    if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
    {
-      if (AiNodeLookUpUserParameter(node, "maya_full_name") == NULL)
-         AiNodeDeclare(node, "maya_full_name", "constant STRING");
+      if (AiNodeLookUpUserParameter(node, str::maya_full_name) == NULL)
+         AiNodeDeclare(node, str::maya_full_name, str::constant_STRING);
    
       MString fullName = m_dagPath.fullPathName();
-      AiNodeSetStr(node, "maya_full_name", AtString(fullName.asChar()));
+      AiNodeSetStr(node, str::maya_full_name, AtString(fullName.asChar()));
    }
 }
 
@@ -163,7 +164,7 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
    AiMsgWarning("[mtoa] SetRootShader function is deprecated, please set the shader with AiNodeSetPtr");
    AtNode *shape = GetArnoldNode();
    if (shape != NULL)
-      AiNodeSetPtr(shape, "shader", rootShader);
+      AiNodeSetPtr(shape, str::shader, rootShader);
 }
 
 

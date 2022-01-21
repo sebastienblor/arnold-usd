@@ -1,4 +1,5 @@
 #include "ArnoldDrawGeometry.h"
+#include "utils/ConstantStrings.h"
 #include <maya/MDistance.h>
 #include <maya/MMatrix.h>
 
@@ -30,7 +31,7 @@ CArnoldDrawGeometry::CArnoldDrawGeometry(AtNode* node)
    m_BBMax.y = -AI_BIG;
    m_BBMax.z = -AI_BIG;
    
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+   p_matrices = AiArrayCopy(AiNodeGetArray(node, str::matrix));
 
    if(!AiArrayGetNumElements(p_matrices)){
 	  AiArrayResize(p_matrices, 1, 1);
@@ -38,7 +39,7 @@ CArnoldDrawGeometry::CArnoldDrawGeometry(AtNode* node)
    }
 
    m_matrix = AiArrayGetMtx(p_matrices, 0);
-   m_visible = AiNodeGetByte(node, "visibility") != 0;
+   m_visible = AiNodeGetByte(node, str::visibility) != 0;
    m_invalid = false;
 }
 
@@ -98,7 +99,7 @@ CArnoldDrawPolymesh::CArnoldDrawPolymesh(AtNode* node) : CArnoldDrawGeometry(nod
     m_polyTriangulator(NULL),
     mTriangulator(NULL)
 {  
-   AtArray* vlist = AiNodeGetArray(node, "vlist");  
+   AtArray* vlist = AiNodeGetArray(node, str::vlist);
    unsigned nelements = AiArrayGetNumElements(vlist);
    if ( nelements )
    {
@@ -140,7 +141,7 @@ CArnoldDrawPolymesh::CArnoldDrawPolymesh(AtNode* node) : CArnoldDrawGeometry(nod
       return;
    }
    
-   AtArray* vidxs = AiNodeGetArray(node, "vidxs");
+   AtArray* vidxs = AiNodeGetArray(node, str::vidxs);
    unsigned vidxElements = AiArrayGetNumElements(vidxs);
    if (vidxElements)
    {
@@ -154,7 +155,7 @@ CArnoldDrawPolymesh::CArnoldDrawPolymesh(AtNode* node) : CArnoldDrawGeometry(nod
       return;
    }
 
-   AtArray* nsides = AiNodeGetArray(node, "nsides");
+   AtArray* nsides = AiNodeGetArray(node, str::nsides);
    unsigned nsidesElements = AiArrayGetNumElements(nsides);
    if (nsidesElements)
    {
@@ -168,8 +169,8 @@ CArnoldDrawPolymesh::CArnoldDrawPolymesh(AtNode* node) : CArnoldDrawGeometry(nod
       return;
    }
    
-   AtArray* nlist = AiNodeGetArray(node, "nlist");
-   AtArray* nidxs = AiNodeGetArray(node, "nidxs");
+   AtArray* nlist = AiNodeGetArray(node, str::nlist);
+   AtArray* nidxs = AiNodeGetArray(node, str::nidxs);
    unsigned nlistElements = AiArrayGetNumElements(nlist);
    unsigned nidxsElements = AiArrayGetNumElements(nidxs);
    if (nlistElements > 0 && nidxsElements > 0)
@@ -368,7 +369,7 @@ size_t CArnoldDrawPolymesh::SharedVertexCount() const
 
 CArnoldDrawPoints::CArnoldDrawPoints(AtNode* node) : CArnoldDrawGeometry(node)
 {   
-   AtArray* points = AiNodeGetArray(node, "points");
+   AtArray* points = AiNodeGetArray(node, str::points);
    unsigned nelements = (points != 0) ? AiArrayGetNumElements(points) : 0;
    if (nelements > 0)
    {
@@ -412,8 +413,8 @@ void CArnoldDrawPoints::GetPoints(float* vertices, const AtMatrix* matrix) const
 
 CArnoldDrawBox::CArnoldDrawBox(AtNode* node) : CArnoldDrawGeometry(node)
 {
-   m_BBMin = AiNodeGetVec(node, "min");
-   m_BBMax = AiNodeGetVec(node, "max");
+   m_BBMin = AiNodeGetVec(node, str::min);
+   m_BBMax = AiNodeGetVec(node, str::max);
 }
 
 CArnoldDrawBox::~CArnoldDrawBox()
@@ -481,19 +482,12 @@ CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* procNode, AtProcViewportMod
    AtUniverse *universe = AiUniverse();
    
    MDistance dist(1.0, MDistance::uiUnit());
-   AiNodeSetFlt(AiUniverseGetOptions(AiNodeGetUniverse(procNode)), "meters_per_unit", (float)dist.asMeters());
+   AiNodeSetFlt(AiUniverseGetOptions(AiNodeGetUniverse(procNode)), str::meters_per_unit, (float)dist.asMeters());
 
    AiProceduralViewport(procNode, universe, mode);
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
    m_bbox.clear();
-
-   static const AtString polymesh_str("polymesh");
-   static const AtString points_str("points");
-   static const AtString procedural_str("procedural");
-   static const AtString box_str("box");
-   static const AtString ginstance_str("ginstance");
-   static const AtString node_str("node");
 
    std::vector<std::pair<CArnoldDrawGInstance *, std::string> > instances;
    while (!AiNodeIteratorFinished(iter))
@@ -505,30 +499,30 @@ CArnoldDrawProcedural::CArnoldDrawProcedural(AtNode* procNode, AtProcViewportMod
       MString nodeName = MString(AiNodeGetName(node));
       CArnoldDrawGeometry* g = 0;
       bool isInstance = false;
-      if (AiNodeIs(node, polymesh_str))
+      if (AiNodeIs(node, str::polymesh))
          g = new CArnoldDrawPolymesh(node);
-      else if (AiNodeIs(node, points_str))
+      else if (AiNodeIs(node, str::points))
          g = new CArnoldDrawPoints(node);
-      else if(AiNodeIs(node, procedural_str))
+      else if(AiNodeIs(node, str::procedural))
          g = new CArnoldDrawProcedural(node, mode);
-      else if(AiNodeIs(node, box_str))
+      else if(AiNodeIs(node, str::box))
          g = new CArnoldDrawBox(node);
-      else if (AiNodeIs(node, ginstance_str))
+      else if (AiNodeIs(node, str::ginstance))
       {
-         AtNode *source = (AtNode*)AiNodeGetPtr(node, node_str);
+         AtNode *source = (AtNode*)AiNodeGetPtr(node, str::node);
          if (!source)
             continue;
-         AtMatrix total_matrix = AiNodeGetMatrix(node, "matrix");
-         bool inherit_xform = AiNodeGetBool(node, "inherit_xform");
-         AtNode *instanceNode = (AtNode*)AiNodeGetPtr(node, "node");
-         while(AiNodeIs(instanceNode, ginstance_str))
+         AtMatrix total_matrix = AiNodeGetMatrix(node, str::matrix);
+         bool inherit_xform = AiNodeGetBool(node, str::inherit_xform);
+         AtNode *instanceNode = (AtNode*)AiNodeGetPtr(node, str::node);
+         while(AiNodeIs(instanceNode, str::ginstance))
          {                  
-            AtMatrix current_matrix = AiNodeGetMatrix(instanceNode, "matrix");
+            AtMatrix current_matrix = AiNodeGetMatrix(instanceNode, str::matrix);
             if (inherit_xform)
                total_matrix = AiM4Mult(total_matrix, current_matrix);
             
-            inherit_xform = AiNodeGetBool(instanceNode, "inherit_xform");
-            instanceNode = (AtNode*)AiNodeGetPtr(instanceNode, "node");
+            inherit_xform = AiNodeGetBool(instanceNode, str::inherit_xform);
+            instanceNode = (AtNode*)AiNodeGetPtr(instanceNode, str::node);
          }
 
          std::pair<CArnoldDrawGInstance *, std::string> instance(new CArnoldDrawGInstance(node, total_matrix, inherit_xform), AiNodeGetName(source));

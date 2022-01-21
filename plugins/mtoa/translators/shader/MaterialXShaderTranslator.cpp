@@ -1,4 +1,5 @@
 #include "MaterialXShaderTranslator.h"
+#include "utils/ConstantStrings.h"
 
 AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
 {
@@ -40,15 +41,15 @@ AtNode* CArnoldMaterialXShaderTranslator::CreateArnoldNodes()
       {
          AtNode* node = (AtNode*)AiArrayGetPtr(nodes, i );
          AddExistingArnoldNode(node);
-         if (AiNodeLookUpUserParameter(node, "material_surface"))
+         if (AiNodeLookUpUserParameter(node, str::material_surface))
          {
             root_node = node;
          }
-         else if (AiNodeLookUpUserParameter(node, "material_displacement"))
+         else if (AiNodeLookUpUserParameter(node, str::material_displacement))
          {
             displ_node = node;
          }
-         else if(AiNodeLookUpUserParameter(node, "material_volume"))
+         else if(AiNodeLookUpUserParameter(node, str::material_volume))
          {
             volume_node = node;
          }

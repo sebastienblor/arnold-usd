@@ -1,6 +1,7 @@
 #include "LightTranslator.h"
 #include "nodes/ShaderUtils.h"
 #include "attributes/AttrHelper.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>
@@ -45,13 +46,13 @@ void CLightTranslator::Export(AtNode* light)
    if (FindMayaPlug("aiUseColorTemperature").asBool())
    {
       AtRGB color = ConvertKelvinToRGB(FindMayaPlug("aiColorTemperature").asFloat());
-      AiNodeSetRGB(light, "color", color.r, color.g, color.b);
+      AiNodeSetRGB(light, str::color, color.r, color.g, color.b);
    }
    else
-      ProcessParameter(light, "color", AI_TYPE_RGB);
-   ProcessParameter(light, "intensity", AI_TYPE_FLOAT);
-   ProcessParameter(light, "shadow_color", AI_TYPE_RGB);
-   AiNodeSetFlt(light,  "exposure",        FindMayaPlug("aiExposure").asFloat());
+      ProcessParameter(light, str::color, AI_TYPE_RGB);
+   ProcessParameter(light, str::intensity, AI_TYPE_FLOAT);
+   ProcessParameter(light, str::shadow_color, AI_TYPE_RGB);
+   AiNodeSetFlt(light,  str::exposure,        FindMayaPlug("aiExposure").asFloat());
 
    const bool norm = FindMayaPlug("aiNormalize").asBool();
 
@@ -60,26 +61,23 @@ void CLightTranslator::Export(AtNode* light)
       /*float intensity = AiNodeGetFlt(light, "intensity");
       m_session->ScaleArea(intensity);
       AiNodeSetFlt(light, "intensity", intensity);*/
-      float exposure = AiNodeGetFlt(light, "exposure");
+      float exposure = AiNodeGetFlt(light, str::exposure);
       m_impl->m_session->GetOptions().ScaleLightExposure(exposure);
-      AiNodeSetFlt(light, "exposure", exposure);
+      AiNodeSetFlt(light, str::exposure, exposure);
    }
 
-   AiNodeSetBool(light, "cast_shadows",    FindMayaPlug("aiCastShadows").asBool());
-   AiNodeSetFlt(light,  "shadow_density",  FindMayaPlug("aiShadowDensity").asFloat());
-   
-   AiNodeSetInt(light,  "samples",         FindMayaPlug("aiSamples").asInt());
-   AiNodeSetBool(light, "normalize",       norm);
-   AiNodeSetFlt(light,  "sss",             FindMayaPlug("aiSss").asFloat());
-   AiNodeSetFlt(light,  "indirect",        FindMayaPlug("aiIndirect").asFloat());
-   AiNodeSetFlt(light,  "volume",          FindMayaPlug("aiVolume").asFloat());
-   AiNodeSetInt(light,  "max_bounces",     FindMayaPlug("aiMaxBounces").asInt());
-   AiNodeSetInt(light,  "volume_samples",  FindMayaPlug("aiVolumeSamples").asInt());
-   
-   AiNodeSetStr(light,  "aov",  FindMayaPlug("aiAov").asString().asChar());
-   
-   AiNodeSetFlt(light,  "diffuse",         FindMayaPlug("aiDiffuse").asFloat());
-   AiNodeSetFlt(light,  "specular",        FindMayaPlug("aiSpecular").asFloat());
+   AiNodeSetBool(light, str::cast_shadows,    FindMayaPlug("aiCastShadows").asBool());
+   AiNodeSetFlt(light,  str::shadow_density,  FindMayaPlug("aiShadowDensity").asFloat());
+   AiNodeSetInt(light,  str::samples,         FindMayaPlug("aiSamples").asInt());
+   AiNodeSetBool(light, str::normalize,       norm);
+   AiNodeSetFlt(light,  str::sss,             FindMayaPlug("aiSss").asFloat());
+   AiNodeSetFlt(light,  str::indirect,        FindMayaPlug("aiIndirect").asFloat());
+   AiNodeSetFlt(light,  str::volume,          FindMayaPlug("aiVolume").asFloat());
+   AiNodeSetInt(light,  str::max_bounces,     FindMayaPlug("aiMaxBounces").asInt());
+   AiNodeSetInt(light,  str::volume_samples,  FindMayaPlug("aiVolumeSamples").asInt());
+   AiNodeSetStr(light,  str::aov,             AtString(FindMayaPlug("aiAov").asString().asChar()));
+   AiNodeSetFlt(light,  str::diffuse,         FindMayaPlug("aiDiffuse").asFloat());
+   AiNodeSetFlt(light,  str::specular,        FindMayaPlug("aiSpecular").asFloat());
 
    GetMatrix(matrix);
 
@@ -88,28 +86,28 @@ void CLightTranslator::Export(AtNode* light)
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, GetMotionStep(), matrix);
-      AiNodeSetArray(light, "matrix", matrices);
+      AiNodeSetArray(light, str::matrix, matrices);
    }
    else
    {
-      AiNodeSetMatrix(light, "matrix", matrix);
+      AiNodeSetMatrix(light, str::matrix, matrix);
    }
 
    if (RequiresMotionData())
    {
       double motionStart, motionEnd;
       GetSessionOptions().GetMotionRange(motionStart, motionEnd);
-      AiNodeSetFlt(light, "motion_start", (float)motionStart);
-      AiNodeSetFlt(light, "motion_end", (float)motionEnd);
+      AiNodeSetFlt(light, str::motion_start, (float)motionStart);
+      AiNodeSetFlt(light, str::motion_end, (float)motionEnd);
    }
 
    if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
    {
-      if (AiNodeLookUpUserParameter(light, "maya_full_name") == NULL)
-         AiNodeDeclare(light, "maya_full_name", "constant STRING");
+      if (AiNodeLookUpUserParameter(light, str::maya_full_name) == NULL)
+         AiNodeDeclare(light, str::maya_full_name, str::constant_STRING);
    
       MString fullName = m_dagPath.fullPathName();
-      AiNodeSetStr(light, "maya_full_name", AtString(fullName.asChar()));
+      AiNodeSetStr(light, str::maya_full_name, AtString(fullName.asChar()));
    }
 }
 
@@ -118,7 +116,7 @@ void CLightTranslator::ExportMotion(AtNode* light)
    AtMatrix matrix;
    GetMatrix(matrix);
 
-   AtArray* matrices = AiNodeGetArray(light, "matrix");
+   AtArray* matrices = AiNodeGetArray(light, str::matrix);
    AiArraySetMtx(matrices, GetMotionStep(), matrix);
 }
 

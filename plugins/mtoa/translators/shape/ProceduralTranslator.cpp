@@ -11,6 +11,7 @@
 #include "attributes/AttrHelper.h"
 #include "../NodeTranslatorImpl.h"
 #include "utils/time.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -52,14 +53,14 @@ AtNode* CProceduralTranslator::CreateArnoldNodes()
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetByte(node, "visibility", ComputeVisibility());   
+   AiNodeSetByte(node, str::visibility, ComputeVisibility());   
    MPlug plug;
    
    plug = FindProceduralPlug("overrideSelfShadows");
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("aiSelfShadows");
-      if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+      if (!plug.isNull()) AiNodeSetBool(node, str::self_shadows, plug.asBool());
    }
 
    // for standins, we check
@@ -67,14 +68,14 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("aiOpaque");
-      if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
+      if (!plug.isNull()) AiNodeSetBool(node, str::opaque, plug.asBool());
    }
    
    plug = FindProceduralPlug("overrideReceiveShadows");
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("receiveShadows");
-      if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
+      if (!plug.isNull()) AiNodeSetBool(node, str::receive_shadows, plug.asBool());
    }
    
    plug = FindProceduralPlug("overrideDoubleSided");
@@ -83,9 +84,9 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
       plug = FindMayaPlug("doubleSided");
       
       if (!plug.isNull() && plug.asBool())
-         AiNodeSetByte(node, "sidedness", AI_RAY_ALL);
+         AiNodeSetByte(node, str::sidedness, AI_RAY_ALL);
       else
-         AiNodeSetByte(node, "sidedness", 0);
+         AiNodeSetByte(node, str::sidedness, 0);
    }
    
    // for standins, we check
@@ -93,23 +94,23 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("aiMatte");
-      if (!plug.isNull()) AiNodeSetBool(node, "matte", plug.asBool());
+      if (!plug.isNull()) AiNodeSetBool(node, str::matte, plug.asBool());
    }
    if (RequiresMotionData())
    {
       double motionStart, motionEnd;
       GetSessionOptions().GetMotionRange(motionStart, motionEnd);
-      AiNodeSetFlt(node, "motion_start", (float)motionStart);
-      AiNodeSetFlt(node, "motion_end", (float)motionEnd);
+      AiNodeSetFlt(node, str::motion_start, (float)motionStart);
+      AiNodeSetFlt(node, str::motion_end, (float)motionEnd);
    }
 
    if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
    {
-      if (AiNodeLookUpUserParameter(node, "maya_full_name") == NULL)
-         AiNodeDeclare(node, "maya_full_name", "constant STRING");
+      if (AiNodeLookUpUserParameter(node, str::maya_full_name) == NULL)
+         AiNodeDeclare(node, str::maya_full_name, str::constant_STRING);
    
       MString fullName = m_dagPath.fullPathName();
-      AiNodeSetStr(node, "maya_full_name", AtString(fullName.asChar()));
+      AiNodeSetStr(node, str::maya_full_name, AtString(fullName.asChar()));
    }
 
 }
@@ -148,8 +149,8 @@ AtNode* CProceduralTranslator::ExportInstance(AtNode *instance, const MDagPath& 
 
    ExportMatrix(instance);
 
-   AiNodeSetPtr(instance, "node", masterNode);
-   AiNodeSetBool(instance, "inherit_xform", false);
+   AiNodeSetPtr(instance, str::node, masterNode);
+   AiNodeSetBool(instance, str::inherit_xform, false);
   
    // #2858 we must recompute the visibility instead of getting the master's one
    // since we're not sure the master has already been exported 
@@ -186,11 +187,11 @@ void CProceduralTranslator::ExportShaders()
       AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
-         AiNodeSetPtr(node, "shader", shader);
+         AiNodeSetPtr(node, str::shader, shader);
       }
       else
       {         
-         AiNodeSetPtr(node, "shader", NULL);
+         AiNodeSetPtr(node, str::shader, NULL);
       }
    }
 }
@@ -210,13 +211,13 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
    if (FindProceduralPlug("overrideLightLinking").asBool())
       ExportLightLinking(procedural);
    
-   AiNodeSetBool(procedural, "override_nodes", FindProceduralPlug("overrideNodes").asBool());
+   AiNodeSetBool(procedural, str::override_nodes, FindProceduralPlug("overrideNodes").asBool());
 
    MString nsName = m_DagNode.findPlug("aiNamespace", true).asString();
    if (nsName.length() > 0)
-      AiNodeSetStr(procedural, "namespace", nsName.asChar());
+      AiNodeSetStr(procedural, str::_namespace, AtString(nsName.asChar()));
    else
-      AiNodeResetParameter(procedural, "namespace");
+      AiNodeResetParameter(procedural, str::_namespace);
 
 
    // Now check the "operators" input. In Arnold it's a single node pointer, whereas MtoA provides an array.
@@ -238,9 +239,9 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
       }
    }
    if (inputOps.empty())
-      AiNodeResetParameter(procedural, "operator"); // don't forget to clear this attribute for IPR updates
+      AiNodeResetParameter(procedural, str::_operator); // don't forget to clear this attribute for IPR updates
    else if (inputOps.size() == 1)
-      AiNodeSetPtr(procedural, "operator", (void*)inputOps[0]); // single input, basic translation
+      AiNodeSetPtr(procedural, str::_operator, (void*)inputOps[0]); // single input, basic translation
    else
    {
       // Multiple ops, let's insert a merge operator
@@ -252,8 +253,8 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
       for (unsigned int i = 0; i < inputOps.size(); ++i)
          AiArraySetPtr(opArray, i, (void*)inputOps[i]);
       
-      AiNodeSetArray(mergeOp, "inputs", opArray);
-      AiNodeSetPtr(procedural, "operator", mergeOp);
+      AiNodeSetArray(mergeOp, str::inputs, opArray);
+      AiNodeSetPtr(procedural, str::_operator, mergeOp);
    }
    return procedural;
 }

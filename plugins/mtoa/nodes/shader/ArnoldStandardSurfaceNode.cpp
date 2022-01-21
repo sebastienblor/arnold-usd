@@ -2,7 +2,7 @@
 #include "ArnoldStandardSurfaceNode.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
-
+#include "utils/ConstantStrings.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnLightDataAttribute.h>
@@ -103,7 +103,7 @@ MStatus CArnoldStandardSurfaceNode::initialize()
    MString arnold = s_abstract.arnold;
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(arnold.asChar()));
 
    CStaticAttrHelper helper(CArnoldStandardSurfaceNode::addAttribute, nodeEntry);
 
@@ -155,34 +155,34 @@ MStatus CArnoldStandardSurfaceNode::initialize()
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-      const char* paramName = AiParamGetName(paramEntry);
+      const AtString paramName = AiParamGetName(paramEntry);
       // skip the special "name" parameter
-      if (strcmp(paramName, "name") != 0)
+      if (paramName != str::name)
       {
          bool hide = false;
-         if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
+         if (!AiMetaDataGetBool(nodeEntry, paramName, str::maya_hide, &hide) || !hide)
          {
             CAttrData attrData;
             helper.GetAttrData(paramName, attrData);
             MObject attr = helper.MakeInput(attrData);
             CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(attr, s_OUT_color));
-            if (strcmp(paramName, "base") == 0)
+            if (paramName == str::base)
             {
                s_Kd = attr;
             }
-            else if (strcmp(paramName, "base_color") == 0)
+            else if (paramName == str::base_color)
             {
                s_Kd_color = attr;
             }
-            else if (strcmp(paramName, "emission") == 0)
+            else if (paramName == str::emission)
             {
                s_emission = attr;
             }
-            else if (strcmp(paramName, "emission_color") == 0)
+            else if (paramName == str::emission_color)
             {
                s_emission_color = attr;
             }
-            else if (strcmp(paramName, "opacity") == 0)
+            else if (paramName == str::opacity)
             {
                s_opacity = attr;
                CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(attr, s_OUT_transparency));

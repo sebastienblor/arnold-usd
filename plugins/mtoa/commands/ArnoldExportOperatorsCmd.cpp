@@ -3,6 +3,7 @@
 #include "translators/NodeTranslator.h"
 #include "session/ArnoldExportSession.h"
 #include "session/SessionManager.h"
+#include "utils/ConstantStrings.h"
 
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
@@ -154,7 +155,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      {
                         MObject opNode = connections[0].node();
                         MString name = options.GetArnoldNaming(opNode);
-                        AtNode *op = AiNodeLookUpByName(universe, name.asChar());
+                        AtNode *op = AiNodeLookUpByName(universe, AtString(name.asChar()));
 
                         if (op)
                            procOps.push_back(op);
@@ -175,11 +176,11 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      // need to insert a merge op
                      MString mergeOpName = fnShape.name();
                      mergeOpName += "/input_merge_op";
-                     AtNode *mergeOp = AiNode(universe, "merge", mergeOpName.asChar());
+                     AtNode *mergeOp = AiNode(universe, str::merge, AtString(mergeOpName.asChar()));
                      AtArray* opArray = AiArrayAllocate(procOps.size(), 1, AI_TYPE_NODE);
                      for (unsigned int i = 0; i < procOps.size(); ++i)
                         AiArraySetPtr(opArray, i, (void*)procOps[i]);
-                     AiNodeSetArray(mergeOp, "inputs", opArray);
+                     AiNodeSetArray(mergeOp, str::inputs, opArray);
                      targets.insert(targets.begin(), mergeOp); // add the merge as target operator
                   }
                }
@@ -191,7 +192,7 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
             MPlug opPlug = fnNode.findPlug("message", true);
 
             MString name = options.GetArnoldNaming(objNode);
-            if (!AiNodeLookUpByName(universe, name.asChar()))
+            if (!AiNodeLookUpByName(universe, AtString(name.asChar())))
             {
                CNodeTranslator *tr = session->ExportNode(opPlug, false, 0);
                AtNode *opNode = (tr) ? tr->GetArnoldNode() : NULL;
@@ -216,10 +217,10 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
                      MString mergNodeName = name;
                      mergNodeName += "/";
                      mergNodeName += look_str;
-                     AtNode *mergeNode = AiNodeLookUpByName(universe, mergNodeName.asChar());
+                     AtNode *mergeNode = AiNodeLookUpByName(universe, AtString(mergNodeName.asChar()));
                      if (mergeNode)
                      {
-                        AiNodeSetStr(mergeNode, "name", look_str.asChar());
+                        AiNodeSetStr(mergeNode, str::name, AtString(look_str.asChar()));
                         targets.push_back(mergeNode);
                      }
                   }
@@ -236,12 +237,12 @@ MStatus CArnoldExportOperatorsCmd::doIt(const MArgList& argList)
    // Let's pick the first for now
    if (!targets.empty())
    {
-      if (AiNodeDeclare(targets[0], "is_target", "constant BOOL"))
-         AiNodeSetBool(targets[0], "is_target", true);
+      if (AiNodeDeclare(targets[0], str::is_target, str::constant_BOOL))
+         AiNodeSetBool(targets[0], str::is_target, true);
    }
 
    AtParamValueMap* params = AiParamValueMap();
-   AiParamValueMapSetInt(params, AtString("mask"), (exportShaders) ? AI_NODE_OPERATOR | AI_NODE_SHADER : AI_NODE_OPERATOR);
+   AiParamValueMapSetInt(params, str::mask, (exportShaders) ? AI_NODE_OPERATOR | AI_NODE_SHADER : AI_NODE_OPERATOR);
    AiSceneWrite(universe, filename.asChar(), params);
    AiParamValueMapDestroy(params);
 

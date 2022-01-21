@@ -1,6 +1,7 @@
 #include "ArnoldBakeGeoCmd.h"
 #include "../common/UnorderedContainer.h"
 #include "utils/MtoAAdpPayloads.h"
+#include "utils/ConstantStrings.h"
 #include "session/ArnoldSession.h"
 #include "session/SessionManager.h"
 #include <ai.h>
@@ -24,6 +25,7 @@
 #include <istream>
 #include <streambuf>
 
+#include <utils/ConstantStrings.h>
 static const std::string s_bakeGeoSessionId("bakeGeo");
 // hash function from http://www.cse.yorku.ca/~oz/hash.html
 inline size_t
@@ -128,19 +130,16 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    session->Export(&selected);
 
    // We need to ensure that a render camera is set, otherwise subdivision might fail (#3264)
-   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(universe), "camera");
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(universe), str::camera);
    if (renderCam == NULL)
    {      
       // Please don't tell anyone that I'm creating a dummy camera here,
       // it will be deleted at the end of this function anyway.
-      renderCam = AiNode(universe, "persp_camera");
-      AiNodeSetStr(renderCam, "name", "__mtoa_baking_cam");
-      AiNodeSetPtr(AiUniverseGetOptions(universe), "camera", (void*)renderCam);
+      renderCam = AiNode(universe, str::persp_camera);
+      AiNodeSetStr(renderCam, str::name, str::__mtoa_baking_cam);
+      AiNodeSetPtr(AiUniverseGetOptions(universe), str::camera, (void*)renderCam);
    }
-
-   static const AtString polymesh_str("polymesh");
-   static const AtString procedural_str("procedural");
-
+   
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
    AiRenderBegin(renderSession, AI_RENDER_MODE_FREE);
    while(AiRenderGetStatus(renderSession) != AI_RENDER_STATUS_PAUSED)
@@ -164,7 +163,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    while (!AiNodeIteratorFinished(nodeIter))
    {
       AtNode *node = AiNodeIteratorGetNext(nodeIter);
-      if (AiNodeIs(node, polymesh_str) )
+      if (AiNodeIs(node, str::polymesh) )
       {
          os <<"o "<<AiNodeGetName(node)<<"\n";
         
@@ -174,13 +173,13 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          AtVector localNormal[3], worldNormal[3];
          AtVector2 uv[3];
 
-         AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
+         AtMatrix localToWorld = AiNodeGetMatrix(node, str::matrix);
          
          AtNode *tmpNode = node;
          AtNode *parentNode = AiNodeGetParent(tmpNode);
          while (parentNode)
          {
-            AtMatrix parentMtx = AiNodeGetMatrix(parentNode, "matrix");
+            AtMatrix parentMtx = AiNodeGetMatrix(parentNode, str::matrix);
             localToWorld = AiM4Mult(localToWorld, parentMtx);
             tmpNode = parentNode;
             parentNode = AiNodeGetParent(tmpNode);

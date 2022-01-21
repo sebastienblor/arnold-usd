@@ -1,4 +1,5 @@
 #include "FluidTranslator.h"
+#include "utils/ConstantStrings.h"
 #include <maya/MFnFluid.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MColor.h>
@@ -113,7 +114,7 @@ inline void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName,
       else
          AiArraySetFlt(array, i, cVoxel);
    }
-   AiNodeSetArray(fluid, paramName, array);
+   AiNodeSetArray(fluid, AtString(paramName), array);
 }
 
 void CFluidTranslator::ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName)
@@ -134,9 +135,9 @@ void CFluidTranslator::ExportFloatGradient(MPlug plug, AtNode* node, const char*
       AiArraySetFlt(values, i, plugElement.child(1).asFloat());
       AiArraySetInt(interps, i, plugElement.child(2).asInt());
    }
-   AiNodeSetArray(node, positions_name.asChar(), positions);
-   AiNodeSetArray(node, values_name.asChar(), values);
-   AiNodeSetArray(node, interps_name.asChar(), interps);
+   AiNodeSetArray(node, AtString(positions_name.asChar()), positions);
+   AiNodeSetArray(node, AtString(values_name.asChar()), values);
+   AiNodeSetArray(node, AtString(interps_name.asChar()), interps);
 }
 
 void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName)
@@ -152,7 +153,7 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
    const MString interps_name = MString(paramName) + MString("_interps");   
    // check for the existing links, and unlink them
    // this is required to be able to change the connections in ipr
-   AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
+   AtArray* valuesOld = AiNodeGetArray(node, AtString(values_name.asChar()));
    unsigned oldNelements = AiArrayGetNumElements(valuesOld);
    for (unsigned i = 0; i < oldNelements; i++)
    {
@@ -188,9 +189,9 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
       }
       AiArraySetInt(interps, i, plugElement.child(2).asInt());
    }
-   AiNodeSetArray(node, positions_name.asChar(), positions);
-   AiNodeSetArray(node, values_name.asChar(), values);
-   AiNodeSetArray(node, interps_name.asChar(), interps);
+   AiNodeSetArray(node, AtString(positions_name.asChar()), positions);
+   AiNodeSetArray(node, AtString(values_name.asChar()), values);
+   AiNodeSetArray(node, AtString(interps_name.asChar()), interps);
 }
 
 enum GradientType{
@@ -210,21 +211,21 @@ enum GradientType{
 inline void SetContentsGradientMode(AtNode* node, const char* parameter, MFnFluid::FluidGradient fluidGradient)
 {
    if (fluidGradient == MFnFluid::kConstant)
-      AiNodeSetStr(node, parameter, "Constant");
+      AiNodeSetStr(node, AtString(parameter), AtString("Constant"));
    else if (fluidGradient == MFnFluid::kXGradient)
-      AiNodeSetStr(node, parameter, "X Gradient");
+      AiNodeSetStr(node, AtString(parameter), AtString("X Gradient"));
    else if (fluidGradient == MFnFluid::kYGradient)
-      AiNodeSetStr(node, parameter, "Y Gradient");
+      AiNodeSetStr(node, AtString(parameter), AtString("Y Gradient"));
    else if (fluidGradient == MFnFluid::kZGradient)
-      AiNodeSetStr(node, parameter, "Z Gradient");
+      AiNodeSetStr(node, AtString(parameter), AtString("Z Gradient"));
    else if (fluidGradient == MFnFluid::kNegXGradient)
-      AiNodeSetStr(node, parameter, "-X Gradient");
+      AiNodeSetStr(node, AtString(parameter), AtString("-X Gradient"));
    else if (fluidGradient == MFnFluid::kNegYGradient)
-      AiNodeSetStr(node, parameter, "-Y Gradient");
+      AiNodeSetStr(node, AtString(parameter), AtString("-Y Gradient"));
    else if (fluidGradient == MFnFluid::kNegZGradient)
-      AiNodeSetStr(node, parameter, "-Z Gradient");      
+      AiNodeSetStr(node, AtString(parameter), AtString("-Z Gradient"));      
    else if (fluidGradient == MFnFluid::kCenterGradient)
-      AiNodeSetStr(node, parameter, "Center Gradient");
+      AiNodeSetStr(node, AtString(parameter), AtString("Center Gradient"));
 };
 
 void CFluidTranslator::Export(AtNode* fluid)
@@ -233,31 +234,31 @@ void CFluidTranslator::Export(AtNode* fluid)
    MFnDependencyNode mayaFluidNode(GetMayaObject());
    
    ExportMatrix(fluid);
-   AiNodeSetByte(fluid, "visibility", ComputeVisibility());
+   AiNodeSetByte(fluid, str::visibility, ComputeVisibility());
    ExportTraceSets(fluid, FindMayaPlug("aiTraceSets"));
    ProcessParameter(fluid, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
    
    AtNode* fluid_shader = GetArnoldNode("shader");
-   AiNodeSetPtr(fluid, "shader", fluid_shader);
+   AiNodeSetPtr(fluid, str::shader, fluid_shader);
 
    AtNode* fluid_data = GetArnoldNode("data");
-   if (AiNodeLookUpUserParameter(fluid, "mtoa_fluid_data") == 0)
-      AiNodeDeclare(fluid, "mtoa_fluid_data", "constant NODE");
-   AiNodeSetPtr(fluid, "mtoa_fluid_data", fluid_data);
+   if (AiNodeLookUpUserParameter(fluid, str::mtoa_fluid_data) == 0)
+      AiNodeDeclare(fluid, str::mtoa_fluid_data, str::constant_NODE);
+   AiNodeSetPtr(fluid, str::mtoa_fluid_data, fluid_data);
    
    float stepSize = 0.1f;
    MPlug plug = FindMayaPlug("aiStepSize");
    if (!plug.isNull())
       stepSize = plug.asFloat();
-   AiNodeSetFlt(fluid, "step_size", stepSize);
+   AiNodeSetFlt(fluid, str::step_size, stepSize);
    
    plug = FindMayaPlug("transparency");
    if (!plug.isNull())
-      AiNodeSetRGB(fluid_shader, "transparency", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+      AiNodeSetRGB(fluid_shader, str::transparency, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    plug = FindMayaPlug("aiPhaseFunc");
    if (!plug.isNull())
-      AiNodeSetFlt(fluid_shader, "phase_func", plug.asFloat());
+      AiNodeSetFlt(fluid_shader, str::phase_func, plug.asFloat());
    
    MFnFluid::CoordinateMethod coordinateMode;
    
@@ -273,7 +274,7 @@ void CFluidTranslator::Export(AtNode* fluid)
          if (volumeNoisePlug.length() > 0)
          {
             AtNode* volumeNoise = ExportConnectedNode(volumeNoisePlug[0]);
-            AiNodeSetPtr(fluid_shader, "volume_texture", volumeNoise);
+            AiNodeSetPtr(fluid_shader, str::volume_texture, volumeNoise);
          }
       }
       
@@ -330,18 +331,18 @@ void CFluidTranslator::Export(AtNode* fluid)
    const int colorGradientType = mayaFluidNode.findPlug("colorInput", true).asShort();
 
    ExportRGBGradient(mayaFluidNode.findPlug("color", true), fluid_shader, "color_gradient");
-   AiNodeSetInt(fluid_shader, "color_gradient_type", colorGradientType);
-   AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias", true).asFloat());
+   AiNodeSetInt(fluid_shader, str::color_gradient_type, colorGradientType);
+   AiNodeSetFlt(fluid_shader, str::color_gradient_input_bias, mayaFluidNode.findPlug("colorInputBias", true).asFloat());
    
    const int incandescenceGradientType = mayaFluidNode.findPlug("incandescenceInput", true).asShort();
    ExportRGBGradient(mayaFluidNode.findPlug("incandescence", true), fluid_shader, "incandescence_gradient");
-   AiNodeSetInt(fluid_shader, "incandescence_gradient_type", incandescenceGradientType);
-   AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias", true).asFloat());   
+   AiNodeSetInt(fluid_shader, str::incandescence_gradient_type, incandescenceGradientType);
+   AiNodeSetFlt(fluid_shader, str::incandescence_gradient_input_bias, mayaFluidNode.findPlug("incandescenceInputBias", true).asFloat());   
    
    const int opacityGradientType = mayaFluidNode.findPlug("opacityInput", true).asShort();
    ExportFloatGradient(mayaFluidNode.findPlug("opacity", true), fluid_shader, "opacity_gradient");
-   AiNodeSetInt(fluid_shader, "opacity_gradient_type", opacityGradientType);
-   AiNodeSetFlt(fluid_shader, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias", true).asFloat());
+   AiNodeSetInt(fluid_shader, str::opacity_gradient_type, opacityGradientType);
+   AiNodeSetFlt(fluid_shader, str::opacity_gradient_input_bias, mayaFluidNode.findPlug("opacityInputBias", true).asFloat());
    
    ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
    ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
@@ -355,8 +356,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    {
       double motionStart, motionEnd;
       GetSessionOptions().GetMotionRange(motionStart, motionEnd);
-      AiNodeSetFlt(fluid, "motion_start", (float)motionStart);
-      AiNodeSetFlt(fluid, "motion_end", (float)motionEnd);
+      AiNodeSetFlt(fluid, str::motion_start, (float)motionStart);
+      AiNodeSetFlt(fluid, str::motion_end, (float)motionEnd);
    }
 
    // first getting a simple color information from the color gradient
@@ -366,17 +367,17 @@ void CFluidTranslator::Export(AtNode* fluid)
       // only if deformation motion blur is enabled, translate the parameter "enableDeformationBlur"
 
       ProcessParameter(fluid_shader, "enable_deformation_blur", AI_TYPE_BOOLEAN, "aiEnableDeformationBlur");
-      float mv_scale = AiNodeGetFlt(fluid_shader, "motion_vector_scale");
+      float mv_scale = AiNodeGetFlt(fluid_shader, str::motion_vector_scale);
       double motion_start = 0.;
       double motion_end = 1.;
       // multiply the scale by the shutter length (ignoring shutter offset here...)
       GetSessionOptions().GetMotionRange(motion_start, motion_end);
       mv_scale *= (float)(motion_end - motion_start);
       
-      AiNodeSetFlt(fluid_shader, "motion_vector_scale", mv_scale);
+      AiNodeSetFlt(fluid_shader, str::motion_vector_scale, mv_scale);
    } else
    {
-      AiNodeSetBool(fluid_shader, "enable_deformation_blur", false);
+      AiNodeSetBool(fluid_shader, str::enable_deformation_blur, false);
    }
    
    // support for gradient mode  
@@ -397,15 +398,15 @@ void CFluidTranslator::Export(AtNode* fluid)
    const AtVector mn (-0.5f * (float)xDim + dynOffX, -0.5f * (float)yDim + dynOffY, -0.5f * (float)zDim + dynOffZ);
    const AtVector mx (0.5f * (float)xDim + dynOffX, 0.5f * (float)yDim + dynOffY, 0.5f * (float)zDim + dynOffZ);
 
-   AiNodeSetVec(fluid, "min", mn.x, mn.y, mn.z);
-   AiNodeSetVec(fluid, "max", mx.x, mx.y, mx.z);
+   AiNodeSetVec(fluid, str::min, mn.x, mn.y, mn.z);
+   AiNodeSetVec(fluid, str::max, mx.x, mx.y, mx.z);
 
-   AiNodeSetInt(fluid_data, "xres", xRes);
-   AiNodeSetInt(fluid_data, "yres", yRes);
-   AiNodeSetInt(fluid_data, "zres", zRes);
+   AiNodeSetInt(fluid_data, str::xres, xRes);
+   AiNodeSetInt(fluid_data, str::yres, yRes);
+   AiNodeSetInt(fluid_data, str::zres, zRes);
    
-   AiNodeSetVec(fluid_data, "min", mn.x, mn.y, mn.z);
-   AiNodeSetVec(fluid_data, "max", mx.x, mx.y, mx.z);
+   AiNodeSetVec(fluid_data, str::min, mn.x, mn.y, mn.z);
+   AiNodeSetVec(fluid_data, str::max, mx.x, mx.y, mx.z);
 
    MFnFluid::FluidMethod fluidMethod;
    MFnFluid::FluidGradient fluidGradient;
@@ -418,11 +419,11 @@ void CFluidTranslator::Export(AtNode* fluid)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid_data, "density_method", "Gradient");
+      AiNodeSetStr(fluid_data, str::density_method, str::Gradient);
       SetContentsGradientMode(fluid_data, "density_gradient", fluidGradient);
    }
    else
-      AiNodeSetStr(fluid_data, "density_method", "Grid");
+      AiNodeSetStr(fluid_data, str::density_method, str::Grid);
 
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_data, mayaFluid.density(), "density", numVoxels);
@@ -431,11 +432,11 @@ void CFluidTranslator::Export(AtNode* fluid)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid_data, "fuel_method", "Gradient");
+      AiNodeSetStr(fluid_data, str::fuel_method, str::Gradient);
       SetContentsGradientMode(fluid_data, "fuel_gradient", fluidGradient);
    }
    else
-      AiNodeSetStr(fluid_data, "fuel_method", "Grid");
+      AiNodeSetStr(fluid_data, str::fuel_method, str::Grid);
    
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_data, mayaFluid.fuel(), "fuel", numVoxels);
@@ -444,11 +445,11 @@ void CFluidTranslator::Export(AtNode* fluid)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid_data, "temperature_method", "Gradient");
-      SetContentsGradientMode(fluid_data, "temperature_gradient", fluidGradient);
+      AiNodeSetStr(fluid_data, str::temperature_method, str::Gradient);
+      SetContentsGradientMode(fluid_data, str::temperature_gradient, fluidGradient);
    }
    else
-      AiNodeSetStr(fluid_data, "temperature_method", "Grid");
+      AiNodeSetStr(fluid_data, str::temperature_method, str::Grid);
    
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_data, mayaFluid.temperature(), "temperature", numVoxels);
@@ -459,11 +460,11 @@ void CFluidTranslator::Export(AtNode* fluid)
 
    if (fluidMethod == MFnFluid::kGradient)
    {
-      AiNodeSetStr(fluid_data, "velocity_method", "Gradient");
+      AiNodeSetStr(fluid_data, str::velocity_method, str::Gradient);
       SetContentsGradientMode(fluid_data, "velocity_gradient", fluidGradient);
    }
    else
-      AiNodeSetStr(fluid_data, "velocity_method", "Grid");
+      AiNodeSetStr(fluid_data, str::velocity_method, str::Grid);
    
    if (fluidMethod != MFnFluid::kZero)
    {
@@ -538,7 +539,7 @@ void CFluidTranslator::Export(AtNode* fluid)
                }     
             }
          }
-         AiNodeSetArray(fluid_data, "velocity", velArray);
+         AiNodeSetArray(fluid_data, str::velocity, velArray);
       }
    }
    
@@ -552,7 +553,7 @@ void CFluidTranslator::Export(AtNode* fluid)
          AtVector cCoord (u[i], v[i], w[i]);
          AiArraySetVec(array, i, cCoord);
       }
-      AiNodeSetArray(fluid_data, "coordinates", array);
+      AiNodeSetArray(fluid_data, str::coordinates, array);
    }
    
    MFnFluid::ColorMethod colorMethod;
@@ -574,7 +575,7 @@ void CFluidTranslator::Export(AtNode* fluid)
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;
             AiArraySetRGB(array, i, cColor);
          }
-         AiNodeSetArray(fluid_data, "colors", array);
+         AiNodeSetArray(fluid_data, str::colors, array);
       }
    }
 }

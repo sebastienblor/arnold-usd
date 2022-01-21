@@ -1,8 +1,7 @@
-
 #include "ArnoldStandardHairNode.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
-
+#include "utils/ConstantStrings.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnLightDataAttribute.h>
@@ -54,7 +53,7 @@ MStatus CArnoldStandardHairNode::initialize()
    MString arnold = s_abstract.arnold;
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(arnold.asChar()));
 
    CStaticAttrHelper helper(CArnoldStandardHairNode::addAttribute, nodeEntry);
 
@@ -85,15 +84,15 @@ MStatus CArnoldStandardHairNode::initialize()
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-      const char* paramName = AiParamGetName(paramEntry);
+      const AtString paramName = AiParamGetName(paramEntry);
       // skip the special "name" parameter
-      if (strcmp(paramName, "name") != 0)
+      if (paramName != str::name)
       {
          bool hide = false;
-         if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
+         if (!AiMetaDataGetBool(nodeEntry, paramName, str::maya_hide, &hide) || !hide)
          {
             CAttrData attrData;
-            helper.GetAttrData(paramName, attrData);
+            helper.GetAttrData(paramName.c_str(), attrData);
             MObject attr = helper.MakeInput(attrData);
             attributeAffects(attr, s_OUT_color);
          }

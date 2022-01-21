@@ -15,16 +15,23 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
         self.addSwatch()
         self.beginScrollLayout()
         
+        self.beginLayout("Input", collapse=False)
         self.addControl("input", label="Input")
-        self.addSeparator()
-        self.addControl("coordSpace")
-        self.addControl("prefName")
-        self.addControl("blend")
+        self.addControl('inputPerAxis', label = "Input Per Axis", changeCommand=lambda *args: self.updateParamsVisibility(self.nodeName), annotation = " This enables a texture input per each axis")
+        self.addControl("inputY", label="InputY")
+        self.addControl("inputZ", label="InputZ")
+        
+        self.endLayout()
 
         self.beginLayout("Transform", collapse=False)
         self.addControl("scale", label="Scale")
         self.addControl("rotate", label="Rotate")
         self.addControl("offset", label="Offset")
+        self.addControl("coordSpace")
+        self.addControl("prefName")
+        self.addControl("blend")
+        self.addControl("flipOnOppositeDirection", annotation = "Flip the direction of the projection.Set this to false to match with Maya's triplanar projection")
+
         self.endLayout()
 
         self.beginLayout("Cell", collapse=False)
@@ -37,4 +44,11 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
 
         self.addExtraControls()
         self.endScrollLayout()
+        self.updateParamsVisibility(self.nodeName)
     
+
+    def updateParamsVisibility(self, nodeName):
+        modeAttr = '%s.%s' % (nodeName, 'inputPerAxis')
+        modeValue = cmds.getAttr(modeAttr)
+        self.dimControl('inputY', state=modeValue != 1)
+        self.dimControl('inputZ', state=modeValue != 1)

@@ -186,7 +186,7 @@ struct DLLEXPORT CSessionOptions
    void SetExportSlashSeparator(bool slashSeparator) {m_exportSlashSeparator = slashSeparator;}
    unsigned int GetExportNamespace() const {return (unsigned int) m_exportNamespace;}
 
-   void SetupLog(AtRenderSession *renderSession) const;
+   void SetupLog(AtUniverse *universe);
 
    MMatrix& ScaleMatrix(MMatrix& matrix) const;
    AtMatrix& ScaleMatrix(AtMatrix& matrix) const;
@@ -405,12 +405,14 @@ struct DLLEXPORT CSessionOptions
    bool GetExportFileDrivers() const {return m_exportFileDrivers;}
    void SetExportFileDrivers(bool b) {m_exportFileDrivers = b;}
 
-   bool GetExportOverscan() const {return m_exportOverscan;}
-   void SetExportOverscan(bool b) {m_exportOverscan = b;}
-   
+   bool GetExportCameraOverscan() const {return m_exportCameraOverscan;}
+   void SetExportCameraOverscan(bool b) {m_exportCameraOverscan = b;}
+
+   bool GetExportResolutionOverscan() const {return m_exportResolutionOverscan;}
+   void SetExportResolutionOverscan(bool b) {m_exportResolutionOverscan = b;}
+
    bool IsMayaUsd() const {return m_mayaUsd;}
    void SetMayaUsd(bool b) {m_mayaUsd = b;}
-
 private:
 
    CSessionOptions();
@@ -503,6 +505,7 @@ private:
    unsigned int m_progressive_initial_level;
    unsigned int m_threads;
    unsigned int m_stats_mode;
+   unsigned int m_log_callbackId;
 
    bool m_useRenderRegion;
    bool m_clearBeforeRender; 
@@ -526,6 +529,7 @@ private:
    bool m_supportStereoCameras;
    bool m_supportGpu;
    bool m_exportFileDrivers;
-   bool m_exportOverscan;
+   bool m_exportCameraOverscan;
+   bool m_exportResolutionOverscan;
    bool m_mayaUsd;
 };

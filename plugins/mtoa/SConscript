@@ -43,6 +43,7 @@ source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'camera', 'ImagePlaneTranslator.cpp'),
                     os.path.join('translators', 'light', 'LightTranslator.cpp'),
                     os.path.join('translators', 'options', 'OptionsTranslator.cpp'),
+                    os.path.join('translators', 'driver', 'DriverTranslator.cpp'),
                     os.path.join('translators', 'shader', 'ShaderTranslator.cpp'),
                     os.path.join('translators', 'shader', 'ShadingEngineTranslator.cpp'),
                     os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
@@ -55,9 +56,16 @@ source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslatorImpl.cpp'),
                     os.path.join('translators', 'DagTranslator.cpp'),
-                    os.path.join('translators', 'ObjectSetTranslator.cpp')]
+                    os.path.join('translators', 'ObjectSetTranslator.cpp'),
+                    os.path.join('nodes', 'shader', 'ArnoldStandardNode.cpp'),
+                    os.path.join('nodes', 'shader', 'ArnoldStandardSurfaceNode.cpp'),
+                    os.path.join('nodes', 'shader', 'ArnoldStandardHairNode.cpp'),
+                    os.path.join('nodes', 'shader', 'ArnoldSkinShaderNode.cpp'),
+                    os.path.join('translators', 'filter', 'FilterTranslator.cpp'),
+                    os.path.join('translators', 'AutoDagTranslator.cpp')]
+                    
 
-source_files_add = [os.path.join('utils', 'DrawUtils.cpp')]
+source_files_add = [os.path.join('utils', 'DrawUtils.cpp'), os.path.join('utils', 'ConstantStringsAPI.cpp')]
 
 for file_rem in source_files_rem:
     source_files.remove(file_rem)
@@ -142,7 +150,7 @@ elif system.os == 'darwin':
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
 
 if local_env['ENABLE_ALEMBIC']:
-    alembic_version = '1.7.11'
+    alembic_version = '1.8.3'
     alembic_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'alembic-'+alembic_version)
     ilmbase_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'ilmbase')
     abc_lib_dir = os.path.join(alembic_extern_path, 'lib', system.os)

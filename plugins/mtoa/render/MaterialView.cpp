@@ -3,6 +3,7 @@
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "utils/MtoAAdpPayloads.h"
+#include "utils/ConstantStrings.h"
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/options/OptionsTranslator.h"
@@ -167,7 +168,7 @@ MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
 
    if (m_activeShader)
    {
-      AiNodeSetPtr(geometryNode, "shader", m_activeShader);
+      AiNodeSetPtr(geometryNode, str::shader, m_activeShader);
    }
 
    return MStatus::kSuccess;
@@ -219,18 +220,18 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
    
    if (!m_environmentLight)
    {
-       m_environmentLight = AiNode(universe, "skydome_light");
-       AiNodeSetStr(m_environmentLight, "name", "mtrlViewSkyDome");
-       AiNodeSetInt(m_environmentLight, "format", 2);
-       AiNodeSetRGB(m_environmentLight, "color", 0.1f, 0.1f, 0.1f);
+       const static AtString mtrlViewSkyDome("mtrlViewSkyDome");
+       m_environmentLight = AiNode(universe, str::skydome_light, mtrlViewSkyDome);
+       AiNodeSetInt(m_environmentLight, str::format, 2);
+       AiNodeSetRGB(m_environmentLight, str::color, 0.1f, 0.1f, 0.1f);
  
        AtMatrix rotation = AiM4RotationY(180.0f);
-       AiNodeSetMatrix(m_environmentLight, "matrix", rotation);
+       AiNodeSetMatrix(m_environmentLight, str::matrix, rotation);
    }
    if (!m_environmentImage)
    {
-       m_environmentImage = AiNode(universe, "image");
-       AiNodeSetStr(m_environmentImage, "name", "mtrlViewSkyDomeImage");
+      const static AtString mtrlViewSkyDomeImage("mtrlViewSkyDomeImage");
+      m_environmentImage = AiNode(universe, str::image, mtrlViewSkyDomeImage);
    }
 
    return MStatus::kSuccess;
@@ -269,7 +270,7 @@ MStatus CMaterialView::translateTransform(const MUuid& id, const MUuid& childId,
       InterruptRender(true);
 
       AtNode* arnoldNode = translator->GetArnoldNode();
-      AiNodeSetMatrix(arnoldNode, "matrix", matrix);
+      AiNodeSetMatrix(arnoldNode, str::matrix, matrix);
    }
    else
    {
@@ -331,14 +332,14 @@ MStatus CMaterialView::setProperty(const MUuid& id, const MString& name, const M
          // Make sure the renderer is stopped
          InterruptRender(true);
 
-         AiNodeSetStr(m_environmentImage, "filename", value.asChar());
+         AiNodeSetStr(m_environmentImage, str::filename, AtString(value.asChar()));
          if (value.length())
          {
-            AiNodeLink(m_environmentImage, "color", m_environmentLight);
+            AiNodeLink(m_environmentImage, str::color, m_environmentLight);
          }
          else
          {
-            AiNodeUnlink(m_environmentLight, "color");
+            AiNodeUnlink(m_environmentLight, str::color);
          }
       }
    }
@@ -379,7 +380,7 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    // Make sure the renderer is stopped
    InterruptRender(true);
 
-   AiNodeSetPtr(geometryNode, "shader", shaderNode);
+   AiNodeSetPtr(geometryNode, str::shader, shaderNode);
    m_activeShader = shaderNode;
 
    return MStatus::kSuccess;
@@ -400,8 +401,8 @@ MStatus CMaterialView::setResolution(unsigned int width, unsigned int height)
       InterruptRender(true);
 
       AtNode* options = AiUniverseGetOptions(m_arnoldSession->GetUniverse());
-      AiNodeSetInt(options, "xres", m_width);
-      AiNodeSetInt(options, "yres", m_height);
+      AiNodeSetInt(options, str::xres, m_width);
+      AiNodeSetInt(options, str::yres, m_height);
 
       ScheduleRefresh();
    }
@@ -457,12 +458,11 @@ bool CMaterialView::BeginSession()
    sessionOptions.DisableMotionBlur();
 
    // Install our driver
-   if (AiNodeEntryLookUp("materialview_display") == nullptr)
+   if (AiNodeEntryLookUp(str::materialview_display) == nullptr)
       AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "materialview_display", "mtoa", (AtNodeMethods*) materialview_driver_mtd, AI_VERSION);
 
-   m_dummyShader = AiNode(m_arnoldSession->GetUniverse(), "utility");
-   AiNodeSetStr(m_dummyShader, "name", "mtrlViewDummyShader");
-   AiNodeSetRGB(m_dummyShader, "color", 0.0f, 0.0f, 0.0f);
+   m_dummyShader = AiNode(m_arnoldSession->GetUniverse(), str::utility, str::mtrlViewDummyShader);
+   AiNodeSetRGB(m_dummyShader, str::color, 0.0f, 0.0f, 0.0f);
 
    m_active = true;
    return true;
@@ -522,7 +522,7 @@ void CMaterialView::InitOptions()
    if (it != m_translatorLookup.end())
    {
       AtNode* camera = it->second->GetArnoldNode();
-      AiNodeSetPtr(options, "camera", camera);
+      AiNodeSetPtr(options, str::camera, camera);
    }
    else
    {
@@ -531,39 +531,39 @@ void CMaterialView::InitOptions()
    }
 
    // Setup display driver
-   AtNode* driver = AiNodeLookUpByName(universe, "materialview_display1");
+   AtNode* driver = AiNodeLookUpByName(universe, str::materialview_display1);
    if (!driver)
    {
-      driver = AiNode(universe, "materialview_display", "materialview_display1");
+      driver = AiNode(universe, str::materialview_display, str::materialview_display1);
    }
-   AiNodeSetPtr(driver, "view", this);
+   AiNodeSetPtr(driver, str::view, this);
 
    // Setup filter
-   AtNode* filter = AiNodeLookUpByName(universe, "materialview_filter1");
+   AtNode* filter = AiNodeLookUpByName(universe, str::materialview_filter1);
    if (!filter)
    {
-      filter = AiNode(universe, "gaussian_filter", "materialview_filter1");
+      filter = AiNode(universe, str::gaussian_filter, str::materialview_filter1);
    }
-   AiNodeSetFlt(filter, "width", 2.0f);
+   AiNodeSetFlt(filter, str::width, 2.0f);
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
    char str[1024];
    sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
    AiArraySetStr(outputs, 0, str);
-   AiNodeSetArray(options, "outputs", outputs);
+   AiNodeSetArray(options, str::outputs, outputs);
 
-   AiNodeSetInt(options, "xres", m_width);
-   AiNodeSetInt(options, "yres", m_height);
-   AiNodeSetInt(options, "bucket_size", 32);
-   AiNodeSetStr(options, "pin_threads", "off");
-   AiNodeSetInt(options, "threads", m_job.maxThreads);
-   AiNodeSetBool(options, "texture_automip", false);
+   AiNodeSetInt(options, str::xres, m_width);
+   AiNodeSetInt(options, str::yres, m_height);
+   AiNodeSetInt(options, str::bucket_size, 32);
+   AiNodeSetStr(options, str::pin_threads, str::off);
+   AiNodeSetInt(options, str::threads, m_job.maxThreads);
+   AiNodeSetBool(options, str::texture_automip, false);
    
 
    // displacement not correctly supported in material viewer yet
    // just ignoring it for now
-   AiNodeSetBool(options, "ignore_displacement", true);
+   AiNodeSetBool(options, str::ignore_displacement, true);
 
    // Setup ray depth and sampling options
    // Default setting will be used if the options node
@@ -575,18 +575,18 @@ void CMaterialView::InitOptions()
       MObject renderOptions;
       list.getDependNode(0, renderOptions);
       MFnDependencyNode fnArnoldRenderOptions(renderOptions);
-      AiNodeSetInt(options, "GI_diffuse_samples",     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_samples"), true).asInt());
-      AiNodeSetInt(options, "GI_specular_samples",    fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_samples"), true).asInt());
-      AiNodeSetInt(options, "GI_transmission_samples",fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_samples"), true).asInt());
-      AiNodeSetInt(options, "GI_sss_samples",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples"), true).asInt());
-      AiNodeSetInt(options, "GI_total_depth",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth"), true).asInt());
-      AiNodeSetInt(options, "GI_diffuse_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth"), true).asInt());
-      AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth"), true).asInt());
-      AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth"), true).asInt());
+      AiNodeSetInt(options, str::GI_diffuse_samples,     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_samples"), true).asInt());
+      AiNodeSetInt(options, str::GI_specular_samples,    fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_samples"), true).asInt());
+      AiNodeSetInt(options, str::GI_transmission_samples,fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_samples"), true).asInt());
+      AiNodeSetInt(options, str::GI_sss_samples,         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples"), true).asInt());
+      AiNodeSetInt(options, str::GI_total_depth,         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth"), true).asInt());
+      AiNodeSetInt(options, str::GI_diffuse_depth,       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth"), true).asInt());
+      AiNodeSetInt(options, str::GI_specular_depth,      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth"), true).asInt());
+      AiNodeSetInt(options, str::GI_transmission_depth,  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth"), true).asInt());
 
       MString texture_searchpath = fnArnoldRenderOptions.findPlug("texture_searchpath", true).asString();
       if (texture_searchpath.length() > 0)
-         AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+         AiNodeSetStr(options, str::texture_searchpath, AtString(texture_searchpath.asChar()));
 
       COptionsTranslator::AddProjectFoldersToSearchPaths(options);
 
@@ -610,8 +610,8 @@ void CMaterialView::InitOptions()
       {
 
          MString gpu_default_names = fnArnoldRenderOptions.findPlug("gpu_default_names", true).asString();
-         AiNodeSetStr(options, "gpu_default_names", AtString(gpu_default_names.asChar()));
-         AiNodeSetInt(options, "gpu_default_min_memory_MB",fnArnoldRenderOptions.findPlug("gpu_default_min_memory_MB", true).asInt());
+         AiNodeSetStr(options, str::gpu_default_names, AtString(gpu_default_names.asChar()));
+         AiNodeSetInt(options, str::gpu_default_min_memory_MB,fnArnoldRenderOptions.findPlug("gpu_default_min_memory_MB", true).asInt());
          
          bool autoSelect = true;
          MPlug manualDevices = fnArnoldRenderOptions.findPlug("manual_gpu_devices", true);
@@ -637,15 +637,15 @@ void CMaterialView::InitOptions()
             {
                autoSelect = false;
                AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
-               AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
+               AiDeviceSelect(m_renderSession, AI_DEVICE_TYPE_GPU, selectDevices);
                AiArrayDestroy(selectDevices);
             } 
          }
 
          if (autoSelect) // automatically select the GPU devices
-            AiDeviceAutoSelect();
+            AiDeviceAutoSelect(m_renderSession);
       } 
-      AiNodeSetInt(options, "AA_samples", 5);
+      AiNodeSetInt(options, str::AA_samples, 5);
       //AiNodeSetBool(options, "enable_adaptive_sampling", true);
       //AiNodeSetBool(options, "enable_progressive_render", true);
       //AiNodeSetInt(options, "AA_samples_max", 6);
@@ -789,7 +789,7 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
    {
       if (node.hasFn(MFn::kMesh))
       {
-          AiNodeSetByte(arnoldNode, "visibility", AI_RAY_ALL);
+          AiNodeSetByte(arnoldNode, str::visibility, AI_RAY_ALL);
       }
 
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);

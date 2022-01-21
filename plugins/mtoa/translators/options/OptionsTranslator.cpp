@@ -7,6 +7,7 @@
 
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_universe.h>
 #include <ai_msg.h>
@@ -124,7 +125,7 @@ static CAOVOutputArray ComputeNoiceAov(MString aovName, int aovType, const CAOVO
          else
             output.driver = AiNodeClone(output.driver);
 
-         AiNodeSetStr(output.driver, "name", varName.asChar());
+         AiNodeSetStr(output.driver, str::name, AtString(varName.asChar()));
       }
    }
    return aov;
@@ -494,9 +495,9 @@ void COptionsTranslator::ExportAOVs()
             if (pos != std::string::npos)
                filterType = filterType.substr(0, pos );
               
-            AiNodeSetStr(variance_filter, "filter_weights",filterType.c_str());
-            AiNodeSetFlt(variance_filter, "width", AiNodeGetFlt(output.filter, "width"));
-            AiNodeSetBool(variance_filter, "scalar_mode", false);
+            AiNodeSetStr(variance_filter, str::filter_weights, AtString(filterType.c_str()));
+            AiNodeSetFlt(variance_filter, str::width, AiNodeGetFlt(output.filter, str::width));
+            AiNodeSetBool(variance_filter, str::scalar_mode, false);
             
             output.filter = variance_filter;
             if(!output.mergeAOVs)
@@ -509,7 +510,7 @@ void COptionsTranslator::ExportAOVs()
                else
                   output.driver = AiNodeClone(output.driver);
 
-               AiNodeSetStr(output.driver, "name", varName.asChar());
+               AiNodeSetStr(output.driver, str::name, AtString(varName.asChar()));
             }
          }
          m_aovData.push_back(varianceAOV);
@@ -658,16 +659,16 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
 
             // is this driver an output file image (otherwise it could be a display driver)
-            bool outputImageDriver = (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL);
+            bool outputImageDriver = (AiNodeEntryLookUpParameter(driverEntry, str::filename) != NULL);
             if (outputImageDriver)
             {
                
                AtString ext("");
-               AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
-               if (ext == AtString("deepexr"))
-                  ext = AtString("exr");
-               else if (ext == AtString("jpeg"))
-                  ext = AtString("jpg");
+               AiMetaDataGetStr(driverEntry, AtString(), str::maya_translator, &ext);
+               if (ext == str::deepexr)
+                  ext = str::exr;
+               else if (ext == str::jpeg)
+                  ext = str::jpg;
                               
                
                MString tokens = aovData.tokens;
@@ -797,13 +798,13 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
                   }
 
-                  AiNodeSetStr(output.driver, "name", driverName.asChar());
+                  AiNodeSetStr(output.driver, str::name, AtString(driverName.asChar()));
 
                   m_multiDriverMap[filename.asChar()] = output.driver;
 
                   std::string typeAOV = AiParamGetTypeName(aovData.type);
                   if (typeAOV != "RGB" && typeAOV != "RGBA")
-                     AiNodeSetStr(output.driver, "color_space", ""); // this is supposed to be interpreted by arnold as Raw (passthrough)
+                     AiNodeSetStr(output.driver, str::color_space, AtString()); // this is supposed to be interpreted by arnold as Raw (passthrough)
 
                }
                else
@@ -831,7 +832,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                AiNodeGetName(output.driver));
                }
 
-               AiNodeSetStr(output.driver, "filename", filename.asChar());
+               AiNodeSetStr(output.driver, str::filename, AtString(filename.asChar()));
                // FIXME: isn't this already handled by getImageName?
                CreateFileDirectory(filename);
 
@@ -917,7 +918,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          AtString lpeElem((*it).c_str());
          AiArraySetStr(lpeArray, lpeInd, lpeElem);
       }
-      AiNodeSetArray(AiUniverseGetOptions(m_impl->m_session->GetUniverse()), "light_path_expressions", lpeArray);
+      AiNodeSetArray(AiUniverseGetOptions(m_impl->m_session->GetUniverse()), str::light_path_expressions, lpeArray);
    }
 }
 
@@ -960,13 +961,13 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, CAOVOutput &ou
 
    MFnDependencyNode fnNode(conn[0].node());
    output.singleLayer = false;
-   AiMetaDataGetBool(entry, NULL, "single_layer_driver", &output.singleLayer);
+   AiMetaDataGetBool(entry, AtString(), str::single_layer_driver, &output.singleLayer);
    if (!output.singleLayer)
       output.mergeAOVs = fnNode.findPlug("mergeAOVs", true).asBool();
    else
       output.mergeAOVs = false;
    output.raw = false;
-   AiMetaDataGetBool(entry, NULL, "raw_driver", &output.raw);
+   AiMetaDataGetBool(entry, AtString(), str::raw_driver, &output.raw);
    output.prefix = fnNode.findPlug("prefix", true).asString();
    return output.driver;
 }
@@ -1023,7 +1024,7 @@ unsigned int COptionsTranslator::GetOutputArray(const CAOV& aov,
                   output.driver = AiNodeClone(output.driver);
 
                //output.prefix += int(i);
-               AiNodeSetStr(output.driver, "name", varName.asChar());
+               AiNodeSetStr(output.driver, str::name, AtString(varName.asChar()));
             } else
             {
                output.layerSuffix = aov.GetName();
@@ -1069,7 +1070,7 @@ void COptionsTranslator::SetCamera(AtNode *options)
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
       return;
    }
-   AiNodeSetPtr(options, "camera", camera);
+   AiNodeSetPtr(options, str::camera, camera);
    MStringArray outputStrings;
    SetImageFilenames(outputStrings);
 
@@ -1082,7 +1083,7 @@ void COptionsTranslator::SetCamera(AtNode *options)
    {
       AiArraySetStr(outputs, i, outputStrings[i].asChar());
    }
-   AiNodeSetArray(options, "outputs", outputs);
+   AiNodeSetArray(options, str::outputs, outputs);
 
 }
 
@@ -1124,11 +1125,11 @@ void COptionsTranslator::Export(AtNode *options)
 {
    ExportAOVs();
 
-   AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
-   AiNodeSetBool(options, "texture_per_file_stats", true);
+   AiNodeSetFlt(options, str::texture_max_sharpen, 1.5f);
+   AiNodeSetBool(options, str::texture_per_file_stats, true);
 
 // for maya 2017 and above, autoTX replaced automip, so we're forcing it to be false
-   AiNodeSetBool(options, "texture_automip", false);
+   AiNodeSetBool(options, str::texture_automip, false);
 
    // set the camera
    SetCamera(options);
@@ -1147,7 +1148,7 @@ void COptionsTranslator::Export(AtNode *options)
          // Special cases
          if (strcmp(paramName, "threads") == 0)
          {
-            AiNodeSetInt(options, "threads", FindMayaPlug("threads_autodetect").asBool() ? 0 : FindMayaPlug("threads").asInt());
+            AiNodeSetInt(options, str::threads, FindMayaPlug("threads_autodetect").asBool() ? 0 : FindMayaPlug("threads").asInt());
          }
          else if (strcmp(paramName, "AA_sample_clamp") == 0)
          {
@@ -1155,7 +1156,7 @@ void COptionsTranslator::Export(AtNode *options)
             {
                CNodeTranslator::ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
             } else
-               AiNodeResetParameter(options, "AA_sample_clamp");
+               AiNodeResetParameter(options, str::AA_sample_clamp);
             
          }
          else if (strcmp(paramName, "AA_sample_clamp_affects_aovs") == 0)
@@ -1164,7 +1165,7 @@ void COptionsTranslator::Export(AtNode *options)
             {
                CNodeTranslator::ProcessParameter(options, "AA_sample_clamp_affects_aovs", AI_TYPE_BOOLEAN, "use_sample_clamp_AOVs");
             } else
-               AiNodeResetParameter(options, "AA_sample_clamp_affects_aovs");
+               AiNodeResetParameter(options, str::AA_sample_clamp_affects_aovs);
 
          }
          else if (strcmp(paramName, "indirect_sample_clamp") == 0)
@@ -1176,7 +1177,7 @@ void COptionsTranslator::Export(AtNode *options)
             // FIXME: this is supposed to use a connection to AA_seed attribute
             if (!FindMayaPlug("lock_sampling_noise").asBool())
             {
-               AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
+               AiNodeSetInt(options, str::AA_seed, (int)GetExportFrame());
             }
          }
          else if (strcmp(paramName, "GI_sss_samples") == 0)
@@ -1190,16 +1191,16 @@ void COptionsTranslator::Export(AtNode *options)
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
             int bucket_scanning = AiMin(FindMayaPlug("bucketScanning").asInt(), 4); // old scenes might have a bigger value
-            AiNodeSetInt(options, "bucket_scanning", bucket_scanning);
+            AiNodeSetInt(options, str::bucket_scanning, bucket_scanning);
          }
          else if (strcmp(paramName, "texture_autotile") == 0)
          {
-            AiNodeSetInt(options, "texture_autotile", !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
+            AiNodeSetInt(options, str::texture_autotile, !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
          }
          else if (strcmp(paramName, "AA_samples") == 0)
          {
             const int AA_samples = FindMayaPlug("AA_samples").asInt();
-            AiNodeSetInt(options, "AA_samples", AA_samples == 0 ? 1 : AA_samples);
+            AiNodeSetInt(options, str::AA_samples, AA_samples == 0 ? 1 : AA_samples);
          } else if (strcmp(paramName, "thread_priority") == 0)
          {
             //AiNodeSetInt(options, "thread_priority", 2 );
@@ -1228,17 +1229,17 @@ void COptionsTranslator::Export(AtNode *options)
                for (unsigned int a = 0; a < ignoreListSplit.length(); ++a)
                   AiArraySetStr(ignoreListArray, a, AtString(ignoreListSplit[a].asChar()));
                
-               AiNodeSetArray(options, "ignore_list", ignoreListArray);
+               AiNodeSetArray(options, str::ignore_list, ignoreListArray);
 
             } else
-               AiNodeResetParameter(options, "ignore_list");
+               AiNodeResetParameter(options, str::ignore_list);
          } else if (strcmp(paramName, "texture_use_existing_tx") == 0)
          {
-            AiNodeSetBool(options, AtString("texture_use_existing_tx"), sessionOptions.GetUseExistingTx());
+            AiNodeSetBool(options, str::texture_use_existing_tx, sessionOptions.GetUseExistingTx());
          } else if (strcmp(paramName, "meters_per_unit") == 0)
          {
             MDistance dist(1.0 / sessionOptions.GetScaleFactor(), MDistance::uiUnit());
-            AiNodeSetFlt(options, "meters_per_unit", (float)dist.asMeters());
+            AiNodeSetFlt(options, str::meters_per_unit, (float)dist.asMeters());
          }
          else
          {
@@ -1248,7 +1249,7 @@ void COptionsTranslator::Export(AtNode *options)
             // (see CBaseAttrHelper::GetMayaAttrName that is used by CNodeTranslator)
             AtString attrName;
             MPlug plug;
-            if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
+            if (AiMetaDataGetStr(optionsEntry, AtString(paramName), str::maya_name, &attrName))
             {
                plug = FindMayaPlug(attrName.c_str());
             }
@@ -1266,7 +1267,7 @@ void COptionsTranslator::Export(AtNode *options)
       }
    }
    AiParamIteratorDestroy(nodeParam);
-   AiNodeSetFlt(options, "reference_time", 0.f);
+   AiNodeSetFlt(options, str::reference_time, 0.f);
 
    AddProjectFoldersToSearchPaths(options);
    
@@ -1277,11 +1278,11 @@ void COptionsTranslator::Export(AtNode *options)
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "background", ExportConnectedNode(conns[0]));
+      AiNodeSetPtr(options, str::background, ExportConnectedNode(conns[0]));
    }
    else
    {
-      AiNodeSetPtr(options, "background", NULL);
+      AiNodeSetPtr(options, str::background, NULL);
       
       // we only export the image plane if there's no background
       MDagPath camera = GetSessionOptions().GetExportCamera();
@@ -1301,8 +1302,8 @@ void COptionsTranslator::Export(AtNode *options)
             imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
             if (status && (connectedPlugs.length() > 0))
             {
-               AiNodeSetPtr(options, "background", ExportConnectedNode(connectedPlugs[0]));
-               AiNodeSetByte(options, "background_visibility", 1);
+               AiNodeSetPtr(options, str::background, ExportConnectedNode(connectedPlugs[0]));
+               AiNodeSetByte(options, str::background_visibility, 1);
             }
          }
       }
@@ -1364,36 +1365,36 @@ void COptionsTranslator::Export(AtNode *options)
       useRenderRegion = true;
 
    if (width > 0)
-      AiNodeSetInt(options, "xres", width);
+      AiNodeSetInt(options, str::xres, width);
    if (height > 0)
-      AiNodeSetInt(options, "yres", height);
+      AiNodeSetInt(options, str::yres, height);
 
    if (std::abs(pixelAspectRatio - 1.f) < 0.001)
       pixelAspectRatio = 1.f;
    else
       pixelAspectRatio = 1.f / AiMax(AI_EPSILON, pixelAspectRatio);
 
-   AiNodeSetFlt(options, "pixel_aspect_ratio", pixelAspectRatio);
+   AiNodeSetFlt(options, str::pixel_aspect_ratio, pixelAspectRatio);
 
    if (useRenderRegion)
    {
-      AiNodeSetInt(options, "region_min_x", minx);
-      AiNodeSetInt(options, "region_min_y", height - maxy - 1);
-      AiNodeSetInt(options, "region_max_x", maxx);
-      AiNodeSetInt(options, "region_max_y", height - miny - 1);      
+      AiNodeSetInt(options, str::region_min_x, minx);
+      AiNodeSetInt(options, str::region_min_y, height - maxy - 1);
+      AiNodeSetInt(options, str::region_max_x, maxx);
+      AiNodeSetInt(options, str::region_max_y, height - miny - 1);      
    } else
    {
-      AiNodeResetParameter(options, "region_min_x");
-      AiNodeResetParameter(options, "region_min_y");
-      AiNodeResetParameter(options, "region_max_x");
-      AiNodeResetParameter(options, "region_max_y");
+      AiNodeResetParameter(options, str::region_min_x);
+      AiNodeResetParameter(options, str::region_min_y);
+      AiNodeResetParameter(options, str::region_max_x);
+      AiNodeResetParameter(options, str::region_max_y);
    }
 
 
    // We used to apply outputOverscan only for batch & ass.
    MString overscanString = FindMayaPlug("outputOverscan").asString();
-   /*
-   if (overscanString != "" && !useRenderRegion)
+   
+   if (overscanString != "" && !useRenderRegion && session->GetOptions().GetExportResolutionOverscan())
    {
       float overscanL = 0.0f;
       float overscanR = 0.0f;
@@ -1450,7 +1451,7 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
       AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
       
-   }*/
+   }
 
 
    ExportAtmosphere(options);   
@@ -1460,11 +1461,11 @@ void COptionsTranslator::Export(AtNode *options)
    pOP.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "operator", ExportConnectedNode(conns[0]));
+      AiNodeSetPtr(options, str::_operator, ExportConnectedNode(conns[0]));
    }
    else
    {
-      AiNodeSetPtr(options, "operator", NULL);
+      AiNodeSetPtr(options, str::_operator, NULL);
    }
 
    ExportImagers();
@@ -1475,15 +1476,15 @@ void COptionsTranslator::Export(AtNode *options)
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "subdiv_dicing_camera", ExportConnectedNode(conns[0]));
+      AiNodeSetPtr(options, str::subdiv_dicing_camera, ExportConnectedNode(conns[0]));
    }
    else
    {
-      AiNodeSetPtr(options, "subdiv_dicing_camera", NULL);
+      AiNodeSetPtr(options, str::subdiv_dicing_camera, NULL);
    }
 
    // frame number. We're now updating it at every Update (#2319)
-   AiNodeSetFlt(options, "frame", (float)GetExportFrame());
+   AiNodeSetFlt(options, str::frame, (float)GetExportFrame());
 
    if (!IsExported())
    {
@@ -1499,10 +1500,10 @@ void COptionsTranslator::Export(AtNode *options)
          MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
          if (status)
          {
-            if (AiNodeLookUpUserParameter(options, "render_layer") == NULL)
-               AiNodeDeclare(options, "render_layer", "constant STRING");
+            if (AiNodeLookUpUserParameter(options, str::render_layer) == NULL)
+               AiNodeDeclare(options, str::render_layer, "constant STRING");
 
-            AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
+            AiNodeSetStr(options, str::render_layer, AtString(currentRenderLayer.name().asChar()));
          }
       }
    }
@@ -1516,7 +1517,7 @@ void COptionsTranslator::Export(AtNode *options)
                                    240.f, 250.f, 300.f, 375.f, 400.f, 500.f,
                                    600.f, 750.f, 1200.f, 1500.f, 2000.f, 3000.f,
                                    6000.f, 0.f };
-   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);
+   AiNodeSetFlt(options, str::fps, fpsTable[MTime::uiUnit()]);
 
    // Export AOV shaders   
    MPlug aovShadersPlug = FindMayaPlug("aov_shaders");
@@ -1557,7 +1558,7 @@ void COptionsTranslator::Export(AtNode *options)
 
       const AtNodeEntry *shaderNodeEntry = AiNodeGetNodeEntry(shaderNode);
       bool isAovShader = false;
-      if (shaderNodeEntry && AiMetaDataGetBool(shaderNodeEntry, NULL, "aov_shader", &isAovShader) &&isAovShader)
+      if (shaderNodeEntry && AiMetaDataGetBool(shaderNodeEntry, AtString(), str::aov_shader, &isAovShader) &&isAovShader)
       {
          // aov shader -> insert it directly to the AOV shaders list
          aovShaders.insert(shaderNode);
@@ -1596,13 +1597,13 @@ void COptionsTranslator::Export(AtNode *options)
          if (aovWriteNode)
          {
             aovShaders.insert(aovWriteNode);
-            AiNodeLink(shaderNode, "aov_input", aovWriteNode);
-            AiNodeSetStr(aovWriteNode, "aov_name", aovData.name.asChar());
+            AiNodeLink(shaderNode, str::aov_input, aovWriteNode);
+            AiNodeSetStr(aovWriteNode, str::aov_name, AtString(aovData.name.asChar()));
          }
       }      
    }
 
-   AiNodeResetParameter(options, "aov_shaders");
+   AiNodeResetParameter(options, str::aov_shaders);
    if (!aovShaders.empty())
    {
       AtArray *aovShadersArray = AiArrayAllocate(aovShaders.size(), 1, AI_TYPE_NODE);
@@ -1610,16 +1611,16 @@ void COptionsTranslator::Export(AtNode *options)
       for (unordered_set<AtNode*>::iterator it = aovShaders.begin(); it != aovShaders.end(); ++it)
          AiArraySetPtr(aovShadersArray, aovShaderIndex++, *it);
       
-      AiNodeSetArray(options, "aov_shaders", aovShadersArray);
+      AiNodeSetArray(options, str::aov_shaders, aovShadersArray);
    }
 
    
    if (IsInteractiveSession())
-      AiNodeSetBool(options, "enable_dependency_graph", true);
+      AiNodeSetBool(options, str::enable_dependency_graph, true);
 
    bool gpuRender = false;
    bool gpuFallbackBool = false;
-   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), str::render_device) != NULL)
    {
       MPlug gpuPlug = FindMayaPlug("renderDevice");
       MPlug gpuFallbackPlug = FindMayaPlug("render_device_fallback");
@@ -1632,8 +1633,8 @@ void COptionsTranslator::Export(AtNode *options)
          gpuFallbackBool = gpuFallbackPlug.asBool();
       }
 
-      AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
-      AiNodeSetStr(options, "render_device_fallback", (gpuFallbackBool) ? "CPU" : "error");
+      AiNodeSetStr(options, str::render_device, (gpuRender) ? str::GPU : str::CPU);
+      AiNodeSetStr(options, str::render_device_fallback, (gpuFallbackBool) ? str::CPU : str::error);
 
    }
 
@@ -1641,63 +1642,67 @@ void COptionsTranslator::Export(AtNode *options)
    {
       CNodeTranslator::ProcessParameter(options, "gpu_default_names", AI_TYPE_STRING);
       CNodeTranslator::ProcessParameter(options, "gpu_default_min_memory_MB", AI_TYPE_INT);
-      bool autoSelect = true;
-      MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
-      if (manualDevices.asBool())
-      {  // Manual Device selection
-         std::vector<unsigned int> devices;
-         MPlug gpuDevices = FindMayaPlug("render_devices");
-         if (!gpuDevices.isNull())
-         {
-            unsigned int numElements = gpuDevices.numElements();
-            for (unsigned int i = 0; i < numElements; ++i)
+      // we don't need to set the render devices for .ass export
+      if (!m_impl->m_session->IsFileExport())
+      {
+         bool autoSelect = true;
+         MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
+         if (manualDevices.asBool())
+         {  // Manual Device selection
+            std::vector<unsigned int> devices;
+            MPlug gpuDevices = FindMayaPlug("render_devices");
+            if (!gpuDevices.isNull())
             {
-               MPlug elemPlug = gpuDevices[i];
-               if (!elemPlug.isNull())
+               unsigned int numElements = gpuDevices.numElements();
+               for (unsigned int i = 0; i < numElements; ++i)
                {
-                  // Horrible Hack. The value in this plug is also used to select items in a text Scroll list 
-                  // which starts with index 1.
-                  int deviceId = elemPlug.asInt()-1; 
-                  if (deviceId < 0 ) { deviceId = 0 ; }
-                  devices.push_back(deviceId);
-               }
-            }
-         }
-         //
-         if (!devices.empty())
-         {
-            autoSelect = false;
-            
-            if (m_renderDevicesList.empty())
-            {
-               AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
-               AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
-               AiArrayDestroy(selectDevices);
-               m_renderDevicesList = devices;
-            } else
-            {               
-               // we've already set the render devices, we shouldn't update them during IPR
-               // First let's compare the new list with the previous one. If it changed, we'll dump a warning
-               bool foundDiff = (devices.size() != m_renderDevicesList.size());
-               if (!foundDiff) // same vector length
-               {
-                  for (size_t i = 0; i < devices.size(); ++i)
+                  MPlug elemPlug = gpuDevices[i];
+                  if (!elemPlug.isNull())
                   {
-                     if (devices[i] != m_renderDevicesList[i])
-                     {
-                        foundDiff = true;
-                        break; 
-                     }
+                     // Horrible Hack. The value in this plug is also used to select items in a text Scroll list 
+                     // which starts with index 1.
+                     int deviceId = elemPlug.asInt()-1; 
+                     if (deviceId < 0 ) { deviceId = 0 ; }
+                     devices.push_back(deviceId);
                   }
                }
-               if (foundDiff)
-                  AiMsgError("[mtoa.gpu] Render Devices list cannot be changed interactively. Please re-open the renderview or run \"Update Full Scene\" in the Arnold RenderView");
+            }
+            //
+            if (!devices.empty())
+            {
+               autoSelect = false;
+               
+               if (m_renderDevicesList.empty())
+               {
+                  AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+                  AiDeviceSelect(m_impl->m_session->GetRenderSession(), AI_DEVICE_TYPE_GPU, selectDevices);
+                  AiArrayDestroy(selectDevices);
+                  m_renderDevicesList = devices;
+               } else
+               {               
+                  // we've already set the render devices, we shouldn't update them during IPR
+                  // First let's compare the new list with the previous one. If it changed, we'll dump a warning
+                  bool foundDiff = (devices.size() != m_renderDevicesList.size());
+                  if (!foundDiff) // same vector length
+                  {
+                     for (size_t i = 0; i < devices.size(); ++i)
+                     {
+                        if (devices[i] != m_renderDevicesList[i])
+                        {
+                           foundDiff = true;
+                           break; 
+                        }
+                     }
+                  }
+                  if (foundDiff)
+                     AiMsgError("[mtoa.gpu] Render Devices list cannot be changed interactively. Please re-open the renderview or run \"Update Full Scene\" in the Arnold RenderView");
+               }
             }
          }
-      }
 
-      if (autoSelect) // automatically select the GPU devices
-         AiDeviceAutoSelect();
+         if (autoSelect) // automatically select the GPU devices
+            AiDeviceAutoSelect(m_impl->m_session->GetRenderSession());
+      }
    }
 
    // Eventually disable color manager if the export option is turned off #2995
@@ -1752,9 +1757,9 @@ void COptionsTranslator::ExportImagers()
          if (driver)
          {
             if (!imagersStack.empty())
-               AiNodeSetPtr(driver, "input", (void*)imagersStack[0]);
+               AiNodeSetPtr(driver, str::input, (void*)imagersStack[0]);
             else
-               AiNodeResetParameter(driver, "input");
+               AiNodeResetParameter(driver, str::input);
          }
       }
    }
@@ -1763,10 +1768,10 @@ void COptionsTranslator::ExportImagers()
    {  
       for (size_t i = 0; i < imagersStack.size() - 1; ++i)
       {
-         AiNodeSetPtr(imagersStack[i], "input", (void*)imagersStack[i+1]); 
+         AiNodeSetPtr(imagersStack[i], str::input, (void*)imagersStack[i+1]); 
       }
       // Ensure the last imager in the stack doesn't have any input from a previous render
-      AiNodeResetParameter(imagersStack.back(), "input");
+      AiNodeResetParameter(imagersStack.back(), str::input);
    }
 }
 void COptionsTranslator::ExportAtmosphere(AtNode *options)
@@ -1776,18 +1781,18 @@ void COptionsTranslator::ExportAtmosphere(AtNode *options)
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "atmosphere", ExportConnectedNode(conns[0]));
+      AiNodeSetPtr(options, str::atmosphere, ExportConnectedNode(conns[0]));
    }
    else
    {
-      AiNodeSetPtr(options, "atmosphere", NULL);
+      AiNodeSetPtr(options, str::atmosphere, NULL);
    }
 }
 
 void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
 {
-   MString texture_searchpath(AiNodeGetStr(options, "texture_searchpath"));
-   MString procedural_searchpath(AiNodeGetStr(options, "procedural_searchpath"));
+   MString texture_searchpath(AiNodeGetStr(options, str::texture_searchpath));
+   MString procedural_searchpath(AiNodeGetStr(options, str::procedural_searchpath));
    MStringArray sourceImagesDirs = getSourceImagesPath();
    MString projectPath = getProjectFolderPath();
 #ifdef _WIN32   
@@ -1822,9 +1827,9 @@ void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
       procedural_searchpath += projectPath;
    }
    if (addTexturePath)
-      AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+      AiNodeSetStr(options, str::texture_searchpath, AtString(texture_searchpath.asChar()));
    if (addProceduralPath)
-      AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
+      AiNodeSetStr(options, str::procedural_searchpath, AtString(procedural_searchpath.asChar()));
 }
 
 void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)

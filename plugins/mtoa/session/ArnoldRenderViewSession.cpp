@@ -6,6 +6,7 @@
 #include <maya/M3dView.h>
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
+#include "utils/ConstantStrings.h"
 
 #include <string>
 
@@ -23,9 +24,11 @@ CArnoldRenderViewSession::CArnoldRenderViewSession(bool viewport) :
                            m_optionsExported(false)
 {
    AddUpdateCallbacks();
+   m_sessionOptions.SetExportResolutionOverscan(false); // MTOA-942 disable overscan for ARV otherwise this causes a crash (ARNOLD-11990)
    if (viewport)
    {
-      m_sessionOptions.SetExportOverscan(true);
+      m_sessionOptions.SetExportResolutionOverscan(true); 
+      m_sessionOptions.SetExportCameraOverscan(true);
       
       // We need to ensure motion blur is disabled for AVP, otherwise
       // changing the current frame could force a new render   
@@ -113,9 +116,9 @@ static void FillRenderViewOptions(CRenderViewMtoA &renderview, CSessionOptions &
 {
    renderview.SetFrame((float)sessionOptions.GetExportFrame());
    renderview.SetStatusInfo("");
-   AtRenderSession *renderSession = renderview.GetRenderSession();
-   if (renderSession)
-      sessionOptions.SetupLog(renderSession);
+   AtUniverse *universe = renderview.GetUniverse();
+   if (universe)
+      sessionOptions.SetupLog(universe);
    
    renderview.SetLogging(sessionOptions.GetLogConsoleVerbosity(), 
                          sessionOptions.GetLogFileVerbosity());
@@ -140,8 +143,8 @@ void CArnoldRenderViewSession::OpenRenderView()
       // We want at least to set the proper width/height resolution, so that it shows properly in 
       // the renderview buffer MTOA-744
       AtNode *options= AiUniverseGetOptions(m_universe);
-      AiNodeSetInt(options, "xres", width);
-      AiNodeSetInt(options, "yres", height);
+      AiNodeSetInt(options, str::xres, width);
+      AiNodeSetInt(options, str::yres, height);
    }
    
    GetRenderView().SetUniverse(m_universe);

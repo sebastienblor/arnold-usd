@@ -18,7 +18,7 @@ void FileOpenCallback(void *)
 
    // something we might want to do when a new file is opened
    // We want to clear the caches, since the scene is changing (#3277)
-   AiUniverseCacheFlush(AI_CACHE_ALL);
+   AiUniverseCacheFlush(nullptr, AI_CACHE_ALL);
    // tell MtoaLog that mtoa_translation_info might change
    UpdateMtoaTranslationInfo();
 }
@@ -110,7 +110,7 @@ void CSessionManager::End()
    // Tell the material view to end its session
    CMaterialView::End();
 
-   if (AiUniverseIsActive())
+   if (AiArnoldIsActive())
       AiEnd();
 
 }

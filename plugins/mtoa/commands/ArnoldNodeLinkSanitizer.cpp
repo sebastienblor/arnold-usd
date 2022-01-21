@@ -1,4 +1,5 @@
 #include "ArnoldNodeLinkSanitizer.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai.h>
 
@@ -86,7 +87,7 @@ void CShaderLinkSanitizer::FixShadersWithInputComponents()
         // first, get the self value and assign it to float_to_rgbx
         GetParameterValue(p.m_node, p.m_param_name, param_value);
         for (int component_index = 0; component_index < p.m_param_nb_components; component_index++)
-            AiNodeSetFlt(adapter, m_rgba_from_int[component_index].c_str(), param_value[component_index]);
+            AiNodeSetFlt(adapter, AtString(m_rgba_from_int[component_index].c_str()), param_value[component_index]);
 
         // gather the connected shaders
         for (int component_index = 0; component_index < p.m_param_nb_components; component_index++)
@@ -215,11 +216,11 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
             adapter = CreateNode(input_node_nb_components == 3 ? AtString("rgb_to_float") : AtString("rgba_to_float")); // rgb_to_float or rgba_to_float
             if (output_component == -1)
             {
-                AiNodeSetStr(adapter, "mode", "average");
+                AiNodeSetStr(adapter, str::mode, str::average);
             }
             else
             {
-                AiNodeSetStr(adapter, "mode", m_rgba_from_int[output_component].c_str()); // setting rgbx_to_float.mode enum
+                AiNodeSetStr(adapter, str::mode, m_rgba_from_int[output_component]); // setting rgbx_to_float.mode enum
             }
             
             rgbx_mode_map[pr] = adapter;
@@ -318,31 +319,33 @@ string CShaderLinkSanitizer::GetParameterComponent(const string in_param_name, c
 AtNode* CShaderLinkSanitizer::CreateNode(const AtString in_node_entry_name)
 {
     string node_name = m_node_prefix +to_string(m_created_node_index++);
-    return AiNode(m_universe, in_node_entry_name.c_str(), string (node_name+in_node_entry_name.c_str()).c_str() );
+    string final_name = node_name + string(in_node_entry_name.c_str());
+    return AiNode(m_universe, in_node_entry_name, AtString(final_name.c_str()));
 }
 
 void CShaderLinkSanitizer::GetParameterValue(AtNode* in_node, string in_param_name, float* out_value)
 {
     const AtNodeEntry* node_entry = AiNodeGetNodeEntry(in_node);
-    const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(node_entry, in_param_name.c_str());
+    const AtString paramNameStr(in_param_name.c_str());
+    const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(node_entry, paramNameStr);
     uint8_t param_type = AiParamGetType(param_entry);
     if (param_type == AI_TYPE_VECTOR)
     {
-        AtVector value = AiNodeGetVec(in_node, in_param_name.c_str());
+        AtVector value = AiNodeGetVec(in_node, paramNameStr);
         out_value[0] = value.x;
         out_value[1] = value.y;
         out_value[2] = value.z;
     }
     else if (param_type == AI_TYPE_RGB)
     {
-        AtRGB value = AiNodeGetRGB(in_node, in_param_name.c_str());
+        AtRGB value = AiNodeGetRGB(in_node, paramNameStr);
         out_value[0] = value.r;
         out_value[1] = value.g;
         out_value[2] = value.b;
     }
     else if (param_type == AI_TYPE_RGBA)
     {
-        AtRGBA value = AiNodeGetRGBA(in_node, in_param_name.c_str());
+        AtRGBA value = AiNodeGetRGBA(in_node, paramNameStr);
         out_value[0] = value.r;
         out_value[1] = value.g;
         out_value[2] = value.b;

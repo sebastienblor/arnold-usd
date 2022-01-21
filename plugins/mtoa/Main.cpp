@@ -656,10 +656,14 @@ namespace // <anonymous>
                                     "",
                                     CArnoldStandInsTranslator::creator,
                                     CArnoldStandInsTranslator::NodeInitializer);
-      builtin->RegisterTranslator("fluidShape",
-                                    "",
-                                    CFluidTranslator::creator,
-                                    CFluidTranslator::NodeInitializer);
+      if (MayaNodeTypeExists("fluidShape"))
+      {
+         builtin->RegisterTranslator("fluidShape",
+                                       "",
+                                       CFluidTranslator::creator,
+                                       CFluidTranslator::NodeInitializer);
+      }
+   
       builtin->RegisterTranslator("aiVolume",
                                     "",
                                     CArnoldVolumeTranslator::creator,
@@ -717,10 +721,13 @@ namespace // <anonymous>
                                     CImagePlaneTranslator::creator,
                                     CImagePlaneTranslator::NodeInitializer);                          
        // Hair
-      builtin->RegisterTranslator("pfxHair",
-                                    "",
-                                    CHairTranslator::creator,
-                                    CHairTranslator::NodeInitializer);
+      if (MayaNodeTypeExists("pfxHair"))
+      {
+         builtin->RegisterTranslator("pfxHair",
+                                       "",
+                                       CHairTranslator::creator,
+                                       CHairTranslator::NodeInitializer);
+      }
       // Curves
       builtin->RegisterTranslator("nurbsCurve",
                                     "",
@@ -732,15 +739,21 @@ namespace // <anonymous>
                                     CCurveCollectorTranslator::creator,
                                     CCurveCollectorTranslator::NodeInitializer);
       // Particles
-      builtin->RegisterTranslator("particle",
-                                    "",
-                                    CParticleTranslator::creator,
-                                    CParticleTranslator::NodeInitializer);
+      if (MayaNodeTypeExists("particle"))
+      {
+         builtin->RegisterTranslator("particle",
+                                       "",
+                                       CParticleTranslator::creator,
+                                       CParticleTranslator::NodeInitializer);
+      }
 
-      builtin->RegisterTranslator("nParticle",
-                                    "",
-                                    CNParticleTranslator::creator,
-                                    CNParticleTranslator::NodeInitializer);
+      if (MayaNodeTypeExists("nParticle"))
+      {
+         builtin->RegisterTranslator("nParticle",
+                                       "",
+                                       CNParticleTranslator::creator,
+                                       CNParticleTranslator::NodeInitializer);
+      }
 
       builtin->RegisterTranslator("instancer",
                                     "",
@@ -1124,7 +1137,7 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
       sceneOpenCallback = 0;
    }
 
-   if (AiUniverseIsActive())
+   if (AiArnoldIsActive())
       ArnoldEnd();
 
 }

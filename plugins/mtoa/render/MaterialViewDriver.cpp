@@ -2,6 +2,7 @@
 #include "platform/Platform.h"
 #include "render/OutputDriver.h"
 #include "render/MaterialView.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_critsec.h>
 #include <ai_drivers.h>
@@ -38,7 +39,7 @@ node_parameters
 
 node_initialize
 {
-   s_view = (CMaterialView*)AiNodeGetPtr(node, "view");
+   s_view = (CMaterialView*)AiNodeGetPtr(node, str::view);
    AiDriverInitialize(node, false);
 }
 

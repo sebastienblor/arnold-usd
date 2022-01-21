@@ -13,6 +13,7 @@
 #include "translators/DagTranslator.h"
 #include "utils/Universe.h"
 #include "utils/MayaUtils.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_render.h>
 #include <ai_dotass.h>
@@ -374,13 +375,6 @@ void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
    //clear current geo
    m_data->m_bbox.clear();
    m_data->Clear();
-
-   static const AtString polymesh_str("polymesh");
-   static const AtString points_str("points");
-   static const AtString procedural_str("procedural");
-   static const AtString box_str("box");
-   static const AtString ginstance_str("ginstance");
-   static const AtString node_str("node");
    
    // Set the viewport mode in case we find nested procedurals
    AtProcViewportMode viewport_mode = AI_PROC_BOXES;
@@ -416,35 +410,35 @@ void CArnoldBaseProcedural::DrawUniverse(const AtUniverse *universe)
       {
          nodeName = "__unnamed_proc_";
          nodeName += idx++;
-         AiNodeSetStr(node, AtString("name"), nodeName.asChar());
+         AiNodeSetStr(node, str::name, AtString(nodeName.asChar()));
       }
 
       CArnoldDrawGeometry* g = 0;
       bool isInstance = false;
-      if (AiNodeIs(node, polymesh_str))
+      if (AiNodeIs(node, str::polymesh))
          g = new CArnoldDrawPolymesh(node);
-      else if (AiNodeIs(node, points_str))
+      else if (AiNodeIs(node, str::points))
          g = new CArnoldDrawPoints(node);
       else if(AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(node)) == AI_NODE_SHAPE_PROCEDURAL)
          g = new CArnoldDrawProcedural(node, viewport_mode);
-      else if(AiNodeIs(node, box_str))
+      else if(AiNodeIs(node, str::box))
          g = new CArnoldDrawBox(node);
-      else if (AiNodeIs(node, ginstance_str))
+      else if (AiNodeIs(node, str::ginstance))
       {
-         AtNode *source = (AtNode*)AiNodeGetPtr(node, node_str);
+         AtNode *source = (AtNode*)AiNodeGetPtr(node, str::node);
          if (!source)
             continue;
-         AtMatrix total_matrix = AiNodeGetMatrix(node, "matrix");
-         bool inherit_xform = AiNodeGetBool(node, "inherit_xform");
-         AtNode *instanceNode = (AtNode*)AiNodeGetPtr(node, "node");
-         while(AiNodeIs(instanceNode, ginstance_str))
+         AtMatrix total_matrix = AiNodeGetMatrix(node, str::matrix);
+         bool inherit_xform = AiNodeGetBool(node, str::inherit_xform);
+         AtNode *instanceNode = (AtNode*)AiNodeGetPtr(node, str::node);
+         while(AiNodeIs(instanceNode, str::ginstance))
          {                  
-            AtMatrix current_matrix = AiNodeGetMatrix(instanceNode, "matrix");
+            AtMatrix current_matrix = AiNodeGetMatrix(instanceNode, str::matrix);
             if (inherit_xform)
                total_matrix = AiM4Mult(total_matrix, current_matrix);
             
-            inherit_xform = AiNodeGetBool(instanceNode, "inherit_xform");
-            instanceNode = (AtNode*)AiNodeGetPtr(instanceNode, "node");
+            inherit_xform = AiNodeGetBool(instanceNode, str::inherit_xform);
+            instanceNode = (AtNode*)AiNodeGetPtr(instanceNode, str::node);
          }
 
          std::pair<CArnoldDrawGInstance *, std::string> instance(new CArnoldDrawGInstance(node, total_matrix, inherit_xform), AiNodeGetName(source));

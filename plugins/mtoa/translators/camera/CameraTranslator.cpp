@@ -3,6 +3,7 @@
 #include "../NodeTranslatorImpl.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
+#include "utils/ConstantStrings.h"
 #include "session/ArnoldSession.h"
 
 #include <ai_cameras.h>
@@ -61,21 +62,21 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
       options.ScaleDistance(distance);      
       float apertureSize = FindMayaPlug("aiApertureSize").asFloat();
       options.ScaleDistance(apertureSize);
-      AiNodeSetFlt(camera, "focus_distance",          distance);
-      AiNodeSetFlt(camera, "aperture_size",           apertureSize);
-      AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
-      AiNodeSetFlt(camera, "aperture_rotation",       FindMayaPlug("aiApertureRotation").asFloat());
-      AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaPlug("aiApertureBladeCurvature").asFloat());
-      AiNodeSetFlt(camera, "aperture_aspect_ratio",   FindMayaPlug("aiApertureAspectRatio").asFloat());
+      AiNodeSetFlt(camera, str::focus_distance,          distance);
+      AiNodeSetFlt(camera, str::aperture_size,           apertureSize);
+      AiNodeSetInt(camera, str::aperture_blades,         FindMayaPlug("aiApertureBlades").asInt());
+      AiNodeSetFlt(camera, str::aperture_rotation,       FindMayaPlug("aiApertureRotation").asFloat());
+      AiNodeSetFlt(camera, str::aperture_blade_curvature,FindMayaPlug("aiApertureBladeCurvature").asFloat());
+      AiNodeSetFlt(camera, str::aperture_aspect_ratio,   FindMayaPlug("aiApertureAspectRatio").asFloat());
    }
    else
    {
-      AiNodeResetParameter(camera, "focus_distance");
-      AiNodeResetParameter(camera, "aperture_size");
-      AiNodeResetParameter(camera, "aperture_blades");
-      AiNodeResetParameter(camera, "aperture_rotation");
-      AiNodeResetParameter(camera, "aperture_blade_curvature");
-      AiNodeResetParameter(camera, "aperture_aspect_ratio");
+      AiNodeResetParameter(camera, str::focus_distance);
+      AiNodeResetParameter(camera, str::aperture_size);
+      AiNodeResetParameter(camera, str::aperture_blades);
+      AiNodeResetParameter(camera, str::aperture_rotation);
+      AiNodeResetParameter(camera, str::aperture_blade_curvature);
+      AiNodeResetParameter(camera, str::aperture_aspect_ratio);
    }
 }
 
@@ -90,41 +91,41 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
          AtMatrix matrix;
          GetMatrix(matrix);
 
-         AtArray* matrices = AiNodeGetArray(camera, "matrix");
+         AtArray* matrices = AiNodeGetArray(camera, str::matrix);
          AiArraySetMtx(matrices, GetMotionStep(), matrix);
       }
       return;
    }
    AtMatrix matrix;
 
-   AiNodeSetFlt(camera, "exposure", FindMayaPlug("aiExposure").asFloat());
+   AiNodeSetFlt(camera, str::exposure, FindMayaPlug("aiExposure").asFloat());
    
-   AiNodeSetFlt(camera, "near_clip", FindMayaPlug("nearClipPlane").asFloat());
-   AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
-   AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
-   AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutterDuration").asFloat());
+   AiNodeSetFlt(camera, str::near_clip, FindMayaPlug("nearClipPlane").asFloat());
+   AiNodeSetFlt(camera, str::far_clip,  FindMayaPlug("farClipPlane").asFloat());
+   AiNodeSetInt(camera, str::rolling_shutter, FindMayaPlug("aiRollingShutter").asInt());
+   AiNodeSetFlt(camera, str::rolling_shutter_duration, FindMayaPlug("aiRollingShutterDuration").asFloat());
 
    double motionStart, motionEnd;
    GetSessionOptions().GetMotionRange(motionStart, motionEnd);
-   AiNodeSetFlt(camera, "motion_start", (float)motionStart);
-   AiNodeSetFlt(camera, "motion_end", (float)motionEnd);
+   AiNodeSetFlt(camera, str::motion_start, (float)motionStart);
+   AiNodeSetFlt(camera, str::motion_end, (float)motionEnd);
 
    if (FindMayaPlug("aiUseGlobalShutter").asBool())
    {      
       // Use the Global motion range as shutter (default)
-      AiNodeSetFlt(camera, "shutter_start", (float)motionStart);
-      AiNodeSetFlt(camera, "shutter_end", (float)motionEnd);
+      AiNodeSetFlt(camera, str::shutter_start, (float)motionStart);
+      AiNodeSetFlt(camera, str::shutter_end, (float)motionEnd);
    } else
    {
       // Use the camera's shutter. Note that camera motion will 
       // still be exported in the range [motion_start/motion_end]
-      AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
-      AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
+      AiNodeSetFlt(camera, str::shutter_start, FindMayaPlug("aiShutterStart").asFloat());
+      AiNodeSetFlt(camera, str::shutter_end, FindMayaPlug("aiShutterEnd").asFloat());
    }
    
-   AiNodeSetInt(camera, "shutter_type", FindMayaPlug("aiShutterType").asInt());
+   AiNodeSetInt(camera, str::shutter_type, FindMayaPlug("aiShutterType").asInt());
    
-   ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
+   ProcessArrayParameter(camera, str::shutter_curve, FindMayaPlug("aiShutterCurve"));
 
    // For mayaUSD exports, we don't want to export matrices
    if (!GetSessionOptions().IsMayaUsd())
@@ -135,11 +136,11 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
          AiArraySetMtx(matrices, GetMotionStep(), matrix);
-         AiNodeSetArray(camera, "matrix", matrices);
+         AiNodeSetArray(camera, str::matrix, matrices);
       }
       else
       {
-         AiNodeSetMatrix(camera, "matrix", matrix);
+         AiNodeSetMatrix(camera, str::matrix, matrix);
       }
    }
    
@@ -151,17 +152,17 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       if (filtermapPlug.length() > 0)
       {
          AtNode* filtermap = ExportConnectedNode(filtermapPlug[0]);
-         AiNodeSetPtr(camera, "filtermap", filtermap);
+         AiNodeSetPtr(camera, str::filtermap, filtermap);
       }
    }   
 
    if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
    {
-      if (AiNodeLookUpUserParameter(camera, "maya_full_name") == NULL)
-         AiNodeDeclare(camera, "maya_full_name", "constant STRING");
+      if (AiNodeLookUpUserParameter(camera, str::maya_full_name) == NULL)
+         AiNodeDeclare(camera, str::maya_full_name, str::constant_STRING);
    
       MString fullName = m_dagPath.fullPathName();
-      AiNodeSetStr(camera, "maya_full_name", AtString(fullName.asChar()));
+      AiNodeSetStr(camera, str::maya_full_name, AtString(fullName.asChar()));
    }
 }
 
@@ -174,8 +175,8 @@ double CCameraTranslator::GetDeviceAspect()
       // We do an exception for AVP, since the resolution isn't taken from defaultRenderGlobals.resolution.
       // It depends on the viewport resolution. We assume that ArnoldViewOverride has set the option's xres/yres at this point
       AtNode *options = AiUniverseGetOptions(m_impl->m_session->GetUniverse());
-      int width = AiNodeGetInt(options, "xres");
-      int height = AiNodeGetInt(options, "yres");
+      int width = AiNodeGetInt(options, str::xres);
+      int height = AiNodeGetInt(options, str::yres);
 
       deviceAspect = double(width) / double(height);
    } else
@@ -351,8 +352,8 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
    minPoint += MVector(factorX, factorY);
    maxPoint += MVector(factorX, factorY);
 
-   AiNodeSetVec2(camera, "screen_window_min", static_cast<float>(minPoint.x), static_cast<float>(minPoint.y));
-   AiNodeSetVec2(camera, "screen_window_max", static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
+   AiNodeSetVec2(camera, str::screen_window_min, static_cast<float>(minPoint.x), static_cast<float>(minPoint.y));
+   AiNodeSetVec2(camera, str::screen_window_max, static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
 }
 
 void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
@@ -436,7 +437,7 @@ void CCameraTranslator::RequestUpdate()
    // we should not request an update
 
    AtNode *node = GetArnoldNode();
-   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(m_impl->m_session->GetUniverse()), "camera");
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(m_impl->m_session->GetUniverse()), str::camera);
    if (node == renderCam || !m_impl->m_backReferences.empty())
       CDagTranslator::RequestUpdate();
    else
@@ -448,7 +449,7 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
    MString plugName = plug.partialName(false, false, false, false, false, true);
    CSessionOptions &options = m_impl->m_session->GetOptions();
 
-   if (plugName == "overscan" && !options.GetExportOverscan()) return;
+   if (plugName == "overscan" && !options.GetExportCameraOverscan()) return;
 
    if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
 
@@ -465,7 +466,7 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 float CCameraTranslator::GetFocalFactor() const
 {
    CSessionOptions &options = m_impl->m_session->GetOptions();
-   if (!options.GetExportOverscan())
+   if (!options.GetExportCameraOverscan())
       return 1.f;
 
    // We need to take into account overscan for AVP

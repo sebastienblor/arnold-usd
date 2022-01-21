@@ -4,7 +4,7 @@
 #include <maya/MBoundingBox.h>
 #include "utils/MayaUtils.h"
 #include "utils/MtoaLog.h"
-
+#include "utils/ConstantStrings.h"
 
 namespace
 {
@@ -184,42 +184,42 @@ void CArnoldExportSession::WriteScene(MString customFileName, const bool compres
          boundsStr += bBox.max.y;
          boundsStr += " ";
          boundsStr += bBox.max.z;
-         AiMetadataStoreSetStr(mds, AtString("bounds"), boundsStr.asChar());
+         AiMetadataStoreSetStr(mds, str::bounds, boundsStr.asChar());
       }
 
-      if (AiNodeLookUpUserParameter(options, "frame"))
-         AiMetadataStoreSetFlt(mds, AtString("frame"), AiNodeGetFlt(options, "frame"));
+      if (AiNodeLookUpUserParameter(options, str::frame))
+         AiMetadataStoreSetFlt(mds, str::frame, AiNodeGetFlt(options, str::frame));
 
-      if (AiNodeLookUpUserParameter(options, "fps"))
-         AiMetadataStoreSetFlt(mds, AtString("fps"), AiNodeGetFlt(options, "fps"));
+      if (AiNodeLookUpUserParameter(options, str::fps))
+         AiMetadataStoreSetFlt(mds, str::fps, AiNodeGetFlt(options, str::fps));
 
-      if (AiNodeLookUpUserParameter(options, "render_layer"))
-         AiMetadataStoreSetStr(mds, AtString("render_layer"), AiNodeGetStr(options, "render_layer"));
+      if (AiNodeLookUpUserParameter(options, str::render_layer))
+         AiMetadataStoreSetStr(mds, str::render_layer, AiNodeGetStr(options, str::render_layer));
 
       MString currentUser;
       MGlobal::executePythonCommand("import getpass; getpass.getuser();", currentUser);
       if (currentUser.length() > 0)
-         AiMetadataStoreSetStr(mds, AtString("user"), currentUser.asChar());
+         AiMetadataStoreSetStr(mds, str::user, AtString(currentUser.asChar()));
 
 
 
       MString sceneFileName;
       MGlobal::executeCommand("file -q -sn", sceneFileName);
       if(sceneFileName.length() > 0)
-         AiMetadataStoreSetStr(mds, AtString("scene"), sceneFileName.asChar());
+         AiMetadataStoreSetStr(mds, str::scene, AtString(sceneFileName.asChar()));
 
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
       AtParamValueMap* params = AiParamValueMap();
       
-      AiParamValueMapSetInt(params, AtString("mask"), m_sessionOptions.outputAssMask());
-      AiParamValueMapSetBool(params, AtString("open_procs"), m_sessionOptions.expandProcedurals());
-      AiParamValueMapSetBool(params, AtString("binary"), m_sessionOptions.useBinaryEncoding());
-      AiParamValueMapSetFlt(params, AtString("frame"), AiNodeGetFlt(options, "frame"));
+      AiParamValueMapSetInt(params, str::mask, m_sessionOptions.outputAssMask());
+      AiParamValueMapSetBool(params, str::open_procs, m_sessionOptions.expandProcedurals());
+      AiParamValueMapSetBool(params, str::binary, m_sessionOptions.useBinaryEncoding());
+      AiParamValueMapSetFlt(params, str::frame, AiNodeGetFlt(options, str::frame));
       if (append)
-         AiParamValueMapSetBool(params, AtString("append"), true);
+         AiParamValueMapSetBool(params, str::append, true);
 
-      AiSceneWrite(m_universe, fileName.asChar(), params, mds);
+      AiSceneWrite(m_universe, AtString(fileName.asChar()), params, mds);
       AiMetadataStoreDestroy(mds);
       AiParamValueMapDestroy(params);
 

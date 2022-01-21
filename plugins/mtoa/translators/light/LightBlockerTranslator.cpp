@@ -1,4 +1,5 @@
 #include "LightBlockerTranslator.h"
+#include "utils/ConstantStrings.h"
 #include <ai_nodes.h>
 #include <ai_ray.h>
 
@@ -22,7 +23,7 @@ void CLightBlockerTranslator::Export(AtNode* blocker)
    AtMatrix matrix;
    GetMatrix(matrix);
    
-   AiNodeSetMatrix(blocker, "geometry_matrix", matrix);
+   AiNodeSetMatrix(blocker, str::geometry_matrix, matrix);
    
    ProcessParameter(blocker, "geometry_type", AI_TYPE_INT, "geometryType");
    ProcessParameter(blocker, "density", AI_TYPE_FLOAT, "density");
@@ -33,5 +34,5 @@ void CLightBlockerTranslator::Export(AtNode* blocker)
    ProcessParameter(blocker, "ramp", AI_TYPE_FLOAT, "ramp");
    ProcessParameter(blocker, "axis", AI_TYPE_INT, "rampAxis");
 
-   if ((ComputeVisibility() & AI_RAY_CAMERA) == 0) AiNodeSetFlt(blocker, "density", 0.0f);
+   if ((ComputeVisibility() & AI_RAY_CAMERA) == 0) AiNodeSetFlt(blocker, str::density, 0.0f);
 }

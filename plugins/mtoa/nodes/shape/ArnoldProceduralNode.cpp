@@ -25,6 +25,7 @@
 #include "extension/ExtensionsManager.h"
 #include "common/UnorderedContainer.h"
 #include "utils/Universe.h"
+#include "utils/ConstantStrings.h"
 #include "session/ArnoldSession.h"
 #include "session/SessionManager.h"
 
@@ -127,7 +128,7 @@ MStatus CArnoldProceduralNode::initialize()
    MString arnold = s_abstract.arnold;
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(AtString(arnold.asChar()));
 
    CStaticAttrHelper helper(CArnoldProceduralNode::addAttribute, nodeEntry);
 
@@ -171,7 +172,7 @@ MStatus CArnoldProceduralNode::initialize()
       std::string paramNameStr(paramName);
       
       bool hide = false;
-      if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
+      if (!AiMetaDataGetBool(nodeEntry, AtString(paramName), str::maya_hide, &hide) || !hide)
       {
          nodeParameters.push_back(paramNameStr);
 
@@ -260,7 +261,7 @@ void CArnoldProceduralNode::updateGeometry()
    AtNode *proc = (translator) ? translator->GetArnoldNode() : NULL;
 
    MDistance dist(1.0, MDistance::uiUnit());
-   AiNodeSetFlt(AiUniverseGetOptions(proc_universe), "meters_per_unit", (float)dist.asMeters());
+   AiNodeSetFlt(AiUniverseGetOptions(proc_universe), str::meters_per_unit, (float)dist.asMeters());
 
    if (proc)
    {

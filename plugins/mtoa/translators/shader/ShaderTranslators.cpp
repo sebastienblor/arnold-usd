@@ -3,6 +3,7 @@
 #include "platform/Platform.h"
 #include "../NodeTranslatorImpl.h"
 #include "../../common/UnorderedContainer.h"
+#include "attributes/AttrHelper.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -35,6 +36,7 @@
 #include <iostream>
 
 #include <utils/MayaUtils.h>
+#include <utils/ConstantStrings.h>
 
 
 static const MStringArray SHADER_INVALID_COMPONENTS;
@@ -125,28 +127,17 @@ AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
 
 void CSkyShaderTranslator::Export(AtNode* shader)
 {
-   MFnDependencyNode trNode(m_dagPath.transform());
-
-   MTransformationMatrix tmatrix(m_dagPath.inclusiveMatrix());
-   MEulerRotation erotate = tmatrix.eulerRotation();
-   AiNodeSetFlt(shader, "X_angle", static_cast<float>(-MAngle(erotate[0]).asDegrees()));
-   AiNodeSetFlt(shader, "Y_angle", static_cast<float>(MAngle(erotate[1]).asDegrees()));
-   AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-MAngle(erotate[2]).asDegrees()));
-
-   double scale[3];
-   tmatrix.getScale(scale, MSpace::kTransform);
-   // Invert in Z to account for the env sphere being viewed from inside
-   AiNodeSetVec(shader, "X", 1.0f/static_cast<float>(scale[0]), 0.0f, 0.0f);
-   AiNodeSetVec(shader, "Y", 0.0f, 1.0f/static_cast<float>(scale[1]), 0.0f);
-   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, 1.0f/static_cast<float>(scale[2]));
-
    ProcessParameter(shader, "color",     AI_TYPE_RGB);
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
-
-   AtByte visibility = ComputeVisibility();
-   AiNodeSetBool(shader, "opaque_alpha", (int)(visibility & AI_RAY_CAMERA));
-   AiNodeSetInt(shader, "visibility", visibility);
+   ProcessParameter(shader, "X",         AI_TYPE_VECTOR);
+   ProcessParameter(shader, "Y",         AI_TYPE_VECTOR);
+   ProcessParameter(shader, "Z",         AI_TYPE_VECTOR);
+   ProcessParameter(shader, "X_angle",   AI_TYPE_FLOAT);
+   ProcessParameter(shader, "Y_angle",   AI_TYPE_FLOAT);
+   ProcessParameter(shader, "Z_angle",   AI_TYPE_FLOAT);
+   ProcessParameter(shader, "visibility",AI_TYPE_BYTE);
+   ProcessParameter(shader, "opaque_alpha", AI_TYPE_BOOLEAN);
 }
 
 // Lambert
@@ -190,7 +181,7 @@ void CLambertTranslator::Export(AtNode* shader)
       else
       {
 
-         AiNodeSetRGB(shader, "opacity",
+         AiNodeSetRGB(shader, str::opacity,
                         1.0f - plug.child(0).asFloat(),
                         1.0f - plug.child(1).asFloat(),
                         1.0f - plug.child(2).asFloat());
@@ -219,34 +210,34 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "turbidity", AI_TYPE_FLOAT, "turbidity");
    
    MPlug plug = FindMayaPlug("ground_albedo", &status);
-   AiNodeSetRGB(shader, "ground_albedo", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetRGB(shader, str::ground_albedo, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    ProcessParameter(shader, "use_degrees", AI_TYPE_BOOLEAN, "use_degrees");
    ProcessParameter(shader, "elevation", AI_TYPE_FLOAT, "elevation");
    ProcessParameter(shader, "azimuth", AI_TYPE_FLOAT, "azimuth");
    
    plug = FindMayaPlug("sun_direction", &status);
-   AiNodeSetVec(shader, "sun_direction", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetVec(shader, str::sun_direction, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    ProcessParameter(shader, "enable_sun", AI_TYPE_BOOLEAN, "enable_sun");
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT, "intensity");
    
    plug = FindMayaPlug("sky_tint", &status);
-   AiNodeSetRGB(shader, "sky_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetRGB(shader, str::sky_tint, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    plug = FindMayaPlug("sun_tint", &status);
-   AiNodeSetRGB(shader, "sun_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetRGB(shader, str::sun_tint, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    ProcessParameter(shader, "sun_size", AI_TYPE_FLOAT, "sun_size");
    
    plug = FindMayaPlug("X", &status);
-   AiNodeSetVec(shader, "X", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetVec(shader, str::X, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    plug = FindMayaPlug("Y", &status);
-   AiNodeSetVec(shader, "Y", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetVec(shader, str::Y, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    plug = FindMayaPlug("Z", &status);
-   AiNodeSetVec(shader, "Z", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   AiNodeSetVec(shader, str::Z, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 }
 
 // File
@@ -292,52 +283,52 @@ void CFileTranslator::Export(AtNode* shader)
       if (srcNodeFn.typeName() == "place2dTexture")
       {
          srcNodeFn.findPlug("uvCoord", true).connectedTo(connections, true, false);
-         AiNodeSetStr(shader, "uvset", "");
+         AiNodeSetStr(shader, str::uvset, AtString());
          if (connections.length() > 0)
          {
             MFnDependencyNode uvcNodeFn(connections[0].node());
             if (uvcNodeFn.typeName() == "uvChooser")
-               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
+               AiNodeSetStr(shader, str::uvset, AtString(uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar()));
          }
          if (uvTransformNode)
          {
             // we need to set the UV controls in the uv_transform node
-            AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            AiNodeSetStr(uvTransformNode, str::uvset, AiNodeGetStr(shader, str::uvset));
             if (connections.length() > 0)
-               AiNodeResetParameter(shader, "uvset");
+               AiNodeResetParameter(shader, str::uvset);
 
             ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
             ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
             ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
 
             if (srcNodeFn.findPlug("wrapU", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_u, str::periodic);
             else
-               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_u, str::color);
                
 
             if (srcNodeFn.findPlug("wrapV", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_v, str::periodic);
             else
-               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_v, str::color);
             
 
             ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
             if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
             {
-               AtRGBA col = AiNodeGetRGBA(uvTransformNode, "wrap_frame_color");
-               AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
+               AtRGBA col = AiNodeGetRGBA(uvTransformNode, str::wrap_frame_color);
+               AiNodeSetRGBA(uvTransformNode, str::wrap_frame_color, col.r, col.g, col.b, 0.f);
             }
             // if not linked, set alpha to zero
             ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV", true));
             ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset", true));
 
             float rotateFrame = srcNodeFn.findPlug("rotateFrame", true).asFloat();
-            AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
+            AiNodeSetFlt(uvTransformNode, str::rotate_frame, rotateFrame * 180.f / AI_PI);
             //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
             ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame", true));
             float rotateUV = srcNodeFn.findPlug("rotateUV", true).asFloat();
-            AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);
+            AiNodeSetFlt(uvTransformNode, str::rotate, rotateUV * 180.f / AI_PI);
             ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger", true));
             ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV", true));
 
@@ -346,42 +337,42 @@ void CFileTranslator::Export(AtNode* shader)
             if (srcNodeFn.findPlug("wrapU", true).asBool())
             {
                if (srcNodeFn.findPlug("mirrorU", true).asBool())
-                  AiNodeSetStr(shader, "swrap", "mirror");
+                  AiNodeSetStr(shader, str::swrap, str::mirror);
                else
-                  AiNodeSetStr(shader, "swrap", "periodic");
+                  AiNodeSetStr(shader, str::swrap, str::periodic);
                
             } else
-               AiNodeSetStr(shader, "swrap", "missing");
+               AiNodeSetStr(shader, str::swrap, str::missing);
 
             if (srcNodeFn.findPlug("wrapV", true).asBool())
             {
                if (srcNodeFn.findPlug("mirrorV", true).asBool())
-                  AiNodeSetStr(shader, "twrap", "mirror");
+                  AiNodeSetStr(shader, str::twrap, str::mirror);
                else
-                  AiNodeSetStr(shader, "twrap", "periodic");
+                  AiNodeSetStr(shader, str::twrap, str::periodic);
                
             } else
-               AiNodeSetStr(shader, "twrap", "missing");
+               AiNodeSetStr(shader, str::twrap, str::missing);
             
             MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV", true);
             if (!repeatUVPlug.isNull())
             {
                AtVector2 repeatUV = AtVector2(repeatUVPlug.child(0).asFloat(), repeatUVPlug.child(1).asFloat());
-               AiNodeSetFlt(shader, "sscale", repeatUV.x);
-               AiNodeSetFlt(shader, "tscale", repeatUV.y);
+               AiNodeSetFlt(shader, str::sscale, repeatUV.x);
+               AiNodeSetFlt(shader, str::tscale, repeatUV.y);
             }
             MPlug offsetUVPlug = srcNodeFn.findPlug("offset", true);
             if (!offsetUVPlug.isNull())
             {
-               AiNodeSetFlt(shader, "soffset", offsetUVPlug.child(0).asFloat());
-               AiNodeSetFlt(shader, "toffset", offsetUVPlug.child(1).asFloat());
+               AiNodeSetFlt(shader, str::soffset, offsetUVPlug.child(0).asFloat());
+               AiNodeSetFlt(shader, str::toffset, offsetUVPlug.child(1).asFloat());
             }
          }
 
       }
    }
 
-   MString prevFilename = AiNodeGetStr(shader, "filename").c_str();
+   MString prevFilename = AiNodeGetStr(shader, str::filename).c_str();
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
    {
@@ -464,29 +455,29 @@ void CFileTranslator::Export(AtNode* shader)
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
       }
 
-      AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
+      AiNodeSetStr(shader, str::filename, AtString(resolvedFilename.asChar()));
       
       if (m_impl->m_session->IsFileExport() && (options.outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
       {   
          // if the export option for color managers is turned off, consider that color management is disabled #2995
          // here we want to reset the color_space attribute so that it's left to arnold's "automatic" default mode,
          // we don't want to force it to an empty string which behaves differently (see #MTOA-727)
-         AiNodeResetParameter(shader, "color_space");
+         AiNodeResetParameter(shader, str::color_space);
       }
       else 
       {
-         AiNodeSetStr(shader, "color_space", FindMayaPlug("colorSpace").asString().asChar());
+         AiNodeSetStr(shader, str::color_space, AtString(FindMayaPlug("colorSpace").asString().asChar()));
          // only set the color_space if the texture isn't a TX. Otherwise force it to an empty value (passthrough)
          if (resolvedFilename.length() > 4)
          {
             MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
             // set the color space only if texture isn't a TX
             if (extension == ".tx" || extension ==  ".TX")
-               AiNodeSetStr(shader, "color_space", "");
+               AiNodeSetStr(shader, str::color_space, AtString());
          }
       }
 
-      std::string outColorSpace = AiNodeGetStr(shader, "color_space").c_str();
+      std::string outColorSpace = AiNodeGetStr(shader, str::color_space).c_str();
 
       // we want to request a Tx update
       if (options.GetAutoTx() && 
@@ -501,16 +492,16 @@ void CFileTranslator::Export(AtNode* shader)
    } 
 
    ProcessParameter(shader, "mipmap_bias", AI_TYPE_INT, "aiMipBias");
-   AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
+   AiNodeSetInt(shader, str::filter, FindMayaPlug("aiFilter").asInt());
   
    // FIXME : in Maya File, the default color is also seen out of the UV range, when UV wrapping is disabled
    // In Arnold image node, the only choice we have is "black"
-   AiNodeSetBool(shader, "ignore_missing_textures", FindMayaPlug("aiUseDefaultColor").asBool());
-   ProcessParameter(shader, "missing_texture_color", AI_TYPE_RGBA, "defaultColor");
+   AiNodeSetBool(shader, str::ignore_missing_textures, FindMayaPlug("aiUseDefaultColor").asBool());
+   ProcessParameter(shader, str::missing_texture_color, AI_TYPE_RGBA, "defaultColor");
    if (!AiNodeIsLinked(shader, "missing_texture_color")) // Force a transparent alpha on the defaultColor
    {
-      AtRGBA col = AiNodeGetRGBA(shader, "missing_texture_color");
-      AiNodeSetRGBA(shader, "missing_texture_color", col.r, col.g, col.b, 0.f);
+      AtRGBA col = AiNodeGetRGBA(shader, str::missing_texture_color);
+      AiNodeSetRGBA(shader, str::missing_texture_color, col.r, col.g, col.b, 0.f);
    }
    
    
@@ -542,7 +533,7 @@ void CFileTranslator::Export(AtNode* shader)
                               colorGainPlug.child(1).asFloat(), 
                               colorGainPlug.child(2).asFloat());
       colorGain *= powf(2.0f, exposurePlug.asFloat());
-      AiNodeSetRGB(shader, "multiply", colorGain.r, colorGain.g, colorGain.b);
+      AiNodeSetRGB(shader, str::multiply, colorGain.r, colorGain.g, colorGain.b);
    } else
    {
       AtNode *compositeNode = GetArnoldNode("gain_exp");
@@ -550,7 +541,7 @@ void CFileTranslator::Export(AtNode* shader)
          compositeNode = AddArnoldNode("color_correct", "gain_exp");
 
       AiNodeLink(compositeNode, "multiply", shader);
-      AiNodeSetRGBA(compositeNode, "input", 1.f, 1.f, 1.f, 1.f);
+      AiNodeSetRGBA(compositeNode, str::input, 1.f, 1.f, 1.f, 1.f);
       ProcessParameter(compositeNode, "multiply", AI_TYPE_RGB, "colorGain");
       ProcessParameter(compositeNode, "exposure", AI_TYPE_FLOAT, "exposure");
    }
@@ -740,15 +731,15 @@ void CBump2DTranslator::Export(AtNode* shader)
       if (!plug.isNull() && plug.asShort() == 1) 
       {
          // Tangent space normal
-         AiNodeSetBool(shader, "tangent_space", true);
-         AiNodeSetBool(shader, "color_to_signed", true); // remap normals from [0,1] to [-1,1]
+         AiNodeSetBool(shader, str::tangent_space, true);
+         AiNodeSetBool(shader, str::color_to_signed, true); // remap normals from [0,1] to [-1,1]
          ProcessParameter(shader, "invert_x", AI_TYPE_BOOLEAN, "aiFlipR");
          ProcessParameter(shader, "invert_y", AI_TYPE_BOOLEAN, "aiFlipG");
-         AiNodeResetParameter(shader, "invert_z");
+         AiNodeResetParameter(shader, str::invert_z);
 
          MPlug swapTangentPlug = FindMayaPlug("aiSwapTangents");
          if (!swapTangentPlug.isNull() && swapTangentPlug.asBool())
-            AiNodeSetStr(shader, "order", "YXZ");
+            AiNodeSetStr(shader, str::order, str::YXZ);
          else
             AiNodeResetParameter(shader, "order"); // XYZ
 
@@ -766,16 +757,16 @@ void CBump2DTranslator::Export(AtNode* shader)
             if (tangentNode == NULL)
                tangentNode = AddArnoldNode("state_vector", "tangent");
 
-            AiNodeSetStr(tangentNode, "variable", "dPdu");
+            AiNodeSetStr(tangentNode, str::variable, str::dPdu);
             AiNodeLink(tangentNode, "tangent", shader);
          }        
 
       } else
       {
          // Object space normal
-         AiNodeSetBool(shader, "tangent_space", false);
+         AiNodeSetBool(shader, str::tangent_space, false);
          // note that normal isn't remapped in object space normal in maya
-         AiNodeSetBool(shader, "color_to_signed", false);
+         AiNodeSetBool(shader, str::color_to_signed, false);
 
          AiNodeResetParameter(shader, "tangent");
          AiNodeResetParameter(shader, "normal");
@@ -873,51 +864,51 @@ void CCheckerTranslator::Export(AtNode* shader)
       if (srcNodeFn.typeName() == "place2dTexture")
       {
          srcNodeFn.findPlug("uvCoord", true).connectedTo(connections, true, false);
-         AiNodeSetStr(shader, "uvset", "");
+         AiNodeSetStr(shader, str::uvset, AtString());
          if (connections.length() > 0)
          {
             MFnDependencyNode uvcNodeFn(connections[0].node());
             if (uvcNodeFn.typeName() == "uvChooser")
-               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
+               AiNodeSetStr(shader, str::uvset, AtString(uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar()));
          }
          if (uvTransformNode)
          {
             // we need to set the UV controls in the uv_transform node
-            AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            AiNodeSetStr(uvTransformNode, str::uvset, AtString(AiNodeGetStr(shader, str::uvset)));
             // if the uvset was set on the uv_transform node, the actual shader should now look at the default coordinates
-            AiNodeSetStr(shader, "uvset", ""); 
+            AiNodeSetStr(shader, str::uvset, AtString()); 
             ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
             ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
             ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
 
             if (srcNodeFn.findPlug("wrapU", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "none");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_u, str::none);
             else
-               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_u, str::color);
                
 
             if (srcNodeFn.findPlug("wrapV", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "none");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_v, str::none);
             else
-               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
+               AiNodeSetStr(uvTransformNode, str::wrap_frame_v, str::color);
             
 
             ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
             if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
             {
-               AtRGBA col = AiNodeGetRGBA(uvTransformNode, "wrap_frame_color");
-               AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
+               AtRGBA col = AiNodeGetRGBA(uvTransformNode, str::wrap_frame_color);
+               AiNodeSetRGBA(uvTransformNode, str::wrap_frame_color, col.r, col.g, col.b, 0.f);
             }
             // if not linked, set alpha to zero
             ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV", true));
             ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset", true));
 
             float rotateFrame = srcNodeFn.findPlug("rotateFrame", true).asFloat();
-            AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
+            AiNodeSetFlt(uvTransformNode, str::rotate_frame, rotateFrame * 180.f / AI_PI);
             //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
             ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame", true));
             float rotateUV = srcNodeFn.findPlug("rotateUV", true).asFloat();
-            AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);
+            AiNodeSetFlt(uvTransformNode, str::rotate, rotateUV * 180.f / AI_PI);
             ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger", true));
             ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV", true));
 
@@ -927,14 +918,14 @@ void CCheckerTranslator::Export(AtNode* shader)
             if (!repeatUVPlug.isNull())
             {
                AtVector2 repeatUV = AtVector2(repeatUVPlug.child(0).asFloat(), repeatUVPlug.child(1).asFloat());
-               AiNodeSetFlt(shader, "u_frequency", repeatUV.x);
-               AiNodeSetFlt(shader, "v_frequency", repeatUV.y);
+               AiNodeSetFlt(shader, str::u_frequency, repeatUV.x);
+               AiNodeSetFlt(shader, str::v_frequency, repeatUV.y);
             }
             MPlug offsetUVPlug = srcNodeFn.findPlug("offset", true);
             if (!offsetUVPlug.isNull())
             {
-               AiNodeSetFlt(shader, "u_offset", offsetUVPlug.child(0).asFloat());
-               AiNodeSetFlt(shader, "v_offset", offsetUVPlug.child(1).asFloat());
+               AiNodeSetFlt(shader, str::u_offset, offsetUVPlug.child(0).asFloat());
+               AiNodeSetFlt(shader, str::v_offset, offsetUVPlug.child(1).asFloat());
             }
          }
 
@@ -1048,13 +1039,13 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
       shader = AddArnoldNode("compare");
       AtNode* dot_shader = AddArnoldNode("dot", "dot");
       AtNode* Nf_shader = AddArnoldNode("state_vector", "nf");
-      AiNodeSetStr(Nf_shader, "variable", "Nf");
+      AiNodeSetStr(Nf_shader, str::variable, str::Nf);
       AtNode* N_shader = AddArnoldNode("state_vector", "n");
-      AiNodeSetStr(N_shader, "variable", "N");
+      AiNodeSetStr(N_shader, str::variable, str::N);
       AiNodeLink(Nf_shader, "input1", dot_shader);
       AiNodeLink(N_shader, "input2", dot_shader);
-      AiNodeSetStr(shader, "test", "<");
-      AiNodeSetFlt(shader, "input2", 0.0f);
+      AiNodeSetStr(shader, str::test, AtString("<"));
+      AiNodeSetFlt(shader, str::input2, 0.0f);
       AiNodeLink(dot_shader, "input1", shader);
    }
 
@@ -1063,9 +1054,9 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
    {
       shader = AddArnoldNode("float_to_rgb");
       AtNode* u_shader = AddArnoldNode("state_float", "u");
-      AiNodeSetStr(u_shader, "variable", "u");
+      AiNodeSetStr(u_shader, str::variable, str::u);
       AtNode* v_shader = AddArnoldNode("state_float", "v");
-      AiNodeSetStr(v_shader, "variable", "v");
+      AiNodeSetStr(v_shader, str::variable, str::v);
       AiNodeLink(u_shader, "r", shader);
       AiNodeLink(v_shader, "g", shader);
    }
@@ -1073,9 +1064,9 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
    {
       shader = AddArnoldNode("float_to_rgb");
       AtNode* screenx_shader = AddArnoldNode("state_int", "x");
-      AiNodeSetStr(screenx_shader, "variable", "x");
+      AiNodeSetStr(screenx_shader, str::variable, str::x);
       AtNode* screeny_shader = AddArnoldNode("state_int", "y");
-      AiNodeSetStr(screeny_shader, "variable", "y");
+      AiNodeSetStr(screeny_shader, str::variable, str::y);
       AiNodeLink(screenx_shader, "r", shader);
       AiNodeLink(screeny_shader, "g", shader);
    }
@@ -1084,63 +1075,63 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
    else if ( outputAttr == "pointWorld")
    {
       shader = AddArnoldNode("state_vector");
-      AiNodeSetStr(shader, "variable", "P");
+      AiNodeSetStr(shader, str::variable, str::P);
    }
    else if ( outputAttr == "pointObj")
    {
       shader = AddArnoldNode("state_vector");
-      AiNodeSetStr(shader, "variable", "Po");
+      AiNodeSetStr(shader, str::variable, str::Po);
    }
    else if ( outputAttr == "pointCamera")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "point");
-      AiNodeSetStr(shader, "from", "world");
-      AiNodeSetStr(shader, "to", "camera");
+      AiNodeSetStr(shader, str::type, str::point);
+      AiNodeSetStr(shader, str::from, str::world);
+      AiNodeSetStr(shader, str::to, str::camera);
       AtNode* P_shader = AddArnoldNode("state_vector", "P");
-      AiNodeSetStr(P_shader, "variable", "P");
+      AiNodeSetStr(P_shader, str::variable, str::P);
       AiNodeLink(P_shader, "input", shader);
    }
    else if ( outputAttr == "normalCamera")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "normal");
-      AiNodeSetStr(shader, "from", "world");
-      AiNodeSetStr(shader, "to", "camera");
+      AiNodeSetStr(shader, str::type, str::normal);
+      AiNodeSetStr(shader, str::from, str::world);
+      AiNodeSetStr(shader, str::to, str::camera);
       AtNode* N_shader = AddArnoldNode("state_vector", "N");
-      AiNodeSetStr(N_shader, "variable", "N");
-      AiNodeLink(N_shader, "input", shader);
+      AiNodeSetStr(N_shader, str::variable, str::N);
+      AiNodeLink(N_shader, str::input, shader);
    }
    else if ( outputAttr == "rayDirection")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "vector");
-      AiNodeSetStr(shader, "from", "world");
-      AiNodeSetStr(shader, "to", "camera");
+      AiNodeSetStr(shader, str::type, str::vector);
+      AiNodeSetStr(shader, str::from, str::world);
+      AiNodeSetStr(shader, str::to, str::camera);
       AtNode* Rd_shader = AddArnoldNode("state_vector", "Rd");
-      AiNodeSetStr(Rd_shader, "variable", "Rd");
+      AiNodeSetStr(Rd_shader, str::variable, str::Rd);
       AiNodeLink(Rd_shader, "input", shader);
    }
    else if ( outputAttr == "tangentUCamera")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "vector");
-      AiNodeSetStr(shader, "from", "world");
-      AiNodeSetStr(shader, "to", "camera");
-      AiNodeSetBool(shader, "normalize", true);
+      AiNodeSetStr(shader, str::type, str::vector);
+      AiNodeSetStr(shader, str::from, str::world);
+      AiNodeSetStr(shader, str::to, str::camera);
+      AiNodeSetBool(shader, str::normalize, true);
       AtNode* tgtU_shader = AddArnoldNode("state_vector", "u");
-      AiNodeSetStr(tgtU_shader, "variable", "dPdu");
+      AiNodeSetStr(tgtU_shader, str::variable, str::dPdu);
       AiNodeLink(tgtU_shader, "input", shader);
    }
    else if ( outputAttr == "tangentVCamera")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "vector");
-      AiNodeSetStr(shader, "from", "world");
-      AiNodeSetStr(shader, "to", "camera");
-      AiNodeSetBool(shader, "normalize", true);
+      AiNodeSetStr(shader, str::type, str::vector);
+      AiNodeSetStr(shader, str::from, str::world);
+      AiNodeSetStr(shader, str::to, str::camera);
+      AiNodeSetBool(shader, str::normalize, true);
       AtNode* tgtV_shader = AddArnoldNode("state_vector", "v");
-      AiNodeSetStr(tgtV_shader, "variable", "dPdv");
+      AiNodeSetStr(tgtV_shader, str::variable, str::dPdv);
       AiNodeLink(tgtV_shader, "input", shader);
    }
    else
@@ -1205,7 +1196,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    for (unsigned int i = 1; i <= 8; ++i)
    {
       sprintf(aiAttr, "enable%u", i);
-      AiNodeSetBool(shader, aiAttr, false);
+      AiNodeSetBool(shader, AtString(aiAttr), false);
    }
 
    if (m_inputSize == 1)
@@ -1224,12 +1215,12 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
       for (unsigned int i = 0; i < size; ++i)
       {
          sprintf(aiAttr, "enable%u", i+1);
-         AiNodeSetBool(shader, aiAttr, true);
+         AiNodeSetBool(shader, AtString(aiAttr), true);
          
          sprintf(aiAttr, "input%u", i+1);
          // can be linked
          float val = plug[i].asFloat();
-         AiNodeSetRGBA(shader, aiAttr, val, val, val, 1.f);
+         AiNodeSetRGBA(shader, AtString(aiAttr), val, val, val, 1.f);
          plug[i].connectedTo(connections, true, false);
          if (connections.length() > 0)
             ShaderComputeLink(this, connections[0], shader, aiAttr);
@@ -1237,7 +1228,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
          if (i > 0)
          {
             sprintf(aiAttr, "operation%u", i+1);
-            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+            AiNodeSetStr(shader, AtString(aiAttr), AtString(opStr.c_str()));
          }
          
       }
@@ -1258,10 +1249,10 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
       for (unsigned int i = 0; i < size; ++i)
       {
          sprintf(aiAttr, "enable%u", i+1);
-         AiNodeSetBool(shader, aiAttr, true);
+         AiNodeSetBool(shader, AtString(aiAttr), true);
          
          sprintf(aiAttr, "input%u", i+1);
-         AiNodeSetRGBA(shader, aiAttr, plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(), 0.f, 1.f);
+         AiNodeSetRGBA(shader, AtString(aiAttr), plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(), 0.f, 1.f);
 
          connections.clear();
          plug[i].connectedTo(connections, true, false);
@@ -1287,7 +1278,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
          if (i > 0)
          {
             sprintf(aiAttr, "operation%u", i+1);
-            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+            AiNodeSetStr(shader, AtString(aiAttr), AtString(opStr.c_str()));
          }
       }
    } else if (m_inputSize == 3)
@@ -1309,10 +1300,10 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
       for (unsigned int i = 0; i < size; ++i)
       {
          sprintf(aiAttr, "enable%u", i+1);
-         AiNodeSetBool(shader, aiAttr, true);
+         AiNodeSetBool(shader, AtString(aiAttr), true);
          
          sprintf(aiAttr, "input%u", i+1);
-         AiNodeSetRGBA(shader, aiAttr, plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(),  plug[i].child(oz).asFloat(), 1.f);
+         AiNodeSetRGBA(shader, AtString(aiAttr), plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(),  plug[i].child(oz).asFloat(), 1.f);
          connections.clear();
          plug[i].connectedTo(connections, true, false);
          if (connections.length() > 0)
@@ -1345,7 +1336,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
          if (i > 0)
          {
             sprintf(aiAttr, "operation%u", i+1);
-            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+            AiNodeSetStr(shader, AtString(aiAttr), AtString(opStr.c_str()));
          }
       }      
 
@@ -1353,9 +1344,9 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    if (operation == OP_AVERAGE)
    {
       AiNodeUnlink(shader, "input8");
-      AiNodeSetStr(shader, "operation8", "divide");
-      AiNodeSetRGBA(shader, "input8", float(size), float(size), float(size), 1.f);
-      AiNodeSetBool(shader, "enable8", true);
+      AiNodeSetStr(shader, str::operation8, str::divide);
+      AiNodeSetRGBA(shader, str::input8, float(size), float(size), float(size), 1.f);
+      AiNodeSetBool(shader, str::enable8, true);
    }
    
   
@@ -1428,27 +1419,27 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 
    if (outputAttr == "outColor" || outputAttr == "rgbPP")
    {
-      AiNodeSetStr(shader, "attribute", "rgbPP");
+      AiNodeSetStr(shader, str::attribute, str::rgbPP);
    }
    else if (outputAttr == "outTransparency" )
    {
-      AiNodeSetStr(shader, "attribute", "opacityPP");
+      AiNodeSetStr(shader, str::attribute, str::opacityPP);
    }
    else if ( outputAttr == "opacityPP" || outputAttr == "opacity")
    {
-      AiNodeSetStr(shader, "attribute" , "opacityPP");
+      AiNodeSetStr(shader, str::attribute , str::opacityPP);
    }
    else if (outputAttr == "outIncandescence" || outputAttr == "incandescensePP" || outputAttr == "incandescense" )
    {
-      AiNodeSetStr(shader, "attribute", "incandescencePP");
+      AiNodeSetStr(shader, str::attribute, str::incandescencePP);
    }
    else if (outputAttr == "lifespanPP" || outputAttr == "lifespan")
    {
-      AiNodeSetStr(shader, "attribute", "lifespanPP");
+      AiNodeSetStr(shader, str::attribute, str::lifespanPP);
    }
    else if (outputAttr == "radiusPP" || outputAttr == "radius")
    {
-      AiNodeSetStr(shader, "attribute", "radiusPP");
+      AiNodeSetStr(shader, str::attribute, str::radiusPP);
    }
 
    else if(
@@ -1483,7 +1474,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
             outputAttr == "userScalar5PP"
             )
       {
-         AiNodeSetStr(shader, "attribute", outputAttr.asChar());
+         AiNodeSetStr(shader, str::attribute, AtString(outputAttr.asChar()));
       }
 }
 
@@ -1673,9 +1664,8 @@ AtNode* CRemapHsvTranslator::CreateArnoldNodes()
    AiNodeLink(V_Ramp, "input.b", outRemapRange);
 
    AiNodeLink(outRemapRange, "input", HSVtoRGB);
-   AiNodeSetStr(HSVtoRGB, "from", "HSV");
-   AiNodeSetStr(HSVtoRGB, "to", "RGB");
-   
+   AiNodeSetStr(HSVtoRGB, str::from, str::HSV);
+   AiNodeSetStr(HSVtoRGB, str::to, str::RGB);   
 
    return HSVtoRGB;
 }
@@ -1762,7 +1752,7 @@ AtNode*  CProjectionTranslator::CreateArnoldNodes()
 
 void CProjectionTranslator::Export(AtNode* shader)
 {
-   if (AiNodeIs(shader, AtString("uv_projection")))
+   if (AiNodeIs(shader, str::uv_projection))
    {
       int projType = FindMayaPlug("projType").asInt();
       switch(projType)
@@ -1770,19 +1760,19 @@ void CProjectionTranslator::Export(AtNode* shader)
          default:
          break; // shouldn't be here
          case PT_PLANAR:
-            AiNodeSetStr(shader, "projection_type", "planar");
+            AiNodeSetStr(shader, str::projection_type, str::planar);
             break;
          case PT_SPHERICAL:
-            AiNodeSetStr(shader, "projection_type", "spherical");
+            AiNodeSetStr(shader, str::projection_type, str::spherical);
             break;
          case PT_CYLINDRICAL:
-            AiNodeSetStr(shader, "projection_type", "spherical");
+            AiNodeSetStr(shader, str::projection_type, str::spherical);
             break;
          case PT_BALL:
-            AiNodeSetStr(shader, "projection_type", "ball");
+            AiNodeSetStr(shader, str::projection_type, str::ball);
             break;
          case PT_CUBIC:
-            AiNodeSetStr(shader, "projection_type", "cubic");
+            AiNodeSetStr(shader, str::projection_type, str::cubic);
             break;
          case PT_CONCENTRIC:
             // error message, not supported            
@@ -1791,23 +1781,23 @@ void CProjectionTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
 
       bool wrap = FindMayaPlug("wrap").asBool();
-      AiNodeSetBool(shader, "clamp", !wrap);
+      AiNodeSetBool(shader, str::clamp, !wrap);
       ProcessParameter(shader, "default_color", AI_TYPE_RGBA, "defaultColor");
 
       // Warning: the angles seem to appear as degrees in the Maya interface, 
       // but they're actually returned as radians!
-      AiNodeSetFlt(shader, "u_angle", FindMayaPlug("uAngle").asFloat() * AI_RTOD);
-      AiNodeSetFlt(shader, "v_angle", FindMayaPlug("vAngle").asFloat() * AI_RTOD);
+      AiNodeSetFlt(shader, str::u_angle, FindMayaPlug("uAngle").asFloat() * AI_RTOD);
+      AiNodeSetFlt(shader, str::v_angle, FindMayaPlug("vAngle").asFloat() * AI_RTOD);
       
       ProcessParameter(shader, "matrix", AI_TYPE_MATRIX, "placementMatrix");
       if (FindMayaPlug("local").asBool())
-         AiNodeSetStr(shader, "coord_space", "object");
+         AiNodeSetStr(shader, str::coord_space, str::object);
       else if (FindMayaPlug("aiUseReferenceObject").asBool())
-         AiNodeSetStr(shader, "coord_space", "Pref");
+         AiNodeSetStr(shader, str::coord_space, str::Pref);
       else
-         AiNodeSetStr(shader, "coord_space", "world");
+         AiNodeSetStr(shader, str::coord_space, str::world);
 
-   } else if (AiNodeIs(shader, AtString("triplanar")))
+   } else if (AiNodeIs(shader, str::triplanar))
    {
       /*
       AtNode *uv_transform = GetArnoldNode("uv");
@@ -1819,11 +1809,11 @@ void CProjectionTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "input", AI_TYPE_RGB, "image");
 
       if (FindMayaPlug("local").asBool())
-         AiNodeSetStr(shader, "coord_space", "object");
+         AiNodeSetStr(shader, str::coord_space, str::object);
       else if (FindMayaPlug("aiUseReferenceObject").asBool())
-         AiNodeSetStr(shader, "coord_space", "Pref");
+         AiNodeSetStr(shader, str::coord_space, str::Pref);
       else
-         AiNodeSetStr(shader, "coord_space", "world");
+         AiNodeSetStr(shader, str::coord_space, str::world);
 
       // get the matrix
 
@@ -1839,11 +1829,12 @@ void CProjectionTranslator::Export(AtNode* shader)
       MEulerRotation rot = m.eulerRotation();
       MVector trans = m.getTranslation(MSpace::kTransform);
 
-      AiNodeSetVec(shader, "scale", float(0.5f/scale[0]), float(0.5f/scale[1]), float(0.5f/scale[2]));
-      AiNodeSetVec(shader, "offset", (float)trans.x, (float)trans.y, (float)trans.z);
-      AiNodeSetVec(shader, "rotate", (float)rot.x*AI_RTOD, (float)rot.y*AI_RTOD, (float)rot.z*AI_RTOD);
+      AiNodeSetVec(shader, str::scale, float(0.5f/scale[0]), float(0.5f/scale[1]), float(0.5f/scale[2]));
+      AiNodeSetVec(shader, str::offset, (float)trans.x, (float)trans.y, (float)trans.z);
+      AiNodeSetVec(shader, str::rotate, (float)rot.x*AI_RTOD, (float)rot.y*AI_RTOD, (float)rot.z*AI_RTOD);
+      AiNodeSetBool(shader, AtString("flip_on_opposite_direction"),false);
 
-   } else if (AiNodeIs(shader, AtString("camera_projection")))
+   } else if (AiNodeIs(shader, str::camera_projection))
    {
       MPlug camPlug = FindMayaPlug("linkedCamera");
       MPlugArray connections;
@@ -1853,7 +1844,7 @@ void CProjectionTranslator::Export(AtNode* shader)
       if (connections.length() > 0)
       {
          AtNode *cam = ExportConnectedNode(connections[0]);
-         AiNodeSetPtr(shader, "camera", cam);
+         AiNodeSetPtr(shader, str::camera, cam);
          MObject camObj = connections[0].node();
          MFnCamera mfnCam(camObj);
          camAR = static_cast<float>(mfnCam.aspectRatio());
@@ -1895,7 +1886,7 @@ void CProjectionTranslator::Export(AtNode* shader)
          plug = fnRes.findPlug("deviceAspectRatio", true, &status);
          if (status == MS::kSuccess)
          {
-            AiNodeSetFlt(shader, "aspect_ratio", plug.asFloat());
+            AiNodeSetFlt(shader, str::aspect_ratio, plug.asFloat());
             outAR = 1.0f / (((float)height / width) * plug.asFloat());
          }
          
@@ -1941,7 +1932,7 @@ void CProjectionTranslator::Export(AtNode* shader)
                uv_transform = AddArnoldNode("uv_transform", "uv");
 
             ProcessParameter(uv_transform, "passthrough", AI_TYPE_RGBA, "image");
-            AiNodeSetVec2(uv_transform, "scale_frame", uScale, vScale);
+            AiNodeSetVec2(uv_transform, str::scale_frame, uScale, vScale);
             AiNodeLink(uv_transform, "projection_color", shader);
          } 
          
@@ -2015,45 +2006,45 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
    AtNode *state_u = GetArnoldNode("u");
    AtNode *state_v = GetArnoldNode("v");
    
-   AiNodeSetRGBA(shader, "passthrough", 0.f, 0.f, 0.f, 1.f);
+   AiNodeSetRGBA(shader, str::passthrough, 0.f, 0.f, 0.f, 1.f);
    AiNodeLink(state_u, "passthrough.r", shader);
    AiNodeLink(state_v, "passthrough.g", shader);
-   AiNodeSetStr(state_u, "variable", "u");
-   AiNodeSetStr(state_v, "variable", "v");
+   AiNodeSetStr(state_u, str::variable, str::u);
+   AiNodeSetStr(state_v, str::variable, str::v);
 
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray connections;
-   AiNodeSetStr(shader, "uvset", "");
+   AiNodeSetStr(shader, str::uvset, AtString());
    fnNode.findPlug("uvCoord", true).connectedTo(connections, true, false);
    if (connections.length() > 0)
    {
       MFnDependencyNode uvcNodeFn(connections[0].node());
       if (uvcNodeFn.typeName() == "uvChooser")
-         AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
+         AiNodeSetStr(shader, str::uvset, AtString(uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar()));
    }
    ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2, fnNode.findPlug("coverage", true));
    ProcessParameter(shader, "mirror_u", AI_TYPE_BOOLEAN, fnNode.findPlug("mirrorU", true));
    ProcessParameter(shader, "mirror_v", AI_TYPE_BOOLEAN, fnNode.findPlug("mirrorV", true));
 
    if (fnNode.findPlug("wrapU", true).asBool())
-      AiNodeSetStr(shader, "wrap_frame_u", "none");
+      AiNodeSetStr(shader, str::wrap_frame_u, str::none);
    else
    {
       // 2d procedural texture shaders (grid, cloth, marble, etc...)
       // expect a value of -1000000 when the Uvs are out-of-bounds #3822
-      AiNodeSetStr(shader, "wrap_frame_u", "color");
-      AiNodeSetRGBA(shader, "wrap_frame_color", -1000000.f, -1000000.f, -1000000.f, 1.f);
+      AiNodeSetStr(shader, str::wrap_frame_u, str::color);
+      AiNodeSetRGBA(shader, str::wrap_frame_color, -1000000.f, -1000000.f, -1000000.f, 1.f);
    }
       
 
    if (fnNode.findPlug("wrapV", true).asBool())
-      AiNodeSetStr(shader, "wrap_frame_v", "none");
+      AiNodeSetStr(shader, str::wrap_frame_v, str::none);
    else
    {
       // 2d procedural texture shaders (grid, cloth, marble, etc...)
       // expect a value of -1000000 when the Uvs are out-of-bounds #3822
-      AiNodeSetStr(shader, "wrap_frame_v", "color");
-      AiNodeSetRGBA(shader, "wrap_frame_color", -1000000.f, -1000000.f, -1000000.f, 1.f);
+      AiNodeSetStr(shader, str::wrap_frame_v, str::color);
+      AiNodeSetRGBA(shader, str::wrap_frame_color, -1000000.f, -1000000.f, -1000000.f, 1.f);
    }
    
    // if not linked, set alpha to zero
@@ -2062,11 +2053,11 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
 
 
    float rotateFrame = fnNode.findPlug("rotateFrame", true).asFloat();
-   AiNodeSetFlt(shader, "rotate_frame", rotateFrame * 180.f / AI_PI);
+   AiNodeSetFlt(shader, str::rotate_frame, rotateFrame * 180.f / AI_PI);
    //ProcessParameter(shader, "rotate_frame", AI_TYPE_FLOAT, fnNode.findPlug("rotateFrame"));
    ProcessParameter(shader, "translate_frame", AI_TYPE_VECTOR2, fnNode.findPlug("translateFrame", true));
    float rotateUV = fnNode.findPlug("rotateUV", true).asFloat();
-   AiNodeSetFlt(shader, "rotate", rotateUV * 180.f / AI_PI);
+   AiNodeSetFlt(shader, str::rotate, rotateUV * 180.f / AI_PI);
    ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN, fnNode.findPlug("stagger", true));
    ProcessParameter(shader, "noise", AI_TYPE_VECTOR2, fnNode.findPlug("noiseUV", true));
 }
@@ -2094,7 +2085,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    if (cc)
    {
       AiNodeLink(shader, "input", cc);
-      AiNodeSetBool(cc, "alpha_is_luminance", true);
+      AiNodeSetBool(cc, str::alpha_is_luminance, true);
    }
 
    MFnDependencyNode fnNode(GetMayaObject());
@@ -2111,7 +2102,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    for (unsigned int i = 1; i <= 8; ++i)
    {
       sprintf(aiAttr, "enable%u", i);
-      AiNodeSetBool(shader, aiAttr, false);
+      AiNodeSetBool(shader, AtString(aiAttr), false);
    }
 
    int arnoldIndex = 1;
@@ -2187,7 +2178,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
 
       sprintf(aiAttr, "mix%u", arnoldIndex);
       if (!colorConnectedToAlpha && alphaSrc.isNull())
-         AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
+         AiNodeSetFlt(shader, AtString(aiAttr), alpha.asFloat());
       else
          ProcessParameter(shader, aiAttr, AI_TYPE_FLOAT, alpha);
 
@@ -2199,7 +2190,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
          case BM_NONE:
             arnoldBlend = "overwrite";
             AiNodeUnlink(shader, aiAttr);
-            AiNodeSetFlt(shader, aiAttr, 1.f); // none = over with mix = 1 ?
+            AiNodeSetFlt(shader, AtString(aiAttr), 1.f); // none = over with mix = 1 ?
             break;
          case BM_OVER:
             arnoldBlend = "overwrite";
@@ -2240,7 +2231,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
             break;
       }
       sprintf(aiAttr, "operation%u", arnoldIndex);
-      AiNodeSetStr(shader, aiAttr, arnoldBlend.asChar());
+      AiNodeSetStr(shader, AtString(aiAttr), AtString(arnoldBlend.asChar()));
       
       sprintf(aiAttr, "enable%u", arnoldIndex);
       ProcessParameter(shader, aiAttr, AI_TYPE_BOOLEAN, isVisible);
@@ -2284,7 +2275,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
       numElements = 16;
    }
 
-   AiNodeSetUInt(shader, "numInputs", numElements);
+   AiNodeSetUInt(shader, str::numInputs, numElements);
 
    MObject colorAttr = fnNode.attribute("color");
    MObject transpAttr = fnNode.attribute("transparency");
@@ -2319,7 +2310,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
       ProcessParameter(shader, aiAttr, AI_TYPE_CLOSURE, color);
 
       sprintf(aiAttr, "useTransparency%u", i);
-      AiNodeSetBool(shader, aiAttr, useTransparency ? true : false);
+      AiNodeSetBool(shader, AtString(aiAttr), useTransparency ? true : false);
 
       if (useTransparency)
       {
@@ -2349,7 +2340,7 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
-   AiNodeSetStr(shader, "type", "time"); // we want time-driven ramps
+   AiNodeSetStr(shader, str::type, str::time); // we want time-driven ramps
 
    if (RequiresMotionData())
    {
@@ -2359,7 +2350,7 @@ void CAnimCurveTranslator::Export(AtNode* shader)
       // Note that here we're exporting the different keys as elements in the ramp
       AtArray* values = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_FLOAT);
       AiArraySetFlt(values, GetMotionStep(), value);
-      AiNodeSetArray(shader, "value", values);
+      AiNodeSetArray(shader, str::value, values);
 
       // For positions, we can set the values right away...
       AtArray* positions = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_FLOAT);
@@ -2373,14 +2364,14 @@ void CAnimCurveTranslator::Export(AtNode* shader)
          AiArraySetInt(interpolations, i, 1);
       }
       
-      AiNodeSetArray(shader, "position", positions);
-      AiNodeSetArray(shader, "interpolation", interpolations);
+      AiNodeSetArray(shader, str::position, positions);
+      AiNodeSetArray(shader, str::interpolation, interpolations);
    }
    else
    {      
-      AiNodeSetFlt(shader, "value", value);
-      AiNodeSetFlt(shader, "position", 0.f);
-      AiNodeSetInt(shader, "interpolation", 1); // linear
+      AiNodeSetFlt(shader, str::value, value);
+      AiNodeSetFlt(shader, str::position, 0.f);
+      AiNodeSetInt(shader, str::interpolation, 1); // linear
    }
    
 }
@@ -2390,7 +2381,7 @@ void CAnimCurveTranslator::ExportMotion(AtNode* shader)
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
-   AtArray* values = AiNodeGetArray(shader, "value");
+   AtArray* values = AiNodeGetArray(shader, str::value);
    AiArraySetFlt(values, GetMotionStep(), value);
 }
 
@@ -2443,13 +2434,13 @@ void CDisplacementTranslator::Export(AtNode* shader)
       // We just need the displacement input + scale + zeroValue
       ProcessParameter(shader, "input", AI_TYPE_FLOAT, "displacement");
       ProcessParameter(shader, "contrast", AI_TYPE_FLOAT, "scale");
-      AiNodeSetFlt(shader, "contrast_pivot", 0.f);
+      AiNodeSetFlt(shader, str::contrast_pivot, 0.f);
       // Now to match the formulas I need output_min = - aiDisplacementZeroValue
       // and (output_max - output_min) = 1
       MPlug zeroValPlug = FindMayaPlug("aiDisplacementZeroValue");
       float zeroVal = zeroValPlug.asFloat();
-      AiNodeSetFlt(shader, "output_min", - zeroVal);
-      AiNodeSetFlt(shader, "output_max", 1 - zeroVal);
+      AiNodeSetFlt(shader, str::output_min, - zeroVal);
+      AiNodeSetFlt(shader, str::output_max, 1 - zeroVal);
       return;
    }
 
@@ -2461,19 +2452,19 @@ void CDisplacementTranslator::Export(AtNode* shader)
    ProcessParameter(vectorMap, "input", AI_TYPE_VECTOR, "vectorDisplacement");
    ProcessParameter(vectorMap, "scale", AI_TYPE_FLOAT);
    ProcessParameter(vectorMap, "tangent", AI_TYPE_VECTOR);
-   AiNodeSetBool(vectorMap, "color_to_signed", (FindMayaPlug("vectorEncoding").asInt() != 0));
+   AiNodeSetBool(vectorMap, str::color_to_signed, (FindMayaPlug("vectorEncoding").asInt() != 0));
    // vectorSpace = {WORLD, OBJECT, TANGENT}
    int vectorSpace = FindMayaPlug("vectorSpace").asInt();
-   AiNodeSetBool(vectorMap, "tangent_space", (vectorSpace == 2)); 
+   AiNodeSetBool(vectorMap, str::tangent_space, (vectorSpace == 2)); 
    if (vectorSpace == 2)
-      AiNodeSetStr(vectorMap, "order", "XZY");
+      AiNodeSetStr(vectorMap, str::order, str::XZY);
 
    if (spaceTransform)
    {
-      AiNodeSetStr(spaceTransform, "to", "object");  // object
-      AiNodeSetStr(spaceTransform, "from", (vectorSpace == 0) ? "world" : "object");
-      AiNodeSetStr(spaceTransform, "type", "vector");
-      AiNodeLink(vectorMap, "input", spaceTransform);
+      AiNodeSetStr(spaceTransform, str::to, str::object);  // object
+      AiNodeSetStr(spaceTransform, str::from, (vectorSpace == 0) ? str::world : str::object);
+      AiNodeSetStr(spaceTransform, str::type, str::vector);
+      AiNodeLink(vectorMap, str::input, spaceTransform);
    }
 
    if (add)
@@ -2484,7 +2475,7 @@ void CDisplacementTranslator::Export(AtNode* shader)
 
       AiNodeLink((spaceTransform) ? spaceTransform : vectorMap, "input1", add);
       AiNodeLink(stateVector, "input1", multiply1);
-      AiNodeSetStr(stateVector, "variable", "N");
+      AiNodeSetStr(stateVector, str::variable, str::N);
       AiNodeLink(multiply1, "input2", add);
       
       float scale = FindMayaPlug("scale").asFloat();
@@ -2500,7 +2491,7 @@ void CDisplacementTranslator::Export(AtNode* shader)
 
          ShaderComputeLink(this, connections[0], multiply2, "input1");
 
-         AiNodeSetRGB(multiply2, "input2", scale, scale, scale);
+         AiNodeSetRGB(multiply2, str::input2, scale, scale, scale);
       }
       else
       {
@@ -2508,7 +2499,7 @@ void CDisplacementTranslator::Export(AtNode* shader)
          AiNodeUnlink(multiply1, "input2"); // it case it was linked before
          float displacement = displacementPlug.asFloat();
          displacement *= scale;
-         AiNodeSetRGB(multiply1, "input2", displacement, displacement, displacement);
+         AiNodeSetRGB(multiply1, str::input2, displacement, displacement, displacement);
       }
    }
 }
@@ -2608,18 +2599,18 @@ void CMayaBlinnTranslator::Export(AtNode* shader)
    
    ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
-   AiNodeSetFlt(shader, "coat_roughness", 0.f);
+   AiNodeSetFlt(shader, str::coat_roughness, 0.f);
 
-   AiNodeSetFlt(shader, "specular_IOR", 3.f);
-   AiNodeSetFlt(shader, "coat_IOR", 3.f);
+   AiNodeSetFlt(shader, str::specular_IOR, 3.f);
+   AiNodeSetFlt(shader, str::coat_IOR, 3.f);
    
    MPlug transparencyPlug = FindMayaPlug("transparency");
    float colorR = transparencyPlug.child(0).asFloat();
    float colorG = transparencyPlug.child(1).asFloat();
    float colorB = transparencyPlug.child(2).asFloat();
-   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+   AiNodeSetRGB(shader, str::opacity, 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
    
-   AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, str::emission, 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
 }
 
@@ -2633,25 +2624,25 @@ void CMayaPhongTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
    ProcessParameter(shader, "base_color", AI_TYPE_RGB, "color");
    
-   AiNodeSetFlt(shader, "specular", 1.f);
-   AiNodeSetFlt(shader, "specular_IOR", 3.f);
-   AiNodeSetFlt(shader, "coat_IOR", 3.f);
+   AiNodeSetFlt(shader, str::specular, 1.f);
+   AiNodeSetFlt(shader, str::specular_IOR, 3.f);
+   AiNodeSetFlt(shader, str::coat_IOR, 3.f);
    MPlug cosinePowerPlug = FindMayaPlug("cosinePower");
    float rougness = sqrtf(1.0f / (0.454f * cosinePowerPlug.asFloat() + 3.357f));
-   AiNodeSetFlt(shader, "specular_roughness", rougness);
+   AiNodeSetFlt(shader, str::specular_roughness, rougness);
    ProcessParameter(shader, "specular_color", AI_TYPE_RGB, "specularColor");
    
    ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
-   AiNodeSetFlt(shader, "coat_roughness", 0.f);
+   AiNodeSetFlt(shader, str::coat_roughness, 0.f);
 
    MPlug transparencyPlug = FindMayaPlug("transparency");
    float colorR = transparencyPlug.child(0).asFloat();
    float colorG = transparencyPlug.child(1).asFloat();
    float colorB = transparencyPlug.child(2).asFloat();
-   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+   AiNodeSetRGB(shader, str::opacity, 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
    
-   AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, str::emission, 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
 }
 
@@ -2665,24 +2656,24 @@ void CMayaPhongETranslator::Export(AtNode* shader)
    ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
    ProcessParameter(shader, "base_color", AI_TYPE_RGB, "color");
 
-   AiNodeSetFlt(shader, "specular", 1.f);
+   AiNodeSetFlt(shader, str::specular, 1.f);
    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "roughness");
    ProcessParameter(shader, "specular_color", AI_TYPE_RGB, "specularColor");
 
    ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
-   AiNodeSetFlt(shader, "coat_roughness", 0.f);
+   AiNodeSetFlt(shader, str::coat_roughness, 0.f);
    
-   AiNodeSetFlt(shader, "specular_IOR", 3.f);
-   AiNodeSetFlt(shader, "coat_IOR", 3.f);
+   AiNodeSetFlt(shader, str::specular_IOR, 3.f);
+   AiNodeSetFlt(shader, str::coat_IOR, 3.f);
    
    MPlug transparencyPlug = FindMayaPlug("transparency");
    float colorR = transparencyPlug.child(0).asFloat();
    float colorG = transparencyPlug.child(1).asFloat();
    float colorB = transparencyPlug.child(2).asFloat();
-   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+   AiNodeSetRGB(shader, str::opacity, 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
 
-   AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, str::emission, 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
 }
 
@@ -2696,26 +2687,26 @@ void CMayaAnisotropicTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
    ProcessParameter(shader, "base_color", AI_TYPE_RGB, "color");
 
-   AiNodeSetFlt(shader, "specular", 1.f);
+   AiNodeSetFlt(shader, str::specular, 1.f);
    ProcessParameter(shader, "specular_color", AI_TYPE_RGB, "specularColor");
 
    ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
-   AiNodeSetFlt(shader, "coat_roughness", 0.f);
+   AiNodeSetFlt(shader, str::coat_roughness, 0.f);
 
    MPlug transparencyPlug = FindMayaPlug("transparency");
    float colorR = transparencyPlug.child(0).asFloat();
    float colorG = transparencyPlug.child(1).asFloat();
    float colorB = transparencyPlug.child(2).asFloat();
-   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+   AiNodeSetRGB(shader, str::opacity, 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
 
-   AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, str::emission, 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
 
    // anisotropic parameters
    MPlug anglePlug = FindMayaPlug("angle");
    float angle = (anglePlug.asFloat()/360.0f);
-   AiNodeSetFlt(shader, "specular_rotation", 1.0f - angle);
+   AiNodeSetFlt(shader, str::specular_rotation, 1.0f - angle);
 
    MPlug spreadXPlug = FindMayaPlug("spreadX");
    MPlug spreadYPlug = FindMayaPlug("spreadY");
@@ -2725,8 +2716,8 @@ void CMayaAnisotropicTranslator::Export(AtNode* shader)
    float spreadY = spreadYPlug.asFloat();
    float roughness = roughnessPlug.asFloat();
 
-   AiNodeSetFlt(shader, "specular_IOR", 3.f);
-   AiNodeSetFlt(shader, "coat_IOR", 3.f);
+   AiNodeSetFlt(shader, str::specular_IOR, 3.f);
+   AiNodeSetFlt(shader, str::coat_IOR, 3.f);
    
    float spread = spreadY - spreadX;
    //float maximum = spreadY > spreadX ? spreadY : spreadX;
@@ -2754,11 +2745,11 @@ void CMayaAnisotropicTranslator::Export(AtNode* shader)
    if (roughness > 1.0f)
       roughness = 1.0f;
 
-   AiNodeSetFlt(shader, "specular_roughness", roughness);
+   AiNodeSetFlt(shader, str::specular_roughness, roughness);
 
    // converting now anisotropy from old standard shader to new standard_surface
    anisotropy = 2.f * std::abs(anisotropy -0.5f);
-   AiNodeSetFlt(shader, "specular_anisotropy", anisotropy);
+   AiNodeSetFlt(shader, str::specular_anisotropy, anisotropy);
 }
 
 AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
@@ -2783,7 +2774,7 @@ AtNode* CMayaBlendColorsTranslator::CreateArnoldNodes()
 void CMayaClampTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "input", AI_TYPE_RGB);
-   AiNodeSetStr(shader, AtString("mode"), AtString("color"));
+   AiNodeSetStr(shader, str::mode, str::color);
    ProcessParameter(shader, "min_color", AI_TYPE_RGB, "min");
    ProcessParameter(shader, "max_color", AI_TYPE_RGB, "max");
 }
@@ -2805,35 +2796,35 @@ void CMayaRampShaderTranslator::Export(AtNode* shader)
    MPlug plug = FindMayaPlug("color");
    MRampAttribute ramp(plug);
    ramp.getColorAtPosition(0, color);
-   AiNodeSetRGB(shader, "base_color", color[0], color[1], color[2]);
+   AiNodeSetRGB(shader, str::base_color, color[0], color[1], color[2]);
 
    plug = FindMayaPlug("specularColor");
    ramp = MRampAttribute(plug);
    ramp.getColorAtPosition(0, color);
-   AiNodeSetRGB(shader, "specular_color", color[0], color[1], color[2]);
+   AiNodeSetRGB(shader, str::specular_color, color[0], color[1], color[2]);
 
    plug = FindMayaPlug("transparency");
    ramp = MRampAttribute(plug);
    ramp.getColorAtPosition(0, color);
-   AiNodeSetRGB(shader, "opacity", 1.0f - color[0], 1.0f - color[1], 1.0f - color[2]);
+   AiNodeSetRGB(shader, str::opacity, 1.0f - color[0], 1.0f - color[1], 1.0f - color[2]);
 
-   AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, str::emission, 1.f);
 
    plug = FindMayaPlug("incandescence");
    ramp = MRampAttribute(plug);
    ramp.getColorAtPosition(0, color);
-   AiNodeSetRGB(shader, "emission_color", color[0], color[1], color[2]);
+   AiNodeSetRGB(shader, str::emission_color, color[0], color[1], color[2]);
 
    plug = FindMayaPlug("reflectivity");
    ramp = MRampAttribute(plug);
    ramp.getValueAtPosition(0, reflectivity);
-   AiNodeSetFlt(shader, "coat", reflectivity);
+   AiNodeSetFlt(shader, str::coat, reflectivity);
 
    plug = FindMayaPlug("environment");
    ramp = MRampAttribute(plug);
    ramp.getColorAtPosition(0, color);
-   AiNodeSetRGB(shader, "coat_color", color[0], color[1], color[2]);
-   AiNodeSetFlt(shader, "coat_roughness", 0.f);
+   AiNodeSetRGB(shader, str::coat_color, color[0], color[1], color[2]);
+   AiNodeSetFlt(shader, str::coat_roughness, 0.f);
 }
 
 AtNode* CMayaRampShaderTranslator::CreateArnoldNodes()
@@ -2929,18 +2920,18 @@ void CAiImageTranslator::Export(AtNode* image)
    const CSessionOptions &options = GetSessionOptions();
 
    // keep the previous filename
-   MString prevFilename = AiNodeGetStr(image, "filename").c_str();
-   AtString prevColorSpace = AiNodeGetStr(image, "color_space");
+   MString prevFilename = AiNodeGetStr(image, str::filename).c_str();
+   AtString prevColorSpace = AiNodeGetStr(image, str::color_space);
    prevFilename = resolveFilePathForSequences(prevFilename, FindMayaPlug("frame").asInt());
 
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") != nullptr)
       return;
 
-   MString filename(AiNodeGetStr(image, "filename"));
+   MString filename(AiNodeGetStr(image, str::filename));
    filename = resolveFilePathForSequences(filename, FindMayaPlug("frame").asInt());
    options.FormatTexturePath(filename);
-   AiNodeSetStr(image, "filename", filename.asChar());  
+   AiNodeSetStr(image, str::filename, AtString(filename.asChar()));  
 
    if (m_impl->m_session->IsFileExport() && (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
    {   
@@ -2957,10 +2948,10 @@ void CAiImageTranslator::Export(AtNode* image)
          MString extension = filename.substring(filename.length() - 3, filename.length() - 1);
          // set the color space only if texture isn't a TX
          if (extension == ".tx" || extension ==  ".TX")
-            AiNodeSetStr(image, "color_space", "");
+            AiNodeSetStr(image, str::color_space, AtString());
       }
    }   
-   AtString colorSpace = AiNodeGetStr(image, "color_space");
+   AtString colorSpace = AiNodeGetStr(image, str::color_space);
    
    // we want to request a Tx update
    if (options.GetAutoTx() && 
@@ -3483,7 +3474,7 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shader)
       if (shapes.empty())
          continue;
       
-      AtNode *shapeShader = AiNodeLookUpByName(GetUniverse(), it->first.c_str());
+      AtNode *shapeShader = AiNodeLookUpByName(GetUniverse(), AtString(it->first.c_str()));
       if (shapeShader == NULL)
          continue;
       
@@ -3494,7 +3485,7 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shader)
       if (query == NULL)
          query = AddArnoldNode("query_shape", queryKey.asChar());
 
-      AiNodeSetArray(query, "shapes", AiArrayConvert((unsigned int) shapes.size(), 1, AI_TYPE_NODE, &(shapes[0])));
+      AiNodeSetArray(query, str::shapes, AiArrayConvert((unsigned int) shapes.size(), 1, AI_TYPE_NODE, &(shapes[0])));
 
       // Now get the switch_rgba shader
       MString switchKey = "switch";
@@ -3537,12 +3528,12 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shader)
             {
             case AI_TYPE_FLOAT:
                float val = plug.asFloat();
-               AiNodeSetRGBA(previousSwitch, "input0", val, val, val, 1.f);
+               AiNodeSetRGBA(previousSwitch, str::input0, val, val, val, 1.f);
                break;
             }
             {
             case AI_TYPE_VECTOR2:
-               AiNodeSetRGBA(previousSwitch, "input0", plug.child(0).asFloat(), plug.child(1).asFloat(), 0.f, 1.f);
+               AiNodeSetRGBA(previousSwitch, str::input0, plug.child(0).asFloat(), plug.child(1).asFloat(), 0.f, 1.f);
                for (int c = 0; c < 2; ++c)
                {
                   connections.clear();
@@ -3555,7 +3546,7 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shader)
             }
             {
             case AI_TYPE_RGB:
-               AiNodeSetRGBA(previousSwitch, "input0", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.f);
+               AiNodeSetRGBA(previousSwitch, str::input0, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.f);
                for (int c = 0; c < 3; ++c)
                {
                   connections.clear();
@@ -3632,7 +3623,7 @@ void CToonTranslator::Export(AtNode* shader)
                {
                   AtNode *lightArnoldNode = ExportConnectedNode(dummyPlug);
                   AtString lightArnoldName = (lightArnoldNode) ? AtString(AiNodeGetName(lightArnoldNode)) : AtString("");
-                  AiNodeSetStr(shader, "rim_light", lightArnoldName); 
+                  AiNodeSetStr(shader, str::rim_light, lightArnoldName); 
                }               
             }
          }
@@ -3686,7 +3677,7 @@ void CToonTranslator::Export(AtNode* shader)
          }
       }
    }
-   AiNodeSetStr(shader, "lights", lightsStr.asChar()); 
+   AiNodeSetStr(shader, str::lights, AtString(lightsStr.asChar())); 
 }
 
 AtNode* CToonTranslator::CreateArnoldNodes()
@@ -3751,7 +3742,7 @@ AtNode* CLuminanceTranslator::CreateArnoldNodes()
 
 void CLuminanceTranslator::Export(AtNode* shader)
 {
-   AiNodeSetStr(shader, "mode", "luminance");
+   AiNodeSetStr(shader, str::mode, str::luminance);
    ProcessParameter(shader, "input", AI_TYPE_RGB, "value");
 }
 // Reverse shader
@@ -3784,22 +3775,22 @@ void CConditionTranslator::Export(AtNode* shader)
       {
          default:
          case 0: // "equal"
-            AiNodeSetStr(compare, "test", "==");
+            AiNodeSetStr(compare, str::test, AtString("=="));
          break;
          case 1: //"notequal"
-            AiNodeSetStr(compare, "test", "!=");
+            AiNodeSetStr(compare, str::test, AtString("!="));
          break;
          case 2: // "greaterthan"
-            AiNodeSetStr(compare, "test", ">");
+            AiNodeSetStr(compare, str::test, AtString(">"));
          break;
          case 3: //"greaterorequal"
-            AiNodeSetStr(compare, "test", ">=");
+            AiNodeSetStr(compare, str::test, AtString(">="));
          break;
          case 4: // "lessthan"
-            AiNodeSetStr(compare, "test", "<");
+            AiNodeSetStr(compare, str::test, AtString("<"));
          break;
          case 5: // "lessorequal"
-            AiNodeSetStr(compare, "test", "<=");
+            AiNodeSetStr(compare, str::test, AtString("<="));
          break;
       }
    }
@@ -3824,13 +3815,13 @@ void CSurfaceLuminanceTranslator::Export(AtNode* shader)
    if (utility == NULL)
       utility = AddArnoldNode("utility", "utility");
 
-   AiNodeSetStr(utility, "shade_mode", "lambert");
+   AiNodeSetStr(utility, str::shade_mode, str::lambert);
    // The lambert mode in utility forces a *0.7 factor.... I want this to be white diffuse
    // Also, there's a PI factor to be added to get the same result as surface luminance.
    // Note that we're now considering indirect illumination which wasn't the case before
-   AiNodeSetRGB(utility, "color", 3.14f / 0.7f, 3.14f / 0.7f, 3.14f / 0.7f); 
+   AiNodeSetRGB(utility, str::color, 3.14f / 0.7f, 3.14f / 0.7f, 3.14f / 0.7f); 
    AiNodeLink(utility, "input", shader);
-   AiNodeSetStr(shader, "mode", "luminance");
+   AiNodeSetStr(shader, str::mode, str::luminance);
 }
 
 AtNode* CAiRoundCornersTranslator::CreateArnoldNodes()
@@ -3902,7 +3893,7 @@ void CGammaCorrectTranslator::Export(AtNode* shader)
    } else
    {
       // no connection on the gamma attribute, just set the exponent as 1/gamma
-      AiNodeSetRGB(shader, "exponent", 1.f / AiMax(AI_EPSILON, plug.child(0).asFloat()), 
+      AiNodeSetRGB(shader, str::exponent, 1.f / AiMax(AI_EPSILON, plug.child(0).asFloat()), 
                                        1.f / AiMax(AI_EPSILON, plug.child(1).asFloat()), 
                                        1.f / AiMax(AI_EPSILON, plug.child(2).asFloat()));
    }
@@ -3935,9 +3926,9 @@ void CSurfaceShaderTranslator::Export(AtNode* shader)
    AtRGB opacity(1.f, 1.f, 1.f);
 
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "outColor");
-   AiNodeSetFlt(shader, "emission", 1.f);
-   AiNodeSetFlt(shader, "base", 0.f);
-   AiNodeSetFlt(shader, "specular", 0.f);
+   AiNodeSetFlt(shader, str::emission, 1.f);
+   AiNodeSetFlt(shader, str::base, 0.f);
+   AiNodeSetFlt(shader, str::specular, 0.f);
    
    // Transparency to opacity
    MPlug plug = FindMayaPlug("outTransparency");
@@ -3986,7 +3977,7 @@ void CSurfaceShaderTranslator::Export(AtNode* shader)
                            1.0f - plug.child(1).asFloat(),
                            1.0f - plug.child(2).asFloat());
 
-            AiNodeSetRGB(shader, "opacity", opacity.r, opacity.g, opacity.b);
+            AiNodeSetRGB(shader, str::opacity, opacity.r, opacity.g, opacity.b);
          }
       }
    }
@@ -3995,7 +3986,7 @@ void CSurfaceShaderTranslator::Export(AtNode* shader)
       return;
 
    // Need to deal with matte
-   AtRGB color = AiNodeGetRGB(shader, "emission_color");
+   AtRGB color = AiNodeGetRGB(shader, str::emission_color);
    if (AiNodeIsLinked(shader, "emission_color"))
    {
       // outColor attribute is linked, we need to link each R, G, B component separately
@@ -4008,7 +3999,7 @@ void CSurfaceShaderTranslator::Export(AtNode* shader)
          AiNodeLinkOutput(colorLink, "b", matte, "color.b");
       }
    } else // outColor isn't linked, let's just set the parameters (don't worry about color.a, we'll set it below)
-      AiNodeSetRGBA(matte, "color", color.r, color.g, color.b, 1.f);
+      AiNodeSetRGBA(matte, str::color, color.r, color.g, color.b, 1.f);
 
    // matte :  Note, we're not trying to support colored matte opacity, just a scalar matte value (in color.a)
    plug = FindMayaPlug("outMatteOpacity");
@@ -4027,11 +4018,11 @@ void CSurfaceShaderTranslator::Export(AtNode* shader)
       {
          // outMatteOpacity is not connected, let's set color.a to the value of the color
          float matteVal = AiMax(plug.child(0).asFloat(), AiMax(plug.child(1).asFloat(), plug.child(2).asFloat()));
-         AiNodeSetRGBA(matte, "color", color.r, color.g, color.b, matteVal);
+         AiNodeSetRGBA(matte, str::color, color.r, color.g, color.b, matteVal);
       }
 
       // set matte's opacity to the same value as the standard_surface
-      AiNodeSetRGB(matte, "opacity", opacity.r, opacity.g, opacity.b);
+      AiNodeSetRGB(matte, str::opacity, opacity.r, opacity.g, opacity.b);
       // if we connected something to standard_surface's opacity, let's connect it here too
       if (reverseNode)
          AiNodeLink(reverseNode, "opacity", matte);
@@ -4061,8 +4052,8 @@ AtNode* CRgbToHsvTranslator::CreateArnoldNodes()
 void CRgbToHsvTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "input", AI_TYPE_RGB, "inRgb");
-   AiNodeSetStr(shader, "from", "RGB");
-   AiNodeSetStr(shader, "to", "HSV");
+   AiNodeSetStr(shader, str::from, str::RGB);
+   AiNodeSetStr(shader, str::to, str::HSV);
 }
 
 AtNode* CHsvToRgbTranslator::CreateArnoldNodes()
@@ -4073,8 +4064,8 @@ AtNode* CHsvToRgbTranslator::CreateArnoldNodes()
 void CHsvToRgbTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "input", AI_TYPE_RGB, "inHsv");
-   AiNodeSetStr(shader, "from", "HSV");
-   AiNodeSetStr(shader, "to", "RGB");  
+   AiNodeSetStr(shader, str::from, str::HSV);
+   AiNodeSetStr(shader, str::to, str::RGB);  
 }
 
 AtNode* CUserDataVec2Translator::CreateArnoldNodes()
@@ -4088,7 +4079,7 @@ void CUserDataVec2Translator::Export(AtNode* shader)
    ProcessParameter(shader, "attribute", AI_TYPE_STRING, "vec2AttrName");
    float defX = FindMayaPlug("defaultValueX").asFloat();
    float defY = FindMayaPlug("defaultValueY").asFloat();
-   AiNodeSetRGB(shader,"default", defX, defY, 0.0f);
+   AiNodeSetRGB(shader, str::_default, defX, defY, 0.0f);
 
 }
 
@@ -4104,7 +4095,7 @@ void CUserDataVectorTranslator::Export(AtNode* shader)
    float defX = FindMayaPlug("defaultValueX").asFloat();
    float defY = FindMayaPlug("defaultValueY").asFloat();
    float defZ = FindMayaPlug("defaultValueZ").asFloat();
-   AiNodeSetRGB(shader,"default", defX, defY, defZ);
+   AiNodeSetRGB(shader, str::_default, defX, defY, defZ);
 
 }
 AtNode* CUserDataBoolTranslator::CreateArnoldNodes()
@@ -4116,7 +4107,7 @@ void CUserDataBoolTranslator::Export(AtNode* shader)
 {
 
    ProcessParameter(shader, "attribute", AI_TYPE_STRING, "boolAttrName");
-   AiNodeSetInt(shader,"default", FindMayaPlug("defaultValue").asBool() ? 1 : 0);
+   AiNodeSetInt(shader, str::_default, FindMayaPlug("defaultValue").asBool() ? 1 : 0);
 }
 
 AtNode* CContrastTranslator::CreateArnoldNodes()
@@ -4151,9 +4142,9 @@ void CContrastTranslator::Export(AtNode* shader)
    {
       ProcessParameter(shader, "input", AI_TYPE_RGB, "value");
       float contrast = FindMayaPlug("contrast").child(0).asFloat();
-      AiNodeSetFlt(shader, "gain", 1.f - powf(2.f, -contrast));
+      AiNodeSetFlt(shader, str::gain, 1.f - powf(2.f, -contrast));
       float bias = FindMayaPlug("bias").child(0).asFloat();
-      AiNodeSetFlt(shader, "bias", 1.f - bias);
+      AiNodeSetFlt(shader, str::bias, 1.f - bias);
       return;
    }
    AtNode *flat = GetArnoldNode("flat");
@@ -4171,12 +4162,12 @@ void CContrastTranslator::Export(AtNode* shader)
    AtRGB contrast(contrastPlug.child(0).asFloat(), contrastPlug.child(1).asFloat(), contrastPlug.child(2).asFloat());
    MPlug biasPlug = FindMayaPlug("bias");
    AtRGB bias(biasPlug.child(0).asFloat(), biasPlug.child(1).asFloat(), biasPlug.child(2).asFloat());
-   AiNodeSetFlt(range_r, "gain", 1.f - powf(2.f, -contrast.r));
-   AiNodeSetFlt(range_g, "gain", 1.f - powf(2.f, -contrast.g));
-   AiNodeSetFlt(range_b, "gain", 1.f - powf(2.f, -contrast.b));
-   AiNodeSetFlt(range_r, "bias", 1.f - bias.r);
-   AiNodeSetFlt(range_g, "bias", 1.f - bias.g);
-   AiNodeSetFlt(range_b, "bias", 1.f - bias.b);
+   AiNodeSetFlt(range_r, str::gain, 1.f - powf(2.f, -contrast.r));
+   AiNodeSetFlt(range_g, str::gain, 1.f - powf(2.f, -contrast.g));
+   AiNodeSetFlt(range_b, str::gain, 1.f - powf(2.f, -contrast.b));
+   AiNodeSetFlt(range_r, str::bias, 1.f - bias.r);
+   AiNodeSetFlt(range_g, str::bias, 1.f - bias.g);
+   AiNodeSetFlt(range_b, str::bias, 1.f - bias.b);
 }
 
 
@@ -4264,7 +4255,7 @@ void CRampRgbTranslator::Export(AtNode* shader)
    MObject oint = fnNode.attribute("ramp_Interp");
    ProcessArrayParameter(shader, "interpolation", plug, AI_TYPE_INT, &oint);
 
-   AtArray *interpArray = AiNodeGetArray(shader, "interpolation");
+   AtArray *interpArray = AiNodeGetArray(shader, str::interpolation);
    unsigned int numElems = (interpArray) ? AiArrayGetNumElements(interpArray) : 0;
    for (unsigned int i = 0; i < numElems; ++i)
    {
@@ -4311,7 +4302,7 @@ void CRampFloatTranslator::Export(AtNode* shader)
    MObject oint = fnNode.attribute("ramp_Interp");
    ProcessArrayParameter(shader, "interpolation", plug, AI_TYPE_INT, &oint);
 
-   AtArray *interpArray = AiNodeGetArray(shader, "interpolation");
+   AtArray *interpArray = AiNodeGetArray(shader, str::interpolation);
    unsigned int numElems = (interpArray) ? AiArrayGetNumElements(interpArray) : 0;
    for (unsigned int i = 0; i < numElems; ++i)
    {

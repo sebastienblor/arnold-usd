@@ -2,13 +2,13 @@
 #include <maya/MStringArray.h>
 #include <maya/MNodeClass.h>
 #include "utils/Universe.h"
-
+#include "utils/ConstantStrings.h"
 // An Arnold node entry proxy
 CPxArnoldNode::CPxArnoldNode(const MString &nodeName)
 {
    name = nodeName;
    entry = NULL;
-   if (name.numChars() > 0) entry = AiNodeEntryLookUp(name.asChar());
+   if (name.numChars() > 0) entry = AiNodeEntryLookUp(AtString(name.asChar()));
    if (NULL != entry)
    {
       file = ArnoldGetEntryFile(entry);

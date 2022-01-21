@@ -10,6 +10,7 @@
 #include "StandinsTranslator.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
+#include "utils/ConstantStrings.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -196,25 +197,25 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    }
    
    GetSessionOptions().FormatProceduralPath(resolvedName);
-   AiNodeSetStr(node, "filename", resolvedName.asChar());
+   AiNodeSetStr(node, str::filename, AtString(resolvedName.asChar()));
 
    if (m_isAss)
    {
       MPlug plug = FindProceduralPlug("useAutoInstancing");
       if (!plug.isNull())
-         AiNodeSetBool(node, "auto_instancing", plug.asBool());
+         AiNodeSetBool(node, str::auto_instancing, plug.asBool());
    }
 
    if ( m_isAlembic )
-      AiNodeSetFlt(node, "frame", framestep);
+      AiNodeSetFlt(node, str::frame, framestep);
 
    if (m_isUsd) 
    {
       MString objectpath = m_DagNode.findPlug("objectPath", true).asString();
       // note that the attribute name is slightly different than in the alembic procedural
-      AiNodeSetStr(node, "object_path", objectpath.asChar());
-      AiNodeSetFlt(node, "frame", framestep);
-      ProcessParameter(node, "overrides", AI_TYPE_ARRAY);
+      AiNodeSetStr(node, str::object_path, AtString(objectpath.asChar()));
+      AiNodeSetFlt(node, str::frame, framestep);
+      ProcessParameter(node, str::overrides, AI_TYPE_ARRAY);
    }
 }
 
@@ -250,14 +251,14 @@ void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
 {
    // # objectpath
    MString objectpath = m_DagNode.findPlug("objectPath", true).asString();
-   AiNodeSetStr(node, "objectpath", objectpath.asChar());
+   AiNodeSetStr(node, str::objectpath, AtString(objectpath.asChar()));
 
    // # fps
    float fps = FindProceduralPlug("abcFPS").asFloat();
-   AiNodeSetFlt(node, "fps", fps);
+   AiNodeSetFlt(node, str::fps, fps);
    // # exclude_xform
    bool exclude_xform = FindProceduralPlug("abc_exclude_xform").asBool();
-   AiNodeSetBool(node, "exclude_xform", exclude_xform);
+   AiNodeSetBool(node, str::exclude_xform, exclude_xform);
    // # layers
 
    // loop through the layers list and append to the string array
@@ -272,35 +273,35 @@ void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
       for (unsigned int i=0; i < layerList.length(); i++)
          AiArraySetStr(layersArray, i, layerList[i].asChar());
 
-      AiNodeSetArray(node, "layers", layersArray);
+      AiNodeSetArray(node, str::layers, layersArray);
    }
    // # make_instance
    bool make_instance = FindProceduralPlug("abc_make_instance").asBool();
-   AiNodeSetBool(node, "make_instance", make_instance);
+   AiNodeSetBool(node, str::make_instance, make_instance);
    // # use_instance_cache
    bool use_instance_cache = FindProceduralPlug("abc_use_instance_cache").asBool();
-   AiNodeSetBool(node, "use_instance_cache", use_instance_cache);
+   AiNodeSetBool(node, str::use_instance_cache, use_instance_cache);
    // # pull_user_params
    bool pull_user_params = FindProceduralPlug("abc_pull_user_params").asBool();
-   AiNodeSetBool(node, "pull_user_params", pull_user_params);
+   AiNodeSetBool(node, str::pull_user_params, pull_user_params);
    // # visibility_ignore
    bool visibility_ignore = FindProceduralPlug("abc_visibility_ignore").asBool();
-   AiNodeSetBool(node, "visibility_ignore", visibility_ignore);
+   AiNodeSetBool(node, str::visibility_ignore, visibility_ignore);
    // # radius_attribute
    MString radius_attribute = FindProceduralPlug("abc_radius_attribute").asString();
-   AiNodeSetStr(node, "radius_attribute", radius_attribute.asChar());
+   AiNodeSetStr(node, str::radius_attribute, AtString(radius_attribute.asChar()));
    // # radius_default
    float radius_default = FindProceduralPlug("abc_radius_default").asFloat();
-   AiNodeSetFlt(node, "radius_default", radius_default);
+   AiNodeSetFlt(node, str::radius_default, radius_default);
    // # radius_scale
    float radius_scale = FindProceduralPlug("abc_radius_scale").asFloat();
-   AiNodeSetFlt(node, "radius_scale", radius_scale);
+   AiNodeSetFlt(node, str::radius_scale, radius_scale);
    // # scene_camera
    // # flip_v
    // # velocity_ignore
    // # velocity_scale
    float velocity_scale = FindProceduralPlug("abc_velocity_scale").asFloat();
-   AiNodeSetFlt(node, "velocity_scale", velocity_scale);
+   AiNodeSetFlt(node, str::velocity_scale, velocity_scale);
 
    MPlug plug = FindProceduralPlug("abc_curves_basis");
    if (!plug.isNull())
@@ -310,10 +311,9 @@ void CArnoldStandInsTranslator::ExportAlembicParameters(AtNode *node)
       {
 
          static const char* curveBasisList[] = {"auto", "bezier", "b-spline", "catmull-rom", "linear"};
-         AtString basis_param_name("curves:basis");
-         if (AiNodeLookUpUserParameter(node, basis_param_name) == nullptr)
-            AiNodeDeclare(node, basis_param_name, "constant STRING");
-         AiNodeSetStr(node, basis_param_name, AtString(curveBasisList[basis]));
+         if (AiNodeLookUpUserParameter(node, str::curves__basis) == nullptr)
+            AiNodeDeclare(node, str::curves__basis, str::constant_STRING);
+         AiNodeSetStr(node, str::curves__basis, AtString(curveBasisList[basis]));
       }
    }
 

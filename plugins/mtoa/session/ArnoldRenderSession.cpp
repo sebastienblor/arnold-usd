@@ -54,7 +54,7 @@ CArnoldRenderSession::~CArnoldRenderSession()
 bool CArnoldRenderSession::BatchRender()
 {
    AtRenderSession *renderSession = GetRenderSession();
-   m_sessionOptions.SetupLog(renderSession);
+   m_sessionOptions.SetupLog(GetUniverse());
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_BATCH);
    // Here we just want a final frame render, no progressive (MTOA-909)
    AiRenderSetHintBool(renderSession, AtString("progressive"), false);
@@ -128,7 +128,7 @@ bool CArnoldRenderSession::Render()
    AiRenderInterrupt(renderSession, AI_BLOCKING);
    MComputation comp;
    comp.beginComputation();
-   m_sessionOptions.SetupLog(renderSession);
+   m_sessionOptions.SetupLog(GetUniverse());
 
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
    // Here we just want a final frame render, no progressive (MTOA-909)
@@ -338,7 +338,7 @@ void CArnoldRenderSession::IPR()
    }
    AtRenderSession *renderSession = GetRenderSession();
 
-   m_sessionOptions.SetupLog(renderSession);
+   m_sessionOptions.SetupLog(GetUniverse());
 
    if (AiRenderGetStatus(renderSession) == AI_RENDER_STATUS_NOT_STARTED)
    {

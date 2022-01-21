@@ -1,4 +1,5 @@
 #include "LightPortalTranslator.h"
+#include "utils/ConstantStrings.h"
 #include <ai_nodes.h>
 #include <ai_ray.h>
 
@@ -36,7 +37,7 @@ void CLightPortalTranslator::Export(AtNode* portal)
    vertices[1] = AtVector(-1, -1, 0);
    vertices[2] = AtVector(-1, 1, 0);
 
-   AiNodeSetArray(portal, "vertices", AiArrayConvert(4, 1, AI_TYPE_VECTOR, vertices));
-   AiNodeSetBool(portal, "portal", true);
+   AiNodeSetArray(portal, str::vertices, AiArrayConvert(4, 1, AI_TYPE_VECTOR, vertices));
+   AiNodeSetBool(portal, str::portal, true);
 
 }

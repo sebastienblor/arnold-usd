@@ -1,6 +1,7 @@
 #include "ImagerLightMixerTranslator.h"
 #include "ImagerTranslator.h"
 #include "utils/Universe.h"
+#include "utils/ConstantStrings.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/DagTranslator.h"
 #include <maya/MPlugArray.h>
@@ -25,15 +26,15 @@ void CImagerLightMixer::Export(AtNode *shader)
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
-      std::string paramNameStr(paramName);
+      const AtString paramNameStr(paramName);
 
-      if (paramNameStr == "name" || paramNameStr == "input" )
+      if (paramNameStr == str::name || paramNameStr == str::input )
       {
          continue;
       }
-      else if (paramNameStr != "layer_selection" && paramNameStr != "output_name" && paramNameStr != "enable")
+      else if (paramNameStr != str::layer_selection && paramNameStr != str::output_name && paramNameStr != str::enable)
       {
-         AtArray *interpArray = AiNodeGetArray(shader, paramName);
+         AtArray *interpArray = AiNodeGetArray(shader, paramNameStr);
          unsigned int numElems = AiArrayGetNumElements(interpArray);
          if (numElems == 0)
          {
@@ -100,7 +101,7 @@ void CImagerLightMixer::Export(AtNode *shader)
 
    // // Always export residual layer (#4474)
    bool export_residual = true;
-   AtArray *name_array = AiNodeGetArray(shader, "layer_name");
+   AtArray *name_array = AiNodeGetArray(shader, str::layer_name);
    unsigned int numElems = AiArrayGetNumElements(name_array);
 
    // Searching from the back because there's a higer chance for this 
@@ -120,24 +121,24 @@ void CImagerLightMixer::Export(AtNode *shader)
    if (export_residual)
    {   
       AiArrayResize(name_array, numElems+1, AiArrayGetNumKeys(name_array));
-      AiArraySetStr(name_array, numElems, "<residual_lights>");
+      AiArraySetStr(name_array, numElems, AtString("<residual_lights>"));
 
-      AtArray* enable_array = AiNodeGetArray(shader, "layer_enable");
+      AtArray* enable_array = AiNodeGetArray(shader, str::layer_enable);
       AiArrayResize(enable_array, numElems+1, AiArrayGetNumKeys(enable_array));
       AiArraySetBool(enable_array, numElems, 1);
       
-      AtArray* solo_array = AiNodeGetArray(shader, "layer_solo");
+      AtArray* solo_array = AiNodeGetArray(shader, str::layer_solo);
       AiArrayResize(solo_array, numElems+1, AiArrayGetNumKeys(solo_array));
       AiArraySetBool(solo_array, numElems, 0);
       
-      AtArray* intensity_array = AiNodeGetArray(shader, "layer_intensity");
+      AtArray* intensity_array = AiNodeGetArray(shader, str::layer_intensity);
       AiArrayResize(intensity_array, numElems+1, AiArrayGetNumKeys(intensity_array));
       AiArraySetFlt(intensity_array, numElems, 1.0f);
       
-      AtArray* exposure_array = AiNodeGetArray(shader, "layer_exposure");
+      AtArray* exposure_array = AiNodeGetArray(shader, str::layer_exposure);
       AiArrayResize(exposure_array, numElems+1, AiArrayGetNumKeys(exposure_array));
       AiArraySetFlt(exposure_array, numElems, 0.0f);
-      AtArray* tint_array = AiNodeGetArray(shader, "layer_tint");
+      AtArray* tint_array = AiNodeGetArray(shader, str::layer_tint);
       AiArrayResize(tint_array, numElems+1, AiArrayGetNumKeys(tint_array));
       AtRGB rgb = AtRGB(1.0f,1.0f,1.0f);
       AiArraySetRGB(tint_array, numElems, rgb);
