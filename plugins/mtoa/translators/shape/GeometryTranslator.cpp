@@ -1035,14 +1035,20 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    
    //
    // GEOMETRY
-   //   
+   //  
+
+   // For mayaUSD exports, we want to skip the export of the data already handled
+   // by MayaUSD : vertices, uvs, 
+   bool mayaUsdExport = GetSessionOptions().IsMayaUsd();
+   
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
    unsigned int numFaceVertices = fnMesh.numFaceVertices();
 
    const float* vertices = 0;
    // Get all vertices
-   bool exportVertices = GetVertices(geometry, vertices);
+   
+   bool exportVertices = (mayaUsdExport) ? false : GetVertices(geometry, vertices);
 
    const float* normals = 0;
    // Get all normals
@@ -1064,7 +1070,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       std::vector<unsigned int> arnoldPolygonHoles;
 
       // Get UVs
-      bool exportUVs = GetUVs(geometry, uvs, uvNames);
+      bool exportUVs = mayaUsdExport ? false : GetUVs(geometry, uvs, uvNames);
 
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, 
@@ -1145,7 +1151,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       }
 
       // Declare user parameters for color sets
-      if (exportColors)
+      if (exportColors && !mayaUsdExport)
       {
 
          unordered_map<std::string, std::vector<float> >::iterator it = vcolors.begin();
@@ -1493,35 +1499,12 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    }
 }
 
-// Note that this function is only called by CMeshTranslator
-void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
-{
-   ExportMatrix(polymesh);
-   // Visibility options
-   ProcessRenderFlags(polymesh);
-
-   if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetByte(polymesh, str::sidedness, AI_RAY_ALL);
-   else
-   {
-      AiNodeSetBool(polymesh, str::invert_normals, FindMayaPlug("opposite").asBool());
-      AiNodeSetByte(polymesh, str::sidedness, 0);
-   }
-
-   if (RequiresShaderExport())
-      ExportMeshShaders(polymesh, m_dagPath);
-   ExportLightLinking(polymesh);
-
-   MFnMesh fnMesh(m_geometry);
-   MBoundingBox bbox = fnMesh.boundingBox();
-   AiNodeSetVec(polymesh, str::min, (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
-   AiNodeSetVec(polymesh, str::max, (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
-   //AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
-}
-
 AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {   
-   ExportMatrix(polymesh);   
+   // Don't export matrices during mayaUsd exports
+   if (!GetSessionOptions().IsMayaUsd())
+      ExportMatrix(polymesh);
+
    ExportMeshParameters(polymesh);
    if (RequiresShaderExport())
       ExportMeshShaders(polymesh, m_dagPath);
@@ -1547,7 +1530,8 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    int instanceNum = m_dagPath.instanceNumber();
    int masterInstanceNum = masterInstance.instanceNumber();
 
-   ExportMatrix(instance);
+   if (!GetSessionOptions().IsMayaUsd())
+      ExportMatrix(instance);
 
    AiNodeSetPtr(instance, str::node, masterNode);
    AiNodeSetBool(instance, str::inherit_xform, false);

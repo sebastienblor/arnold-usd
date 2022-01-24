@@ -111,7 +111,8 @@ CSessionOptions::CSessionOptions(): m_options(MObject()),
                                     m_supportGpu(true),
                                     m_exportFileDrivers(true),
                                     m_exportCameraOverscan(false),
-                                    m_exportResolutionOverscan(true)
+                                    m_exportResolutionOverscan(true),
+                                    m_mayaUsd(false)
 
 
 {
@@ -232,6 +233,10 @@ void CSessionOptions::Update()
    plug = fnArnoldRenderOptions.findPlug("exportDagName", true);
    if (!plug.isNull())
       m_exportDagTransformNames = (plug.asInt() == MTOA_EXPORT_DAG_TRANSFORM);
+
+   plug = fnArnoldRenderOptions.findPlug("exportPrefix", true);
+   if (!plug.isNull())
+      m_exportPrefix = plug.asString();
 
    plug = fnArnoldRenderOptions.findPlug("texture_searchpath", true);
    if (!plug.isNull())

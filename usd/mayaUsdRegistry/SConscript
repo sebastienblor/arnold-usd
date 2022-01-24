@@ -3,6 +3,7 @@ import platform
 import sys
 import SCons.Action
 import subprocess
+import shutil
 
 import utils as sa
 
@@ -19,14 +20,20 @@ local_env = maya_env.Clone()
 _targetPath = local_env.Dir('.')
 globals()['MAYAUSD_REGISTRY'] = []
 
+if not os.path.exists(_targetPath.abspath):
+    os.makedirs(_targetPath.abspath)
+
+build_writer_dir = os.path.join(_targetPath.abspath, 'writer')
+if not os.path.exists(build_writer_dir):
+    os.makedirs(build_writer_dir)
+
+build_common_dir = os.path.join(_targetPath.abspath, 'common')
+if not os.path.exists(build_common_dir):
+    os.makedirs(build_common_dir)
+
 pythonVersion = '3'
 if local_env.get('MTOA_USD_PYTHON'):
     pythonVersion = local_env['MTOA_USD_PYTHON']
-
-# Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd')
-source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
-include_files = find_files_recursive(src_base_dir, ['.h'])
 
 mayaRoot = local_env['MAYA_ROOT']
 
@@ -87,13 +94,35 @@ if not os.path.exists(usd_include_dir):
 ###### Now Maya USD registry 
 
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'usd')
-include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h']
-source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp']
+include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h', 'usdArnoldTranslators.h']
+source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp', 'usdArnoldTranslators.cpp']
+
+writer_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'translator', 'writer')
+writer_srcs = find_files_recursive(writer_dir, ['.c', '.cpp'])
+writer_includes = find_files_recursive(writer_dir, ['.h'])
+
+
+for writer_src in writer_srcs:
+    shutil.copyfile(os.path.join(writer_dir, writer_src), os.path.join(build_writer_dir, writer_src))
+    source_files.append(os.path.join(build_writer_dir, writer_src))
+for writer_include in writer_includes:
+    include_files.append(os.path.join(writer_dir, writer_include))
+
+common_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'common')
+common_srcs = find_files_recursive(common_dir, ['.c', '.cpp'])
+common_includes = find_files_recursive(common_dir, ['.h'])
+
+for common_src in common_srcs:
+    shutil.copyfile(os.path.join(common_dir, common_src), os.path.join(build_common_dir, common_src))
+    source_files.append(os.path.join(build_common_dir, common_src))
+for common_include in common_includes:
+    include_files.append(os.path.join(common_dir, common_include))
+
 
 mayausd_path = local_env['MAYAUSD_PATH']
 mayausd_include = os.path.join(mayausd_path, 'include')
 mayausd_lib = os.path.join(mayausd_path, 'lib')
-local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include])
+local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include, writer_dir, common_dir])
 local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
 
 local_env.Append(CPPDEFINES = Split('BOOST_PYTHON_NO_LIB'))
@@ -107,11 +136,13 @@ usd_libs = [
         'ar',
         'usdGeom',
         'usdShade',
+        'usdUtils',
         'vt',
+        'gf',
         'usdLux',
         'usdVol',
         'usdSkel',
-        'usdRender',
+        'usdRender'        
     ]
 
 local_env.Append(LIBS = usd_libs)
@@ -135,8 +166,7 @@ MAYAUSD_REGISTRY = local_env.SharedLibrary('mayaUsdRegistry', source_files, LIBP
 
 # Write the file plugInfo.json at the root of the registry folder
 plugInfoFile = os.path.join(_targetPath.abspath, 'plugInfo.json')
-if not os.path.exists(_targetPath.abspath):
-    os.makedirs(_targetPath.abspath)
+
 file = open(plugInfoFile, 'w')
 file.write("{\n\t\"Includes\": [ \"*/resources/\" ]\n}")
 file.close()
@@ -146,12 +176,27 @@ if not os.path.exists(registryResourceFolder):
     os.makedirs(registryResourceFolder)
 registryResourceFile = os.path.join(registryResourceFolder, 'plugInfo.json')
 file = open(registryResourceFile, 'w')
-registryResource = "{\n\t\"Plugins\": [\n\t\t{\n\t\t\t\"Info\": {\n\t\t\t\t\"UsdMaya\": {\"ShadingModePlugin\": {\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"LibraryPath\": \"../"
+
+registryResource = "{\n"
+registryResource += "\t\"Plugins\": [\n"
+registryResource += "\t\t{\n"
+registryResource += "\t\t\t\"Info\": {\n"
+registryResource += "\t\t\t\t\"UsdMaya\": {\n"
+registryResource += "\t\t\t\t\t\"JobContextPlugin\": {},\n"
+registryResource += "\t\t\t\t\t\"ShadingModePlugin\": {},\n"
+registryResource += "\t\t\t\t\t\"SchemaApiAdaptor\": {\n"
+registryResource += "\t\t\t\t\t\t\"providesTranslator\": [\n"
+registryResource += "\t\t\t\t\t\t\t\"mesh\", \"curves\", \"directionalLight\", \"pointLight\", \"areaLight\", \"camera\"]\n"
+registryResource += "\t\t\t\t\t}\n"
+registryResource += "\t\t\t\t}\n"
+registryResource += "\t\t\t},\n"
+registryResource += "\t\t\t\"LibraryPath\": \"../"
 registryLib = MAYAUSD_REGISTRY
 if isinstance(registryLib, SCons.Node.NodeList):
     registryLib = registryLib[0]
 registryResource += os.path.basename(str(registryLib))
 registryResource += "\",\n\t\t\t\"Name\": \"mayaUsdRegistry\",\n\t\t\t\"ResourcePath\": \"resources\",\n\t\t\t\"Root\": \"..\",\n\t\t\t\"Type\": \"library\"\n\t\t}\n\t]\n}\n"
+
 file.write(registryResource)
 file.close()
 

@@ -92,7 +92,6 @@ protected:
    void ExportMeshShaders(AtNode* polymesh, const MDagPath& path);
    virtual void ExportShaders();
 
-   void ExportBBox(AtNode* polymesh);
    void ExportMeshGeoData(AtNode* polymesh);
    void ExportMeshParameters(AtNode* polymesh);
    AtNode* ExportMesh(AtNode* polymesh, bool update);
