@@ -125,6 +125,7 @@ mayausd_lib = os.path.join(mayausd_path, 'lib')
 local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include, writer_dir, common_dir])
 local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
 
+local_env.Append(CPPDEFINES = Split('BOOST_PYTHON_NO_LIB'))
 local_env['BOOST_LIB_NAME']=boost_lib_name
 
 usd_libs = [
@@ -158,6 +159,8 @@ if platform.system().lower() == 'linux':
 
 if platform.system().lower() == 'windows':
     local_env['PYTHON_LIB_NAME']   = 'python{}{}'.format(pythonVersion, pythonMinor)  
+
+local_env.Append(LIBS = [boost_lib_name.replace('%s', 'python')])
 
 MAYAUSD_REGISTRY = local_env.SharedLibrary('mayaUsdRegistry', source_files, LIBPREFIX='')
 
