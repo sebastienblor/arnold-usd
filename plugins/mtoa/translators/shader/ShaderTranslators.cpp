@@ -466,7 +466,23 @@ void CFileTranslator::Export(AtNode* shader)
       }
       else 
       {
-         AiNodeSetStr(shader, str::color_space, AtString(FindMayaPlug("colorSpace").asString().asChar()));
+         MString colorSpace = FindMayaPlug("colorSpace").asString().asChar();
+
+#if MAYA_API_VERSION >= 20230000
+         // Maya 2023 and up allows to invert the view space of an input texture, and apply a View/Display pair
+         // instead of a simple color space (see #MTOA-948 and ARNOLD-11961). We use the same format than for
+         // output drivers : "View (Display)" . We set that attribute in image.color_space and Arnold will 
+         // know how to apply the view and the display through OCIO.
+         if (FindMayaPlug("viewNameUsed").asBool())
+         {
+            MString viewNameStr = FindMayaPlug("viewNameStr").asString().asChar();
+            if (viewNameStr.length() > 0) {
+               colorSpace = viewNameStr + MString(" (") + colorSpace + MString(")");
+            }
+         }
+#endif
+         
+         AiNodeSetStr(shader, str::color_space, AtString(colorSpace.asChar()));
          // only set the color_space if the texture isn't a TX. Otherwise force it to an empty value (passthrough)
          if (resolvedFilename.length() > 4)
          {
