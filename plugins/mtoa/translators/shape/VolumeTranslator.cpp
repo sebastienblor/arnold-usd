@@ -261,8 +261,13 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       }
 
       AiNodeSetFlt(volume, str::step_size, stepSize);
-      AiNodeSetFlt(volume, str::motion_start, m_DagNode.findPlug("motionStart", true).asFloat());
-      AiNodeSetFlt(volume, str::motion_end, m_DagNode.findPlug("motionEnd", true).asFloat());
+      if (RequiresMotionData())
+      {
+         double motionStart, motionEnd;
+         GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+         AiNodeSetFlt(volume, str::motion_start, (float)motionStart);
+         AiNodeSetFlt(volume, str::motion_end, (float)motionEnd);
+      }
 
    }
    return volume;
