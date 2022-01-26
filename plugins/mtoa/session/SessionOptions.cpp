@@ -640,7 +640,7 @@ void CSessionOptions::SetupLog(AtUniverse *universe)
 
    if (needCallback && m_log_callbackId == 0)
    {
-      m_log_callbackId = AiMsgRegisterCallback(MtoaLogCallback, AI_LOG_ALL, (void*)this);
+      m_log_callbackId = AiMsgRegisterCallback(MtoaLogCallback, m_log_verbosity, (void*)this);
    } else if (!needCallback && m_log_callbackId != 0)
    {
       AiMsgDeregisterCallback(m_log_callbackId);
