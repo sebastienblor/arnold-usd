@@ -97,7 +97,7 @@ struct DLLEXPORT CSessionOptions
 
    // --- Getters
 
-
+   ~CSessionOptions();
    inline const ArnoldLightLinkMode& GetLightLinkMode() const {return m_lightlink;}
    inline const ArnoldShadowLinkMode& GetShadowLinkMode() const {return m_shadowlink;}
    inline const MDagPath& GetExportCamera() const { return m_camera; }

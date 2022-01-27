@@ -25,30 +25,35 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
    {
    case AI_SEVERITY_INFO:
       if (logmask & AI_LOG_INFO)
-#ifndef _WIN32
+#ifdef _WIN32
          std::clog << "\033[0m";
 #endif
       break;
    case AI_SEVERITY_WARNING:
       if (logmask & AI_LOG_WARNINGS)
          MGlobal::displayWarning(msg_string);
-#ifndef _WIN32
+#ifdef _WIN32
          std::clog << "\033[22;33m";
 #endif
       break;
    case AI_SEVERITY_ERROR:
       if (logmask & AI_LOG_ERRORS)
          MGlobal::displayError(msg_string);
-#ifndef _WIN32
+#ifdef _WIN32
          std::clog << "\033[22;31m";
 #endif
       break;
    default:
-#ifndef _WIN32
+#ifdef _WIN32
       std::clog << "\033[0m";
 #endif
       break;
    }
+// Ouput for the Maya Output Window on Windows
+#ifdef _WIN32
+   std::clog << msg_string << "\033[0m" << std::endl;
+#endif
+
 }
 
 // Setup a default logging level to use when not rendering.
