@@ -281,8 +281,6 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addCustom('velocityGrids', self.velocityGridsParamNew, self.velocityGridsParamReplace)
         self.addControl('velocityScale')
         self.addControl('velocityFps')
-        self.addControl('motionStart')
-        self.addControl('motionEnd')
         self.addControl('velocityThreshold')
         self.addSeparator()
 
