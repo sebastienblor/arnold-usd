@@ -21,72 +21,39 @@ int GetFlagsFromVerbosityLevel(unsigned int level)
 
 DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, AtParamValueMap* metadata, void* user_ptr)
 {
-   /*
-   const char *header = "[mtoa] %s";
-   char *buf;
-   buf = new (std::nothrow) char[strlen(header)+strlen(msg_string)];
-   if (NULL != buf)
-   {
-      sprintf(buf, header, msg_string);
-      std::clog << buf << std::endl;
-      delete[] buf;
-   }
-   */
-
-
-   // Some feedback will go in Maya script window
-   // Need to handle regular log / output since
-   // Seems green should be used for progress message, but no idea
-   // how to detect we're currently displaying one
-   // green is "\033[22;32m"
-   // logmask & AI_LOG_COLOR is never true, even when AI_LOG_COLOR is set
-   // in Console flags?
    switch (severity)
    {
    case AI_SEVERITY_INFO:
       if (logmask & AI_LOG_INFO)
-         // MGlobal::displayInfo(msg_string);
-         // default color
-         // if (logmask & AI_LOG_COLOR) std::clog << "\033[0m";
-#ifndef _WIN32
+#ifdef _WIN32
          std::clog << "\033[0m";
 #endif
       break;
    case AI_SEVERITY_WARNING:
       if (logmask & AI_LOG_WARNINGS)
          MGlobal::displayWarning(msg_string);
-         // yellow color
-         // if (logmask & AI_LOG_COLOR) std::clog << "\033[22;33m";
-#ifndef _WIN32
+#ifdef _WIN32
          std::clog << "\033[22;33m";
 #endif
       break;
    case AI_SEVERITY_ERROR:
       if (logmask & AI_LOG_ERRORS)
          MGlobal::displayError(msg_string);
-         // red color
-         // if (logmask & AI_LOG_COLOR) std::clog << "\033[22;31m";
-#ifndef _WIN32
+#ifdef _WIN32
          std::clog << "\033[22;31m";
 #endif
       break;
    default:
-      // default color
-      // if (logmask & AI_LOG_COLOR) std::clog << "\033[0m";
-#ifndef _WIN32
+#ifdef _WIN32
       std::clog << "\033[0m";
 #endif
       break;
    }
-
-   // Standard log output
-#ifndef _WIN32
+// Ouput for the Maya Output Window on Windows
+#ifdef _WIN32
    std::clog << msg_string << "\033[0m" << std::endl;
-#else
-   std::clog << msg_string << std::endl;
 #endif
-   // How do we know to write both in cerr and std::clog, or write in logFile even ?
-   // cerr << msg_string << std::endl;
+
 }
 
 // Setup a default logging level to use when not rendering.
