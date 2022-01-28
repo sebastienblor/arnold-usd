@@ -1827,6 +1827,7 @@
     desc                    STRING  "Sky environment texture."
     maya.name               STRING  "aiSky"
     maya.id                 INT     0x00115C84
+    maya.type               STRING  "kLocatorNode"  
     maya.classification     STRING  "legacy"
     [attr intensity]
         desc                STRING  "Intensity of sky illumination."
