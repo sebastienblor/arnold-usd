@@ -29,7 +29,8 @@ def createMayaAttributeForArnoldAttributes(mayaNodeName, mayaAttributeName, arno
         write = False
         read = True
 
-    mayaAttributeLongName = mayaAttributeName
+    if ('param_' in mayaAttributeName):
+        mayaAttributeLongName = mayaAttributeName.replace('param_','')
     mayaAttributeShortName = to_camelcase(mayaAttributeName)
 
     if arnoldAttributeType == AI_TYPE_BYTE:
