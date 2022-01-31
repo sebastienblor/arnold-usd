@@ -308,6 +308,13 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
             outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
             component = GetComponentName(outputType,srcMayaPlug);
          }
+         // MTOA-904 : We are doing this to ensure backwards compatability with scenes 
+         // that have an OSL shader connection to outValue or outTransparancy.
+         // We translate a connection to this attribute like it's a normal non componentized 
+         // connection. We do this only for an osl node
+         if ( (component == MString("outValue") || component == MString("outTransparency")) && MString(AiNodeEntryGetName(node_entry)) == MString("osl"))
+            component = MString("");
+
          if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))
          {
             AiMsgWarning("[mtoa] Could not link %s.%s to %s.%s.",
