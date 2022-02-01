@@ -315,7 +315,7 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          // that have an OSL shader connection to outValue or outTransparancy.
          // We translate a connection to this attribute like it's a normal non componentized 
          // connection. We do this only for an osl node
-         if ( (component == MString("outValue") || component == MString("outTransparency") ) && MString(AiNodeEntryGetName(node_entry)) == str::osl)
+         if ( AiNodeEntryGetNameAtString(node_entry) == str::osl && (component == str::m_outValue || component == str::m_outTransparency))
             component = MString("");
 
          if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))

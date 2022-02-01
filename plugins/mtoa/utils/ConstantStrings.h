@@ -565,6 +565,8 @@ ASTR(yres);
 ASTR(YXZ);
 ASTR(Z);
 ASTR(zres);
+ASTR(outValue);
+ASTR(outTransparency);
 
 
 
