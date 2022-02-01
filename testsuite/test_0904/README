@@ -1,0 +1,8 @@
+inline OSL nodes with connections to outValue work as default
+
+Since multiple shader outputs in Arnold, there is no need for certain nodes to have default outputs of OutValue and outTransparency. 
+However scene mades with connection to these attribute needs to continue to work. This test checks that. 
+
+See MTOA-904
+
+author: krishnan
