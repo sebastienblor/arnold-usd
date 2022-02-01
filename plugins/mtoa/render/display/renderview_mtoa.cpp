@@ -270,14 +270,13 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    double scaleFactor = 1.0;
    scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
-      
-   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
 
    OpenRenderView(width, height,scaleFactor, nullptr, false); // this creates ARV or restarts the render
 
    QMainWindow *arv = GetRenderView();  
    arv->setWindowFlags(Qt::Widget);
-   
+      
+   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
    
    if (firstCreation)
    {
