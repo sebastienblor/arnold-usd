@@ -255,6 +255,10 @@ namespace // <anonymous>
          CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
          MPxNode::kLocatorNode, &AI_LIGHT_FILTER_WITH_SWATCH
       } , {
+         "aiSky", CArnoldSkyNode::id,
+         CArnoldSkyNode::creator, CArnoldSkyNode::initialize,
+         MPxNode::kLocatorNode, &AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH
+      } , {
          "aiUserDataVec2", CArnoldUserDataVec2Node::id,
          CArnoldUserDataVec2Node::creator, CArnoldUserDataVec2Node::initialize,
          MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
@@ -492,6 +496,7 @@ namespace // <anonymous>
                      node.initialize, node.type, node.classification);
          CHECK_MSTATUS(status);
       }
+
       // Get a CExtension for the builtin nodes
       CExtensionsManager::SetMayaPlugin(object);
       CExtensionsManager::CreatePluginLoadedCallback();
