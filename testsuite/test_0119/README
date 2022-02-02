@@ -1,3 +1,8 @@
 Test for chaining bump maps. (Ticket #1189)
 
 author: Pal
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}

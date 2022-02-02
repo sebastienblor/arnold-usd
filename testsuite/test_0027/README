@@ -1,3 +1,8 @@
 file node tif with alpha
 
 author: Olivier Renouard
+
+PARAMS: {
+   'diff_fail': 0.06,
+   'diff_hardfail': 0.06
+}
