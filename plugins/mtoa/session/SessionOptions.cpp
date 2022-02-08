@@ -87,7 +87,7 @@ CSessionOptions::CSessionOptions(): m_options(MObject()),
                                     m_progressive_initial_level(0),
                                     m_threads(0),
                                     m_stats_mode(0),
-                                    m_log_callbackId(0),
+                                    m_log_callbackId(-1),
                                     m_useRenderRegion(false),
                                     m_clearBeforeRender(false),
                                     m_forceSceneUpdateBeforeIPRRefresh(false),
@@ -123,8 +123,15 @@ CSessionOptions::CSessionOptions(): m_options(MObject()),
 
 CSessionOptions::~CSessionOptions()
 {
-   if (m_log_callbackId != 0)
+   Clear();
+}
+
+void CSessionOptions::Clear()
+{
+   if (m_log_callbackId >= 0) {
       AiMsgDeregisterCallback(m_log_callbackId);
+      m_log_callbackId = -1;
+   }   
 }
 
 static MString ExpandMtoaLogPath(const MString &file)
@@ -635,11 +642,10 @@ void CSessionOptions::SetupLog(AtUniverse *universe)
       AiMsgSetLogFileFlags(universe, m_log_verbosity);
    }
 
-   if (m_log_callbackId != 0)
+   if (m_log_callbackId >= 0)
       AiMsgDeregisterCallback(m_log_callbackId);
 
    m_log_callbackId = AiMsgRegisterCallback(MtoaLogCallback, m_log_verbosity, (void*)this);
-
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
       AiMsgSetConsoleFlags(universe, m_log_verbosity | AI_LOG_COLOR);   

@@ -376,6 +376,7 @@ void CArnoldSession::Clear()
    m_masterInstances.clear();
    m_optionsTranslator = nullptr;
    m_updateTxFiles.clear();
+   m_sessionOptions.Clear();
  
 }
 
