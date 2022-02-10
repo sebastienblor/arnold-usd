@@ -1101,17 +1101,10 @@ if (system.os == 'linux'):
 else:
     env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
 
-
-
-# Install the licensing tools
-clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'clm', system.os)
-
 if (system.os == 'linux'):
     env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
 else:
     env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*%s" % get_library_extension())))
-
-env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(clm_utils_path, "*")))
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(ARNOLD, 'license', '*')))
 
@@ -1567,15 +1560,10 @@ PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTem
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, '*.txt'), 'bin'])
 
-# package the licensing tools
-clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os)
 if (system.os == 'linux'):
     PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
 else:
     PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*%s' % get_library_extension()), 'bin'])
-
-if clm_version == 2:
-    PACKAGE_FILES.append([os.path.join(clm_utils_path, '*'), 'license'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 
