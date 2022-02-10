@@ -229,7 +229,8 @@ def arnoldConvertDeprecated():
 
     
 def arnoldLightManager():
-    editorUI.createLightEditorWindow()
+    if not cmds.about(batch = True):
+        editorUI.createLightEditorWindow()
 
 def arnoldBakeGeo():
     objFilter = "Obj File (*.obj)"
