@@ -47,6 +47,7 @@ void writeLightCommon(const AtNode *node, UsdPrim &prim, UsdArnoldPrimWriter &pr
     primWriter.WriteAttribute(node, "color", prim, light.GetColorAttr(), writer);
     primWriter.WriteAttribute(node, "diffuse", prim, light.GetDiffuseAttr(), writer);
     primWriter.WriteAttribute(node, "specular", prim, light.GetSpecularAttr(), writer);
+    primWriter.WriteAttribute(node, "normalize", prim, light.GetNormalizeAttr(), writer);
 }
 
 } // namespace
@@ -117,7 +118,6 @@ void UsdArnoldWriteDiskLight::Write(const AtNode *node, UsdArnoldWriter &writer)
 
     writeLightCommon(node, prim, *this, writer);
     WriteAttribute(node, "radius", prim, light.GetRadiusAttr(), writer);
-    WriteAttribute(node, "normalize", prim, light.GetNormalizeAttr(), writer);
     _WriteMatrix(light, node, writer);
     _WriteArnoldParameters(node, writer, prim, "primvars:arnold");
 }
@@ -137,7 +137,6 @@ void UsdArnoldWriteSphereLight::Write(const AtNode *node, UsdArnoldWriter &write
     if (radius > AI_EPSILON) {
         writer.SetAttribute(light.GetTreatAsPointAttr(), false);
         WriteAttribute(node, "radius", prim, light.GetRadiusAttr(), writer);
-        WriteAttribute(node, "normalize", prim, light.GetNormalizeAttr(), writer);
     } else {
         writer.SetAttribute(light.GetTreatAsPointAttr(), true);
         _exportedAttrs.insert("radius");
@@ -159,8 +158,7 @@ void UsdArnoldWriteRectLight::Write(const AtNode *node, UsdArnoldWriter &writer)
     writeLightCommon(node, prim, *this, writer);
 
     _WriteMatrix(light, node, writer);
-    WriteAttribute(node, "normalize", prim, light.GetNormalizeAttr(), writer);
-
+    
     AtNode *linkedTexture = AiNodeGetLink(node, "color");
     static AtString imageStr("image");
     if (linkedTexture && AiNodeIs(linkedTexture, imageStr)) {
@@ -216,7 +214,6 @@ void UsdArnoldWriteGeometryLight::Write(const AtNode *node, UsdArnoldWriter &wri
     UsdPrim prim = light.GetPrim();
 
     writeLightCommon(node, prim, *this, writer);
-    WriteAttribute(node, "normalize", prim, light.GetNormalizeAttr(), writer);
     _WriteMatrix(light, node, writer);
 
     AtNode *mesh = (AtNode *)AiNodeGetPtr(node, "mesh");
