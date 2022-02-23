@@ -27,6 +27,7 @@ public:
    }
    virtual void ExportShaders();
    virtual void NodeChanged(MObject& node, MPlug& plug);
+   void ClearListener();
    
 private:
    int m_cacheId;
