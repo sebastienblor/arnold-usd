@@ -39,14 +39,7 @@ CUsdProxyShapeTranslator::CUsdProxyShapeTranslator() : CProceduralTranslator(),
 
 CUsdProxyShapeTranslator::~CUsdProxyShapeTranslator()
 {   
-   if (m_cacheId)
-   {
-      MString cmd("import usdProxyShapeTranslator;usdProxyShapeTranslator.UsdArnoldUnregisterListener(");
-      cmd += m_cacheId;
-      cmd += ")";
-      MGlobal::executePythonCommand(cmd);
-      m_cacheId = 0;
-   }
+   ClearListener();
 }
 
 void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
@@ -187,7 +180,12 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
          // This will be needed to update the IPR
          if (IsInteractiveSession())
          {
+            if (cacheId != m_cacheId)
+            {
+               ClearListener();
+            }
             m_cacheId = cacheId;
+
             MString cmd("import usdProxyShapeTranslator;usdProxyShapeTranslator.UsdArnoldListener(");
             cmd += cacheId;
             cmd += ",'";
@@ -258,6 +256,18 @@ void CUsdProxyShapeTranslator::ExportMotion(AtNode *shape)
 
 }
 
+void CUsdProxyShapeTranslator::ClearListener()
+{
+   if (m_cacheId)
+   {
+      MString cmd("import usdProxyShapeTranslator;usdProxyShapeTranslator.UsdArnoldUnregisterListener(");
+      cmd += m_cacheId;
+      cmd += ")";
+      MGlobal::executePythonCommand(cmd);
+      m_cacheId = 0;
+   }
+}
+
 void CUsdProxyShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
@@ -266,6 +276,14 @@ void CUsdProxyShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
    if (plugName == "selectedItems" || plugName == "selected_items" || 
       plugName == "MinBoundingBox0" || plugName == "MinBoundingBox1" || plugName == "MinBoundingBox2" || 
       plugName == "MaxBoundingBox0" || plugName == "MaxBoundingBox1" || plugName == "MaxBoundingBox2") return;
+
+   // if the cache ID is being modified, we want to delete and re-generate a usd_cache node
+   if (m_cacheId != 0 && plugName ==  "outStageCacheId")
+   {
+      ClearListener();
+      SetUpdateMode(AI_RECREATE_NODE);
+   }
+
 
    // we're calling directly the shape translator function, as we don't want to make it a AI_RECREATE_NODE
    CShapeTranslator::NodeChanged(node, plug);  
