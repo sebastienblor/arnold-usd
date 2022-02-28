@@ -1015,8 +1015,8 @@ namespace // <anonymous>
       status = CExtensionsManager::UnloadExtensions();
       CHECK_MSTATUS(status);
 
-      // Nodes
-      for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
+      // Reversing the order in which nodes are de-registered
+      for (int i = sizeOfArray(mayaNodeList) -1 ; i >= 0; i--)
       {
          const mayaNode& node = mayaNodeList[i];
          status = plugin.deregisterNode(node.id);
