@@ -1436,11 +1436,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    if (!VerifyUninititalization(status, "renderer 'arnold'"))
       returnStatus = MStatus::kFailure;
 
-   status = UnregisterArnoldNodes(object);
-   if (!VerifyUninititalization(status, "Arnold nodes"))
-      returnStatus = MStatus::kFailure;
-   
-
    // Unregister all attribute extensions from Maya atributes
    status = CExtensionsManager::UnregisterExtensionAttributes(object);
    if (!VerifyUninititalization(status, "Arnold attribute extensions"))
@@ -1576,6 +1571,11 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       sceneOpenCallback = 0;
    }
    
+   // Removing all nodes as the last step
+   status = UnregisterArnoldNodes(object);
+   if (!VerifyUninititalization(status, "Arnold nodes"))
+      returnStatus = MStatus::kFailure;
+
    ArnoldEnd();
    return returnStatus;
 }
