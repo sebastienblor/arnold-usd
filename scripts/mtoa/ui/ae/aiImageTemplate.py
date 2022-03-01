@@ -7,6 +7,8 @@ from mtoa.ui.ae.utils import resolveFilePathSequence
 
 defaultFolder = ""
 
+mel.eval('source "colorSpaceProcedures"')
+
 
 class AEaiImageTemplate(ShaderAETemplate):
     def filenameEdit(self, newFilename) :
@@ -90,6 +92,18 @@ class AEaiImageTemplate(ShaderAETemplate):
 #        if not cmds.isConnected(self.nodeAttr('filename'), self.nodeAttr('imageName')):
 #            cmds.connectAttr(self.nodeAttr('filename'), self.nodeAttr('imageName'))
 
+    def colorSpaceNew(self, attrName):        
+        mel.eval('AEcolorSpaceNew {}'.format(attrName))
+
+    def colorSpaceReplace(self, attrName):        
+        mel.eval('AEcolorSpaceReplace {}'.format(attrName))
+
+    # Maya 2023 colorspace attributes
+    def ignoreColorSpaceNew(self, attrName):        
+        mel.eval('AEignoreColorSpaceNew {}'.format(attrName))
+
+    def ignoreColorSpaceReplace(self, attrName):        
+        mel.eval('AEignoreColorSpaceReplace {}'.format(attrName))
 
     def setup(self):
         self.addSwatch()
@@ -105,10 +119,14 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl("multiply", label="Multiply")
         self.addControl("offset", label="Offset")
         # self.addCustom('imageName', self.imageNameConnect, self.imageNameConnect)
-    
 
-        cmds.editorTemplate('AEcolorSpaceNew', 'AEcolorSpaceReplace', 'colorSpace', callCustom=True)
-        self.addControl("ignoreColorSpaceFileRules", label="Ignore Color Space File Rules")
+        self.addCustom('colorSpace', self.colorSpaceNew, self.colorSpaceReplace)
+        
+        if utils.getMayaVersion() >= 2023:
+            self.addCustom('ignoreColorSpaceFileRules', self.ignoreColorSpaceNew, self.ignoreColorSpaceReplace)
+        else:
+            self.addControl("ignoreColorSpaceFileRules", label="Ignore Color Space File Rules")
+            
         self.addControl("autoTx", label="Auto-generate TX Textures")
         self.addSeparator()
         
