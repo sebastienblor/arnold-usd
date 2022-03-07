@@ -1015,8 +1015,8 @@ namespace // <anonymous>
       status = CExtensionsManager::UnloadExtensions();
       CHECK_MSTATUS(status);
 
-      // Nodes
-      for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
+      // Reversing the order in which nodes are de-registered
+      for (int i = sizeOfArray(mayaNodeList) -1 ; i >= 0; i--)
       {
          const mayaNode& node = mayaNodeList[i];
          status = plugin.deregisterNode(node.id);
@@ -1436,11 +1436,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    if (!VerifyUninititalization(status, "renderer 'arnold'"))
       returnStatus = MStatus::kFailure;
 
-   status = UnregisterArnoldNodes(object);
-   if (!VerifyUninititalization(status, "Arnold nodes"))
-      returnStatus = MStatus::kFailure;
-   
-
    // Unregister all attribute extensions from Maya atributes
    status = CExtensionsManager::UnregisterExtensionAttributes(object);
    if (!VerifyUninititalization(status, "Arnold attribute extensions"))
@@ -1576,6 +1571,11 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       sceneOpenCallback = 0;
    }
    
+   // Removing all nodes as the last step
+   status = UnregisterArnoldNodes(object);
+   if (!VerifyUninititalization(status, "Arnold nodes"))
+      returnStatus = MStatus::kFailure;
+
    ArnoldEnd();
    return returnStatus;
 }
