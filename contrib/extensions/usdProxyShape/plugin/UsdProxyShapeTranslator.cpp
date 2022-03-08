@@ -56,6 +56,37 @@ void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
    data.isArray = true;
    helper.MakeInput(data);
 
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideReceiveShadows";
+   data.shortName = "overrideReceiveShadows";
+   helper.MakeInputBoolean(data);
+   
+   //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideDoubleSided";
+   data.shortName = "overrideDoubleSided";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideSelfShadows";
+   data.shortName = "overrideSelfShadows";
+   helper.MakeInputBoolean(data);
+   
+   //The 'self_shadows' attribute is defined in CShapeTranslator::MakeCommonAttributes
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideOpaque";
+   data.shortName = "overrideOpaque";
+   helper.MakeInputBoolean(data);
+
+   //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideMatte";
+   data.shortName = "overrideMatte";
+   helper.MakeInputBoolean(data);
+
+
 }
 AtNode* CUsdProxyShapeTranslator::CreateArnoldNodes()
 {
