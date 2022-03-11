@@ -4,6 +4,7 @@
 
 #include <maya/MTypes.h>
 #include <ai.h>
+#include <ai_file_utils.h>
 
 #include <synColor/config.h>
 #include <synColor/synColorInit.h>
@@ -710,9 +711,9 @@ node_update
 {
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
 
-   AtString native_catalog_path   = AiNodeGetStr (node, DataStr::native_catalog_path);
-   AtString custom_catalog_path   = AiNodeGetStr (node, DataStr::custom_catalog_path);
-   AtString ocioconfig_path       = AiNodeGetStr (node, DataStr::ocioconfig_path);
+   AtString native_catalog_path   = AiResolveFilePath(AiNodeGetStr (node, DataStr::native_catalog_path).c_str(), AtFileType::Custom);
+   AtString custom_catalog_path   = AiResolveFilePath(AiNodeGetStr (node, DataStr::custom_catalog_path).c_str(), AtFileType::Custom);
+   AtString ocioconfig_path       = AiResolveFilePath(AiNodeGetStr (node, DataStr::ocioconfig_path).c_str(), AtFileType::Custom);
    AtString rendering_color_space = AiNodeGetStr (node, DataStr::rendering_color_space);
 
    s_mutex.lock();
