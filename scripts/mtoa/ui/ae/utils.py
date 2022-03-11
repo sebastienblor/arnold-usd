@@ -321,7 +321,7 @@ def resolveFilePathSequence( nodeName,
     mPath = mOrigPath
     mExpression = ''
     supportedImageFormats = ['bmp', 'cin', 'dds', 'dpx', 'hdr', 'iff', 'jpg', 'exr', 'png', 'psd', 'rla', 'sgi', 'tga', 'tif']
-    imageFormats = '.\\'+'|.\\'.join(supportedImageFormats)
+    imageFormats = '.\\\\'+'|.\\\\'.join(supportedImageFormats)
     if useSequence:
         # check if something is connected to FrameNumber
         if not mu.hasAttrInputs(nodeName, frameAttribute):
