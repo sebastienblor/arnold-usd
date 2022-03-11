@@ -203,7 +203,7 @@ def arnoldAboutDialog():
 
     cmds.text(label="")
     cmds.text(label="")
-    cmds.button( width=150,label='OK', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)') )
+    cmds.button(label='OK', command= 'import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)')
     cmds.text(label="")
 
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
