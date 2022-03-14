@@ -98,6 +98,14 @@ bool CPolygonGeometryTranslator::GetNormals(const MObject& geometry,
 {
    MFnMesh fnMesh(geometry);
    int nnorms = fnMesh.numNormals();
+
+   // For mayaUSD exports, we want to skip normals if the mesh is smoothed. Otherwise
+   // we won't be writing the proper normals as compared to the vertices authored by MayaUSD.
+   // We'll want to force arnold subdiv instead
+   if (GetSessionOptions().IsMayaUsd() && FindMayaPlug("displaySmoothMesh").asBool()) {
+      return false;
+   }
+
    // TODO this should be checked outside this function!
    if (FindMayaPlug("smoothShading").asBool() &&
          !FindMayaPlug("aiSubdivType").asBool() &&
@@ -968,7 +976,9 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       int divisions = 0;
       int multiplier = 0;
       
-      if (fnMesh.findPlug("displaySmoothMesh", true).asBool())
+      // For mayaUSD exports, we don't want to deal with smoothed meshes, as this is handled by 
+      // mayaUSD itself
+      if (fnMesh.findPlug("displaySmoothMesh", true).asBool() && !GetSessionOptions().IsMayaUsd())
       {
          MMeshSmoothOptions options;
          MStatus status = fnMesh.getSmoothMeshDisplayOptions(options);
@@ -1366,8 +1376,8 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // since the user might override the subdiv options
       // from a procedural, node processor etc...
       if (!fnMesh.findPlug("displaySmoothMesh", true).asBool() ||
-          (fnMesh.findPlug("displaySmoothMesh", true).asBool() &&
-            !fnMesh.findPlug("useSmoothPreviewForRender", false).asBool()))
+          mayaUsdExport || 
+          !fnMesh.findPlug("useSmoothPreviewForRender", false).asBool())
       {
          MUintArray creaseEdgeIds;
          MDoubleArray creaseEdgeDatas;
@@ -1481,7 +1491,12 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    
    // Subdivision surfaces
    //
-   const int subdivision = FindMayaPlug("aiSubdivType").asInt();
+   int subdivision = FindMayaPlug("aiSubdivType").asInt();
+   // MayaUSD will export base meshes when they're meant to be smoothed. In that case we'll set the
+   // arnold meshes to be using subdivision at render time
+   if (GetSessionOptions().IsMayaUsd() && FindMayaPlug("displaySmoothMesh").asBool() && subdivision == 0)
+      subdivision = 1;
+
    if (subdivision!=0)
    {
       if (subdivision==1)

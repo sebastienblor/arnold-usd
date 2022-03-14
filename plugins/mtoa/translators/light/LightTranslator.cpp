@@ -79,18 +79,22 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light,  str::diffuse,         FindMayaPlug("aiDiffuse").asFloat());
    AiNodeSetFlt(light,  str::specular,        FindMayaPlug("aiSpecular").asFloat());
 
-   GetMatrix(matrix);
-
    ProcessParameter(light, "filters", AI_TYPE_ARRAY, FindMayaPlug("aiFilters"));
-   if (RequiresMotionData())
-   {
-      AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-      AiArraySetMtx(matrices, GetMotionStep(), matrix);
-      AiNodeSetArray(light, str::matrix, matrices);
-   }
-   else
-   {
-      AiNodeSetMatrix(light, str::matrix, matrix);
+
+   // Don't export matrices during mayaUSD exports
+   if (!GetSessionOptions().IsMayaUsd()) {
+      GetMatrix(matrix);
+
+      if (RequiresMotionData())
+      {
+         AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+         AiArraySetMtx(matrices, GetMotionStep(), matrix);
+         AiNodeSetArray(light, str::matrix, matrices);
+      }
+      else
+      {
+         AiNodeSetMatrix(light, str::matrix, matrix);
+      }
    }
 
    if (RequiresMotionData())
@@ -113,6 +117,10 @@ void CLightTranslator::Export(AtNode* light)
 
 void CLightTranslator::ExportMotion(AtNode* light)
 {
+   // Don't export matrices during mayaUSD exports
+   if (GetSessionOptions().IsMayaUsd())
+      return;
+   
    AtMatrix matrix;
    GetMatrix(matrix);
 
