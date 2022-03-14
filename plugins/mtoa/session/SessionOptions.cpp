@@ -417,6 +417,7 @@ void CSessionOptions::Update()
    } else
       AiProfileSetFileName("");
 
+   m_mayaUsd = fnArnoldRenderOptions.findPlug("exportMayaUsd", true).asBool();
 }
 
 void CSessionOptions::UpdateMotionFrames()

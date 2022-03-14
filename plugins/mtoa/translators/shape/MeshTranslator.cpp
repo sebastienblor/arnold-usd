@@ -63,7 +63,10 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
 
 void CMeshTranslator::ExportMotion(AtNode* anode)
 {
-   ExportMatrix(anode);
+   // Skip matrices during mayaUSD exports
+   if (!GetSessionOptions().IsMayaUsd()){
+      ExportMatrix(anode);
+   }
 
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "polymesh") == 0)
@@ -120,8 +123,9 @@ bool CMeshTranslator::Tessellate(const MDagPath &path)
 
    m_geometry = path.node();
 
-   // Check if the object is smoothed with maya method
-   if (fnMesh.findPlug("displaySmoothMesh", true).asBool())
+   // Check if the object is smoothed with maya method.
+   // For mayaUSD exports, we don't want to generate smooth meshes as it's not handled the same way
+   if (fnMesh.findPlug("displaySmoothMesh", true).asBool() && !GetSessionOptions().IsMayaUsd())
    {
       MMeshSmoothOptions options;
       status = fnMesh.getSmoothMeshDisplayOptions(options);
