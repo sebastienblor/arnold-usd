@@ -1,8 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
+import mtoa.utils as utils
 from maya import stringTable
-# importing the ramp module forces the string table to be populated otherwise we get an error see MTOA-941
-from maya.internal.common.ae import ramp
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 from mtoa.ui.ae.aiImagersBaseTemplate import ImagerBaseUI, registerImagerTemplate
@@ -11,6 +10,29 @@ TOP =  "top"
 BOTTOM = "bottom"
 RIGHT = "right"
 LEFT = "left"
+
+maya_version = utils.getMayaVersion()
+
+if maya_version < 2022:
+    # pre 2022 the AEaddRampControl strings are in a res mel script, after it's in  resources/MayaStrings
+    mel.eval("source AEaddRampControl.res")
+
+def rampStringTable(string, default="Unknown"):
+    st_out = default
+    try:
+        st_out = stringTable[string]
+    except KeyError:
+        if maya_version >= 2020:
+            # importing the ramp module forces the string table to be populated otherwise we get an error see MTOA-941
+            from maya.internal.common.ae import ramp
+            
+            # use the correct string resolver namespace
+            if maya_version >= 2022:
+                string = 'y_maya_internal_common_ae_ramp.{}'.format(string)
+            else:
+                string = 'y_ramp.{}'.format(string)        
+            st_out = rampStringTable(string, default)
+    return st_out
 
 class AEaiImagerColorCurvesTemplate(ShaderAETemplate):
 
@@ -94,13 +116,13 @@ class ArnoldGradientControl(object):
     
     def setup(self):
         rampForm = cmds.formLayout()
-        self.posCtrl =  cmds.attrFieldSliderGrp("posCtrl#",label=stringTable[u'y_maya_internal_common_ae_ramp.kPos' ], cw=(1,123), parent=rampForm, cc=self.updateGradient)
-        self.valCtrl =  cmds.attrFieldSliderGrp("valCtrl#",label=stringTable[u'y_maya_internal_common_ae_ramp.kVal' ], cw=(1,123), parent=rampForm, cc=self.updateGradient)
-        self.interp = cmds.attrEnumOptionMenuGrp("interp#",label=stringTable[ u'y_maya_internal_common_ae_ramp.kInterp' ],cw=(1,123), parent=rampForm)
+        self.posCtrl =  cmds.attrFieldSliderGrp("posCtrl#",label=rampStringTable('m_AEaddRampControl.kSelPos'), cw=(1,123), parent=rampForm, cc=self.updateGradient)
+        self.valCtrl =  cmds.attrFieldSliderGrp("valCtrl#",label=rampStringTable('m_AEaddRampControl.kSelVal'), cw=(1,123), parent=rampForm, cc=self.updateGradient)
+        self.interp = cmds.attrEnumOptionMenuGrp("interp#",label=rampStringTable('m_AEaddRampControl.kInterp'),cw=(1,123), parent=rampForm)
         self.posCtrl = self.posCtrl.split('|')[-1]
         self.valCtrl = self.valCtrl.split('|')[-1]
         self.interp = self.interp.split('|')[-1]
-        self.editButton = cmds.button(label=stringTable[u'y_maya_internal_common_ae_ramp.kLabelEditRamp' ], width=23, parent=rampForm, command="import maya.mel;maya.mel.eval('editRampAttribute " + self.attribute + "')")
+        self.editButton = cmds.button(label=rampStringTable('kLabelEditRamp', '>'), width=23, parent=rampForm, command="import maya.mel;maya.mel.eval('editRampAttribute " + self.attribute + "')")
         self.rampframe = cmds.frameLayout(lv=0, cll=0, parent=rampForm)
 
         self.rampCtrl = cmds.gradientControlNoAttr(w=135, h=74)
