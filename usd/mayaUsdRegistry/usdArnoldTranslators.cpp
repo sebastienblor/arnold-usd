@@ -80,36 +80,7 @@ TF_DEFINE_PRIVATE_TOKENS(
 );
 
 PXR_NAMESPACE_OPEN_SCOPE
-#ifdef MTOA_USD_CHASER
 
-#include <mayaUsd/fileio/jobContextRegistry.h>
-
-REGISTER_EXPORT_JOB_CONTEXT_FCT(
-    Arnold,
-    "Arnold",
-    "Arnold")
-{
-    VtDictionary extraArgs;
-    extraArgs[UsdMayaJobExportArgsTokens->apiSchema]
-        = VtValue(std::vector<VtValue> { VtValue(_tokens->ArnoldPolymeshAPI.GetString()),
-                                         VtValue(_tokens->ArnoldCurvesAPI.GetString()),
-                                         VtValue(_tokens->ArnoldPerspCameraAPI.GetString()),
-                                         VtValue(_tokens->ArnoldLightAPI.GetString()),
-                                         //VtValue(_tokens->ArnoldSphereLightAPI.GetString()),
-                                         VtValue(_tokens->ArnoldAreaLightAPI.GetString())
-                                          });
-    extraArgs[UsdMayaJobExportArgsTokens->chaser]
-        = VtValue(std::vector<VtValue> { VtValue(std::string("ArnoldUsdChaser")) });
-
-/*
-    extraArgs[UsdMayaJobExportArgsTokens->shadingMode]
-        = VtValue(std::string("useRegistry")) ;
-
-    extraArgs[UsdMayaJobExportArgsTokens->convertMaterialsTo]
-        = VtValue(std::vector<VtValue> { VtValue(std::string("arnold")) });
-*/
-    return extraArgs;
-}
 
 static void InitOptionsNode()
 {
@@ -178,6 +149,38 @@ static std::string GetArnoldSceneCommand(const std::string &nodeName,
     }
     pythonCmd += "list=\"newNodes\")";
     return pythonCmd;
+}
+
+
+#ifdef MTOA_USD_CHASER
+
+#include <mayaUsd/fileio/jobContextRegistry.h>
+
+REGISTER_EXPORT_JOB_CONTEXT_FCT(
+    Arnold,
+    "Arnold",
+    "Arnold")
+{
+    VtDictionary extraArgs;
+    extraArgs[UsdMayaJobExportArgsTokens->apiSchema]
+        = VtValue(std::vector<VtValue> { VtValue(_tokens->ArnoldPolymeshAPI.GetString()),
+                                         VtValue(_tokens->ArnoldCurvesAPI.GetString()),
+                                         VtValue(_tokens->ArnoldPerspCameraAPI.GetString()),
+                                         VtValue(_tokens->ArnoldLightAPI.GetString()),
+                                         //VtValue(_tokens->ArnoldSphereLightAPI.GetString()),
+                                         VtValue(_tokens->ArnoldAreaLightAPI.GetString())
+                                          });
+    extraArgs[UsdMayaJobExportArgsTokens->chaser]
+        = VtValue(std::vector<VtValue> { VtValue(std::string("ArnoldUsdChaser")) });
+
+/*
+    extraArgs[UsdMayaJobExportArgsTokens->shadingMode]
+        = VtValue(std::string("useRegistry")) ;
+
+    extraArgs[UsdMayaJobExportArgsTokens->convertMaterialsTo]
+        = VtValue(std::vector<VtValue> { VtValue(std::string("arnold")) });
+*/
+    return extraArgs;
 }
 class ArnoldSchemaExporter : public UsdMayaSchemaApiAdaptor
 {
