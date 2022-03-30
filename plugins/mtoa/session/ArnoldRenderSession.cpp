@@ -157,7 +157,7 @@ bool CArnoldRenderSession::Render()
          MGlobal::displayError("[mtoa] Render aborted");
          if (m_displayProgress)
             MRenderUtil::sendRenderProgressInfo(filename, -111); // magic number for abort/kill
-
+         success = false;
          break;
       }
       AtRenderStatus status = AiRenderGetStatus(renderSession);
