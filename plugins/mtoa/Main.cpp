@@ -716,6 +716,11 @@ namespace // <anonymous>
                                     "spherical",
                                     CSphericalCameraTranslator::creator,
                                     CSphericalCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("ufeProxyCameraShape",
+                                    "",
+                                    CStandardCameraTranslator::creator,
+                                    CStandardCameraTranslator::NodeInitializer);
+
       builtin->RegisterTranslator("imagePlane",
                                     "",
                                     CImagePlaneTranslator::creator,
