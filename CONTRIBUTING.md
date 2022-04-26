@@ -16,7 +16,7 @@ git config --global url."https://github.com/autodesk-external".insteadOf https:/
 (docs: [_git-config-submodule.\<name\>.update_](https://git-scm.com/docs/git-config#Documentation/git-config.txt-submoduleltnamegtupdate))
 
 ```
-cd arnold-core
+cd arnold-mtoa
 git config --local submodule."core/src/shaders/c4dtoa/noises".update none
 ```
 
