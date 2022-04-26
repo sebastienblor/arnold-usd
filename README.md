@@ -33,7 +33,7 @@ Then clone your forked repo to your devlopment area:
 
 MtoA has now the external dependencies into its own repository, so doing a checkout of the external repository is not needed anymore.
 
-Finally, you will need to download the ​Arnold SDK from [artfactory](https://art-bobcat.autodesk.com/ui/repos/tree/General/arnold/core/ci/master) .
+Finally, you will need to download the ​Arnold SDK from [Arnold Downloads](https://www.arnoldrenderer.com/download/#arnold-sdk).
 
 ## Build Settings
 The different paths and options for the build process are handled by setting scons parameters. Using `abuild -h` in the MtoA checkout directory will give you a complete list.
