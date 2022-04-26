@@ -4,23 +4,36 @@
 To use the build system, you need to install:
 
 [​Git](https://git-scm.com/)<br>
-[​Python 2.7](https://www.python.org/downloads/release/python-2711/)<br>
+
+## Prepare your local git environment
+
+- [Download and install](https://git-scm.com/download) the latest available **git**. If you are on CentOS or RHEL, where older versions are shipped, you can always build the latest git from the source code.
+- [Download and install](https://github.com/git-lfs/git-lfs/releases/) **git-lfs** ([Git Large File Storage or LFS](https://git-lfs.github.com/)). This is transparently used by git commands to store and manage large binary files in a separate place, so that the git repository keeps being lightweight. Ideally, you won't have to deal with git-lfs commands unless you want to track a new binary file extension or you are doing some git-lfs surgery. The git-lfs installation should always conclude by manually running the following command (only once), before cloning any repository with LFS files. Regardless of if git-lfs was installed system-wide, every user has to execute the command the very first time (and only once) (docs: [_git-lfs_](https://github.com/git-lfs/git-lfs/tree/main/docs))
+```
+git lfs install
+```
+
+## Python
+MtoA build uses SCons with [​Python 2.7](https://www.python.org/downloads/release/python-2711/)<br>
+
+On Centos install the simplejson module for python, this is required for the build scripts.
+
+```bash
+yum install python-simplejson
+```
+
+## Glew
 [​Glew 1.10.0](https://sourceforge.net/projects/glew/files/glew/1.10.0/)<br>
 
+On linux download the ​GLEW source code, and call make & make install, while on windows it's included in the external repository. If you already have a GLEW built into your system you can use GLEW_LIB and GLEW_INCLUDES to override the default path.
+
+## Development Toolset
 |Maya Version|Visual Studio Version|Linux devtoolset/gcc|XCode|
 |------------|------------|------------|------------|
 | Maya 2019 | 2015 | 6.1 (3.2.1) | 7.3.1 |
 | Maya 2020 | 2017 | 6.1 (6.3.1) | 10.2.1 |
 | Maya 2022 | 2019 | 9 (9.3.1) | 10.2.1 |
 | Maya 2023 | 2019 | 9 (9.3.1) | 10.2.1 |
-
-On Centos 5.x install the simplejson module for python, this is required for the build scripts.
-
-```bash
-yum install python-simplejson
-```
-
-On linux download the ​GLEW source code, and call make & make install, while on windows it's included in the external repository. If you already have a GLEW built into your system you can use GLEW_LIB and GLEW_INCLUDES to override the default path.
 
 The source code lives in a Git repository located in the arnold organization. 
 Fork the repo to your user sandbox
