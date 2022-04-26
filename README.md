@@ -70,9 +70,9 @@ MAYAUSD_PATH        = r'C:\Program Files\Autodesk\MayaUSD\Maya2022\0.17.0\MayaUS
 #GLEW_INCLUDES
 ```
 
-Note : The MSVC_VERSION is not required. It's hard coded based on the maya version to avoid compatibility issues when using an older compiler. If an older or different compiler is required, you have to maintain a custom scons locally and be prepared for unforeseen consequences.
+:information_source: : The `MSVC_VERSION` is not required. It's hard coded based on the maya version to avoid compatibility issues when using an older compiler. If an older or different compiler is required, you have to maintain a custom scons locally and be prepared for unforeseen consequences.
 
-Note 2 : On newer OSX systems, than our base build system, due to the newer compiler you might encounter warnings that are blocking the build unless the WARN_LEVEL is set to warn-only as seen above. We strongly discourage using the warn-only flag on other systems than OSX 10.8+.
+:information_source: : On newer OSX systems, than our base build system, due to the newer compiler you might encounter warnings that are blocking the build unless the WARN_LEVEL is set to warn-only as seen above. We strongly discourage using the warn-only flag on other systems than OSX 10.8+.
 
 ## Building
 On the command line you can then go to the directory where the MtoA trunk was checked out, and type:
@@ -91,11 +91,11 @@ Finally deploy the project to your previously created module path:
 ```
 
 To make a pack of MtoA you can use the target pack
-```
+```bash
 > abuild pack
 ```
 
-Also you can create an installer by installing NSIS 2.46 (​http://nsis.sourceforge.net/Download), setting up the NSIS_PATH on windows, and using the installer target
+Also you can create an installer by installing [NSIS 2.46](http://nsis.sourceforge.net/Download), setting up the `NSIS_PATH` on windows, and using the installer target
 ```bash
 > abuild installer
 ```
