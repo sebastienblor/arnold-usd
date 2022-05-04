@@ -1,5 +1,5 @@
 #pragma once
-
+#include "platform/Platform.h"
 /******************************************************************************
    Macros
 ******************************************************************************/
@@ -29,21 +29,21 @@
  *  Linux:       g++ -I$ARNOLDROOT/include -shared sphere.c -o sphere.so
  *  BSD/OS:      g++ -I$ARNOLDROOT/include -shared sphere.c -o sphere.so
  */
-void *LibraryLoad(const char *filename);
+DLLEXPORT void *LibraryLoad(const char *filename);
 
 /*
  * Unload a dynamic library (dll/so) from memory
  */
-void LibraryUnload(void *handle);
+DLLEXPORT void LibraryUnload(void *handle);
 
 /*
  * Get a symbol pointer (usually a function) from a previously
  * loaded library
  */
-void *LibrarySymbol(void *handle, const char *name);
+DLLEXPORT void *LibrarySymbol(void *handle, const char *name);
 
 /*
  * Return a string with the last error message occurred during
  * a AiLibraryLoad/Unload/Symbol call.
  */
-char *LibraryLastError();
+DLLEXPORT char *LibraryLastError();
