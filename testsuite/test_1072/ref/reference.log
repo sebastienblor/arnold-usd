@@ -1,0 +1,57 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_TESTSUITE_COMMON': '/home/handsca/Dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/opt/solidangle/mtoa/5.1.2-dev/2023', 'PYMEL_SKIP_MEL_INIT': '1', 'ADCLMHUB_LOG_DIR': '/home/handsca/Dev/mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1072', 'MAYA_DISABLE_CIP': '1', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/handsca/Dev/mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1072', 'ADCLMHUB_LOG_LEVEL': 'T', 'HOME': '/home/handsca', 'MAYA_RENDER_DESC_PATH': '/opt/solidangle/mtoa/5.1.2-dev/2023', 'PATH': '/opt/solidangle/mtoa/5.1.2-dev/2023/bin;/software/maya/2023/bin;/opt/solidangle/mtoa/5.1.2-dev/2023/lib;/opt/solidangle/mtoa/5.1.2-dev/2023/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'MAYA_DISABLE_CER': '1'}
+ 
+ ==== Exec cmd ==== 
+ 
+/software/maya/2023/bin/Render -proj "/home/handsca/Dev/mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1072" -rd "/home/handsca/Dev/mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1072" -r arnold -x 160 -y 120  "/home/handsca/Dev/mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1072/test.ma"
+ 
+ 
+Starting "/software/maya/2023/bin/maya"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/var/tmp/runtime-handsca'
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   557MB         | log started Fri May  6 16:35:18 2022
+00:00:00   557MB         | Arnold 7.1.2.0 [f3fbdc5b] linux clang-10.0.1 oiio-2.4.0 osl-1.12.0 vdb-7.1.1 adlsdk-6.3.1.44 clmhub-2.0.0.235 rlm-14.1.3 optix-6.6.0 2022/04/28 11:42:35
+00:00:00   557MB         | running on SINPC14MY5W.ads.autodesk.com, pid=270602
+00:00:00   557MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 63845MB
+00:00:00   557MB         |  NVIDIA driver version 510.39 (Optix 60802)
+00:00:00   557MB         |  GPU 0: Quadro RTX 6000 @ 1770MHz (compute 7.5) with 24220MB (24216MB available) (NVLink:0)
+00:00:00   557MB         |  GPU 1: Quadro P2200 @ 1493MHz (compute 6.1) with 5056MB (2000MB available) (NVLink:0)
+00:00:00   557MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.11.1.el7.x86_64
+00:00:00   557MB         |  soft limit for open files changed from 1024 to 4094
+00:00:00   557MB         |  
+00:00:00   557MB         | [color_manager_ocio] default ocio.config found in /opt/solidangle/mtoa/5.1.2-dev/2023/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:00   557MB         | loading plugins from /opt/solidangle/mtoa/5.1.2-dev/2023/plug-ins/../bin/../plugins ...
+00:00:00   558MB         |  alembic_proc.so: alembic uses Arnold 7.1.2.0
+00:00:00   558MB         |  cryptomatte.so: cryptomatte uses Arnold 7.1.2.0
+00:00:00   558MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.1.2.0
+00:00:00   558MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.1.2.0
+00:00:00   561MB         |  usd_proc.so: usd uses Arnold 7.1.2.0
+00:00:00   568MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 7.1.2.0
+00:00:00   568MB         | loaded 6 plugins from 4 lib(s) in 0:00.01
+libai.so already loaded
+sh: deadlinecommand: command not found
+Running submission script ""
+Warning: file: /home/handsca/maya/scripts/DeadlineMayaClient.mel line 132: The SubmitMayaToDeadline.mel script could not be found in the Deadline Repository. Please make sure that the Deadline Client has been installed on this machine, that the Deadline Client bin folder is set in the DEADLINE_PATH environment variable, and that the Deadline Client has been configured to point to a valid Repository.
+File read in  0.031 seconds.
+Result: /home/handsca/Dev/mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1072/test.ma
+Exporting Arnold Scene...
+Updating Arnold Scene...
+Scene /home/handsca/Dev/mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1072/test.ma completed.
+00:00:06  1154MB         |   unloading 14 plugins
+00:00:06  1154MB         |    closing alembic_proc.so ...
+00:00:06  1154MB         |    closing cryptomatte.so ...
+00:00:06  1154MB         |    closing usd_proc.so ...
+00:00:06  1154MB         |    closing synColor_shaders.so ...
+00:00:06  1147MB         |    closing renderSetup_shaders.so ...
+00:00:06  1147MB         |    closing hairPhysicalShader_shaders.so ...
+00:00:06  1147MB         |    closing lookdevkit_shaders.so ...
+00:00:06  1147MB         |    closing mtoa_shaders.so ...
+00:00:06  1147MB         |    closing xgenSpline_shaders.so ...
+00:00:06  1147MB         |    closing xgen_procedural.so ...
+00:00:06  1147MB         |    closing xgenSpline_procedural.so ...
+00:00:06  1147MB         |    closing mtoa_ParticleInstancer_proc.so ...
+00:00:06  1147MB         |    closing mtoa_ParticleVolume_proc.so ...
+00:00:06  1147MB         |    closing libarnold_bifrost.so ...
+00:00:06  1147MB         |   unloading plugins done
+00:00:06  1147MB         |  Arnold shutdown
