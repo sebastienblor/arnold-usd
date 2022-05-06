@@ -1867,14 +1867,14 @@ void CProjectionTranslator::Export(AtNode* shader)
       }
       else
          AiNodeResetParameter(shader, "camera");
-      /*
+
       if (FindMayaPlug("local").asBool())
          AiNodeSetStr(shader, "coord_space", "object");
       else if (FindMayaPlug("aiUseReferenceObject").asBool())
          AiNodeSetStr(shader, "coord_space", "Pref");
       else
          AiNodeSetStr(shader, "coord_space", "world");
-      */
+
 
       AiNodeUnlink(shader, "projection_color");
       ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
