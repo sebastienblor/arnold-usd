@@ -20,9 +20,6 @@ local_env = maya_env.Clone()
 _targetPath = local_env.Dir('.')
 globals()['MAYAUSD_REGISTRY'] = []
 
-# Should this lib link against mayaUsd
-_linkMayaUsd = False
-
 if not os.path.exists(_targetPath.abspath):
     os.makedirs(_targetPath.abspath)
 
@@ -62,10 +59,6 @@ if system.os == 'windows' and local_env['MODE'] == 'opt':
 mayaRoot = local_env['MAYA_ROOT']
 mayaVersion = int(local_env['MAYA_VERSION_BASE'])
 
-# For Maya 2022 and older, link against mayaUSD
-if mayaVersion < 2023:
-    _linkMayaUsd = True
-
 # For Maya 2022, python3 means python3.7
 # For Maya 2023, it is python3.9
 pythonMinor = '7' if mayaVersion < 2023 else '9'
@@ -103,13 +96,8 @@ if not os.path.exists(usd_include_dir):
 
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'usd')
 
-include_files = ['UsdArnoldNodeWriter.h']
+include_files = []
 source_files = ['UsdArnoldNodeWriter.cpp']
-
-if _linkMayaUsd:
-    include_files +=  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h', 'usdArnoldTranslators.h']
-    source_files  += ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp', 'usdArnoldTranslators.cpp']
-
 
 writer_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'translator', 'writer')
 writer_srcs = find_files_recursive(writer_dir, ['.c', '.cpp'])
@@ -137,16 +125,6 @@ mtoa_include = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 
 local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, writer_dir, common_dir, mtoa_include])
 local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib])
-
-if _linkMayaUsd:
-    # Link against mayaUSD SDK
-    mayausd_path = local_env['MAYAUSD_PATH']
-    mayausd_include = os.path.join(mayausd_path, 'include')
-    mayausd_lib = os.path.join(mayausd_path, 'lib')
-    local_env.Append(CPPPATH = [mayausd_include])
-    local_env.Append(LIBPATH = [mayausd_lib])
-    local_env.Append(LIBS = ['mayaUsd'])
-
 
 local_env.Append(CPPDEFINES = Split('BOOST_PYTHON_NO_LIB'))
 local_env['BOOST_LIB_NAME']=boost_lib_name
