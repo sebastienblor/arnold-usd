@@ -9,6 +9,7 @@
 #include <maya/MDataBlock.h>
 #include <maya/MObject.h>
 #include <maya/MMessage.h>
+#include <maya/MNodeMessage.h>
 
 class CArnoldOptionsNode
    :  public MPxNode
@@ -35,8 +36,13 @@ public:
    static MStatus initialize();
    void postConstructor() override;
    static void createdCallback(MObject& node, void* clientData);
+   static void attrChangeCallback(MNodeMessage::AttributeMessage msg,
+                     MPlug &plug,
+                     MPlug &otherPlug,
+                     void *data);
    static MTypeId id;
    static MCallbackId sId;
+   static MCallbackId sAttrId;
 
    // Attributes
    static CStaticAttrHelper s_attributes;
