@@ -58,6 +58,7 @@ if system.os == 'windows' and local_env['MODE'] == 'opt':
 
 mayaRoot = local_env['MAYA_ROOT']
 mayaVersion = int(local_env['MAYA_VERSION_BASE'])
+
 # For Maya 2022, python3 means python3.7
 # For Maya 2023, it is python3.9
 pythonMinor = '7' if mayaVersion < 2023 else '9'
@@ -94,8 +95,9 @@ if not os.path.exists(usd_include_dir):
 ###### Now Maya USD registry 
 
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'usd')
-include_files =  ['mayaUsdRegistry.h', 'usdArnoldShaderReader.h',  'usdArnoldShaderWriter.h', 'usdArnoldTranslators.h']
-source_files  = ['mayaUsdRegistry.cpp', 'usdArnoldShaderReader.cpp', 'usdArnoldShaderWriter.cpp', 'usdArnoldTranslators.cpp']
+
+include_files = []
+source_files = ['UsdArnoldNodeWriter.cpp']
 
 writer_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-usd', 'translator', 'writer')
 writer_srcs = find_files_recursive(writer_dir, ['.c', '.cpp'])
@@ -119,11 +121,10 @@ for common_include in common_includes:
     include_files.append(os.path.join(common_dir, common_include))
 
 
-mayausd_path = local_env['MAYAUSD_PATH']
-mayausd_include = os.path.join(mayausd_path, 'include')
-mayausd_lib = os.path.join(mayausd_path, 'lib')
-local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, mayausd_include, writer_dir, common_dir])
-local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib, mayausd_lib])
+mtoa_include = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
+
+local_env.Append(CPPPATH = [usd_include_dir, boost_include, python_include, writer_dir, common_dir, mtoa_include])
+local_env.Append(LIBPATH = [usd_lib_dir, python_lib, boost_lib])
 
 local_env.Append(CPPDEFINES = Split('BOOST_PYTHON_NO_LIB'))
 local_env['BOOST_LIB_NAME']=boost_lib_name
@@ -146,7 +147,7 @@ usd_libs = [
     ]
 
 local_env.Append(LIBS = usd_libs)
-local_env.Append(LIBS = ['mayaUsd'])
+
 if platform.system().lower() == 'darwin':
     local_env['PYTHON_LIB_NAME'] = 'libpython{}.{}'.format(pythonVersion, pythonMinor)
     local_env.Append(LIBS = ['python{}.{}'.format(pythonVersion, pythonMinor), boost_lib_name.replace('%s', 'python')])

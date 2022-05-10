@@ -6,6 +6,7 @@
 #include "translators/DagTranslator.h"
 #include "session/SessionManager.h"
 #include "session/ArnoldExportSession.h"
+#include "common/DynLibrary.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -33,6 +34,8 @@ MSyntax CArnoldSceneCmd::newSyntax()
    MSyntax syntax;
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("l", "list",  MSyntax::kString);
+   syntax.addFlag("uc", "usd_cache",  MSyntax::kLong);
+   syntax.addFlag("uf", "usd_frame",  MSyntax::kDouble);
    syntax.addFlag("s", "session",  MSyntax::kString);
    syntax.addFlag("q", "query"); // returns true is there's currently an active arnold scene
    syntax.addFlag("o", "options",  MSyntax::kString);
@@ -92,6 +95,71 @@ static inline MSelectionList ComputeSelectionList(const MArgDatabase &args)
 
    return sList;
 }
+typedef void (*WriteUsdStageCacheFunction)(int, bool, float);
+// Write the current Arnold universe to USD, using a given USD cacheID.
+// We want to dlopen the mayaUsdRegistry DSO, and invoke the function WriteUsdStageCache.
+// This is required as it links against USD, as opposed to MtoA.
+static bool WriteUsdFile(int cacheId, bool defaultTime, double time)
+{
+   // Get the path of this MtoA root install   
+   const char *mtoa_var = getenv("MTOA_PATH");
+   if (mtoa_var == nullptr)
+      return false;
+
+   std::string mtoa_path(mtoa_var);
+   // Add the folder where mayaUsdRegistry is located
+   mtoa_path += "usd/mayaUsdRegistry/";
+
+   // We have one mayaUsdRegistry lib per version of USD this MtoA cut supports.
+   // To find the proper one, we ask MayaUsd what is the "current" version of USD
+   // and compute a folder name based on it
+   MString usdVersion;
+   MGlobal::executePythonCommand("from pxr import Usd; Usd.GetVersion()", usdVersion);
+   // usdVersion will be e.g. (2, 1, 8), we need to convert this to "2108" for the folder name
+   usdVersion.substitute(MString("("), MString(""));
+   usdVersion.substitute(MString(")"), MString(""));
+   usdVersion.substitute(MString(" "), MString(""));
+   MStringArray splitUsdVersion;
+   usdVersion.split(',', splitUsdVersion);
+   MString fullVersion;
+   for (unsigned int i = 0; i < splitUsdVersion.length(); ++i)
+   {
+      MString str = splitUsdVersion[i];
+      if (str.length() == 0 || str == "0")
+         continue;
+      if (str.length() == 1)
+         str = MString("0") + str;
+      if (str.length() == 2)
+         fullVersion += str;
+   }
+   mtoa_path += fullVersion.asChar();
+   std::string filename = mtoa_path + "/mayaUsdRegistry";
+   filename += LIBEXT;
+
+   // Load the mayaUsdRegistry DSO
+   void *pluginLib = LibraryLoad(filename.c_str());
+   if (pluginLib == NULL)
+   {
+      AiMsgWarning("[mtoa] Error loading USD library: %s", LibraryLastError());
+      return false;
+   }
+   
+   // Check if we find the symbol for the WriteUsdStageCache function
+   void* fn = LibrarySymbol(pluginLib, "WriteUsdStageCache");
+   if (fn == NULL)
+   {            
+      AiMsgWarning("[mtoa] Error loading USD function: %s", LibraryLastError());
+      LibraryUnload(pluginLib);
+      return false;
+   }
+
+   // Invoke the DSO function
+   const WriteUsdStageCacheFunction &writeFunc = (WriteUsdStageCacheFunction)(fn);
+   (writeFunc)(cacheId, defaultTime, float(time));
+   // unload the library now
+   LibraryUnload(pluginLib);
+   return true;
+}
 static inline void GetTranslatorsList(const MSelectionList &sel, CArnoldSession *session, std::vector<CNodeTranslator*> &translators)
 {   
    translators.clear();
@@ -134,6 +202,26 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    if (args.isFlagSet("query"))
    {
       setResult(session != nullptr);
+      return MS::kSuccess;
+   }
+
+   // If the usd_cache argument is set, it means that we're asked to save the current
+   // Arnold universe to usd, using a specific USD cacheID
+   if (args.isFlagSet("usd_cache"))
+   {
+      int cacheId = args.flagArgumentInt("usd_cache", 0);
+      bool defaultTime = true;
+      double time = 0.;
+      // If no usd_frame argument is set, we want to export the "default" frame
+      if (args.isFlagSet("usd_frame")) {
+         defaultTime = false;
+         time = args.flagArgumentDouble("usd_frame", 0);
+      } else {
+         MGlobal::executeCommand(MString("currentTime -query"), time); 
+      }
+
+      WriteUsdFile(cacheId, defaultTime, time);
+      setResult(true);
       return MS::kSuccess;
    }
 
