@@ -193,12 +193,8 @@ void CArnoldOptionsNode::attrChangeCallback(MNodeMessage::AttributeMessage msg,
       return;
    }
 
-   bool refreshSwatch = plug.asBool();
-   // if (refreshSwatch)
-   // {
-      MString command = "for ($shad in `ls -mat -tex`){renderThumbnailUpdate -fu $shad;}";
-      MGlobal::executeCommandOnIdle(command);
-   // }
+   MString command = "for ($shad in `ls -mat -tex`){renderThumbnailUpdate -fu $shad;}";
+   MGlobal::executeCommandOnIdle(command);
 }
 
 CArnoldOptionsNode::~CArnoldOptionsNode()
