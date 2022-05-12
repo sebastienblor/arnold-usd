@@ -16,6 +16,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDGModifier.h>
 #include <maya/MDGMessage.h>
+#include <maya/MNodeMessage.h>
 #include <maya/MGlobal.h>
 #include <maya/MObject.h>
 #include <maya/MString.h>
@@ -24,6 +25,7 @@
 MTypeId CArnoldOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
 MCallbackId CArnoldOptionsNode::sId;
+MCallbackId CArnoldOptionsNode::sAttrId;
 
 /*
    I'm not exactly happy about this approach but seemingly
@@ -170,6 +172,29 @@ void CArnoldOptionsNode::postConstructor()
    setExistWithoutOutConnections(true);
    CArnoldOptionsNode::sId = MDGMessage::addNodeAddedCallback(CArnoldOptionsNode::createdCallback, "aiOptions");
    s_optionsNode = thisMObject();
+   MStatus status;
+   CArnoldOptionsNode::sAttrId = MNodeMessage::addAttributeChangedCallback(s_optionsNode,
+                                                                           attrChangeCallback,
+                                                                           NULL,
+                                                                           &status);
+}
+
+
+void CArnoldOptionsNode::attrChangeCallback(MNodeMessage::AttributeMessage msg,
+                     MPlug &plug,
+                     MPlug &otherPlug,
+                     void *data)
+{
+   if (msg != (MNodeMessage::kAttributeSet|MNodeMessage::kIncomingDirection))
+      return;
+
+   const char *plugName = plug.partialName(0,0,0,0,0,1).asChar();
+   if (strstr("enable_swatch_render", plugName) == NULL) {
+      return;
+   }
+
+   MString command = "for ($shad in `ls -mat -tex`){renderThumbnailUpdate -fu $shad;}";
+   MGlobal::executeCommandOnIdle(command);
 }
 
 CArnoldOptionsNode::~CArnoldOptionsNode()
