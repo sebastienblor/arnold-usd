@@ -56,6 +56,14 @@ void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
    data.isArray = true;
    helper.MakeInput(data);
 
+   data.name = "overrides";
+   data.shortName = "overrides";
+   data.isArray = true;
+   data.type = AI_TYPE_STRING;
+   helper.MakeInput(data);   
+
+   data.type = AI_TYPE_BOOLEAN;
+   data.isArray = false;
    data.defaultValue.BOOL() = false;
    data.name = "overrideReceiveShadows";
    data.shortName = "overrideReceiveShadows";
@@ -86,6 +94,10 @@ void CUsdProxyShapeTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "overrideMatte";
    helper.MakeInputBoolean(data);
 
+   data.defaultValue.BOOL() = true;
+   data.name = "shareUsdStage";
+   data.shortName = "shareUsdStage";
+   helper.MakeInputBoolean(data);
 
 }
 AtNode* CUsdProxyShapeTranslator::CreateArnoldNodes()
@@ -94,8 +106,9 @@ AtNode* CUsdProxyShapeTranslator::CreateArnoldNodes()
 #ifdef ENABLE_USD
    // When exporting to .ass, we always want to export to the builtin core procedural.
    // This way, it can be ported to other DCCs, or be kicked in standalone
-   if (IsFileExport())
+   if (IsFileExport() || !FindMayaPlug("shareUsdStage").asBool()) {
       return AddArnoldNode("usd");   
+   }
       
 
    if (AiNodeEntryLookUp("usd_cache") == nullptr)
@@ -197,8 +210,12 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
 
    }
 
+   bool isUsdCache = false;
 #ifdef ENABLE_USD
-   if (AiNodeIs(shape, AtString("usd_cache")))
+   isUsdCache = AiNodeIs(shape, AtString("usd_cache"));
+#endif
+
+   if (isUsdCache)
    {
       MPlug cacheIdPlug = FindMayaPlug("outStageCacheId");
       if (!cacheIdPlug.isNull())
@@ -227,8 +244,11 @@ void CUsdProxyShapeTranslator::Export( AtNode *shape )
             MGlobal::executePythonCommand(cmd);
          }
       }
+   } else {
+      MPlug overridesPlug = FindMayaPlug("overrides");
+      if (!overridesPlug.isNull() )
+         ProcessParameter(shape, AtString("overrides"), AI_TYPE_ARRAY);
    }
-#endif
 
    MPlug geomPlug = FindMayaPlug("primPath");
    if (!geomPlug.isNull())
@@ -314,6 +334,14 @@ void CUsdProxyShapeTranslator::NodeChanged(MObject& node, MPlug& plug)
       ClearListener();
       SetUpdateMode(AI_RECREATE_NODE);
    }
+   if (plugName == "shareUsdStage") {
+      ClearListener();
+      SetUpdateMode(AI_RECREATE_NODE);  
+   }
+   if (plugName == "overrides") {
+      SetUpdateMode(AI_RECREATE_NODE);
+   }
+
 
 
    // we're calling directly the shape translator function, as we don't want to make it a AI_RECREATE_NODE
