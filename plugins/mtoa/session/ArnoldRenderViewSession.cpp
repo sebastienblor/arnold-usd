@@ -206,6 +206,15 @@ AtNode* CArnoldRenderViewSession::ExportOptions()
    return options;
 }
 
+void CArnoldRenderViewSession::SetAOV(int aovIndex)
+{
+   GetRenderView().SetCurrentAOV(aovIndex);
+}
+
+int CArnoldRenderViewSession::GetAOVIndex()
+{
+   return GetRenderView().GetCurrentAOVIndex();
+}
 
 // This function will be called every time the options node was modified during IPR
 void CArnoldRenderViewSession::UpdateSessionOptions()

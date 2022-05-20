@@ -33,6 +33,8 @@ public:
    static void CloseOtherViews(const MString& destination);
    //static void RenderViewPlayblast(bool state, void * data);
    void SetPlayblasting(bool b) {m_isPlayblasting = b;}
+   void SetAOV(int);
+   int GetAOVIndex();
 
    void Clear() override;
    AtRenderSession *GetRenderSession() override;

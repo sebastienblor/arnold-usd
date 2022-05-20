@@ -598,7 +598,7 @@ static inline void OptionsAddNamingOptions(MString &name, const CSessionOptions 
       name.substitute(MString("|"), MString ("/"));
    
    const MString &prefix = options.GetExportPrefix();
-   if (prefix.length() > 0) {
+   if (prefix != NULL && prefix.length() > 0) {
       name = prefix + name;
 
       // Ensure we don't have double-slashes, that cause problems in some formats

@@ -302,9 +302,9 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         // ensure the scene is fully rendered at next update
         session->GetRenderView().RequestFullSceneUpdate();
 
-        if (!state.enabled)
-            session->SetRenderViewOption(MString("Run IPR"), "0");    
-        else
+        // if (!state.enabled)
+        //     session->SetRenderViewOption(MString("Run IPR"), "0");    
+        // else
         {
             MString isIPRRunning = session->GetRenderViewOption(MString("Run IPR"));
             if (isIPRRunning == MString("0"))

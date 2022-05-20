@@ -1388,6 +1388,9 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       if (!status) {
           status.perror("registerCommand");
       }
+
+      // create the viewport toolbar
+      status = MGlobal::executePythonCommand(MString("import mtoa.viewport;mtoa.viewport.add_controls()"), true, false);
    }
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 

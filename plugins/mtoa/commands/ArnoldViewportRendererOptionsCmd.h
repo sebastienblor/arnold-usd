@@ -10,4 +10,7 @@ public:
    }
    virtual MStatus doIt(const MArgList& args);
    static MSyntax newSyntax();
+protected:
+	MStatus doCreate	();
+	MStatus doQuery	();
 };
