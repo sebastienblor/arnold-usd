@@ -136,6 +136,12 @@ public:
    // enables an option in the render view
    void SetOptionEnabled(const char *option, bool enabled = true);
 
+   // set the index of the current AOV
+   void SetCurrentAOV(int aovIndex);
+
+   // get the index of the current AOV
+   int GetCurrentAOVIndex();
+
    // Get a serialized definition of the RenderView options
    const char *Serialize(bool userSettings = true, bool sceneSettings = true);
    void SetFromSerialized(const char *);
