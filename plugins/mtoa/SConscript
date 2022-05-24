@@ -168,7 +168,8 @@ if local_env['ENABLE_ALEMBIC']:
                                  'Half-2_4.lib',
                                  'Iex-2_4.lib',
                                  'Imath-2_4.lib'])
-        local_env.Append(LIBPATH = [abc_lib_dir])
+
+        local_env.Append(LIBPATH = [abc_lib_dir, openexr_lib_dir])
         local_env.Append(CPPDEFINES = ['ALEMBIC_STATIC'])
 
 Return('MTOA')
