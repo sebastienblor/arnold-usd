@@ -176,4 +176,9 @@ public:
    static MObject s_ignore_list;
    static MObject s_gpu_max_texture_resolution;
 
+   static MObject s_viewport_region_left;
+   static MObject s_viewport_region_right;
+   static MObject s_viewport_region_bottom;
+   static MObject s_viewport_region_top;
+
 };  // class CArnoldOptionsNode

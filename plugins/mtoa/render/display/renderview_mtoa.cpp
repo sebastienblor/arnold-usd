@@ -479,7 +479,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    bool firstCreation = true;
    if (s_optWorkspaceControl)
    {
-      workspaceCmd += " -edit -visible true ";
+      workspaceCmd += " -edit -visible false "; // set to false to hide the window
       firstCreation = false;
    }
    else
@@ -502,23 +502,25 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection;Test Resolution";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
    CRenderViewInterface::OpenOptionsWindow(250, 50,scaleFactor, menusFilter.c_str(), nullptr, false);
+
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
+   optWin->hide();
    
-   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
+   // MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
 
-   if (firstCreation)
-   {
-      // returns a pointer to th workspace called above, 
-      // but only for the creation ! if I call it with "-edit visible true" it can return 0
-      s_optWorkspaceControl = MQtUtil::getCurrentParent();
-      MQtUtil::addWidgetToMayaLayout(optWin, s_optWorkspaceControl);  // attaches ARV to the workspace
-      optWin->show();
-      s_optWorkspaceControl->show();
-   }
-   // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged_cb\" \"ArnoldViewportRendererOptions\"");
-   MGlobal::executeCommand(uiScriptCommand);
+   // if (firstCreation)
+   // {
+   //    // returns a pointer to th workspace called above, 
+   //    // but only for the creation ! if I call it with "-edit visible true" it can return 0
+   //    s_optWorkspaceControl = MQtUtil::getCurrentParent();
+   //    MQtUtil::addWidgetToMayaLayout(optWin, s_optWorkspaceControl);  // attaches ARV to the workspace
+   //    optWin->show();
+   //    s_optWorkspaceControl->show();
+   // }
+   // // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
+   // MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged_cb\" \"ArnoldViewportRendererOptions\"");
+   // MGlobal::executeCommand(uiScriptCommand);
 
     //s_creatingARV = false;
 #else

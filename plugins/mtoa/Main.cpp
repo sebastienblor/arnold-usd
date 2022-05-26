@@ -49,6 +49,7 @@
 #include "commands/ArnoldFlushCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
 #include "commands/ArnoldViewportRendererOptionsCmd.h"
+#include "commands/ArnoldViewportRegionTool.h"
 #ifdef ENABLE_ALEMBIC
 #include "commands/AbcExport/ArnoldAbcExportCmd.h"
 #endif
@@ -448,7 +449,7 @@ namespace // <anonymous>
    {
    public:
        aiViewRegionCmd() {}
-   };
+       };
    static aiViewRegionCmd _aiViewRegionCmd;
 
 
@@ -1389,6 +1390,9 @@ DLLEXPORT MStatus initializePlugin(MObject object)
           status.perror("registerCommand");
       }
 
+	   status = plugin.registerContextCommand( "arnoldViewportRegionToolContext",
+										    ArnoldViewportRegionContextCmd::creator );
+
       // create the viewport toolbar
       status = MGlobal::executePythonCommand(MString("import mtoa.viewport;mtoa.viewport.add_controls()"), true, false);
    }
@@ -1525,6 +1529,11 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       status = _aiViewRegionCmd.deregisterCommand(object);
       if (!status) {
          status.perror("deregisterCommand");
+      }
+
+      status = plugin.deregisterContextCommand( "ArnoldViewportRegionToolContext" );
+      if (!status) {
+         status.perror("deregisterContextCommand");
       }
    }
 

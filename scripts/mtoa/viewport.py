@@ -103,7 +103,7 @@ def snapshot(arnold_panel):
 
 
 
-def toggle(arnold_panel, state):
+def toggle(arnold_panel, state, update_buttons=True):
     """Start rendering in a given panel
 
     Arguments:
@@ -113,7 +113,8 @@ def toggle(arnold_panel, state):
     mel.eval('if (`currentRenderer` != "arnold") '
              'setCurrentRenderer("arnold");')
     print("viewport.toggle : {}".format("on" if state else "off"))
-    if not cmds.iconTextCheckBox('avp_toggle_%s' % arnold_panel, ex=True):
+    toggle_ctl = 'avp_toggle_%s' % arnold_panel
+    if not cmds.iconTextCheckBox(toggle_ctl, ex=True):
         return
     if not arnold_panel or not cmds.modelEditor(arnold_panel, ex=True):
         return
@@ -129,14 +130,25 @@ def toggle(arnold_panel, state):
         # setup the AOV sample filter
         # get_aov_sample_filter()
         # start this panel
+
+        # check if crop is enabled, if so stop any renders and disable crop
+        toggle_crop(arnold_panel,False)
+
         cmds.modelEditor(arnold_panel, e=True,
                        rendererOverrideName='arnoldViewOverride')
-        # cmds.arnoldViewOverrideOptionBox(opt=("Run IPR", "1"))
+        cmds.arnoldViewOverrideOptionBox(opt=("Run IPR", "1"))
         # display_start_message()
     else:
         stop(arnold_panel)
         # get_aov_sample_filter(cleanup=True)
-    update_icon_bar_enable_state(arnold_panel, state)
+
+    if cmds.iconTextCheckBox(toggle_ctl, ex=True):
+        bstate = cmds.iconTextCheckBox(toggle_ctl, q=True, v=True)
+        if bstate != state:
+            cmds.iconTextCheckBox(toggle_ctl, e=True, v=state)
+
+    if update_buttons:
+        update_icon_bar_enable_state(arnold_panel, state)
     # cmds.refresh(cv=True, force=True)
 
 
@@ -168,6 +180,7 @@ def stop(arnold_panel):
         # toggle_integrator(False)
         # update_icon_bar_enable_state(arnold_panel, False)
 
+
 def restart(arnold_panel):
     cmds.arnoldViewOverrideOptionBox(opt=("Refresh Render", "1"))    
 
@@ -179,12 +192,38 @@ def toggle_crop(arnold_panel, state):
         state {bool} -- active or not
     """
     # get the current IPR state
-    # if cmds.arnoldViewOverrideOptionBox(get="Run IPR") == "1":
+
     crop_mode = "1" if state else "0"
-    cmds.arnoldViewOverrideOptionBox(opt=("Crop Region", crop_mode))
+
+    if not state:
+        cmds.arnoldViewOverrideOptionBox(opt=("Crop Region", "0"))
+        cmds.arnoldViewOverrideOptionBox(opt=("Run IPR", "0"))
+        # stop(arnold_panel)
+        cmds.setToolTo("selectSuperContext")
+    else:
+        # check if the current panel is the same as the given panel
+        # if not stop rendering on the current panel before starting on this panel
+        current_arnold_panel = get_arnold_panel()
+        if current_arnold_panel != arnold_panel:
+            # stop(current_arnold_panel)
+            update_button_state("avp_crop", current_arnold_panel, False)
+            update_button_state("avp_toggle", current_arnold_panel, False)
+
+        # check if the current view is enabled for full frame, and disable the icon if it is 
+        update_button_state("avp_toggle", arnold_panel, False)
+
+        cmds.modelEditor(arnold_panel, e=True,
+                       rendererOverrideName='arnoldViewOverride')
+        cmds.arnoldViewportRegionToolContext()
+        cmds.setToolTo("arnoldViewportRegionToolContext1")
+
+    update_icon_bar_enable_state(arnold_panel, state)
 
     # make sure the icon state reflects the actual tool state.
-    icn_name = 'avp_crop_%s' % arnold_panel
+    update_button_state("avp_crop", arnold_panel, state)
+
+def update_button_state(control_name, arnold_panel, state):
+    icn_name = '{}_{}'.format(control_name, arnold_panel)
     if cmds.iconTextCheckBox(icn_name, ex=True):
         if cmds.iconTextCheckBox(icn_name, q=True, v=True) != state:
             cmds.iconTextCheckBox(icn_name, e=True, v=state)
@@ -215,24 +254,20 @@ def update_icon_bar_enable_state(arnold_panel, state):
         arnold_panel {str} -- The current panel
         state {boo} -- Enabled or not
     """
-    toggle_ctl = 'avp_toggle_%s' % arnold_panel
-    if cmds.iconTextCheckBox(toggle_ctl, ex=True):
-        bstate = cmds.iconTextCheckBox(toggle_ctl, q=True, v=True)
-        if bstate != state:
-            cmds.iconTextCheckBox(toggle_ctl, e=True, v=state)
 
-    crop_ctl = 'avp_crop_%s' % arnold_panel
-    if cmds.iconTextCheckBox(crop_ctl, ex=True):
-        # update enable state
-        cmds.iconTextCheckBox(crop_ctl, e=True, en=state)
-        # # use crop color for highlight color
-        # crop_color = prefs.get_pref_by_name('rfmVpCropWindowColor')
-        # maxval = 0.5
-        # maxc = max(crop_color)
-        # if maxc > maxval:
-        #     scf = 1.0 - (maxc - maxval)
-        #     crop_color = [comp * scf for comp in crop_color]
-        # cmds.iconTextCheckBox(crop_ctl, e=True, hlc=crop_color)
+
+    # crop_ctl = 'avp_crop_%s' % arnold_panel
+    # if cmds.iconTextCheckBox(crop_ctl, ex=True):
+    #     # update enable state
+    #     cmds.iconTextCheckBox(crop_ctl, e=True, en=state)
+    #     # # use crop color for highlight color
+    #     # crop_color = prefs.get_pref_by_name('rfmVpCropWindowColor')
+    #     # maxval = 0.5
+    #     # maxc = max(crop_color)
+    #     # if maxc > maxval:
+    #     #     scf = 1.0 - (maxc - maxval)
+    #     #     crop_color = [comp * scf for comp in crop_color]
+    #     # cmds.iconTextCheckBox(crop_ctl, e=True, hlc=crop_color)
 
     restart_ctl = 'avp_restart_%s' % arnold_panel
     if cmds.iconTextButton(restart_ctl, ex=True):
@@ -251,9 +286,9 @@ def update_icon_bar_enable_state(arnold_panel, state):
     if cmds.iconTextButton(aov_ctl, ex=True):
         cmds.iconTextButton(aov_ctl, e=True, en=state)
 
-    # res_ctl = 'arnold_vp_resolution_%s' % arnold_panel
-    # if cmds.iconTextButton(res_ctl, ex=True):
-    #     cmds.iconTextButton(res_ctl, e=True, en=state)
+    res_ctl = 'avp_resolution_%s' % arnold_panel
+    if cmds.iconTextButton(res_ctl, ex=True):
+        cmds.iconTextButton(res_ctl, e=True, en=state)
 
 def get_arnold_panel():
     """Return the name of panel containg a rendering viewport.
@@ -344,22 +379,23 @@ def setup_icon_bar(iconbar, panel, uip):
     #                         i=':/rm_vp_playblast.svg',
     #                         ann='Render a playblast of this panel',
     #                         c=partial(playblast, panel))
-    # # resolution
-    # bt3 = cmds.iconTextButton('arnold_vp_resolution_%s' % panel, w=18, h=18, en=True,
-    #                         i=':/rm_vp_resolution.svg',
-    #                         ann="Set the viewport's render resolution",
-    #                         p=ctlform)
-    # cmds.popupMenu('arnold_vp_resolution_menu_%s' % panel, parent=bt3, button=1,
-    #              pmc=partial(build_resolution_menu, panel))
 
     # crop window
-    bt4 = cmds.iconTextCheckBox('avp_crop_%s' % panel, w=18, h=18, en=False,
+    bt4 = cmds.iconTextCheckBox('avp_crop_%s' % panel, w=18, h=18, en=True,
                             #   hlc=(0.8, 0.2, 0.0),
                               i='avp_crop.svg',
                               ann='Define a crop window',
                               v=False, p=ctlform)
     cmds.iconTextCheckBox(bt4, e=True,
                         cc=partial(toggle_crop, panel))
+
+    # resolution
+    bt6 = cmds.iconTextButton('avp_resolution_%s' % panel, w=18, h=18, en=False,
+                            i='avp_resolution.svg',
+                            ann="Set the viewport's render resolution",
+                            p=ctlform)
+    cmds.popupMenu('avp_resolution_menu_%s' % panel, parent=bt6, button=1,
+                 pmc=partial(build_resolution_menu, panel))
 
     # # Scene integrator <-> PxrVisualizer
     # state = cmds.optionVar(ex='rfmSceneIntegrator')
@@ -374,10 +410,10 @@ def setup_icon_bar(iconbar, panel, uip):
     #              pmc=partial(build_visualizer_menu))
 
     # restart
-    bt6 = cmds.iconTextButton('avp_restart_%s' % panel, w=18, h=18, en=False,
-                            i='avp_refresh.svg',
-                            c=partial(restart, panel),
-                            ann='Restart the viewport render', p=ctlform)
+    # bt6 = cmds.iconTextButton('avp_restart_%s' % panel, w=18, h=18, en=False,
+    #                         i='avp_refresh.svg',
+    #                         c=partial(restart, panel),
+    #                         ann='Restart the viewport render', p=ctlform)
 
     # AOVs
     bt7 = cmds.iconTextButton('avp_aov_%s' % panel, w=18, h=18, en=False,
@@ -428,27 +464,16 @@ def build_resolution_menu(*args):
     panel = args[0]
     parent = args[1]
 
-    resmult = 1.0
-    if cmds.optionVar(ex='rfmVpResMult'):
-        resmult = cmds.optionVar(q='rfmVpResMult')
+    testres = cmds.arnoldViewOverrideOptionBox(get="Test Resolution") or "100%"
 
     cmds.popupMenu(parent, e=True, deleteAllItems=True)
     cmds.radioMenuItemCollection(p=parent)
-    cmds.menuItem(l="100%", p=parent, rb=(resmult == 1.0),
-                c=partial(change_resolution, 1.0, panel))
-    cmds.menuItem(l="75%", p=parent, rb=(resmult == 0.75),
-                c=partial(change_resolution, 0.75, panel))
-    cmds.menuItem(l="50%", p=parent, rb=(resmult == 0.5),
-                c=partial(change_resolution, 0.5, panel))
-    cmds.menuItem(l="33%", p=parent, rb=(resmult == 0.333),
-                c=partial(change_resolution, 0.333, panel))
-    cmds.menuItem(l="25%", p=parent, rb=(resmult == 0.25),
-                c=partial(change_resolution, 0.25, panel))
-    cmds.menuItem(l="12.5%", p=parent, rb=(resmult == 0.125),
-                c=partial(change_resolution, 0.125, panel))
+    for res in ["100%", "75%", "50%", "25%", "10%"]:
+        cmds.menuItem(l=res, p=parent, rb=(testres == res),
+                    c=partial(change_resolution, res, panel))
 
 
-def change_resolution(*args):
+def change_resolution(testres, arnold_panel, *args):
     """Store the new resolution multiplier and restart the render if it was
     already running.
 
@@ -456,18 +481,13 @@ def change_resolution(*args):
         args[0] {float}: the new resolution multiplier
         args[1] {str}: the current panel
     """
-    pass
-    # arnold_panel = get_arnold_panel()
-    # # if resolution is set from another viewport, ignore that and warn.
-    # if arnold_panel and arnold_panel != args[1]:
-    #     rfm_log().warning('Ignored new resolution: there is already one active'
-    #                       ' RenderMan viewport (%s).', arnold_panel)
-    #     return
-    # cmds.optionVar(fv=('rfmVpResMult', args[0]))
-    # if rfm2.render.ipr(rfm2.render.Message.kIsRunning):
-    #     restart(args[1])
-
-
+    current_arnold_panel = get_arnold_panel()
+    # if resolution is set from another viewport, ignore that and warn.
+    if current_arnold_panel and current_arnold_panel != arnold_panel:
+        cmds.warning('Ignored new resolution: there is already one active'
+                          ' Arnold viewport (%s).', current_arnold_panel)
+        return
+    cmds.arnoldViewOverrideOptionBox(option=("Test Resolution", testres))
 
 def set_show_geometry(*args):
     # cmds.optionVar(iv=('rfmVpShowGeo', args[0]))
