@@ -419,6 +419,7 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    
    MObject ArnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions();
    AtUniverse *universe = session->GetUniverse();
+   AiMsgSetConsoleFlags(universe, AI_LOG_NONE);
    AtRenderSession *renderSession = session->GetRenderSession();
    CSessionOptions &sessionOptions = session->GetOptions();
    sessionOptions.SetSupportGpu(false);
