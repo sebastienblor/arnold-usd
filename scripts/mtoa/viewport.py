@@ -122,14 +122,13 @@ def toggle(arnold_panel, state, update_buttons=True):
     # ipr_mode = "1" if state else "0"
     # cmds.arnoldViewOverrideOptionBox(opt=("Run IPR", ipr_mode))
     if state:
-        # Check other viewports and stop them if need be.
-        # if rfm2.render.ipr(rfm2.render.Message.kIsRunning):
-        #     rendering_panel = get_arnold_panel()
-        #     if rendering_panel:
-        #         stop(rendering_panel)
-        # setup the AOV sample filter
-        # get_aov_sample_filter()
-        # start this panel
+        # check if the current panel is the same as the given panel
+        # if not stop rendering on the current panel before starting on this panel
+        current_arnold_panel = get_arnold_panel()
+        if current_arnold_panel != arnold_panel:
+            update_button_state("avp_crop", current_arnold_panel, False)
+            update_button_state("avp_toggle", current_arnold_panel, False)
+            update_icon_bar_enable_state(current_arnold_panel, False)
 
         # check if crop is enabled, if so stop any renders and disable crop
         toggle_crop(arnold_panel,False)
@@ -205,9 +204,9 @@ def toggle_crop(arnold_panel, state):
         # if not stop rendering on the current panel before starting on this panel
         current_arnold_panel = get_arnold_panel()
         if current_arnold_panel != arnold_panel:
-            # stop(current_arnold_panel)
             update_button_state("avp_crop", current_arnold_panel, False)
             update_button_state("avp_toggle", current_arnold_panel, False)
+            update_icon_bar_enable_state(current_arnold_panel, False)
 
         # check if the current view is enabled for full frame, and disable the icon if it is 
         update_button_state("avp_toggle", arnold_panel, False)
