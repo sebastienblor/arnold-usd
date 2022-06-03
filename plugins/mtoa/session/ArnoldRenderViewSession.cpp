@@ -233,7 +233,12 @@ void CArnoldRenderViewSession::InterruptRender()
 {
    GetRenderView().InterruptRender();
 }
-
+void CArnoldRenderViewSession::RenderSequence(float start, float end, float step)
+{
+   m_active = true;
+   GetRenderView().InterruptRender();
+   GetRenderView().RenderSequence(start, end, step);
+}
 void CArnoldRenderViewSession::Render(bool ipr)
 {
    m_active = true;

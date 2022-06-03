@@ -15,10 +15,12 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
 def arnoldSequenceRender(width, height, camera, saveToRenderView):
     # Make sure the aiOptions node exists
     core.createOptions()
+    if saveToRenderView:
+        cmds.optionVar(iv=('ArnoldSequenceSnapshot', 1))
     if len(camera) > 0:
-        cmds.arnoldRender(seq="", w=width, h=height, cam=camera, srv=saveToRenderView)
+        cmds.arnoldRenderView(mode="sequence", w=width, h=height, cam=camera)
     else:
-        cmds.arnoldRender(seq="", w=width, h=height, srv=saveToRenderView)
+        cmds.arnoldRenderView(mode="sequence", w=width, h=height)
 
 def arnoldBatchRenderOptionsString():    
     origFileName = cmds.file(q=True, sn=True)

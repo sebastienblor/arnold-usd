@@ -565,7 +565,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
    MCommonRenderSettingsData::MpathType pathType = (m_impl->m_session->IsBatchSession()) ? 
-      defaultRenderGlobalsData.kFullPathImage : pathType = defaultRenderGlobalsData.kFullPathTmp;
+      defaultRenderGlobalsData.kFullPathImage : defaultRenderGlobalsData.kFullPathTmp;
    
    // we're only doing stereo rendering for Batch sessions (ass export / batch render) or sequence rendering
    bool stereo = camera.node().hasFn(MFn::kStereoCameraMaster) && options.GetSupportStereoCameras();
