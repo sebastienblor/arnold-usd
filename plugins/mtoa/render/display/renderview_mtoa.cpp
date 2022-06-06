@@ -85,6 +85,9 @@ struct CARVSequenceData
    bool renderStarted;
    std::string sceneUpdatesValue;
    std::string saveImagesValue;
+   std::string progressiveRefinementValue;
+   std::string outputDirectory;
+   bool storeSnapshots;
 };
 static CARVSequenceData *s_sequenceData = NULL;
 
@@ -1140,6 +1143,7 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
       {
          SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
          SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+         SetOption("Progressive Refinement", s_sequenceData->progressiveRefinementValue.c_str());
          if (m_rvIdleCb)
          {
             MMessage::removeCallback(m_rvIdleCb);
@@ -1741,6 +1745,7 @@ void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, 
       MProgressWindow::endProgress();
       rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
       rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+      rvMtoA->SetOption("Progressive Refinement", s_sequenceData->progressiveRefinementValue.c_str());
       if (rvMtoA->m_rvIdleCb)
       {
          MMessage::removeCallback(rvMtoA->m_rvIdleCb);
@@ -1763,22 +1768,34 @@ void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, 
          if (s_sequenceData->current > s_sequenceData->last)
          {
             MProgressWindow::endProgress();
+            if (s_sequenceData->storeSnapshots)
+               rvMtoA->SetOption("Store Snapshot", "1");
             rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
             rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+            rvMtoA->SetOption("Progressive Refinement", s_sequenceData->progressiveRefinementValue.c_str());
             if (rvMtoA->m_rvIdleCb)
             {
                MMessage::removeCallback(rvMtoA->m_rvIdleCb);
                rvMtoA->m_rvIdleCb = 0;
             }
+            MGlobal::executeCommand("optionVar -rm \"OverrideFileOutputDirectory\"");
+            if (s_sequenceData->storeSnapshots)
+               MGlobal::executeCommand("optionVar -rm \"ArnoldSequenceSnapshot\"");
             return;
          }
          s_sequenceData->renderStarted = false;
          MProgressWindow::setProgress(s_sequenceData->current);
 
          MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+         MString optionVarCmd("optionVar -sv \"OverrideFileOutputDirectory\" \"");
+         optionVarCmd += s_sequenceData->outputDirectory.c_str();
+         optionVarCmd += "\"";
+         MGlobal::executeCommand(optionVarCmd);
          MGlobal::viewFrame(s_sequenceData->current);
          MProgressWindow::setProgressStatus(progressStr);
          MGlobal::displayInfo(progressStr);
+         if (s_sequenceData->storeSnapshots)
+            rvMtoA->SetOption("Store Snapshot", "1");
          rvMtoA->SetOption("Update Full Scene", "1");
 
       } else
@@ -1806,24 +1823,8 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
       s_sequenceData = NULL;
    }
 
-
-   /*
-   FIXME : we'd need to find the original value of scene updates / save final images
-   but they're not in "serialize" yet
-
-   std::string serialized = Serialize();
-
-   size_t npos = serialized.find("Scene Updates");
-   if (npos != std::string::npos)
-   {
-   }
-   npos = serialized.find("Save Final Images");
-   if (npos != std::string::npos)
-   {
-   }
-   */
-
    SetOption("Scene Updates", "0");
+   SetOption("Progressive Refinement", "0");
    SetOption("Save Final Images", "1");
    
    s_sequenceData = new CARVSequenceData;
@@ -1832,9 +1833,36 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
    s_sequenceData->last = last;
    s_sequenceData->step = step;
    s_sequenceData->renderStarted = false;
-   s_sequenceData->sceneUpdatesValue = "1";
-   s_sequenceData->saveImagesValue = "0";
+   s_sequenceData->sceneUpdatesValue = GetOption("Scene Updates");
+   s_sequenceData->saveImagesValue =  GetOption("Save Final Images");
+   s_sequenceData->progressiveRefinementValue =  GetOption("Progressive Refinement");
+   s_sequenceData->storeSnapshots = false;
+   
+   int hasSnapshotsVar = 0;   
+   MGlobal::executeCommand("optionVar -exists \"ArnoldSequenceSnapshot\"", hasSnapshotsVar);
+   if (hasSnapshotsVar) {
+      int hasSnapshots = 0;
+      MGlobal::executeCommand("optionVar -query \"ArnoldSequenceSnapshot\"", hasSnapshots);
+      if (hasSnapshots)
+         s_sequenceData->storeSnapshots = true;
+   }
 
+   int hasOptionVar = 0;
+   MGlobal::executeCommand("optionVar -exists \"OverrideFileOutputDirectory\"", hasOptionVar);
+   if (hasOptionVar) {
+      MString outputDir;
+      MGlobal::executeCommand("optionVar -query \"OverrideFileOutputDirectory\"", outputDir);
+      s_sequenceData->outputDirectory = outputDir.asChar();
+      if (s_sequenceData->storeSnapshots) {
+         std::string snapshotsFolder = GetOption("Snapshots Folder");
+         if (snapshotsFolder.empty()) {
+            snapshotsFolder = s_sequenceData->outputDirectory;
+            snapshotsFolder += "/snapshots";
+            SetOption("Snapshots Folder", snapshotsFolder.c_str());
+         }
+      }
+   }
+   
    if (!MProgressWindow::reserve())
    {
       MGlobal::displayError("Progress window already in use.");
