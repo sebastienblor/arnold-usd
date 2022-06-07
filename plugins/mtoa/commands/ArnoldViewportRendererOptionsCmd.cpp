@@ -41,13 +41,6 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
 
    if (args.isQuery())
    {
-      if (args.isFlagSet("currentaov"))
-      {
-         setResult(session->GetAOVIndex());
-         if (!sessionExisted)
-            delete session;
-         return MS::kSuccess;
-      }
       // For option / getoption, we don't need to keep the session alive, so we'll delete it before we return
       if (args.isFlagSet("option"))
       {
@@ -104,15 +97,6 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       {
          MString option = args.flagArgumentString("get", 0);
          setResult(session->GetRenderViewOption(option));
-         if (!sessionExisted)
-            delete session;
-         return MS::kSuccess;
-      }
-      
-      if (args.isFlagSet("currentaov"))
-      {
-         int aovIndex = args.flagArgumentInt("currentaov", 0);
-         session->SetAOV(aovIndex);
          if (!sessionExisted)
             delete session;
          return MS::kSuccess;

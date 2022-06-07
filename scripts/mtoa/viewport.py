@@ -6,6 +6,7 @@ import maya.mel as mel
 import maya.utils as utils     
 
 import mtoa.aovs as aovs
+import mtoa.core as core
 
 TMP_DIR = tempfile.gettempdir()
 CROP_CTX = 'rmanViewportContext1'
@@ -14,12 +15,13 @@ SMOOTH_GEO_HELP = 'Anti-alias VP2 geometry in snapshot'
 PROGRESS_BAR_HELP = 'Display the progress bar'
 SHOW_PROGRESS_BAR_HELP = 'Display the progress bar in snapshots'
 
+g_debug_mode = {}
+
 def playblast(arnold_panel, show_ui=True):
     pass
 
 def do_playblast(arnold_panel, options, stop_when_done):
     prog = cmds.rman('progress')
-    # print 'PROG = %r' % prog
     if prog < 0:
         utils.executeDeferred(partial(do_playblast, arnold_panel, options,
                                        stop_when_done))
@@ -103,7 +105,7 @@ def snapshot(arnold_panel):
 
 
 
-def toggle(arnold_panel, state, update_buttons=True):
+def toggle_render(arnold_panel, state, update_buttons=True):
     """Start rendering in a given panel
 
     Arguments:
@@ -131,15 +133,15 @@ def toggle(arnold_panel, state, update_buttons=True):
             update_icon_bar_enable_state(current_arnold_panel, False)
 
         # check if crop is enabled, if so stop any renders and disable crop
-        toggle_crop(arnold_panel,False)
+        if get_option_state("crop", arnold_panel):
+            toggle_crop(arnold_panel,False)
 
         cmds.modelEditor(arnold_panel, e=True,
                        rendererOverrideName='arnoldViewOverride')
-        cmds.arnoldViewOverrideOptionBox(opt=("Run IPR", "1"))
-        # display_start_message()
+        cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"Run IPR\", \"1\"))", lp=True)
     else:
         stop(arnold_panel)
-        # get_aov_sample_filter(cleanup=True)
+
 
     if cmds.iconTextCheckBox(toggle_ctl, ex=True):
         bstate = cmds.iconTextCheckBox(toggle_ctl, q=True, v=True)
@@ -148,7 +150,7 @@ def toggle(arnold_panel, state, update_buttons=True):
 
     if update_buttons:
         update_icon_bar_enable_state(arnold_panel, state)
-    # cmds.refresh(cv=True, force=True)
+    cmds.refresh(cv=True, force=True)
 
 
 def stop(arnold_panel):
@@ -157,27 +159,13 @@ def stop(arnold_panel):
     Arguments:
         arnold_panel {str} -- The panel that should be stopped.
     """
-    # rfm2.render.ipr(rfm2.render.Message.kStop)
-    cmds.arnoldViewOverrideOptionBox(opt=("Run IPR", "0"))
+    if cmds.arnoldViewOverrideOptionBox(get="Run IPR") == "1":
+        # the priority for the IPR command is very important, any calls to stop IPR must be ran with the lowest priority
+        cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"Run IPR\", \"0\"))", lp=True)
 
     if arnold_panel:
         cmds.setFocus(arnold_panel)
         cmds.ActivateViewport20()
-        try:
-            _, iconbar = get_arnold_panel_iconbar(panel=arnold_panel)
-        except TypeError:
-            pass
-        else:
-            uip = cmds.setParent(q=True)
-            cmds.setParent(iconbar)
-            # ctl = 'avp_toggle_%s' % arnold_panel
-            # if cmds.iconTextCheckBox(ctl, ex=True):
-            #     cmds.iconTextCheckBox(ctl, e=True, v=False)
-            cmds.setParent(uip)
-        # turn off crop context and PxrVisualizer
-        # toggle_crop(arnold_panel, False)
-        # toggle_integrator(False)
-        # update_icon_bar_enable_state(arnold_panel, False)
 
 
 def restart(arnold_panel):
@@ -195,9 +183,8 @@ def toggle_crop(arnold_panel, state):
     crop_mode = "1" if state else "0"
 
     if not state:
-        cmds.arnoldViewOverrideOptionBox(opt=("Crop Region", "0"))
-        cmds.arnoldViewOverrideOptionBox(opt=("Run IPR", "0"))
-        # stop(arnold_panel)
+        cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"Run IPR\", \"0\"))", low=True)
+        cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"Crop Region\", \"0\"))", low=True)
         cmds.setToolTo("selectSuperContext")
     else:
         # check if the current panel is the same as the given panel
@@ -215,35 +202,43 @@ def toggle_crop(arnold_panel, state):
                        rendererOverrideName='arnoldViewOverride')
         cmds.arnoldViewportRegionToolContext()
         cmds.setToolTo("arnoldViewportRegionToolContext1")
+        cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"Crop Region\", \"1\"))", low=True)
+        if get_crop_region() != (0,0,0,0):
+            print(get_crop_region())
+            cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"Run IPR\", \"1\"))", lp=True)
+
 
     update_icon_bar_enable_state(arnold_panel, state)
 
     # make sure the icon state reflects the actual tool state.
     update_button_state("avp_crop", arnold_panel, state)
 
+def get_crop_region():
+    defaultOptionsNode = 'defaultArnoldRenderOptions'
+    if not cmds.objExists(defaultOptionsNode):
+        core.createOptions()
+    left = cmds.getAttr("{}.avpRegionLeft".format(defaultOptionsNode))
+    right = cmds.getAttr("{}.avpRegionRight".format(defaultOptionsNode))
+    bottom = cmds.getAttr("{}.avpRegionBottom".format(defaultOptionsNode))
+    top = cmds.getAttr("{}.avpRegionTop".format(defaultOptionsNode))
+
+    return left,right,bottom,top
+
+def get_option_state(option, arnold_panel):
+    option_ctl = 'avp_{}_{}'.format(option,arnold_panel)
+    print("[get_option_state] Option {} exists {}".format(option_ctl, cmds.iconTextCheckBox(option_ctl, ex=True)))
+    if cmds.iconTextCheckBox(option_ctl, ex=True):
+        print("[get_option_state] Option {} is {}".format(option_ctl, cmds.iconTextCheckBox(option_ctl, q=True, value=True)))
+        return cmds.iconTextCheckBox(option_ctl, q=True, value=True)
+    return False
+
 def update_button_state(control_name, arnold_panel, state):
     icn_name = '{}_{}'.format(control_name, arnold_panel)
+    print(icn_name)
     if cmds.iconTextCheckBox(icn_name, ex=True):
-        if cmds.iconTextCheckBox(icn_name, q=True, v=True) != state:
+        print("{} : {} {}".format(icn_name, cmds.iconTextCheckBox(icn_name, q=True, v=True), state))
+    if cmds.iconTextCheckBox(icn_name, ex=True) and cmds.iconTextCheckBox(icn_name, q=True, v=True) != state:
             cmds.iconTextCheckBox(icn_name, e=True, v=state)
-
-
-def toggle_integrator(state):
-    """Toggle between the current integrator and PxrVisualizer. We remember the
-    previous integrator to switch back safely.
-
-    Arguments:
-        state {bool} -- Swicth to PxrVisualizer when True.
-    """
-    pass
-    # if state:
-    #     current = apinodes.get_integrator()
-    #     cmds.optionVar(sv=('rfmSceneIntegrator', current))
-    #     apinodes.set_integrator('PxrVisualizer')
-    # else:
-    #     previous = cmds.optionVar(q='rfmSceneIntegrator')
-    #     apinodes.set_integrator(previous)
-    #     cmds.optionVar(rm='rfmSceneIntegrator')
 
 def update_icon_bar_enable_state(arnold_panel, state):
     """Some buttons should be disabled until a render takes place, i.e.
@@ -254,32 +249,13 @@ def update_icon_bar_enable_state(arnold_panel, state):
         state {boo} -- Enabled or not
     """
 
-
-    # crop_ctl = 'avp_crop_%s' % arnold_panel
-    # if cmds.iconTextCheckBox(crop_ctl, ex=True):
-    #     # update enable state
-    #     cmds.iconTextCheckBox(crop_ctl, e=True, en=state)
-    #     # # use crop color for highlight color
-    #     # crop_color = prefs.get_pref_by_name('rfmVpCropWindowColor')
-    #     # maxval = 0.5
-    #     # maxc = max(crop_color)
-    #     # if maxc > maxval:
-    #     #     scf = 1.0 - (maxc - maxval)
-    #     #     crop_color = [comp * scf for comp in crop_color]
-    #     # cmds.iconTextCheckBox(crop_ctl, e=True, hlc=crop_color)
-
     restart_ctl = 'avp_restart_%s' % arnold_panel
     if cmds.iconTextButton(restart_ctl, ex=True):
         cmds.iconTextButton(restart_ctl, e=True, en=state)
 
-    # viz_ctl = 'arnold_vp_visualizer_%s' % arnold_panel
-    # if cmds.iconTextCheckBox(viz_ctl, ex=True):
-    #     cmds.iconTextCheckBox(viz_ctl, e=True, en=state)
-    #     if not state:
-    #         cmds.iconTextCheckBox(viz_ctl, e=True, v=state)
-    #     else:
-    #         cmds.iconTextCheckBox(viz_ctl, e=True,
-    #                             v=cmds.optionVar(ex='rfmSceneIntegrator'))
+    debug_ctl = 'avp_debug_%s' % arnold_panel
+    if cmds.iconTextCheckBox(debug_ctl, ex=True):
+        cmds.iconTextCheckBox(debug_ctl, e=True, en=state)
 
     aov_ctl = 'avp_aov_%s' % arnold_panel
     if cmds.iconTextButton(aov_ctl, ex=True):
@@ -364,15 +340,15 @@ def setup_icon_bar(iconbar, panel, uip):
     # Add form with our buttons
     ctlform = cmds.formLayout(btn_lyt, p=iconbar)
     # start/stop
-    bt1 = cmds.iconTextCheckBox('avp_toggle_%s' % panel, w=18, h=18,
+    toggle_render_btn = cmds.iconTextCheckBox('avp_toggle_%s' % panel, w=18, h=18,
                             #   hlc=(0.9, 0.9, 0.9),
                               i='avp_toggle.svg',
                               ann='Start/Stop Arnold in the viewport',
                               v=False, p=ctlform)
-    cmds.popupMenu('avp_toggle_menu_%s' % panel, parent=bt1, button=3,
-                 pmc=partial(build_display_options_menu))
-    cmds.iconTextCheckBox(bt1, e=True,
-                        cc=partial(toggle, panel))
+    # cmds.popupMenu('avp_toggle_menu_%s' % panel, parent=toggle_render_btn, button=3,
+    #              pmc=partial(build_display_options_menu))
+    cmds.iconTextCheckBox(toggle_render_btn, e=True,
+                        cc=partial(toggle_render, panel))
     # # playblast
     # bt2 = cmds.iconTextButton('arnold_playblast_%s' % panel, w=18, h=18, en=True,
     #                         i=':/rm_vp_playblast.svg',
@@ -380,46 +356,43 @@ def setup_icon_bar(iconbar, panel, uip):
     #                         c=partial(playblast, panel))
 
     # crop window
-    bt4 = cmds.iconTextCheckBox('avp_crop_%s' % panel, w=18, h=18, en=True,
+    crop_btn = cmds.iconTextCheckBox('avp_crop_%s' % panel, w=18, h=18, en=True,
                             #   hlc=(0.8, 0.2, 0.0),
                               i='avp_crop.svg',
                               ann='Define a crop window',
                               v=False, p=ctlform)
-    cmds.iconTextCheckBox(bt4, e=True,
+    cmds.iconTextCheckBox(crop_btn, e=True,
                         cc=partial(toggle_crop, panel))
 
     # resolution
-    bt6 = cmds.iconTextButton('avp_resolution_%s' % panel, w=18, h=18, en=False,
+    res_btn = cmds.iconTextButton('avp_resolution_%s' % panel, w=18, h=18, en=False,
                             i='avp_resolution.svg',
                             ann="Set the viewport's render resolution",
                             p=ctlform)
-    cmds.popupMenu('avp_resolution_menu_%s' % panel, parent=bt6, button=1,
+    cmds.popupMenu('avp_resolution_menu_%s' % panel, parent=res_btn, button=1,
                  pmc=partial(build_resolution_menu, panel))
 
-    # # Scene integrator <-> PxrVisualizer
-    # state = cmds.optionVar(ex='rfmSceneIntegrator')
-    # bt5 = cmds.iconTextCheckBox('arnold_vp_visualizer_%s' % panel, w=18, h=18, en=False,
-    #                           hlc=(0.15, 0.15, 0.15),
-    #                           i='rm_vp_viz.svg',
-    #                           ann='Switch to PxrVisualizer',
-    #                           v=state, p=ctlform)
-    # cmds.iconTextCheckBox(bt5, e=True,
-    #                     cc=partial(toggle_integrator))
-    # cmds.popupMenu('arnold_vp_visualizer_menu_%s' % panel, parent=bt5, button=3,
-    #              pmc=partial(build_visualizer_menu))
+    # debug shading
+    debug_btn = cmds.iconTextCheckBox('avp_debug_%s' % panel, w=18, h=18, en=False,
+                              i='avp_debug.svg',
+                              ann='Set shading to debug mode',
+                              v=False, p=ctlform,
+                              cc=partial(toggle_debug, panel))
+    cmds.popupMenu('avp_debug_menu_%s' % panel, parent=debug_btn, button=3,
+                 pmc=partial(build_debug_menu, panel))
 
     # restart
-    # bt6 = cmds.iconTextButton('avp_restart_%s' % panel, w=18, h=18, en=False,
+    # res_btn = cmds.iconTextButton('avp_restart_%s' % panel, w=18, h=18, en=False,
     #                         i='avp_refresh.svg',
     #                         c=partial(restart, panel),
     #                         ann='Restart the viewport render', p=ctlform)
 
     # AOVs
-    bt7 = cmds.iconTextButton('avp_aov_%s' % panel, w=18, h=18, en=False,
+    aov_btn = cmds.iconTextButton('avp_aov_%s' % panel, w=18, h=18, en=False,
                             i='avp_aovs.svg',
                             ann="Select display channels",
                             p=ctlform)
-    cmds.popupMenu('avp_aov_menu_%s' % panel, parent=bt7, button=1, pmc=update_aov_menu)
+    cmds.popupMenu('avp_aov_menu_%s' % panel, parent=aov_btn, button=1, pmc=update_aov_menu)
 
     # # snapshot
     # bt8 = cmds.iconTextButton('arnold_vp_snapshot_%s' % panel, w=18, h=18,
@@ -429,15 +402,12 @@ def setup_icon_bar(iconbar, panel, uip):
     # cmds.popupMenu('arnold_vp_snapshot_menu_%s' % panel, parent=bt8, button=3,
     #              pmc=partial(build_snapshot_menu))
 
-    # cmds.formLayout(ctlform, e=True,
-    #               af=[(bt1, 'top', 0)],
-    #               ac=[(bt2, 'left', 1, bt1), (bt3, 'left', 1, bt2),
-    #                   (bt4, 'left', 1, bt3), (bt5, 'left', 1, bt4),
-    #                   (bt6, 'left', 1, bt5), (bt7, 'left', 1, bt6),
-    #                   (bt8, 'left', 1, bt7)])
     cmds.formLayout(ctlform, e=True,
-                  af=[(bt1, 'top', 0)],
-                  ac=[(bt4, 'left', 1, bt1), (bt6, 'left', 1, bt4),(bt7, 'left', 1, bt6)])
+                  af=[(toggle_render_btn, 'top', 0)],
+                  ac=[(crop_btn, 'left', 1, toggle_render_btn),
+                      (res_btn, 'left', 1, crop_btn),
+                      (debug_btn, 'left', 1, res_btn),
+                      (aov_btn, 'left', 1, debug_btn)])
     # repack the layout
     tmp = cmds.formLayout(p=iconbar, m=False)
     for k in kids:
@@ -554,55 +524,67 @@ def build_display_options_menu(*args):
                 c=partial(set_enable_progress_bar), ann=PROGRESS_BAR_HELP)
 
 
-def build_visualizer_menu(*args):
+def build_debug_menu(*args):
     def _set_style(*args):
         cmds.setAttr('PxrVisualizer.style', args[0], type='string')
 
-    parent = args[0]
-    style = 'shaded'
-    wireframe = True
-    normal_check = False
-    enabled = cmds.objExists('PxrVisualizer')
-    if enabled:
-        style = cmds.getAttr('PxrVisualizer.style')
-        wireframe = cmds.getAttr('PxrVisualizer.wireframe')
-        normal_check = cmds.getAttr('PxrVisualizer.normalCheck')
+    panel = args[0]
+    parent = args[1]
+
+    global g_debug_mode
+   
+    if panel not in g_debug_mode:
+        g_debug_mode[panel] = cmds.arnoldViewOverrideOptionBox(get="Debug Shading") or "Basic"
+
+    modes = ["Basic","Occlusion",
+             "Wireframe","Normal",
+             "UV","Primitive ID",
+             "Object",
+             "Barycentric",
+             "Lighting"]
 
     cmds.popupMenu(parent, e=True, deleteAllItems=True)
-    mstyle = cmds.menuItem(l="Style", p=parent, subMenu=True,
-                         c=partial(set_show_geometry))
-    cmds.radioMenuItemCollection(p=mstyle)
-    cmds.menuItem(l="bxdf", p=mstyle, rb=(style == 'bxdf'), en=enabled,
-                c=partial(_set_style, 'bxdf'))
-    cmds.menuItem(l="shaded", p=mstyle, rb=(style == 'shaded'), en=enabled,
-                c=partial(_set_style, 'shaded'))
-    cmds.menuItem(l="flat", p=mstyle, rb=(style == 'flat'), en=enabled,
-                c=partial(_set_style, 'flat'))
-    cmds.menuItem(l="normals", p=mstyle, rb=(style == 'normals'), en=enabled,
-                c=partial(_set_style, 'normals'))
-    cmds.menuItem(l="st", p=mstyle, rb=(style == 'st'), en=enabled,
-                c=partial(_set_style, 'st'))
-    cmds.menuItem(l="matcap", p=mstyle, rb=(style == 'matcap'), en=enabled,
-                c=partial(_set_style, 'matcap'))
-    cmds.setParent(parent, menu=True)
-    cmds.menuItem(l="Wireframe", p=parent, cb=(wireframe == 1), en=enabled,
-                c=partial(cmds.setAttr, 'PxrVisualizer.wireframe'))
-    cmds.menuItem(l="Normal Check", p=parent, cb=(normal_check == 1), en=enabled,
-                c=partial(cmds.setAttr, 'PxrVisualizer.normalCheck'))
+    k_collection_name = parent.split('|')[-1] + '_collection'
+    cmds.radioMenuItemCollection(k_collection_name, p=parent)
+    for mode in modes:
+        cmds.menuItem(l=mode, p=parent, rb=(g_debug_mode[panel] == mode),
+                    collection=k_collection_name, c=partial(change_debug_mode, mode, panel))
+        # if mode == modes[0]:
+        #     cmds.menuItem(divider=True, p=parent, collection=k_collection_name)
+
+def change_debug_mode(mode, arnold_panel, *args):
+    """Store the new resolution multiplier and restart the render if it was
+    already running.
+
+    Arguments:
+        args[0] {float}: the new resolution multiplier
+        args[1] {str}: the current panel
+    """
+    global g_debug_mode
+    g_debug_mode[arnold_panel] = mode
+    # cmds.arnoldViewOverrideOptionBox(option=("Debug Shading", mode))
+    toggle_debug(arnold_panel, True)
+
+def toggle_debug(arnold_panel, state):
+    global g_debug_mode
+
+    if arnold_panel not in g_debug_mode:
+        g_debug_mode[arnold_panel] = "Basic"
+    
+    if not state:
+        cmds.arnoldViewOverrideOptionBox(option=("Debug Shading", "Disabled"))
+    else:
+        cmds.arnoldViewOverrideOptionBox(option=("Debug Shading", g_debug_mode[arnold_panel]))
+
+    update_button_state("avp_debug", arnold_panel, state)
 
 
 def build_aov_menu(*args):
 
     def set_avp_aov(name, index, *_args):
-        cmds.arnoldViewOverrideOptionBox(aov=index)
+        cmds.arnoldViewOverrideOptionBox(opt=("AOVs", name))
 
-    def upstream(plug):
-        return cmds.listConnections(plug, s=True, d=False) or []
-
-    # spf = get_aov_sample_filter()
-    # vchan = cmds.getAttr('%s.readAov' % spf)
-    current_aov_idx = cmds.arnoldViewOverrideOptionBox(q=True, aov=True)
-    # show_aovs = prefs.get_pref_by_name('rfmRenderIprAOVs')
+    current_aov_name = cmds.arnoldViewOverrideOptionBox(get="AOVs")
     parent = args[0]
 
     # delete menu items and setup the collection
@@ -611,18 +593,13 @@ def build_aov_menu(*args):
     cmds.radioMenuItemCollection(k_collection_name, p=parent)
 
     cmds.menuItem(l="Beauty", p=parent, c=partial(set_avp_aov, "Beauty", 0),
-                collection=k_collection_name, rb=(0 == current_aov_idx))
+                collection=k_collection_name, rb=("Beauty" == current_aov_name))
+    cmds.menuItem(divider=True, p=parent, collection=k_collection_name)
     # Get list of AOVs
     aov_inter  = aovs.AOVInterface()
     for i,aov in enumerate(aov_inter.getAOVs(group=False, sort=True, enabled=None, include=None, exclude=None)):
-        try:
-            # cmds.menuItem(l=aov.name, p=parent, c=partial(set_vp_aov, spf, chname),
-            #             collection=k_collection_name, rb=(chname == vchan))
-            cmds.menuItem(l=aov.name, p=parent, c=partial(set_avp_aov, aov.name, i+1),
-                        collection=k_collection_name, rb=(i+1 == current_aov_idx))
-        except BaseException as err:
-            print('%s >> %r == %r', err, aov.name, i+1)
-
+        cmds.menuItem(l=aov.name, p=parent, c=partial(set_avp_aov, aov.name, i+1),
+                    collection=k_collection_name, rb=(aov.name == current_aov_name))
 
 def update_aov_menu(*args):
     """Called every time the viewport's AOV menu needs to be displayed."""

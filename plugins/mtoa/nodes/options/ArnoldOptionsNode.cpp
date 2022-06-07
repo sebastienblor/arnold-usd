@@ -875,16 +875,24 @@ MStatus CArnoldOptionsNode::initialize()
 //   MGlobal::executeCommand(compatCmd);
 
    s_viewport_region_left = nAttr.create("avpRegionLeft", "avp_region_left", MFnNumericData::kInt);
-   nAttr.setDefault(1);
+   nAttr.setDefault(0);
    nAttr.setKeyable(false);
    nAttr.setMin(0.0);
    addAttribute(s_viewport_region_left);
-
    s_viewport_region_right = nAttr.create("avpRegionRight", "avp_region_right", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
    addAttribute(s_viewport_region_right);
    s_viewport_region_bottom = nAttr.create("avpRegionBottom", "avp_region_bottom", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
    addAttribute(s_viewport_region_bottom);
    s_viewport_region_top = nAttr.create("avpRegionTop", "avp_region_top", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
    addAttribute(s_viewport_region_top);
 
    return MS::kSuccess;

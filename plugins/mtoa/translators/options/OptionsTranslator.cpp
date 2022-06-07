@@ -1443,13 +1443,13 @@ void COptionsTranslator::Export(AtNode *options)
          ParseOverscanSettings(split[3], overscanL, overscanLP);
       }
 
-      const int width = AiNodeGetInt(options, "xres");
-      const int height = AiNodeGetInt(options, "yres");
+      const int width = AiNodeGetInt(options, str::xres);
+      const int height = AiNodeGetInt(options, str::yres);
 
-      AiNodeSetInt(options, "region_min_x", overscanLP ? (int)ceilf(-(float)width * overscanL) : -(int)overscanL);
-      AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
-      AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
-      AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
+      AiNodeSetInt(options, str::region_min_x, overscanLP ? (int)ceilf(-(float)width * overscanL) : -(int)overscanL);
+      AiNodeSetInt(options, str::region_max_x, overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
+      AiNodeSetInt(options, str::region_min_y, overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
+      AiNodeSetInt(options, str::region_max_y, overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
       
    }
 

@@ -505,22 +505,21 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
-   optWin->hide();
    
-   // MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
+   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
 
-   // if (firstCreation)
-   // {
-   //    // returns a pointer to th workspace called above, 
-   //    // but only for the creation ! if I call it with "-edit visible true" it can return 0
-   //    s_optWorkspaceControl = MQtUtil::getCurrentParent();
-   //    MQtUtil::addWidgetToMayaLayout(optWin, s_optWorkspaceControl);  // attaches ARV to the workspace
-   //    optWin->show();
-   //    s_optWorkspaceControl->show();
-   // }
-   // // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   // MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged_cb\" \"ArnoldViewportRendererOptions\"");
-   // MGlobal::executeCommand(uiScriptCommand);
+   if (firstCreation)
+   {
+      // returns a pointer to th workspace called above, 
+      // but only for the creation ! if I call it with "-edit visible true" it can return 0
+      s_optWorkspaceControl = MQtUtil::getCurrentParent();
+      MQtUtil::addWidgetToMayaLayout(optWin, s_optWorkspaceControl);  // attaches ARV to the workspace
+      optWin->show();
+      s_optWorkspaceControl->show();
+   }
+   // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged_cb\" \"ArnoldViewportRendererOptions\"");
+   MGlobal::executeCommand(uiScriptCommand);
 
     //s_creatingARV = false;
 #else
@@ -605,6 +604,11 @@ void CRenderViewMtoA::UpdateFullScene()
    std::string lastCamera = (lastCameraPtr != nullptr) ? std::string(lastCameraPtr) : std::string();
    
    SetUniverse(nullptr); // this ensures we delete the previous render session
+   bool session_null = m_session == nullptr;
+   MString log = "[mtoa.renderview]     UpdateFullScene | session is null  : ";
+   log += session_null ? "True":"False";
+   MtoaDebugLog(log);
+
    m_session->Clear();
 
 

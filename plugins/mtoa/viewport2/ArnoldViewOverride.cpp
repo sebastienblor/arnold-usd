@@ -21,7 +21,7 @@
 
 #include "translators/DagTranslator.h"
 
-static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+static MFloatPoint s_ViewRectangle = MFloatPoint(0.0f, 0.0f, 0.0f, 0.0f);
 static MString s_activeViewport(""); // store the name of the last active viewport
 
 static unsigned int s_width = 0;
@@ -112,7 +112,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         state.enabled = false;
         state.useRegion = false;
         state.initialized = false;
-        state.viewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+        state.viewRectangle = MFloatPoint(0.0f, 0.0f, 0.0f, 0.0f);
         mRegionRenderStateMap[destination.asChar()] = state;
     }
     else
@@ -311,11 +311,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             if (isIPRRunning == MString("0"))
                 restoreIPR = true;
         } 
-
-        MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
+        // MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
         // FIXME this is causing a render restart and we don't want this now
         
-        session->SetRenderViewOption(MString("Crop Region"),useRegionStr);
+        // session->SetRenderViewOption(MString("Crop Region"),useRegionStr);
     }
 
     MString arvCrop = (session) ? session->GetRenderViewOption(MString("Crop Region")) : MString();
