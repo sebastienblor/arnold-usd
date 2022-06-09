@@ -7,6 +7,7 @@ import maya.utils as utils
 
 import mtoa.aovs as aovs
 import mtoa.core as core
+import mtoa.callbacks as callbacks
 
 TMP_DIR = tempfile.gettempdir()
 CROP_CTX = 'rmanViewportContext1'
@@ -15,6 +16,7 @@ SMOOTH_GEO_HELP = 'Anti-alias VP2 geometry in snapshot'
 PROGRESS_BAR_HELP = 'Display the progress bar'
 SHOW_PROGRESS_BAR_HELP = 'Display the progress bar in snapshots'
 
+global gArnoldViewportRenderContol 
 gArnoldViewportRenderContol = None
 
 def getOption(option, **kwargs):
@@ -33,6 +35,27 @@ class ArnoldViewportRenderControl():
         self.crop_state = OFF
         self.crop_region = (0,0,0,0)
         self.debug_mode = {} 
+        self.script_jobs = []
+
+        self.setup_callbacks()
+
+    def reset(self):
+        self.ipr_state = OFF
+        self.crop_state = OFF
+        self.crop_region = (0,0,0,0)
+        self.debug_mode = {} 
+
+        self.update_panels()
+        self.setup_callbacks()
+
+    def setup_callbacks(self):
+
+        for job in self.script_jobs:
+            if not cmds.scriptJob(exists=job):
+                self.script_jobs.pop(self.script_jobs.index(job))
+
+        self.script_jobs.append(cmds.scriptJob(event=["NewSceneOpened", self.reset]))
+        self.script_jobs.append(cmds.scriptJob(event=["PostSceneRead", self.reset]))
 
     def toggle_render(self, arnold_panel, state, update_buttons=True):
         """Start rendering in a given panel
@@ -81,7 +104,6 @@ class ArnoldViewportRenderControl():
         if update_buttons:
             self.update_icon_bar_enable_state(arnold_panel, state)
         cmds.refresh(cv=True, force=True)
-
 
     def stop_render(self, arnold_panel):
         """Stop viewport rendering.
@@ -528,6 +550,15 @@ class ArnoldViewportRenderControl():
                 pass
             else:
                 self.setup_icon_bar(iconbar, panel, uip)
+    
+    def update_panels(self):
+        panel_list = cmds.getPanel(type='modelPanel')
+        if not panel_list:
+            return
+        for panel in panel_list:
+            self.update_button_state("avp_crop", panel, False)
+            self.update_button_state("avp_toggle", panel, False)
+            self.update_icon_bar_enable_state(panel, False)
 
 
 def add_controls():
@@ -542,6 +573,4 @@ def add_controls():
         gArnoldViewportRenderContol = ArnoldViewportRenderControl()
 
     gArnoldViewportRenderContol.add_ctls_to_all_panels()
-
-
 
