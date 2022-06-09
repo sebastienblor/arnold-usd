@@ -265,10 +265,6 @@ void ArnoldViewportRegionContext::doReleaseCommon( MEvent & event )
 				{
 					session->RequestUpdate();
 				}
-				else
-				{
-					session->SetRenderViewOption("Run IPR", "1");
-				}
 
 			}
 			    

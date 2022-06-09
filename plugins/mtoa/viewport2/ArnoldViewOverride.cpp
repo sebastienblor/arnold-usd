@@ -468,7 +468,7 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
         if (session)
         {
-            session->GetRenderView().CloseOptionsWindow(); // could it be done at deletion ?
+            // session->GetRenderView().CloseOptionsWindow(); // could it be done at deletion ?
             CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
         }
     

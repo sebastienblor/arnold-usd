@@ -479,7 +479,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    bool firstCreation = true;
    if (s_optWorkspaceControl)
    {
-      workspaceCmd += " -edit -visible false "; // set to false to hide the window
+      workspaceCmd += " -edit -visible true "; // set to false to hide the window
       firstCreation = false;
    }
    else
@@ -605,12 +605,8 @@ void CRenderViewMtoA::UpdateFullScene()
    
    SetUniverse(nullptr); // this ensures we delete the previous render session
    bool session_null = m_session == nullptr;
-   MString log = "[mtoa.renderview]     UpdateFullScene | session is null  : ";
-   log += session_null ? "True":"False";
-   MtoaDebugLog(log);
 
    m_session->Clear();
-
 
    SetUniverse(m_session->GetUniverse());
    
