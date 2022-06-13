@@ -8,9 +8,6 @@ public:
    {
       return new CArnoldViewportRendererOptionsCmd();
    }
-   virtual MStatus doIt(const MArgList& args);
-   static MSyntax newSyntax();
-protected:
-	MStatus doCreate	();
-	MStatus doQuery	();
+   virtual MStatus         doIt(const MArgList& args);
+   static MSyntax          newSyntax();
 };

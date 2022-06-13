@@ -7,6 +7,7 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MGlobal.h>
 
+
 MSyntax CArnoldViewportRendererOptionsCmd::newSyntax()
 {
    MSyntax syntax;
@@ -15,6 +16,7 @@ MSyntax CArnoldViewportRendererOptionsCmd::newSyntax()
    syntax.addFlag("get", "getoption", MSyntax::kString);
    syntax.addFlag("aov", "currentaov", MSyntax::kLong);
    syntax.addFlag("st", "status", MSyntax::kString);
+   syntax.makeFlagQueryWithFullArgs("option", true);
    syntax.enableQuery( true );
    return syntax;
 }
@@ -44,13 +46,14 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       // For option / getoption, we don't need to keep the session alive, so we'll delete it before we return
       if (args.isFlagSet("option"))
       {
-         MString option = args.flagArgumentString("option", 0);
+         MString option;
+         status = args.getFlagArgument("option", 0, option);
          setResult(session->GetRenderViewOption(option));
          if (!sessionExisted)
             CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
-         return MS::kSuccess;
+         return status;
       }
-   } 
+   }
    else
    {
       if (mode == "visChanged")
@@ -80,7 +83,6 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
          MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox -mode visChanged");
          return MS::kSuccess;
       }
-
          
       // For option / getoption, we don't need to keep the session alive, so we'll delete it before we return
       if (args.isFlagSet("option"))
@@ -117,7 +119,5 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       }
    }
 
-
    return MS::kSuccess;
 }
-
