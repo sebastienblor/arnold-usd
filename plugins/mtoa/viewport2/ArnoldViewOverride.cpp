@@ -21,7 +21,7 @@
 
 #include "translators/DagTranslator.h"
 
-static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+static MFloatPoint s_ViewRectangle = MFloatPoint(0.0f, 0.0f, 0.0f, 0.0f);
 static MString s_activeViewport(""); // store the name of the last active viewport
 
 static unsigned int s_width = 0;
@@ -112,7 +112,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         state.enabled = false;
         state.useRegion = false;
         state.initialized = false;
-        state.viewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+        state.viewRectangle = MFloatPoint(0.0f, 0.0f, 0.0f, 0.0f);
         mRegionRenderStateMap[destination.asChar()] = state;
     }
     else
@@ -298,6 +298,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mRegionRenderStateMap[destination.asChar()] = state;
 
         MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
+        MGlobal::executeCommandOnIdle("arnoldViewportRegionToolContext;");
         MGlobal::executeCommand("arnoldViewOverrideOptionBox;");
         // ensure the scene is fully rendered at next update
         session->GetRenderView().RequestFullSceneUpdate();
@@ -310,11 +311,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             if (isIPRRunning == MString("0"))
                 restoreIPR = true;
         } 
-
-        MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
+        // MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
         // FIXME this is causing a render restart and we don't want this now
         
-        session->SetRenderViewOption(MString("Crop Region"),useRegionStr);
+        // session->SetRenderViewOption(MString("Crop Region"),useRegionStr);
     }
 
     MString arvCrop = (session) ? session->GetRenderViewOption(MString("Crop Region")) : MString();
@@ -391,9 +391,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
 
     // disable the arnold operation if paused
-    mOperations[2]->setEnabled(state.enabled);
-    if (!state.enabled)
-        return MS::kSuccess;
+    // mOperations[2]->setEnabled(state.enabled);
+    mOperations[2]->setEnabled(true);
+    // if (!state.enabled)
+    //     return MS::kSuccess;
 
     unsigned int buffer_width = 0, buffer_height = 0;
     const AtRGBA *buffer = session->GetRenderView().GetDisplayedBuffer(&buffer_width, &buffer_height);
@@ -428,6 +429,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureBlit->setColorTexture(mTexture);
         }
     }
+    MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
+
     session->GetRenderView().PostDisplay();
 
     return MStatus::kSuccess;
@@ -468,7 +471,7 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
         if (session)
         {
-            session->GetRenderView().CloseOptionsWindow(); // could it be done at deletion ?
+            // session->GetRenderView().CloseOptionsWindow(); // could it be done at deletion ?
             CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
         }
     

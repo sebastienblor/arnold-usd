@@ -206,7 +206,6 @@ AtNode* CArnoldRenderViewSession::ExportOptions()
    return options;
 }
 
-
 // This function will be called every time the options node was modified during IPR
 void CArnoldRenderViewSession::UpdateSessionOptions()
 {

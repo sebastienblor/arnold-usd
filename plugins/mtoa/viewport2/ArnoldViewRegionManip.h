@@ -43,6 +43,9 @@ public:
 	static void* creator();
 	static MStatus initialize();
 
+	// set the region size in the options node
+	MStatus setOptionsRegion(uint minx, uint miny, uint maxx, uint maxy);
+
 	// Node id
 	static MTypeId id;
 	static MString classification;
@@ -63,5 +66,10 @@ private:
     bool fDrawAsMouseOver;
     MFloatPoint mViewRectangle;
     MFloatPoint mDragRectangle;
+
+	int _leftIndex;
+	int _rightIndex;
+	int _topIndex;
+	int _bottomIndex;
 };
 

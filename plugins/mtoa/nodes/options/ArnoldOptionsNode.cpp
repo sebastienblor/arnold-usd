@@ -136,6 +136,10 @@ MObject CArnoldOptionsNode::s_gpu_max_texture_resolution;
 MObject CArnoldOptionsNode::s_manual_devices;
 MObject CArnoldOptionsNode::s_ignore_list;
 MObject CArnoldOptionsNode::s_render_device_fallback;
+MObject CArnoldOptionsNode::s_viewport_region_left;
+MObject CArnoldOptionsNode::s_viewport_region_right;
+MObject CArnoldOptionsNode::s_viewport_region_bottom;
+MObject CArnoldOptionsNode::s_viewport_region_top;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -870,6 +874,26 @@ MStatus CArnoldOptionsNode::initialize()
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_refraction_samples\" ;";
 //   MGlobal::executeCommand(compatCmd);
 
+   s_viewport_region_left = nAttr.create("avpRegionLeft", "avp_region_left", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_left);
+   s_viewport_region_right = nAttr.create("avpRegionRight", "avp_region_right", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_right);
+   s_viewport_region_bottom = nAttr.create("avpRegionBottom", "avp_region_bottom", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_bottom);
+   s_viewport_region_top = nAttr.create("avpRegionTop", "avp_region_top", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_top);
 
    return MS::kSuccess;
 }

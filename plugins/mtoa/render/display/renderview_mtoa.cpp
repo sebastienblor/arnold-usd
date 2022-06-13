@@ -482,7 +482,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    bool firstCreation = true;
    if (s_optWorkspaceControl)
    {
-      workspaceCmd += " -edit -visible true ";
+      workspaceCmd += " -edit -visible true "; // set to false to hide the window
       firstCreation = false;
    }
    else
@@ -505,6 +505,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection;Test Resolution";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
    CRenderViewInterface::OpenOptionsWindow(250, 50,scaleFactor, menusFilter.c_str(), nullptr, false);
+
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
    
@@ -606,8 +607,8 @@ void CRenderViewMtoA::UpdateFullScene()
    std::string lastCamera = (lastCameraPtr != nullptr) ? std::string(lastCameraPtr) : std::string();
    
    SetUniverse(nullptr); // this ensures we delete the previous render session
-   m_session->Clear();
 
+   m_session->Clear();
 
    SetUniverse(m_session->GetUniverse());
    
