@@ -391,9 +391,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
 
     // disable the arnold operation if paused
-    mOperations[2]->setEnabled(state.enabled);
-    if (!state.enabled)
-        return MS::kSuccess;
+    // mOperations[2]->setEnabled(state.enabled);
+    mOperations[2]->setEnabled(true);
+    // if (!state.enabled)
+    //     return MS::kSuccess;
 
     unsigned int buffer_width = 0, buffer_height = 0;
     const AtRGBA *buffer = session->GetRenderView().GetDisplayedBuffer(&buffer_width, &buffer_height);
@@ -428,6 +429,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureBlit->setColorTexture(mTexture);
         }
     }
+    MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
+
     session->GetRenderView().PostDisplay();
 
     return MStatus::kSuccess;

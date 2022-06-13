@@ -36,7 +36,6 @@ private:
 
 	bool					fsDrawn;
 
-	MGlobal::ListAdjustment	listAdjustment;
 	M3dView					view;
 };
 

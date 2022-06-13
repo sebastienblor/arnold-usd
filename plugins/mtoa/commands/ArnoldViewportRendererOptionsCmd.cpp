@@ -47,7 +47,7 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
          MString option = args.flagArgumentString("option", 0);
          setResult(session->GetRenderViewOption(option));
          if (!sessionExisted)
-            delete session;
+            CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
          return MS::kSuccess;
       }
    } 
@@ -89,7 +89,7 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
          MString value = args.flagArgumentString("option", 1);
          session->SetRenderViewOption(option, value);
          if (!sessionExisted)
-            delete session;
+            CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
          return MS::kSuccess;
       }
       
@@ -98,7 +98,7 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
          MString option = args.flagArgumentString("get", 0);
          setResult(session->GetRenderViewOption(option));
          if (!sessionExisted)
-            delete session;
+            CSessionManager::DeleteActiveSession(CArnoldRenderViewSession::GetViewportSessionId());
          return MS::kSuccess;
       }
 

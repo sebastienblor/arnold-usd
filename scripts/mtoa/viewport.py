@@ -9,12 +9,8 @@ import mtoa.aovs as aovs
 import mtoa.core as core
 import mtoa.callbacks as callbacks
 
-TMP_DIR = tempfile.gettempdir()
-CROP_CTX = 'rmanViewportContext1'
-SHOW_GEO_HELP = 'Show VP2 geometry in snapshot'
-SMOOTH_GEO_HELP = 'Anti-alias VP2 geometry in snapshot'
-PROGRESS_BAR_HELP = 'Display the progress bar'
-SHOW_PROGRESS_BAR_HELP = 'Display the progress bar in snapshots'
+CROP_CTX = 'arnoldViewportRegionToolContext1'
+VIEW_OVERRIDE = 'arnoldViewOverride'
 
 global gArnoldViewportRenderContol 
 gArnoldViewportRenderContol = None
@@ -47,6 +43,12 @@ class ArnoldViewportRenderControl():
 
         self.update_panels()
         self.setup_callbacks()
+
+    def update(self):
+        current_panel = self.get_arnold_panel()
+        if current_panel:
+            self.ipr_state = getOption("Run IPR")
+            self.crop_state = getOption("Crop Region")
 
     def setup_callbacks(self):
 
@@ -84,9 +86,9 @@ class ArnoldViewportRenderControl():
             if cmds.modelEditor(
                     arnold_panel,
                     q=True,
-                    rendererOverrideName=True) != 'arnoldViewOverride':
+                    rendererOverrideName=True) != VIEW_OVERRIDE:
                 cmds.modelEditor(arnold_panel, e=True,
-                        rendererOverrideName='arnoldViewOverride')
+                        rendererOverrideName=VIEW_OVERRIDE)
 
             self.toggle_crop(arnold_panel, False, False)
             # constantly switching IPr on and off can cause crashes
@@ -140,6 +142,7 @@ class ArnoldViewportRenderControl():
         if not state:
             if stop_ipr:
                 self.set_ipr(OFF)
+                self.stop_render(arnold_panel)
             self.set_crop(OFF)
             cmds.setToolTo("selectSuperContext")
         else:
@@ -155,9 +158,9 @@ class ArnoldViewportRenderControl():
             self.update_button_state("avp_toggle", arnold_panel, False)
 
             cmds.modelEditor(arnold_panel, e=True,
-                        rendererOverrideName='arnoldViewOverride')
+                        rendererOverrideName=VIEW_OVERRIDE)
             cmds.arnoldViewportRegionToolContext()
-            cmds.setToolTo("arnoldViewportRegionToolContext1")
+            cmds.setToolTo(CROP_CTX)
             self.set_crop(ON)
             if not self.ipr_state:
                 self.set_ipr(ON)
@@ -231,7 +234,7 @@ class ArnoldViewportRenderControl():
             if cmds.modelEditor(
                     panel,
                     q=True,
-                    rendererOverrideName=True) == 'arnoldViewOverride':
+                    rendererOverrideName=True) == VIEW_OVERRIDE:
                 arnold_panel = panel
                 break
         return arnold_panel
@@ -289,23 +292,16 @@ class ArnoldViewportRenderControl():
                         i1='ShortOpenBar.png', p=iconbar)
         # Add form with our buttons
         ctlform = cmds.formLayout(btn_lyt, p=iconbar)
-        # start/stop
+        # start/stop full view render
         toggle_render_btn = cmds.iconTextCheckBox('avp_toggle_%s' % panel, w=18, h=18,
-                                #   hlc=(0.9, 0.9, 0.9),
                                 i='avp_toggle.svg',
                                 ann='Start/Stop Arnold in the viewport',
                                 v=False, p=ctlform)
         cmds.iconTextCheckBox(toggle_render_btn, e=True,
                             cc=partial(self.toggle_render, panel))
-        # # playblast
-        # bt2 = cmds.iconTextButton('arnold_playblast_%s' % panel, w=18, h=18, en=True,
-        #                         i=':/rm_vp_playblast.svg',
-        #                         ann='Render a playblast of this panel',
-        #                         c=partial(playblast, panel))
 
-        # crop window
+        # Start crop render tool
         crop_btn = cmds.iconTextCheckBox('avp_crop_%s' % panel, w=18, h=18, en=True,
-                                #   hlc=(0.8, 0.2, 0.0),
                                 i='avp_crop.svg',
                                 ann='Define a crop window',
                                 v=False, p=ctlform)
@@ -329,26 +325,12 @@ class ArnoldViewportRenderControl():
         cmds.popupMenu('avp_debug_menu_%s' % panel, parent=debug_btn, button=1,
                     pmc=partial(self.build_debug_menu, panel))
 
-        # restart
-        # res_btn = cmds.iconTextButton('avp_restart_%s' % panel, w=18, h=18, en=False,
-        #                         i='avp_refresh.svg',
-        #                         c=partial(restart, panel),
-        #                         ann='Restart the viewport render', p=ctlform)
-
         # AOVs
         aov_btn = cmds.iconTextButton('avp_aov_%s' % panel, w=18, h=18, en=False,
                                 i='avp_aovs.svg',
                                 ann="Select display channels",
                                 p=ctlform)
         cmds.popupMenu('avp_aov_menu_%s' % panel, parent=aov_btn, button=1, pmc=self.update_aov_menu)
-
-        # # snapshot
-        # bt8 = cmds.iconTextButton('arnold_vp_snapshot_%s' % panel, w=18, h=18,
-        #                         i='rm_vp_snapshot.svg',
-        #                         c=partial(snapshot, panel),
-        #                         ann='Save a snapshot to It', p=ctlform)
-        # cmds.popupMenu('arnold_vp_snapshot_menu_%s' % panel, parent=bt8, button=3,
-        #              pmc=partial(build_snapshot_menu))
 
         cmds.formLayout(ctlform, e=True,
                     af=[(toggle_render_btn, 'top', 0)],
@@ -369,7 +351,6 @@ class ArnoldViewportRenderControl():
         cmds.deleteUI(tmp)
         # restore original parent
         cmds.setParent(uip)
-
 
     def build_resolution_menu(self, *args):
         """Build the resolution menu when the user clicks the button.
@@ -405,49 +386,6 @@ class ArnoldViewportRenderControl():
                             ' Arnold viewport (%s).', current_arnold_panel)
             return
         setOption("Test Resolution", testres)
-
-    def set_show_geometry(self, *args):
-        # cmds.optionVar(iv=('rfmVpShowGeo', args[0]))
-        pass
-
-
-    def set_smooth_geometry(self, *args):
-        # cmds.optionVar(iv=('rfmVpSmoothGeo', args[0]))
-        pass
-
-
-    def set_show_progress_bar(self, *args):
-        # cmds.optionVar(iv=('rfmVpShowProgressBar', args[0]))
-        pass
-
-
-    def get_show_geometry(self):
-        # if cmds.optionVar(ex='rfmVpShowGeo'):
-        #     return cmds.optionVar(q='rfmVpShowGeo')
-        return 0
-
-
-    def get_smooth_geometry(self):
-        # if cmds.optionVar(ex='rfmVpSmoothGeo'):
-        #     return cmds.optionVar(q='rfmVpSmoothGeo')
-        return 1
-
-
-    def get_show_progress_bar(self):
-        # if cmds.optionVar(ex='rfmVpShowProgressBar'):
-        #     return cmds.optionVar(q='rfmVpShowProgressBar')
-        return 1
-
-
-    def get_enable_progress_bar(self):
-        # if cmds.optionVar(ex='rfmVpProgressBar'):
-        #     return cmds.optionVar(q='rfmVpProgressBar')
-        return 1
-
-
-    def set_enable_progress_bar(self, *args):
-        # cmds.optionVar(iv=('rfmVpProgressBar', args[0]))
-        pass
 
     def build_debug_menu(self, *args):
 
@@ -556,13 +494,13 @@ class ArnoldViewportRenderControl():
         if not panel_list:
             return
         for panel in panel_list:
-            self.update_button_state("avp_crop", panel, False)
-            self.update_button_state("avp_toggle", panel, False)
-            self.update_icon_bar_enable_state(panel, False)
+            self.update_button_state("avp_crop", panel, self.crop_state)
+            self.update_button_state("avp_toggle", panel, self.ipr_state)
+            self.update_icon_bar_enable_state(panel, self.ipr_state or self.crop_state)
 
 
 def add_controls():
-    """This is called at startup. Any prefs change requires restarting Maya.
+    """the main function called at atsrtup to create the viewport controls
     """
     if cmds.about(batch=True):
         return
@@ -574,3 +512,13 @@ def add_controls():
 
     gArnoldViewportRenderContol.add_ctls_to_all_panels()
 
+def update_controls(panel):
+    """Update the controls, called when a scene is opened or new scene created
+
+    Args:
+        panel (string): panel to update
+    """
+    global gArnoldViewportRenderContol
+
+    if gArnoldViewportRenderContol:
+        gArnoldViewportRenderContol.update()

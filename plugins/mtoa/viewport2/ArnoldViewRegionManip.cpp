@@ -549,8 +549,6 @@ MStatus ArnoldViewRegionManipulator::doRelease(M3dView& view)
         int bottom = AiClamp(int((1.f - mViewRectangle.w ) * height), 0, height - 1);
         int top = AiClamp(int((1.f - mViewRectangle.y) * height), 0, height - 1);
 
-		MGlobal::displayInfo(MString("doRelease :: ") + left + ":" + right  + ":" + bottom + ":" + top + " " + width + "x" + height);
-
         sessionOptions.SetRegion(left, right, bottom, top); // expected order is left, right, bottom, top
         setOptionsRegion(left, right, bottom, top);
     }

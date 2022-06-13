@@ -299,10 +299,10 @@ namespace // <anonymous>
            ArnoldStandardSurfaceShaderOverride::creator
        } ,
        {
-		  "drawdb/shader/surface/arnold/standard_hair",
-		  "arnoldStandardHairShaderOverride",
-		  ArnoldStandardHairShaderOverride::creator
-	     } ,
+        "drawdb/shader/surface/arnold/standard_hair",
+        "arnoldStandardHairShaderOverride",
+        ArnoldStandardHairShaderOverride::creator
+        } ,
         {
          "drawdb/shader/surface/arnold/skin",
          "arnoldSkinShaderOverride",
@@ -449,7 +449,7 @@ namespace // <anonymous>
    {
    public:
        aiViewRegionCmd() {}
-       };
+   };
    static aiViewRegionCmd _aiViewRegionCmd;
 
 
@@ -1339,13 +1339,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_SKYDOME_LIGHT_CLASSIFICATION,
          "arnoldSkyDomeLightNodeOverride",
-   		CArnoldSkyDomeLightGeometryOverride::Creator);
+         CArnoldSkyDomeLightGeometryOverride::Creator);
       CHECK_MSTATUS(status);
 
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_SKYNODE_CLASSIFICATION,
          "arnoldSkyNodeOverride",
-   		CArnoldSkyDomeLightGeometryOverride::Creator);
+         CArnoldSkyDomeLightGeometryOverride::Creator);
       CHECK_MSTATUS(status);
       // Register a custom selection mask
       MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
@@ -1355,13 +1355,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_LIGHT_FILTER_CLASSIFICATION,
          "arnoldLightBlockerNodeOverride",
-   		CArnoldLightBlockerGeometryOverride::Creator);
+         CArnoldLightBlockerGeometryOverride::Creator);
       CHECK_MSTATUS(status);
 
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_VOLUME_CLASSIFICATION,
          "arnoldVolumeNodeOverride",
-   	  CArnoldVolumeGeometryOverride::Creator);
+        CArnoldVolumeGeometryOverride::Creator);
       CHECK_MSTATUS(status); 
 
       MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
@@ -1390,8 +1390,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
           status.perror("registerCommand");
       }
 
-	   status = plugin.registerContextCommand( "arnoldViewportRegionToolContext",
-										    ArnoldViewportRegionContextCmd::creator );
+      status = plugin.registerContextCommand( "arnoldViewportRegionToolContext",
+                                  ArnoldViewportRegionContextCmd::creator );
 
       // create the viewport toolbar
       status = MGlobal::executePythonCommand(MString("import mtoa.viewport;mtoa.viewport.add_controls()"), true, false);

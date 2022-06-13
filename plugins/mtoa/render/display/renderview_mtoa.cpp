@@ -604,7 +604,6 @@ void CRenderViewMtoA::UpdateFullScene()
    std::string lastCamera = (lastCameraPtr != nullptr) ? std::string(lastCameraPtr) : std::string();
    
    SetUniverse(nullptr); // this ensures we delete the previous render session
-   bool session_null = m_session == nullptr;
 
    m_session->Clear();
 
