@@ -636,6 +636,8 @@ if env['ENABLE_BIFROST'] == 1:
 if env['ENABLE_ALEMBIC'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_ALEMBIC'))
 
+if env['MOD_SUFFIX']:
+    env.Append(CPPDEFINES={'MOD_SUFFIX':'\\"{}\\"'.format(env['MOD_SUFFIX'].lower())})
 ## platform related defines
 if system.os == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))

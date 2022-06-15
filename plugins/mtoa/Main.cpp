@@ -802,7 +802,12 @@ namespace // <anonymous>
 
 #if MAYA_API_VERSION >= 20210000
          int ltAbout = 0;
-         if (MGlobal::executeCommand(MString("about -ltVersion"), ltAbout) == MStatus::kSuccess && ltAbout > 0)
+#ifdef MOD_SUFFIX
+         MString aboutCmd = MString("about -"+MString(MOD_SUFFIX)+"Version");
+#else
+         MString aboutCmd = MString("about -ltVersion");
+#endif
+         if (MGlobal::executeCommand(aboutCmd, ltAbout) == MStatus::kSuccess && ltAbout > 0)
             appendProceduralsPath = false;
 #endif
 
