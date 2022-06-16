@@ -479,20 +479,19 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldTutorials', label='Tutorials', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AFMUG/Tutorials'))
 
-        cmds.menuItem('ArnoldAnswers', label='Arnold Answers', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://answers.arnoldrenderer.com/index.html'))
+        cmds.menuItem('ArnoldCommunity', label='Arnold Community', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://area.autodesk.com/community/groups/arnold'))
+
+        cmds.menuItem('ArnoldForum', label='Arnold for Maya Forum', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://forums.autodesk.com/t5/arnold-for-maya-forum/bd-p/maxtoa-forum'))
 
         cmds.menuItem('ArnoldLearningScenes', label='Learning Scenes', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/display/A5AFMUG/Learning+Scenes'))
 
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
-        cmds.menuItem('ArnoldSolidAngle', label='Arnold Renderer Website', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://www.arnoldrenderer.com/'))
-
-        cmds.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://subscribe.solidangle.com'))
-        
+        cmds.menuItem('ArnoldWebsite', label='Arnold Renderer Website', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://www.arnoldrenderer.com/'))        
 
         cmds.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://docs.arnoldrenderer.com/blog/arnsupp'))
