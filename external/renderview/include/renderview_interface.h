@@ -77,6 +77,9 @@ public:
 
    // return the render progress (all passes)
    float GetProgress(bool& isPrepass);
+
+   // return the current status text
+   const char *GetDisplayedStatus();
    
    // Render the scene.
    // This function assumes that the Arnold scene already exists
