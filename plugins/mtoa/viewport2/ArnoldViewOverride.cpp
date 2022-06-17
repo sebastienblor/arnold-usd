@@ -702,8 +702,6 @@ ArnoldViewHUDRender::ArnoldViewHUDRender(const MString &name)
 
 void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager2D, const MHWRender::MFrameContext& frameContext )
 {
-    char buffer[256];
-    sprintf( buffer, "Progress: %.2f%%", mProgress);
 
     // Start draw UI
     drawManager2D.beginDrawable();
@@ -712,13 +710,25 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
     // Set font size
     drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
 
-    // Draw renderer name
     int x=0, y=0, w=0, h=0;
     frameContext.getViewportDimensions( x, y, w, h );
-    drawManager2D.text( MPoint(w*0.02f, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+    float offset = 20.0f;
+    float progress_width = 0.02f;
+    if ( mProgress >= 0 )
+        progress_width = (mProgress*3.95);
+    // Draw progress bar
+    drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
+    drawManager2D.rect2d(MPoint(220.0, h*0.97f), MVector(0.0,1.0), 200.0f, h*0.002f);
+    drawManager2D.setLineWidth( 2.0f );
+    drawManager2D.line2d(MPoint(offset+4.0, h*0.97f), MPoint(offset+2.0+progress_width, h*0.97f));
 
-    // Draw viewport information
-    drawManager2D.text( MPoint(w*0.02f, h*0.93f), mStatus, MHWRender::MUIDrawManager::kLeft );
+    // Draw percetage text
+    char buffer[256];
+    sprintf( buffer, "Progress: %.2f%%", mProgress);
+    drawManager2D.text( MPoint(offset, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+
+    // Draw render status information
+    drawManager2D.text( MPoint(offset, h*0.93f), mStatus, MHWRender::MUIDrawManager::kLeft );
 
     // End draw UI
     drawManager2D.endDrawable();
