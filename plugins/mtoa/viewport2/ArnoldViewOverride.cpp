@@ -34,14 +34,18 @@ static unsigned int s_height = 0;
 ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     : MRenderOverride(name)
     , mUIName("Arnold")
+    , mCurrentOperation(-1)
     , mTexture(NULL)
     , mRendererChangeCB(0)
     , mRenderOverrideChangeCB(0)
+    , mDebugEnabled(false)
 {
     // register a file open and file new callback
     mFileNewCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeNew, sPreFileOpen, this);
     mFileOpenCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, sPreFileOpen, this);
     mPlablastCB = MConditionMessage::addConditionCallback( "playblasting", sPlayblasting, this);
+
+    mHUDRender = new ArnoldViewHUDRender( "viewOverrideArnold_HUD" );	
 }
 
 // On destruction all operations are deleted.
@@ -54,6 +58,8 @@ ArnoldViewOverride::~ArnoldViewOverride()
         MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
         textureManager->releaseTexture(mTexture);
     }
+
+	cleanup();
 
     // Clean up callbacks
     //
@@ -79,6 +85,42 @@ MHWRender::DrawAPI ArnoldViewOverride::supportedDrawAPIs() const
     return MHWRender::kAllDevices;
 }
 
+
+// Basic iterator methods
+bool ArnoldViewOverride::startOperationIterator()
+{
+    mCurrentOperation = 0;
+    return true;
+}
+
+MHWRender::MRenderOperation * ArnoldViewOverride::renderOperation()
+{
+    if (mCurrentOperation >= 0 && mCurrentOperation < 6)
+    {
+        if (mOperations[mCurrentOperation])
+        {
+            if (mDebugEnabled)
+            {
+                printf("\t%s : Queue render operation[%d] = (%s)\n",
+                        mName.asChar(),
+                        mCurrentOperation,
+                        mOperations[mCurrentOperation]->name().asChar());
+            }
+            return mOperations[mCurrentOperation];
+        }
+    }
+    return NULL;
+}
+
+bool ArnoldViewOverride::nextRenderOperation()
+{
+    mCurrentOperation++;
+    if (mCurrentOperation < 6)
+    {
+        return true;
+    }
+    return false;
+}
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {    
@@ -156,7 +198,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mOperations.append(sceneOp);
         mOperations.append(new TextureBlit("viewOverrideArnold_Blit"));
         mOperations.append(uiOp);
-        mOperations.append(new MHWRender::MHUDRender());
+        mOperations.append(mHUDRender);
         mOperations.append(new MHWRender::MPresentTarget("viewOverrideArnold_Present"));
     }
 
@@ -429,9 +471,25 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureBlit->setColorTexture(mTexture);
         }
     }
+
+
+    // update the details in the HUD
+    if (mHUDRender)
+    {
+        bool isFinalPass = false;
+        float progress =  session->GetRenderView().GetProgress(isFinalPass);
+        // float progress = 10.0f;
+        mHUDRender->setProgress(progress);
+        std::string status =  session->GetRenderView().GetDisplayedStatus();
+        mHUDRender->setStatus(status.c_str());
+    }
+
+    // update the viewport panel controls to reflect the current state
     MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
 
     session->GetRenderView().PostDisplay();
+
+	mCurrentOperation = -1;
 
     return MStatus::kSuccess;
 }
@@ -441,6 +499,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 //
 MStatus ArnoldViewOverride::cleanup()
 {
+	mCurrentOperation = -1;
     return MStatus::kSuccess;
 }
 
@@ -628,4 +687,56 @@ const MSelectionList* UIObjectDraw::objectSetOverride()
     // only render selected items
     MGlobal::getActiveSelectionList(m_selectionList);
     return &m_selectionList;
+}
+
+/*
+	Class for testing HUD operation options
+*/
+
+ArnoldViewHUDRender::ArnoldViewHUDRender(const MString &name)
+	: MHWRender::MHUDRender()
+	, mName(name)
+    , mProgress(0.0f)
+	{
+	}
+
+void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager2D, const MHWRender::MFrameContext& frameContext )
+{
+    char buffer[256];
+    sprintf( buffer, "Progress: %.2f%%", mProgress);
+
+    // Start draw UI
+    drawManager2D.beginDrawable();
+    // Set font color
+    drawManager2D.setColor( MColor( 0.5f, 0.5f, 0.2f ) );
+    // Set font size
+    drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
+
+    // Draw renderer name
+    int x=0, y=0, w=0, h=0;
+    frameContext.getViewportDimensions( x, y, w, h );
+    drawManager2D.text( MPoint(w*0.02f, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+
+    // Draw viewport information
+    drawManager2D.text( MPoint(w*0.02f, h*0.93f), mStatus, MHWRender::MUIDrawManager::kLeft );
+
+    // End draw UI
+    drawManager2D.endDrawable();
+}
+
+
+// Options
+void ArnoldViewHUDRender::setUserUIDrawables(bool val)
+{
+    mUserUIDrawables = val;
+}
+
+void ArnoldViewHUDRender::setProgress(float value)
+{
+    mProgress = value;
+}
+
+void ArnoldViewHUDRender::setStatus(MString status)
+{
+    mStatus = status;
 }
