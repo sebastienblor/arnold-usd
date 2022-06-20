@@ -480,7 +480,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         float progress =  session->GetRenderView().GetProgress(isFinalPass);
         // float progress = 10.0f;
         mHUDRender->setProgress(progress);
-        std::string status =  session->GetRenderView().GetDisplayedStatus();
+        std::string status =  ltrim(session->GetRenderView().GetDisplayedStatus());
         mHUDRender->setStatus(status.c_str());
     }
 
@@ -696,42 +696,43 @@ const MSelectionList* UIObjectDraw::objectSetOverride()
 ArnoldViewHUDRender::ArnoldViewHUDRender(const MString &name)
 	: MHWRender::MHUDRender()
 	, mName(name)
+    , mUserUIDrawables(true)
     , mProgress(0.0f)
 	{
 	}
 
 void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager2D, const MHWRender::MFrameContext& frameContext )
 {
+    if (mUserUIDrawables)
+    {
+        // Start draw UI
+        drawManager2D.beginDrawable();
+        // Set font color
+        drawManager2D.setColor( MColor( 0.5f, 0.5f, 0.2f ) );
+        // Set font size
+        drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
 
-    // Start draw UI
-    drawManager2D.beginDrawable();
-    // Set font color
-    drawManager2D.setColor( MColor( 0.5f, 0.5f, 0.2f ) );
-    // Set font size
-    drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
+        int x=0, y=0, w=0, h=0;
+        frameContext.getViewportDimensions( x, y, w, h );
+        float offset = 20.0f;
+        float progressbar_max_width = 250.0f;
+        float progress_step_width = 0.001;
+        if (mProgress >= 0.0)
+            progress_step_width = (mProgress*(progressbar_max_width/100.0)*2);
+        // Draw progress bar
+        drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
+        drawManager2D.rect2d(MPoint(progressbar_max_width+offset, h*0.97f), MVector(0.0,1.0), progressbar_max_width+4.0, h*(progressbar_max_width*0.00001));
+        drawManager2D.setLineWidth( 2.0f );
+        drawManager2D.line2d(MPoint(offset+2.0, h*0.97f), MPoint(offset+progress_step_width, h*0.97f));
 
-    int x=0, y=0, w=0, h=0;
-    frameContext.getViewportDimensions( x, y, w, h );
-    float offset = 20.0f;
-    float progress_width = 0.02f;
-    if ( mProgress >= 0 )
-        progress_width = (mProgress*3.95);
-    // Draw progress bar
-    drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
-    drawManager2D.rect2d(MPoint(220.0, h*0.97f), MVector(0.0,1.0), 200.0f, h*0.002f);
-    drawManager2D.setLineWidth( 2.0f );
-    drawManager2D.line2d(MPoint(offset+4.0, h*0.97f), MPoint(offset+2.0+progress_width, h*0.97f));
+        // Draw status and percetage text
+        char buffer[256];
+        sprintf( buffer, "%s | %.2f%%", mStatus.asChar(), mProgress);
+        drawManager2D.text( MPoint(offset, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
 
-    // Draw percetage text
-    char buffer[256];
-    sprintf( buffer, "Progress: %.2f%%", mProgress);
-    drawManager2D.text( MPoint(offset, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
-
-    // Draw render status information
-    drawManager2D.text( MPoint(offset, h*0.93f), mStatus, MHWRender::MUIDrawManager::kLeft );
-
-    // End draw UI
-    drawManager2D.endDrawable();
+        // End draw UI
+        drawManager2D.endDrawable();
+    }
 }
 
 

@@ -43,6 +43,7 @@ class ArnoldViewportRenderControl():
 
         self.update_panels()
         self.setup_callbacks()
+        cmds.ActivateViewport20()
 
     def update(self):
         current_panel = self.get_arnold_panel()

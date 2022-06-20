@@ -15,6 +15,12 @@
 #include <maya/MSelectionList.h>
 
 #include <map>
+#include <algorithm>
+
+static inline std::string ltrim(std::string s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int c) {return !std::isspace(c);}));
+    return s;
+}
 
 /*
 	Class for testing HUD operation options
@@ -30,10 +36,7 @@ public:
     }
 	void addUIDrawables( MHWRender::MUIDrawManager& drawManager2D, const MHWRender::MFrameContext& frameContext ) override;
 
-    MString name()
-    {
-        return mName;
-    }
+    MString name(){ return mName; }
 	// Options
 	void setUserUIDrawables(bool val);
     void setProgress(float value);
