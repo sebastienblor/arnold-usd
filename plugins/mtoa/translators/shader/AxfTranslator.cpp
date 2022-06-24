@@ -1,5 +1,7 @@
 #include "AxfTranslator.h"
+#ifdef ENABLE_AXFTOA
 #include <AxFtoA.h>
+#endif
 
 AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
 {
@@ -22,6 +24,7 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
       return AddArnoldNode("lambert");
    }
 
+#ifdef ENABLE_AXFTOA
    AxFtoASessionStart();
    AxFtoASessionClearErrors();
    int verbosity = 0;
@@ -76,6 +79,11 @@ AtNode* CArnoldAxfShaderTranslator::CreateArnoldNodes()
    AxFtoASessionEnd();
 
    return root_node;
+#else
+   MGlobal::displayError("[mtoa] Axf shader not enabled in this build");
+   return nullptr;
+
+#endif
 }
 
 void CArnoldAxfShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
