@@ -125,6 +125,12 @@ void ArnoldViewportRegionContext::doReleaseCommon( MEvent & event )
 				bottom = (last_y > start_y) ? start_y : last_y;
 				top = (last_y > start_y) ? last_y : start_y;
 
+				// clamp the values to the screen res -1
+				left = std::max(left, 1);
+				right = std::min(right, width-1);
+				bottom = std::max(bottom, 1);
+				top = std::min(top, height-1);
+
 				MFnDependencyNode fnArnoldRenderOptions(sessionOptions.GetArnoldRenderOptions());
 				MPlug avpRegionLeft = fnArnoldRenderOptions.findPlug("avpRegionLeft", true);
 				MPlug avpRegionRight = fnArnoldRenderOptions.findPlug("avpRegionRight", true);

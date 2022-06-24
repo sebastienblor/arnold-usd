@@ -16,10 +16,13 @@ global gArnoldViewportRenderContol
 gArnoldViewportRenderContol = None
 
 def getOption(option, **kwargs):
-    return cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(get=\"{}\")".format(option), **kwargs)
+    return cmds.arnoldViewOverrideOptionBox(get=option)
 
 def setOption(option, value, **kwargs):
-    cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"{}\", \"{}\"))".format(option, value), **kwargs)
+    if len(kwargs):
+        cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"{}\", \"{}\"))".format(option, value), **kwargs)
+    else:
+        cmds.arnoldViewOverrideOptionBox(opt=(option, value))
 
 ON = True
 OFF = False
@@ -41,15 +44,31 @@ class ArnoldViewportRenderControl():
         self.crop_region = (0,0,0,0)
         self.debug_mode = {} 
 
-        self.update_panels()
+        self.update_panels(True)
         self.setup_callbacks()
         cmds.ActivateViewport20()
 
-    def update(self):
+    def update(self, panel):
         current_panel = self.get_arnold_panel()
+        if panel == "arnoldRenderView":
+            self.ipr_state = OFF
+            self.crop_state = OFF
+            self.update_panels()
+            return
+        
         if current_panel:
-            self.ipr_state = getOption("Run IPR")
-            self.crop_state = getOption("Crop Region")
+            self.ipr_state = getOption("Run IPR") == "1"
+            self.crop_state = getOption("Crop Region") == "1"
+
+        if self.crop_state:
+            showHUD = True
+            reg = []
+            for at in ['avpRegionLeft', 'avpRegionRight', 'avpRegionTop', 'avpRegionBottom']:
+                reg.append(cmds.getAttr("defaultArnoldRenderOptions."+at))
+           
+            if reg == [0,0,0,0]:
+                showHUD = False
+            cmds.arnoldViewOverrideOptionBox(hud=showHUD)
 
     def setup_callbacks(self):
 
@@ -124,7 +143,7 @@ class ArnoldViewportRenderControl():
         if state != self.ipr_state:
             ipr_value = "1" if state else "0"
             self.ipr_state = state
-            setOption("Run IPR", ipr_value, low=True)
+            setOption("Run IPR", ipr_value, lp=True)
 
     def restart(self, arnold_panel):
         cmds.arnoldViewOverrideOptionBox(opt=("Refresh Render", "1"))    
@@ -158,14 +177,20 @@ class ArnoldViewportRenderControl():
             # check if the current view is enabled for full frame, and disable the icon if it is 
             self.update_button_state("avp_toggle", arnold_panel, False)
 
-            cmds.modelEditor(arnold_panel, e=True,
+            self.set_crop(ON)
+            if cmds.modelEditor(
+                    arnold_panel,
+                    q=True,
+                    rendererOverrideName=True) != VIEW_OVERRIDE:
+                cmds.modelEditor(arnold_panel, e=True,
                         rendererOverrideName=VIEW_OVERRIDE)
             cmds.arnoldViewportRegionToolContext()
             cmds.setToolTo(CROP_CTX)
-            self.set_crop(ON)
             if not self.ipr_state:
                 self.set_ipr(ON)
-                
+
+        cmds.refresh(cv=True, force=True)
+
         self.update_icon_bar_enable_state(arnold_panel, state)
 
         # make sure the icon state reflects the actual tool state.
@@ -175,7 +200,7 @@ class ArnoldViewportRenderControl():
         if state != self.crop_state:
             crop_value = "1" if state else "0"
             self.crop_state = state
-            setOption("Crop Region", crop_value, low=True)
+            setOption("Crop Region", crop_value)
 
     def get_crop_region(self):
         defaultOptionsNode = 'defaultArnoldRenderOptions'
@@ -199,7 +224,7 @@ class ArnoldViewportRenderControl():
         if cmds.iconTextCheckBox(icn_name, ex=True) and cmds.iconTextCheckBox(icn_name, q=True, v=True) != state:
                 cmds.iconTextCheckBox(icn_name, e=True, v=state)
 
-    def update_icon_bar_enable_state(self, arnold_panel, state):
+    def update_icon_bar_enable_state(self, arnold_panel, state, reset=False):
         """Some buttons should be disabled until a render takes place, i.e.
         crop and restart.
 
@@ -215,6 +240,8 @@ class ArnoldViewportRenderControl():
         debug_ctl = 'avp_debug_%s' % arnold_panel
         if cmds.iconTextCheckBox(debug_ctl, ex=True):
             cmds.iconTextCheckBox(debug_ctl, e=True, en=state)
+            if reset:
+                self.toggle_debug(arnold_panel, False)
 
         aov_ctl = 'avp_aov_%s' % arnold_panel
         if cmds.iconTextButton(aov_ctl, ex=True):
@@ -406,29 +433,32 @@ class ArnoldViewportRenderControl():
                 "Barycentric",
                 "Lighting"]
 
+        # clear the menu
         cmds.popupMenu(parent, e=True, deleteAllItems=True)
+
+        # start adding new items
+        cmds.menuItem(l='Enable debug shading',                  
+                    p=parent,
+                    cb=current_state,
+                    c=partial(self.toggle_debug, panel))
+        cmds.menuItem(divider=True, p=parent)
         k_collection_name = parent.split('|')[-1] + '_collection'
         cmds.radioMenuItemCollection(k_collection_name, p=parent)
         for mode in modes:
             cmds.menuItem(l=mode, p=parent, rb=(self.debug_mode[panel] == mode),
                         collection=k_collection_name, c=partial(self.change_debug_mode, mode, panel))
 
-        cmds.menuItem(divider=True, p=parent)
-        cmds.menuItem(l='Enable debug shading',                  
-                    p=parent,
-                    cb=current_state,
-                    c=partial(self.toggle_debug, panel))
 
     def change_debug_mode(self, mode, arnold_panel, *args):
-        """Store the new resolution multiplier and restart the render if it was
-        already running.
+        """Change the debug mode if it is different to the current debug mdoe
 
         Arguments:
-            args[0] {float}: the new resolution multiplier
+            args[0] {str}: the new debug mode
             args[1] {str}: the current panel
         """
-        self.debug_mode[arnold_panel] = mode
-        self.toggle_debug(arnold_panel, True)
+        if mode != self.debug_mode[arnold_panel] or getOption("Debug Shading") == 'Disabled':
+            self.debug_mode[arnold_panel] = mode
+            self.toggle_debug(arnold_panel, True)
 
     def toggle_debug(self, arnold_panel, state):
 
@@ -490,14 +520,14 @@ class ArnoldViewportRenderControl():
             else:
                 self.setup_icon_bar(iconbar, panel, uip)
     
-    def update_panels(self):
+    def update_panels(self, reset=False):
         panel_list = cmds.getPanel(type='modelPanel')
         if not panel_list:
             return
         for panel in panel_list:
             self.update_button_state("avp_crop", panel, self.crop_state)
             self.update_button_state("avp_toggle", panel, self.ipr_state)
-            self.update_icon_bar_enable_state(panel, self.ipr_state or self.crop_state)
+            self.update_icon_bar_enable_state(panel, self.ipr_state or self.crop_state, reset)
 
 
 def add_controls():
@@ -522,4 +552,15 @@ def update_controls(panel):
     global gArnoldViewportRenderContol
 
     if gArnoldViewportRenderContol:
-        gArnoldViewportRenderContol.update()
+        gArnoldViewportRenderContol.update(panel)
+
+def run_override(panel):
+    """Update the controls, called when a scene is opened or new scene created
+
+    Args:
+        panel (string): panel to update
+    """
+    global gArnoldViewportRenderContol
+
+    if gArnoldViewportRenderContol and not gArnoldViewportRenderContol.crop_state:
+        gArnoldViewportRenderContol.toggle_render(panel, True)

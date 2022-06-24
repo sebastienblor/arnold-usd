@@ -7,6 +7,7 @@
 // provided at the time of installation or download, or which otherwise
 // accompanies this software in either electronic or hard copy form.
 //+
+#include <ai.h>
 #include <maya/MString.h>
 #include <maya/MViewport2Renderer.h>
 #include <maya/MShaderManager.h>
@@ -73,6 +74,8 @@ public:
     {
         return mUIName;
     }
+
+    ArnoldViewHUDRender *getHUDRenderer(){return mHUDRender;}
 
 protected:
 

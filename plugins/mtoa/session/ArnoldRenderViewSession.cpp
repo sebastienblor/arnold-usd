@@ -305,6 +305,11 @@ void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)
       if (destination.length() > 0)
          viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
    }
+   // set command to reset the viewport buttons
+   else
+   {
+      MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
+   }
    
    // Close all but the destination render override if there is one
    // If the destination is an empty string it is the ARV.
