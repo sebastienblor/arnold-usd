@@ -243,11 +243,6 @@ env['MTOA_VERSION'] = MTOA_VERSION
 # This can be overridden through command line by setting e.g. "abuild -j 1"
 SetOption('num_jobs', int(cpu_count()))
 
-if system.os == 'darwin' and env['TARGET_ARCH'].find('arm64') >= 0:
-    set_target_arch('arm64')
-else:
-    set_target_arch(env['TARGET_ARCH'])
-
 # Configure colored output
 color_green   = ''
 color_red     = ''
@@ -669,7 +664,7 @@ env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
 
 ## configure base directory for temp files
-BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, env['TARGET_ARCH']), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
