@@ -60,6 +60,7 @@ def StringVariable(key, help, default):
 vars = Variables('custom.py')
 vars.AddVariables(
     ## basic options
+    StringVariable('TARGET_ARCH', 'Target Architecture', 'x86_64'),
     EnumVariable('MODE'       , 'Set compiler configuration', 'opt'             , allowed_values=('opt', 'debug', 'profile')),
     EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
     EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
@@ -193,14 +194,16 @@ vars.AddVariables(
 )
 
 if system.os == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.11', allowed_values=('10.11', '10.12','10.13', '10.14')))
+    vars.Add(StringVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', None))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
-
+    vars.Add(StringVariable('MACOS_VERSION_MIN', 'Target MacOS version', '10.11'))
+    
 if system.os == 'windows':
     vars.Add(BoolVariable('USE_VISUAL_STUDIO_EXPRESS', 'Use the express version of visual studio. (UNSUPPORTED!)', False))
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
+    TARGET_ARCH = tmp_env['TARGET_ARCH']
     tmp_env.Append(MSVC_ARCH = 'amd64')
     MAYA_ROOT = tmp_env.subst(tmp_env['MAYA_ROOT'])
     MAYA_INCLUDE_PATH = tmp_env.subst(tmp_env['MAYA_INCLUDE_PATH'])
@@ -222,7 +225,7 @@ if system.os == 'windows':
     #print tmp_env['MSVC_VERSION']
     env = tmp_env.Clone(tools=['default'])
     # restore as the Clone overrides it
-    env['TARGET_ARCH'] = 'x86_64'
+    env['TARGET_ARCH'] = TARGET_ARCH
 else:
     env = Environment(variables = vars)
 
@@ -240,7 +243,10 @@ env['MTOA_VERSION'] = MTOA_VERSION
 # This can be overridden through command line by setting e.g. "abuild -j 1"
 SetOption('num_jobs', int(cpu_count()))
 
-set_target_arch('x86_64')
+if system.os == 'darwin' and env['TARGET_ARCH'].find('arm64') >= 0:
+    set_target_arch('arm64')
+else:
+    set_target_arch(env['TARGET_ARCH'])
 
 # Configure colored output
 color_green   = ''
@@ -423,7 +429,6 @@ export_symbols = env['MODE'] in ['debug', 'profile']
 
 # FIXME : Bifrost library "bifrostrendercore" is returning warnings. Until we solve this I'm forcing warn_only here :-/
 env['WARN_LEVEL'] = 'warn_only'
-env['MACOS_VERSION_MIN'] = '10.11'
 
 if env['COMPILER'] == 'gcc':
     if system.os == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
@@ -511,14 +516,26 @@ if env['COMPILER'] == 'gcc':
 
     if system.os == 'darwin':
         ## tell gcc to compile a 64 bit binary
-        env.Append(CCFLAGS = Split('-arch x86_64'))
-        env.Append(LINKFLAGS = Split('-arch x86_64'))
+        if env['TARGET_ARCH'] == 'x86_64':
+            env.Append(CCFLAGS   = ['-arch', 'x86_64'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
+        if env['TARGET_ARCH'] == 'arm64':
+            env.Append(CCFLAGS   = ['-arch', 'arm64'])
+            env.Append(LINKFLAGS = ['-arch', 'arm64'])
+        if env['TARGET_ARCH'].find('arm64') >= 0 and env['TARGET_ARCH'].find('x86_64') >= 0:
+            env.Append(CCFLAGS   = ['-arch', 'arm64'])
+            env.Append(CCFLAGS   = ['-arch', 'x86_64'])
+            env.Append(LINKFLAGS = ['-arch', 'arm64'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
         env.Append(CCFLAGS = env.Split('-mmacosx-version-min=' + env['MACOS_VERSION_MIN']))
         env.Append(LINKFLAGS = env.Split('-mmacosx-version-min='+ env['MACOS_VERSION_MIN']))
 
-        env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
-        env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+
+        if env['SDK_VERSION']:
+            env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+            env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+
         env.Append(LINKFLAGS = env.Split(['-framework', 'Security']))
 
 elif env['COMPILER'] == 'msvc':
