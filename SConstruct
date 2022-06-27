@@ -189,6 +189,7 @@ vars.AddVariables(
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline/master builds', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
+    BoolVariable('ENABLE_AXFTOA' , 'Enable the build of the AXF shader that links against AxftoA', True),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
@@ -321,7 +322,9 @@ if clm_version == 2:
     env.Append(CPPDEFINES = Split('CLIC_V2')) 
 else:
     env.Append(CPPDEFINES = Split('CLIC_V1')) 
-    
+
+if env['ENABLE_AXFTOA']:
+    env.Append(CPPDEFINES = Split('ENABLE_AXFTOA')) 
 
 # Always read Maya VERSION from MType.h
 maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
@@ -1105,10 +1108,11 @@ if int(maya_version_base) < 2024:
     else:
         env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
 
-if (system.os == 'linux'):
-    env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
-else:
-    env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*%s" % get_library_extension())))
+if env['ENABLE_AXFTOA']:
+    if (system.os == 'linux'):
+        env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
+    else:
+        env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*%s" % get_library_extension())))
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(ARNOLD, 'license', '*')))
 
@@ -1566,10 +1570,11 @@ PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTem
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, '*.txt'), 'bin'])
 
-if (system.os == 'linux'):
-    PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
-else:
-    PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*%s' % get_library_extension()), 'bin'])
+if env['ENABLE_AXFTOA']:
+    if (system.os == 'linux'):
+        PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
+    else:
+        PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*%s' % get_library_extension()), 'bin'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 

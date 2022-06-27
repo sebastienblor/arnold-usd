@@ -15,7 +15,6 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDGModifier.h>
 #include <maya/MStatus.h>
-#include "AxFtoA.h"
 
 MTypeId CArnoldAxfShaderNode::id(ARNOLD_NODEID_SHADER_AXF);
 
