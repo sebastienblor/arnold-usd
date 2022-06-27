@@ -785,6 +785,7 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
 
         // Draw status and percetage text
         char buffer[256];
+        std::snprintf(buffer, 256, "%s | %.2f%%", mStatus.asChar(), mProgress);
         drawManager2D.text( MPoint(offset, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
 
         // End draw UI
