@@ -54,104 +54,104 @@
 // The user Context
 //////////////////////////////////////////////
 const char helpString[] =
-			"Click and drag with left button to create a new Arnold render region";
+            "Click and drag with left button to create a new Arnold render region";
 
 
 static std::string s_arnoldViewportSession("arnoldViewport");
 
 ArnoldViewportRegionContext::ArnoldViewportRegionContext()
 {
-	setTitleString ( "Arnold Viewport Region Tool" );
-	setCursor( MCursor::crossHairCursor );
-	// Tell the context which XPM to use so the tool can properly
-	// be a candidate for the 6th position on the toolbar.
-	setImage("ArnoldViewportRegionTool.png", MPxContext::kImage1 );
+    setTitleString ( "Arnold Viewport Region Tool" );
+    setCursor( MCursor::crossHairCursor );
+    // Tell the context which XPM to use so the tool can properly
+    // be a candidate for the 6th position on the toolbar.
+    setImage("ArnoldViewportRegionTool.png", MPxContext::kImage1 );
 
 }
 
 void ArnoldViewportRegionContext::toolOnSetup ( MEvent & )
 {
-	setHelpString( helpString );
+    setHelpString( helpString );
 }
 
 void ArnoldViewportRegionContext::doPressCommon( MEvent & event )
 {
-	// TODO multiple regions with modifiers
+    // TODO multiple regions with modifiers
 
-	// if (event.isModifierShift() || event.isModifierControl() ) {
-	// 	if ( event.isModifierShift() ) {
-	// 		if ( event.isModifierControl() ) {
-	// 			// both shift and control pressed, merge new selections
-	// 			listAdjustment = MGlobal::kAddToList;
-	// 		} else {
-	// 			// shift only, xor new selections with previous ones
-	// 			listAdjustment = MGlobal::kXORWithList;
-	// 		}
-	// 	} else if ( event.isModifierControl() ) {
-	// 		// control only, remove new selections from the previous list
-	// 		listAdjustment = MGlobal::kRemoveFromList; 
-	// 	}
-	// } else {
-	// 	listAdjustment = MGlobal::kReplaceList;
-	// }
+    // if (event.isModifierShift() || event.isModifierControl() ) {
+    // 	if ( event.isModifierShift() ) {
+    // 		if ( event.isModifierControl() ) {
+    // 			// both shift and control pressed, merge new selections
+    // 			listAdjustment = MGlobal::kAddToList;
+    // 		} else {
+    // 			// shift only, xor new selections with previous ones
+    // 			listAdjustment = MGlobal::kXORWithList;
+    // 		}
+    // 	} else if ( event.isModifierControl() ) {
+    // 		// control only, remove new selections from the previous list
+    // 		listAdjustment = MGlobal::kRemoveFromList; 
+    // 	}
+    // } else {
+    // 	listAdjustment = MGlobal::kReplaceList;
+    // }
 
-	// If click just delete the region
-	MGlobal::executeCommandOnIdle("aiViewRegionCmd -delete;");
+    // If click just delete the region
+    MGlobal::executeCommandOnIdle("aiViewRegionCmd -delete;");
 
-	// Extract the event information for the start position
-	//
-	event.getPosition( start_x, start_y );
+    // Extract the event information for the start position
+    //
+    event.getPosition( start_x, start_y );
 }
 
 void ArnoldViewportRegionContext::doReleaseCommon( MEvent & event )
 {
-	// Get the end position of the ArnoldViewportRegion
-	event.getPosition( last_x, last_y );
+    // Get the end position of the ArnoldViewportRegion
+    event.getPosition( last_x, last_y );
 
-	// Only do a region if it is larger than 2x2	//
-	if ( abs(start_x - last_x) > 2 && abs(start_y - last_y) > 2 ) {
-		CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    // Only do a region if it is larger than 2x2	//
+    if ( abs(start_x - last_x) > 2 && abs(start_y - last_y) > 2 ) {
+        CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
         if (session)
         {  
-			CSessionOptions &sessionOptions = session->GetOptions();
-			session->GetRenderView().InterruptRender(true);
-			int width, height;
-			if (sessionOptions.GetResolution(width, height))
-			{
-				int left, right, top, bottom;
+            CSessionOptions &sessionOptions = session->GetOptions();
+            session->GetRenderView().InterruptRender(true);
+            int width, height;
+            if (sessionOptions.GetResolution(width, height))
+            {
+                int left, right, top, bottom;
 
-				left = (last_x > start_x) ? start_x : last_x;
-				right = (last_x > start_x) ? last_x : start_x;
-				bottom = (last_y > start_y) ? start_y : last_y;
-				top = (last_y > start_y) ? last_y : start_y;
+                left = (last_x > start_x) ? start_x : last_x;
+                right = (last_x > start_x) ? last_x : start_x;
+                bottom = (last_y > start_y) ? start_y : last_y;
+                top = (last_y > start_y) ? last_y : start_y;
 
-				// clamp the values to the screen res -1
-				left = std::max(left, 1);
-				right = std::min(right, width-1);
-				bottom = std::max(bottom, 1);
-				top = std::min(top, height-1);
+                // clamp the values to the screen res -1
+                left = std::max(left, 1);
+                right = std::min(right, width-1);
+                bottom = std::max(bottom, 1);
+                top = std::min(top, height-1);
 
-				MFnDependencyNode fnArnoldRenderOptions(sessionOptions.GetArnoldRenderOptions());
-				MPlug avpRegionLeft = fnArnoldRenderOptions.findPlug("avpRegionLeft", true);
-				MPlug avpRegionRight = fnArnoldRenderOptions.findPlug("avpRegionRight", true);
-				MPlug avpRegionTop = fnArnoldRenderOptions.findPlug("avpRegionTop", true);
-				MPlug avpRegionBottom = fnArnoldRenderOptions.findPlug("avpRegionBottom", true);
+                MFnDependencyNode fnArnoldRenderOptions(sessionOptions.GetArnoldRenderOptions());
+                MPlug avpRegionLeft = fnArnoldRenderOptions.findPlug("avpRegionLeft", true);
+                MPlug avpRegionRight = fnArnoldRenderOptions.findPlug("avpRegionRight", true);
+                MPlug avpRegionTop = fnArnoldRenderOptions.findPlug("avpRegionTop", true);
+                MPlug avpRegionBottom = fnArnoldRenderOptions.findPlug("avpRegionBottom", true);
 
-				avpRegionLeft.setInt(left);
-				avpRegionRight.setInt(right);
-				avpRegionTop.setInt(top);
-				avpRegionBottom.setInt(bottom);
-				
-				sessionOptions.SetRegion(left, right, bottom, top); // expected order is left, right, bottom, top
-         		MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;arnoldViewOverrideOptionBox -opt \"Crop Region\" \"1\"");
-				MString arvRunIpr = session->GetRenderViewOption(MString("Run IPR"));
-				if (arvRunIpr != MString("0"))
-				{
-					session->RequestUpdate();
-				}
-			}			    
-		}
-	}
+                avpRegionLeft.setInt(left);
+                avpRegionRight.setInt(right);
+                avpRegionTop.setInt(top);
+                avpRegionBottom.setInt(bottom);
+                
+                sessionOptions.SetRegion(left, right, bottom, top); // expected order is left, right, bottom, top
+                 MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;arnoldViewOverrideOptionBox -opt \"Crop Region\" \"1\"");
+                MString arvRunIpr = session->GetRenderViewOption(MString("Run IPR"));
+                if (arvRunIpr != MString("0"))
+                {
+                    session->RequestUpdate();
+                }
+            }			    
+        }
+    }
 
 }
 
@@ -161,12 +161,12 @@ MStatus ArnoldViewportRegionContext::doPress( MEvent & event )
 // Get the start position of the ArnoldViewportRegion 
 //
 {
-	doPressCommon( event );
+    doPressCommon( event );
 
-	view = M3dView::active3dView();
-	fsDrawn = false;
+    view = M3dView::active3dView();
+    fsDrawn = false;
 
-	return MS::kSuccess;
+    return MS::kSuccess;
 }
 
 MStatus ArnoldViewportRegionContext::doDrag( MEvent & event )
@@ -174,95 +174,95 @@ MStatus ArnoldViewportRegionContext::doDrag( MEvent & event )
 // Drag out the ArnoldViewportRegion (using OpenGL)
 //
 {
-	view.beginXorDrawing();
+    view.beginXorDrawing();
 
-	if (fsDrawn) {
-		// Redraw the ArnoldViewportRegion at its old position to erase it.
-		drawMarqueeGL();
-	}
+    if (fsDrawn) {
+        // Redraw the ArnoldViewportRegion at its old position to erase it.
+        drawMarqueeGL();
+    }
 
-	fsDrawn = true;
+    fsDrawn = true;
 
-	//	Get the ArnoldViewportRegion's new end position.
-	event.getPosition( last_x, last_y );
+    //	Get the ArnoldViewportRegion's new end position.
+    event.getPosition( last_x, last_y );
 
-	// Draw the ArnoldViewportRegion at its new position.
-	drawMarqueeGL();
+    // Draw the ArnoldViewportRegion at its new position.
+    drawMarqueeGL();
 
-	view.endXorDrawing();
+    view.endXorDrawing();
 
-	return MS::kSuccess;		
+    return MS::kSuccess;		
 }
 
 MStatus ArnoldViewportRegionContext::doRelease( MEvent & event )
 //
 // Selects objects within the ArnoldViewportRegion box.
 {
-	if (fsDrawn) {
-		view.beginXorDrawing();
-		// Redraw the ArnoldViewportRegion at its old position to erase it.
-		drawMarqueeGL();
+    if (fsDrawn) {
+        view.beginXorDrawing();
+        // Redraw the ArnoldViewportRegion at its old position to erase it.
+        drawMarqueeGL();
 
-		view.endXorDrawing();
-	}
+        view.endXorDrawing();
+    }
 
-	doReleaseCommon( event );
+    doReleaseCommon( event );
 
-	return MS::kSuccess;
+    return MS::kSuccess;
 }
 
 MStatus	ArnoldViewportRegionContext::doPress (
-	MEvent & event,
-	MHWRender::MUIDrawManager& drawMgr,
-	const MHWRender::MFrameContext& context)
+    MEvent & event,
+    MHWRender::MUIDrawManager& drawMgr,
+    const MHWRender::MFrameContext& context)
 {
-	doPressCommon( event );
-	return MS::kSuccess;
+    doPressCommon( event );
+    return MS::kSuccess;
 }
 
 MStatus	ArnoldViewportRegionContext::doRelease(
-	MEvent & event,
-	MHWRender::MUIDrawManager& drawMgr,
-	const MHWRender::MFrameContext& context)
+    MEvent & event,
+    MHWRender::MUIDrawManager& drawMgr,
+    const MHWRender::MFrameContext& context)
 {
-	doReleaseCommon( event );
-	return MS::kSuccess;
+    doReleaseCommon( event );
+    return MS::kSuccess;
 }
 
 MStatus	ArnoldViewportRegionContext::doDrag (
-	MEvent & event,
-	MHWRender::MUIDrawManager& drawMgr,
-	const MHWRender::MFrameContext& context)
+    MEvent & event,
+    MHWRender::MUIDrawManager& drawMgr,
+    const MHWRender::MFrameContext& context)
 {
-	//	Get the ArnoldViewportRegion's new end position.
-	event.getPosition( last_x, last_y );
+    //	Get the ArnoldViewportRegion's new end position.
+    event.getPosition( last_x, last_y );
 
-	// Draw the ArnoldViewportRegion at its new position.
-	drawMgr.beginDrawable();
-	drawMgr.setColor( MColor(0.8f, 0.8f, 0.2f) );
+    // Draw the ArnoldViewportRegion at its new position.
+    drawMgr.beginDrawable();
+    drawMgr.setColor( MColor(0.8f, 0.8f, 0.2f) );
     drawMgr.setLineStyle(MHWRender::MUIDrawManager::kDashed);
-	drawMgr.line2d( MPoint( start_x, start_y), MPoint(last_x, start_y) );
-	drawMgr.line2d( MPoint( last_x, start_y), MPoint(last_x, last_y) );
-	drawMgr.line2d( MPoint( last_x, last_y), MPoint(start_x, last_y) );
-	drawMgr.line2d( MPoint( start_x, last_y), MPoint(start_x, start_y) );
-	drawMgr.endDrawable();
+    drawMgr.line2d( MPoint( start_x, start_y), MPoint(last_x, start_y) );
+    drawMgr.line2d( MPoint( last_x, start_y), MPoint(last_x, last_y) );
+    drawMgr.line2d( MPoint( last_x, last_y), MPoint(start_x, last_y) );
+    drawMgr.line2d( MPoint( start_x, last_y), MPoint(start_x, start_y) );
+    drawMgr.endDrawable();
 
-	return MS::kSuccess;
+    return MS::kSuccess;
 }
 
 MStatus ArnoldViewportRegionContext::doEnterRegion( MEvent & )
 {
-	return setHelpString( helpString );
+    return setHelpString( helpString );
 }
 
 void ArnoldViewportRegionContext::drawMarqueeGL()
 {
-	glBegin( GL_LINE_LOOP );
-		glVertex2i( start_x, start_y );
-		glVertex2i( last_x, start_y );
-		glVertex2i( last_x, last_y );
-		glVertex2i( start_x, last_y );
-	glEnd();
+    glBegin( GL_LINE_LOOP );
+        glVertex2i( start_x, start_y );
+        glVertex2i( last_x, start_y );
+        glVertex2i( last_x, last_y );
+        glVertex2i( start_x, last_y );
+    glEnd();
 }
 
 // comand to create the context
@@ -271,10 +271,10 @@ ArnoldViewportRegionContextCmd::ArnoldViewportRegionContextCmd() {}
 
 MPxContext* ArnoldViewportRegionContextCmd::makeObj()
 {
-	return new ArnoldViewportRegionContext();
+    return new ArnoldViewportRegionContext();
 }
 
 void* ArnoldViewportRegionContextCmd::creator()
 {
-	return new ArnoldViewportRegionContextCmd;
+    return new ArnoldViewportRegionContextCmd;
 }
