@@ -1096,13 +1096,14 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extensio
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
 
-# install syncolor packages 
-syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os)
-if (system.os == 'linux'):
-    # on linux the version number is after ".so."
-    env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
-else:
-    env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
+if int(maya_version_base) < 2024:
+    # install syncolor packages until Maya 2023
+    syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os)
+    if (system.os == 'linux'):
+        # on linux the version number is after ".so."
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
+    else:
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
 
 if (system.os == 'linux'):
     env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
@@ -1546,17 +1547,19 @@ for p in presetfiles:
 
 PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
 
-# we also need to copy the syncolor dylib, for syncolor extension
-# FIXME couldn't this be done in the extension script ?
-syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os)
-if (system.os == 'linux'):
-    # on linux the syncolor version number is after ".so."
-    syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
-else:
-    syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
 
-for syncolor_file in syncolor_files:
-    PACKAGE_FILES.append([syncolor_file, 'bin'])
+if int(maya_version_base) < 2024:
+    # we also need to copy the syncolor dylib, for syncolor extension
+    # FIXME couldn't this be done in the extension script ?
+    syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os)
+    if (system.os == 'linux'):
+        # on linux the syncolor version number is after ".so."
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
+    else:
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
+
+    for syncolor_file in syncolor_files:
+        PACKAGE_FILES.append([syncolor_file, 'bin'])
         
 
 PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
@@ -1676,7 +1679,8 @@ PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup%s
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
-PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'plugins'])
+if int(maya_version_base) < 2024:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'plugins'])
 
 if env['ENABLE_GPU_CACHE'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])
