@@ -489,8 +489,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         // get the current render time from the current render
         size_t rtime = session->GetRenderView().GetRenderTime();
-        const char * status_str = session->GetRenderView().GetDisplayedStatus();
-        if (rtime > 0 && strlen(status_str))
+        std::string display_status(session->GetRenderView().GetDisplayedStatus());
+        if (rtime > 0 && display_status.length())
         {
 
             bool isFinalPass = false;
@@ -532,7 +532,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             else statusStr << (int)secondsCount;
             
             statusStr << " ";
-            statusStr << ltrim(status_str);
+            statusStr << ltrim(display_status);
 
             mHUDRender->setStatus(statusStr.str().c_str());
         }
