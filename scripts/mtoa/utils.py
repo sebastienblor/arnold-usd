@@ -710,3 +710,5 @@ def populate_GPUCache():
     ai.AiGPUCachePopulate(ai.AI_GPU_CACHE_POPULATE_NON_BLOCKING, use_threads , cache_populate_callback)
     dialog.show()
 
+def nodeTypeExists(nodetype):
+    return nodetype in cmds.allNodeTypes()
