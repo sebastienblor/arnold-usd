@@ -239,7 +239,8 @@ MStatus	ArnoldViewportRegionContext::doDrag (
 
 	// Draw the ArnoldViewportRegion at its new position.
 	drawMgr.beginDrawable();
-	drawMgr.setColor( MColor(1.0f, 0.2f, 0.0f) );
+	drawMgr.setColor( MColor(0.8f, 0.8f, 0.2f) );
+    drawMgr.setLineStyle(MHWRender::MUIDrawManager::kDashed);
 	drawMgr.line2d( MPoint( start_x, start_y), MPoint(last_x, start_y) );
 	drawMgr.line2d( MPoint( last_x, start_y), MPoint(last_x, last_y) );
 	drawMgr.line2d( MPoint( last_x, last_y), MPoint(start_x, last_y) );
