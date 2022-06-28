@@ -6,6 +6,7 @@ import mtoa.ui.ae.templates as templates
 import mtoa.callbacks as callbacks
 import mtoa.melUtils as melUtils
 import mtoa.core as core
+import mtoa.utils as utils
 import re
 import mtoa.aovs as aovs
 import arnold.ai_ray as ai_ray
@@ -33,7 +34,8 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
         
-templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
+if utils.nodeTypeExists('particle'):
+    templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
 
 class NParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
@@ -59,8 +61,9 @@ class NParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
-    
-templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
+
+if utils.nodeTypeExists('nParticle'):
+    templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
 
 class MeshTemplate(templates.ShapeTranslatorTemplate):
 
