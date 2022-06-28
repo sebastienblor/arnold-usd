@@ -221,6 +221,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          if (cameras.length() > 0)
             renderCamera = cameras[0];
       }
+      if (renderCamera.isValid())
+         renderCamera.extendToShape();
       session->SetExportCamera(renderCamera, false);
 
       // FIXME do we want the preMel callbacks and should they be handled here ???
