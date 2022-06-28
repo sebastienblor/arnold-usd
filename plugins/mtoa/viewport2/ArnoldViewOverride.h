@@ -7,6 +7,7 @@
 // provided at the time of installation or download, or which otherwise
 // accompanies this software in either electronic or hard copy form.
 //+
+#include <ai.h>
 #include <maya/MString.h>
 #include <maya/MViewport2Renderer.h>
 #include <maya/MShaderManager.h>
@@ -15,6 +16,41 @@
 #include <maya/MSelectionList.h>
 
 #include <map>
+#include <algorithm>
+
+static inline std::string ltrim(std::string s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int c) {return !std::isspace(c);}));
+    return s;
+}
+
+/*
+	Class for testing HUD operation options
+*/
+class ArnoldViewHUDRender : public MHWRender::MHUDRender
+{
+public:
+	ArnoldViewHUDRender(const MString &name);
+
+	bool hasUIDrawables() const override
+    {
+        return true;
+    }
+	void addUIDrawables( MHWRender::MUIDrawManager& drawManager2D, const MHWRender::MFrameContext& frameContext ) override;
+
+    MString name(){ return mName; }
+	// Options
+	void setUserUIDrawables(bool val);
+    void setProgress(float value);
+    void setStatus(MString status);
+protected:
+	bool mUserUIDrawables;
+	bool mOverrideViewRectangle;
+	MFloatPoint mViewRectangle;
+	bool mDebugTrace;
+	MString mName;
+    float mProgress;
+    MString mStatus;
+};
 
 //
 // Simple override class derived from MRenderOverride
@@ -30,11 +66,16 @@ public:
     virtual MStatus setup(const MString & destination);
     virtual MStatus cleanup();
 
+	bool startOperationIterator() override;
+	MHWRender::MRenderOperation * renderOperation() override;
+	bool nextRenderOperation() override;
     // UI name
     virtual MString uiName() const
     {
         return mUIName;
     }
+
+    ArnoldViewHUDRender *getHUDRenderer(){return mHUDRender;}
 
 protected:
 
@@ -43,6 +84,7 @@ protected:
     // UI name 
     MString mUIName;
     MHWRender::MTexture *mTexture;
+	ArnoldViewHUDRender *mHUDRender;
 
     // Callback IDs for tracking viewport changes
     MCallbackId mRendererChangeCB;
@@ -75,6 +117,9 @@ protected:
     std::map<std::string, RegionRenderState> mRegionRenderStateMap;
     MCallbackId mFileOpenCallbackID;
     MCallbackId mFileNewCallbackID;
+
+	int mCurrentOperation;
+    bool mDebugEnabled;
 };
 
 //
@@ -125,6 +170,7 @@ public:
     virtual const MSelectionList* objectSetOverride();
 
     MFloatPoint ViewRectangle() const;
+
 
 protected:
     MSelectionList m_selectionList;

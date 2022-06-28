@@ -10,6 +10,7 @@
 #include "ArnoldViewOverride.h"
 #include "session/ArnoldRenderViewSession.h"
 #include "session/SessionManager.h"
+#include "utils/ConstantStrings.h"
 #include <maya/MItDependencyNodes.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MObject.h>
@@ -20,6 +21,8 @@
 #include <maya/MConditionMessage.h>
 
 #include "translators/DagTranslator.h"
+
+#include <sstream>
 
 static MFloatPoint s_ViewRectangle = MFloatPoint(0.0f, 0.0f, 0.0f, 0.0f);
 static MString s_activeViewport(""); // store the name of the last active viewport
@@ -34,14 +37,25 @@ static unsigned int s_height = 0;
 ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     : MRenderOverride(name)
     , mUIName("Arnold")
+    , mCurrentOperation(-1)
     , mTexture(NULL)
     , mRendererChangeCB(0)
     , mRenderOverrideChangeCB(0)
+    , mDebugEnabled(false)
 {
     // register a file open and file new callback
     mFileNewCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeNew, sPreFileOpen, this);
     mFileOpenCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, sPreFileOpen, this);
     mPlablastCB = MConditionMessage::addConditionCallback( "playblasting", sPlayblasting, this);
+
+    mHUDRender = new ArnoldViewHUDRender( "viewOverrideArnold_HUD" );	
+
+    // clean up old scnes that have the legacy worksapce control still
+    int ws_exists;
+    MGlobal::executeCommand("workspaceControl -q -ex \"ArnoldViewportRendererOptions\"", ws_exists);
+    if (ws_exists)
+        MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");  
+
 }
 
 // On destruction all operations are deleted.
@@ -54,6 +68,8 @@ ArnoldViewOverride::~ArnoldViewOverride()
         MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
         textureManager->releaseTexture(mTexture);
     }
+
+	cleanup();
 
     // Clean up callbacks
     //
@@ -79,6 +95,42 @@ MHWRender::DrawAPI ArnoldViewOverride::supportedDrawAPIs() const
     return MHWRender::kAllDevices;
 }
 
+
+// Basic iterator methods
+bool ArnoldViewOverride::startOperationIterator()
+{
+    mCurrentOperation = 0;
+    return true;
+}
+
+MHWRender::MRenderOperation * ArnoldViewOverride::renderOperation()
+{
+    if (mCurrentOperation >= 0 && mCurrentOperation < 6)
+    {
+        if (mOperations[mCurrentOperation])
+        {
+            if (mDebugEnabled)
+            {
+                printf("\t%s : Queue render operation[%d] = (%s)\n",
+                        mName.asChar(),
+                        mCurrentOperation,
+                        mOperations[mCurrentOperation]->name().asChar());
+            }
+            return mOperations[mCurrentOperation];
+        }
+    }
+    return NULL;
+}
+
+bool ArnoldViewOverride::nextRenderOperation()
+{
+    mCurrentOperation++;
+    if (mCurrentOperation < 6)
+    {
+        return true;
+    }
+    return false;
+}
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {    
@@ -156,7 +208,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mOperations.append(sceneOp);
         mOperations.append(new TextureBlit("viewOverrideArnold_Blit"));
         mOperations.append(uiOp);
-        mOperations.append(new MHWRender::MHUDRender());
+        mOperations.append(mHUDRender);
         mOperations.append(new MHWRender::MPresentTarget("viewOverrideArnold_Present"));
     }
 
@@ -183,6 +235,9 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         session->SetExportCamera(camera, false);
 
+        session->SetStatus("");
+        mHUDRender->setStatus("");
+
         if (mTexture)
         {
             // clear the texture so that it's generated at next display
@@ -203,7 +258,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             session->SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
             session->SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
         }
-        
+        MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.run_override(\""+destination+"\")");        
     }
     s_activeViewport = destination; // set this viewport as the "active" one
 
@@ -345,7 +400,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         s_ViewRectangle = state.viewRectangle;
     }
 
-
     MString arvRunIpr = (session) ? session->GetRenderViewOption(MString("Run IPR")) : MString();
     state.enabled = (restoreIPR) ? true : arvRunIpr != MString("0");
     mRegionRenderStateMap[destination.asChar()] = state;
@@ -429,9 +483,67 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureBlit->setColorTexture(mTexture);
         }
     }
+
+    // update the details in the HUD
+    if (mHUDRender)
+    {
+        // get the current render time from the current render
+        size_t rtime = session->GetRenderView().GetRenderTime();
+        std::string display_status(session->GetRenderView().GetDisplayedStatus());
+        if (rtime > 0 && display_status.length())
+        {
+
+            bool isFinalPass = false;
+            float progress =  session->GetRenderView().GetProgress(isFinalPass);
+            mHUDRender->setProgress(progress);
+
+            std::stringstream statusStr;
+            const char *debugShading = session->GetRenderViewOption(MString("Debug Shading")).asChar();
+            if (std::strcmp(debugShading,"Disabled"))
+            {
+                char *tempDebugShading = strdup(debugShading);
+                // adjust copy to uppercase
+                unsigned char *tptr = (unsigned char *)tempDebugShading;
+                while(*tptr) {
+                    *tptr = toupper(*tptr);
+                    tptr++;
+                }
+                statusStr << "[" << tempDebugShading << "] ";
+                free(tempDebugShading);
+            }
+
+            static size_t s_sixty(60);
+            size_t secondsCount = rtime / (size_t)1000000;
+            size_t minutesCount = secondsCount / s_sixty;
+            secondsCount -= minutesCount * s_sixty;
+            size_t hoursCount = minutesCount / s_sixty;
+            minutesCount -= hoursCount * s_sixty;
+
+            if (hoursCount <= 0) statusStr << "00:";
+            else if (hoursCount < 10) statusStr << "0" << (int)hoursCount << ":";
+            else statusStr << (int)hoursCount << ":";
+
+            if (minutesCount <= 0) statusStr << "00:";
+            else if (minutesCount < 10) statusStr << "0" << (int)minutesCount << ":";
+            else statusStr << (int)minutesCount << ":";
+
+            if (secondsCount <= 0) statusStr << "00";
+            else if (secondsCount < 10) statusStr << "0" << (int)secondsCount;
+            else statusStr << (int)secondsCount;
+            
+            statusStr << " ";
+            statusStr << ltrim(display_status);
+
+            mHUDRender->setStatus(statusStr.str().c_str());
+        }
+    }
+
+    // update the viewport panel controls to reflect the current state
     MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
 
     session->GetRenderView().PostDisplay();
+
+	mCurrentOperation = -1;
 
     return MStatus::kSuccess;
 }
@@ -441,6 +553,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 //
 MStatus ArnoldViewOverride::cleanup()
 {
+	mCurrentOperation = -1;
     return MStatus::kSuccess;
 }
 
@@ -451,6 +564,10 @@ void ArnoldViewOverride::sRendererChangeFunc(
     const MString& newRenderer,
     void* clientData)
 {
+    if (newRenderer == "arnoldViewOverride")
+    {
+        MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.run_override(\""+panelName+"\")");
+    }
 }
 
 // Callback for tracking render override changes
@@ -628,4 +745,67 @@ const MSelectionList* UIObjectDraw::objectSetOverride()
     // only render selected items
     MGlobal::getActiveSelectionList(m_selectionList);
     return &m_selectionList;
+}
+
+/*
+	Class for testing HUD operation options
+*/
+
+ArnoldViewHUDRender::ArnoldViewHUDRender(const MString &name)
+	: MHWRender::MHUDRender()
+	, mName(name)
+    , mUserUIDrawables(true)
+    , mProgress(0.0f)
+	{
+	}
+
+void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager2D, const MHWRender::MFrameContext& frameContext )
+{
+    if (mUserUIDrawables && mStatus != MString(""))
+    {
+        // Start draw UI
+        drawManager2D.beginDrawable();
+        // Set font color
+        drawManager2D.setColor( MColor( 0.5f, 0.5f, 0.2f ) );
+        // Set font size
+        drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
+
+        int x=0, y=0, w=0, h=0;
+        frameContext.getViewportDimensions( x, y, w, h );
+        float offset = 20.0f;
+        float progressbar_max_width = 250.0f;
+        float progress_step_width = 0.001;
+        if (mProgress >= 0.0)
+            progress_step_width = (mProgress*(progressbar_max_width/100.0)*2);
+        // Draw progress bar
+        drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
+        drawManager2D.rect2d(MPoint(progressbar_max_width+offset, h*0.97f), MVector(0.0,1.0), progressbar_max_width+4.0, h*(progressbar_max_width*0.00001));
+        drawManager2D.setLineWidth( 2.0f );
+        drawManager2D.line2d(MPoint(offset+2.0, h*0.97f), MPoint(offset+progress_step_width, h*0.97f));
+
+        // Draw status and percetage text
+        char buffer[256];
+        std::snprintf(buffer, 256, "%s | %.2f%%", mStatus.asChar(), mProgress);
+        drawManager2D.text( MPoint(offset, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+
+        // End draw UI
+        drawManager2D.endDrawable();
+    }
+}
+
+
+// Options
+void ArnoldViewHUDRender::setUserUIDrawables(bool val)
+{
+    mUserUIDrawables = val;
+}
+
+void ArnoldViewHUDRender::setProgress(float value)
+{
+    mProgress = value;
+}
+
+void ArnoldViewHUDRender::setStatus(MString status)
+{
+    mStatus = status;
 }

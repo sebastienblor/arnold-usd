@@ -51,7 +51,6 @@ void CRenderViewMtoA::Resize(int w, int h){}
 
 #include "QtWidgets/qmainwindow.h"
 static QWidget *s_arvWorkspaceControl = NULL;
-static QWidget *s_optWorkspaceControl = NULL;
 
 // Arnold RenderView is defined
 #include "translators/DagTranslator.h"
@@ -470,64 +469,8 @@ void CRenderViewMtoA::CreateOptionsTabCallback(void *data)
 
 void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 { 
-#ifdef ARV_DOCKED
 
-   // Docking in maya workspaces only supported from maya 2017.
-   // For older versions, we tried using QDockWindows (see branch FB-2470)
-   // but the docking was way too sensitive, and not very usable in practice
-
-   //s_creatingARV = true;
-   MString workspaceCmd = "workspaceControl ";
-
-   bool firstCreation = true;
-   if (s_optWorkspaceControl)
-   {
-      workspaceCmd += " -edit -visible true "; // set to false to hide the window
-      firstCreation = false;
-   }
-   else
-   {
-      workspaceCmd += " -li 1"; // load immediately
-      workspaceCmd += " -iw 250 -ih 50"; // initial width
-      
-
-      workspaceCmd += " -requiredPlugin \"mtoa\"";
-
-      // command called when closed. It's not ARV itself that is closed now, but the workspace !
-      // Now we need to rely on the visibilityChange callback
-      workspaceCmd += " -l \"Arnold ViewportRenderer Options\" "; // label
-   }
-   workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
-   
-   double scaleFactor = 1.0;
-   scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
-
-   std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection;Test Resolution";
-   menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
-   CRenderViewInterface::OpenOptionsWindow(250, 50,scaleFactor, menusFilter.c_str(), nullptr, false);
-
-   QMainWindow *optWin = GetOptionsWindow();
-   optWin->setWindowFlags(Qt::Widget);
-   
-   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
-
-   if (firstCreation)
-   {
-      // returns a pointer to th workspace called above, 
-      // but only for the creation ! if I call it with "-edit visible true" it can return 0
-      s_optWorkspaceControl = MQtUtil::getCurrentParent();
-      MQtUtil::addWidgetToMayaLayout(optWin, s_optWorkspaceControl);  // attaches ARV to the workspace
-      optWin->show();
-      s_optWorkspaceControl->show();
-   }
-   // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged_cb\" \"ArnoldViewportRendererOptions\"");
-   MGlobal::executeCommand(uiScriptCommand);
-
-    //s_creatingARV = false;
-#else
-   CRenderViewInterface::OpenOptionsWindow(200, 50,scaleFactor, NULL, MQtUtil::mainWindow(), false);
-#endif
+   CRenderViewInterface::OpenOptionsWindow(200, 50,1.0, NULL, MQtUtil::mainWindow(), false);
 
    // Callbacks for scene open/save, as well as render layers changes
    MStatus status;   
@@ -1181,13 +1124,6 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 
 void CRenderViewMtoA::RenderOptionsClosed()
 {
-
-#ifdef ARV_DOCKED
-   if (s_optWorkspaceControl)
-   {
-      MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
-   }
-#endif
 }
 
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()

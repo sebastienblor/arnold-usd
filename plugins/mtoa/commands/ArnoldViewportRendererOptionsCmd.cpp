@@ -1,6 +1,7 @@
 #include "ArnoldViewportRendererOptionsCmd.h"
 #include "session/ArnoldRenderViewSession.h"
 #include "session/SessionManager.h"
+#include "viewport2/ArnoldViewOverride.h"
 
 #include <maya/MArgList.h>
 #include <maya/MSyntax.h>
@@ -16,6 +17,7 @@ MSyntax CArnoldViewportRendererOptionsCmd::newSyntax()
    syntax.addFlag("get", "getoption", MSyntax::kString);
    syntax.addFlag("aov", "currentaov", MSyntax::kLong);
    syntax.addFlag("st", "status", MSyntax::kString);
+   syntax.addFlag("hud", "toggleHUD", MSyntax::kBoolean);
    syntax.makeFlagQueryWithFullArgs("option", true);
    syntax.enableQuery( true );
    return syntax;
@@ -111,11 +113,27 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
          renderView.OpenMtoAViewportRendererOptions();
          if (!sessionExisted)
             renderView.RequestFullSceneUpdate();
+         renderView.CloseOptionsWindow();
       
       } else if (mode == "close")
       {  
          s_wasVisible = false;        
          renderView.CloseOptionsWindow();
+      }
+
+      if (args.isFlagSet("toggleHUD"))
+      {
+         bool toggleHUD = args.flagArgumentBool("toggleHUD", 0);
+         MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer(); 
+         ArnoldViewOverride *renderOverride = NULL;
+         if (renderer)
+         {
+            renderOverride = (ArnoldViewOverride *) renderer->findRenderOverride( "arnoldViewOverride" );
+         }
+         if (!renderOverride)
+            return MStatus::kFailure;
+
+         renderOverride->getHUDRenderer()->setUserUIDrawables(toggleHUD);
       }
    }
 
