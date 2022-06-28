@@ -17,6 +17,7 @@
 
 #include <map>
 #include <algorithm>
+#include <cctype>
 
 static inline std::string ltrim(std::string s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int c) {return !std::isspace(c);}));
