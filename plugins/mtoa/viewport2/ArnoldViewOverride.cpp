@@ -780,12 +780,14 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
             progress_step_width = (mProgress*((progressbar_max_width/2)/100.0)*2);
         // Draw progress bar
         drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
-        drawManager2D.rect2d(MPoint((progressbar_max_width/2)+offset, h*0.955), MVector(0.0,1.0), (progressbar_max_width/2)+4.0, h*((progressbar_max_width/2)*0.00001));
-        drawManager2D.setLineWidth( 2.0f );
-        drawManager2D.line2d(MPoint(offset+2.0, h*0.955f), MPoint(offset+progress_step_width, h*0.955));
+        drawManager2D.rect2d(MPoint((progressbar_max_width/2)+offset+5.0, h*0.955), MVector(0.0,1.0), 
+                            (progressbar_max_width/2)+4.0, 
+                            4.0);
+        drawManager2D.setLineWidth( 4.0f );
+        drawManager2D.line2d(MPoint(offset+4.0, h*0.95525f), MPoint(offset+progress_step_width+5.5, h*0.95525));
         char buffer[10];
         std::snprintf(buffer, 10, "%.2f%%", mProgress);
-        drawManager2D.text( MPoint(offset+310.0, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+        drawManager2D.text( MPoint(offset+314.0, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
         
         // Draw status and percetage text
         drawManager2D.text( MPoint(offset, h*0.97f), mStatus, MHWRender::MUIDrawManager::kLeft );
