@@ -322,7 +322,7 @@ class ArnoldViewportRenderControl():
         ctlform = cmds.formLayout(btn_lyt, p=iconbar)
         # start/stop full view render
         toggle_render_btn = cmds.iconTextCheckBox('avp_toggle_%s' % panel, w=18, h=18,
-                                i='avp_toggle.svg',
+                                i='avp_toggle.png',
                                 ann='Start/Stop Arnold in the viewport',
                                 v=False, p=ctlform)
         cmds.iconTextCheckBox(toggle_render_btn, e=True,
@@ -330,7 +330,7 @@ class ArnoldViewportRenderControl():
 
         # Start crop render tool
         crop_btn = cmds.iconTextCheckBox('avp_crop_%s' % panel, w=18, h=18, en=True,
-                                i='avp_crop.svg',
+                                i='avp_crop.png',
                                 ann='Define a crop window',
                                 v=False, p=ctlform)
         cmds.iconTextCheckBox(crop_btn, e=True,
@@ -338,7 +338,7 @@ class ArnoldViewportRenderControl():
 
         # resolution
         res_btn = cmds.iconTextButton('avp_resolution_%s' % panel, w=18, h=18, en=False,
-                                i='avp_resolution.svg',
+                                i='avp_resolution.png',
                                 ann="Set the viewport's render resolution",
                                 p=ctlform)
         cmds.popupMenu('avp_resolution_menu_%s' % panel, parent=res_btn, button=1,
@@ -346,7 +346,7 @@ class ArnoldViewportRenderControl():
 
         # debug shading
         debug_btn = cmds.iconTextCheckBox('avp_debug_%s' % panel, w=18, h=18, en=False,
-                                i='avp_debug.svg',
+                                i='avp_debug.png',
                                 ann='Set shading to debug mode',
                                 v=False, p=ctlform,
                                 cc=partial(self.toggle_debug, panel))
@@ -355,7 +355,7 @@ class ArnoldViewportRenderControl():
 
         # AOVs
         aov_btn = cmds.iconTextButton('avp_aov_%s' % panel, w=18, h=18, en=False,
-                                i='avp_aovs.svg',
+                                i='avp_aovs.png',
                                 ann="Select display channels",
                                 p=ctlform)
         cmds.popupMenu('avp_aov_menu_%s' % panel, parent=aov_btn, button=1, pmc=self.update_aov_menu)
