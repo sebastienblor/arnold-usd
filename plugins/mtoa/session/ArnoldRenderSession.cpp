@@ -53,8 +53,17 @@ CArnoldRenderSession::~CArnoldRenderSession()
 
 bool CArnoldRenderSession::BatchRender()
 {
+   bool result = true;
+
    AtRenderSession *renderSession = GetRenderSession();
    m_sessionOptions.SetupLog(GetUniverse());
+
+   // save the old default universe log flags before setting them to AI_LOG_INFO for the systeminfo
+   int defaultConsoleFlags = AiMsgGetConsoleFlags (NULL);
+   int defaultLogFileFlags = AiMsgGetLogFileFlags (NULL);
+   AiMsgSetConsoleFlags(NULL, AI_LOG_INFO | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR);
+   AiMsgSetLogFileFlags(NULL, AI_LOG_INFO | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR);
+
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_BATCH);
    // Here we just want a final frame render, no progressive (MTOA-909)
    AiRenderSetHintBool(renderSession, AtString("progressive"), false);
@@ -70,6 +79,9 @@ bool CArnoldRenderSession::BatchRender()
    if (m_displayProgress)
       MRenderUtil::sendRenderProgressInfo(filename, -1111); // magic number for start
 
+   // print system info
+   AiMsgSystemInfo();
+
    float lastProgress = -1;
    AiRenderBegin(renderSession, AI_RENDER_MODE_CAMERA);
    while (true)
@@ -78,12 +90,14 @@ bool CArnoldRenderSession::BatchRender()
       if (status == AI_RENDER_STATUS_FINISHED)
       {
          AiRenderEnd(renderSession);
-         return true;
+         result =  true;
+         break;
       }
       if (status == AI_RENDER_STATUS_FAILED)
       {
          AiRenderEnd(renderSession);
-         return false;
+         result = false;
+         break;
       }
 #ifdef WIN32
       Sleep(0);
@@ -105,6 +119,10 @@ bool CArnoldRenderSession::BatchRender()
    if (m_displayProgress)
       MRenderUtil::sendRenderProgressInfo(filename, 100); // magic number for end
 
+   AiMsgSetConsoleFlags(NULL, defaultConsoleFlags);
+   AiMsgSetLogFileFlags(NULL, defaultLogFileFlags);
+
+   return result;
 }
 
 void CArnoldRenderSession::Clear()
@@ -340,13 +358,14 @@ void CArnoldRenderSession::IPR()
 
    m_sessionOptions.SetupLog(GetUniverse());
 
+   MGlobal::displayInfo("[mtoa] IPR render");
+
    if (AiRenderGetStatus(renderSession) == AI_RENDER_STATUS_NOT_STARTED)
    {
       AiRenderSetHintBool(renderSession, AtString("progressive"), m_sessionOptions.IsProgressive());
       int minAA = AiMin(1, m_sessionOptions.progressiveInitialLevel());
       AiRenderSetHintInt(renderSession, AtString("progressive_min_AA_samples"), minAA);
       AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
-    
       AiRenderBegin(renderSession);//, AI_RENDER_MODE_CAMERA, ArnoldIPRCallback, (void*)this);
       // start a thread that listens to 
    } else
