@@ -2645,3 +2645,17 @@ bool CArnoldSession::IsRendering()
 
    return AiRenderGetStatus(m_renderSession) == AI_RENDER_STATUS_RENDERING;
 }
+
+void CArnoldSession::PrintSystemInfo()
+{
+   // save the old default universe log flags before setting them to AI_LOG_INFO for the systeminfo
+   int defaultConsoleFlags = AiMsgGetConsoleFlags (GetUniverse());
+   int defaultLogFileFlags = AiMsgGetLogFileFlags (GetUniverse());
+   AiMsgSetConsoleFlags(GetUniverse(), AI_LOG_INFO | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR);
+   AiMsgSetLogFileFlags(GetUniverse(), AI_LOG_INFO | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR);
+   // print system info
+   AiMsgSystemInfo(GetUniverse());
+   // rest the message Flags
+   AiMsgSetConsoleFlags(GetUniverse(), defaultConsoleFlags);
+   AiMsgSetLogFileFlags(GetUniverse(), defaultLogFileFlags);
+}
