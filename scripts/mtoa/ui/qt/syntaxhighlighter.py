@@ -136,7 +136,7 @@ class CppHighlighter(BaseHighlighter):
     def __init__(self, parent=None):
         super(CppHighlighter, self).__init__(parent)
 
-        json_data = open(self.FILE_PATH)
+        json_data = open(self.FILE_PATH, encoding="utf8")
         self.loadSyntaxJSON(json_data)
 
 
@@ -147,5 +147,5 @@ class OSLHighlighter(BaseHighlighter):
     def __init__(self, parent=None):
         super(OSLHighlighter, self).__init__(parent)
 
-        json_data = open(self.FILE_PATH)
+        json_data = open(self.FILE_PATH, encoding="utf8")
         self.loadSyntaxJSON(json_data)
