@@ -355,6 +355,11 @@ void CArnoldRenderSession::IPR()
 
    if (AiRenderGetStatus(renderSession) == AI_RENDER_STATUS_NOT_STARTED)
    {
+      AiRenderSetHintBool(renderSession, AtString("progressive"), m_sessionOptions.IsProgressive());
+      int minAA = AiMin(1, m_sessionOptions.progressiveInitialLevel());
+      AiRenderSetHintInt(renderSession, AtString("progressive_min_AA_samples"), minAA);
+      AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
+      
       AiRenderBegin(renderSession);//, AI_RENDER_MODE_CAMERA, ArnoldIPRCallback, (void*)this);
       // start a thread that listens to 
    } else
