@@ -53,8 +53,12 @@ CArnoldRenderSession::~CArnoldRenderSession()
 
 bool CArnoldRenderSession::BatchRender()
 {
+   bool result = true;
+
    AtRenderSession *renderSession = GetRenderSession();
    m_sessionOptions.SetupLog(GetUniverse());
+
+   PrintSystemInfo();
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_BATCH);
    // Here we just want a final frame render, no progressive (MTOA-909)
    AiRenderSetHintBool(renderSession, AtString("progressive"), false);
@@ -70,6 +74,7 @@ bool CArnoldRenderSession::BatchRender()
    if (m_displayProgress)
       MRenderUtil::sendRenderProgressInfo(filename, -1111); // magic number for start
 
+
    float lastProgress = -1;
    AiRenderBegin(renderSession, AI_RENDER_MODE_CAMERA);
    while (true)
@@ -78,12 +83,14 @@ bool CArnoldRenderSession::BatchRender()
       if (status == AI_RENDER_STATUS_FINISHED)
       {
          AiRenderEnd(renderSession);
-         return true;
+         result =  true;
+         break;
       }
       if (status == AI_RENDER_STATUS_FAILED)
       {
          AiRenderEnd(renderSession);
-         return false;
+         result = false;
+         break;
       }
 #ifdef WIN32
       Sleep(0);
@@ -105,6 +112,8 @@ bool CArnoldRenderSession::BatchRender()
    if (m_displayProgress)
       MRenderUtil::sendRenderProgressInfo(filename, 100); // magic number for end
 
+
+   return result;
 }
 
 void CArnoldRenderSession::Clear()
@@ -134,6 +143,8 @@ bool CArnoldRenderSession::Render()
    // Here we just want a final frame render, no progressive (MTOA-909)
    AiRenderSetHintBool(renderSession, AtString("progressive"), false);
    
+   PrintSystemInfo();
+
    AiRenderBegin(renderSession);
    float lastProgress = -1.f;
 
@@ -340,13 +351,15 @@ void CArnoldRenderSession::IPR()
 
    m_sessionOptions.SetupLog(GetUniverse());
 
+   PrintSystemInfo();
+
    if (AiRenderGetStatus(renderSession) == AI_RENDER_STATUS_NOT_STARTED)
    {
       AiRenderSetHintBool(renderSession, AtString("progressive"), m_sessionOptions.IsProgressive());
       int minAA = AiMin(1, m_sessionOptions.progressiveInitialLevel());
       AiRenderSetHintInt(renderSession, AtString("progressive_min_AA_samples"), minAA);
       AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_INTERACTIVE);
-    
+      
       AiRenderBegin(renderSession);//, AI_RENDER_MODE_CAMERA, ArnoldIPRCallback, (void*)this);
       // start a thread that listens to 
    } else

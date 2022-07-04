@@ -131,6 +131,7 @@ public:
    COptionsTranslator* GetOptionsTranslator() {return m_optionsTranslator;}
    AtNode *ExportColorManager();
 
+   virtual void PrintSystemInfo();
 
 protected:
       
