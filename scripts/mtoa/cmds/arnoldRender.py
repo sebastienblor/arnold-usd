@@ -8,19 +8,42 @@ import mtoa.batchRenderOptions
 _maya_version = mutils.getMayaVersion()
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
+    # Close the Maya RenderView
+    mel.eval('deleteUI "renderViewWindow"')
+    
     # Make sure the aiOptions node exists
     core.createOptions()
-    cmds.arnoldRender(cam=camera, w=width, h=height) 
+
+    # We need to give time for Maya to close the maya RenderView, so we're calling 
+    # evalDeferred
+    cmd = 'cmds.arnoldRenderView(cam="{}", w = {}, h={});'.format(camera, width, height)
+    cmd += 'cmds.arnoldRenderView(option=("Run IPR","0"));'
+    cmd += 'cmds.arnoldRenderView(option=("Scene Updates", "0"));'
+    cmd += 'cmds.arnoldRenderView(option=("Progressive Refinement", "0"));'
+    cmd += 'cmds.arnoldRenderView(option=("Refresh Render", "1"));'
+    cmds.evalDeferred(cmd)
+    
 
 def arnoldSequenceRender(width, height, camera, saveToRenderView):
+    # Close the Maya RenderView
+    mel.eval('deleteUI "renderViewWindow"')
+
     # Make sure the aiOptions node exists
     core.createOptions()
     if saveToRenderView:
         cmds.optionVar(iv=('ArnoldSequenceSnapshot', 1))
+
+    cmd = 'cmds.arnoldRenderView(mode="sequence", w = {}, h={}'.format(width, height)
+
     if len(camera) > 0:
-        cmds.arnoldRenderView(mode="sequence", w=width, h=height, cam=camera)
+        cmd += ', cam="{}")'.format(camera)
     else:
-        cmds.arnoldRenderView(mode="sequence", w=width, h=height)
+        cmd += ')'
+
+    # We need to give time for Maya to close the maya RenderView, so we're calling 
+    # evalDeferred
+    cmds.evalDeferred(cmd)
+        
 
 def arnoldBatchRenderOptionsString():    
     origFileName = cmds.file(q=True, sn=True)
@@ -84,29 +107,43 @@ def arnoldBatchRenderOptions():
     win = mtoa.batchRenderOptions.MtoABatchRenderOptions()
     win.create()
 
-def arnoldIprStart(editor, resolutionX, resolutionY, camera):
+def arnoldIprStart(editor, width, height, camera):
     # Make sure the aiOptions node exists
     core.createOptions()
-    cmds.arnoldIpr(cam=camera, w=resolutionX, h=resolutionY, mode='start')
+    mel.eval('deleteUI "renderViewWindow"')
+    
+    # We need to give time for Maya to close the maya RenderView, so we're calling 
+    # evalDeferred
+    cmd = 'cmds.arnoldRenderView(mode="open", cam="{}", w = {}, h={});'.format(camera, width, height)
+    cmd += 'cmds.arnoldRenderView(option=("Progressive Refinement", "1"));'
+    cmd += 'cmds.arnoldRenderView(option=("Run IPR", "1"));'
+    cmds.evalDeferred(cmd)
+    
 
 def arnoldIprStop():
-    cmds.arnoldIpr(mode='stop')
+    cmds.arnoldRenderView('mode="stop"')
 
 def arnoldIprIsRunning():
-    # FIXME restore this function
-    return cmds.arnoldIpr()
-
+    return (int(cmds.arnoldRenderView(getoption=("Run IPR")))) > 0;
+    
 def arnoldIprRender(width, height, doShadows, doGlowPass, camera):
-    cmds.arnoldIpr(cam=camera, w=width, h=height, mode=render)
+    core.createOptions()
+    mel.eval('deleteUI "renderViewWindow"')
+
+    # We need to give time for Maya to close the maya RenderView, so we're calling 
+    # evalDeferred
+    cmd = 'cmds.arnoldRenderView(option=("Run IPR", "1"));'
+    cmds.evalDeferred(cmd)
 
 def arnoldIprRefresh():
-    cmds.arnoldIpr(mode='refresh')
+    cmds.arnoldRenderView('option=("Refresh Render", "1"))')
 
 def arnoldIprPause(editor, pause):
     if pause:
-        cmds.arnoldIpr(mode='pause')
+        cmds.arnoldRenderView('option=("Abort Render", "1"))')
+        cmds.arnoldRenderView('option=("Run IPR", "0"))')
     else:
-        cmds.arnoldIpr(mode='unpause')
+        cmds.arnoldRenderView('option=("Run IPR", "1"))')
 
 def arnoldIprChangeRegion(renderPanel):
-    cmds.arnoldIpr(mode='region')
+    cmds.arnoldRenderView('option=("Crop Region", "1"))')
