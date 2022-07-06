@@ -690,7 +690,7 @@ void CArnoldSession::Export(MSelectionList* selected)
 
    // Add the universeid to the input script so users can use it directly
    uint32_t universeid = AiUniverseGetId(m_universe);
-   MString postTranslationCmd =  "universeId = ";
+   MString postTranslationCmd =  "UNIVERSE_ID = ";
    postTranslationCmd += (int)universeid;
    postTranslationCmd += ";"+postTranslationCallbackScript;
 

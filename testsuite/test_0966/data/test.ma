@@ -130,7 +130,7 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -sn "ARV_options" -ln "ARV_options" -dt "string";
 	setAttr ".logv" 3;
 	setAttr ".version" -type "string" "5.1.4";
-	setAttr ".post_translation" -type "string" "import sys,os;filelocation=cmds.file(q=True,sn=True);dirpath=os.path.dirname(filelocation);sys.path.append(dirpath);import callback;callback.callback(universeId)";
+	setAttr ".post_translation" -type "string" "import sys,os;filelocation=cmds.file(q=True,sn=True);dirpath=os.path.dirname(filelocation);sys.path.append(dirpath);import callback;callback.callback(UNIVERSE_ID)";
 	setAttr ".ARV_options" -type "string" "Test Resolution=100%;Camera=perspShape;Color Management.Gamma=1;Color Management.Exposure=0;Background.BG=BG Color;Background.Color=0 0 0;Background.Image=;Background.Scale=1  1;Background.Offset=0  0;Background.Apply Color Management=1;Foreground.Enable FG=0;Foreground.Image=;Foreground.Scale=1  1;Foreground.Offset=0  0;Foreground.Apply Color Management=1;";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";
 	rename -uid "2E1C9F40-0001-C5E8-62C5-7CA80000028A";
