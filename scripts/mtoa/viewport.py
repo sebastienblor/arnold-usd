@@ -1,5 +1,6 @@
-import tempfile
-import datetime
+# import tempfile
+# import datetime
+import os
 from functools import partial
 import maya.cmds as cmds         
 import maya.mel as mel         
@@ -16,16 +17,185 @@ global gArnoldViewportRenderContol
 gArnoldViewportRenderContol = None
 
 def getOption(option, **kwargs):
-    return cmds.arnoldViewOverrideOptionBox(get=option)
+    return cmds.arnoldViewport(get=option)
 
 def setOption(option, value, **kwargs):
     if len(kwargs):
-        cmds.evalDeferred("cmds.arnoldViewOverrideOptionBox(opt=(\"{}\", \"{}\"))".format(option, value), **kwargs)
+        cmds.evalDeferred("cmds.arnoldViewport(opt=(\"{}\", \"{}\"))".format(option, value), **kwargs)
     else:
-        cmds.arnoldViewOverrideOptionBox(opt=(option, value))
+        cmds.arnoldViewport(opt=(option, value))
 
 ON = True
 OFF = False
+
+# mel.eval("""
+
+# global proc buildArnoldViewportRenderMenu()
+# {
+#     //
+#     // Description:
+#     //	This procedure builds the Presets menu in the Hardware Renderer 2.0 Settings window.
+#     //
+#     setParent arnoldRenderOverrideOptionsWindow;
+#     menu -edit -deleteAllItems arnoldViewportOoptionsRenderMenu;
+#     setParent -menu arnoldViewportOoptionsRenderMenu;
+
+#     menuItem -label "Update Full Scene" -command "arnoldViewport -opt \\\"Update Full Scene\\\" \\\"1\\\"";
+
+#     setParent -menu ..; 
+# }
+
+# gloabl proc arnoldViewportUpdateOptionsUI()
+# {
+
+# }
+
+# global proc arnoldViewOverrideOptionBox()
+# {
+#     string $windowName = "arnoldRenderOverrideOptionsWindow";
+#     // If the window exists already, just show it.
+#     //
+#     if (`window -exists $windowName`) {
+#         showWindow $windowName;
+#         arnoldViewportUpdateOptionsUI;
+#         return;
+#     }
+    
+#     string $prefDir = `internalVar -userPrefDir`;
+#     string $totalString = $prefDir + "windowPrefs.mel";
+
+#     string $windowTitle = "Arnold Renderer Viewport Settings";
+#     window -menuBar true -title $windowTitle -retain $windowName;
+
+#     menu -label "Render"
+#             -postMenuCommand "buildArnoldViewportRenderMenu"
+#             arnoldViewportOoptionsRenderMenu;
+
+#     string $topLayout = `formLayout`;
+
+
+#     checkBox -label "Show Status in HUD" arnoldViewportHUDCB;
+
+
+#     if (!`exists $totalString`) {
+#             window -edit -widthHeight 456 670 -topLeftCorner 220 220
+#                     $windowName;
+#     } 
+    
+# }
+# """)
+
+def buildArnoldViewportRenderMenu(*args):
+    """Build the Redner Menu in the Viewport options UI
+    """
+    cmds.setParent("arnoldRenderOverrideOptionsWindow")
+    cmds.menu( "arnoldViewportOptionsRenderMenu",  edit=True, deleteAllItems=True)
+    cmds.setParent( "arnoldViewportOptionsRenderMenu", menu=True )
+
+    cmds.menuItem(label="Update Full Scene", command="cmds.arnoldViewport(opt=(\"Update Full Scene\",\"1\"))")
+
+    cmds.setParent("..", menu=True) 
+
+def getViewportOptions():
+    """Retrieve the viewport options from user prefs
+
+    Returns:
+        dict: dictionary of option->value pairs
+    """
+    options = {}
+    options['viewportShowHUD'] = True
+
+    for option, default in options.items():
+        if not cmds.optionVar(exists="arnold_{}".format(option)):
+            if type(default) in [bool, int]:
+                cmds.optionVar(intValue=("arnold_{}".format(option), default))
+            elif isinstance(default, utils.string_types):
+                cmds.optionVar(stringValue=("arnold_{}".format(option), default))
+        else:
+            options[option] = cmds.optionVar(query="arnold_{}".format(option))
+
+    return options
+
+def setViewportOptions(ui, option):
+    """Set the viewpoert options based on UI values
+
+    Args:
+        ui (str): UI to get value from
+        option (str): option to set
+    """
+    options = {}
+    options[option] = cmds.checkBoxGrp(ui, query=True, value1=True)
+
+    for option, value in options.items():
+        if type(value) in [bool, int]:
+            cmds.optionVar(intValue=("arnold_{}".format(option), value))
+        elif isinstance(value, utils.string_types):
+            cmds.optionVar(stringValue=("arnold_{}".format(option), value))
+
+    applyOptions()
+
+def applyOptions():
+    """Apply the current saved options to the current viewport
+    """
+    options = getViewportOptions()
+    for option, value in options.items():
+        if option == 'viewportShowHUD':
+            cmds.arnoldViewport(hud=value)
+            cmds.refresh(cv=True, force=True)    
+
+def arnoldViewportUpdateOptionsUI():
+    """Update the arnold viewport options UI, set the values of the controls
+    """
+    options = getViewportOptions()
+
+    cmds.checkBoxGrp("arnoldViewportHUDCB", edit=True, value1=options['viewportShowHUD'])
+
+def arnoldViewOverrideOptionBox():
+    """Main call to generate Arnold Viewport options UI
+    Called by then option box in the viewport renderer menu
+    """
+
+    windowName = "arnoldRenderOverrideOptionsWindow"
+    if cmds.window(windowName, exists=True):
+        cmds.showWindow(windowName)
+        arnoldViewportUpdateOptionsUI()
+        return
+    
+    prefDir = cmds.internalVar(userPrefDir=True);
+    totalString = os.path.join(prefDir,"windowPrefs.mel")
+
+    windowTitle = "Arnold Renderer Viewport Settings";
+    cmds.window(windowName, menuBar=True, title=windowTitle, retain=True)
+
+    cmds.menu("arnoldViewportOptionsRenderMenu",
+              label="Render",
+              postMenuCommand=buildArnoldViewportRenderMenu
+             )
+
+    # cmds.setParent(windowName)
+    optionLayout = cmds.scrollLayout(childResizable=True)
+    cmds.columnLayout(adjustableColumn=True)
+
+    cmds.frameLayout("arnoldViewportOptionsFrame", label="Arnold Viewport Options", collapse=False, marginHeight=5)
+    cmds.columnLayout(adjustableColumn=True)
+
+    arnoldViewportHUDCB = cmds.checkBoxGrp("arnoldViewportHUDCB",
+                     numberOfCheckBoxes=1,
+                     label="Show Status in HUD")
+
+    cmds.setParent("..")
+    cmds.setParent("..")
+    cmds.setParent("..")
+
+    arnoldViewportUpdateOptionsUI()
+
+    cmds.checkBoxGrp("arnoldViewportHUDCB",
+                     edit=True,
+                     cc=lambda arg=None, ui=arnoldViewportHUDCB, option='viewportShowHUD':setViewportOptions(ui, option))
+
+    if os.path.exists(totalString):
+            cmds.window(windowName, edit=True, widthHeight=[456,400], topLeftCorner=[220,220])
+    cmds.showWindow(windowName)
 
 class ArnoldViewportRenderControl():
 
@@ -39,6 +209,8 @@ class ArnoldViewportRenderControl():
         self.setup_callbacks()
 
     def reset(self):
+        """Rest the viewport options on scene Open or New
+        """
         self.ipr_state = OFF
         self.crop_state = OFF
         self.crop_region = (0,0,0,0)
@@ -46,11 +218,20 @@ class ArnoldViewportRenderControl():
 
         self.update_panels(True)
         self.setup_callbacks()
-        cmds.ActivateViewport20()
+        cmds.evalDeferred("cmds.ActivateViewport20()")
 
     def update(self, panel):
+        """Update the current state
+        if panel is set to "arnoldRenderView" rest all the icons
+
+        Args:
+            panel (str): panel name or arnoldRenderView
+        """
         current_panel = self.get_arnold_panel()
+        options = getViewportOptions()
+        showHUD = options['viewportShowHUD']
         if panel == "arnoldRenderView":
+            # if the given panel is arnoldRenderView, reset all icons
             self.ipr_state = OFF
             self.crop_state = OFF
             self.update_panels()
@@ -61,14 +242,13 @@ class ArnoldViewportRenderControl():
             self.crop_state = getOption("Crop Region") == "1"
 
         if self.crop_state:
-            showHUD = True
             reg = []
             for at in ['avpRegionLeft', 'avpRegionRight', 'avpRegionTop', 'avpRegionBottom']:
                 reg.append(cmds.getAttr("defaultArnoldRenderOptions."+at))
            
             if reg == [0,0,0,0]:
                 showHUD = False
-            cmds.arnoldViewOverrideOptionBox(hud=showHUD)
+        cmds.arnoldViewport(hud=showHUD)
 
     def setup_callbacks(self):
 
@@ -140,13 +320,18 @@ class ArnoldViewportRenderControl():
             cmds.ActivateViewport20()
 
     def set_ipr(self, state):
+        """Toggle IPR state
+
+        Args:
+            state (bool): enable state for IPR
+        """
         if state != self.ipr_state:
             ipr_value = "1" if state else "0"
             self.ipr_state = state
             setOption("Run IPR", ipr_value, lp=True)
 
     def restart(self, arnold_panel):
-        cmds.arnoldViewOverrideOptionBox(opt=("Refresh Render", "1"))    
+        cmds.arnoldViewport(opt=("Refresh Render", "1"))    
 
     def toggle_crop(self, arnold_panel, state, stop_ipr=True):
         """Enable/Disable the viewport's crop controls.
@@ -155,11 +340,9 @@ class ArnoldViewportRenderControl():
             arnold_panel {str} -- The current panel
             state {bool} -- active or not
         """
-        # get the current IPR state
-
-        crop_mode = "1" if state else "0"
 
         if not state:
+            # if we're turning off the crop we 
             if stop_ipr:
                 self.set_ipr(OFF)
                 self.stop_render(arnold_panel)
@@ -197,12 +380,22 @@ class ArnoldViewportRenderControl():
         self.update_button_state("avp_crop", arnold_panel, state)
     
     def set_crop(self, state):
+        """Toggle Crop state
+
+        Args:
+            state (bool): enable state for crop
+        """
         if state != self.crop_state:
             crop_value = "1" if state else "0"
             self.crop_state = state
             setOption("Crop Region", crop_value)
 
     def get_crop_region(self):
+        """Retrieve the dimensions of the crop region
+
+        Returns:
+            tupple: int values relating to left,right,bottom,top
+        """
         defaultOptionsNode = 'defaultArnoldRenderOptions'
         if not cmds.objExists(defaultOptionsNode):
             core.createOptions()
@@ -390,7 +583,7 @@ class ArnoldViewportRenderControl():
         panel = args[0]
         parent = args[1]
 
-        testres = cmds.arnoldViewOverrideOptionBox(get="Test Resolution") or "100%"
+        testres = cmds.arnoldViewport(get="Test Resolution") or "100%"
 
         cmds.popupMenu(parent, e=True, deleteAllItems=True)
         cmds.radioMenuItemCollection(p=parent)
@@ -479,9 +672,9 @@ class ArnoldViewportRenderControl():
         def set_avp_aov(name, *_args):
             setOption("AOVs", name)
 
-            cmds.arnoldViewOverrideOptionBox(opt=("AOVs", name))
+            cmds.arnoldViewport(opt=("AOVs", name))
 
-        current_aov_name = cmds.arnoldViewOverrideOptionBox(get="AOVs")
+        current_aov_name = cmds.arnoldViewport(get="AOVs")
         parent = args[0]
 
         # delete menu items and setup the collection

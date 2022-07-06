@@ -41,7 +41,9 @@ public:
 	// Options
 	void setUserUIDrawables(bool val);
     void setProgress(float value);
+    float getProgress(){ return mProgress; }
     void setStatus(MString status);
+    void setRenderStatus(MString status);
 protected:
 	bool mUserUIDrawables;
 	bool mOverrideViewRectangle;
@@ -49,7 +51,9 @@ protected:
 	bool mDebugTrace;
 	MString mName;
     float mProgress;
+    float mOldProgress;
     MString mStatus;
+    MString mRenderStatus;
 };
 
 //
