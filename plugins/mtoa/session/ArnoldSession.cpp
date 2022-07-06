@@ -684,7 +684,12 @@ void CArnoldSession::Export(MSelectionList* selected)
    ExportTxFiles();
 
    // Execute post export callback
-   // Do we also want to do it in Update() ? 
+   RunPostTranslationScript();
+
+}
+
+void CArnoldSession::RunPostTranslationScript()
+{
    MFnDependencyNode fnArnoldRenderOptions(m_sessionOptions.GetArnoldRenderOptions());
    MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation", true).asString();
 

@@ -144,6 +144,8 @@ protected:
    static void DoHiddenCallback(void* clientData);
    void SetDagVisible(MDagPath &path);
 
+   void RunPostTranslationScript();
+
    void UpdateLightLinks();
    virtual void NewNode(MObject &node);
    
