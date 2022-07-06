@@ -78,6 +78,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    //   if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
    //}
 
+
    // Rendered camera
    MString camera = "";
    if (!args.isFlagSet("camera"))
