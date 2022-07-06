@@ -685,10 +685,16 @@ void CArnoldSession::Export(MSelectionList* selected)
 
    // Execute post export callback
    // Do we also want to do it in Update() ? 
-   
    MFnDependencyNode fnArnoldRenderOptions(m_sessionOptions.GetArnoldRenderOptions());
    MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation", true).asString();
-   MGlobal::executeCommand(postTranslationCallbackScript);
+
+   // Add the universeid to the input script so users can use it directly
+   uint32_t universeid = AiUniverseGetId(m_universe);
+   MString postTranslationCmd =  "universeId = ";
+   postTranslationCmd += (int)universeid;
+   postTranslationCmd += ";"+postTranslationCallbackScript;
+
+   MGlobal::executePythonCommand(postTranslationCmd);
 }
 
 void CArnoldSession::Update()

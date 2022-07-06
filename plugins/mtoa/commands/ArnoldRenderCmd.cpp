@@ -40,7 +40,6 @@ MSyntax CArnoldRenderCmd::newSyntax()
    syntax.addFlag("ofn", "origFileName", MSyntax::kString);
    syntax.addFlag("seq", "frameSequence", MSyntax::kString);
    syntax.addFlag("srv", "saveToRenderView", MSyntax::kString);
-   syntax.addFlag("id", "universeid");
 
    return syntax;
 }
@@ -78,17 +77,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // If it can't it will return false, and we'll keep using Maya's native one
    //   if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
    //}
-   CArnoldRenderSession *session = (CArnoldRenderSession *)CSessionManager::FindActiveSession(s_arnoldRenderSessionId);
-   if (args.isFlagSet("universeid"))
-   {
-      int return_value = -1;
-      if (session != nullptr)
-      {
-         return_value = AiUniverseGetId(session->GetUniverse());
-      }
-      setResult(return_value);
-      return MS::kSuccess;
-   }
 
    // Rendered camera
    MString camera = "";
@@ -114,6 +102,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
 
+   CArnoldRenderSession *session = (CArnoldRenderSession *)CSessionManager::FindActiveSession(s_arnoldRenderSessionId);
    if (session == nullptr)
    {
       session = new CArnoldRenderSession();
