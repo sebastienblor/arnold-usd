@@ -354,7 +354,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
         MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
         MGlobal::executeCommandOnIdle("arnoldViewportRegionToolContext;");
-        MGlobal::executeCommand("arnoldViewOverrideOptionBox;");
+        MGlobal::executeCommand("arnoldViewport;");
         // ensure the scene is fully rendered at next update
         session->GetRenderView().RequestFullSceneUpdate();
 
@@ -496,6 +496,9 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             bool isFinalPass = false;
             float progress =  session->GetRenderView().GetProgress(isFinalPass);
             mHUDRender->setProgress(progress);
+
+            std::string render_status("Rendering");
+            mHUDRender->setRenderStatus(ltrim(render_status).c_str());
 
             std::stringstream statusStr;
             const char *debugShading = session->GetRenderViewOption(MString("Debug Shading")).asChar();
@@ -774,24 +777,29 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         frameContext.getViewportDimensions( x, y, w, h );
         float offset = 20.0f;
         
-        float progressbar_max_width = 300.0f;
-        float progress_step_width = 0.001;
-        if (mProgress >= 0.0)
-            progress_step_width = (mProgress*((progressbar_max_width/2)/100.0)*2);
-
-        drawManager2D.text( MPoint(offset, h*0.95f), MString("Rendering"), MHWRender::MUIDrawManager::kLeft );
-        // Draw progress bar
-        drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
-        drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(offset+80)+5.0, h*0.955), MVector(0.0,1.0), 
-                            (progressbar_max_width/2)+4.0, 
-                            4.0);
-        drawManager2D.setLineWidth( 4.0f );
-        drawManager2D.line2d(MPoint((offset+80)+4.0, h*0.95525f), MPoint((offset+80)+progress_step_width+5.5, h*0.95525));
-        char buffer[10];
-        std::snprintf(buffer, 10, "%.2f%%", mProgress);
-        drawManager2D.text( MPoint((offset+80)+314.0, h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
-        
-        // Draw status and percetage text
+        if (mOldProgress < 100.0)
+        {
+            float progressbar_max_width = 300.0f;
+            float progress_step_width = 0.001;
+            if (mProgress >= 0.0)
+                progress_step_width = (mProgress*((progressbar_max_width/2)/100.0)*2);
+            
+            int statuslength = mRenderStatus.numChars();
+            float statusOffset = statuslength*8.0;
+            drawManager2D.text( MPoint(offset, h*0.95f), mRenderStatus, MHWRender::MUIDrawManager::kLeft );
+            // Draw progress bar
+            drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
+            drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(offset)+5.0+(statusOffset), h*0.955), MVector(0.0,1.0), 
+                                (progressbar_max_width/2)+4.0, 
+                                4.0);
+            drawManager2D.setLineWidth( 4.0f );
+            drawManager2D.line2d(MPoint((offset)+4.0+(statusOffset), h*0.95525f), MPoint((offset)+progress_step_width+5.5+(statusOffset), h*0.95525));
+            char buffer[10];
+            std::snprintf(buffer, 10, "%.2f%%", mProgress);
+            drawManager2D.text( MPoint((offset)+314.0+(statusOffset), h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+            
+        }
+        // Draw status text
         drawManager2D.text( MPoint(offset, h*0.97f), mStatus, MHWRender::MUIDrawManager::kLeft );
 
         // End draw UI
@@ -808,10 +816,16 @@ void ArnoldViewHUDRender::setUserUIDrawables(bool val)
 
 void ArnoldViewHUDRender::setProgress(float value)
 {
+    mOldProgress = mProgress;
     mProgress = value;
 }
 
 void ArnoldViewHUDRender::setStatus(MString status)
 {
     mStatus = status;
+}
+
+void ArnoldViewHUDRender::setRenderStatus(MString status)
+{
+    mRenderStatus = ltrim(status.asChar()).c_str();
 }

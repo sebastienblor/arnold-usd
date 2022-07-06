@@ -143,7 +143,7 @@ void ArnoldViewportRegionContext::doReleaseCommon( MEvent & event )
                 avpRegionBottom.setInt(bottom);
                 
                 sessionOptions.SetRegion(left, right, bottom, top); // expected order is left, right, bottom, top
-                 MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;arnoldViewOverrideOptionBox -opt \"Crop Region\" \"1\"");
+                 MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;arnoldViewport -opt \"Crop Region\" \"1\"");
                 MString arvRunIpr = session->GetRenderViewOption(MString("Run IPR"));
                 if (arvRunIpr != MString("0"))
                 {

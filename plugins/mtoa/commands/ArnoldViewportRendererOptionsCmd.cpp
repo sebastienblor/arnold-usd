@@ -82,7 +82,7 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       }
       if (mode == "visChanged_cb")
       {
-         MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox -mode visChanged");
+         MGlobal::executeCommandOnIdle("arnoldViewport -mode visChanged");
          return MS::kSuccess;
       }
          

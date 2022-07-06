@@ -25,6 +25,7 @@ try:
     from mtoa.ui.ae.customShaderTemplates import appendToSSTemplate
     import mtoa.cmds.arnoldRender as arnoldRender
     from mtoa.cmds.rendererCallbacks import aiRenderSettingsBuiltCallback
+    from mtoa.viewport import arnoldViewOverrideOptionBox
 except:
     import traceback
     traceback.print_exc(file=sys.__stderr__) # goes to the console
@@ -279,6 +280,7 @@ def _register():
     cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')
     utils.pyToMelProc(updateBackgroundSettings, useName=True)
     utils.pyToMelProc(updateAtmosphereSettings, useName=True)
+    utils.pyToMelProc(arnoldViewOverrideOptionBox, useName=True)
     #We have to source this file otherwise maya will override
     #our mel proc overrides below.
     #
