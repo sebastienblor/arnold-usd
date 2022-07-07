@@ -967,8 +967,6 @@ def loadArnoldTemplate(nodeName):
     template = getNodeTemplate(nodeType)
     if template:
         cmds.editorTemplate(beginLayout='Arnold', collapse=True)
-        if nodeType == 'pointLight':
-            print(template, nodeName)
         template._doSetup(nodeName)
         if hasattr(template, '_attributes'):
             for attr in template._attributes:
