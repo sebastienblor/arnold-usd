@@ -258,7 +258,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             session->SetRenderViewOption(MString("Cameras"), MString(newCamName.c_str()));
             session->SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
         }
-        MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.run_override(\""+destination+"\")");        
+        MGlobal::executePythonCommandOnIdle("import mtoa.viewport;mtoa.viewport.run_override(\""+destination+"\")"); 
     }
     s_activeViewport = destination; // set this viewport as the "active" one
 
