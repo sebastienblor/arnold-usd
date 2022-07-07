@@ -124,7 +124,8 @@ def arnoldIprStop():
     cmds.arnoldRenderView('mode="stop"')
 
 def arnoldIprIsRunning():
-    return (int(cmds.arnoldRenderView(getoption=("Run IPR")))) > 0;
+    res = cmds.arnoldRenderView(getoption=("Run IPR")) or 0
+    return int(res) > 0;
     
 def arnoldIprRender(width, height, doShadows, doGlowPass, camera):
     core.createOptions()
