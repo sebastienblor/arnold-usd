@@ -194,6 +194,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     _callbacks = []
     def __init__(self, nodeType):
         super(LightTemplate, self).__init__(nodeType)
+        self._scriptjobs = {}
 
     def validFilters(self):
         return getLightFilterClassification(self.nodeType())
@@ -229,6 +230,24 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         
         if addUserOptions:
             self.addControl("aiUserOptions", "User Options")
+        
+        # fake custom attr for dimming the aiDiffuse/aiSpecualr controls based on emitDiffuse/emitSpecular
+        self.addCustom("emitAttrs", self.connectMayaEmitAttributes, self.connectMayaEmitAttributes)
+        
+    def connectMayaEmitAttributes(self, nodeAttr):
+        emitAttrs = ['emitDiffuse', 'emitSpecular']
+        for a in emitAttrs:
+            if self.nodeAttrExists(a) and self.nodeAttr(a) not in self._scriptjobs:
+                self._scriptjobs[self.nodeAttr(a)] = cmds.scriptJob(attributeChange=[self.nodeAttr(a), 
+                                                                self.dimVisibilityControls])
+        self.dimVisibilityControls()
+    
+    def dimVisibilityControls(self, *args):
+        emitAttrs = ['emitDiffuse', 'emitSpecular']
+        for a in emitAttrs:
+            if self.nodeAttrExists(a):
+                dimAttr = (cmds.getAttr(self.nodeAttr(a)) == 0)
+                self.dimControl(a.replace('emit', 'ai'), dimAttr)
 
     def lightFiltersLayout(self):
         self.beginLayout("Light Filters *", collapse=False)
