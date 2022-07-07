@@ -113,7 +113,7 @@ class BaseTemplate(object):
         return self.nodeName + '.' + attr
 
     def nodeAttrExists(self, attr):
-        return cmds.addAttr(self.nodeAttr(attr), q=True, ex=True)
+        return cmds.objExists(self.nodeAttr(attr))
 
 def modeAttrMethod(func):
     def wrapped(self, attr, *args, **kwargs):
@@ -138,6 +138,22 @@ def modeMethod(func):
             self._actions.append((modefunc, args, kwargs))
         else:
             modefunc(*args, **kwargs)
+        
+    wrapped.__doc__ = func.__doc__
+    wrapped.__name__ = func.__name__
+    wrapped._orig = func
+    return wrapped
+
+def modeMethodNoRecord(func):
+    """decorator that simply passes the source methiod args to the current mode equivalent
+
+    Args:
+        func (method): class method that will get fed the arguments
+    """
+    def wrapped(self, *args, **kwargs):
+        modefunc = getattr(self._mode, func.__name__)
+        modefunc(*args, **kwargs)
+
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
     wrapped._orig = func
@@ -229,13 +245,12 @@ class AttributeTemplate(BaseTemplate):
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
                    preventOverride=False, dynamic=False, enumeratedItem=None, hideMapButton=None):
         pass
-        
-            
+    
     @modeMethod
     def suppress(self, attr):
         pass
 
-    @modeMethod
+    @modeMethodNoRecord
     def dimControl(self, attr, state=True):
         pass
 
@@ -335,7 +350,7 @@ class AEChildMode(BaseMode):
     def update(self):
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         try:
-            for attr, updateFunc, parent in self._controls:
+            for attr, control, updateFunc, parent in self._controls:
                 cmds.setParent(parent)
                 updateFunc(self.nodeAttr(attr))
         except:
@@ -381,7 +396,7 @@ class AEChildMode(BaseMode):
         parent = self._layoutStack[-1]
         cmds.setParent(parent)
         control = AttrControlGrp(**kwargs)
-        self._controls.append((attr, control.setAttribute, parent))
+        self._controls.append((attr, control, control.setAttribute, parent))
 
     def addCustom(self, attr, createFunc, updateFunc):
         parent = self._layoutStack[-1]
@@ -393,9 +408,9 @@ class AEChildMode(BaseMode):
         #    createFunc = getattr(pm.mel, createFunc)
         #if not hasattr(updateFunc, '__call__'):
         #    updateFunc = getattr(pm.mel, updateFunc)
-        createFunc(self.nodeAttr(attr))
+        control = createFunc(self.nodeAttr(attr))
         cmds.setParent(parent)
-        self._controls.append((attr, updateFunc, col))
+        self._controls.append((attr, control, updateFunc, col))
 
     def addSeparator(self):
         cmds.separator()
@@ -432,6 +447,18 @@ class AEChildMode(BaseMode):
     def addExtraControls(self):
         pass
 
+    def dimControl(self, attr, state=True):
+        control = self.getControl(attr)
+        if control:
+            control.edit(enable=not state)
+
+    def getControl(self, attr):
+        for ctrl in self._controls:
+            if ctrl[0] == attr:
+                return ctrl[1]
+
+        return None
+        
 class AERootMode(BaseMode):
     """
     Interprets `AttributeEditor` actions as editorTemplate commands.
@@ -940,6 +967,8 @@ def loadArnoldTemplate(nodeName):
     template = getNodeTemplate(nodeType)
     if template:
         cmds.editorTemplate(beginLayout='Arnold', collapse=True)
+        if nodeType == 'pointLight':
+            print(template, nodeName)
         template._doSetup(nodeName)
         if hasattr(template, '_attributes'):
             for attr in template._attributes:
