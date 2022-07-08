@@ -19,7 +19,6 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     cmd = 'cmds.arnoldRenderView(cam="{}", w = {}, h={});'.format(camera, width, height)
     cmd += 'cmds.arnoldRenderView(option=("Run IPR","0"));'
     cmd += 'cmds.arnoldRenderView(option=("Scene Updates", "0"));'
-    cmd += 'cmds.arnoldRenderView(option=("Progressive Refinement", "0"));'
     cmd += 'cmds.arnoldRenderView(option=("Refresh Render", "1"));'
     cmds.evalDeferred(cmd)
     
@@ -119,7 +118,6 @@ def arnoldIprStart(editor, width, height, camera):
     cmd += 'cmds.arnoldRenderView(option=("Run IPR", "1"));'
     cmds.evalDeferred(cmd)
     
-
 def arnoldIprStop():
     cmds.arnoldRenderView('mode="stop"')
 
