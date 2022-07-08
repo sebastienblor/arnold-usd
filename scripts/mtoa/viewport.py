@@ -28,63 +28,6 @@ def setOption(option, value, **kwargs):
 ON = True
 OFF = False
 
-# mel.eval("""
-
-# global proc buildArnoldViewportRenderMenu()
-# {
-#     //
-#     // Description:
-#     //	This procedure builds the Presets menu in the Hardware Renderer 2.0 Settings window.
-#     //
-#     setParent arnoldRenderOverrideOptionsWindow;
-#     menu -edit -deleteAllItems arnoldViewportOoptionsRenderMenu;
-#     setParent -menu arnoldViewportOoptionsRenderMenu;
-
-#     menuItem -label "Update Full Scene" -command "arnoldViewport -opt \\\"Update Full Scene\\\" \\\"1\\\"";
-
-#     setParent -menu ..; 
-# }
-
-# gloabl proc arnoldViewportUpdateOptionsUI()
-# {
-
-# }
-
-# global proc arnoldViewOverrideOptionBox()
-# {
-#     string $windowName = "arnoldRenderOverrideOptionsWindow";
-#     // If the window exists already, just show it.
-#     //
-#     if (`window -exists $windowName`) {
-#         showWindow $windowName;
-#         arnoldViewportUpdateOptionsUI;
-#         return;
-#     }
-    
-#     string $prefDir = `internalVar -userPrefDir`;
-#     string $totalString = $prefDir + "windowPrefs.mel";
-
-#     string $windowTitle = "Arnold Renderer Viewport Settings";
-#     window -menuBar true -title $windowTitle -retain $windowName;
-
-#     menu -label "Render"
-#             -postMenuCommand "buildArnoldViewportRenderMenu"
-#             arnoldViewportOoptionsRenderMenu;
-
-#     string $topLayout = `formLayout`;
-
-
-#     checkBox -label "Show Status in HUD" arnoldViewportHUDCB;
-
-
-#     if (!`exists $totalString`) {
-#             window -edit -widthHeight 456 670 -topLeftCorner 220 220
-#                     $windowName;
-#     } 
-    
-# }
-# """)
-
 def buildArnoldViewportRenderMenu(*args):
     """Build the Redner Menu in the Viewport options UI
     """
@@ -208,17 +151,22 @@ class ArnoldViewportRenderControl():
 
         self.setup_callbacks()
 
-    def reset(self):
+    def reset(self, mode=None):
         """Rest the viewport options on scene Open or New
         """
+        print("ArnoldViewportRenderControl.reset", mode)
         self.ipr_state = OFF
         self.crop_state = OFF
         self.crop_region = (0,0,0,0)
         self.debug_mode = {} 
 
-        self.update_panels(True)
+        if mode == "NewScene":
+            self.update_panels(True)
+            cmds.evalDeferred("cmds.ActivateViewport20()")
+        else:
+            self.update(None)
+
         self.setup_callbacks()
-        cmds.evalDeferred("cmds.ActivateViewport20()")
 
     def update(self, panel):
         """Update the current state
@@ -256,8 +204,8 @@ class ArnoldViewportRenderControl():
             if not cmds.scriptJob(exists=job):
                 self.script_jobs.pop(self.script_jobs.index(job))
 
-        self.script_jobs.append(cmds.scriptJob(event=["NewSceneOpened", self.reset]))
-        self.script_jobs.append(cmds.scriptJob(event=["PostSceneRead", self.reset]))
+        self.script_jobs.append(cmds.scriptJob(event=["NewSceneOpened", lambda x="NewScene":self.reset(x)]))
+        self.script_jobs.append(cmds.scriptJob(event=["PostSceneRead", lambda x="PostSceneRead":self.reset(x)]))
 
     def toggle_render(self, arnold_panel, state, update_buttons=True):
         """Start rendering in a given panel
