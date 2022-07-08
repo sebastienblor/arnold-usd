@@ -259,7 +259,7 @@ else:
                 self.stage = ctx.GetStage()
                 jobArgs = ctx.GetJobArgs()
                 # Store the parent scope used by mayaUsd
-                self.parentScope = jobArgs.parentScope or ''
+                self.parentScope = str(jobArgs.parentScope) or ''
                 if len(self.parentScope) > 0:
                     self.parentScope += '/'
                 # Should transform and shape nodes be merged
@@ -497,8 +497,6 @@ else:
         _registerTranslators = True
 
         maya_version = mtoaUtils.getMayaVersion()
-
-
         
         # Register the Prim Writers for Arnold Dag nodes
         mayaUsdLib.PrimWriter.Register(ArnoldDagWriter, "aiSkyDomeLight")
