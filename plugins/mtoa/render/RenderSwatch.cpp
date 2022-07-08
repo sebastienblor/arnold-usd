@@ -182,7 +182,6 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene(CArnoldSession *session)
          {
             AiNodeSetStr(geometry, str::name, str::geometry);
             AiNodeSetByte(geometry, str::subdiv_iterations, 1);
-            AiNodeSetBool(geometry, str::opaque, false);
          }
       }
       AtNode* camera = AiNode(universe, str::persp_camera, str::camera);
@@ -327,8 +326,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    {
       // Add a default sky shader to get solid alpha
       // TODO : options to use a custom environment for swatches or use render setting's?
-      AtNode* background = AiNode(universe, str::sky, str::background);
-      AiNodeSetRGB (background, str::color, 0.0f, 0.0f, 0.0f);
+      AtNode* background = AiNode(universe, str::ray_switch_rgba, str::background);
       AiNodeSetPtr(options, str::background, background);
    }
 
@@ -419,8 +417,8 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    
    MObject ArnoldRenderOptionsNode = CArnoldSession::GetDefaultArnoldRenderOptions();
    AtUniverse *universe = session->GetUniverse();
-   AiMsgSetConsoleFlags(universe, AI_LOG_NONE);
    AtRenderSession *renderSession = session->GetRenderSession();
+   AiMsgSetConsoleFlags(universe, AI_LOG_NONE);
    CSessionOptions &sessionOptions = session->GetOptions();
    sessionOptions.SetSupportGpu(false);
    BuildArnoldScene(session);
@@ -460,7 +458,6 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    COptionsTranslator::AddProjectFoldersToSearchPaths(options);
    AiNodeDeclare(options, str::is_swatch, str::constant_BOOL);
    AiNodeSetBool(options, str::is_swatch, true);
-   AiNodeSetStr(options, str::pin_threads, str::off);
    AiNodeSetInt(options, str::threads, 4);
 
    MString texture_searchpath = fnOptions.findPlug("texture_searchpath", true).asString();

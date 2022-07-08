@@ -1,4 +1,5 @@
 #include "MtoaLog.h"
+#include "ConstantStrings.h"
 #include "../session/SessionOptions.h"
 #include "../session/ArnoldSession.h"
 
@@ -21,6 +22,15 @@ int GetFlagsFromVerbosityLevel(unsigned int level)
 
 DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, AtParamValueMap* metadata, void* user_ptr)
 {
+   // Gert the universe so we can return early if the console flags are set to AI_LOG_NONE
+   AtUniverse *universe = nullptr;
+   void* universe_ptr = nullptr;
+      if (AiParamValueMapGetPtr(metadata, str::universe, &universe_ptr))
+         universe = static_cast<AtUniverse*>(universe_ptr);
+
+   if (universe != nullptr && AiMsgGetConsoleFlags(universe) == AI_LOG_NONE)
+      return;
+
    switch (severity)
    {
    case AI_SEVERITY_INFO:
