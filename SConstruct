@@ -191,6 +191,7 @@ vars.AddVariables(
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     BoolVariable('ENABLE_AXFTOA' , 'Enable the build of the AXF shader that links against AxftoA', True),
+    BoolVariable('UPDATE_SUBMODULES', 'Init and update the submodules prior to the build', True),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
@@ -801,22 +802,23 @@ if int(maya_version_base) >= 2021:
 mayapy_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy')
 
 if ENABLE_USD:
-    print ('updating usd submodule...')
-    system.execute('git submodule sync')
-    system.execute('git submodule update --init --recursive')
- 
-    # We need to ensure that jinja2 will be installed through mayapy   
-    mayapy_cmd = mayapy_bin + " -m pip install jinja2"
-    system.execute(mayapy_cmd)
+    if env['UPDATE_SUBMODULES']:
+        print ('updating usd submodule...')
+        system.execute('git submodule sync')
+        system.execute('git submodule update --init --recursive')
+     
+        # We need to ensure that jinja2 will be installed through mayapy   
+        mayapy_cmd = mayapy_bin + " -m pip install jinja2"
+        system.execute(mayapy_cmd)
 
-    # if we're also building for python2 usd modules, then we need to 
-    # install jijna2 in the mayapy2 environment
-    if usd_path_python2_count > 0:
-        mayapy2_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy2')
-        mayapy2_cmd = mayapy2_bin + " -m pip install jinja2"
-        system.execute(mayapy2_cmd)
+        # if we're also building for python2 usd modules, then we need to 
+        # install jijna2 in the mayapy2 environment
+        if usd_path_python2_count > 0:
+            mayapy2_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy2')
+            mayapy2_cmd = mayapy2_bin + " -m pip install jinja2"
+            system.execute(mayapy2_cmd)
 
-    print ('done')     
+        print ('done')     
 
 if system.os == 'windows':
     maya_env = env.Clone()
