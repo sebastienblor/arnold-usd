@@ -82,6 +82,7 @@ struct CARVSequenceData
    float current;
    float step;
    bool renderStarted;
+   bool renderFinished;
    std::string sceneUpdatesValue;
    std::string saveImagesValue;
    std::string progressiveRefinementValue;
@@ -540,6 +541,8 @@ void CRenderViewMtoA::UpdateFullScene()
       m_session = new CArnoldRenderViewSession();
       CSessionManager::AddActiveSession(CArnoldRenderViewSession::GetRenderViewSessionId(), m_session);
    } 
+   if (s_sequenceData)
+      s_sequenceData->renderStarted = true;
 
    // Ensure that every time we call Update Full Scene no AVP session is active. We can't do this for 
    // AVP as it would require the panel name
@@ -1691,55 +1694,49 @@ void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, 
       return;
    }
 
-   if(!s_sequenceData->renderStarted)
-   {
-      if (AiRenderGetStatus(rvMtoA->m_session->GetRenderSession()) == AI_RENDER_STATUS_RENDERING)
-         s_sequenceData->renderStarted = true; 
-      
-   } else
-   {
-      if(AiRenderGetStatus(rvMtoA->m_session->GetRenderSession()) != AI_RENDER_STATUS_RENDERING)
-      {
-         // this frame has finished !
-         s_sequenceData->current += s_sequenceData->step;
-         if (s_sequenceData->current > s_sequenceData->last)
-         {
-            MProgressWindow::endProgress();
-            if (s_sequenceData->storeSnapshots)
-               rvMtoA->SetOption("Store Snapshot", "1");
-            rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
-            rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
-            rvMtoA->SetOption("Progressive Refinement", s_sequenceData->progressiveRefinementValue.c_str());
-            if (rvMtoA->m_rvIdleCb)
-            {
-               MMessage::removeCallback(rvMtoA->m_rvIdleCb);
-               rvMtoA->m_rvIdleCb = 0;
-            }
-            MGlobal::executeCommand("optionVar -rm \"OverrideFileOutputDirectory\"");
-            if (s_sequenceData->storeSnapshots)
-               MGlobal::executeCommand("optionVar -rm \"ArnoldSequenceSnapshot\"");
-            return;
-         }
-         s_sequenceData->renderStarted = false;
-         MProgressWindow::setProgress(s_sequenceData->current);
 
-         MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+   if (s_sequenceData->renderFinished) {
+      
+      if (s_sequenceData->storeSnapshots)
+         rvMtoA->SetOption("Store Snapshot", "1");
+
+      // this frame has finished !
+      s_sequenceData->current += s_sequenceData->step;
+      if (s_sequenceData->current > s_sequenceData->last)
+      {
+         MProgressWindow::endProgress();
+         rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+         rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+         rvMtoA->SetOption("Progressive Refinement", s_sequenceData->progressiveRefinementValue.c_str());
+         if (rvMtoA->m_rvIdleCb)
+         {
+            MMessage::removeCallback(rvMtoA->m_rvIdleCb);
+            rvMtoA->m_rvIdleCb = 0;
+         }
+         MGlobal::executeCommand("optionVar -rm \"OverrideFileOutputDirectory\"");
+         if (s_sequenceData->storeSnapshots)
+            MGlobal::executeCommand("optionVar -rm \"ArnoldSequenceSnapshot\"");
+         return;
+      }
+      s_sequenceData->renderStarted = false;
+      s_sequenceData->renderFinished = false;
+      MProgressWindow::setProgress(s_sequenceData->current);
+
+      MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+      int hasOptionVar = 0;
+      MGlobal::executeCommand("optionVar -exists \"OverrideFileOutputDirectory\"", hasOptionVar);
+      if (hasOptionVar)
+      {      
          MString optionVarCmd("optionVar -sv \"OverrideFileOutputDirectory\" \"");
          optionVarCmd += s_sequenceData->outputDirectory.c_str();
          optionVarCmd += "\"";
          MGlobal::executeCommand(optionVarCmd);
-         MGlobal::viewFrame(s_sequenceData->current);
-         MProgressWindow::setProgressStatus(progressStr);
-         MGlobal::displayInfo(progressStr);
-         if (s_sequenceData->storeSnapshots)
-            rvMtoA->SetOption("Store Snapshot", "1");
-         rvMtoA->SetOption("Update Full Scene", "1");
-
-      } else
-      {
-         // still computing
-         // nothing to do ?
       }
+
+      MGlobal::viewFrame(s_sequenceData->current);
+      MProgressWindow::setProgressStatus(progressStr);
+      MGlobal::displayInfo(progressStr);
+      rvMtoA->SetOption("Update Full Scene", "1");
    }
 
 }
@@ -1770,6 +1767,7 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
    s_sequenceData->last = last;
    s_sequenceData->step = step;
    s_sequenceData->renderStarted = false;
+   s_sequenceData->renderFinished = false;
    s_sequenceData->sceneUpdatesValue = GetOption("Scene Updates");
    s_sequenceData->saveImagesValue =  GetOption("Save Final Images");
    s_sequenceData->progressiveRefinementValue =  GetOption("Progressive Refinement");
@@ -1824,11 +1822,14 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
    MProgressWindow::setProgressStatus(progressStr);
    MGlobal::displayInfo(progressStr);
 
+   // First, let's ensure there's no other render going on
+   InterruptRender(true);
+
+   // Now restart the render from scratch
    SetOption("Update Full Scene", "1");
    
    // connect to Idle
    MStatus status;
-
    m_rvIdleCb = MTimerMessage::addTimerCallback(0.1f,
                                                   CRenderViewMtoA::SequenceRenderCallback,
                                                   this,
@@ -1858,6 +1859,9 @@ void CRenderViewMtoA::ProgressiveRenderStarted()
 
 void CRenderViewMtoA::ProgressiveRenderFinished()
 {
+   if (s_sequenceData && s_sequenceData->renderStarted) {
+      s_sequenceData->renderFinished = true;
+   }
    if (!m_hasProgressiveRenderFinished) return;
    MGlobal::executeCommand(m_progressiveRenderFinished, false, true);
 }
