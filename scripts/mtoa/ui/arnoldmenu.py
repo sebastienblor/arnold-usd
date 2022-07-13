@@ -18,10 +18,6 @@ import mtoa.convertShaders
 if not cmds.about(batch = True):
     from maya.app.renderSetup.lightEditor.views import editorUI
 from maya.api import OpenMaya
-try:
-    import urllib2 as urllib
-except ModuleNotFoundError as e:
-    import urllib
 
 import arnold
 from uuid import getnode as get_mac
