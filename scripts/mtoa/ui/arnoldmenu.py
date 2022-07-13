@@ -35,6 +35,10 @@ defaultOperatorsFolder = ""
 
 _maya_version = mutils.getMayaVersion()
 
+MTOA_DOWNLOAD_URL = 'https://www.arnoldrenderer.com/arnold/download/'
+MTOA_RELEASENOTES_URL = 'https://docs.arnoldrenderer.com/display/A5AFMUG/{version}'
+MTOA_HELP_URL = 'https://docs.arnoldrenderer.com/x/VwxkAg'
+
 def doCreateStandInFile():
     node = createStandIn()
     LoadStandInButtonPush('{}.dso'.format(node))
@@ -140,6 +144,16 @@ def doCreateLightPortal():
 
     mutils.createLocator('aiLightPortal', asLight=True)
 
+def updateAvailable():
+    currentVersionNumber = cmds.pluginInfo( 'mtoa', query=True, v=True)
+    if len(currentVersionNumber) == 5:
+        currentVersionNumber += ".0"
+    latestVersionNumber = None
+    data = None
+
+    latestVersionNumber = cmds.arnoldPlugins(getLatestVersion=True)
+        
+    return (latestVersionNumber and latestVersionNumber > currentVersionNumber), latestVersionNumber
 
 
 def arnoldAboutDialog():
@@ -147,16 +161,8 @@ def arnoldAboutDialog():
     
     pluginPath = os.path.dirname(os.path.dirname(cmds.pluginInfo( 'mtoa', query=True, path=True)))
     pluginPath = os.path.join(pluginPath,"scripts","mtoa","ui","AboutArnold.txt")
-    currentVersionNumber = cmds.pluginInfo( 'mtoa', query=True, v=True)
-    latestVersionNumber = None
-    data = None
 
-    try:
-        request = urllib.Request('https://version.solidangle.com/maya', data)
-        response = urllib.urlopen(request, timeout=4)
-        latestVersionNumber = response.read()
-    except:
-        pass
+    newVersionAvaialble, latestVersionNumber = updateAvailable()
 
     legaltext = arnold.AiGetCopyrightNotices(arnold.AI_COPYRIGHT_NOTICES_PLUGINS)
     arnoldAboutText =  u"Arnold for Maya\n\n"
@@ -171,43 +177,36 @@ def arnoldAboutDialog():
         cmds.deleteUI("AboutArnold")
     w = cmds.window("AboutArnold", title="About")
     cmds.window("AboutArnold", edit=True, width=520, height=280)
-    cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,20), (2, 52), (3, 50), (4, 380)] )
 
-    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+    cmds.rowColumnLayout(numberOfColumns=1)
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,72), (2, 430)] )
 
-    cmds.text(label="")
     cmds.image(image="arnold_small.png")
-    cmds.text(label="")
     cmds.text(align="left",label=arnoldAboutText)
 
-    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
-
+    cmds.setParent( '..' )
   
-    if (latestVersionNumber and latestVersionNumber > currentVersionNumber):
+    if (newVersionAvaialble):
+        cmds.rowColumnLayout(numberOfColumns=2,  columnWidth=[(1,72), (2, 430)], rowSpacing=([1,5],[2,5],[3,5]))
+        cmds.text(label="")
         newVersionText = "New Mtoa Version " + latestVersionNumber + " is now available"
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(align="left",label=newVersionText, font = "boldLabelFont", ebg = True, bgc = (0,1,0) )
+        cmds.text(align="left",label=newVersionText, font = "boldLabelFont",  hlc = (0.21, 0.64, 0.80) )
 
-        cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+        cmds.text(label="")       
+        cmds.button(label='Click For More Info', c=lambda *args: cmds.launch(webPage= MTOA_RELEASENOTES_URL.format(version=latestVersionNumber)))
+        cmds.text(label="")       
+        cmds.setParent("..")
 
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.button(label=' Get Latest ', c=lambda *args: cmds.launch(webPage= 'https://www.arnoldrenderer.com/arnold/download/'))
-
-    cmds.text(label="");cmds.text(label="");cmds.text(label="");
+    cmds.rowColumnLayout( numberOfColumns=2,  columnWidth=[(1,72), (2, 430)], rowSpacing=([1,5],[2,5],[3,5]) )
+    cmds.text(label="")       
     cmds.scrollField(editable=False, wordWrap=True, font="plainLabelFont", height=200, text=legaltext)
-    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
 
-    cmds.text(label="")
-    cmds.text(label="")
+    cmds.text(label="")       
     cmds.button(label='OK', command= 'import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)')
-    cmds.text(label="")
+    cmds.text(label="") 
+    cmds.text(label="") 
 
-    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
-
+    cmds.setParent( '..' )
     cmds.setParent( '..' )
 
     cmds.showWindow(w)

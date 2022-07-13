@@ -5,6 +5,8 @@
 #include "utils/BuildID.h"
 #include "utils/ConstantStrings.h"
 
+#include <curl/curl.h>
+
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
 
@@ -36,9 +38,16 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("gbi", "getBuildID", MSyntax::kNoArg);
    syntax.addFlag("gcv", "getClmVersion", MSyntax::kNoArg);
    syntax.addFlag("gbd", "getBuildDate", MSyntax::kNoArg);
+   syntax.addFlag("glv", "getLatestVersion", MSyntax::kNoArg);
 
 
    return syntax;
+}
+
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
 }
 
 MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
@@ -328,7 +337,26 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          break;
       }
       setResult(paramValueStr);
-   }      
+   } else if (args.isFlagSet("getLatestVersion"))      
+   {
+         CURL *curl;
+         CURLcode res;
+         std::string readBuffer;
+
+         curl = curl_easy_init();
+         if(curl) {
+            curl_easy_setopt(curl, CURLOPT_URL, "https://version.solidangle.com/maya");
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+            res = curl_easy_perform(curl);
+            /* always cleanup */ 
+            curl_easy_cleanup(curl);
+
+            setResult(readBuffer.c_str());   
+         }
+   }
 
    // FIXME: error on unknown flag
    return MS::kSuccess;
