@@ -26,6 +26,7 @@ try:
     import mtoa.cmds.arnoldRender as arnoldRender
     from mtoa.cmds.rendererCallbacks import aiRenderSettingsBuiltCallback
     from mtoa.viewport import arnoldViewOverrideOptionBox
+    import mtoa.ui.overrides as overrides
 except:
     import traceback
     traceback.print_exc(file=sys.__stderr__) # goes to the console
