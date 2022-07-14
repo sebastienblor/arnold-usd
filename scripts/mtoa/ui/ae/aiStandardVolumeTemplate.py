@@ -39,6 +39,7 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
 
         self.beginLayout("Emission", collapse=False)
         self.addControl("emissionMode",  label="Mode", annotation="Emission Mode")
+        self.addControl("emissionScaling",  label="Scaling", annotation="Emission Scaling")
         self.addControl("emission", label="Weight", annotation="Emission Weight")
         self.addControl("emissionColor", label="Color", annotation="Emission Color")
         self.addControl("emissionChannel", label="Channel *", annotation="Emission Channel")
