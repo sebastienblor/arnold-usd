@@ -154,7 +154,6 @@ class ArnoldViewportRenderControl():
     def reset(self, mode=None):
         """Rest the viewport options on scene Open or New
         """
-        print("ArnoldViewportRenderControl.reset", mode)
         self.ipr_state = OFF
         self.crop_state = OFF
         self.crop_region = (0,0,0,0)
