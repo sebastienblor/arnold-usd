@@ -23,7 +23,12 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
         self.addControl("scatter",  label="Weight", annotation="Scatter")
         self.addControl("scatterColor", label="Color", annotation="Scatter Color")
         self.addControl("scatterColorChannel", label="Color Channel *", annotation="Scatter Color Channel")
+        self.endLayout()
+
+        self.beginLayout("Anisotropy", collapse=False)
         self.addControl("scatterAnisotropy", label="Anisotropy", annotation="Scatter Anisotropy")
+        self.addControl("scatterSecondaryAnisotropy", label="Secondary Anisotropy", annotation="Secondary Anisotropy")
+        self.addControl("scatterSecondaryAnisotropyMix", label="Anisotropy Mix", annotation="Scatter Anisotropy")
         self.endLayout()
 
         self.beginLayout("Transparent", collapse=False)
@@ -34,6 +39,7 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
 
         self.beginLayout("Emission", collapse=False)
         self.addControl("emissionMode",  label="Mode", annotation="Emission Mode")
+        self.addControl("emissionScaling",  label="Scaling", annotation="Emission Scaling")
         self.addControl("emission", label="Weight", annotation="Emission Weight")
         self.addControl("emissionColor", label="Color", annotation="Emission Color")
         self.addControl("emissionChannel", label="Channel *", annotation="Emission Channel")
@@ -43,6 +49,7 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
         self.addControl("temperatureChannel", label="Channel *", annotation="Temperature Channel")
         self.addControl("blackbodyKelvin", label="Blackbody Kelvin", annotation="Blackbody Kelvin")
         self.addControl("blackbodyIntensity", label="Blackbody Intensity", annotation="Blackbody Intensity")
+        self.addControl("blackbodyContrast", label="Blackbody Contrast", annotation="Blackbody Contrast")
 
         self.endLayout()
         self.endLayout()
