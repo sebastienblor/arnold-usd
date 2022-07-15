@@ -646,7 +646,9 @@ void CSessionOptions::SetupLog(AtUniverse *universe)
    if (m_log_callbackId >= 0)
       AiMsgDeregisterCallback(m_log_callbackId);
 
-   m_log_callbackId = AiMsgRegisterCallback(MtoaLogCallback, m_log_verbosity, (void*)this);
+   // The callback is only used for warnings and errors, in order to call MGlobal::displayWarning / displayError and so that
+   // shows up in the Script Editor. Thus we only want to register warnings & errors
+   m_log_callbackId = AiMsgRegisterCallback(MtoaLogCallback, m_log_verbosity & (AI_LOG_WARNINGS | AI_LOG_ERRORS), (void*)this);
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
       AiMsgSetConsoleFlags(universe, m_log_verbosity | AI_LOG_COLOR);   

@@ -334,7 +334,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    {
       AiNodeSetPtr(options, str::atmosphere, arnoldNode);
    }
-   AiNodeSetBool(options, str::skip_license_check, true);
    AiNodeSetBool(options, str::texture_automip, false);
 
    return MStatus::kSuccess;
