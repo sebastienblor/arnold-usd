@@ -146,8 +146,10 @@ class ArnoldViewportRenderControl():
         self.ipr_state = OFF
         self.crop_state = OFF
         self.crop_region = (0,0,0,0)
+        self.debug_state = {}
         self.debug_mode = {} 
         self.script_jobs = []
+        self.isolate_state = {}
 
         self.setup_callbacks()
 
@@ -157,7 +159,9 @@ class ArnoldViewportRenderControl():
         self.ipr_state = OFF
         self.crop_state = OFF
         self.crop_region = (0,0,0,0)
+        self.debug_state = {}
         self.debug_mode = {} 
+        self.isolate_state = {}
 
         if mode == "NewScene":
             self.update_panels(True)
@@ -187,6 +191,7 @@ class ArnoldViewportRenderControl():
         if current_panel:
             self.ipr_state = getOption("Run IPR") == "1"
             self.crop_state = getOption("Crop Region") == "1"
+            self.update_icon_bar_enable_state(current_panel, True)
 
         if self.crop_state:
             reg = []
@@ -195,16 +200,56 @@ class ArnoldViewportRenderControl():
            
             if reg == [0,0,0,0]:
                 showHUD = False
-        cmds.arnoldViewport(hud=showHUD)
+        cmds.arnoldViewport(hud=showHUD)#
+
+    def modelPanelChangedCallback(self, *args):
+        # get panel with focus
+        focusPanel = cmds.getPanel(withFocus=True)
+        print("modelPanelChangedCallback",focusPanel)
+        
+        # get isolateSelected state
+        panel_isolateState = cmds.isolateSelect(focusPanel, q=True, state=True)
+
+        # get previous debug state for this panel (off if not recorded before)
+        previousDebugState = None
+        if focusPanel not in self.isolate_state or panel_isolateState != self.isolate_state[focusPanel][0]:
+            previousDebugState = self.debug_state.get(focusPanel, False)
+            self.isolate_state[focusPanel] = [panel_isolateState, previousDebugState]
+
+        if focusPanel == self.get_arnold_panel():
+            # if previousDebugstate has been set we should change the state
+            if previousDebugState != None:
+                # if isolateSelect is enabled on the current arnold enabled panel
+                if panel_isolateState:
+                    # if debug is enabled on the current arnold enabled panel set it to false
+                    if previousDebugState:
+                        self.toggle_debug(focusPanel, False, False)
+                    # set the debug mode to isolate selected
+                    setOption("Debug Shading", "Isolate Selected")                    
+                else:
+                    if previousDebugState:
+                        # debug state was enabled previously re-enable it
+                        self.toggle_debug(focusPanel, True, False)
+                    else:
+                        # otherwise disable debug shading
+                        self.toggle_debug(focusPanel, False, False)
+                
+                # set the enable state of the debug shaing icon
+                self.update_button_enable_state("avp_debug", focusPanel, not panel_isolateState)                
+                self.restart()
+
 
     def setup_callbacks(self):
 
         for job in self.script_jobs:
             if not cmds.scriptJob(exists=job):
                 self.script_jobs.pop(self.script_jobs.index(job))
+            else:
+                cmds.evalDeferred("cmds.scriptJob(kill={})".format(job))
 
-        self.script_jobs.append(cmds.scriptJob(event=["NewSceneOpened", lambda x="NewScene":self.reset(x)]))
-        self.script_jobs.append(cmds.scriptJob(event=["PostSceneRead", lambda x="PostSceneRead":self.reset(x)]))
+        self.script_jobs.append(cmds.scriptJob( event=["NewSceneOpened", lambda x="NewScene":self.reset(x)]))
+        self.script_jobs.append(cmds.scriptJob( event=["PostSceneRead", lambda x="PostSceneRead":self.reset(x)]))
+        self.script_jobs.append(cmds.scriptJob( event=["modelEditorChanged", self.modelPanelChangedCallback]))
 
     def toggle_render(self, arnold_panel, state, update_buttons=True):
         """Start rendering in a given panel
@@ -277,8 +322,9 @@ class ArnoldViewportRenderControl():
             self.ipr_state = state
             setOption("Run IPR", ipr_value, lp=True)
 
-    def restart(self, arnold_panel):
+    def restart(self):
         cmds.arnoldViewport(opt=("Refresh Render", "1"))    
+        cmds.refresh(cv=True, force=True)
 
     def toggle_crop(self, arnold_panel, state, stop_ipr=True):
         """Enable/Disable the viewport's crop controls.
@@ -364,6 +410,13 @@ class ArnoldViewportRenderControl():
         if cmds.iconTextCheckBox(icn_name, ex=True) and cmds.iconTextCheckBox(icn_name, q=True, v=True) != state:
                 cmds.iconTextCheckBox(icn_name, e=True, v=state)
 
+    def update_button_enable_state(self, control_name, arnold_panel, state):
+        icn_name = '{}_{}'.format(control_name, arnold_panel)
+        if cmds.control(icn_name, ex=True):
+            cmds.control(icn_name, e=True, en=state)
+            return True
+        return False
+
     def update_icon_bar_enable_state(self, arnold_panel, state, reset=False):
         """Some buttons should be disabled until a render takes place, i.e.
         crop and restart.
@@ -372,24 +425,15 @@ class ArnoldViewportRenderControl():
             arnold_panel {str} -- The current panel
             state {boo} -- Enabled or not
         """
+        self.update_button_enable_state('avp_restart', arnold_panel, state)
 
-        restart_ctl = 'avp_restart_%s' % arnold_panel
-        if cmds.iconTextButton(restart_ctl, ex=True):
-            cmds.iconTextButton(restart_ctl, e=True, en=state)
+        if self.update_button_enable_state('avp_debug', arnold_panel, state) and reset:
+            self.toggle_debug(arnold_panel, False)
 
-        debug_ctl = 'avp_debug_%s' % arnold_panel
-        if cmds.iconTextCheckBox(debug_ctl, ex=True):
-            cmds.iconTextCheckBox(debug_ctl, e=True, en=state)
-            if reset:
-                self.toggle_debug(arnold_panel, False)
+        self.update_button_enable_state('avp_aov', arnold_panel, state)
 
-        aov_ctl = 'avp_aov_%s' % arnold_panel
-        if cmds.iconTextButton(aov_ctl, ex=True):
-            cmds.iconTextButton(aov_ctl, e=True, en=state)
+        self.update_button_enable_state('avp_resolution', arnold_panel, state)
 
-        res_ctl = 'avp_resolution_%s' % arnold_panel
-        if cmds.iconTextButton(res_ctl, ex=True):
-            cmds.iconTextButton(res_ctl, e=True, en=state)
 
     def get_arnold_panel(self):
         """Return the name of panel containg a rendering viewport.
@@ -487,7 +531,7 @@ class ArnoldViewportRenderControl():
         # debug shading
         debug_btn = cmds.iconTextCheckBox('avp_debug_%s' % panel, w=18, h=18, en=False,
                                 i='avp_debug.png',
-                                ann='Set shading to debug mode',
+                                ann='Set shading to debug mode (disabled in isolate select mode)',
                                 v=False, p=ctlform,
                                 cc=partial(self.toggle_debug, panel))
         cmds.popupMenu('avp_debug_menu_%s' % panel, parent=debug_btn, button=1,
@@ -600,7 +644,7 @@ class ArnoldViewportRenderControl():
             self.debug_mode[arnold_panel] = mode
             self.toggle_debug(arnold_panel, True)
 
-    def toggle_debug(self, arnold_panel, state):
+    def toggle_debug(self, arnold_panel, state, record_state=True):
 
         if arnold_panel not in self.debug_mode:
             self.debug_mode[arnold_panel] = "Basic"
@@ -609,7 +653,10 @@ class ArnoldViewportRenderControl():
 
         if not state:
             mode = "Disabled"
-
+        
+        if record_state:
+            self.debug_state[arnold_panel] = state
+        
         setOption("Debug Shading", mode)
         self.update_button_state("avp_debug", arnold_panel, state)
 
