@@ -1,4 +1,5 @@
 #include "MtoaLog.h"
+#include "ConstantStrings.h"
 #include "../session/SessionOptions.h"
 #include "../session/ArnoldSession.h"
 
@@ -28,7 +29,7 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
       if (logmask & AI_LOG_INFO)
       break;
    case AI_SEVERITY_WARNING:
-      if (logmask & AI_LOG_WARNINGS)
+      if (logmask & AI_LOG_WARNINGS && strstr(msg_string, "skip_license_check") == NULL)
          MGlobal::displayWarning(msg_string);
       break;
    case AI_SEVERITY_ERROR:
