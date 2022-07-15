@@ -22,16 +22,6 @@ int GetFlagsFromVerbosityLevel(unsigned int level)
 
 DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, AtParamValueMap* metadata, void* user_ptr)
 {
-   // Gert the universe so we can return early if the console flags are set to AI_LOG_NONE
-   AtUniverse *universe = nullptr;
-   void* universe_ptr = nullptr;
-   if (AiParamValueMapGetPtr(metadata, str::universe, &universe_ptr))
-         universe = static_cast<AtUniverse*>(universe_ptr);
-
-   int universe_mask = logmask;
-   if (universe != nullptr)
-      universe_mask = AiMsgGetConsoleFlags(universe);
-
    switch (severity)
    {
    case AI_SEVERITY_INFO:
@@ -39,11 +29,11 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
       if (logmask & AI_LOG_INFO)
       break;
    case AI_SEVERITY_WARNING:
-      if (logmask & AI_LOG_WARNINGS && universe_mask & AI_LOG_WARNINGS)
+      if (logmask & AI_LOG_WARNINGS && strstr(msg_string, "skip_license_check") == NULL)
          MGlobal::displayWarning(msg_string);
       break;
    case AI_SEVERITY_ERROR:
-      if (logmask & AI_LOG_ERRORS  && universe_mask & AI_LOG_ERRORS)
+      if (logmask & AI_LOG_ERRORS)
          MGlobal::displayError(msg_string);
       break;
    default:
