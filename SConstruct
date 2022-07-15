@@ -87,6 +87,7 @@ vars.AddVariables(
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
+    BoolVariable('ENFORCE_ARNOLD_VERSION', 'Fails to build if the Arnold version is not the expected one (based on dependencies.json)', False),
     PathVariable('BUILD_DIR',
                  'Directory where temporary build files are placed by scons', 
                  'build', PathVariable.PathIsDirCreate),
@@ -396,18 +397,36 @@ try:
 except ImportError:
    import simplejson as json
 
+expected_arnold_version = None
 try:
     json_data = open('dependencies.json')
     data = json.load(json_data)
-    if data['arnold'] != arnold_version:
+    expected_arnold_version = data['arnold']
+except:
+    pass
+
+if expected_arnold_version != arnold_version:
+    
+    if env['ENFORCE_ARNOLD_VERSION']:
+        print '''
+        You are trying to build with arnold %s instead
+        of the officially supported version %s. 
+        
+        Aborting the build. 
+        
+        To allow the compilation, you can set the 
+        build variable "ENFORCE_ARNOLD_VERSION" to False
+        ''' % (arnold_version, expected_arnold_version)
+    
+        Exit(1)
+    else:
         print '''
         You are building with arnold %s instead
         of the officially supported version %s. 
         You might encounter bugs, build errors 
         or undefined behavior.
-        ''' % (arnold_version, data['arnold'])
-except:
-    pass
+        ''' % (arnold_version, expected_arnold_version)
+
 
 ################################
 ## COMPILER OPTIONS
