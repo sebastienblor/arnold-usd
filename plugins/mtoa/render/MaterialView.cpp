@@ -556,7 +556,6 @@ void CMaterialView::InitOptions()
    AiNodeSetInt(options, str::xres, m_width);
    AiNodeSetInt(options, str::yres, m_height);
    AiNodeSetInt(options, str::bucket_size, 32);
-   AiNodeSetStr(options, str::pin_threads, str::off);
    AiNodeSetInt(options, str::threads, m_job.maxThreads);
    AiNodeSetBool(options, str::texture_automip, false);
    
