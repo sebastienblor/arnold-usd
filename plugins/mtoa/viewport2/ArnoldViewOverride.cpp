@@ -541,8 +541,12 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         }
     }
 
-    // update the viewport panel controls to reflect the current state
-    MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
+    if (previousDestination != destination)
+    {
+        // update the viewport panel controls to reflect the current state
+        MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
+        previousDestination = destination;
+    }
 
     session->GetRenderView().PostDisplay();
 

@@ -91,6 +91,7 @@ protected:
     MHWRender::MTexture *mTexture;
 	ArnoldViewHUDRender *mHUDRender;
 
+    MString previousDestination;
     // Callback IDs for tracking viewport changes
     MCallbackId mRendererChangeCB;
     MCallbackId mRenderOverrideChangeCB;

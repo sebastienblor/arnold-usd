@@ -30,7 +30,6 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
    MStatus status;
    MArgDatabase args(syntax(), argList);
 
-   MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()");  
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "open";
 
    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(CArnoldRenderViewSession::GetViewportSessionId());   
