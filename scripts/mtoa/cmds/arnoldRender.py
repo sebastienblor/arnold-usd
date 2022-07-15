@@ -24,25 +24,37 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     
 
 def arnoldSequenceRender(width, height, camera, saveToRenderView):
-    # Close the Maya RenderView
-    mel.eval('deleteUI "renderViewWindow"')
 
-    # Make sure the aiOptions node exists
-    core.createOptions()
-    if saveToRenderView:
-        cmds.optionVar(iv=('ArnoldSequenceSnapshot', 1))
+    useARV = False
+    # For now we're still using the Maya RenderView to render a sequence.
+    # In order to change this, we should set useArv to True
+    if useARV:
 
-    cmd = 'cmds.arnoldRenderView(mode="sequence", w = {}, h={}'.format(width, height)
+        # Close the Maya RenderView
+        mel.eval('deleteUI "renderViewWindow"')
 
-    if len(camera) > 0:
-        cmd += ', cam="{}")'.format(camera)
+        # Make sure the aiOptions node exists
+        core.createOptions()
+        if saveToRenderView:
+            cmds.optionVar(iv=('ArnoldSequenceSnapshot', 1))
+
+        cmd = 'cmds.arnoldRenderView(mode="sequence", w = {}, h={}'.format(width, height)
+
+        if len(camera) > 0:
+            cmd += ', cam="{}")'.format(camera)
+        else:
+            cmd += ')'
+
+        # We need to give time for Maya to close the maya RenderView, so we're calling 
+        # evalDeferred
+        cmds.evalDeferred(cmd)
     else:
-        cmd += ')'
-
-    # We need to give time for Maya to close the maya RenderView, so we're calling 
-    # evalDeferred
-    cmds.evalDeferred(cmd)
-        
+        # Make sure the aiOptions node exists
+        core.createOptions()
+        if len(camera) > 0:
+            cmds.arnoldRender(seq="", w=width, h=height, cam=camera, srv=saveToRenderView)
+        else:
+            cmds.arnoldRender(seq="", w=width, h=height, srv=saveToRenderView)
 
 def arnoldBatchRenderOptionsString():    
     origFileName = cmds.file(q=True, sn=True)
