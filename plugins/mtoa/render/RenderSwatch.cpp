@@ -167,7 +167,6 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene(CArnoldSession *session)
          geometry = AiNode(universe, str::sphere, str::geometry);
          if (NULL != geometry)
          {
-            AiNodeSetBool(geometry, str::opaque, false);
             AtMatrix matrix = {{ { 1.0f, 0.0f, 0.0f, 0.0f },
                                { 0.0f, -1.0f, 0.0f, 0.0f },
                                { 0.0f, 0.0f, 1.0f, 0.0f },
