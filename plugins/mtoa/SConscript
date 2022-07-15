@@ -141,17 +141,18 @@ CURL_LIB_PATH = os.path.join(local_env["EXTERNAL_PATH"], 'curl', 'lib', system.o
 ZLIB_INCLUDES = os.path.join(local_env["EXTERNAL_PATH"], 'zlib', 'include')
 ZLIB_LIB_PATH = os.path.join(local_env["EXTERNAL_PATH"], 'zlib', 'lib', system.os)
 
-local_env.Append(CPPDEFINES = ['CURL_STATICLIB'])
-
 if system.os == 'linux':
     OPENSSL_LIB = os.path.join(OPENSSL_LIB_PATH, "libssl.a")
     CRYPTO_LIB = os.path.join(OPENSSL_LIB_PATH, "libcrypto.a")
     CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.a")
-    ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
-    local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES, ZLIB_INCLUDES])
-    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB), File(ZLIB_LIB)])
+    #ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
+    local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES])
+    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB)])
     local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 elif system.os == 'windows':
+    local_env.Append(CPPDEFINES = ['CURL_STATICLIB'])
+
+
     CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.lib")
     local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES, ZLIB_INCLUDES])
     local_env.Append(LIBPATH = [os.path.dirname(GLEW_LIB), CURL_LIB_PATH, OPENSSL_LIB_PATH, ZLIB_LIB_PATH])    
@@ -161,9 +162,9 @@ elif system.os == 'darwin':
     OPENSSL_LIB = os.path.join(OPENSSL_LIB_PATH, "libssl.a")
     CRYPTO_LIB = os.path.join(OPENSSL_LIB_PATH, "libcrypto.a")
     CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.a")
-    ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
-    local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES, ZLIB_INCLUDES])
-    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB), File(ZLIB_LIB)])
+    #ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
+    local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES])
+    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB)])
     local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
     local_env.Append(CPPDEFINES = Split('DARWIN'))
     local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
