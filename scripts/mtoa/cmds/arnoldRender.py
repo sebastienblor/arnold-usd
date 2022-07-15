@@ -28,6 +28,10 @@ def arnoldSequenceRender(width, height, camera, saveToRenderView):
     useARV = False
     # For now we're still using the Maya RenderView to render a sequence.
     # In order to change this, we should set useArv to True
+    
+    if 'MTOA_ARV_SEQUENCE' in os.environ and os.environ['MTOA_ARV_SEQUENCE'] != '0':
+        useARV = True
+        
     if useARV:
 
         # Close the Maya RenderView
