@@ -25,7 +25,12 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
    switch (severity)
    {
    case AI_SEVERITY_WARNING:
-      if (logmask & AI_LOG_WARNINGS/* && strstr(msg_string, "skip_license_check") == NULL*/)
+
+      if (logmask & AI_LOG_WARNINGS
+#ifdef SWATCHES_SKIP_LICENSE
+      && strstr(msg_string, "skip_license_check") == NULL
+#endif
+         )
          MGlobal::displayWarning(msg_string);
       break;
    case AI_SEVERITY_ERROR:
