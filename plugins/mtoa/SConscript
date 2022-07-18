@@ -162,12 +162,12 @@ elif system.os == 'darwin':
     OPENSSL_LIB = os.path.join(OPENSSL_LIB_PATH, "libssl.a")
     CRYPTO_LIB = os.path.join(OPENSSL_LIB_PATH, "libcrypto.a")
     CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.a")
-    #ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
+    ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
     local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES])
-    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB)])
-    local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
+    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB), File(ZLIB_LIB), "ldap"])
+    local_env.Append(CPPDEFINES = ['GLEW_STATIC', 'CURL_STATICLIB'])
     local_env.Append(CPPDEFINES = Split('DARWIN'))
-    local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
+    local_env.Append(FRAMEWORKS=Split('OpenGl AGL SystemConfiguration Security CoreFoundation Foundation CoreServices AppKit'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
 
 if local_env['ENABLE_ALEMBIC']:
