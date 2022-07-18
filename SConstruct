@@ -88,6 +88,7 @@ vars.AddVariables(
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
+    BoolVariable('SWATCHES_SKIP_LICENSE', 'Skip License check for render swatches', True),
     PathVariable('BUILD_DIR',
                  'Directory where temporary build files are placed by scons', 
                  'build', PathVariable.PathIsDirCreate),
@@ -328,6 +329,9 @@ else:
 if env['ENABLE_AXFTOA']:
     env.Append(CPPDEFINES = Split('ENABLE_AXFTOA')) 
 
+
+if env['SWATCHES_SKIP_LICENSE']:
+    env.Append(CPPDEFINES = Split('SWATCHES_SKIP_LICENSE')) 
 # Always read Maya VERSION from MType.h
 maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 

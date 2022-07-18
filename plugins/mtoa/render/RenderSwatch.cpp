@@ -334,7 +334,15 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    {
       AiNodeSetPtr(options, str::atmosphere, arnoldNode);
    }
+
+   // When building local builds, without the free interactive license, we
+   // want to enable "skip_license_check", otherwise arnold will attempt to
+   // find a license at every attribute edit if the swatch is visible. For 
+   // official builds we don't want this flag enabled and therefore
+   // we don't set skip license check
+#ifdef SWATCHES_SKIP_LICENSE
    AiNodeSetBool(options, str::skip_license_check, true);
+#endif
    AiNodeSetBool(options, str::texture_automip, false);
 
    return MStatus::kSuccess;
