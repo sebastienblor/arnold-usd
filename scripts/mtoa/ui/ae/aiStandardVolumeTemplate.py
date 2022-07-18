@@ -1,9 +1,13 @@
 import maya.mel
-import mtoa.utils as utils
-import mtoa.ui.ae.utils as aeUtils
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
+def ArnoldVolumeAutoStepChange(nodeName):
+    scatterMix = cmds.getAttr(nodeName+'.scatterSecondaryAnisotropyMix')
+    dimStepSize = autoStep
+
+    cmds.editorTemplate(dimControl=(nodeName, "scatterSecondaryAnisotropy",  dimStepSize))
 class AEaiStandardVolumeTemplate(ShaderAETemplate):
     convertToMayaStyle = True
    
@@ -27,8 +31,8 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
 
         self.beginLayout("Anisotropy", collapse=False)
         self.addControl("scatterAnisotropy", label="Anisotropy", annotation="Scatter Anisotropy")
+        self.addControl("scatterSecondaryAnisotropyMix", label="Secondary Mix", annotation="Scatter Anisotropy Mix", changeCommand=self.toggleSecondaryAnisotropy)
         self.addControl("scatterSecondaryAnisotropy", label="Secondary Anisotropy", annotation="Secondary Anisotropy")
-        self.addControl("scatterSecondaryAnisotropyMix", label="Anisotropy Mix", annotation="Scatter Anisotropy")
         self.endLayout()
 
         self.beginLayout("Transparent", collapse=False)
@@ -62,4 +66,7 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
        
         self.addExtraControls()
         self.endScrollLayout()
-
+    
+    def toggleSecondaryAnisotropy(self, nodeName):
+        scatterMix = cmds.getAttr(self.nodeAttr('scatterSecondaryAnisotropyMix'))
+        cmds.editorTemplate(dimControl=(nodeName, "scatterSecondaryAnisotropy",  not scatterMix))
