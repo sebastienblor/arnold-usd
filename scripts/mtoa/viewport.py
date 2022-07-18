@@ -205,8 +205,8 @@ class ArnoldViewportRenderControl():
     def modelPanelChangedCallback(self, *args):
         # get panel with focus
         focusPanel = cmds.getPanel(withFocus=True)
-        print("modelPanelChangedCallback",focusPanel)
-        
+        if not cmds.modelPanel(focusPanel, q=True, exists=True):
+            return
         # get isolateSelected state
         panel_isolateState = cmds.isolateSelect(focusPanel, q=True, state=True)
 
