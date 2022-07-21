@@ -206,7 +206,7 @@ irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensit
        float3 Li = normalize(ltPts[i] - Pw); 
        float3 Ln = normalize(ltPts[nextI] - Pw); 
        float3 Gi = normalize( cross(Ln, Li) ); 
-       float bi = acos( dot(Ln, Li) ); 
+       float bi = acos( clamp(dot(Ln, Li), -1.0, 1.0) ); 
        sumNG += bi * dot( Gi, Nw ); 
     } 
     const float M_2PI = 3.14159265358 * 2.0; 
@@ -401,7 +401,7 @@ irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensit
        float3 Li = normalize(ltPts[i] - Pw); 
        float3 Ln = normalize(ltPts[nextI] - Pw); 
        float3 Gi = normalize( cross(Ln, Li) ); 
-       float bi = acos( dot(Ln, Li) ); 
+       float bi = acos( clamp(dot(Ln, Li), -1.0, 1.0) ); 
        sumNG += bi * dot( Gi, Nw ); 
     } 
     const float M_2PI = 3.14159265358 * 2.0; 
@@ -597,7 +597,7 @@ irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensit
        vec3 Li = normalize(ltPts[i] - Pw); 
        vec3 Ln = normalize(ltPts[nextI] - Pw); 
        vec3 Gi = normalize( cross(Ln, Li) ); 
-       float bi = acos( dot(Ln, Li) ); 
+       float bi = acos( clamp(dot(Ln, Li), -1.0, 1.0) ); 
        sumNG += bi * dot( Gi, Nw ); 
     } 
     const float M_2PI = 3.14159265358 * 2.0; 
