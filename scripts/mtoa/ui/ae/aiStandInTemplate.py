@@ -230,9 +230,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
         '''
         Get if this file type should start off expanded
         '''
-        ext_str = os.path.splitext(self.current_filename.split(';')[0])[1].lower()
-        if ext_str in ['.abc']:
-            return True
+        # [MTOA-1130] disabled to stop all transverser populating on dag selection
+        # ext_str = os.path.splitext(self.current_filename.split(';')[0])[1].lower()
+        # if ext_str in ['.abc']:
+        #     return True
         return False
 
     def refreshAssignmentsUI(self):
