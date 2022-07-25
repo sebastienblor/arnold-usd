@@ -426,6 +426,11 @@ class ProceduralTransverser(BaseTransverser):
     @classmethod
     def getOperators(self, node, path='', operator_type=None, collections=[], index=-1, gather_parents=False):
 
+        # [MTOA-1130] skip the reserved root path "FOO", 
+        # otherwise we get a large slowdown with big procedurals
+        if path == "FOO": 
+            return []
+
         def walkInputs(op, path, plug, collections, gather_parents=False, parent_ops=[]):
             """
             walk the inputs of the given plug and

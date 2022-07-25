@@ -524,7 +524,7 @@ class ProceduralItem(BaseItem):
         elif delayUpdate:
             # delay the update by creating a tempory node that will be deleted on the expand
             if not len(self.childItems):
-                ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL", "", 0])
+                ProceduralItem(self, self.transverser, self.node, data=['FOO', 'FOO', 'FOO', 'visible', 'FOO', 'FOO', "NULL", "", 0])
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
             # For now we don't show the operators in the hierarchy, we need to make it an option

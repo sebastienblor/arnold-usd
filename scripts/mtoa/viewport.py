@@ -245,7 +245,7 @@ class ArnoldViewportRenderControl():
             if not cmds.scriptJob(exists=job):
                 self.script_jobs.pop(self.script_jobs.index(job))
             else:
-                cmds.evalDeferred("cmds.scriptJob(kill={})".format(job))
+                cmds.evalDeferred("if cmds.scriptJob(exists={0}):cmds.scriptJob(kill={0})".format(job))
 
         self.script_jobs.append(cmds.scriptJob( event=["NewSceneOpened", lambda x="NewScene":self.reset(x)]))
         self.script_jobs.append(cmds.scriptJob( event=["PostSceneRead", lambda x="PostSceneRead":self.reset(x)]))
