@@ -123,6 +123,7 @@ def _usd_delegate(target, source, env):
       PYTHON_INCLUDE=python_include,
       PYTHON_LIB=python_lib,
       USD_LIB_PREFIX=usd_lib_prefix,
+      ENABLE_MATERIALX=True,
       USDGENSCHEMA_CMD=usdGenSchema_cmd
     )
     if platform.system().lower() == 'darwin':
