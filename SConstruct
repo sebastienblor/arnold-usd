@@ -31,19 +31,19 @@ EXTERNAL_PATH = os.path.abspath('external')
 if system.os == 'darwin':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
-    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
-    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'lib', system.os, 'libGLEW.a')
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'include')
 elif system.os == 'linux':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     # linux conventions would be to actually use lib for dynamic libraries!
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
-    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'lib', system.os, 'libGLEW.a')
     glew_default_include = '/usr/include'
 elif system.os == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
     arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
-    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'glew32s.lib')
-    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'lib', system.os, 'glew32s.lib')
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'include')
 else:
     print "Unknown operating system: %s" % system.os
     Exit(1)
