@@ -39,6 +39,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("gcv", "getClmVersion", MSyntax::kNoArg);
    syntax.addFlag("gbd", "getBuildDate", MSyntax::kNoArg);
    syntax.addFlag("glv", "getLatestVersion", MSyntax::kNoArg);
+   syntax.addFlag("rlp", "reloadPlugins", MSyntax::kNoArg);
 
 
    return syntax;
@@ -356,6 +357,12 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
 
             setResult(readBuffer.c_str());   
          }
+   } else if (args.isFlagSet("reloadPlugins"))
+   {
+	 if (AiArnoldIsActive())
+	    AiEnd();
+	 if (!AiArnoldIsActive())
+	    AiBegin(AI_SESSION_INTERACTIVE);
    }
 
    // FIXME: error on unknown flag
