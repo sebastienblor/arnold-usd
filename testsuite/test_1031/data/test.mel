@@ -3,6 +3,9 @@ pause -sec 1;
 arnoldRenderView -option "Wait Render"  "1";
 
 //  copy tmp/hda.osl to plugin/hda.osl
+string $destUnix = "tmp/hda.osl";
+string $srcUnix = "plugin/hda.osl";
+sysFile -copy $destUnix $srcUnix;
 
 arnoldPlugin -rlp;
 
