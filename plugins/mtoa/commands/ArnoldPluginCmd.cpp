@@ -368,7 +368,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
 	    const char* env = getenv("MTOA_STARTUP_LOG_VERBOSITY");
 	    int baseFlags = AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR;
 	    if (env == 0)
-	       return AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+	       logLevel = AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
 	    else
 	    {
 	       int envRes = atoi(env);
