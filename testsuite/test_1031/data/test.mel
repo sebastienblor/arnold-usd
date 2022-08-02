@@ -2,12 +2,16 @@ arnoldRenderView -mode "render_silent";
 pause -sec 1;
 arnoldRenderView -option "Wait Render"  "1";
 
-//  copy tmp/hda.osl to plugin/hda.osl
-string $destUnix = "tmp/hda.osl";
-string $srcUnix = "plugin/hda.osl";
+$cwd = `pwd`;
+// delete plugin/hda.oso
+string $osoUnix = ($cwd + "/plugin/hda.oso");
+sysFile -delete $osoUnix;
+// copy tmp/hda.osl to plugin/hda.osl
+string $destUnix = ($cwd + "/plugin/hda.osl");
+string $srcUnix = ($cwd + "/tmp/hda.osl");
 sysFile -copy $destUnix $srcUnix;
 
-arnoldPlugin -rlp;
+arnoldPlugins -rlp;
 
 arnoldRenderView -mode "render_silent";
 pause -sec 1;
