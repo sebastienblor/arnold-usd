@@ -383,6 +383,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
 	    }
 	    // END: GetStartupLogLevel()
 	    ArnoldBegin(logLevel);
+	    InstallNodes();
 	 }
    }
 
