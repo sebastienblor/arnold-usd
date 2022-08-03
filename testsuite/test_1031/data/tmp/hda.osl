@@ -3,8 +3,8 @@
 
 shader hda_01(
     color Cin = color(0, 0, 0),
-    float exponent = 0.5,
+    float exponent = 1,
     output color Cout = color(0, 0, 0))
 {
-    Cout = Cin * exponent;
+    Cout = Cin * exponent * 0.5;
 }
