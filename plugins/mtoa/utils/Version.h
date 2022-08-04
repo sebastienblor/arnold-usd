@@ -7,7 +7,7 @@
 #define MTOA_ARCH_VERSION_NUM 5
 #define MTOA_MAJOR_VERSION_NUM 2
 #define MTOA_MINOR_VERSION_NUM 0
-//#define MTOA_FIX_VERSION "wip"
+#define MTOA_FIX_VERSION "1"
 
 
 
