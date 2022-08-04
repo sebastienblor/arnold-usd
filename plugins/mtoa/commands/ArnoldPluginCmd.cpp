@@ -39,6 +39,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("gcv", "getClmVersion", MSyntax::kNoArg);
    syntax.addFlag("gbd", "getBuildDate", MSyntax::kNoArg);
    syntax.addFlag("glv", "getLatestVersion", MSyntax::kNoArg);
+   syntax.addFlag("rlp", "reloadPlugins", MSyntax::kNoArg);
 
 
    return syntax;
@@ -356,6 +357,34 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
 
             setResult(readBuffer.c_str());   
          }
+   } else if (args.isFlagSet("reloadPlugins"))
+   {
+	 if (AiArnoldIsActive())
+	    ArnoldEnd();
+	 if (!AiArnoldIsActive())
+	 {
+	    // BEGIN: GetStartupLogLevel()
+	    int logLevel = 0;
+	    const char* env = getenv("MTOA_STARTUP_LOG_VERBOSITY");
+	    int baseFlags = AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR;
+	    if (env == 0)
+	       logLevel = AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+	    else
+	    {
+	       int envRes = atoi(env);
+	       if (envRes == 1)
+		  logLevel = AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+	       else if (envRes == 2)
+		  logLevel = AI_LOG_ERRORS | AI_LOG_WARNINGS | AI_LOG_INFO | baseFlags;
+	       else if (envRes == 3)
+		 logLevel = AI_LOG_ALL;
+	       else
+		  logLevel = 0;
+	    }
+	    // END: GetStartupLogLevel()
+	    ArnoldBegin(logLevel);
+	    InstallNodes();
+	 }
    }
 
    // FIXME: error on unknown flag
