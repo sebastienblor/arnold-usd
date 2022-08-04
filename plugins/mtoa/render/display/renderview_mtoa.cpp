@@ -957,7 +957,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
 
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 {
-   if (node != AiUniverseGetOptions(m_session->GetUniverse())) return;
+   if (!m_session || node != AiUniverseGetOptions(m_session->GetUniverse())) return;
    std::string paramName = paramNameChar;
 
 /*
