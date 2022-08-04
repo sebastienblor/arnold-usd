@@ -19,6 +19,7 @@
 #include <maya/M3dView.h>
 #include <maya/MSceneMessage.h>
 #include <maya/MConditionMessage.h>
+#include <maya/MQtUtil.h>
 
 #include "translators/DagTranslator.h"
 
@@ -487,6 +488,25 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     // update the details in the HUD
     if (mHUDRender)
     {
+        int hudRows = 0;
+        MStringArray huds;
+        MGlobal::executeCommand("headsUpDisplay -lh;", huds);
+        for (h=0;h<huds.length();h++)
+        {
+            MString hudcmd = "headsUpDisplay -q -visible ";
+            hudcmd += huds[h];
+            int hud_visible ;
+            MGlobal::executeCommand(hudcmd, hud_visible, false, false);
+            hudcmd = "headsUpDisplay -q -section ";
+            hudcmd += huds[h];
+            int section;
+            MGlobal::executeCommand(hudcmd, section, false, false);
+            if (hud_visible && section == 0)
+            {
+                hudRows++;
+            }
+        }
+        mHUDRender->setHorizontalOffset(hudRows);
         // get the current render time from the current render
         size_t rtime = session->GetRenderView().GetRenderTime();
         std::string display_status(session->GetRenderView().GetDisplayedStatus());
@@ -773,13 +793,22 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         // Start draw UI
         drawManager2D.beginDrawable();
         // Set font color
-        drawManager2D.setColor( MColor( 0.5f, 0.5f, 0.2f ) );
+        drawManager2D.setColor( MColor( 0.8f, 0.8f, 0.3f ) );
         // Set font size
         drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
+    #ifdef _DARWIN
+        drawManager2D.setFontName("monaco");
+    #else
+        drawManager2D.setFontName("monospace");
+    #endif
 
+        float scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
         int x=0, y=0, w=0, h=0;
         frameContext.getViewportDimensions( x, y, w, h );
-        float offset = 20.0f;
+        float offset = 20.0f*scaleFactor;
+        float hoffset = (20.0f*mHOffset)*scaleFactor;
+
+        MColor backgroundColor( 0.1, 0.1, 0.1);
         
         if (mOldProgress < 100.0)
         {
@@ -790,21 +819,22 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
             
             int statuslength = mRenderStatus.numChars();
             float statusOffset = statuslength*8.0;
-            drawManager2D.text( MPoint(offset, h*0.95f), mRenderStatus, MHWRender::MUIDrawManager::kLeft );
+            int backgroundSize[] = { progressbar_max_width+(offset)+5.0+(statusOffset), 20 };
+            drawManager2D.text( MPoint(offset, (h*0.95f)-hoffset), mRenderStatus, MHWRender::MUIDrawManager::kLeft );
             // Draw progress bar
             drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
-            drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(offset)+5.0+(statusOffset), h*0.955), MVector(0.0,1.0), 
+            drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(offset)+5.0+(statusOffset), h*0.955-hoffset), MVector(0.0,1.0), 
                                 (progressbar_max_width/2)+4.0, 
                                 4.0);
             drawManager2D.setLineWidth( 4.0f );
-            drawManager2D.line2d(MPoint((offset)+4.0+(statusOffset), h*0.95525f), MPoint((offset)+progress_step_width+5.5+(statusOffset), h*0.95525));
+            drawManager2D.line2d(MPoint((offset)+4.0+(statusOffset), h*0.95525f-hoffset), MPoint((offset)+progress_step_width+5.5+(statusOffset), h*0.95525-hoffset));
             char buffer[10];
             std::snprintf(buffer, 10, "%.2f%%", mProgress);
-            drawManager2D.text( MPoint((offset)+314.0+(statusOffset), h*0.95f), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+            drawManager2D.text( MPoint((offset)+314.0+(statusOffset), h*0.95f-hoffset), MString(buffer), MHWRender::MUIDrawManager::kLeft );
             
         }
         // Draw status text
-        drawManager2D.text( MPoint(offset, h*0.97f), mStatus, MHWRender::MUIDrawManager::kLeft );
+        drawManager2D.text( MPoint(offset, ((h*0.97f)-hoffset)), mStatus, MHWRender::MUIDrawManager::kLeft );
 
         // End draw UI
         drawManager2D.endDrawable();
@@ -827,6 +857,11 @@ void ArnoldViewHUDRender::setProgress(float value)
 void ArnoldViewHUDRender::setStatus(MString status)
 {
     mStatus = status;
+}
+
+void ArnoldViewHUDRender::setHorizontalOffset(int offset)
+{
+    mHOffset = offset;
 }
 
 void ArnoldViewHUDRender::setRenderStatus(MString status)

@@ -44,6 +44,7 @@ public:
     void setProgress(float value);
     float getProgress(){ return mProgress; }
     void setStatus(MString status);
+    void setHorizontalOffset(int offset);
     void setRenderStatus(MString status);
 protected:
 	bool mUserUIDrawables;
@@ -53,6 +54,7 @@ protected:
 	MString mName;
     float mProgress;
     float mOldProgress;
+    int mHOffset;
     MString mStatus;
     MString mRenderStatus;
 };
