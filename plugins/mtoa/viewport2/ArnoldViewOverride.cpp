@@ -20,6 +20,7 @@
 #include <maya/MSceneMessage.h>
 #include <maya/MConditionMessage.h>
 #include <maya/MQtUtil.h>
+#include <QtWidgets/QWidget>
 
 #include "translators/DagTranslator.h"
 
@@ -488,6 +489,12 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     // update the details in the HUD
     if (mHUDRender)
     {
+
+        QWidget * view = MQtUtil::findControl(destination);
+        float scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
+
+        mHUDRender->setPixelRatio(view->devicePixelRatioF()*scaleFactor);
+
         int hudRows = 0;
         MStringArray huds;
         MGlobal::executeCommand("headsUpDisplay -lh;", huds);
@@ -802,11 +809,10 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         drawManager2D.setFontName("monospace");
     #endif
 
-        float scaleFactor = MQtUtil::dpiScale(100.0f)/100.0f;
         int x=0, y=0, w=0, h=0;
         frameContext.getViewportDimensions( x, y, w, h );
-        float offset = 20.0f*scaleFactor;
-        float hoffset = (20.0f*mHOffset)*scaleFactor;
+        float offset = 20.0f*mPixelRatio;
+        float hoffset = (20.0f*mHOffset)*mPixelRatio;
 
         MColor backgroundColor( 0.1, 0.1, 0.1);
         
@@ -817,9 +823,9 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
             if (mProgress >= 0.0)
                 progress_step_width = (mProgress*((progressbar_max_width/2)/100.0)*2);
             
-            int statuslength = mRenderStatus.numChars();
-            float statusOffset = statuslength*8.0;
-            int backgroundSize[] = { progressbar_max_width+(offset)+5.0+(statusOffset), 20 };
+            int statuslength = mRenderStatus.numChars()+1;
+            float statusOffset = (statuslength*9.0)*mPixelRatio;
+            std::cout << "mPixelRatio " << mPixelRatio << " :: statusOffset " << statusOffset << std::endl; 
             drawManager2D.text( MPoint(offset, (h*0.95f)-hoffset), mRenderStatus, MHWRender::MUIDrawManager::kLeft );
             // Draw progress bar
             drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
@@ -862,6 +868,11 @@ void ArnoldViewHUDRender::setStatus(MString status)
 void ArnoldViewHUDRender::setHorizontalOffset(int offset)
 {
     mHOffset = offset;
+}
+
+void ArnoldViewHUDRender::setPixelRatio(float ratio)
+{
+    mPixelRatio = ratio;
 }
 
 void ArnoldViewHUDRender::setRenderStatus(MString status)
