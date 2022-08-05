@@ -5,7 +5,7 @@ import subprocess
 import sys, os, re
 sys.path = ["tools/python"]  + sys.path
 
-import utils.system
+import utils.system as system
 import glob
 from utils.build_tools import *
 from utils.mtoa_build_tools import *
@@ -670,6 +670,53 @@ elif system.os == 'linux':
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
+
+## Add Qt includes
+
+mayaQtFolder = ""
+mayaQtTarGz = ""
+
+for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  not ( x.endswith('zip') or x.endswith('.gz')) ):
+    mayaQtFolder = os.path.join(MAYA_INCLUDE_PATH,x)
+
+for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  ( x.endswith('zip') or x.endswith('.gz'))):
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH,x)
+
+if not mayaQtFolder or not mayaQtTarGz :
+    if (int(maya_version_base) < 2020):
+        mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.6.1-include') 
+        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+    elif (int(maya_version_base) == 2020):
+        mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.12.5-include') 
+        if system.os == 'windows':
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5_vc14-include.zip')
+        else:
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5-include.tar.gz')
+    else:
+        mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.15.2-include') 
+        if system.os == 'windows':
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2_vc14-include.zip')
+        else:
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2-include.tar.gz')
+
+if not os.path.isdir(mayaQtFolder):
+    if os.path.exists(mayaQtTarGz):
+        print "Extracting Qt Files..."
+        tmpFile, tmpExt = os.path.splitext(mayaQtTarGz)
+        if tmpExt == '.zip':
+            import zipfile
+            with zipfile.ZipFile(mayaQtTarGz, 'r') as zip_ref:
+                zip_ref.extractall(mayaQtFolder)
+        else:
+            import tarfile
+            tfile = tarfile.open(mayaQtTarGz, 'r:gz')
+            tfile.extractall(mayaQtFolder)
+    else:
+        print "Error : Qt Files not Found"
+
+
+env['QT_ROOT_DIR'] = mayaQtFolder
+env.Append(CPPPATH = [mayaQtFolder])
 
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, env['TARGET_ARCH']), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
