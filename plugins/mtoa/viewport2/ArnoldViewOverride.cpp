@@ -39,10 +39,10 @@ static unsigned int s_height = 0;
 ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     : MRenderOverride(name)
     , mUIName("Arnold")
-    , mCurrentOperation(-1)
     , mTexture(NULL)
     , mRendererChangeCB(0)
     , mRenderOverrideChangeCB(0)
+    , mCurrentOperation(-1)
     , mDebugEnabled(false)
 {
     // register a file open and file new callback
@@ -498,7 +498,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         int hudRows = 0;
         MStringArray huds;
         MGlobal::executeCommand("headsUpDisplay -lh;", huds);
-        for (h=0;h<huds.length();h++)
+        for (uint h=0;h<huds.length();h++)
         {
             MString hudcmd = "headsUpDisplay -q -visible ";
             hudcmd += huds[h];
@@ -787,9 +787,11 @@ const MSelectionList* UIObjectDraw::objectSetOverride()
 
 ArnoldViewHUDRender::ArnoldViewHUDRender(const MString &name)
 	: MHWRender::MHUDRender()
-	, mName(name)
     , mUserUIDrawables(true)
+	, mName(name)
     , mProgress(0.0f)
+    , mPixelRatio(1.0)
+    , mHOffset(0)
 	{
 	}
 
