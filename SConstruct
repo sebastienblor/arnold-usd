@@ -678,26 +678,33 @@ mayaQtTarGz = ""
 
 for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  not ( x.endswith('zip') or x.endswith('.gz')) ):
     mayaQtFolder = os.path.join(MAYA_INCLUDE_PATH,x)
+    break
 
 for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  ( x.endswith('zip') or x.endswith('.gz'))):
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH,x)
+    break
 
 if not mayaQtFolder or not mayaQtTarGz :
-    if (int(maya_version_base) < 2020):
-        mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.6.1-include') 
-        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
-    elif (int(maya_version_base) == 2020):
-        mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.12.5-include') 
-        if system.os == 'windows':
-            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5_vc14-include.zip')
-        else:
-            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5-include.tar.gz')
+
+    if mayaQtTarGz and os.path.exists(mayaQtTarGz):
+        mayaQtFolder = os.path.join(EXTERNAL_PATH, os.path.basename(mayaQtTarGz).replace(".tar.gz", "").replace(".zip", "")) 
+        print("found " + mayaQtTarGz + " extracting to " + mayaQtFolder)
     else:
-        mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.15.2-include') 
-        if system.os == 'windows':
-            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2_vc14-include.zip')
+        if (int(maya_version_base) < 2020):
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.6.1-include') 
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+        elif (int(maya_version_base) == 2020):
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.12.5-include') 
+            if system.os == 'windows':
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5_vc14-include.zip')
+            else:
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5-include.tar.gz')
         else:
-            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2-include.tar.gz')
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.15.2-include') 
+            if system.os == 'windows':
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2_vc14-include.zip')
+            else:
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2-include.tar.gz')
 
 if not os.path.isdir(mayaQtFolder):
     if os.path.exists(mayaQtTarGz):
@@ -878,6 +885,7 @@ if system.os == 'windows':
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
+    maya_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
 
     if env['PREBUILT_MTOA']:       
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
@@ -946,11 +954,13 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+        maya_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL', 'Qt5Widgets'])
 
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
+        maya_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5', 'Qt5Widgets.5'])
         
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
