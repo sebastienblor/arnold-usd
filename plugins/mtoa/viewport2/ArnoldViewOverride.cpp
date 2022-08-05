@@ -802,7 +802,7 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         // Start draw UI
         drawManager2D.beginDrawable();
         // Set font color
-        drawManager2D.setColor( MColor( 0.8f, 0.8f, 0.3f ) );
+        drawManager2D.setColor( MColor( 1.0f, 1.0f, 0.0f ) );
         // Set font size
         drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
     #ifdef _DARWIN
