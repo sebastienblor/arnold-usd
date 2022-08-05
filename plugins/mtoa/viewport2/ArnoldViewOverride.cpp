@@ -808,7 +808,7 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
     #ifdef _DARWIN
         drawManager2D.setFontName("monaco");
     #else
-        drawManager2D.setFontName("monospace");
+        drawManager2D.setFontName("consolas");
     #endif
 
         int x=0, y=0, w=0, h=0;
@@ -820,29 +820,34 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         
         if (mOldProgress < 100.0)
         {
-            float progressbar_max_width = 300.0f;
-            float progress_step_width = 0.001;
+            float progressbar_max_width = 250.0f*mPixelRatio;
+            double progress_step_width = 0.001;
             if (mProgress >= 0.0)
-                progress_step_width = (mProgress*((progressbar_max_width/2)/100.0)*2);
+                progress_step_width = (mProgress*((progressbar_max_width/2)/100.0));
             
             int statuslength = mRenderStatus.numChars()+1;
-            float statusOffset = (statuslength*9.0)*mPixelRatio;
-            std::cout << "mPixelRatio " << mPixelRatio << " :: statusOffset " << statusOffset << std::endl; 
+            float statusOffset = (statuslength*8.0)*mPixelRatio;
+
             drawManager2D.text( MPoint(offset, (h*0.95f)-hoffset), mRenderStatus, MHWRender::MUIDrawManager::kLeft );
             // Draw progress bar
             drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
-            drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(offset)+5.0+(statusOffset), h*0.955-hoffset), MVector(0.0,1.0), 
-                                (progressbar_max_width/2)+4.0, 
-                                4.0);
-            drawManager2D.setLineWidth( 4.0f );
-            drawManager2D.line2d(MPoint((offset)+4.0+(statusOffset), h*0.95525f-hoffset), MPoint((offset)+progress_step_width+5.5+(statusOffset), h*0.95525-hoffset));
-            char buffer[10];
-            std::snprintf(buffer, 10, "%.2f%%", mProgress);
-            drawManager2D.text( MPoint((offset)+314.0+(statusOffset), h*0.95f-hoffset), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+            drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(statusOffset), (h*0.955)-hoffset),
+                                 MVector(0.0,1.0), 
+                                 (progressbar_max_width/2), 
+                                 4.0*mPixelRatio);
+            
+            drawManager2D.rect2d(MPoint(progress_step_width+(statusOffset), (h*0.955)-hoffset),
+                                 MVector(0.0,1.0), 
+                                 std::max(progress_step_width, 0.0), 
+                                 4.0*mPixelRatio,
+                                 true);
+            char buffer[8];
+            std::snprintf(buffer, 8, "%.2f%%", mProgress);
+            drawManager2D.text( MPoint((10.0*mPixelRatio)+statusOffset+progressbar_max_width, (h*0.95f)-hoffset), MString(buffer), MHWRender::MUIDrawManager::kLeft );
             
         }
         // Draw status text
-        drawManager2D.text( MPoint(offset, ((h*0.97f)-hoffset)), mStatus, MHWRender::MUIDrawManager::kLeft );
+        drawManager2D.text( MPoint(offset, (h*0.97f)-hoffset), mStatus, MHWRender::MUIDrawManager::kLeft );
 
         // End draw UI
         drawManager2D.endDrawable();
