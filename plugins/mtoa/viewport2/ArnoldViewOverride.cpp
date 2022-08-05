@@ -529,7 +529,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
             std::stringstream statusStr;
             const char *debugShading = session->GetRenderViewOption(MString("Debug Shading")).asChar();
-            if (std::strcmp(debugShading,"Disabled"))
+            if (debugShading != NULL && std::strlen(debugShading) && std::strcmp(debugShading,"Disabled"))
             {
                 char *tempDebugShading = strdup(debugShading);
                 // adjust copy to uppercase
