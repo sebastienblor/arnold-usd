@@ -346,7 +346,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
 
          curl = curl_easy_init();
          if(curl) {
-            curl_easy_setopt(curl, CURLOPT_URL, "https://version.solidangle.com/maya");
+            curl_easy_setopt(curl, CURLOPT_URL, "https://arnoldrenderer.com/getversion/maya");
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);

@@ -336,7 +336,7 @@ class ArnoldViewportRenderControl():
 
         if not state:
             # if we're turning off the crop we 
-            if stop_ipr:
+            if not self.get_option_state("toggle", arnold_panel) and stop_ipr:
                 self.set_ipr(OFF)
                 self.stop_render(arnold_panel)
             self.set_crop(OFF)
@@ -349,9 +349,6 @@ class ArnoldViewportRenderControl():
                 self.update_button_state("avp_crop", current_arnold_panel, False)
                 self.update_button_state("avp_toggle", current_arnold_panel, False)
                 self.update_icon_bar_enable_state(current_arnold_panel, False)
-
-            # check if the current view is enabled for full frame, and disable the icon if it is 
-            self.update_button_state("avp_toggle", arnold_panel, False)
 
             self.set_crop(ON)
             if cmds.modelEditor(
