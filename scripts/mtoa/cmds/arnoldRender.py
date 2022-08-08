@@ -9,7 +9,8 @@ _maya_version = mutils.getMayaVersion()
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Close the Maya RenderView
-    mel.eval('deleteUI "renderViewWindow"')
+    if cmds.control("renderViewWindow", exists=True):
+        mel.eval('deleteUI "renderViewWindow"')
     
     # Make sure the aiOptions node exists
     core.createOptions()
@@ -35,7 +36,8 @@ def arnoldSequenceRender(width, height, camera, saveToRenderView):
     if useARV:
 
         # Close the Maya RenderView
-        mel.eval('deleteUI "renderViewWindow"')
+        if cmds.control("renderViewWindow", exists=True):
+            mel.eval('deleteUI "renderViewWindow"')
 
         # Make sure the aiOptions node exists
         core.createOptions()
@@ -125,7 +127,8 @@ def arnoldBatchRenderOptions():
 def arnoldIprStart(editor, width, height, camera):
     # Make sure the aiOptions node exists
     core.createOptions()
-    mel.eval('deleteUI "renderViewWindow"')
+    if cmds.control("renderViewWindow", exists=True):
+        mel.eval('deleteUI "renderViewWindow"')
     
     # We need to give time for Maya to close the maya RenderView, so we're calling 
     # evalDeferred
@@ -143,7 +146,8 @@ def arnoldIprIsRunning():
     
 def arnoldIprRender(width, height, doShadows, doGlowPass, camera):
     core.createOptions()
-    mel.eval('deleteUI "renderViewWindow"')
+    if cmds.control("renderViewWindow", exists=True):
+        mel.eval('deleteUI "renderViewWindow"')
 
     # We need to give time for Maya to close the maya RenderView, so we're calling 
     # evalDeferred
