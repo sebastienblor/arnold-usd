@@ -38,12 +38,17 @@ public:
     }
 	void addUIDrawables( MHWRender::MUIDrawManager& drawManager2D, const MHWRender::MFrameContext& frameContext ) override;
 
-    MString name(){ return mName; }
+    const MString & name() const override
+    { 
+        return mName; 
+    }
 	// Options
 	void setUserUIDrawables(bool val);
     void setProgress(float value);
     float getProgress(){ return mProgress; }
     void setStatus(MString status);
+    void setHorizontalOffset(int offset);
+    void setPixelRatio(float ratio);
     void setRenderStatus(MString status);
 protected:
 	bool mUserUIDrawables;
@@ -53,6 +58,8 @@ protected:
 	MString mName;
     float mProgress;
     float mOldProgress;
+    float mPixelRatio;
+    int mHOffset;
     MString mStatus;
     MString mRenderStatus;
 };
@@ -65,17 +72,17 @@ class ArnoldViewOverride : public MHWRender::MRenderOverride
 public:
     ArnoldViewOverride(const MString & name);
     virtual ~ArnoldViewOverride();
-    virtual MHWRender::DrawAPI supportedDrawAPIs() const;
+    virtual MHWRender::DrawAPI supportedDrawAPIs() const override;
 
     // Basic setup and cleanup
-    virtual MStatus setup(const MString & destination);
-    virtual MStatus cleanup();
+    virtual MStatus setup(const MString & destination) override;
+    virtual MStatus cleanup() override;
 
 	bool startOperationIterator() override;
 	MHWRender::MRenderOperation * renderOperation() override;
 	bool nextRenderOperation() override;
     // UI name
-    virtual MString uiName() const
+    virtual MString uiName()  const override
     {
         return mUIName;
     }
