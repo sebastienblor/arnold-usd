@@ -15,11 +15,7 @@ mtoa.kdev4
 /custom.*py
 /plugins/mtoa/utils/MercurialID.h
 /plugins/mtoa/utils/BuildID.h
-/external/qt-4.8.5-include/*
-/external/qt-4.8.6-include/*
-/external/qt-5.6.0-include/*
-/external/qt-5.6.1-include/*
-/external/qt-5.15.2-include/*
+/external/qt*
 /MtoA*.exe
 /MtoA*.run
 /MtoA*.pdb
