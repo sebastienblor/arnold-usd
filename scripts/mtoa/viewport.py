@@ -363,8 +363,8 @@ class ArnoldViewportRenderControl():
                 self.set_ipr(ON)
 
         cmds.refresh(cv=True, force=True)
-
-        self.update_icon_bar_enable_state(arnold_panel, state)
+        if not self.get_option_state("toggle", arnold_panel) and stop_ipr:
+            self.update_icon_bar_enable_state(arnold_panel, state)
 
         # make sure the icon state reflects the actual tool state.
         self.update_button_state("avp_crop", arnold_panel, state)
