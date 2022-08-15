@@ -54,9 +54,14 @@ bool CCameraTranslator::RequiresMotionData()
 
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
+   MPlug dofAttr = FindMayaPlug("aiEnableDOF");
+   // UFE cameras don't have "ai" attributes
+   if (dofAttr.isNull())
+      return;
+
    CSessionOptions &options = m_impl->m_session->GetOptions();
    // FIXME: focus_distance and aperture_size are animated and should be exported with motion blur
-   if (FindMayaPlug("aiEnableDOF").asBool())
+   if (dofAttr.asBool())
    {
       float distance = FindMayaPlug("aiFocusDistance").asFloat();
       options.ScaleDistance(distance);      
@@ -98,19 +103,26 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    }
    AtMatrix matrix;
 
-   AiNodeSetFlt(camera, str::exposure, FindMayaPlug("aiExposure").asFloat());
+   MPlug exposureAttr = FindMayaPlug("aiExposure");
+   if (!exposureAttr.isNull())
+      AiNodeSetFlt(camera, str::exposure, exposureAttr.asFloat());
    
    AiNodeSetFlt(camera, str::near_clip, FindMayaPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, str::far_clip,  FindMayaPlug("farClipPlane").asFloat());
-   AiNodeSetInt(camera, str::rolling_shutter, FindMayaPlug("aiRollingShutter").asInt());
-   AiNodeSetFlt(camera, str::rolling_shutter_duration, FindMayaPlug("aiRollingShutterDuration").asFloat());
+   MPlug rollingShutterAttr = FindMayaPlug("aiRollingShutter");
+   if (!rollingShutterAttr.isNull())
+      AiNodeSetInt(camera, str::rolling_shutter, rollingShutterAttr.asInt());
+   MPlug rollingShutterDurationAttr = FindMayaPlug("aiRollingShutterDuration");
+   if (!rollingShutterDurationAttr.isNull())
+      AiNodeSetFlt(camera, str::rolling_shutter_duration, rollingShutterDurationAttr.asFloat());
 
    double motionStart, motionEnd;
    GetSessionOptions().GetMotionRange(motionStart, motionEnd);
    AiNodeSetFlt(camera, str::motion_start, (float)motionStart);
    AiNodeSetFlt(camera, str::motion_end, (float)motionEnd);
 
-   if (FindMayaPlug("aiUseGlobalShutter").asBool())
+   MPlug useGlobalShutterAttr = FindMayaPlug("aiUseGlobalShutter");
+   if (useGlobalShutterAttr.isNull() || useGlobalShutterAttr.asBool())
    {      
       // Use the Global motion range as shutter (default)
       AiNodeSetFlt(camera, str::shutter_start, (float)motionStart);
@@ -123,9 +135,13 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       AiNodeSetFlt(camera, str::shutter_end, FindMayaPlug("aiShutterEnd").asFloat());
    }
    
-   AiNodeSetInt(camera, str::shutter_type, FindMayaPlug("aiShutterType").asInt());
+   MPlug shutterTypeAttr = FindMayaPlug("aiShutterType");
+   if (!shutterTypeAttr.isNull())
+      AiNodeSetInt(camera, str::shutter_type, shutterTypeAttr.asInt());
    
-   ProcessArrayParameter(camera, str::shutter_curve, FindMayaPlug("aiShutterCurve"));
+   MPlug shutterCurveAttr = FindMayaPlug("aiShutterCurve");
+   if (!shutterCurveAttr.isNull())
+      ProcessArrayParameter(camera, str::shutter_curve, shutterCurveAttr);
 
    // For mayaUSD exports, we don't want to export matrices
    if (!GetSessionOptions().IsMayaUsd())
