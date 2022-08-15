@@ -142,6 +142,8 @@ private:
    bool m_hasPostProgressiveStep;
    bool m_hasProgressiveRenderStarted;
    bool m_hasProgressiveRenderFinished;
+   bool m_preRenderMEL;
+   bool m_postRenderMEL;
    
    bool m_viewportRendering;
 

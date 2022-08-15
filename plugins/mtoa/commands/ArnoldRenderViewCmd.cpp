@@ -225,11 +225,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          renderCamera.extendToShape();
       session->SetExportCamera(renderCamera, false);
 
-      // FIXME do we want the preMel callbacks and should they be handled here ???
       MCommonRenderSettingsData renderGlobals;
       MRenderUtil::getCommonRenderSettings(renderGlobals);
-      MGlobal::executeCommand(renderGlobals.preMel);
-      MGlobal::executeCommand(renderGlobals.preRenderMel);
 
       if (!renderGlobals.renderAll)
       {

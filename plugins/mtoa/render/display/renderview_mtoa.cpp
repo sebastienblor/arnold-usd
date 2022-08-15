@@ -142,7 +142,9 @@ CRenderViewMtoA::CRenderViewMtoA(CArnoldRenderViewSession *s) : CRenderViewInter
    m_hasPostProgressiveStep(false),
    m_hasProgressiveRenderStarted(false),
    m_hasProgressiveRenderFinished(false),
-   m_viewportRendering(false)
+   m_viewportRendering(false),
+   m_preRenderMEL(false),
+   m_postRenderMEL(false)
 {   
 #if MAYA_API_VERSION >= 20190000
    m_colorPickingCallback = 0x0;
@@ -562,9 +564,6 @@ void CRenderViewMtoA::UpdateFullScene()
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-   MGlobal::executeCommand(renderGlobals.postMel);
-   MGlobal::executeCommand(renderGlobals.postRenderMel);
-
    // Make sure the caches are flushed (#3369)
    AiUniverseCacheFlush(nullptr, AI_CACHE_ALL);
 
@@ -603,9 +602,6 @@ void CRenderViewMtoA::UpdateFullScene()
       }
 
       m_session->SetExportCamera(renderCamera, false);
-
-      MGlobal::executeCommand(renderGlobals.preMel);
-      MGlobal::executeCommand(renderGlobals.preRenderMel);
 
       if (!renderGlobals.renderAll)
       {
@@ -1116,11 +1112,6 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 
    if (m_session)
    {
-
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-      MGlobal::executeCommand(renderGlobals.postRenderMel);
-      MGlobal::executeCommand(renderGlobals.postMel);
       m_session->Clear();  
    }
 }
@@ -1853,6 +1844,21 @@ void CRenderViewMtoA::PostProgressiveStep()
 }
 void CRenderViewMtoA::ProgressiveRenderStarted()
 {
+   // get the status
+   AtRenderStatus status = AiRenderGetStatus(GetRenderSession());
+   // only execute the preRenderMEL calls if we have not called it already
+   // and the status is that the render is not started or is restarted/finished
+   if (!m_preRenderMEL && (status == AI_RENDER_STATUS_NOT_STARTED || status == AI_RENDER_STATUS_RESTARTING || status == AI_RENDER_STATUS_FINISHED))
+   {
+      m_preRenderMEL=true;
+      m_postRenderMEL=false;
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+      MGlobal::executeCommand(renderGlobals.preMel);
+      MGlobal::executeCommand(renderGlobals.preRenderMel);
+   }
+
    if (!m_hasProgressiveRenderStarted) return;
    MGlobal::executeCommand(m_progressiveRenderStarted, false, true);
 }
@@ -1862,6 +1868,20 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
    if (s_sequenceData && s_sequenceData->renderStarted) {
       s_sequenceData->renderFinished = true;
    }
+
+   AtRenderStatus status = AiRenderGetStatus(GetRenderSession());
+   // only execute the postRenderMEL calls if we have not called it already
+   // and the status is that the render is finished
+   if (!m_postRenderMEL && status == AI_RENDER_STATUS_FINISHED)
+   {
+      m_postRenderMEL=true;
+      m_preRenderMEL=false;
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+      MGlobal::executeCommand(renderGlobals.postRenderMel);
+      MGlobal::executeCommand(renderGlobals.postMel);
+   }
+   
    if (!m_hasProgressiveRenderFinished) return;
    MGlobal::executeCommand(m_progressiveRenderFinished, false, true);
 }
