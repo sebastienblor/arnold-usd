@@ -88,8 +88,6 @@ maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.
 maya_version_base = maya_version[0:4]
 
 MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
-ARNOLD_AXF_INCLUDES = os.path.join(MTOA_EXTERNAL_PATH, 'axf/include')
-ARNOLD_AXF_LIB = os.path.join(MTOA_EXTERNAL_PATH, 'axf/lib/', system.os )
 
 if system.os == 'windows':
     local_env.Append(LIBS = ['user32.lib', 'advapi32.lib']) # this is needed for the licensing tools, for system environment variables
@@ -110,9 +108,12 @@ if not local_env['MTOA_DISABLE_RV']:
     else:
         local_env.Append(LIBS = ['ai_renderview'])
 
-local_env.Append(CPPPATH = [ARNOLD_AXF_INCLUDES,])
-local_env.Append(LIBPATH = [ARNOLD_AXF_LIB,])
-local_env.Append(LIBS=Split('AxFtoA'))
+if local_env['ENABLE_AXFTOA']:
+    ARNOLD_AXF_INCLUDES = os.path.join(MTOA_EXTERNAL_PATH, 'axf/include')
+    ARNOLD_AXF_LIB = os.path.join(MTOA_EXTERNAL_PATH, 'axf/lib/', system.os )
+    local_env.Append(CPPPATH = [ARNOLD_AXF_INCLUDES,])
+    local_env.Append(LIBPATH = [ARNOLD_AXF_LIB,])
+    local_env.Append(LIBS=Split('AxFtoA'))
 
 if system.os == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')
@@ -132,44 +133,64 @@ else:
 local_env.Append(LIBPATH = [os.path.join(Dir('.').abspath, '..', 'api')])
 local_env.Append(LIBS = ['mtoa_api'])
 
+OPENSSL_PATH = os.path.join(local_env["EXTERNAL_PATH"], 'openssl')
+OPENSSL_INCLUDES = os.path.join(OPENSSL_PATH, 'include')
+OPENSSL_LIB_PATH = os.path.join(OPENSSL_PATH, 'lib', system.os)
+CURL_INCLUDES = os.path.join(local_env["EXTERNAL_PATH"], 'curl', 'include')
+CURL_LIB_PATH = os.path.join(local_env["EXTERNAL_PATH"], 'curl', 'lib', system.os)
+ZLIB_INCLUDES = os.path.join(local_env["EXTERNAL_PATH"], 'zlib', 'include')
+ZLIB_LIB_PATH = os.path.join(local_env["EXTERNAL_PATH"], 'zlib', 'lib', system.os)
+
 if system.os == 'linux':
-    local_env.Append(CPPPATH = [GLEW_INCLUDES])
-    local_env.Append(LIBS = [File(GLEW_LIB)])
+    OPENSSL_LIB = os.path.join(OPENSSL_LIB_PATH, "libssl.a")
+    CRYPTO_LIB = os.path.join(OPENSSL_LIB_PATH, "libcrypto.a")
+    CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.a")
+    #ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
+    local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES])
+    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB)])
     local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 elif system.os == 'windows':
-    local_env.Append(CPPPATH = [GLEW_INCLUDES])
-    local_env.Append(LIBPATH = [os.path.dirname(GLEW_LIB)])
-    local_env.Append(LIBS = [os.path.basename(GLEW_LIB)])
+    local_env.Append(CPPDEFINES = ['CURL_STATICLIB'])
+
+
+    CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.lib")
+    local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES, ZLIB_INCLUDES])
+    local_env.Append(LIBPATH = [os.path.dirname(GLEW_LIB), CURL_LIB_PATH, OPENSSL_LIB_PATH, ZLIB_LIB_PATH])    
+    local_env.Append(LIBS = [os.path.basename(GLEW_LIB), "libcurl.lib", "libssl.lib", "libcrypto.lib", "crypt32.lib", "wldap32.lib", "winhttp.lib", "zlibstatic.lib"])
     local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
 elif system.os == 'darwin':
-    local_env.Append(CPPPATH = [GLEW_INCLUDES])
-    local_env.Append(LIBS = [File(GLEW_LIB)])
-    local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
+    OPENSSL_LIB = os.path.join(OPENSSL_LIB_PATH, "libssl.a")
+    CRYPTO_LIB = os.path.join(OPENSSL_LIB_PATH, "libcrypto.a")
+    CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.a")
+    ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
+    local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES])
+    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB), File(ZLIB_LIB), "ldap"])
+    local_env.Append(CPPDEFINES = ['GLEW_STATIC', 'CURL_STATICLIB'])
     local_env.Append(CPPDEFINES = Split('DARWIN'))
-    local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
+    local_env.Append(FRAMEWORKS=Split('OpenGl AGL SystemConfiguration Security CoreFoundation Foundation CoreServices AppKit'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
 
 if local_env['ENABLE_ALEMBIC']:
     alembic_version = '1.8.3'
     alembic_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'alembic-'+alembic_version)
-    ilmbase_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'ilmbase')
+    openexr_extern_path = os.path.join(local_env["EXTERNAL_PATH"], 'openexr')
     abc_lib_dir = os.path.join(alembic_extern_path, 'lib', system.os)
-    ilmbase_lib_dir = os.path.join(ilmbase_extern_path, 'lib', system.os)
-    local_env.Append(CPPPATH = [os.path.join(alembic_extern_path, 'include'), os.path.join(ilmbase_extern_path, 'include', 'OpenEXR')])
+    openexr_lib_dir = os.path.join(openexr_extern_path, 'lib', system.os)
+    local_env.Append(CPPPATH = [os.path.join(alembic_extern_path, 'include')])
+    local_env.Append(CPPPATH = [os.path.join(openexr_extern_path, 'include', 'OpenEXR')])
     if system.os in ['linux', 'darwin']:
         local_env.Append(LIBS = [File(os.path.join(abc_lib_dir, 'libAlembic.a')), 
-                                 File(os.path.join(ilmbase_lib_dir, 'libHalf.a')),
-                                 File(os.path.join(ilmbase_lib_dir, 'libIex.a'))])
+                                 File(os.path.join(openexr_lib_dir, 'libImath-2_4.a')), 
+                                 File(os.path.join(openexr_lib_dir, 'libHalf-2_4.a')),
+                                 File(os.path.join(openexr_lib_dir, 'libIex-2_4.a'))])
         local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     elif system.os == 'windows':
-        if local_env['MODE'] == 'debug':
-            abc_lib_dir = os.path.join(abc_lib_dir, 'debug')
-            ilmbase_lib_dir = os.path.join(ilmbase_lib_dir, 'debug')
         local_env.Append(LIBS = ['Alembic.lib', 
-                                 'Half.lib',
-                                 'Iex.lib'])
-        local_env.Append(LIBPATH = [abc_lib_dir,
-                                    ilmbase_lib_dir])
+                                 'Half-2_4.lib',
+                                 'Iex-2_4.lib',
+                                 'Imath-2_4.lib'])
+
+        local_env.Append(LIBPATH = [abc_lib_dir, openexr_lib_dir])
         local_env.Append(CPPDEFINES = ['ALEMBIC_STATIC'])
 
 Return('MTOA')

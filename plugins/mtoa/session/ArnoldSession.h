@@ -131,6 +131,7 @@ public:
    COptionsTranslator* GetOptionsTranslator() {return m_optionsTranslator;}
    AtNode *ExportColorManager();
 
+   virtual void PrintSystemInfo();
 
 protected:
       
@@ -142,6 +143,8 @@ protected:
    static void HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData);
    static void DoHiddenCallback(void* clientData);
    void SetDagVisible(MDagPath &path);
+
+   void RunPostTranslationScript();
 
    void UpdateLightLinks();
    virtual void NewNode(MObject &node);

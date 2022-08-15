@@ -98,12 +98,55 @@ class AEaiImageTemplate(ShaderAETemplate):
     def colorSpaceReplace(self, attrName):        
         mel.eval('AEcolorSpaceReplace {}'.format(attrName))
 
-    # Maya 2023 colorspace attributes
+    # Maya 2023 colorspace attributes    
+    #   we need to add the viewName* attributes for the colorspace callbacks to work in Maya > 2023
+    def createViewNameAttrs(self):
+        node = self.nodeName
+        attr = "viewNameUsed"
+        if not cmds.attributeQuery(attr, node=node, exists=True):
+            # make the viewNameUsed attr
+            cmds.addAttr(node, longName=attr, attributeType="bool" )
+        attr = "viewNameStr"
+        if not cmds.attributeQuery(attr, node=node, exists=True):
+            # make the viewNameStr attr
+            cmds.addAttr(node, longName=attr, dataType="string" )
+            colorSpaceName = cmds.getAttr(self.nodeAttr("colorSpace"))
+            viewNames = cmds.colorManagementPrefs(q=True, viewDisplayNames=colorSpaceName)
+            if not len(viewNames):
+                viewNames = ["<N/A>"]
+            cmds.setAttr(self.nodeAttr(attr), viewNames[0], type="string")
+    
     def ignoreColorSpaceNew(self, attrName):        
+        self.createViewNameAttrs()
         mel.eval('AEignoreColorSpaceNew {}'.format(attrName))
 
     def ignoreColorSpaceReplace(self, attrName):        
+        self.createViewNameAttrs()
         mel.eval('AEignoreColorSpaceReplace {}'.format(attrName))
+    
+    # TODO: [MTOA-1127] add support for inverse view
+    # def viewNameUsedNew(self, attrName):        
+    #     self.createViewNameAttrs()
+    #     mel.eval('AEinvertViewNameUsedNew {}'.format(attrName))
+
+    # def viewNameUsedReplace(self, attrName):        
+    #     self.createViewNameAttrs()
+    #     mel.eval('AEinvertViewNameUsedReplace {}'.format(attrName))
+
+    # def viewNameStrNew(self, attrName):        
+    #     self.createViewNameAttrs()
+    #     cs = cmds.getAttr(self.nodeAttr("colorSpace"))
+    #     viewExists = cmds.getAttr(self.nodeAttr("viewNameStr")) in cmds.colorManagementPrefs(q=True, viewDisplayNames=cs)
+    #     print("viewNameStrNew :: "+attrName, viewExists)
+    #     if attrName and cmds.objExists(attrName) and viewExists:
+    #         mel.eval('AEinvertViewNameStrNew {}'.format(attrName))
+
+    # def viewNameStrReplace(self, attrName):        
+    #     self.createViewNameAttrs()
+    #     if attrName and cmds.objExists(attrName):
+    #         mel.eval('AEinvertViewNameStrReplace {}'.format(attrName))
+    # 
+    # end Maya > 2023 compatibility
 
     def setup(self):
         self.addSwatch()
@@ -124,6 +167,9 @@ class AEaiImageTemplate(ShaderAETemplate):
         
         if utils.getMayaVersion() >= 2023:
             self.addCustom('ignoreColorSpaceFileRules', self.ignoreColorSpaceNew, self.ignoreColorSpaceReplace)
+            # TODO: [MTOA-1127] add support for inverse view
+            # self.addCustom('viewNameUsed', self.viewNameUsedNew, self.viewNameUsedReplace)
+            # self.addCustom('viewNameStr', self.viewNameStrNew, self.viewNameStrReplace)
         else:
             self.addControl("ignoreColorSpaceFileRules", label="Ignore Color Space File Rules")
             

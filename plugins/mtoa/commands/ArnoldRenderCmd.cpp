@@ -77,7 +77,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // If it can't it will return false, and we'll keep using Maya's native one
    //   if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
    //}
-   
+
 
    // Rendered camera
    MString camera = "";

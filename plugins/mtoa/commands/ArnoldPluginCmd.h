@@ -2,6 +2,7 @@
 
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
+#include <string.h>
 
 class CArnoldPluginCmd
    :	public MPxCommand

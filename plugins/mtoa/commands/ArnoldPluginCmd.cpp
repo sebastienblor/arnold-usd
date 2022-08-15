@@ -5,6 +5,8 @@
 #include "utils/BuildID.h"
 #include "utils/ConstantStrings.h"
 
+#include <curl/curl.h>
+
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
 
@@ -36,9 +38,17 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("gbi", "getBuildID", MSyntax::kNoArg);
    syntax.addFlag("gcv", "getClmVersion", MSyntax::kNoArg);
    syntax.addFlag("gbd", "getBuildDate", MSyntax::kNoArg);
+   syntax.addFlag("glv", "getLatestVersion", MSyntax::kNoArg);
+   syntax.addFlag("rlp", "reloadPlugins", MSyntax::kNoArg);
 
 
    return syntax;
+}
+
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
 }
 
 MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
@@ -328,7 +338,54 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          break;
       }
       setResult(paramValueStr);
-   }      
+   } else if (args.isFlagSet("getLatestVersion"))      
+   {
+         CURL *curl;
+         CURLcode res;
+         std::string readBuffer;
+
+         curl = curl_easy_init();
+         if(curl) {
+            curl_easy_setopt(curl, CURLOPT_URL, "https://arnoldrenderer.com/getversion/maya");
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+            res = curl_easy_perform(curl);
+            /* always cleanup */ 
+            curl_easy_cleanup(curl);
+
+            setResult(readBuffer.c_str());   
+         }
+   } else if (args.isFlagSet("reloadPlugins"))
+   {
+	 if (AiArnoldIsActive())
+	    ArnoldEnd();
+	 if (!AiArnoldIsActive())
+	 {
+	    // BEGIN: GetStartupLogLevel()
+	    int logLevel = 0;
+	    const char* env = getenv("MTOA_STARTUP_LOG_VERBOSITY");
+	    int baseFlags = AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR;
+	    if (env == 0)
+	       logLevel = AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+	    else
+	    {
+	       int envRes = atoi(env);
+	       if (envRes == 1)
+		  logLevel = AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+	       else if (envRes == 2)
+		  logLevel = AI_LOG_ERRORS | AI_LOG_WARNINGS | AI_LOG_INFO | baseFlags;
+	       else if (envRes == 3)
+		 logLevel = AI_LOG_ALL;
+	       else
+		  logLevel = 0;
+	    }
+	    // END: GetStartupLogLevel()
+	    ArnoldBegin(logLevel);
+	    InstallNodes();
+	 }
+   }
 
    // FIXME: error on unknown flag
    return MS::kSuccess;

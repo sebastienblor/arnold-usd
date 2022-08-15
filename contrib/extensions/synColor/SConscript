@@ -28,6 +28,12 @@ EXT = plugin_env.SharedLibrary('synColorTranslator', source_files, LIBPREFIX='')
 if system.os == 'windows':
    plugin_env['MSVSSCONSCRIPT'] = plugin_env.File('SConscript')
 
+maya_version_base = plugin_env['MAYA_VERSION_BASE']
+
+if int(maya_version_base) >= 2024:
+    if (system.os == 'windows'):
+        EXT = [EXT[0]]
+    Return('EXT')
 
 # import build env
 Import('env')
@@ -48,7 +54,7 @@ shader_env.Append(CPPPATH = ['.'])
 # Add the syncolor paths
 syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')
 syncolor_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os)
-maya_version = shader_env['MAYA_VERSION']
+
 
 shader_env.Append(CPPPATH = [syncolor_include_path])
 shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])

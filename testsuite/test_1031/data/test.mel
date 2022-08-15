@@ -1,0 +1,23 @@
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+$cwd = `pwd`;
+// delete plugin/hda.oso
+string $osoUnix = ($cwd + "/plugin/hda.oso");
+sysFile -delete $osoUnix;
+// copy tmp/hda.osl to plugin/hda.osl
+string $destUnix = ($cwd + "/plugin/hda.osl");
+string $srcUnix = ($cwd + "/tmp/hda.osl");
+sysFile -copy $destUnix $srcUnix;
+
+arnoldPlugins -rlp;
+
+arnoldRenderView -mode "render_silent";
+pause -sec 1;
+arnoldRenderView -option "Wait Render"  "1";
+
+
+$img = `pwd`;
+$img += "/testrender.tif";
+arnoldRenderView -option "Save Image" $img;

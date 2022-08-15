@@ -165,7 +165,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MRenderUtil::getCommonRenderSettings(renderGlobals);*/
 
    // What mode are we in?
-   if (mode == "render" || mode == "open" || mode == "render_silent")
+   if (mode == "render" || mode == "open" || mode == "render_silent" || mode == "sequence")
    {
       s_wasVisible = true;
 
@@ -175,7 +175,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          // let's pop-up the window, and eventually re-render
          session->OpenRenderView();
 
-         if (mode == "render" || mode == "render_silent")
+         if (mode == "render" || mode == "render_silent" || mode == "sequence")
          {
             // Restarting the render, we need to ensure other AVP sessions are closed first
             CArnoldRenderViewSession::CloseOtherViews(MString(CArnoldRenderViewSession::GetRenderViewSessionId().c_str()));
@@ -221,6 +221,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          if (cameras.length() > 0)
             renderCamera = cameras[0];
       }
+      if (renderCamera.isValid())
+         renderCamera.extendToShape();
       session->SetExportCamera(renderCamera, false);
 
       // FIXME do we want the preMel callbacks and should they be handled here ???
@@ -268,6 +270,12 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          regionStr += " ";
          regionStr += region[3];
          session->SetRenderViewOption("Crop Region", regionStr.asChar());
+      }
+      if (mode == "sequence") {
+         session->RenderSequence(static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit())),
+                              static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit())),
+                              renderGlobals.frameBy);
+            
       }
       session->Render(mode != "render_silent");
 

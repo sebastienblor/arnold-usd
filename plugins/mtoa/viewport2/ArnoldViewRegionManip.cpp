@@ -79,10 +79,21 @@ void ArnoldViewRegionManipulator::initializeInstance()
             int width, height, minx, miny, maxx, maxy;
             if (sessionOptions.GetRegion(minx, miny, maxx, maxy) && sessionOptions.GetResolution(width, height))
             {
-                mViewRectangle.x = (float)minx / (float)width;
-                mViewRectangle.y = 1.f - ((float)maxy / (float)height);
-                mViewRectangle.z = (float)maxx / (float)width;
-                mViewRectangle.w = 1.f - ((float)miny / (float)height);
+
+                MFnDependencyNode fnArnoldRenderOptions(sessionOptions.GetArnoldRenderOptions());
+                int left = fnArnoldRenderOptions.findPlug("avpRegionLeft", true).asShort();
+                int right = fnArnoldRenderOptions.findPlug("avpRegionRight", true).asShort();
+                int top = fnArnoldRenderOptions.findPlug("avpRegionTop", true).asShort();
+                int bottom = fnArnoldRenderOptions.findPlug("avpRegionBottom", true).asShort();
+
+                mViewRectangle.x = (float)left / (float)width;
+                mViewRectangle.y = 1.f - ((float)top / (float)height);
+                mViewRectangle.z = (float)right / (float)width;
+                mViewRectangle.w = 1.f - ((float)bottom / (float)height);
+
+                if (left != minx && right != maxx && bottom != miny && top != maxy)
+                    sessionOptions.SetRegion(left, right, bottom, top); // expected order is left, right, bottom, top
+
                 fInitialized = true;
             }
         }
@@ -181,7 +192,7 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
 
     float endPointOffset = 0.1f;
 
-    float lineWidth = 3.f;
+    float lineWidth = 5.0f;
 
     float midPointX;
     float midPointY;
@@ -362,6 +373,27 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
 
 }
 
+MStatus ArnoldViewRegionManipulator::setOptionsRegion(uint left, uint right, uint bottom, uint top)
+{
+
+    CArnoldRenderViewSession *session = (CArnoldRenderViewSession *)CSessionManager::FindActiveSession(s_arnoldViewportSession);
+    if (session)
+    {           
+        CSessionOptions &sessionOptions = session->GetOptions();
+        MFnDependencyNode fnArnoldRenderOptions(sessionOptions.GetArnoldRenderOptions());
+        MPlug avpRegionLeft = fnArnoldRenderOptions.findPlug("avpRegionLeft", true);
+        MPlug avpRegionRight = fnArnoldRenderOptions.findPlug("avpRegionRight", true);
+        MPlug avpRegionTop = fnArnoldRenderOptions.findPlug("avpRegionTop", true);
+        MPlug avpRegionBottom = fnArnoldRenderOptions.findPlug("avpRegionBottom", true);
+
+        avpRegionLeft.setInt(left);
+        avpRegionRight.setInt(right);
+        avpRegionBottom.setInt(bottom);
+        avpRegionTop.setInt(top);
+    }
+	return MS::kSuccess;
+}
+
 MStatus ArnoldViewRegionManipulator::doMove(M3dView& view, bool& refresh)
 {
     short xPos;
@@ -386,7 +418,7 @@ MStatus ArnoldViewRegionManipulator::doMove(M3dView& view, bool& refresh)
 // virtual
 MStatus	ArnoldViewRegionManipulator::doPress(M3dView& view)
 {
-	// Reset the mousePoint information on a new press
+    // Reset the mousePoint information on a new press
 
     // Find the mouse point in local space
     MPoint localMousePoint;
@@ -394,7 +426,7 @@ MStatus	ArnoldViewRegionManipulator::doPress(M3dView& view)
     if (MS::kFailure == mouseRay(localMousePoint, localMouseDirection))
         return MS::kFailure;
 
-	fMousePoint = localMousePoint;
+    fMousePoint = localMousePoint;
     mDragRectangle = mViewRectangle;
 	//updateDragInformation();
 	return MS::kSuccess;
@@ -511,8 +543,14 @@ MStatus ArnoldViewRegionManipulator::doRelease(M3dView& view)
     int width, height;
     if (sessionOptions.GetResolution(width, height))
     {
-        sessionOptions.SetRegion(AiClamp(int(mViewRectangle.x * width), 0, width -1), AiClamp(int(mViewRectangle.z * width), 0, width -1),
-                AiClamp(int((1.f - mViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - mViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top
+
+        int left = AiClamp(int(mViewRectangle.x * width), 0, width -1);
+        int right = AiClamp(int(mViewRectangle.z * width), 0, width -1);
+        int bottom = AiClamp(int((1.f - mViewRectangle.w ) * height), 0, height - 1);
+        int top = AiClamp(int((1.f - mViewRectangle.y) * height), 0, height - 1);
+
+        sessionOptions.SetRegion(left, right, bottom, top); // expected order is left, right, bottom, top
+        setOptionsRegion(left, right, bottom, top);
     }
     MString arvRunIpr = session->GetRenderViewOption(MString("Run IPR"));
     if (arvRunIpr != MString("0"))

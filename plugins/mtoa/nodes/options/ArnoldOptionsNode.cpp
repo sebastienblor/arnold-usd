@@ -16,6 +16,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDGModifier.h>
 #include <maya/MDGMessage.h>
+#include <maya/MNodeMessage.h>
 #include <maya/MGlobal.h>
 #include <maya/MObject.h>
 #include <maya/MString.h>
@@ -24,6 +25,7 @@
 MTypeId CArnoldOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
 MCallbackId CArnoldOptionsNode::sId;
+MCallbackId CArnoldOptionsNode::sAttrId;
 
 /*
    I'm not exactly happy about this approach but seemingly
@@ -134,6 +136,10 @@ MObject CArnoldOptionsNode::s_gpu_max_texture_resolution;
 MObject CArnoldOptionsNode::s_manual_devices;
 MObject CArnoldOptionsNode::s_ignore_list;
 MObject CArnoldOptionsNode::s_render_device_fallback;
+MObject CArnoldOptionsNode::s_viewport_region_left;
+MObject CArnoldOptionsNode::s_viewport_region_right;
+MObject CArnoldOptionsNode::s_viewport_region_bottom;
+MObject CArnoldOptionsNode::s_viewport_region_top;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -170,6 +176,29 @@ void CArnoldOptionsNode::postConstructor()
    setExistWithoutOutConnections(true);
    CArnoldOptionsNode::sId = MDGMessage::addNodeAddedCallback(CArnoldOptionsNode::createdCallback, "aiOptions");
    s_optionsNode = thisMObject();
+   MStatus status;
+   CArnoldOptionsNode::sAttrId = MNodeMessage::addAttributeChangedCallback(s_optionsNode,
+                                                                           attrChangeCallback,
+                                                                           NULL,
+                                                                           &status);
+}
+
+
+void CArnoldOptionsNode::attrChangeCallback(MNodeMessage::AttributeMessage msg,
+                     MPlug &plug,
+                     MPlug &otherPlug,
+                     void *data)
+{
+   if (msg != (MNodeMessage::kAttributeSet|MNodeMessage::kIncomingDirection))
+      return;
+
+   const char *plugName = plug.partialName(0,0,0,0,0,1).asChar();
+   if (strstr("enable_swatch_render", plugName) == NULL) {
+      return;
+   }
+
+   MString command = "for ($shad in `ls -mat -tex`){renderThumbnailUpdate -fu $shad;}";
+   MGlobal::executeCommandOnIdle(command);
 }
 
 CArnoldOptionsNode::~CArnoldOptionsNode()
@@ -624,7 +653,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("reference_time");
       
-   s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 0);
+   s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_enable_swatch_render);
 
@@ -845,6 +874,26 @@ MStatus CArnoldOptionsNode::initialize()
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_refraction_samples\" ;";
 //   MGlobal::executeCommand(compatCmd);
 
+   s_viewport_region_left = nAttr.create("avpRegionLeft", "avp_region_left", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_left);
+   s_viewport_region_right = nAttr.create("avpRegionRight", "avp_region_right", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_right);
+   s_viewport_region_bottom = nAttr.create("avpRegionBottom", "avp_region_bottom", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_bottom);
+   s_viewport_region_top = nAttr.create("avpRegionTop", "avp_region_top", MFnNumericData::kInt);
+   nAttr.setDefault(0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   addAttribute(s_viewport_region_top);
 
    return MS::kSuccess;
 }

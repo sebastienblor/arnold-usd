@@ -77,7 +77,11 @@ public:
 
    // return the render progress (all passes)
    float GetProgress(bool& isPrepass);
-   
+
+   // return the current status text
+   const char *GetDisplayedStatus();
+   // return the current render timestamp object
+   const size_t GetRenderTime();
    // Render the scene.
    // This function assumes that the Arnold scene already exists
    void Render();

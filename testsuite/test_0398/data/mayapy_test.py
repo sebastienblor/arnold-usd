@@ -22,26 +22,31 @@ tmp_scene = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test1.ma"
 cmds.file(tmp_scene, o=True, f=True)
 resultColor = '0,1,0'
 
-cmds.arnoldScene('pSphere1', mode="convert_selected")
+cmds.arnoldScene(['perspShape', 'pSphere1', 'camera1', 'camera2', 'directionalLight1', 'spotLight1', 'pointLightShape1', 'areaLightShape1'], mode="convert_selected")
 nodeList = []
-nodeReferenceList = ['/persp/perspShape', '/camera1/cameraShape1', '/camera2/cameraShape2', '/directionalLight1/directionalLightShape1', '/spotLight1/spotLightShape1', '/pointLight1/pointLightShape1', '/areaLight1/areaLightShape1', '/pSphere1/pSphereShape1', 'lambert1']
+nodeReferenceList = ['/camera1/cameraShape1', '/camera2/cameraShape2', '/directionalLight1/directionalLightShape1', '/spotLight1/spotLightShape1', '/pointLight1/pointLightShape1', '/areaLight1/areaLightShape1', '/pSphere1/pSphereShape1', 'lambert1']
 iter = ai.AiUniverseGetNodeIterator(None, ai.AI_NODE_SHAPE + ai.AI_NODE_CAMERA + ai.AI_NODE_LIGHT + ai.AI_NODE_SHADER)
 while not ai.AiNodeIteratorFinished(iter):
     node = ai.AiNodeIteratorGetNext(iter)
     nodeName = ai.AiNodeGetName(node)
     if nodeName == 'root' or nodeName == '' or nodeName == 'ai_default_reflection_shader':
-    	continue
+        continue
     nodeList.append(nodeName)
 
 ai.AiNodeIteratorDestroy(iter)
-
+success = True
 print(nodeList)
 for node in nodeList:
-	if not node in nodeReferenceList:
-		resultColor = '1,0,0'
+    if not node in nodeReferenceList:
+        resultColor = '1,0,0'
+        success = False
 for node in nodeReferenceList:
-	if not node in nodeList:
-		resultColor = '1,0,0'
+    if not node in nodeList:
+        resultColor = '1,0,0'
+        success = False
+
+if not success:
+    print('Reference is {}'.format(nodeReferenceList))
 
 cmds.arnoldScene(mode="destroy")
 cmds.arnoldScene(mode="create")

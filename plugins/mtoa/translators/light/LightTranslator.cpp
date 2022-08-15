@@ -79,6 +79,15 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light,  str::diffuse,         FindMayaPlug("aiDiffuse").asFloat());
    AiNodeSetFlt(light,  str::specular,        FindMayaPlug("aiSpecular").asFloat());
 
+   MStatus status(MStatus::kSuccess);
+   MPlug emitSpecularPlug = FindMayaPlug("emitSpecular", &status);
+   MPlug emitDiffusePlug = FindMayaPlug("emitDiffuse", &status);
+   if (!emitSpecularPlug.isNull() && !emitSpecularPlug.asBool())
+      AiNodeSetFlt(light,  str::specular, 0);
+   if (!emitDiffusePlug.isNull() && !emitDiffusePlug.asBool())
+      AiNodeSetFlt(light,  str::diffuse, 0);
+
+
    ProcessParameter(light, "filters", AI_TYPE_ARRAY, FindMayaPlug("aiFilters"));
 
    // Don't export matrices during mayaUSD exports

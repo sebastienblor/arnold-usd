@@ -5,7 +5,7 @@ import subprocess
 import sys, os, re
 sys.path = ["tools/python"]  + sys.path
 
-import utils.system
+import utils.system as system
 import glob
 from utils.build_tools import *
 from utils.mtoa_build_tools import *
@@ -60,6 +60,7 @@ def StringVariable(key, help, default):
 vars = Variables('custom.py')
 vars.AddVariables(
     ## basic options
+    StringVariable('TARGET_ARCH', 'Target Architecture', 'x86_64'),
     EnumVariable('MODE'       , 'Set compiler configuration', 'opt'             , allowed_values=('opt', 'debug', 'profile')),
     EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
     EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
@@ -87,6 +88,7 @@ vars.AddVariables(
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
+    BoolVariable('SWATCHES_SKIP_LICENSE', 'Skip License check for render swatches', True),
     PathVariable('BUILD_DIR',
                  'Directory where temporary build files are placed by scons', 
                  'build', PathVariable.PathIsDirCreate),
@@ -189,18 +191,22 @@ vars.AddVariables(
     BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline/master builds', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
+    BoolVariable('ENABLE_AXFTOA' , 'Enable the build of the AXF shader that links against AxftoA', True),
+    BoolVariable('UPDATE_SUBMODULES', 'Init and update the submodules prior to the build', True),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
 if system.os == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.11', allowed_values=('10.11', '10.12','10.13', '10.14')))
+    vars.Add(StringVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', None))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
-
+    vars.Add(StringVariable('MACOS_VERSION_MIN', 'Target MacOS version', '10.11'))
+    
 if system.os == 'windows':
     vars.Add(BoolVariable('USE_VISUAL_STUDIO_EXPRESS', 'Use the express version of visual studio. (UNSUPPORTED!)', False))
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
+    TARGET_ARCH = tmp_env['TARGET_ARCH']
     tmp_env.Append(MSVC_ARCH = 'amd64')
     MAYA_ROOT = tmp_env.subst(tmp_env['MAYA_ROOT'])
     MAYA_INCLUDE_PATH = tmp_env.subst(tmp_env['MAYA_INCLUDE_PATH'])
@@ -222,7 +228,7 @@ if system.os == 'windows':
     #print tmp_env['MSVC_VERSION']
     env = tmp_env.Clone(tools=['default'])
     # restore as the Clone overrides it
-    env['TARGET_ARCH'] = 'x86_64'
+    env['TARGET_ARCH'] = TARGET_ARCH
 else:
     env = Environment(variables = vars)
 
@@ -239,8 +245,6 @@ env['MTOA_VERSION'] = MTOA_VERSION
 # Set default amount of threads set to the cpu counts in this machine.
 # This can be overridden through command line by setting e.g. "abuild -j 1"
 SetOption('num_jobs', int(cpu_count()))
-
-set_target_arch('x86_64')
 
 # Configure colored output
 color_green   = ''
@@ -321,8 +325,13 @@ if clm_version == 2:
     env.Append(CPPDEFINES = Split('CLIC_V2')) 
 else:
     env.Append(CPPDEFINES = Split('CLIC_V1')) 
-    
 
+if env['ENABLE_AXFTOA']:
+    env.Append(CPPDEFINES = Split('ENABLE_AXFTOA')) 
+
+
+if env['SWATCHES_SKIP_LICENSE']:
+    env.Append(CPPDEFINES = Split('SWATCHES_SKIP_LICENSE')) 
 # Always read Maya VERSION from MType.h
 maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 
@@ -423,7 +432,6 @@ export_symbols = env['MODE'] in ['debug', 'profile']
 
 # FIXME : Bifrost library "bifrostrendercore" is returning warnings. Until we solve this I'm forcing warn_only here :-/
 env['WARN_LEVEL'] = 'warn_only'
-env['MACOS_VERSION_MIN'] = '10.11'
 
 if env['COMPILER'] == 'gcc':
     if system.os == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
@@ -511,14 +519,26 @@ if env['COMPILER'] == 'gcc':
 
     if system.os == 'darwin':
         ## tell gcc to compile a 64 bit binary
-        env.Append(CCFLAGS = Split('-arch x86_64'))
-        env.Append(LINKFLAGS = Split('-arch x86_64'))
+        if env['TARGET_ARCH'] == 'x86_64':
+            env.Append(CCFLAGS   = ['-arch', 'x86_64'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
+        if env['TARGET_ARCH'] == 'arm64':
+            env.Append(CCFLAGS   = ['-arch', 'arm64'])
+            env.Append(LINKFLAGS = ['-arch', 'arm64'])
+        if env['TARGET_ARCH'].find('arm64') >= 0 and env['TARGET_ARCH'].find('x86_64') >= 0:
+            env.Append(CCFLAGS   = ['-arch', 'arm64'])
+            env.Append(CCFLAGS   = ['-arch', 'x86_64'])
+            env.Append(LINKFLAGS = ['-arch', 'arm64'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
         env.Append(CCFLAGS = env.Split('-mmacosx-version-min=' + env['MACOS_VERSION_MIN']))
         env.Append(LINKFLAGS = env.Split('-mmacosx-version-min='+ env['MACOS_VERSION_MIN']))
 
-        env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
-        env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+
+        if env['SDK_VERSION']:
+            env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+            env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+
         env.Append(LINKFLAGS = env.Split(['-framework', 'Security']))
 
 elif env['COMPILER'] == 'msvc':
@@ -636,6 +656,8 @@ if env['ENABLE_BIFROST'] == 1:
 if env['ENABLE_ALEMBIC'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_ALEMBIC'))
 
+if MOD_SUFFIX:
+    env.Append(CPPDEFINES={'MOD_SUFFIX':'\\"{}\\"'.format(MOD_SUFFIX.lower())})
 ## platform related defines
 if system.os == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
@@ -649,8 +671,62 @@ elif system.os == 'linux':
 env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
 
+## Add Qt includes
+
+mayaQtFolder = ""
+mayaQtTarGz = ""
+
+for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  not ( x.endswith('zip') or x.endswith('.gz')) ):
+    mayaQtFolder = os.path.join(MAYA_INCLUDE_PATH,x)
+    break
+
+for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  ( x.endswith('zip') or x.endswith('.gz'))):
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH,x)
+    break
+
+if not mayaQtFolder or not mayaQtTarGz :
+
+    if mayaQtTarGz and os.path.exists(mayaQtTarGz):
+        mayaQtFolder = os.path.join(EXTERNAL_PATH, os.path.basename(mayaQtTarGz).replace(".tar.gz", "").replace(".zip", "")) 
+        print("found " + mayaQtTarGz + " extracting to " + mayaQtFolder)
+    else:
+        if (int(maya_version_base) < 2020):
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.6.1-include') 
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+        elif (int(maya_version_base) == 2020):
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.12.5-include') 
+            if system.os == 'windows':
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5_vc14-include.zip')
+            else:
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5-include.tar.gz')
+        else:
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.15.2-include') 
+            if system.os == 'windows':
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2_vc14-include.zip')
+            else:
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2-include.tar.gz')
+
+if not os.path.isdir(mayaQtFolder):
+    if os.path.exists(mayaQtTarGz):
+        print "Extracting Qt Files..."
+        tmpFile, tmpExt = os.path.splitext(mayaQtTarGz)
+        if tmpExt == '.zip':
+            import zipfile
+            with zipfile.ZipFile(mayaQtTarGz, 'r') as zip_ref:
+                zip_ref.extractall(mayaQtFolder)
+        else:
+            import tarfile
+            tfile = tarfile.open(mayaQtTarGz, 'r:gz')
+            tfile.extractall(mayaQtFolder)
+    else:
+        print "Error : Qt Files not Found"
+
+
+env['QT_ROOT_DIR'] = mayaQtFolder
+env.Append(CPPPATH = [mayaQtFolder])
+
 ## configure base directory for temp files
-BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, env['TARGET_ARCH']), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
@@ -784,22 +860,23 @@ if int(maya_version_base) >= 2021:
 mayapy_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy')
 
 if ENABLE_USD:
-    print ('updating usd submodule...')
-    system.execute('git submodule sync')
-    system.execute('git submodule update --init --recursive')
- 
-    # We need to ensure that jinja2 will be installed through mayapy   
-    mayapy_cmd = mayapy_bin + " -m pip install jinja2"
-    system.execute(mayapy_cmd)
+    if env['UPDATE_SUBMODULES']:
+        print ('updating usd submodule...')
+        system.execute('git submodule sync')
+        system.execute('git submodule update --init --recursive')
+     
+        # We need to ensure that jinja2 will be installed through mayapy   
+        mayapy_cmd = mayapy_bin + " -m pip install jinja2"
+        system.execute(mayapy_cmd)
 
-    # if we're also building for python2 usd modules, then we need to 
-    # install jijna2 in the mayapy2 environment
-    if usd_path_python2_count > 0:
-        mayapy2_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy2')
-        mayapy2_cmd = mayapy2_bin + " -m pip install jinja2"
-        system.execute(mayapy2_cmd)
+        # if we're also building for python2 usd modules, then we need to 
+        # install jijna2 in the mayapy2 environment
+        if usd_path_python2_count > 0:
+            mayapy2_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy2')
+            mayapy2_cmd = mayapy2_bin + " -m pip install jinja2"
+            system.execute(mayapy2_cmd)
 
-    print ('done')     
+        print ('done')     
 
 if system.os == 'windows':
     maya_env = env.Clone()
@@ -808,6 +885,7 @@ if system.os == 'windows':
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
+    maya_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
 
     if env['PREBUILT_MTOA']:       
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
@@ -876,11 +954,13 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+        maya_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL', 'Qt5Widgets'])
 
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
+        maya_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5', 'Qt5Widgets.5'])
         
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
@@ -1094,18 +1174,20 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extensio
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
 
-# install syncolor packages 
-syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os)
-if (system.os == 'linux'):
-    # on linux the version number is after ".so."
-    env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
-else:
-    env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
+if int(maya_version_base) < 2024:
+    # install syncolor packages until Maya 2023
+    syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os)
+    if (system.os == 'linux'):
+        # on linux the version number is after ".so."
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
+    else:
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
 
-if (system.os == 'linux'):
-    env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
-else:
-    env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*%s" % get_library_extension())))
+if env['ENABLE_AXFTOA']:
+    if (system.os == 'linux'):
+        env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*")))
+    else:
+        env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(ARNOLD_AXF_LIB, "*%s" % get_library_extension())))
 
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(ARNOLD, 'license', '*')))
 
@@ -1544,27 +1626,30 @@ for p in presetfiles:
 
 PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
 
-# we also need to copy the syncolor dylib, for syncolor extension
-# FIXME couldn't this be done in the extension script ?
-syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os)
-if (system.os == 'linux'):
-    # on linux the syncolor version number is after ".so."
-    syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
-else:
-    syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
 
-for syncolor_file in syncolor_files:
-    PACKAGE_FILES.append([syncolor_file, 'bin'])
+if int(maya_version_base) < 2024:
+    # we also need to copy the syncolor dylib, for syncolor extension
+    # FIXME couldn't this be done in the extension script ?
+    syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os)
+    if (system.os == 'linux'):
+        # on linux the syncolor version number is after ".so."
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
+    else:
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
+
+    for syncolor_file in syncolor_files:
+        PACKAGE_FILES.append([syncolor_file, 'bin'])
         
 
 PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, '*.txt'), 'bin'])
 
-if (system.os == 'linux'):
-    PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
-else:
-    PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*%s' % get_library_extension()), 'bin'])
+if env['ENABLE_AXFTOA']:
+    if (system.os == 'linux'):
+        PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*' ), 'bin'])
+    else:
+        PACKAGE_FILES.append([os.path.join(ARNOLD_AXF_LIB, '*%s' % get_library_extension()), 'bin'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 
@@ -1674,7 +1759,8 @@ PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup%s
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
-PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'plugins'])
+if int(maya_version_base) < 2024:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'plugins'])
 
 if env['ENABLE_GPU_CACHE'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])

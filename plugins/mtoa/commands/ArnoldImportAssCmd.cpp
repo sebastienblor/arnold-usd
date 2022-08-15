@@ -21,7 +21,9 @@
 #include <maya/MAnimControl.h>
 #include <maya/MBoundingBox.h>
 
+#ifdef ENABLE_AXFTOA
 #include <AxFtoA.h>
+#endif
 
 #include <math.h>
 #include "utils/Universe.h"
@@ -131,7 +133,7 @@ MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUni
    MString tex_path =  cwd ; 
    
    // unsigned int nchars = axfFileName.numChars();
-  
+#ifdef ENABLE_AXFTOA 
    AxFtoASessionStart();
    AxFtoASessionClearErrors();
    AxFtoASessionSetVerbosity(0);
@@ -156,6 +158,10 @@ MStatus CArnoldImportAssCmd::convertAxfToArnold(const MString axfFileName, AtUni
    AxFtoAFileClose(axf_file);
    AxFtoASessionEnd();
    return MStatus::kSuccess ;
+#else
+   MGlobal::displayError("[mtoa] Axf shader not enabled in this build");
+   return MStatus::kFailure;
+#endif
 }
 
 std::string GetShadingGroup(std::string name, unordered_map<std::string, std::string> &arnoldToMayaShadingEngines)

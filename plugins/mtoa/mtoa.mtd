@@ -1792,6 +1792,12 @@
     [attr scatter_anisotropy]
         min                 FLOAT   -1.0
         max                 FLOAT   1.0
+    [attr scatter_secondary_anisotropy]
+        min                 FLOAT   -1.0
+        max                 FLOAT   1.0
+    [attr scatter_secondary_anisotropy_mix]
+        min                 FLOAT   -1.0
+        max                 FLOAT   1.0
     [attr emission]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
@@ -1799,6 +1805,9 @@
         min                 FLOAT   0.0
         softmax             FLOAT   20000.0
     [attr blackbody_intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   100.0
+    [attr blackbody_contrast]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
 

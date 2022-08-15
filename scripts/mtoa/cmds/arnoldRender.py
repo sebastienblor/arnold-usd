@@ -8,17 +8,59 @@ import mtoa.batchRenderOptions
 _maya_version = mutils.getMayaVersion()
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
+    # Close the Maya RenderView
+    if cmds.control("renderViewWindow", exists=True):
+        mel.eval('deleteUI "renderViewWindow"')
+    
     # Make sure the aiOptions node exists
     core.createOptions()
-    cmds.arnoldRender(cam=camera, w=width, h=height) 
+
+    # We need to give time for Maya to close the maya RenderView, so we're calling 
+    # evalDeferred
+    cmd = 'cmds.arnoldRenderView(cam="{}", w = {}, h={});'.format(camera, width, height)
+    cmd += 'cmds.arnoldRenderView(option=("Run IPR","0"));'
+    cmd += 'cmds.arnoldRenderView(option=("Scene Updates", "0"));'
+    cmd += 'cmds.arnoldRenderView(option=("Refresh Render", "1"));'
+    cmds.evalDeferred(cmd)
+    
 
 def arnoldSequenceRender(width, height, camera, saveToRenderView):
-    # Make sure the aiOptions node exists
-    core.createOptions()
-    if len(camera) > 0:
-        cmds.arnoldRender(seq="", w=width, h=height, cam=camera, srv=saveToRenderView)
+
+    useARV = False
+    # For now we're still using the Maya RenderView to render a sequence.
+    # In order to change this, we should set useArv to True
+    
+    if 'MTOA_ARV_SEQUENCE' in os.environ and os.environ['MTOA_ARV_SEQUENCE'] != '0':
+        useARV = True
+        
+    if useARV:
+
+        # Close the Maya RenderView
+        if cmds.control("renderViewWindow", exists=True):
+            mel.eval('deleteUI "renderViewWindow"')
+
+        # Make sure the aiOptions node exists
+        core.createOptions()
+        if saveToRenderView:
+            cmds.optionVar(iv=('ArnoldSequenceSnapshot', 1))
+
+        cmd = 'cmds.arnoldRenderView(mode="sequence", w = {}, h={}'.format(width, height)
+
+        if len(camera) > 0:
+            cmd += ', cam="{}")'.format(camera)
+        else:
+            cmd += ')'
+
+        # We need to give time for Maya to close the maya RenderView, so we're calling 
+        # evalDeferred
+        cmds.evalDeferred(cmd)
     else:
-        cmds.arnoldRender(seq="", w=width, h=height, srv=saveToRenderView)
+        # Make sure the aiOptions node exists
+        core.createOptions()
+        if len(camera) > 0:
+            cmds.arnoldRender(seq="", w=width, h=height, cam=camera, srv=saveToRenderView)
+        else:
+            cmds.arnoldRender(seq="", w=width, h=height, srv=saveToRenderView)
 
 def arnoldBatchRenderOptionsString():    
     origFileName = cmds.file(q=True, sn=True)
@@ -82,29 +124,45 @@ def arnoldBatchRenderOptions():
     win = mtoa.batchRenderOptions.MtoABatchRenderOptions()
     win.create()
 
-def arnoldIprStart(editor, resolutionX, resolutionY, camera):
+def arnoldIprStart(editor, width, height, camera):
     # Make sure the aiOptions node exists
     core.createOptions()
-    cmds.arnoldIpr(cam=camera, w=resolutionX, h=resolutionY, mode='start')
-
+    if cmds.control("renderViewWindow", exists=True):
+        mel.eval('deleteUI "renderViewWindow"')
+    
+    # We need to give time for Maya to close the maya RenderView, so we're calling 
+    # evalDeferred
+    cmd = 'cmds.arnoldRenderView(mode="open", cam="{}", w = {}, h={});'.format(camera, width, height)
+    cmd += 'cmds.arnoldRenderView(option=("Progressive Refinement", "1"));'
+    cmd += 'cmds.arnoldRenderView(option=("Run IPR", "1"));'
+    cmds.evalDeferred(cmd)
+    
 def arnoldIprStop():
-    cmds.arnoldIpr(mode='stop')
+    cmds.arnoldRenderView('mode="stop"')
 
 def arnoldIprIsRunning():
-    # FIXME restore this function
-    return cmds.arnoldIpr()
-
+    res = cmds.arnoldRenderView(getoption=("Run IPR")) or 0
+    return int(res) > 0;
+    
 def arnoldIprRender(width, height, doShadows, doGlowPass, camera):
-    cmds.arnoldIpr(cam=camera, w=width, h=height, mode=render)
+    core.createOptions()
+    if cmds.control("renderViewWindow", exists=True):
+        mel.eval('deleteUI "renderViewWindow"')
+
+    # We need to give time for Maya to close the maya RenderView, so we're calling 
+    # evalDeferred
+    cmd = 'cmds.arnoldRenderView(option=("Run IPR", "1"));'
+    cmds.evalDeferred(cmd)
 
 def arnoldIprRefresh():
-    cmds.arnoldIpr(mode='refresh')
+    cmds.arnoldRenderView('option=("Refresh Render", "1"))')
 
 def arnoldIprPause(editor, pause):
     if pause:
-        cmds.arnoldIpr(mode='pause')
+        cmds.arnoldRenderView('option=("Abort Render", "1"))')
+        cmds.arnoldRenderView('option=("Run IPR", "0"))')
     else:
-        cmds.arnoldIpr(mode='unpause')
+        cmds.arnoldRenderView('option=("Run IPR", "1"))')
 
 def arnoldIprChangeRegion(renderPanel):
-    cmds.arnoldIpr(mode='region')
+    cmds.arnoldRenderView('option=("Crop Region", "1"))')

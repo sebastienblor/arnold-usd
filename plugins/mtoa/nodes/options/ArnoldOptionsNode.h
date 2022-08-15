@@ -9,6 +9,7 @@
 #include <maya/MDataBlock.h>
 #include <maya/MObject.h>
 #include <maya/MMessage.h>
+#include <maya/MNodeMessage.h>
 
 class CArnoldOptionsNode
    :  public MPxNode
@@ -35,8 +36,13 @@ public:
    static MStatus initialize();
    void postConstructor() override;
    static void createdCallback(MObject& node, void* clientData);
+   static void attrChangeCallback(MNodeMessage::AttributeMessage msg,
+                     MPlug &plug,
+                     MPlug &otherPlug,
+                     void *data);
    static MTypeId id;
    static MCallbackId sId;
+   static MCallbackId sAttrId;
 
    // Attributes
    static CStaticAttrHelper s_attributes;
@@ -169,5 +175,10 @@ public:
    static MObject s_profile_file;
    static MObject s_ignore_list;
    static MObject s_gpu_max_texture_resolution;
+
+   static MObject s_viewport_region_left;
+   static MObject s_viewport_region_right;
+   static MObject s_viewport_region_bottom;
+   static MObject s_viewport_region_top;
 
 };  // class CArnoldOptionsNode

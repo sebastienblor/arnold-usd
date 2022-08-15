@@ -1,4 +1,5 @@
 #include "MtoaLog.h"
+#include "ConstantStrings.h"
 #include "../session/SessionOptions.h"
 #include "../session/ArnoldSession.h"
 
@@ -23,12 +24,13 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
 {
    switch (severity)
    {
-   case AI_SEVERITY_INFO:
-
-      if (logmask & AI_LOG_INFO)
-      break;
    case AI_SEVERITY_WARNING:
-      if (logmask & AI_LOG_WARNINGS)
+
+      if (logmask & AI_LOG_WARNINGS
+#ifdef SWATCHES_SKIP_LICENSE
+      && strstr(msg_string, "skip_license_check") == NULL
+#endif
+         )
          MGlobal::displayWarning(msg_string);
       break;
    case AI_SEVERITY_ERROR:
@@ -38,12 +40,6 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
    default:
       break;
    }
-// Ouput for the Maya Output Window on Windows
-// NOTE : this shouldn't be needed anymore
-//#ifdef _WIN32
-   //std::clog << msg_string << std::endl;
-//#endif
-
 }
 
 // Setup a default logging level to use when not rendering.

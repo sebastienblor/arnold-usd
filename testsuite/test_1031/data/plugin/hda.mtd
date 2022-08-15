@@ -1,0 +1,7 @@
+
+[node hda]    
+    maya.name               STRING  "hda"
+    maya.id                 INT     0x0007bb99
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"

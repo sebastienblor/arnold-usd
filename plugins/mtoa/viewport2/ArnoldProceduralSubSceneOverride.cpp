@@ -1067,8 +1067,6 @@ bool CArnoldProceduralSubSceneOverride::getInstancedSelectionPath(
         {
             // we have found the right index so return it.
             dagPath.set(instanceInfo.fInstance);
-            if (dagPath.length() > 1)
-                dagPath.pop(); // from shape to xform.
             return true;
         }
     }

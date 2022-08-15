@@ -8,6 +8,6 @@ public:
    {
       return new CArnoldViewportRendererOptionsCmd();
    }
-   virtual MStatus doIt(const MArgList& args);
-   static MSyntax newSyntax();
+   virtual MStatus         doIt(const MArgList& args);
+   static MSyntax          newSyntax();
 };

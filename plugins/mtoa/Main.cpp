@@ -49,6 +49,7 @@
 #include "commands/ArnoldFlushCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
 #include "commands/ArnoldViewportRendererOptionsCmd.h"
+#include "commands/ArnoldViewportRegionTool.h"
 #ifdef ENABLE_ALEMBIC
 #include "commands/AbcExport/ArnoldAbcExportCmd.h"
 #endif
@@ -161,7 +162,7 @@ namespace // <anonymous>
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
       {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
       {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
-      {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
+      {"arnoldViewport", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
       {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax},
       {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax}
 #ifdef ENABLE_ALEMBIC
@@ -298,10 +299,10 @@ namespace // <anonymous>
            ArnoldStandardSurfaceShaderOverride::creator
        } ,
        {
-		  "drawdb/shader/surface/arnold/standard_hair",
-		  "arnoldStandardHairShaderOverride",
-		  ArnoldStandardHairShaderOverride::creator
-	     } ,
+        "drawdb/shader/surface/arnold/standard_hair",
+        "arnoldStandardHairShaderOverride",
+        ArnoldStandardHairShaderOverride::creator
+        } ,
         {
          "drawdb/shader/surface/arnold/skin",
          "arnoldSkinShaderOverride",
@@ -806,7 +807,12 @@ namespace // <anonymous>
 
 #if MAYA_API_VERSION >= 20210000
          int ltAbout = 0;
-         if (MGlobal::executeCommand(MString("about -ltVersion"), ltAbout) == MStatus::kSuccess && ltAbout > 0)
+#ifdef MOD_SUFFIX
+         MString aboutCmd = MString("about -"+MString(MOD_SUFFIX)+"Version");
+#else
+         MString aboutCmd = MString("about -ltVersion");
+#endif
+         if (MGlobal::executeCommand(aboutCmd, ltAbout) == MStatus::kSuccess && ltAbout > 0)
             appendProceduralsPath = false;
 #endif
 
@@ -1343,13 +1349,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_SKYDOME_LIGHT_CLASSIFICATION,
          "arnoldSkyDomeLightNodeOverride",
-   		CArnoldSkyDomeLightGeometryOverride::Creator);
+         CArnoldSkyDomeLightGeometryOverride::Creator);
       CHECK_MSTATUS(status);
 
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_SKYNODE_CLASSIFICATION,
          "arnoldSkyNodeOverride",
-   		CArnoldSkyDomeLightGeometryOverride::Creator);
+         CArnoldSkyDomeLightGeometryOverride::Creator);
       CHECK_MSTATUS(status);
       // Register a custom selection mask
       MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
@@ -1359,13 +1365,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_LIGHT_FILTER_CLASSIFICATION,
          "arnoldLightBlockerNodeOverride",
-   		CArnoldLightBlockerGeometryOverride::Creator);
+         CArnoldLightBlockerGeometryOverride::Creator);
       CHECK_MSTATUS(status);
 
       status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
          AI_VOLUME_CLASSIFICATION,
          "arnoldVolumeNodeOverride",
-   	  CArnoldVolumeGeometryOverride::Creator);
+        CArnoldVolumeGeometryOverride::Creator);
       CHECK_MSTATUS(status); 
 
       MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
@@ -1393,6 +1399,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       if (!status) {
           status.perror("registerCommand");
       }
+
+      status = plugin.registerContextCommand( "arnoldViewportRegionToolContext",
+                                  ArnoldViewportRegionContextCmd::creator );
+
+      // create the viewport toolbar
+      status = MGlobal::executePythonCommand(MString("import mtoa.viewport;mtoa.viewport.add_controls()"), true, false);
    }
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
@@ -1527,6 +1539,11 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       status = _aiViewRegionCmd.deregisterCommand(object);
       if (!status) {
          status.perror("deregisterCommand");
+      }
+
+      status = plugin.deregisterContextCommand( "ArnoldViewportRegionToolContext" );
+      if (!status) {
+         status.perror("deregisterContextCommand");
       }
    }
 

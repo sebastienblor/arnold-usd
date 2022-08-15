@@ -684,11 +684,22 @@ void CArnoldSession::Export(MSelectionList* selected)
    ExportTxFiles();
 
    // Execute post export callback
-   // Do we also want to do it in Update() ? 
-   
+   RunPostTranslationScript();
+
+}
+
+void CArnoldSession::RunPostTranslationScript()
+{
    MFnDependencyNode fnArnoldRenderOptions(m_sessionOptions.GetArnoldRenderOptions());
    MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation", true).asString();
-   MGlobal::executeCommand(postTranslationCallbackScript);
+
+   // Add the universeid to the input script so users can use it directly
+   uint32_t universeid = AiUniverseGetId(m_universe);
+   MString postTranslationCmd =  "UNIVERSE_ID = ";
+   postTranslationCmd += (int)universeid;
+   postTranslationCmd += ";"+postTranslationCallbackScript;
+
+   MGlobal::executePythonCommand(postTranslationCmd);
 }
 
 void CArnoldSession::Update()
@@ -2644,4 +2655,18 @@ bool CArnoldSession::IsRendering()
       return false;
 
    return AiRenderGetStatus(m_renderSession) == AI_RENDER_STATUS_RENDERING;
+}
+
+void CArnoldSession::PrintSystemInfo()
+{
+   // save the old default universe log flags before setting them to AI_LOG_INFO for the systeminfo
+   int defaultConsoleFlags = AiMsgGetConsoleFlags (GetUniverse());
+   int defaultLogFileFlags = AiMsgGetLogFileFlags (GetUniverse());
+   AiMsgSetConsoleFlags(GetUniverse(), AI_LOG_INFO | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR);
+   AiMsgSetLogFileFlags(GetUniverse(), AI_LOG_INFO | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR);
+   // print system info
+   AiMsgSystemInfo(GetUniverse());
+   // rest the message Flags
+   AiMsgSetConsoleFlags(GetUniverse(), defaultConsoleFlags);
+   AiMsgSetLogFileFlags(GetUniverse(), defaultLogFileFlags);
 }

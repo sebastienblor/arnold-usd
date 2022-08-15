@@ -206,7 +206,6 @@ AtNode* CArnoldRenderViewSession::ExportOptions()
    return options;
 }
 
-
 // This function will be called every time the options node was modified during IPR
 void CArnoldRenderViewSession::UpdateSessionOptions()
 {
@@ -233,7 +232,12 @@ void CArnoldRenderViewSession::InterruptRender()
 {
    GetRenderView().InterruptRender();
 }
-
+void CArnoldRenderViewSession::RenderSequence(float start, float end, float step)
+{
+   m_active = true;
+   GetRenderView().InterruptRender();
+   GetRenderView().RenderSequence(start, end, step);
+}
 void CArnoldRenderViewSession::Render(bool ipr)
 {
    m_active = true;
@@ -300,6 +304,11 @@ void CArnoldRenderViewSession::CloseOtherViews(const MString& destination)
 
       if (destination.length() > 0)
          viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+   }
+   // set command to reset the viewport buttons
+   else
+   {
+      MGlobal::executePythonCommand("import mtoa.viewport;mtoa.viewport.update_controls(\""+destination+"\")");
    }
    
    // Close all but the destination render override if there is one

@@ -1,9 +1,13 @@
 import maya.mel
-import mtoa.utils as utils
-import mtoa.ui.ae.utils as aeUtils
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
+def ArnoldVolumeAutoStepChange(nodeName):
+    scatterMix = cmds.getAttr(nodeName+'.scatterSecondaryAnisotropyMix')
+    dimStepSize = autoStep
+
+    cmds.editorTemplate(dimControl=(nodeName, "scatterSecondaryAnisotropy",  dimStepSize))
 class AEaiStandardVolumeTemplate(ShaderAETemplate):
     convertToMayaStyle = True
    
@@ -23,7 +27,12 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
         self.addControl("scatter",  label="Weight", annotation="Scatter")
         self.addControl("scatterColor", label="Color", annotation="Scatter Color")
         self.addControl("scatterColorChannel", label="Color Channel *", annotation="Scatter Color Channel")
+        self.endLayout()
+
+        self.beginLayout("Anisotropy", collapse=False)
         self.addControl("scatterAnisotropy", label="Anisotropy", annotation="Scatter Anisotropy")
+        self.addControl("scatterSecondaryAnisotropyMix", label="Secondary Mix", annotation="Scatter Anisotropy Mix", changeCommand=self.toggleSecondaryAnisotropy)
+        self.addControl("scatterSecondaryAnisotropy", label="Secondary Anisotropy", annotation="Secondary Anisotropy")
         self.endLayout()
 
         self.beginLayout("Transparent", collapse=False)
@@ -34,6 +43,7 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
 
         self.beginLayout("Emission", collapse=False)
         self.addControl("emissionMode",  label="Mode", annotation="Emission Mode")
+        self.addControl("emissionScaling",  label="Scaling", annotation="Emission Scaling")
         self.addControl("emission", label="Weight", annotation="Emission Weight")
         self.addControl("emissionColor", label="Color", annotation="Emission Color")
         self.addControl("emissionChannel", label="Channel *", annotation="Emission Channel")
@@ -43,6 +53,7 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
         self.addControl("temperatureChannel", label="Channel *", annotation="Temperature Channel")
         self.addControl("blackbodyKelvin", label="Blackbody Kelvin", annotation="Blackbody Kelvin")
         self.addControl("blackbodyIntensity", label="Blackbody Intensity", annotation="Blackbody Intensity")
+        self.addControl("blackbodyContrast", label="Blackbody Contrast", annotation="Blackbody Contrast")
 
         self.endLayout()
         self.endLayout()
@@ -55,4 +66,7 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
        
         self.addExtraControls()
         self.endScrollLayout()
-
+    
+    def toggleSecondaryAnisotropy(self, nodeName):
+        scatterMix = cmds.getAttr(self.nodeAttr('scatterSecondaryAnisotropyMix'))
+        cmds.editorTemplate(dimControl=(nodeName, "scatterSecondaryAnisotropy",  not scatterMix))

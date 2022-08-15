@@ -16,7 +16,6 @@
 #include <ai_metadata.h>
 
 #include <maya/MComputation.h>
-#include <maya/MAtomic.h>
 #include <maya/MRenderView.h>
 #include <maya/MGlobal.h>
 #include <maya/MImage.h>
