@@ -526,6 +526,8 @@ void CRenderViewMtoA::UpdateSceneChanges()
          MGlobal::executeCommand(renderGlobals.preRenderMel);
          MGlobal::executeCommand(renderGlobals.preMel);
          m_preRenderMEL = false;
+         m_postRenderMEL = true;
+
       }
       m_session->Update();
       SetFrame((float)m_session->GetOptions().GetExportFrame());
@@ -611,11 +613,14 @@ void CRenderViewMtoA::UpdateFullScene()
 
       m_session->SetExportCamera(renderCamera, false);
 
+      // populate the pre and postRenderMel callack arrays
+      
       if (m_preRenderMEL)
       {
          MGlobal::executeCommand(renderGlobals.preMel);
          MGlobal::executeCommand(renderGlobals.preRenderMel);
          m_preRenderMEL = false;
+         m_postRenderMEL = true;
       }
 
       if (!renderGlobals.renderAll)
@@ -1127,14 +1132,15 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 
    if (m_session)
    {
-      // only exiscute postRenderMEl if it hasn't run before
+      // only exicute postRenderMEl if it hasn't run before
       if (m_postRenderMEL)
       {
          MCommonRenderSettingsData renderGlobals;
          MRenderUtil::getCommonRenderSettings(renderGlobals);
-         MGlobal::executeCommand(renderGlobals.postRenderMel);
-         MGlobal::executeCommand(renderGlobals.postMel);
+         MGlobal::executeCommandOnIdle(renderGlobals.postRenderMel);
+         MGlobal::executeCommandOnIdle(renderGlobals.postMel);
          m_preRenderMEL = true;
+         m_postRenderMEL = false;
       }
       m_session->Clear();  
    }
@@ -1868,7 +1874,6 @@ void CRenderViewMtoA::PostProgressiveStep()
 }
 void CRenderViewMtoA::ProgressiveRenderStarted()
 {
-   m_postRenderMEL = true;
    if (!m_hasProgressiveRenderStarted) return;
    MGlobal::executeCommand(m_progressiveRenderStarted, false, true);
 }
@@ -1889,14 +1894,27 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
    {
       MCommonRenderSettingsData renderGlobals;
       MRenderUtil::getCommonRenderSettings(renderGlobals);
-      MGlobal::executeCommand(renderGlobals.postRenderMel);
-      MGlobal::executeCommand(renderGlobals.postMel);
+      MGlobal::executeCommandOnIdle(renderGlobals.postRenderMel);
+      MGlobal::executeCommandOnIdle(renderGlobals.postMel);
       m_postRenderMEL = false;
       m_preRenderMEL = true;
    }
    
    if (!m_hasProgressiveRenderFinished) return;
    MGlobal::executeCommand(m_progressiveRenderFinished, false, true);
+}
+
+void CRenderViewMtoA::IPRStopped()
+{
+   if (m_postRenderMEL)
+   {
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+      MGlobal::executeCommandOnIdle(renderGlobals.postRenderMel);
+      MGlobal::executeCommandOnIdle(renderGlobals.postMel);
+      m_postRenderMEL = false;
+      m_preRenderMEL = true;
+   }
 }
 
 void CRenderViewMtoA::Resize(int width, int height, bool drawableArea)
