@@ -74,7 +74,9 @@ def createMayaAttributeForArnoldAttributes(mayaNodeName, mayaAttributeName, arno
             cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName + 'V', longName=mayaAttributeLongName + 'V', at="float", parent=mayaAttributeLongName, w=write, r=read)
     elif arnoldAttributeType == AI_TYPE_STRING:
         if not cmds.attributeQuery(mayaAttributeLongName, node=mayaNodeName, ex=True):
+            attrDefaultValue = defaultValue.contents.STR
             cmds.addAttr(mayaNodeName, sn=mayaAttributeShortName, longName=mayaAttributeLongName, dt="string", w=write, r=read, ct="oslAttribute")
+            cmds.setAttr("%s.%s" % (mayaNodeName, mayaAttributeShortName), "%s" % attrDefaultValue, typ="string")
     elif arnoldAttributeType == AI_TYPE_ARRAY or arnoldAttributeType == AI_TYPE_POINTER or arnoldAttributeType == AI_TYPE_NODE or arnoldAttributeType == AI_TYPE_MATRIX:
         pass
     else:
@@ -173,7 +175,7 @@ class OSLSceneModel():
     def __modifyScene__(self):
 
         '''
-        Clean up old / unnecessary attributes and craete new ones in Maya
+        Clean up old / unnecessary attributes and create new ones in Maya
         '''
 
         if self.compileState:
