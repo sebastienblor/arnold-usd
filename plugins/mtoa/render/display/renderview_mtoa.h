@@ -91,6 +91,7 @@ public:
    virtual void PostProgressiveStep();
    virtual void ProgressiveRenderStarted();
    virtual void ProgressiveRenderFinished();
+   virtual void IPRStopped();
 
    static void SelectionChangedCallback(void *);
    static void RenderLayerChangedCallback(void *);
@@ -114,6 +115,7 @@ public:
    static void SetCameraName(const MString &name);
 
    void SetSession(CArnoldRenderViewSession *s) {m_session = s;}
+   void SetPostRenderMEL(bool value) {m_postRenderMEL = value;}
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
@@ -142,6 +144,7 @@ private:
    bool m_hasPostProgressiveStep;
    bool m_hasProgressiveRenderStarted;
    bool m_hasProgressiveRenderFinished;
+
    bool m_preRenderMEL;
    bool m_postRenderMEL;
    
@@ -151,6 +154,8 @@ private:
    MString m_postProgressiveStep;
    MString m_progressiveRenderStarted;
    MString m_progressiveRenderFinished;
+   MStringArray m_preRenderCallbacks;
+   MStringArray m_postRenderCallbacks;
 };
 
 #ifndef MTOA_DISABLE_RV
