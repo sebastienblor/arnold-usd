@@ -143,8 +143,7 @@ CRenderViewMtoA::CRenderViewMtoA(CArnoldRenderViewSession *s) : CRenderViewInter
    m_hasProgressiveRenderStarted(false),
    m_hasProgressiveRenderFinished(false),
    m_viewportRendering(false),
-   m_preRenderMEL(true),
-   m_postRenderMEL(false)
+   m_preRenderMEL(true)
 {   
 #if MAYA_API_VERSION >= 20190000
    m_colorPickingCallback = 0x0;
@@ -519,16 +518,39 @@ void CRenderViewMtoA::UpdateSceneChanges()
 {
    if (m_session)
    {
+      m_preRenderCallbacks.clear();
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+      if (renderGlobals.preMel != MString(""))
+         m_preRenderCallbacks.append(renderGlobals.preMel);
+      if (renderGlobals.preRenderMel != MString(""))
+         m_preRenderCallbacks.append(renderGlobals.preRenderMel);
+
       if (m_preRenderMEL)
       {
-         MCommonRenderSettingsData renderGlobals;
-         MRenderUtil::getCommonRenderSettings(renderGlobals);
-         MGlobal::executeCommand(renderGlobals.preRenderMel);
-         MGlobal::executeCommand(renderGlobals.preMel);
+         int numPreRenderCallbacks = m_preRenderCallbacks.length();
+         if (numPreRenderCallbacks)
+         {
+            MString melCmd = "";
+            for (int i = 0;i < numPreRenderCallbacks;i++ )
+            {
+               melCmd += m_preRenderCallbacks[i] + ";";
+            }
+            MGlobal::executeCommand(melCmd);
+            m_preRenderCallbacks.clear();
+         }
          m_preRenderMEL = false;
-         m_postRenderMEL = true;
-
       }
+
+      if (!m_postRenderCallbacks.length())
+      {
+         if (renderGlobals.postMel != MString(""))
+            m_postRenderCallbacks.append(renderGlobals.postMel);
+         if (renderGlobals.postRenderMel != MString(""))
+            m_postRenderCallbacks.append(renderGlobals.postRenderMel);
+      }
+
       m_session->Update();
       SetFrame((float)m_session->GetOptions().GetExportFrame());
    }
@@ -612,15 +634,35 @@ void CRenderViewMtoA::UpdateFullScene()
       }
 
       m_session->SetExportCamera(renderCamera, false);
+      
+      m_preRenderCallbacks.clear();
+      m_postRenderCallbacks.clear();
 
       // populate the pre and postRenderMel callack arrays
+      if (renderGlobals.preMel != MString(""))
+         m_preRenderCallbacks.append(renderGlobals.preMel);
+      if (renderGlobals.preRenderMel != MString(""))
+         m_preRenderCallbacks.append(renderGlobals.preRenderMel);
       
+      if (renderGlobals.postMel != MString(""))
+         m_postRenderCallbacks.append(renderGlobals.postMel);
+      if (renderGlobals.postRenderMel != MString(""))
+         m_postRenderCallbacks.append(renderGlobals.postRenderMel);
+   
       if (m_preRenderMEL)
       {
-         MGlobal::executeCommand(renderGlobals.preMel);
-         MGlobal::executeCommand(renderGlobals.preRenderMel);
+         int numPreRenderCallbacks = m_preRenderCallbacks.length();
+         if (numPreRenderCallbacks)
+         {
+            MString melCmd = "";
+            for (int i = 0;i < numPreRenderCallbacks;i++ )
+            {
+               melCmd += m_preRenderCallbacks[i] + ";";
+            }
+            MGlobal::executeCommand(melCmd);
+            m_preRenderCallbacks.clear();
+         }
          m_preRenderMEL = false;
-         m_postRenderMEL = true;
       }
 
       if (!renderGlobals.renderAll)
@@ -1133,15 +1175,19 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
    if (m_session)
    {
       // only exicute postRenderMEl if it hasn't run before
-      if (m_postRenderMEL)
+      int numPostCallbacks = m_postRenderCallbacks.length();
+      if (numPostCallbacks)
       {
-         MCommonRenderSettingsData renderGlobals;
-         MRenderUtil::getCommonRenderSettings(renderGlobals);
-         MGlobal::executeCommandOnIdle(renderGlobals.postRenderMel);
-         MGlobal::executeCommandOnIdle(renderGlobals.postMel);
-         m_preRenderMEL = true;
-         m_postRenderMEL = false;
+         MString melCmd = "";
+         for ( int i = 0;i < numPostCallbacks; i++ )
+         {
+            melCmd += m_postRenderCallbacks[i] + ";";
+         }
+         MGlobal::executeCommandOnIdle(melCmd);
+         m_postRenderCallbacks.clear();
       }
+      m_preRenderMEL = true;
+
       m_session->Clear();  
    }
 }
@@ -1888,15 +1934,19 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
    // the status is AI_RENDER_STATUS_FINISHED
    AtRenderStatus status = AiRenderGetStatus(GetRenderSession());
    MString isIPRRunning = m_session->GetRenderViewOption("Run IPR");
-   std::cout << "status " << status << " | isIPRRunning " << isIPRRunning.asChar() << std::endl;
-   if (m_postRenderMEL && 
-      (isIPRRunning == MString("0") && status == AI_RENDER_STATUS_FINISHED))
+   if (isIPRRunning == MString("0") && status == AI_RENDER_STATUS_FINISHED)
    {
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-      MGlobal::executeCommandOnIdle(renderGlobals.postRenderMel);
-      MGlobal::executeCommandOnIdle(renderGlobals.postMel);
-      m_postRenderMEL = false;
+      int numPostRenderCallbacks = m_postRenderCallbacks.length();
+      if (numPostRenderCallbacks)
+      {
+            MString melCmd = "";
+            for (int i = 0;i < numPostRenderCallbacks;i++ )
+            {
+               melCmd += m_postRenderCallbacks[i] + ";";
+            }
+            MGlobal::executeCommandOnIdle(melCmd);
+            m_postRenderCallbacks.clear();
+         }
       m_preRenderMEL = true;
    }
    
@@ -1906,15 +1956,18 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 
 void CRenderViewMtoA::IPRStopped()
 {
-   if (m_postRenderMEL)
+   int numPostRenderCallbacks = m_postRenderCallbacks.length();
+   if (numPostRenderCallbacks)
    {
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-      MGlobal::executeCommandOnIdle(renderGlobals.postRenderMel);
-      MGlobal::executeCommandOnIdle(renderGlobals.postMel);
-      m_postRenderMEL = false;
-      m_preRenderMEL = true;
+      MString melCmd = "";
+      for (int i = 0;i < numPostRenderCallbacks;i++ )
+      {
+         melCmd += m_postRenderCallbacks[i] + ";";
+      }
+      MGlobal::executeCommandOnIdle(melCmd);
+      m_postRenderCallbacks.clear();
    }
+   m_preRenderMEL = true;
 }
 
 void CRenderViewMtoA::Resize(int width, int height, bool drawableArea)

@@ -115,7 +115,6 @@ public:
    static void SetCameraName(const MString &name);
 
    void SetSession(CArnoldRenderViewSession *s) {m_session = s;}
-   void SetPostRenderMEL(bool value) {m_postRenderMEL = value;}
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
@@ -146,7 +145,6 @@ private:
    bool m_hasProgressiveRenderFinished;
 
    bool m_preRenderMEL;
-   bool m_postRenderMEL;
    
    bool m_viewportRendering;
 
