@@ -517,8 +517,8 @@ void CRenderViewMtoA::UpdateSceneChanges()
 {
    if (m_session)
    {
-      RunPreRenderCallbacks();
-      m_preRenderCallbacks.clear();
+      if (UpdateDefaultRenderCallbacks())
+         RunPreRenderCallbacks();
 
       m_session->Update();
       SetFrame((float)m_session->GetOptions().GetExportFrame());
@@ -607,11 +607,10 @@ void CRenderViewMtoA::UpdateFullScene()
       m_preRenderCallbacks.clear();
       m_postRenderCallbacks.clear();
 
-      // populate the pre and postRenderMel callack arrays
-      UpdateDefaultRenderCallbacks();
-      // run the preRender callbacks before exporting the scene
-      RunPreRenderCallbacks();
-      m_preRenderCallbacks.clear();
+      // populate the pre and postRenderMel calblack arrays
+      // and run the preRender callbacks before exporting the scene if they are updated
+      if (UpdateDefaultRenderCallbacks())
+         RunPreRenderCallbacks();
 
       if (!renderGlobals.renderAll)
       {
@@ -669,30 +668,61 @@ void CRenderViewMtoA::UpdateRenderCallbacks()
    m_hasProgressiveRenderFinished = (m_progressiveRenderFinished != "");
 }
 
-void CRenderViewMtoA::UpdateDefaultRenderCallbacks()
+bool CRenderViewMtoA::UpdateDefaultRenderCallbacks()
 {
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
+   bool result = false;
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-      if (!m_preRenderCallbacks.length())
+   // clear the preRender callbacks if they differ from the current set callbacks
+   if (m_preRenderCallbacks.length() == 3)
+   {
+      if (renderGlobals.preMel != m_preRenderCallbacks[0] ||
+          renderGlobals.preRenderLayerMel != m_preRenderCallbacks[1] ||
+          renderGlobals.preRenderMel != m_preRenderCallbacks[2]
+      )
       {
-         if (renderGlobals.preMel != MString(""))
-            m_preRenderCallbacks.append(renderGlobals.preMel);
-         if (renderGlobals.preRenderLayerMel != MString(""))
-            m_preRenderCallbacks.append(renderGlobals.preRenderLayerMel);
-         if (renderGlobals.preRenderMel != MString(""))
-            m_preRenderCallbacks.append(renderGlobals.preRenderMel);
+         m_preRenderCallbacks.clear();
       }
+   }
 
-      if (!m_postRenderCallbacks.length())
+   // clear the postRender callbacks if they differ from the current set callbacks
+   if (m_postRenderCallbacks.length() == 3)
+   {
+      if (renderGlobals.postMel != m_postRenderCallbacks[0] ||
+          renderGlobals.postRenderLayerMel != m_postRenderCallbacks[1] ||
+          renderGlobals.postRenderMel != m_postRenderCallbacks[2]
+      )
       {
-         if (renderGlobals.postMel != MString(""))
-            m_postRenderCallbacks.append(renderGlobals.postMel);
-         if (renderGlobals.postRenderLayerMel != MString(""))
-            m_postRenderCallbacks.append(renderGlobals.postRenderLayerMel);
-         if (renderGlobals.postRenderMel != MString(""))
-            m_postRenderCallbacks.append(renderGlobals.postRenderMel);
+         m_postRenderCallbacks.clear();
       }
+   }
+
+   if (!m_preRenderCallbacks.length())
+   {
+      if (renderGlobals.preMel != MString(""))
+         m_preRenderCallbacks.append(renderGlobals.preMel);
+      if (renderGlobals.preRenderLayerMel != MString(""))
+         m_preRenderCallbacks.append(renderGlobals.preRenderLayerMel);
+      if (renderGlobals.preRenderMel != MString(""))
+         m_preRenderCallbacks.append(renderGlobals.preRenderMel);
+      
+      result = true;
+   }
+
+   if (!m_postRenderCallbacks.length())
+   {
+      if (renderGlobals.postMel != MString(""))
+         m_postRenderCallbacks.append(renderGlobals.postMel);
+      if (renderGlobals.postRenderLayerMel != MString(""))
+         m_postRenderCallbacks.append(renderGlobals.postRenderLayerMel);
+      if (renderGlobals.postRenderMel != MString(""))
+         m_postRenderCallbacks.append(renderGlobals.postRenderMel);
+   
+      result = true;
+   }
+
+   return result;
  
 }
 
@@ -1179,11 +1209,10 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 
    if (m_session)
    {
-      // only exicute postRenderMEl if it hasn't run before
+      // only execute postRender callbacks if it hasn't run before
       RunPostRenderCallbacks();
       m_postRenderCallbacks.clear();
-
-      UpdateDefaultRenderCallbacks();
+      m_preRenderCallbacks.clear();
 
       m_session->Clear();  
    }
@@ -1935,7 +1964,7 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
    {
       RunPostRenderCallbacks();      
       m_postRenderCallbacks.clear();
-      UpdateDefaultRenderCallbacks();
+      m_preRenderCallbacks.clear();
    }
    
    if (!m_hasProgressiveRenderFinished) return;
@@ -1946,7 +1975,7 @@ void CRenderViewMtoA::IPRStopped()
 {
    RunPostRenderCallbacks();
    m_postRenderCallbacks.clear();
-   UpdateDefaultRenderCallbacks();
+   m_preRenderCallbacks.clear();
 }
 
 void CRenderViewMtoA::Resize(int width, int height, bool drawableArea)

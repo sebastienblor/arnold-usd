@@ -118,7 +118,7 @@ public:
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
-   void UpdateDefaultRenderCallbacks();
+   bool UpdateDefaultRenderCallbacks();
    void RunPreRenderCallbacks();
    void RunPostRenderCallbacks();
 
