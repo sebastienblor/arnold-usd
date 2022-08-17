@@ -118,6 +118,9 @@ public:
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
+   void UpdateDefaultRenderCallbacks();
+   void RunPreRenderCallbacks();
+   void RunPostRenderCallbacks();
 
 #if MAYA_API_VERSION >= 20190000
    class CustomCallback;
@@ -143,8 +146,6 @@ private:
    bool m_hasPostProgressiveStep;
    bool m_hasProgressiveRenderStarted;
    bool m_hasProgressiveRenderFinished;
-
-   bool m_preRenderMEL;
    
    bool m_viewportRendering;
 
