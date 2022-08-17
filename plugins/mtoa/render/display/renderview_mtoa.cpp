@@ -700,11 +700,11 @@ bool CRenderViewMtoA::UpdateDefaultRenderCallbacks()
 
    if (!m_preRenderCallbacks.length())
    {
-      if (renderGlobals.preMel != MString(""))
+      if (renderGlobals.preMel.length() > 0)
          m_preRenderCallbacks.append(renderGlobals.preMel);
-      if (renderGlobals.preRenderLayerMel != MString(""))
+      if (renderGlobals.preRenderLayerMel.length() > 0)
          m_preRenderCallbacks.append(renderGlobals.preRenderLayerMel);
-      if (renderGlobals.preRenderMel != MString(""))
+      if (renderGlobals.preRenderMel.length() > 0)
          m_preRenderCallbacks.append(renderGlobals.preRenderMel);
       
       result = true;
@@ -712,11 +712,11 @@ bool CRenderViewMtoA::UpdateDefaultRenderCallbacks()
 
    if (!m_postRenderCallbacks.length())
    {
-      if (renderGlobals.postMel != MString(""))
+      if (renderGlobals.postMel.length() > 0)
          m_postRenderCallbacks.append(renderGlobals.postMel);
-      if (renderGlobals.postRenderLayerMel != MString(""))
+      if (renderGlobals.postRenderLayerMel.length() > 0)
          m_postRenderCallbacks.append(renderGlobals.postRenderLayerMel);
-      if (renderGlobals.postRenderMel != MString(""))
+      if (renderGlobals.postRenderMel.length() > 0)
          m_postRenderCallbacks.append(renderGlobals.postRenderMel);
    
       result = true;
