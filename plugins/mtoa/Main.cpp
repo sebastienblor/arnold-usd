@@ -717,6 +717,12 @@ namespace // <anonymous>
                                     "spherical",
                                     CSphericalCameraTranslator::creator,
                                     CSphericalCameraTranslator::NodeInitializer);
+      // we don't call the NodeInitializer function for UFE cameras, 
+      // because we don't want to add "ai" attributes
+      builtin->RegisterTranslator("ufeProxyCameraShape",
+                                    "",
+                                    CStandardCameraTranslator::creator);
+
       builtin->RegisterTranslator("imagePlane",
                                     "",
                                     CImagePlaneTranslator::creator,

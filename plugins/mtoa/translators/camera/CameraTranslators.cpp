@@ -108,23 +108,31 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
    MObject uvRemapNode;
    MPlugArray conns;
    MPlug pUVR = FindMayaPlug("aiUvRemap");
-   pUVR.connectedTo(conns, true, false);
-   if (conns.length() == 1)
+   if (!pUVR.isNull())
    {
-      uvRemapNode = conns[0].node();
+      pUVR.connectedTo(conns, true, false);
+      if (conns.length() == 1)
+      {
+         uvRemapNode = conns[0].node();
+      }
+      else
+      {
+         uvRemapNode = MObject::kNullObj;
+      }
+      if (!uvRemapNode.isNull())
+      {      
+         AiNodeLink(ExportConnectedNode(conns[0]), str::uv_remap, camera);
+      }
+      else
+      {
+         ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, pUVR);
+      }
    }
-   else
-   {
-      uvRemapNode = MObject::kNullObj;
-   }
-   if (!uvRemapNode.isNull())
-   {      
-      AiNodeLink(ExportConnectedNode(conns[0]), str::uv_remap, camera);
-   }
-   else
-   {
-      ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, pUVR);
-   }
+   MPlug lensTiltAngleXAttr = FindMayaPlug("aiLensTiltAngleX");
+   MPlug lensTiltAngleYAttr = FindMayaPlug("aiLensTiltAngleY");
+
+   MPlug lensShiftXAttr = FindMayaPlug("aiLensShiftX");
+   MPlug lensShiftYAttr = FindMayaPlug("aiLensShiftY");
 
    if (RequiresMotionData())
    {
@@ -132,24 +140,37 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
       AiArraySetFlt(fovs, GetMotionStep(), fov);
       AiNodeSetArray(camera, str::fov, fovs);
 
-      AtArray* lensTiltAngles = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
-      AtVector2 lensTiltAngle(FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
-      AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
-      AiNodeSetArray(camera, str::lens_tilt_angle, lensTiltAngles);
+      if (!lensTiltAngleXAttr.isNull() && !lensTiltAngleYAttr.isNull())
+      {
+         AtArray* lensTiltAngles = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
+         AtVector2 lensTiltAngle(lensTiltAngleXAttr.asFloat(), lensTiltAngleYAttr.asFloat());
+         AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
+         AiNodeSetArray(camera, str::lens_tilt_angle, lensTiltAngles);
+      }
 
-      AtArray* lensShifts = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
-      AtVector2 lensShift(FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
-      AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
-      AiNodeSetArray(camera, str::lens_shift, lensShifts);
+      if (!lensShiftXAttr.isNull() && !lensShiftYAttr.isNull())
+      {
+         AtArray* lensShifts = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_VECTOR2);
+         AtVector2 lensShift(lensShiftXAttr.asFloat(), lensShiftYAttr.asFloat());
+         AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
+         AiNodeSetArray(camera, str::lens_shift, lensShifts);
+      }
    }
    else
    {
       AiNodeSetFlt(camera, str::fov, fov);
-      AiNodeSetVec2(camera, str::lens_tilt_angle, FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
-      AiNodeSetVec2(camera, str::lens_shift, FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
+      if (!lensTiltAngleXAttr.isNull() && !lensTiltAngleYAttr.isNull())
+         AiNodeSetVec2(camera, str::lens_tilt_angle, lensTiltAngleXAttr.asFloat(), lensTiltAngleYAttr.asFloat());
+      if (!lensShiftXAttr.isNull() && !lensShiftYAttr.isNull())
+         AiNodeSetVec2(camera, str::lens_shift, lensShiftXAttr.asFloat(), lensShiftYAttr.asFloat());
    }
-   ProcessParameter(camera, str::radial_distortion, AI_TYPE_FLOAT, "aiRadialDistortion");
-   ProcessParameter(camera, str::radial_distortion_type, AI_TYPE_ENUM, "aiRadialDistortionType");
+   MPlug radialDistortionAttr = FindMayaPlug("aiRadialDistortion");
+   if (!radialDistortionAttr.isNull())
+      ProcessParameter(camera, str::radial_distortion, AI_TYPE_FLOAT, radialDistortionAttr);
+
+   MPlug radialDistortionTypeAttr = FindMayaPlug("aiRadialDistortionType");
+   if (!radialDistortionTypeAttr.isNull())
+      ProcessParameter(camera, str::radial_distortion_type, AI_TYPE_ENUM, radialDistortionTypeAttr);
 }
 
 void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)
@@ -205,13 +226,24 @@ void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera)
    AtArray* fovs = AiNodeGetArray(camera, str::fov);
    AiArraySetFlt(fovs, GetMotionStep(), fov);
 
-   AtArray* lensTiltAngles = AiNodeGetArray(camera, str::lens_tilt_angle);
-   AtVector2 lensTiltAngle(FindMayaPlug("aiLensTiltAngleX").asFloat(), FindMayaPlug("aiLensTiltAngleY").asFloat());
-   AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
+   MPlug lensTiltAngleXAttr = FindMayaPlug("aiLensTiltAngleX");
+   MPlug lensTiltAngleYAttr = FindMayaPlug("aiLensTiltAngleY");
 
-   AtArray* lensShifts = AiNodeGetArray(camera, str::lens_shift);
-   AtVector2 lensShift(FindMayaPlug("aiLensShiftX").asFloat(), FindMayaPlug("aiLensShiftY").asFloat());
-   AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
+   MPlug lensShiftXAttr = FindMayaPlug("aiLensShiftX");
+   MPlug lensShiftYAttr = FindMayaPlug("aiLensShiftY");
+
+   if (!lensTiltAngleXAttr.isNull() && !lensTiltAngleYAttr.isNull())
+   {
+      AtArray* lensTiltAngles = AiNodeGetArray(camera, str::lens_tilt_angle);
+      AtVector2 lensTiltAngle(lensTiltAngleXAttr.asFloat(), lensTiltAngleYAttr.asFloat());
+      AiArraySetVec2(lensTiltAngles, GetMotionStep(), lensTiltAngle);
+   }
+   if (!lensShiftXAttr.isNull() && !lensShiftYAttr.isNull())
+   {
+      AtArray* lensShifts = AiNodeGetArray(camera, str::lens_shift);
+      AtVector2 lensShift(lensShiftXAttr.asFloat(), lensShiftYAttr.asFloat());
+      AiArraySetVec2(lensShifts, GetMotionStep(), lensShift);
+   }
 }
 
 float CStandardCameraTranslator::ExportFilmbackPersp(AtNode* camera)

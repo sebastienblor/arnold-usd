@@ -5,7 +5,7 @@ import subprocess
 import sys, os, re
 sys.path = ["tools/python"]  + sys.path
 
-import utils.system
+import utils.system as system
 import glob
 from utils.build_tools import *
 from utils.mtoa_build_tools import *
@@ -671,6 +671,60 @@ elif system.os == 'linux':
 env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
 
+## Add Qt includes
+
+mayaQtFolder = ""
+mayaQtTarGz = ""
+
+for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  not ( x.endswith('zip') or x.endswith('.gz')) ):
+    mayaQtFolder = os.path.join(MAYA_INCLUDE_PATH,x)
+    break
+
+for x in (x for x in os.listdir(MAYA_INCLUDE_PATH) if x.startswith('qt') and  ( x.endswith('zip') or x.endswith('.gz'))):
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH,x)
+    break
+
+if not mayaQtFolder or not mayaQtTarGz :
+
+    if mayaQtTarGz and os.path.exists(mayaQtTarGz):
+        mayaQtFolder = os.path.join(EXTERNAL_PATH, os.path.basename(mayaQtTarGz).replace(".tar.gz", "").replace(".zip", "")) 
+        print("found " + mayaQtTarGz + " extracting to " + mayaQtFolder)
+    else:
+        if (int(maya_version_base) < 2020):
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.6.1-include') 
+            mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+        elif (int(maya_version_base) == 2020):
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.12.5-include') 
+            if system.os == 'windows':
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5_vc14-include.zip')
+            else:
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.12.5-include.tar.gz')
+        else:
+            mayaQtFolder = os.path.join(EXTERNAL_PATH, 'qt-5.15.2-include') 
+            if system.os == 'windows':
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2_vc14-include.zip')
+            else:
+                mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt_5.15.2-include.tar.gz')
+
+if not os.path.isdir(mayaQtFolder):
+    if os.path.exists(mayaQtTarGz):
+        print "Extracting Qt Files..."
+        tmpFile, tmpExt = os.path.splitext(mayaQtTarGz)
+        if tmpExt == '.zip':
+            import zipfile
+            with zipfile.ZipFile(mayaQtTarGz, 'r') as zip_ref:
+                zip_ref.extractall(mayaQtFolder)
+        else:
+            import tarfile
+            tfile = tarfile.open(mayaQtTarGz, 'r:gz')
+            tfile.extractall(mayaQtFolder)
+    else:
+        print "Error : Qt Files not Found"
+
+
+env['QT_ROOT_DIR'] = mayaQtFolder
+env.Append(CPPPATH = [mayaQtFolder])
+
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, env['TARGET_ARCH']), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
@@ -831,6 +885,7 @@ if system.os == 'windows':
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
+    maya_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
 
     if env['PREBUILT_MTOA']:       
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
@@ -899,11 +954,13 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+        maya_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL', 'Qt5Widgets'])
 
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
+        maya_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5', 'Qt5Widgets.5'])
         
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 

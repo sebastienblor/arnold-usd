@@ -287,6 +287,9 @@ def arnoldImportShaders():
         defaultOperatorsFolder = ret[0]
         cmds.arnoldImportAss(f=ret[0], mask=ai.AI_NODE_SHADER)
 
+def arnoldReloadShaders():
+    cmds.arnoldPlugins(reloadPlugins=True)
+
 def arnoldExportMaterialx():
     selList = cmds.ls(sl=1)
     if (len(selList) == 0):
@@ -391,6 +394,8 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportShaders()', category="Shaders", annotation='Export the selected shaders to a .ass file')
         addRuntimeMenuItem('ArnoldImportShaders', label='Import Arnold Shaders', parent='ArnoldShaders', keywords='shader',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportShaders()', category="Shaders", annotation='Import a shader library from a .ass file')
+        addRuntimeMenuItem('ArnoldReloadShaders', label='Reload Shaders', parent='ArnoldShaders', keywords='shader',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldReloadShaders()', category="Shaders", annotation='New shaders updates (e.g. OSL code) will reload')
         cmds.menuItem(parent='ArnoldShaders', divider=True)
         cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldShaders',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
