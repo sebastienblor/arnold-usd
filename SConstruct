@@ -1209,7 +1209,8 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-    if int(maya_version_base) >= 2024:
+    if system.os == 'darwin' and int(maya_version_base) >= 2024:
+        # for now we only use 2024 libs for Mac
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2024', RENDERVIEW_DYLIB)
     elif int(maya_version_base) >= 2021:
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2022', RENDERVIEW_DYLIB)
