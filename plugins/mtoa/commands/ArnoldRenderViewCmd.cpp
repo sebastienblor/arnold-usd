@@ -171,9 +171,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       if (sessionExisted)
       {
+
          // A render view session has already been started
          // let's pop-up the window, and eventually re-render
-         session->OpenRenderView();
+         if (mode != "render_silent")
+            session->OpenRenderView();
 
          if (mode == "render" || mode == "render_silent" || mode == "sequence")
          {
