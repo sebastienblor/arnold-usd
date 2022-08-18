@@ -792,6 +792,7 @@ ArnoldViewHUDRender::ArnoldViewHUDRender(const MString &name)
     , mProgress(0.0f)
     , mPixelRatio(1.0)
     , mHOffset(0)
+    , mHUDColorIndex(18)
 	{
 	}
 
@@ -802,9 +803,9 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         // Start draw UI
         drawManager2D.beginDrawable();
         // Set font color
-        drawManager2D.setColor( MColor( 1.0f, 1.0f, 0.0f ) );
+        drawManager2D.setColorIndex( mHUDColorIndex );
         // Set font size
-        drawManager2D.setFontSize( MHWRender::MUIDrawManager::kSmallFontSize );
+        drawManager2D.setFontSize( 10 );
     #ifdef _DARWIN
         drawManager2D.setFontName("monaco");
     #else
@@ -885,4 +886,9 @@ void ArnoldViewHUDRender::setPixelRatio(float ratio)
 void ArnoldViewHUDRender::setRenderStatus(MString status)
 {
     mRenderStatus = ltrim(status.asChar()).c_str();
+}
+
+void ArnoldViewHUDRender::setHUDColorIndex(int index)
+{
+    mHUDColorIndex = index;
 }

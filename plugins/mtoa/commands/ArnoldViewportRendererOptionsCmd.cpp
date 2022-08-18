@@ -18,6 +18,7 @@ MSyntax CArnoldViewportRendererOptionsCmd::newSyntax()
    syntax.addFlag("aov", "currentaov", MSyntax::kLong);
    syntax.addFlag("st", "status", MSyntax::kString);
    syntax.addFlag("hud", "toggleHUD", MSyntax::kBoolean);
+   syntax.addFlag("hc", "HUDColor", MSyntax::kLong);
    syntax.makeFlagQueryWithFullArgs("option", true);
    syntax.enableQuery( true );
    return syntax;
@@ -133,6 +134,21 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
             return MStatus::kFailure;
 
          renderOverride->getHUDRenderer()->setUserUIDrawables(toggleHUD);
+      }
+
+      if (args.isFlagSet("HUDColor"))
+      {
+         int HUDColorIndex = args.flagArgumentInt("HUDColor", 0);
+         MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer(); 
+         ArnoldViewOverride *renderOverride = NULL;
+         if (renderer)
+         {
+            renderOverride = (ArnoldViewOverride *) renderer->findRenderOverride( "arnoldViewOverride" );
+         }
+         if (!renderOverride)
+            return MStatus::kFailure;
+
+         renderOverride->getHUDRenderer()->setHUDColorIndex(HUDColorIndex);
       }
    }
 
