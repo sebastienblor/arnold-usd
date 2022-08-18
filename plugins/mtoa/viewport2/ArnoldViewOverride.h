@@ -46,6 +46,7 @@ public:
 	void setUserUIDrawables(bool val);
     void setProgress(float value);
     float getProgress(){ return mProgress; }
+	void setHUDColorIndex(int index);
     void setStatus(MString status);
     void setHorizontalOffset(int offset);
     void setPixelRatio(float ratio);
@@ -62,6 +63,7 @@ protected:
     int mHOffset;
     MString mStatus;
     MString mRenderStatus;
+    int mHUDColorIndex;
 };
 
 //
