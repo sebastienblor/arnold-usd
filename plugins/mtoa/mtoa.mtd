@@ -1356,11 +1356,9 @@
         min             FLOAT   0.0
         softmax         FLOAT   5.0
     [attr coat_affect_color]
-        maya.hide       BOOL    true
         min             FLOAT   0.0
         max             FLOAT   1.0
     [attr coat_affect_roughness]
-        maya.hide       BOOL    true
         min             FLOAT   0.0
         max             FLOAT   1.0
     [attr sheen]
