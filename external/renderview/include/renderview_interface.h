@@ -223,6 +223,7 @@ public:
    virtual void PostProgressiveStep() {}
    virtual void ProgressiveRenderStarted() {}
    virtual void ProgressiveRenderFinished() {}
+   virtual void IPRStopped() {}
 
    // Function used by Maya color picking.
    AtRGBA GetWidgetColorAtPosition(unsigned posX, unsigned posY, bool viewTransform, QWidget* pickedWidget = NULL);

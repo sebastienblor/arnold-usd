@@ -171,9 +171,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       if (sessionExisted)
       {
+
          // A render view session has already been started
          // let's pop-up the window, and eventually re-render
-         session->OpenRenderView();
+         if (mode != "render_silent")
+            session->OpenRenderView();
 
          if (mode == "render" || mode == "render_silent" || mode == "sequence")
          {
@@ -225,11 +227,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          renderCamera.extendToShape();
       session->SetExportCamera(renderCamera, false);
 
-      // FIXME do we want the preMel callbacks and should they be handled here ???
       MCommonRenderSettingsData renderGlobals;
       MRenderUtil::getCommonRenderSettings(renderGlobals);
-      MGlobal::executeCommand(renderGlobals.preMel);
-      MGlobal::executeCommand(renderGlobals.preRenderMel);
 
       if (!renderGlobals.renderAll)
       {
