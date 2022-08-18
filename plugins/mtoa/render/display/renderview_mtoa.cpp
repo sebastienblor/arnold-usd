@@ -689,9 +689,9 @@ bool CRenderViewMtoA::UpdateDefaultRenderCallbacks()
    // clear the postRender callbacks if they differ from the current set callbacks
    if (m_postRenderCallbacks.length() == 3)
    {
-      if (renderGlobals.postMel != m_postRenderCallbacks[0] ||
+      if (renderGlobals.postRenderMel != m_postRenderCallbacks[0] ||
           renderGlobals.postRenderLayerMel != m_postRenderCallbacks[1] ||
-          renderGlobals.postRenderMel != m_postRenderCallbacks[2]
+          renderGlobals.postMel != m_postRenderCallbacks[2]
       )
       {
          m_postRenderCallbacks.clear();
@@ -712,12 +712,12 @@ bool CRenderViewMtoA::UpdateDefaultRenderCallbacks()
 
    if (!m_postRenderCallbacks.length())
    {
-      if (renderGlobals.postMel.length() > 0)
-         m_postRenderCallbacks.append(renderGlobals.postMel);
-      if (renderGlobals.postRenderLayerMel.length() > 0)
-         m_postRenderCallbacks.append(renderGlobals.postRenderLayerMel);
       if (renderGlobals.postRenderMel.length() > 0)
          m_postRenderCallbacks.append(renderGlobals.postRenderMel);
+      if (renderGlobals.postRenderLayerMel.length() > 0)
+         m_postRenderCallbacks.append(renderGlobals.postRenderLayerMel);
+      if (renderGlobals.postMel.length() > 0)
+         m_postRenderCallbacks.append(renderGlobals.postMel);
    
       result = true;
    }
@@ -1956,15 +1956,18 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
       s_sequenceData->renderFinished = true;
    }
 
-   // only execute the postRenderMEL calls if we are not running in IPR mode and
-   // the status is AI_RENDER_STATUS_FINISHED
-   AtRenderStatus status = AiRenderGetStatus(GetRenderSession());
-   MString isIPRRunning = m_session->GetRenderViewOption("Run IPR");
-   if (isIPRRunning == MString("0") && status == AI_RENDER_STATUS_FINISHED)
+   if (m_postRenderCallbacks.length() || m_preRenderCallbacks.length())
    {
-      RunPostRenderCallbacks();      
-      m_postRenderCallbacks.clear();
-      m_preRenderCallbacks.clear();
+      // only execute the postRenderMEL calls if we are not running in IPR mode and
+      // the status is AI_RENDER_STATUS_FINISHED
+      AtRenderStatus status = AiRenderGetStatus(GetRenderSession());
+      MString isIPRRunning = m_session->GetRenderViewOption("Run IPR");
+      if (isIPRRunning == MString("0") && status == AI_RENDER_STATUS_FINISHED)
+      {
+         RunPostRenderCallbacks();      
+         m_postRenderCallbacks.clear();
+         m_preRenderCallbacks.clear();
+      }
    }
    
    if (!m_hasProgressiveRenderFinished) return;
