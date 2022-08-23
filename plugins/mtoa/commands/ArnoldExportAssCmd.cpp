@@ -361,6 +361,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          }
          else
             MGlobal::getActiveSelectionList(sList);
+         // We need to add to our list all the cameras that will be used later as render cameras.
+         // Otherwise they won't be exported properly MTOA-1160
+         for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
+            if (cameras[arrayIter].isValid())
+               sList.add(cameras[arrayIter].node());
          
          session->Export(&sList);
       }
