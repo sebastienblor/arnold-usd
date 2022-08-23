@@ -2,6 +2,7 @@ import os
 import re
 import fnmatch
 import maya.cmds as cmds
+import maya.OpenMaya as om
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser, valueIsExpression
 from mtoa.ui.qt.widgets import TYPES_DICT_STRINGS
@@ -37,6 +38,8 @@ INCLUDEGRAPH_OP = "aiIncludeGraph"
 MATERIALX_OP = "aiMaterialx"
 LOOKSWITCH_OP = "aiLookSwitch"
 
+OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
+
 PROCEDURAL_NODES = ["procedural", "alembic", "usd"]
 
 SELECTION_OPS = [OVERRIDE_OP, DISABLE_OP, COLLECTION_OP]
@@ -65,12 +68,88 @@ BUILTIN_NODES = ['root',
 
 FILE_CACHE = {}
 
+NODE_TYPE_CACHE = {}
+
+OPERATOR_CACHE = {}
+
 def ArnoldUniverseOnlyBegin():
     if not AiUniverseIsActive():
         AiBegin()
         AiMsgSetConsoleFlags(AI_LOG_NONE)
         return True
     return False
+
+
+def GetNodeType(node):
+    global NODE_TYPE_CACHE
+    if node not in NODE_TYPE_CACHE:            
+        selList = om.MSelectionList()
+        selList.add(node)
+        obj = om.MObject()
+        selList.getDependNode(0, obj)
+        fnNode = om.MFnDependencyNode(obj)
+        NODE_TYPE_CACHE[node] = fnNode.typeName()
+    
+    return NODE_TYPE_CACHE[node]
+
+
+def GetOperators(standin, path):
+    global OPERATOR_CACHE
+
+    operators = OPERATOR_CACHE[standin]
+    print(operators)
+
+
+
+def PopulateOperatorCache(standin):
+
+    global OPERATOR_CACHE
+    global OPERATORS
+
+    if standin not in OPERATOR_CACHE:
+        OPERATOR_CACHE[standin] = {}
+    
+    def __getAttributeOrNone(attr):
+        return cmds.getAttr(attr) if cmds.objExists(attr) else None
+
+    def __getIndexedAttributeOrNone(attr):
+        return cmds.getAttr(attr, multiIndices=True) or [] if cmds.objExists(attr) else None
+
+    def __get_node_connections(node):
+        global OPERATOR_CACHE 
+        found_nodes = []
+        for opType in OPERATORS:
+            found_nodes += cmds.listConnections(node, c=0, d=0, p=0, s=1, type=opType) or []
+
+        for opNode in found_nodes:
+            node_type = GetNodeType(opNode)
+            selection = __getAttributeOrNone("{}.selection".format(opNode))
+            # assignments = getAttributeOrNone("{}.assignment".format(opNode))
+            assignments = __getIndexedAttributeOrNone('{}.assignment'.format(opNode))
+
+            inputs_raw = []
+            if cmds.objExists("{}.looks".format(opNode)):
+                switch_index = cmds.getAttr("{}.index".format(opNode))
+                inputs_raw = cmds.listConnections("{}.looks[{}].inputs".format(opNode, switch_index), c=True) or None
+            elif cmds.objExists("{}.index".format(opNode)):
+                switch_index = cmds.getAttr("{}.index".format(opNode))
+                inputs_raw = cmds.listConnections("{}.inputs[{}]".format(opNode, switch_index), c=True) or None
+            else:
+                inputs_raw = cmds.listConnections("{}.inputs".format(opNode), c=True) or None
+
+            OPERATOR_CACHE[standin][opNode] = {
+                "node_type" : node_type,
+                "selection" : selection,
+                "assignments" : assignments,
+                "inputs" : inputs_raw
+            }            
+            found_nodes += __get_node_connections(opNode)
+    
+        return list(set(found_nodes))
+
+    __get_node_connections(standin)
+
+    return OPERATOR_CACHE[standin]
 
 
 class ProceduralTransverser(BaseTransverser):
@@ -163,20 +242,20 @@ class ProceduralTransverser(BaseTransverser):
 
     def getOperatorIndices(self, node):
         con_attr = 'operators'
-        if cmds.nodeType(node) == MERGE_OP:
-            con_attr = 'inputs'
-        elif cmds.nodeType(node) == LOOKSWITCH_OP:
+        if cmds.objExists("{}.looks".format(node)):
             var_index = cmds.getAttr('{}.index'.format(node))
             con_attr = 'looks[{}].inputs'.format(var_index)
+        elif cmds.objExists("{}.inputs".format(node)):
+            con_attr = 'inputs'
         return cmds.getAttr('{}.{}'.format(node, con_attr), multiIndices=True) or []
 
     def getConnectedOperator(self, node, index):
         con_attr = 'operators'
-        if cmds.nodeType(node) == MERGE_OP:
-            con_attr = 'inputs'
-        elif cmds.nodeType(node) == LOOKSWITCH_OP:
+        if cmds.objExists("{}.looks".format(node)):
             var_index = cmds.getAttr('{}.index'.format(node))
             con_attr = 'looks[{}].inputs'.format(var_index)
+        elif cmds.objExists("{}.inputs".format(node)):
+            con_attr = 'inputs'
         return cmds.connectionInfo('{}.{}[{}]'.format(node, con_attr, index), sourceFromDestination=True)
 
     def getInputs(self, operator, transverse=True):
@@ -224,9 +303,9 @@ class ProceduralTransverser(BaseTransverser):
 
         for idx in self.getOperatorIndices(node):
             src = self.getConnectedOperator(node, idx)
-            op_list = self.getInputs(src.split('.')[0])
-            if operator in op_list:
-                index = idx
+            # op_list = self.getInputs(src.split('.')[0])
+            # if operator in op_list:
+            #     index = idx
 
         return index
 
@@ -235,7 +314,7 @@ class ProceduralTransverser(BaseTransverser):
         ops = cmds.listConnections('{}.operators'.format(node), plugs=True)
         for op in ops or []:
             op_node, plug = op.split('.')
-            if cmds.nodeType(op_node) == LOOKSWITCH_OP:
+            if GetNodeType(op_node) == LOOKSWITCH_OP:
                 look_node = op_node
 
         return look_node
@@ -255,7 +334,7 @@ class ProceduralTransverser(BaseTransverser):
         op_idxs = self.getOperatorIndices(node)
         for idx in op_idxs:
             op = self.getConnectedOperator(node, idx)
-            if op and cmds.nodeType(self.getConnectedOperator(node, idx)) != OVERRIDE_OP:
+            if op and GetNodeType(op) != OVERRIDE_OP:
                 index = idx+1
 
         parent_op = item.getOverridesOp(True)
@@ -309,7 +388,7 @@ class ProceduralTransverser(BaseTransverser):
             # It happens when the object is in the Alembic file, not in the
             # scene.
             cmds.warning(
-                "Can't select {}. This object is not in the Maya scene.".format(obj))
+                "Can't select {}. This object is not in the Maya scene.".format(operator))
             return
 
         attrname = operator+".enable"
@@ -338,9 +417,9 @@ class ProceduralTransverser(BaseTransverser):
     def insertOperator(self, node, op, index):
 
         con_attr = 'operators'
-        if cmds.nodeType(node) == MERGE_OP:
+        if GetNodeType(node) == MERGE_OP:
             con_attr = 'inputs'
-        elif cmds.nodeType(node) == LOOKSWITCH_OP:
+        elif GetNodeType(node) == LOOKSWITCH_OP:
             var_index = cmds.getAttr('{}.index'.format(node))
             con_attr = 'looks[{}].inputs'.format(var_index)
         # check if index has connection, if not do a straight connection at given index
@@ -359,7 +438,7 @@ class ProceduralTransverser(BaseTransverser):
             cmds.connectAttr(src, '{}.{}[{}]'.format(node, con_attr, index))
 
     def getCustomParamName(self, operator):
-        if cmds.nodeType(operator) == OVERRIDE_OP:
+        if GetNodeType(operator) == OVERRIDE_OP:
             customParam = "myParam"
             c = 0
             for a in cmds.getAttr('{}.assignment'.format(operator), multiIndices=True) or []:
@@ -375,13 +454,13 @@ class ProceduralTransverser(BaseTransverser):
         return
 
     @classmethod
-    def operatorAffectsPath(self, path, operator, operator_type=None, collections=[]):
+    def operatorAffectsPath(self, node, path, operator, operator_type=None, collections=[]):
 
         sel_mat = False
         exact_match = False
-        if cmds.attributeQuery('selection', node=operator, exists=True) and \
-           (operator_type is None or cmds.nodeType(operator) == operator_type):
-            sel_exp = cmds.getAttr('{}.selection'.format(operator))
+        if OPERATOR_CACHE[node][operator]['selection'] and \
+           (operator_type is None or GetNodeType(operator) == operator_type):
+            sel_exp = OPERATOR_CACHE[node][operator]['selection']
             tokens = sel_exp.rsplit()
             for tok in tokens:
                 mat = SELECTION_REGEX.match(tok)
@@ -403,7 +482,7 @@ class ProceduralTransverser(BaseTransverser):
                 if re.match(pat, path):
                     sel_mat = True
                     break
-        elif (operator_type is None or cmds.nodeType(operator) == operator_type):
+        elif (operator_type is None or GetNodeType(operator) == operator_type):
             sel_mat = True
             exact_match = False
 
@@ -437,46 +516,37 @@ class ProceduralTransverser(BaseTransverser):
             return list of operators matching the path
             """
             ops = []
-            op_type = cmds.nodeType(op)
-            sel_mat, exact_match = self.operatorAffectsPath(path, op, operator_type, collections)
+            # op_type = GetNodeType(op)
+            sel_mat, exact_match = self.operatorAffectsPath(node, path, op, operator_type, collections)
             if sel_mat and op:
                 for p_op, p_exact_match in parent_ops:
                     if p_op not in ops and \
-                       (operator_type is None or cmds.nodeType(p_op) == operator_type):
+                       (operator_type is None or GetNodeType(p_op) == operator_type):
                         ops.append((p_op, p_exact_match))
                 ops.append((op, exact_match))
             if gather_parents:
                 parent_ops.append((op, exact_match))
-            if cmds.attributeQuery('inputs', node=op, exists=True):
-                node_type = cmds.nodeType(op)
-
-                if node_type == SWITCH_OP:
-                    switch_index = cmds.getAttr("{}.index".format(op))
-                    inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
-                elif node_type == LOOKSWITCH_OP:
-                    switch_index = cmds.getAttr("{}.index".format(op))
-                    inputs_raw = cmds.listConnections("{}.looks[{}].inputs".format(op, switch_index), c=True) or []
-                else:
-                    inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
-                it = iter(inputs_raw)
+            if OPERATOR_CACHE[node][op]['inputs']:
+                it = iter(OPERATOR_CACHE[node][op]['inputs'])
                 inputs = zip(it, it)
                 for plug, ipt in inputs:
                     ops += walkInputs(ipt, path, plug, collections, gather_parents, parent_ops)
 
             return ops
 
-        if not cmds.objExists(node):
-            return []
+        # if not cmds.objExists(node):
+        #     return []
 
         # Start the query
         operators = []
-        if cmds.attributeQuery('operators', node=node, exists=True):
-            con_operators = cmds.listConnections('{}.operators'.format(node)) or []
-            for idx, op in enumerate(con_operators):
-                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents, [])
-                for op, match in out_op:
-                    if op not in operators:
-                        operators.append((op, match))
+        # if cmds.objExists("{}.operators".format(node)):
+        con_operators = OPERATOR_CACHE[node]
+        # con_operators = cmds.listConnections('{}.operators'.format(node)) or []
+        for idx, op in enumerate(con_operators):
+            out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents, [])
+            for op, match in out_op:
+                if op not in operators:
+                    operators.append((op, match))
 
         return operators
 
@@ -498,7 +568,7 @@ class ProceduralTransverser(BaseTransverser):
         parent_overrides = []
         if len(ops):
             for op, match in ops:
-                for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
+                for c in OPERATOR_CACHE[node][op]['assignments'] or []:
                     ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
                     enabled = cmds.getAttr("{}.enableAssignment[{}]".format(op, c))
                     mat = EXP_REGEX.match(ass_str)
@@ -561,10 +631,10 @@ class ProceduralTransverser(BaseTransverser):
         return True
 
     def _getOverrideIndices(self, op):
-        if cmds.nodeType(op) == OVERRIDE_OP:
-            return cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
-        else:
-            raise NodeTypeError("Given operator is not of type {}".format(OVERRIDE_OP))
+        # if GetNodeType(op) == OVERRIDE_OP:
+        return cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
+        # else:
+        #     raise NodeTypeError("Given operator is not of type {}".format(OVERRIDE_OP))
 
     def _indexInAssignment(self, index, op):
         indices = self._getOverrideIndices(op)

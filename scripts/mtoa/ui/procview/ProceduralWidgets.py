@@ -10,7 +10,7 @@ import time
 
 import maya.cmds as cmds
 
-from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
+from mtoa.ui.procview.ProceduralTransverser import PopulateOperatorCache, PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                             PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, MERGE_OP, \
                             SWITCH_OP, INCLUDEGRAPH_OP, MATERIALX_OP, \
@@ -85,7 +85,7 @@ class OperatorTreeModel(BaseModel):
             operators = self.transverser.getOperators(self.currentNode, path, collections=collections, gather_parents=True)
             for op, match in operators:
                 enabled = cmds.getAttr(op+'.enable')
-                local = self.transverser.operatorAffectsPath(path, op, collections=local_collections)
+                local = self.transverser.operatorAffectsPath(self.currentNode, path, op, collections=local_collections)
                 OperatorItem(self.rootItem, op, enabled, local)
 
         self.endResetModel()
@@ -651,6 +651,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             widget.node = None
 
         self.resetShadingWidgets()
+        # refresh the operator cache for this node
+        PopulateOperatorCache(self.node)
         if self.item:
             path = self.item.data[PROC_PATH]
             overrides, p_overrides = self.getOverrides()
@@ -714,7 +716,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                                                             path)
 
         local_collections = [c for c, m in local_collections if m]
-        sel_match, exact_match = self.transverser.operatorAffectsPath(path, operator, collections=local_collections)
+        sel_match, exact_match = self.transverser.operatorAffectsPath(self.node, path, operator, collections=local_collections)
         if exact_match:
             parentPanel = self.localOverridesPanel
 

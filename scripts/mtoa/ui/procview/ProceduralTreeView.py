@@ -10,7 +10,7 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale, Timer
-from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
+from mtoa.ui.procview.ProceduralTransverser import PopulateOperatorCache, PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, \
                            PROC_IOBJECT, PROC_NUM_CHILDREN, \
@@ -157,6 +157,9 @@ class ProceduralTreeModel(BaseModel):
     def refresh(self, delayUpdate=False):
         if not self.currentNode or not cmds.objExists(self.currentNode) or not self.transverser:
             return
+        
+        # refresh the operator cache for this node
+        PopulateOperatorCache(self.currentNode)
 
         self.beginResetModel()
         self.rootItem = ProceduralItem(None, self.transverser, node=self.currentNode, model=self)
@@ -366,7 +369,7 @@ class ProceduralItem(BaseItem):
 
     def setOverridesOp(self):
         ops = []
-        if self.data:
+        if self.data and self.data[PROC_PATH] != 'FOO':
             # collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
             ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, [])
         if len(ops):
