@@ -2053,7 +2053,7 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
          {
             if (path.node().hasFn(MFn::kCamera))
             {
-               if (ExportDagPath(path) == NULL) status = MStatus::kFailure;
+               if (ExportDagPath(path, true) == NULL) status = MStatus::kFailure;
             }
          }
       }
