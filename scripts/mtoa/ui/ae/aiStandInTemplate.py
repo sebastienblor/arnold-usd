@@ -28,7 +28,7 @@ except ImportError as e:
     AlembicTransverser = None
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 from mtoa.ui.procview.UsdTransverser import UsdTransverser
-from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, \
+from mtoa.ui.procview.ProceduralTransverser import ClearOperatorCache, LOOKSWITCH_OP, SWITCH_OP, \
                                                    MERGE_OP, OVERRIDE_OP, \
                                                    INCLUDEGRAPH_OP, MATERIALX_OP, \
                                                    EXP_REGEX
@@ -750,6 +750,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.connectAttr("{}.out".format(node), target_connection)
 
     def newSceneCallback(self):
+        ClearOperatorCache()
         self.tree.setCurrentNode(None)
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)

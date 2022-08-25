@@ -652,7 +652,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         self.resetShadingWidgets()
         # refresh the operator cache for this node
-        PopulateOperatorCache(self.node)
+        if cmds.objExists(self.node):
+            PopulateOperatorCache(self.node)
         if self.item:
             path = self.item.data[PROC_PATH]
             overrides, p_overrides = self.getOverrides()

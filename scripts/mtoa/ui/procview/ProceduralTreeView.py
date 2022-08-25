@@ -323,6 +323,11 @@ class ProceduralTreeViewDelegate(BaseDelegate):
         painter.restore()
 
     def drawProgress(self, painter, rect, index):
+
+        # return early if the items have allready been gathered
+        if index.data(GATHER_FINISHED):
+            return
+
         progressRect = deepcopy(rect)
         progressRect.setLeft(progressRect.left() + dpiScale(28))
         # progressRect.setWidth(dpiScale(200))

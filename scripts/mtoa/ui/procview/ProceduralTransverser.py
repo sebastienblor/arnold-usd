@@ -99,7 +99,9 @@ def GetOperators(standin, path):
     operators = OPERATOR_CACHE[standin]
     print(operators)
 
-
+def ClearOperatorCache():
+    global OPERATOR_CACHE
+    OPERATOR_CACHE = {}
 
 def PopulateOperatorCache(standin):
 
@@ -303,9 +305,9 @@ class ProceduralTransverser(BaseTransverser):
 
         for idx in self.getOperatorIndices(node):
             src = self.getConnectedOperator(node, idx)
-            # op_list = self.getInputs(src.split('.')[0])
-            # if operator in op_list:
-            #     index = idx
+            op_list = self.getInputs(src.split('.')[0])
+            if operator in op_list:
+                index = idx
 
         return index
 
@@ -539,9 +541,7 @@ class ProceduralTransverser(BaseTransverser):
 
         # Start the query
         operators = []
-        # if cmds.objExists("{}.operators".format(node)):
-        con_operators = OPERATOR_CACHE[node]
-        # con_operators = cmds.listConnections('{}.operators'.format(node)) or []
+        con_operators = OPERATOR_CACHE.get(node, [])
         for idx, op in enumerate(con_operators):
             out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections, gather_parents, [])
             for op, match in out_op:
