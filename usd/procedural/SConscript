@@ -118,7 +118,7 @@ def _usd_procedural(target, source, env):
       USD_LIB_PREFIX=usd_lib_prefix,
       PROC_SCENE_FORMAT=False,
       USD_PROCEDURAL_NAME='usd_cache',
-      ENABLE_MATERIALX=True,
+      ENABLE_MATERIALX=False,
     )
     if platform.system().lower() == 'darwin':
         args['SDK_PATH']          = local_env['SDK_PATH']
