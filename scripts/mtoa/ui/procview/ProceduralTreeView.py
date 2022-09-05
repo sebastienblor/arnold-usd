@@ -329,8 +329,10 @@ class ProceduralTreeViewDelegate(BaseDelegate):
             return
 
         progressRect = deepcopy(rect)
-        progressRect.setLeft(progressRect.left() + dpiScale(28))
+        progressRect.setLeft(progressRect.left() + dpiScale(24))
         # progressRect.setWidth(dpiScale(200))
+        progressRect.setTop(progressRect.top() + dpiScale(2))
+        progressRect.setBottom(progressRect.bottom() - dpiScale(2))
         progress = index.data(PROGRESS)
         if progress and progress >= 0:
             progress_option = QtWidgets.QStyleOptionProgressBar()
