@@ -109,6 +109,7 @@ def PopulateOperatorCache(standin):
     global OPERATORS
 
     if standin not in OPERATOR_CACHE:
+        print("'{}' not in cache, creating new cache for node".format(standin))
         OPERATOR_CACHE[standin] = {}
     
     def __getAttributeOrNone(attr):
@@ -124,6 +125,8 @@ def PopulateOperatorCache(standin):
             found_nodes += cmds.listConnections(node, c=0, d=0, p=0, s=1, type=opType) or []
 
         for opNode in found_nodes:
+            if opNode in OPERATOR_CACHE[standin]:
+                continue
             node_type = GetNodeType(opNode)
             selection = __getAttributeOrNone("{}.selection".format(opNode))
             # assignments = getAttributeOrNone("{}.assignment".format(opNode))
