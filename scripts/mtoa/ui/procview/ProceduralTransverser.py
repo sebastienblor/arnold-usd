@@ -103,7 +103,7 @@ def ClearOperatorCache():
     global OPERATOR_CACHE
     OPERATOR_CACHE = {}
 
-def PopulateOperatorCache(standin):
+def PopulateOperatorCache(standin, refresh=False):
 
     global OPERATOR_CACHE
     global OPERATORS
@@ -118,14 +118,14 @@ def PopulateOperatorCache(standin):
     def __getIndexedAttributeOrNone(attr):
         return cmds.getAttr(attr, multiIndices=True) or [] if cmds.objExists(attr) else None
 
-    def __get_node_connections(node):
+    def __get_node_connections(node, refresh):
         global OPERATOR_CACHE 
         found_nodes = []
         for opType in OPERATORS:
             found_nodes += cmds.listConnections(node, c=0, d=0, p=0, s=1, type=opType) or []
 
         for opNode in found_nodes:
-            if opNode in OPERATOR_CACHE[standin]:
+            if opNode in OPERATOR_CACHE[standin] and not refresh:
                 continue
             node_type = GetNodeType(opNode)
             selection = __getAttributeOrNone("{}.selection".format(opNode))
@@ -148,11 +148,11 @@ def PopulateOperatorCache(standin):
                 "assignments" : assignments,
                 "inputs" : inputs_raw
             }            
-            found_nodes += __get_node_connections(opNode)
+            found_nodes += __get_node_connections(opNode, refresh)
     
         return list(set(found_nodes))
 
-    __get_node_connections(standin)
+    __get_node_connections(standin, refresh)
 
     return OPERATOR_CACHE[standin]
 
