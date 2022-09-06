@@ -521,7 +521,6 @@ class ProceduralTransverser(BaseTransverser):
             return list of operators matching the path
             """
             ops = []
-            # op_type = GetNodeType(op)
             sel_mat, exact_match = self.operatorAffectsPath(node, path, op, operator_type, collections)
             if sel_mat and op:
                 for p_op, p_exact_match in parent_ops:
@@ -539,8 +538,8 @@ class ProceduralTransverser(BaseTransverser):
 
             return ops
 
-        # if not cmds.objExists(node):
-        #     return []
+        if not cmds.objExists(node):
+            return []
 
         # Start the query
         operators = []
@@ -634,10 +633,7 @@ class ProceduralTransverser(BaseTransverser):
         return True
 
     def _getOverrideIndices(self, op):
-        # if GetNodeType(op) == OVERRIDE_OP:
         return cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
-        # else:
-        #     raise NodeTypeError("Given operator is not of type {}".format(OVERRIDE_OP))
 
     def _indexInAssignment(self, index, op):
         indices = self._getOverrideIndices(op)

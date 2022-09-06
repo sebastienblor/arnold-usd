@@ -228,19 +228,6 @@ class ProceduralTreeModel(BaseModel):
 
             return True
 
-        # elif role == OVERRIDE:
-        #     item = index.internalPointer()
-        #     self.dataChanged.emit(index, QtCore.QModelIndex())
-        #     return True
-
-        # elif role == PROGRESS:
-        #     item = index.internalPointer()
-        #     item.progress = value
-        #     print("progress :: ", value)
-        #     self.dataChanged.emit(index, QtCore.QModelIndex())
-        #     return True
-
-
         return False
         
     def expandedCount(self):
@@ -286,9 +273,8 @@ class ProceduralTreeViewDelegate(BaseDelegate):
     def paint(self, painter, option, index):
         """Main entry point of drawing the cell."""
         super(ProceduralTreeViewDelegate, self).paint(painter, option, index)
-        # Add progress basr for poopulating child node 
-        # https://stackoverflow.com/questions/60446692/add-a-widget-qprogressbar-as-a-childitem-within-a-qtreeview
-
+        
+        # Add progress bar for poopulating child node 
         rect = deepcopy(option.rect)
         self.drawProgress(painter, rect, index)
     
