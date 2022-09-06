@@ -673,6 +673,7 @@ class ProceduralItem(BaseItem):
         super(ProceduralItem, self).setData(value, role)
 
     def find(self, path):
+        path=path.replace('/*', '')
         self.obtainChildren()
         for child in self.childItems:
             if child.data and path == child.data[PROC_PATH]:
