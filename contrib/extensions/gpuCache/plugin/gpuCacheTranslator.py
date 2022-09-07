@@ -22,7 +22,7 @@ from ast import literal_eval
 
 from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
-from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, NODE_TYPES, \
+from mtoa.ui.procview.ProceduralTransverser import ClearOperatorCache, ProceduralTransverser, NODE_TYPES, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP, PARAM_IGNORELIST
@@ -111,6 +111,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             self.properties_panel.setItem(node, item)
 
     def newSceneCallback(self):
+        ClearOperatorCache()
         self.tree.setCurrentNode(None)
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
