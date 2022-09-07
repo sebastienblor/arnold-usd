@@ -145,10 +145,14 @@ class BaseTreeView(QtWidgets.QTreeView):
         """Regraw given index."""
         rect = self.visualRect(index)
         self.setDirtyRegion(QtGui.QRegion(rect))
+        
+        # Force the widget display to update
+        self.viewport().update()
+        QtCore.QCoreApplication.processEvents()
 
     def showProperties(self, event):
         """Show the properties of the item at index `index`."""
-        raise NotImplemenedError("{}.showProperties not implemented yet".format(str(self.__class__.__name__)))
+        raise NotImplementedError("{}.showProperties not implemented yet".format(str(self.__class__.__name__)))
 
     def sizeHintForRow(self, row):
         return ITEM_HEIGHT
@@ -337,7 +341,7 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, treeView):
         """Called after the instance has been created."""
-        super(BaseDelegate, self).__init__()
+        super(BaseDelegate, self).__init__(treeView)
         self.treeView = weakref.ref(treeView)
         self.lastHitAction = None
         self.textColor = self.treeView().palette().text().color()
@@ -667,6 +671,8 @@ class BaseItem(QtGui.QStandardItem):
             self.setParent(parentItem, index)
         else:
             self.setParent(parentItem)
+        
+        super(BaseItem, self).__init__()
 
     def __repr__(self):
         return "BaseItem({})".format(self.name)
