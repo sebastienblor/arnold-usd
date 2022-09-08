@@ -3,6 +3,7 @@
 #
 
 import os
+from pyexpat import model
 import weakref
 import maya.cmds as cmds
 import mtoa.utils as mu
@@ -10,7 +11,8 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale, Timer
-from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
+from mtoa.ui.qt.treeView import CHILD_COUNT, EXPAND_SENSITIVITY
+from mtoa.ui.procview.ProceduralTransverser import PopulateOperatorCache, PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY, PROC_ENTRY_TYPE, \
                            PROC_IOBJECT, PROC_NUM_CHILDREN, \
@@ -19,12 +21,15 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
 
 from mtoa.ui.qt.utils import busy_cursor
 
+from copy import deepcopy
 import traceback
 
 SHADER = "shader"
 DISPLACEMENT = "disp_map"
 PARAMETER = "other"
 
+PROGRESS = QtCore.Qt.UserRole + 6
+GATHER_FINISHED = QtCore.Qt.UserRole + 7
 
 class ProceduralTreeView(BaseTreeView):
     """docstring for ProceduralTree"""
@@ -148,6 +153,18 @@ class ProceduralTreeModel(BaseModel):
         # call the base class init and refresh the data
         super(ProceduralTreeModel, self).__init__(treeView, parent)
 
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+
+        if not index.isValid():
+            return
+        item = index.internalPointer()
+        if (role == PROGRESS):
+            return item.getProgress()
+        if (role == GATHER_FINISHED):
+            return item.childrenObtained
+
+        return super(ProceduralTreeModel, self).data(index, role)
+
     def setTransverser(self, transverser, refresh=True):
         self.transverser = transverser
         self.iarch = None
@@ -157,6 +174,9 @@ class ProceduralTreeModel(BaseModel):
     def refresh(self, delayUpdate=False):
         if not self.currentNode or not cmds.objExists(self.currentNode) or not self.transverser:
             return
+        
+        # refresh the operator cache for this node
+        PopulateOperatorCache(self.currentNode)
 
         self.beginResetModel()
         self.rootItem = ProceduralItem(None, self.transverser, node=self.currentNode, model=self)
@@ -208,13 +228,8 @@ class ProceduralTreeModel(BaseModel):
 
             return True
 
-        elif role == OVERRIDE:
-            item = index.internalPointer()
-            self.dataChanged.emit(index, QtCore.QModelIndex())
-            return True
-
         return False
-
+        
     def expandedCount(self):
         def count_expanded(item):
             c = 0
@@ -254,6 +269,69 @@ class ProceduralTreeViewDelegate(BaseDelegate):
     def __init__(self, treeView):
         super(ProceduralTreeViewDelegate, self).__init__(treeView)
 
+
+    def paint(self, painter, option, index):
+        """Main entry point of drawing the cell."""
+        super(ProceduralTreeViewDelegate, self).paint(painter, option, index)
+        
+        # Add progress bar for poopulating child node 
+        rect = deepcopy(option.rect)
+        self.drawProgress(painter, rect, index)
+    
+    def drawArrowDragLock(self, painter, rect, index):
+        """Draw the expansion arrow on the nodes that want it."""
+        painter.save()
+
+        arrow = None
+        if index.data(CHILD_COUNT):
+            center = index.data(QtCore.Qt.SizeHintRole).height() / 2
+            painter.translate(rect.left(), rect.top() + center)
+            # Draw the arrow
+            if self.treeView().isExpanded(index) and index.data(GATHER_FINISHED):
+                arrow = self.EXPANDED_ARROW
+            else:
+                arrow = self.COLLAPSED_ARROW
+
+            painter.setBrush(self.ARROW_COLOR)
+            painter.setPen(QtCore.Qt.NoPen)
+            painter.drawPolygon(arrow)
+
+            cursorPosition = self.treeView().mapFromGlobal(QtGui.QCursor.pos())
+            if rect.contains(cursorPosition):
+                x = cursorPosition.x()
+                arrowPoints = [p.x() for p in arrow]
+                minX = min(arrowPoints) + rect.left() - EXPAND_SENSITIVITY
+                maxX = max(arrowPoints) + rect.left() + EXPAND_SENSITIVITY
+                if x >= minX and x <= maxX:
+                    # Save the action to expand
+                    self.lastHitAction = BaseItem.ACTION_EXPAND
+
+        painter.restore()
+
+    def drawProgress(self, painter, rect, index):
+
+        # return early if the items have allready been gathered
+        if index.data(GATHER_FINISHED):
+            return
+
+        progressRect = deepcopy(rect)
+        progressRect.setLeft(progressRect.left() + dpiScale(24))
+        # progressRect.setWidth(dpiScale(200))
+        progressRect.setTop(progressRect.top() + dpiScale(2))
+        progressRect.setBottom(progressRect.bottom() - dpiScale(2))
+        progress = index.data(PROGRESS)
+        if progress and progress >= 0:
+            progress_option = QtWidgets.QStyleOptionProgressBar()
+            progress_option.rect = progressRect
+            progress_option.minimum = 0
+            progress_option.maximum = index.data(CHILD_COUNT)
+            progress_option.progress = progress
+            progress_option.text = "{} of {}".format(progress, index.data(CHILD_COUNT))
+            progress_option.textVisible = True
+            QtWidgets.QApplication.style().drawControl(
+                QtWidgets.QStyle.CE_ProgressBar, progress_option, painter
+            )
+        
 
 class ProceduralItem(BaseItem):
     # __metaclass__ = LogMethodCalls
@@ -316,6 +394,8 @@ class ProceduralItem(BaseItem):
         self.actions = []
         self.dirty = True
 
+        self.progress = -1
+
         name = ""
         if self.data:
             name = data[PROC_NAME]
@@ -366,7 +446,7 @@ class ProceduralItem(BaseItem):
 
     def setOverridesOp(self):
         ops = []
-        if self.data:
+        if self.data and self.data[PROC_PATH] != 'FOO':
             # collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
             ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, [])
         if len(ops):
@@ -500,6 +580,13 @@ class ProceduralItem(BaseItem):
                 self.dirty = False
 
         return self.actions
+    
+    def getProgress(self):
+        return self.progress
+
+    def setProgress(self, value):
+        self.setData(value, PROGRESS)
+        self.getModel().treeView().redraw(self.index())
 
     def getIndent(self):
         """The text indent. offset for the icon"""
@@ -540,7 +627,10 @@ class ProceduralItem(BaseItem):
                 create=True
 
             children = self.transverser.dir(self.data[PROC_IOBJECT])
+            progress = -1
             if children:
+                progress = 0
+                self.setProgress(progress)
                 for i, child in enumerate(children):
                     if not create:
                         c = self.child(i)
@@ -549,13 +639,27 @@ class ProceduralItem(BaseItem):
                             c.name = child[PROC_NAME]
                     else:
                         ProceduralItem(self, self.transverser, self.node, data=child)
+                        progress += 1
+                        self.setProgress(progress)
                     create = True
 
             self.childrenObtained = True
+            progress = -1
+            self.setProgress(progress)
 
         return self.childrenObtained
+    
+    def setData(self, value, role=QtCore.Qt.UserRole + 1):
+
+        if role == PROGRESS:
+            self.progress = value
+            self.emitDataChanged()
+            return
+
+        super(ProceduralItem, self).setData(value, role)
 
     def find(self, path):
+        path=path.replace('/*', '')
         self.obtainChildren()
         for child in self.childItems:
             if child.data and path == child.data[PROC_PATH]:

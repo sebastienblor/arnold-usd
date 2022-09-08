@@ -28,7 +28,7 @@ except ImportError as e:
     AlembicTransverser = None
 from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 from mtoa.ui.procview.UsdTransverser import UsdTransverser
-from mtoa.ui.procview.ProceduralTransverser import LOOKSWITCH_OP, SWITCH_OP, \
+from mtoa.ui.procview.ProceduralTransverser import ClearOperatorCache, LOOKSWITCH_OP, SWITCH_OP, \
                                                    MERGE_OP, OVERRIDE_OP, \
                                                    INCLUDEGRAPH_OP, MATERIALX_OP, \
                                                    EXP_REGEX
@@ -625,7 +625,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         op_inputs = cmds.listConnections("{}.inputs".format(op)) or []
         for o in op_inputs:
-            parmas += _walkParams(o)
+            params += self.getParams(o)
 
         return params
 
@@ -750,6 +750,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
                 cmds.connectAttr("{}.out".format(node), target_connection)
 
     def newSceneCallback(self):
+        ClearOperatorCache()
         self.tree.setCurrentNode(None)
         self.tree.clearSelection()
         self.properties_panel.setItem(None, None)
@@ -762,55 +763,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def showItemProperties(self, node, items):
         for item in items:
             self.properties_panel.setItem(node, item)
-
-    def displayTree(self):
-        cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
-        cmds.treeView(self.assInfoPath, edit=True, visible=True)
-        cmds.button(self.inspectAssPath, edit=True, visible=False)
-        cmds.button(self.overrideSelectionButton, edit=True, visible=True, enable=False)
-        cmds.button(self.selectOperatorButton, edit=True, visible=False, enable=False)        
-        # First the Entry type names
-        for i in self.assItems:
-            nodeType = ' '+i[1]
-            '''
-            entryType = i[2]
-            if not cmds.treeView(self.assInfoPath, query=True, itemExists=entryType):
-                cmds.treeView(self.assInfoPath, edit=True, addItem=(entryType, ''))
-            '''
-            if not cmds.treeView(self.assInfoPath, query=True, itemExists=nodeType):
-                cmds.treeView(self.assInfoPath, edit=True, addItem=(nodeType, ''))
-
-            cmds.treeView(self.assInfoPath, edit=True, addItem=(i[0],nodeType))
-
-    def overrideSelection(self):
-        selectedItems = cmds.treeView(self.assInfoPath, query=True, selectItem=True) or []
-        selectedParents = []
-        for selItem in selectedItems:
-            nodeType = cmds.treeView(self.assInfoPath, query=True, itemParent=selItem)
-            if len(nodeType) > 1:
-                selectedType = nodeType[1:]
-            else:
-                selectedType = selItem[1:]
-
-            if not (selectedType in selectedParents):
-                selectedParents.append(selectedType)
-
-        win = MtoAProceduralOperator()
-        win.create(self.nodeName, selectedItems, selectedParents)
-        return
-
-    def selectOperators(self):
-        return
-
-    def populateItems(self):
-        self.assItems = []
-        self.selectedItems = []
-        # get the items in the cache
-        '''
-        cache_str_list = cmds.getAttr('{}.{}'.format(self.nodeName, CACHE_ATTR)) or []
-        for s in cache_str_list:
-            self.assItems.append(s.split(','))
-        '''
 
     def useSequenceChange(self, nodeName):
 

@@ -18,7 +18,11 @@ mu.pyToMelProc(RenderViewWindow, useName=True)
 def RenderIntoNewWindow(*args):
     renderer = mu.currentRenderer()
     if renderer == 'arnold':
-        arnoldmenu.arnoldMtoARenderView()
+        if not cmds.workspaceControl("ArnoldRenderView", exists=True):
+            arnoldmenu.arnoldOpenMtoARenderView()
+        else:
+            cmds.workspaceControl("ArnoldRenderView", e=True, visible=True)
+            cmds.arnoldRenderView(mode="refresh")
         cmds.arnoldRenderView(option=("Run IPR","0"))
         cmds.arnoldRenderView(option=("Scene Updates", "0"))
         cmds.arnoldRenderView(option=("Refresh Render", "1"))
