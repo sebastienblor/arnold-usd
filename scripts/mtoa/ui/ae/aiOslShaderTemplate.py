@@ -20,16 +20,19 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def __currentWidget(self, pySideType=QtWidgets.QWidget):
         """Cast and return the current widget."""
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::__currentWidget")
         # Get the current widget Maya name.
         currentWidgetName = cmds.setParent(query=True)
         return toQtObject(currentWidgetName, pySideType)
 
     def setup(self):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::setup")
         self.codeAttr = ''
         self.compileEnum = ['Needs (Re)Compile', 'Compile Success', 'Compile Warnings', 'Compile Failure']
         self._controls = []
-        self._attrs = {}
+        # self._attrs = {}
         self.code_widget = None
+        self.cache = {}
         self.addSwatch()
         self.beginScrollLayout()
         self.beginLayout(' OSL Code ', collapse=False)
@@ -60,6 +63,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         self.endScrollLayout()
 
     def codeStatusCreate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::codeStatusCreate(%s)" % attrName)
         if not cmds.attributeQuery("compileStatus", node=self.nodeName, ex=True):
             cmds.addAttr(self.nodeName, ln="compileStatus", sn="cmpSts", at="enum", enumName=':'.join(self.compileEnum), hidden=True)
         cmds.rowLayout(numberOfColumns=2, columnWidth2=(100, 100), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
@@ -69,6 +73,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         cmds.setParent("..")
 
     def codeStatusUpdate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::codeStatusUpdate(%s)" % attrName)
         if not cmds.attributeQuery("compileStatus", node=self.nodeName, ex=True):
             cmds.addAttr(self.nodeName, ln="compileStatus", sn="cmpSts", at="enum", enumName=':'.join(self.compileEnum), hidden=True)
 
@@ -85,9 +90,11 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         cmds.text(self.compile_control, e=True, l=self.compileEnum[compileStatus], bgc=bg_color)
 
     def addOslAttributes(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::addOslAttributes(%s)" % attrName)
         self.updateOslAttributes(attrName)
 
     def updateOslAttributes(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::updateOslAttributes(%s)" % attrName)
         if not self.oslAttributeLayout:
             self.oslAttributeLayout = cmds.columnLayout(adjustableColumn=True)
 
@@ -109,6 +116,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         cmds.setParent("..")
 
     def codeWidgetCreate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::codeWidgetCreate(%s)" % attrName)
         currentWidget = self.__currentWidget()
 
         self.code_widget = BaseCodeEditor(currentWidget, OSLHighlighter)
@@ -119,6 +127,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         self.codeWidgetUpdate(attrName)
 
     def codeWidgetUpdate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::codeWidgetUpdate(%s)" % attrName)
         self.codeAttr = attrName
         osl_code = cmds.getAttr(attrName)
         if self.code_widget:
@@ -127,35 +136,45 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             self.codeStatusCreate(attrName)
 
     def compileButtonCreate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::compileButtonCreate(%s)" % attrName)
         cmds.button('compileButtonPath', label='Compile OSL Code', command=lambda *args: self.compiler(attrName))
 
     def compileButonUpdate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::compileButonUpdate(%s)" % attrName)
         cmds.button('compileButtonPath', e=True, label='Compile OSL Code', command=lambda *args: self.compiler(attrName))
 
     def compiler(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::compiler(%s)" % attrName)
         nodeName = attrName.split('.')[0]
-        # store attribute values
-        nodeAttrs = cmds.listAttr(nodeName, userDefined=True, write=True, ct="oslAttribute")
-        if nodeAttrs:
-            for attr in nodeAttrs:
-                shortName = cmds.attributeQuery(attr, node=nodeName, sn=True)
-                attrValue = cmds.getAttr("%s.%s" % (nodeName, attr))
-                attrType = cmds.getAttr("%s.%s" % (nodeName, attr), type=True)
-                self._attrs[attr] = (attrType, attrValue)
-        fromSlots = []
-        toSlots = []
-        incoming = cmds.listConnections(nodeName, d=False, s=True, p=True)
-        if incoming != None:
-            for inConnection in incoming:
-                outgoing = cmds.listConnections(inConnection, s=False, d=True, p=True)
-                if outgoing != None:
-                    for outConnection in outgoing:
-                        outNodeName = outConnection.split('.')[0]
-                        if outNodeName == nodeName:
-                            fromSlots.append(inConnection)
-                            toSlots.append(outConnection)
+        # get updated text from Maya
+        compileText = self.cache[nodeName]
+        # now set the attribute
+        cmds.setAttr(self.codeAttr, compileText, type="string")
+        # # store attribute values
+        # nodeAttrs = cmds.listAttr(nodeName, userDefined=True, write=True, ct="oslAttribute")
+        # if nodeAttrs:
+        #     for attr in nodeAttrs:
+        #         shortName = cmds.attributeQuery(attr, node=nodeName, sn=True)
+        #         attrValue = cmds.getAttr("%s.%s" % (nodeName, attr))
+        #         attrType = cmds.getAttr("%s.%s" % (nodeName, attr), type=True)
+        #         self._attrs[attr] = (attrType, attrValue)
+        # fromSlots = []
+        # toSlots = []
+        # incoming = cmds.listConnections(nodeName, d=False, s=True, p=True)
+        # if incoming != None:
+        #     for inConnection in incoming:
+        #         outgoing = cmds.listConnections(inConnection, s=False, d=True, p=True)
+        #         if outgoing != None:
+        #             for outConnection in outgoing:
+        #                 outNodeName = outConnection.split('.')[0]
+        #                 if outNodeName == nodeName:
+        #                     fromSlots.append(inConnection)
+        #                     toSlots.append(outConnection)
         compileText = self.code_widget.toPlainText()
 
+        om.MGlobal.displayInfo(" compileText = %s " % compileText)
+        om.MGlobal.displayInfo(" cmds.getAttr(%s + '.code') = %s " %
+                               (nodeName, cmds.getAttr(nodeName + '.code')))
         if compileText != cmds.getAttr(nodeName + '.code'):
             self.setShaderCode()
 
@@ -174,52 +193,57 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             om.MGlobal.displayError(" Compilation Failed")
             for error in oslMayaScene.compilationErrors:
                 om.MGlobal.displayError(error)
-            return
-        om.MGlobal.displayInfo(" Code successfully compiled, restoring attribute values and connections ")
-        # restore attribute values
-        for attr in self._attrs.keys():
-            attrType, attrValue = self._attrs[attr]
-            if cmds.attributeQuery(attr, node=nodeName, ex=True):
-                if attrType == "long": # OSL: int
-                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
-                elif attrType == "bool": # OSL: not sure this even exists
-                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
-                elif attrType == "float": # OSL: float
-                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
-                elif attrType == "float2": # OSL: not sure this even exists
-                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], type="float2")
-                elif attrType == "float3": # OSL: point, vector, or normal, color
-                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], attrValue[0][2], type="float3")
-                elif attrType == "string": # OSL: string
-                    cmds.setAttr("%s.%s" % (nodeName, attr), "%s" % attrValue, type="string")
-                else:
-                    # TODO: matrix (and void returning functions?)
-                    om.MGlobal.displayInfo(" TODO: attrType = %s " % attrType)
-            else:
-                om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
-        # reset attrs
-        self._attrs = {}
-        # connect slots
-        for index in range(len(fromSlots)):
-            fromSlot = fromSlots[index]
-            toSlot = toSlots[index]
-            cmds.connectAttr(fromSlot, toSlot, force=True)
+        #     return
+        # om.MGlobal.displayInfo(" Code successfully compiled, restoring attribute values and connections ")
+        # # restore attribute values
+        # for attr in self._attrs.keys():
+        #     attrType, attrValue = self._attrs[attr]
+        #     if cmds.attributeQuery(attr, node=nodeName, ex=True):
+        #         if attrType == "long": # OSL: int
+        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
+        #         elif attrType == "bool": # OSL: not sure this even exists
+        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
+        #         elif attrType == "float": # OSL: float
+        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
+        #         elif attrType == "float2": # OSL: not sure this even exists
+        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], type="float2")
+        #         elif attrType == "float3": # OSL: point, vector, or normal, color
+        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], attrValue[0][2], type="float3")
+        #         elif attrType == "string": # OSL: string
+        #             cmds.setAttr("%s.%s" % (nodeName, attr), "%s" % attrValue, type="string")
+        #         else:
+        #             # TODO: matrix (and void returning functions?)
+        #             om.MGlobal.displayInfo(" TODO: attrType = %s " % attrType)
+        #     else:
+        #         om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
+        # # reset attrs
+        # self._attrs = {}
+        # # connect slots
+        # for index in range(len(fromSlots)):
+        #     fromSlot = fromSlots[index]
+        #     toSlot = toSlots[index]
+        #     cmds.connectAttr(fromSlot, toSlot, force=True)
 
     def setShaderCode(self):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::setShaderCode")
         nodeName = self.codeAttr.split('.')[0]
+        AiMsgWarning("nodeName = %s" % nodeName)
         compileText = self.code_widget.toPlainText()
         if compileText == cmds.getAttr(self.codeAttr):
             return
-        cmds.setAttr(self.codeAttr, compileText, type="string")
+        ##cmds.setAttr(self.codeAttr, compileText, type="string")
+        self.cache[nodeName] = compileText
         self.setCodeStatus(self.codeAttr, 0)
 
     def setCodeStatus(self, attrName, status):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::setCodeStatus(%s)" % attrName)
         nodeName = attrName.split('.')[0]
         attrName = nodeName + '.compileStatus'
-        cmds.setAttr(attrName, status)
+        ##cmds.setAttr(attrName, status)
         self.codeStatusUpdate(attrName)
 
     def importExportCreate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::importExportCreate(%s)" % attrName)
         cmds.rowLayout(numberOfColumns=3, columnWidth3=(100, 100, 100), adjustableColumn=2, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0), (3, 'both', 0)])
         self.importButton = cmds.button("Import", command=lambda *args: self.importOSL(attrName))
         cmds.text(" ")
@@ -227,10 +251,12 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         cmds.setParent("..")
 
     def importExportUpdate(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::importExportUpdate(%s)" % attrName)
         cmds.button(self.importButton, edit=True, command=lambda *args: self.importOSL(attrName))
         cmds.button(self.exportButton, edit=True, command=lambda *args: self.exportOSL(attrName))
 
     def importOSL(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::importOSL(%s)" % attrName)
         nodeName = attrName.split('.')[0]
         basicFilter = 'OSL Files (*.osl)'
         global defaultFolder
@@ -251,6 +277,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                 self.setCodeStatus(attrName, 1)
 
     def exportOSL(self, attrName):
+        AiMsgWarning("DEBUG: AEaiOslShaderTemplate::exportOSL(%s)" % attrName)
         basicFilter = 'OSL Files (*.osl)'
         defaultDir = cmds.workspace(query=True, directory=True)
         ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Export OSL', dialogStyle=2, startingDirectory=defaultDir)
