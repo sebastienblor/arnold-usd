@@ -1151,7 +1151,7 @@ const CSessionOptions& CNodeTranslator::GetSessionOptions()
    return m_impl->m_session->GetOptions(); 
 }
 
-const MObject& CNodeTranslator::GetArnoldRenderOptions()
+const MObject& CNodeTranslator::GetArnoldRenderOptions() const
 {
    return m_impl->m_session->GetOptions().GetArnoldRenderOptions(); 
 }
