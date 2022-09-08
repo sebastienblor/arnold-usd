@@ -74,7 +74,8 @@ else:
 
 if platform.system().lower() == 'windows':
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-    boost_lib_name = 'boost_%s{}{}-vc141-mt-x64-1_70'.format(pythonVersion, pythonMinor)
+    msvc_version = '141' if mayaVersion <= 2023 else '142'
+    boost_lib_name = 'boost_%s{}{}-vc{}-mt-x64-1_70'.format(pythonVersion, pythonMinor, msvc_version)
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
@@ -145,6 +146,10 @@ usd_libs = [
         'usdSkel',
         'usdRender'        
     ]
+usd_version = local_env.get('USD_VERSION')
+if int(usd_version) >= 2208:
+    for i in range(len(usd_libs)):
+        usd_libs[i] = 'usd_{}'.format(usd_libs[i])
 
 local_env.Append(LIBS = usd_libs)
 
