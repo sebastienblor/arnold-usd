@@ -238,7 +238,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
                                            cmds.workspace(fre="OSL")
                                            )
-        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Impot OSL', okc='Load', fm=1, startingDirectory=defaultFolder)
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Import OSL', okc='Load', fm=1, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
             defaultFolder = ret[0]
             code_string = ''
