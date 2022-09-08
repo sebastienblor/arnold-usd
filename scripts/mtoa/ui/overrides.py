@@ -22,6 +22,7 @@ def RenderIntoNewWindow(*args):
             arnoldmenu.arnoldOpenMtoARenderView()
         else:
             cmds.workspaceControl("ArnoldRenderView", e=True, visible=True)
+            cmds.arnoldRenderView(mode="refresh")
         cmds.arnoldRenderView(option=("Run IPR","0"))
         cmds.arnoldRenderView(option=("Scene Updates", "0"))
         cmds.arnoldRenderView(option=("Refresh Render", "1"))
