@@ -257,6 +257,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                 cmds.setAttr(codeAttr, code_string, type="string")
                 self.code_widget.setPlainText(code_string)
                 self.setCodeStatus(attrName, 1)
+                self.compiler(attrName)
 
     def exportOSL(self, attrName):
         basicFilter = 'OSL Files (*.osl)'
