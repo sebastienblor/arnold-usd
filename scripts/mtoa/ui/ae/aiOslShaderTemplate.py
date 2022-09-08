@@ -30,9 +30,9 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         self.codeAttr = ''
         self.compileEnum = ['Needs (Re)Compile', 'Compile Success', 'Compile Warnings', 'Compile Failure']
         self._controls = []
-        # self._attrs = {}
         self.code_widget = None
-        self.cache = {}
+        self._attrs = {}
+        self._cache = {}
         self.addSwatch()
         self.beginScrollLayout()
         self.beginLayout(' OSL Code ', collapse=False)
@@ -147,29 +147,35 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         AiMsgWarning("DEBUG: AEaiOslShaderTemplate::compiler(%s)" % attrName)
         nodeName = attrName.split('.')[0]
         # get updated text from Maya
-        compileText = self.cache[nodeName]
+        try:
+            compileText = self._cache[nodeName]
+        except KeyError:
+            AiMsgWarning("DEBUG: self._cache[%s] failed" % nodeName)
+            compileText = self.code_widget.toPlainText()
         # now set the attribute
         cmds.setAttr(self.codeAttr, compileText, type="string")
-        # # store attribute values
-        # nodeAttrs = cmds.listAttr(nodeName, userDefined=True, write=True, ct="oslAttribute")
-        # if nodeAttrs:
-        #     for attr in nodeAttrs:
-        #         shortName = cmds.attributeQuery(attr, node=nodeName, sn=True)
-        #         attrValue = cmds.getAttr("%s.%s" % (nodeName, attr))
-        #         attrType = cmds.getAttr("%s.%s" % (nodeName, attr), type=True)
-        #         self._attrs[attr] = (attrType, attrValue)
-        # fromSlots = []
-        # toSlots = []
-        # incoming = cmds.listConnections(nodeName, d=False, s=True, p=True)
-        # if incoming != None:
-        #     for inConnection in incoming:
-        #         outgoing = cmds.listConnections(inConnection, s=False, d=True, p=True)
-        #         if outgoing != None:
-        #             for outConnection in outgoing:
-        #                 outNodeName = outConnection.split('.')[0]
-        #                 if outNodeName == nodeName:
-        #                     fromSlots.append(inConnection)
-        #                     toSlots.append(outConnection)
+        # reset attrs
+        self._attrs[nodeName] = {}
+        # store attribute values
+        nodeAttrs = cmds.listAttr(nodeName, userDefined=True, write=True, ct="oslAttribute")
+        if nodeAttrs:
+            for attr in nodeAttrs:
+                shortName = cmds.attributeQuery(attr, node=nodeName, sn=True)
+                attrValue = cmds.getAttr("%s.%s" % (nodeName, attr))
+                attrType = cmds.getAttr("%s.%s" % (nodeName, attr), type=True)
+                self._attrs[nodeName][attr] = (attrType, attrValue)
+        fromSlots = []
+        toSlots = []
+        incoming = cmds.listConnections(nodeName, d=False, s=True, p=True)
+        if incoming != None:
+            for inConnection in incoming:
+                outgoing = cmds.listConnections(inConnection, s=False, d=True, p=True)
+                if outgoing != None:
+                    for outConnection in outgoing:
+                        outNodeName = outConnection.split('.')[0]
+                        if outNodeName == nodeName:
+                            fromSlots.append(inConnection)
+                            toSlots.append(outConnection)
         compileText = self.code_widget.toPlainText()
 
         om.MGlobal.displayInfo(" compileText = %s " % compileText)
@@ -193,46 +199,46 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             om.MGlobal.displayError(" Compilation Failed")
             for error in oslMayaScene.compilationErrors:
                 om.MGlobal.displayError(error)
-        #     return
-        # om.MGlobal.displayInfo(" Code successfully compiled, restoring attribute values and connections ")
-        # # restore attribute values
-        # for attr in self._attrs.keys():
-        #     attrType, attrValue = self._attrs[attr]
-        #     if cmds.attributeQuery(attr, node=nodeName, ex=True):
-        #         if attrType == "long": # OSL: int
-        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
-        #         elif attrType == "bool": # OSL: not sure this even exists
-        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
-        #         elif attrType == "float": # OSL: float
-        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
-        #         elif attrType == "float2": # OSL: not sure this even exists
-        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], type="float2")
-        #         elif attrType == "float3": # OSL: point, vector, or normal, color
-        #             cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], attrValue[0][2], type="float3")
-        #         elif attrType == "string": # OSL: string
-        #             cmds.setAttr("%s.%s" % (nodeName, attr), "%s" % attrValue, type="string")
-        #         else:
-        #             # TODO: matrix (and void returning functions?)
-        #             om.MGlobal.displayInfo(" TODO: attrType = %s " % attrType)
-        #     else:
-        #         om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
-        # # reset attrs
-        # self._attrs = {}
-        # # connect slots
-        # for index in range(len(fromSlots)):
-        #     fromSlot = fromSlots[index]
-        #     toSlot = toSlots[index]
-        #     cmds.connectAttr(fromSlot, toSlot, force=True)
+            return
+        om.MGlobal.displayInfo(" Code successfully compiled, restoring attribute values and connections ")
+        # restore attribute values
+        for attr in self._attrs[nodeName].keys():
+            attrType, attrValue = self._attrs[nodeName][attr]
+            if cmds.attributeQuery(attr, node=nodeName, ex=True):
+                if attrType == "long": # OSL: int
+                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
+                elif attrType == "bool": # OSL: not sure this even exists
+                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
+                elif attrType == "float": # OSL: float
+                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
+                elif attrType == "float2": # OSL: not sure this even exists
+                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], type="float2")
+                elif attrType == "float3": # OSL: point, vector, or normal, color
+                    cmds.setAttr("%s.%s" % (nodeName, attr), attrValue[0][0], attrValue[0][1], attrValue[0][2], type="float3")
+                elif attrType == "string": # OSL: string
+                    cmds.setAttr("%s.%s" % (nodeName, attr), "%s" % attrValue, type="string")
+                else:
+                    # TODO: matrix (and void returning functions?)
+                    om.MGlobal.displayInfo(" TODO: attrType = %s " % attrType)
+            else:
+                om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
+        # reset attrs
+        self._attrs[nodeName] = {}
+        # connect slots
+        for index in range(len(fromSlots)):
+            fromSlot = fromSlots[index]
+            toSlot = toSlots[index]
+            cmds.connectAttr(fromSlot, toSlot, force=True)
 
     def setShaderCode(self):
         AiMsgWarning("DEBUG: AEaiOslShaderTemplate::setShaderCode")
         nodeName = self.codeAttr.split('.')[0]
         AiMsgWarning("nodeName = %s" % nodeName)
         compileText = self.code_widget.toPlainText()
-        if compileText == cmds.getAttr(self.codeAttr):
-            return
+        # if compileText == cmds.getAttr(self.codeAttr):
+        #     return
         ##cmds.setAttr(self.codeAttr, compileText, type="string")
-        self.cache[nodeName] = compileText
+        self._cache[nodeName] = compileText
         self.setCodeStatus(self.codeAttr, 0)
 
     def setCodeStatus(self, attrName, status):
