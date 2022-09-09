@@ -1382,14 +1382,7 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetInt(options, str::region_min_y, height - maxy - 1);
       AiNodeSetInt(options, str::region_max_x, maxx);
       AiNodeSetInt(options, str::region_max_y, height - miny - 1);      
-   } else
-   {
-      AiNodeResetParameter(options, str::region_min_x);
-      AiNodeResetParameter(options, str::region_min_y);
-      AiNodeResetParameter(options, str::region_max_x);
-      AiNodeResetParameter(options, str::region_max_y);
-   }
-
+   } // otherwise, don't reset the region attributes as they were set in the previous attributes loop #MTOA-999
 
    // We used to apply outputOverscan only for batch & ass.
    MString overscanString = FindMayaPlug("outputOverscan").asString();
