@@ -206,8 +206,8 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                 else:
                     # TODO: matrix (and void returning functions?)
                     om.MGlobal.displayInfo(" TODO: attrType = %s " % attrType)
-            else:
-                om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
+            # else:
+            #     om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
         # reset attrs
         self._attrs[nodeName] = {}
         # connect slots
