@@ -23,7 +23,7 @@ class LineNumberArea(QtWidgets.QWidget):
 
 
 class BaseCodeEditor(QtWidgets.QPlainTextEdit):
-    """Base coed editor box"""
+    """Base code editor box"""
 
     def __init__(self, parent=None, syntax_higlighter=None, style=None):
         super(BaseCodeEditor, self).__init__(parent)
