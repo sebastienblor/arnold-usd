@@ -159,7 +159,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                             fromSlots.append(inConnection)
                             toSlots.append(outConnection)
         compileText = cmds.getAttr(nodeName + '.codeCache');
-        AiMsgWarning("DEBUG: [compiler] compileText = %s" % compileText)
+        cmds.setAttr(nodeName + '.code', compileText, type="string")
         oslMayaScene = mtoa.osl.OSLSceneModel(compileText, nodeName)
         if oslMayaScene.compileState:
             if len(oslMayaScene.compilationWarnings):
