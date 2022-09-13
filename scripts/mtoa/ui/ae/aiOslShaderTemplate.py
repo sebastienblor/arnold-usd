@@ -28,9 +28,8 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         self.codeAttr = ''
         self.compileEnum = ['Needs (Re)Compile', 'Compile Success', 'Compile Warnings', 'Compile Failure']
         self._controls = []
-        self.code_widget = None
         self._attrs = {}
-        self._cache = {}
+        self.code_widget = None
         self.addSwatch()
         self.beginScrollLayout()
         self.beginLayout(' OSL Code ', collapse=False)
@@ -121,7 +120,9 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def codeWidgetUpdate(self, attrName):
         self.codeAttr = attrName
-        osl_code = cmds.getAttr(attrName)
+        osl_code = cmds.getAttr(attrName + 'Cache')
+        if osl_code == '':
+            osl_code = cmds.getAttr(attrName)
         if self.code_widget:
             self.code_widget.setPlainText(osl_code)
         else:
@@ -135,14 +136,6 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def compiler(self, attrName):
         nodeName = attrName.split('.')[0]
-        # get updated text from Maya
-        try:
-            compileText = self._cache[nodeName]
-        except KeyError:
-            AiMsgWarning("DEBUG: self._cache[%s] failed" % nodeName)
-            compileText = self.code_widget.toPlainText()
-        # now set the attribute
-        cmds.setAttr(self.codeAttr, compileText, type="string")
         # reset attrs
         self._attrs[nodeName] = {}
         # store attribute values
@@ -165,11 +158,8 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                         if outNodeName == nodeName:
                             fromSlots.append(inConnection)
                             toSlots.append(outConnection)
-        compileText = self.code_widget.toPlainText()
-
-        if compileText != cmds.getAttr(nodeName + '.code'):
-            self.setShaderCode()
-
+        compileText = cmds.getAttr(nodeName + '.codeCache');
+        AiMsgWarning("DEBUG: [compiler] compileText = %s" % compileText)
         oslMayaScene = mtoa.osl.OSLSceneModel(compileText, nodeName)
         if oslMayaScene.compileState:
             if len(oslMayaScene.compilationWarnings):
@@ -219,12 +209,15 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
     def setShaderCode(self):
         nodeName = self.codeAttr.split('.')[0]
         compileText = self.code_widget.toPlainText()
-        self._cache[nodeName] = compileText
+        if compileText == cmds.getAttr(self.codeAttr):
+            return
+        cmds.setAttr(self.codeAttr + 'Cache', compileText, type="string")
         self.setCodeStatus(self.codeAttr, 0)
 
     def setCodeStatus(self, attrName, status):
         nodeName = attrName.split('.')[0]
         attrName = nodeName + '.compileStatus'
+        cmds.setAttr(attrName, status)
         self.codeStatusUpdate(attrName)
 
     def importExportCreate(self, attrName):
@@ -254,7 +247,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                 code_string = myfile.read()
             codeAttr = attrName.split('.')[0] + '.code'
             if code_string != cmds.getAttr(codeAttr):
-                cmds.setAttr(codeAttr, code_string, type="string")
+                cmds.setAttr(codeAttr + 'Cache', code_string, type="string")
                 self.code_widget.setPlainText(code_string)
                 self.setCodeStatus(attrName, 1)
                 self.compiler(attrName)
