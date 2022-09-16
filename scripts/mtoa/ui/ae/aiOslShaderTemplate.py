@@ -120,7 +120,9 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def codeWidgetUpdate(self, attrName):
         self.codeAttr = attrName
-        osl_code = cmds.getAttr(attrName)
+        osl_code = cmds.getAttr(attrName + 'Cache')
+        if osl_code == '':
+            osl_code = cmds.getAttr(attrName)
         if self.code_widget:
             self.code_widget.setPlainText(osl_code)
         else:
@@ -134,6 +136,8 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def compiler(self, attrName):
         nodeName = attrName.split('.')[0]
+        # reset attrs
+        self._attrs[nodeName] = {}
         # store attribute values
         nodeAttrs = cmds.listAttr(nodeName, userDefined=True, write=True, ct="oslAttribute")
         if nodeAttrs:
@@ -141,7 +145,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                 shortName = cmds.attributeQuery(attr, node=nodeName, sn=True)
                 attrValue = cmds.getAttr("%s.%s" % (nodeName, attr))
                 attrType = cmds.getAttr("%s.%s" % (nodeName, attr), type=True)
-                self._attrs[attr] = (attrType, attrValue)
+                self._attrs[nodeName][attr] = (attrType, attrValue)
         fromSlots = []
         toSlots = []
         incoming = cmds.listConnections(nodeName, d=False, s=True, p=True)
@@ -154,11 +158,8 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                         if outNodeName == nodeName:
                             fromSlots.append(inConnection)
                             toSlots.append(outConnection)
-        compileText = self.code_widget.toPlainText()
-
-        if compileText != cmds.getAttr(nodeName + '.code'):
-            self.setShaderCode()
-
+        compileText = cmds.getAttr(nodeName + '.codeCache');
+        cmds.setAttr(nodeName + '.code', compileText, type="string")
         oslMayaScene = mtoa.osl.OSLSceneModel(compileText, nodeName)
         if oslMayaScene.compileState:
             if len(oslMayaScene.compilationWarnings):
@@ -177,8 +178,8 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             return
         om.MGlobal.displayInfo(" Code successfully compiled, restoring attribute values and connections ")
         # restore attribute values
-        for attr in self._attrs.keys():
-            attrType, attrValue = self._attrs[attr]
+        for attr in self._attrs[nodeName].keys():
+            attrType, attrValue = self._attrs[nodeName][attr]
             if cmds.attributeQuery(attr, node=nodeName, ex=True):
                 if attrType == "long": # OSL: int
                     cmds.setAttr("%s.%s" % (nodeName, attr), attrValue)
@@ -195,10 +196,10 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                 else:
                     # TODO: matrix (and void returning functions?)
                     om.MGlobal.displayInfo(" TODO: attrType = %s " % attrType)
-            else:
-                om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
+            # else:
+            #     om.MGlobal.displayInfo(" WARNING: %s.%s does not exist " % (nodeName, attr))
         # reset attrs
-        self._attrs = {}
+        self._attrs[nodeName] = {}
         # connect slots
         for index in range(len(fromSlots)):
             fromSlot = fromSlots[index]
@@ -210,7 +211,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
         compileText = self.code_widget.toPlainText()
         if compileText == cmds.getAttr(self.codeAttr):
             return
-        cmds.setAttr(self.codeAttr, compileText, type="string")
+        cmds.setAttr(self.codeAttr + 'Cache', compileText, type="string")
         self.setCodeStatus(self.codeAttr, 0)
 
     def setCodeStatus(self, attrName, status):
@@ -238,7 +239,7 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
             defaultFolder = "{}/{}".format(cmds.workspace(q=True, rd=True),
                                            cmds.workspace(fre="OSL")
                                            )
-        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Impot OSL', okc='Load', fm=1, startingDirectory=defaultFolder)
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Import OSL', okc='Load', fm=1, startingDirectory=defaultFolder)
         if ret is not None and len(ret):
             defaultFolder = ret[0]
             code_string = ''
@@ -246,9 +247,10 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                 code_string = myfile.read()
             codeAttr = attrName.split('.')[0] + '.code'
             if code_string != cmds.getAttr(codeAttr):
-                cmds.setAttr(codeAttr, code_string, type="string")
+                cmds.setAttr(codeAttr + 'Cache', code_string, type="string")
                 self.code_widget.setPlainText(code_string)
                 self.setCodeStatus(attrName, 1)
+                self.compiler(attrName)
 
     def exportOSL(self, attrName):
         basicFilter = 'OSL Files (*.osl)'

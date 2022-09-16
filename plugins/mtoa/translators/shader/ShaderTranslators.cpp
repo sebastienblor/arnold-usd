@@ -3859,6 +3859,13 @@ void CAiRoundCornersTranslator::NodeInitializer(CAbTranslator context)
 
 void CAiOslShaderTranslator::NodeInitializer(CAbTranslator context)
 {
+   CExtensionAttrHelper helper(context.maya, "osl");
+
+   CAttrData data;
+   data.defaultValue.STR() = AtString("");;
+   data.name = "codeCache";
+   data.shortName = "code_cache";
+   helper.MakeInputString(data);
 }
 
 AtNode* CAiOslShaderTranslator::CreateArnoldNodes()
@@ -3879,6 +3886,8 @@ void CAiOslShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
    // as the parameters and output type might become different
    if (plugName == MString("code"))
       SetUpdateMode(AI_RECREATE_NODE);
+   if (plugName == MString("codeCache"))
+     return;
 
    CShaderTranslator::NodeChanged(node, plug);
 }
