@@ -9,7 +9,7 @@
 
 DLLEXPORT void SetMetafile(MString metafile);
 
-DLLEXPORT MStatus ReadMetafile();
+/* DLLEXPORT MStatus ReadMetafile(); */
 
 DLLEXPORT void InstallNodes();
 
