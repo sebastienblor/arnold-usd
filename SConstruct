@@ -1215,6 +1215,8 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'osl'), glob.glob(os.path.join(ARNOLD, 'osl', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'ocio'), glob.glob(os.path.join(ARNOLD, 'ocio', '*')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'bin'), glob.glob(os.path.join('plugins', 'mtoa', 'arnold.mtd')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins'), glob.glob(os.path.join('plugins', 'mtoa', 'cryptomatte.mtd')))
 # install all arnold sdk headers
 env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
 
