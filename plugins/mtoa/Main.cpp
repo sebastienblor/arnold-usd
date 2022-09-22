@@ -1182,8 +1182,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
-   MString loadpath = plugin.loadPath();
-
    ArnoldBegin(GetStartupLogLevel());
 
    std::vector<bool> initializedData(MTOA_INIT_COUNT, false);
