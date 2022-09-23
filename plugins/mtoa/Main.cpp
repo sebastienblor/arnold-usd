@@ -1182,12 +1182,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
-   // Load metadata for builtin (mtoa.mtd)
-   // FIXME to be moved to bin/arnold.mtd so that it's loaded automatically by arnold
-   MString loadpath = plugin.loadPath();
-   MString metafile = loadpath + "/" + "mtoa.mtd";
-   SetMetafile(metafile);
-
    ArnoldBegin(GetStartupLogLevel());
 
    std::vector<bool> initializedData(MTOA_INIT_COUNT, false);

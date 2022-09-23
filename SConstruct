@@ -1155,9 +1155,9 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
                      exports     = 'env BUILD_BASE_DIR')
 SConscriptChdir(1)
 
-env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
-if not env['DISABLE_COMMON']:
-    env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
+env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'arnold.mtd'))
+# if not env['DISABLE_COMMON']:
+#     env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
 
 if system.os == 'windows':
@@ -1215,6 +1215,8 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'osl'), glob.glob(os.path.join(ARNOLD, 'osl', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'ocio'), glob.glob(os.path.join(ARNOLD, 'ocio', '*')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'bin'), glob.glob(os.path.join('plugins', 'mtoa', 'arnold.mtd')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins'), glob.glob(os.path.join('plugins', 'mtoa', 'cryptomatte.mtd')))
 # install all arnold sdk headers
 env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
 
@@ -1588,7 +1590,8 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
-[os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
+[os.path.join('plugins', 'mtoa', 'arnold.mtd'), 'bin'],
+[os.path.join('plugins', 'mtoa', 'cryptomatte.mtd'), 'plugins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
@@ -1789,8 +1792,8 @@ if env['ENABLE_GPU_CACHE'] == 1:
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
 
-if not env['DISABLE_COMMON']:
-    PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
+# if not env['DISABLE_COMMON']:
+#     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
 
 for p in scriptfiles:
     (d, f) = os.path.split(p)

@@ -19,22 +19,6 @@ extern const AtNodeMethods* mtoa_driver_mtd;
 
 MString g_metafile = "";
 
-void SetMetafile(MString metafile)
-{
-   g_metafile = metafile;
-}
-
-MStatus ReadMetafile()
-{
-   bool readMetaSuccess = AiMetaDataLoadFile(g_metafile.asChar());
-   if (!readMetaSuccess)
-   {
-      AiMsgError("[mtoa] Could not read mtoa built-in metadata file \"%s\"", g_metafile.asChar());
-      return MStatus::kFailure;
-   }
-   return MStatus::kSuccess;
-}
-
 void InstallNodes()
 {
    if (MGlobal::mayaState() == MGlobal::kInteractive)
@@ -60,7 +44,6 @@ bool ArnoldBegin(int logFlags)
 
       AiBegin(AI_SESSION_INTERACTIVE);
       MtoaSetupLogging(logFlags);
-      ReadMetafile();
 
        MString mayaVersion = MGlobal::mayaVersion();     
        MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;

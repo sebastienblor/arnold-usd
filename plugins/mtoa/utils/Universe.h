@@ -9,8 +9,6 @@
 
 DLLEXPORT void SetMetafile(MString metafile);
 
-DLLEXPORT MStatus ReadMetafile();
-
 DLLEXPORT void InstallNodes();
 
 DLLEXPORT bool ArnoldBegin(int logFlags = DEFAULT_LOG_FLAGS);
