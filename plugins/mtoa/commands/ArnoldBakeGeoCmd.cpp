@@ -140,12 +140,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
       AiNodeSetPtr(AiUniverseGetOptions(universe), str::camera, (void*)renderCam);
    }
    
-   AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-   AiRenderBegin(renderSession, AI_RENDER_MODE_FREE);
-   while(AiRenderGetStatus(renderSession) != AI_RENDER_STATUS_PAUSED)
-   {
-      continue;
-   }
+   AiRender(renderSession, AI_RENDER_MODE_FREE);
 
    AtNodeIterator *nodeIter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
    AtShaderGlobals* sg = AiShaderGlobals();
