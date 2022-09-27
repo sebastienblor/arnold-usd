@@ -311,7 +311,6 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
 
    AiNodeIteratorDestroy(nodeIter);
    AiShaderGlobalsDestroy(sg);
-   AiRenderAbort(renderSession);
 
    CSessionManager::DeleteActiveSession(s_bakeGeoSessionId);
    return MS::kSuccess;
