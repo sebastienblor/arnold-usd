@@ -2,7 +2,7 @@ from .Qt import QtCore
 from .Qt import QtGui
 import os.path as path
 import json
-
+import six
 
 SYNTAX_DIR = path.join(path.split(path.realpath(__file__))[0], "syntax")
 
@@ -136,7 +136,11 @@ class CppHighlighter(BaseHighlighter):
     def __init__(self, parent=None):
         super(CppHighlighter, self).__init__(parent)
 
-        json_data = open(self.FILE_PATH, encoding="utf8")
+        if six.PY2:
+            json_data = open(self.FILE_PATH, 'rb')
+        else:
+            json_data = open(self.FILE_PATH, encoding="utf8")
+
         self.loadSyntaxJSON(json_data)
 
 
@@ -147,5 +151,8 @@ class OSLHighlighter(BaseHighlighter):
     def __init__(self, parent=None):
         super(OSLHighlighter, self).__init__(parent)
 
-        json_data = open(self.FILE_PATH, encoding="utf8")
+        if six.PY2:
+            json_data = open(self.FILE_PATH, 'rb')
+        else:
+            json_data = open(self.FILE_PATH, encoding="utf8")
         self.loadSyntaxJSON(json_data)
