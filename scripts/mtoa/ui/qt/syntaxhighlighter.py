@@ -136,7 +136,6 @@ class CppHighlighter(BaseHighlighter):
         super(CppHighlighter, self).__init__(parent)
 
         json_data = open(self.FILE_PATH, 'rb')
-
         self.loadSyntaxJSON(json_data)
 
 
