@@ -1863,7 +1863,7 @@ def create_installer(target, source, env):
         copiedNsi = os.path.join(tempdir, 'MtoA.nsi')
         shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), copiedNsi)
 
-        if MOD_SUFFIX:
+        if MOD_SUFFIX and int(maya_version_base) >= 2023:
             # edit the Mtoa.nsi installer to add an additional mod installation suffix
             nsiFile = open(copiedNsi, "rt")
             nsiFileData = nsiFile.read()
@@ -1959,7 +1959,7 @@ def create_installer(target, source, env):
         postCommand = "hdiutil detach /Volumes/ArnoldLicensing"
         postScript.write(postCommand)        
        
-        if MOD_SUFFIX:
+        if MOD_SUFFIX  and int(maya_version_base) >= 2023:
             mod_suffix_folder = maya_version + MOD_SUFFIX
             postScript.write('\n')
             postCommand = "SUFFIX_FOLDER=/Users/Shared/Autodesk/modules/maya/%s\n" % mod_suffix_folder
