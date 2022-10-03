@@ -809,7 +809,7 @@ namespace // <anonymous>
 #if MAYA_API_VERSION >= 20210000
          int ltAbout = 0;
 #ifdef MOD_SUFFIX
-         MString aboutCmd = MString("about -"+MString(MOD_SUFFIX)+"Version");
+         MString aboutCmd = MString("proc int getLtVersion(){ int $i=1; if (`about -apiVersion` >= 20230200){ $i = `about -"+MString(MOD_SUFFIX)+"Version`; } else { $i=`about -ltVersion`; } return $i;} getLtVersion");
 #else
          MString aboutCmd = MString("about -ltVersion");
 #endif
