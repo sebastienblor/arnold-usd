@@ -74,7 +74,7 @@ def setViewportOptions(ui, option):
     elif cmds.colorIndexSliderGrp(ui, exists=True):
         value = cmds.colorIndexSliderGrp(ui, query=True, value=True)
 
-    if not value:
+    if value == None:
         return
 
     options = {}
