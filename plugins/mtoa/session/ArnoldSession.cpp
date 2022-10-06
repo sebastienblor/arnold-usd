@@ -1235,6 +1235,12 @@ void CArnoldSession::RequestUpdateTx(const std::string &filename, const std::str
 
 void CArnoldSession::ExportTxFiles()
 {
+   AtNode *options = AiUniverseGetOptions(GetUniverse());
+   AiNodeSetBool(options, str::texture_auto_generate_tx, m_sessionOptions.GetAutoTx());
+   return;
+
+   // All the code below is for the previous implementation of AutoTX
+   /*
    if (!m_sessionOptions.GetAutoTx())
       return;
 
@@ -1477,6 +1483,7 @@ void CArnoldSession::ExportTxFiles()
 
    }
    m_updateTxFiles.clear();
+   */
 }
 
 // This function removes the translator from our list of 
