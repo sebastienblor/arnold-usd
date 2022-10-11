@@ -479,6 +479,7 @@ ASTR(tangentidxs);
 ASTR(temperature_gradient);
 ASTR(temperature_method);
 ASTR(test);
+ASTR(texture_auto_generate_tx);
 ASTR(texture_automip);
 ASTR(texture_autotile);
 ASTR(texture_max_sharpen);
