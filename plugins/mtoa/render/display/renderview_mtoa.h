@@ -122,6 +122,8 @@ private:
    void RunPreRenderCallbacks();
    void RunPostRenderCallbacks();
 
+   void RenderTimerCallback();
+
 #if MAYA_API_VERSION >= 20190000
    class CustomCallback;
    CustomCallback* m_colorPickingCallback;

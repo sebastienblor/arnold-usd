@@ -507,6 +507,12 @@ void CRenderViewMtoA::RenderChanged()
       MGlobal::executeCommandOnIdle("refresh -f;");
 }
 
+void CRenderViewMtoA::RenderTimerCallback()
+{
+   if (m_viewportRendering)
+      MGlobal::executeCommandOnIdle("refresh -cv -f;");
+}
+
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
