@@ -287,6 +287,8 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    MStringArray connectCmds;
    unordered_map<std::string, std::string>  arnoldToMayaNames;
    unordered_map<std::string, std::string>  arnoldToMayaShadingEngines;
+   std::vector<const AtNode*> imagersList;
+   unordered_set<const AtNode*>  referencedImagers;
    std::vector<AtNode *> nodesToConvert;
    
    // First Loop to create the imported nodes, and fill the map from arnold to maya nodes
@@ -363,6 +365,22 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       std::string mayaName = arnoldToMayaNames[nodeName];
 
       bool isOsl = AiNodeIs(node, str::osl);
+      bool isImager = false;
+      if (AiNodeEntryGetType(nodeEntry) == AI_NODE_DRIVER)
+      {
+         AtString subtype;
+         if (AiMetaDataGetStr(nodeEntry, AtString(), str::subtype, &subtype) && subtype == str::imager)
+         {            
+            isImager = true;
+            imagersList.push_back(node);
+            const AtNode *input = (AtNode*) AiNodeGetPtr(node, str::input);
+            // If an input imager is chained to this one, we mark it as being referenced.
+            // This will allow us to identify the root imager, which isn't referenced anywhere 
+            if (input != nullptr)
+               referencedImagers.insert(input);
+         }
+      }
+         
       // loop over this arnold node parameters
       AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
       while (!AiParamIteratorFinished(nodeParam))
@@ -375,6 +393,11 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          // For OSL, we already converted the attribute "code", we must not do it again
          // (otherwise Arnold might recompile it under the hood)
          if (isOsl && paramName == str::code)
+            continue;
+
+         // For imagers, we don't want to import the attribute "input", but instead
+         // order the imagers accordingly in the stack
+         if (isImager && paramName == str::input)
             continue;
 
          MString mayaAttrName = ArnoldToMayaAttrName(nodeEntry, paramName);
@@ -649,7 +672,39 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          MGlobal::executeCommand(connectCmd);
       }
    }
+   
+   if (!imagersList.empty())
+   {
+      // First, let's find the first imager, as being the first one that
+      // isn't referenced anywhere
+      const AtNode* targetImager = nullptr;
+      for (const auto &imager : imagersList)
+      {
+         if (referencedImagers.find(imager) == referencedImagers.end())
+         {
+            targetImager = imager;
+            break;
+         }
+      }
+
+      // Now let's build the imagers stack as it will show up in the render settings
+      std::vector<const AtNode *> imagersStack;
+      while(targetImager != nullptr)
+      {
+         imagersStack.insert(imagersStack.begin(), targetImager);
+         targetImager = (const AtNode*) AiNodeGetPtr(targetImager, AtString("input"));
+      }
+      
+      for (unsigned int j = 0; j < imagersStack.size(); ++j)
+      {
+         MString mayaFullAttr = "defaultArnoldRenderOptions.imagers[";
+         mayaFullAttr += j;
+         mayaFullAttr += "]";
+         ConnectMayaFromArnold(mayaFullAttr, MString("message"), (AtNode*)imagersStack[j], arnoldToMayaNames);
+      }
+   }
    AiUniverseDestroy(universe);
+
    
    return status;
 }

@@ -43,6 +43,7 @@
 #include "commands/ArnoldRenderToTextureCmd.h"
 #include "commands/ArnoldExportToMaterialXCmd.h"
 #include "commands/ArnoldExportOperatorsCmd.h"
+#include "commands/ArnoldExportImagersCmd.h"
 #include "commands/ArnoldPluginCmd.h"
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
@@ -164,7 +165,8 @@ namespace // <anonymous>
       {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
       {"arnoldViewport", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
       {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax},
-      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax}
+      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax},
+      {"arnoldExportImagers", CArnoldExportImagersCmd::creator, CArnoldExportImagersCmd::newSyntax}
 #ifdef ENABLE_ALEMBIC
       ,{"arnoldExportAlembic", CArnoldExportAbcCmd::creator, CArnoldExportAbcCmd::createSyntax}
 #endif
