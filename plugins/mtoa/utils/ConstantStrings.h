@@ -310,6 +310,7 @@ ASTR(Nf);
 ASTR(nidxs);
 ASTR(nlist);
 ASTR(node);
+ASTR(node_idxs);
 ASTR(nodes);
 ASTR(none);
 ASTR(normal);

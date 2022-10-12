@@ -223,7 +223,7 @@ void CDagTranslator::ExportMatrix(AtNode* node)
    }
 }
 
-void CDagTranslator::ExportInstanceMatrix(AtNode* node)
+void CDagTranslator::ExportInstanceMatrix(AtNode* node, int instanceNum)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
@@ -238,7 +238,9 @@ void CDagTranslator::ExportInstanceMatrix(AtNode* node)
       }
       else
       {
-         AiNodeSetMatrix(node, str::instance_matrix, matrix);
+	 AtArray* matrices = AiNodeGetArray(node, str::instance_matrix);
+	 AiArraySetMtx(matrices, instanceNum - 1, matrix);
+         AiNodeSetArray(node, str::instance_matrix, matrices);
       }
    }
    else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())

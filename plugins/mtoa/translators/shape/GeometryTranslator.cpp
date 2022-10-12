@@ -1636,10 +1636,38 @@ AtNode* CPolygonGeometryTranslator::ExportInstancer(AtNode *instancer, const MDa
    int instanceNum = m_dagPath.instanceNumber();
    int masterInstanceNum = masterInstance.instanceNumber();
 
-   if (!GetSessionOptions().IsMayaUsd())
-      ExportInstanceMatrix(instancer);
+   // initialize instancer the first time an instance is exported
+   if (!m_isFirstInstance) {
+      // TODO: nelements, nkeys
+      uint32_t nelements = 2;
+      uint8_t nkeys = 1;
+      // instance_matrix
+      AtArray* instance_matrix = AiArrayAllocate(nelements, nkeys, AI_TYPE_MATRIX);
+      AtMatrix matrix = AiM4Identity();
+      for (uint32_t i = 0; i < nelements; i++) {
+	 AiArraySetMtx(instance_matrix, i * nkeys, matrix);
+      }
+      AiNodeSetArray(instancer, str::instance_matrix, instance_matrix);
+      // nodes
+      AtArray* nodes = AiArrayAllocate(nelements, nkeys, AI_TYPE_NODE);
+      for (uint32_t i = 0; i < nelements; i++) {
+	 AiArraySetPtr(nodes, i * nkeys, masterNode);
+      }
+      AiNodeSetArray(instancer, str::nodes, nodes);
+      // node_idxs
+      AtArray* node_idxs = AiArrayAllocate(nelements, nkeys, AI_TYPE_UINT);
+      for (uint32_t i = 0; i < nelements; i++) {
+	 AiArraySetUInt(node_idxs, i * nkeys, i);
+      }
+      AiNodeSetArray(instancer, str::node_idxs, node_idxs);
+      // initialized
+      m_isFirstInstance = true;
+   }
 
-   AiNodeSetPtr(instancer, str::nodes, masterNode);
+   if (!GetSessionOptions().IsMayaUsd())
+     ExportInstanceMatrix(instancer, instanceNum);
+
+   // AiNodeSetPtr(instancer, str::nodes, masterNode);
 
    AtByte visibility = ComputeVisibility();
    AiNodeSetByte(instancer, str::visibility, visibility);
@@ -1726,7 +1754,8 @@ void CPolygonGeometryTranslator::Export(AtNode *anode)
       }
       else if (strcmp(nodeType, "instancer") == 0)
       {
-         ExportInstancer(anode, GetMasterInstance());
+	 const MDagPath& minstance = GetMasterInstance();
+         ExportInstancer(anode, minstance);
       }
       else if (strcmp(nodeType, "polymesh") == 0)
       {
