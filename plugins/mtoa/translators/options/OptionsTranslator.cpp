@@ -1268,6 +1268,7 @@ void COptionsTranslator::Export(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
    AiNodeSetFlt(options, str::reference_time, 0.f);
+   AiNodeSetBool(options, str::texture_auto_generate_tx, false);
 
    AddProjectFoldersToSearchPaths(options);
    
