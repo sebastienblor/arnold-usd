@@ -46,6 +46,7 @@ CArnoldSession::CArnoldSession(bool initOptions, bool defaultUniverse)
    m_checkRenderLayer = true;
    m_batch = false;
    m_optionsTranslator = nullptr;
+   m_cmEnabled = true;
 
    m_requestUpdate = false;
    m_newNodeCallbackId = 0;
@@ -56,7 +57,12 @@ CArnoldSession::CArnoldSession(bool initOptions, bool defaultUniverse)
    m_lightLinks.SetOptions(&m_sessionOptions);
    m_lightLinks.SetUniverse(m_universe);
    if (initOptions)
+   {
       InitSessionOptions();
+      int cmEnabled = 1;
+      MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+      m_cmEnabled = (cmEnabled != 0);
+   }
 }
 
 CArnoldSession::~CArnoldSession()
@@ -1210,6 +1216,7 @@ void CArnoldSession::SetStatus(MString status)
 
 void CArnoldSession::RequestUpdateTx(const std::string &filename, const std::string &colorSpace)
 {
+   return;
    if (filename.empty())
       return;
    size_t filenameLength = filename.length();
