@@ -223,6 +223,41 @@ void CDagTranslator::ExportMatrix(AtNode* node)
    }
 }
 
+void CDagTranslator::ExportInstanceMatrix(AtNode* node)
+{
+   AtMatrix matrix;
+   GetMatrix(matrix);
+   if (!IsExportingMotion())
+   {
+      // why not only RequiresMotionData() ??
+      if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
+      {
+         AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+         AiArraySetMtx(matrices, GetMotionStep(), matrix);
+         AiNodeSetArray(node, str::instance_matrix, matrices);
+      }
+      else
+      {
+         AiNodeSetMatrix(node, str::instance_matrix, matrix);
+      }
+   }
+   else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
+   {
+      AtArray* matrices = AiNodeGetArray(node, str::instance_matrix);
+      if (matrices)
+      {
+         int step = GetMotionStep();
+         if (step >= (int)(AiArrayGetNumKeys(matrices) * AiArrayGetNumElements(matrices)))
+         {
+            AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
+
+         } else
+            AiArraySetMtx(matrices, step, matrix);
+
+      }
+   }
+}
+
 bool CDagTranslator::IsRenderable() const
 {
    return m_impl->m_session->IsExportable(m_dagPath) == CArnoldSession::MTOA_EXPORT_ACCEPTED;

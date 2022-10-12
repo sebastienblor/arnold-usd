@@ -97,6 +97,7 @@ protected:
    AtNode* ExportMesh(AtNode* polymesh, bool update);
    void ExportMeshMotion(AtNode* polymesh, unsigned int step);
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
+   AtNode* ExportInstancer(AtNode* instance, const MDagPath& masterInstance);
    void ExportInstanceMotion(AtNode* instance, unsigned int step);
 
    virtual bool IsGeoDeforming();
