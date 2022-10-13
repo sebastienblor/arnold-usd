@@ -57,7 +57,7 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
    }
    else
    {
-      return AddArnoldNode("instancer");
+      return AddArnoldNode("ginstance");
    }
 }
 

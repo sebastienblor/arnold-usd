@@ -72,7 +72,6 @@ protected:
    at each motion step
    */
    void ExportMatrix(AtNode* node);
-   void ExportInstanceMatrix(AtNode* node, int instanceNum);
 
    /** Return whether the current dag object is the master instance.
    

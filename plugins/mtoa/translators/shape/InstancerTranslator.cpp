@@ -657,7 +657,32 @@ void CInstancerTranslator::PostExport(AtNode *node)
    MString baseName = GetSessionOptions().GetArnoldNaming(GetMayaDagPath());
 
    int globalIndex = 0;
-   
+
+   // create ONE instancer for ALL particles
+   AtNode* instancer = AddArnoldNode("instancer");
+   // TODO: nelements, nkeys
+   uint32_t nelements = m_particleIDMap.size();
+   uint8_t nkeys = 1;
+   // instance_matrix
+   AtArray* instance_matrix = AiArrayAllocate(nelements, nkeys, AI_TYPE_MATRIX);
+   AtMatrix matrix = AiM4Identity();
+   for (uint32_t i = 0; i < nelements; i++) {
+      AiArraySetMtx(instance_matrix, i * nkeys, matrix);
+   }
+   AiNodeSetArray(instancer, str::instance_matrix, instance_matrix);
+   // nodes
+   AtArray* nodes = AiArrayAllocate(nelements, nkeys, AI_TYPE_NODE);
+   for (uint32_t i = 0; i < nelements; i++) {
+      AiArraySetPtr(nodes, i * nkeys, NULL);
+   }
+   AiNodeSetArray(instancer, str::nodes, nodes);
+   // node_idxs
+   AtArray* node_idxs = AiArrayAllocate(nelements, nkeys, AI_TYPE_UINT);
+   for (uint32_t i = 0; i < nelements; i++) {
+      AiArraySetUInt(node_idxs, i * nkeys, i);
+   }
+   AiNodeSetArray(instancer, str::node_idxs, node_idxs);
+
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
         it !=  m_particleIDMap.end(); ++it)
    {
@@ -685,7 +710,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
    
             AddExistingArnoldNode(instance, instanceKey.asChar());
             AiNodeSetDisabled(instance, false);
-            // no motion blur on lighs
+            // no motion blur on lights
             AtMatrix origM = AiNodeGetMatrix(instance, str::matrix);
             AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
             AtMatrix total_matrix = AiM4Mult(particleMatrix, origM);
@@ -702,8 +727,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
                // and takes the prefix into account (#2684)
             }
             AiNodeSetPtr(instance, str::node, obj);
+	    AiArraySetPtr(nodes, partID, obj);
             AiNodeSetBool(instance, str::inherit_xform, true);
             AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
+	    AiArraySetMtx(instance_matrix, partID, AiArrayGetMtx(m_vec_matrixArrays[j], 0));
          }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes

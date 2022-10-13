@@ -1625,124 +1625,6 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    return instance;
 }
 
-AtNode* CPolygonGeometryTranslator::ExportInstancer(AtNode *instancer, const MDagPath& masterInstance)
-{
-   MFnDependencyNode masterDepNode(masterInstance.node());
-   MPlug dummyPlug = masterDepNode.findPlug("matrix", true);
-   // in case master instance wasn't exported (#648)
-   // and also to create the reference between both translators
-   AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
-
-   int instanceNum = m_dagPath.instanceNumber();
-   int masterInstanceNum = masterInstance.instanceNumber();
-
-   // initialize instancer the first time an instance is exported
-   if (!m_isFirstInstance) {
-      // TODO: nelements, nkeys
-      uint32_t nelements = 2;
-      uint8_t nkeys = 1;
-      // instance_matrix
-      AtArray* instance_matrix = AiArrayAllocate(nelements, nkeys, AI_TYPE_MATRIX);
-      AtMatrix matrix = AiM4Identity();
-      for (uint32_t i = 0; i < nelements; i++) {
-	 AiArraySetMtx(instance_matrix, i * nkeys, matrix);
-      }
-      AiNodeSetArray(instancer, str::instance_matrix, instance_matrix);
-      // nodes
-      AtArray* nodes = AiArrayAllocate(nelements, nkeys, AI_TYPE_NODE);
-      for (uint32_t i = 0; i < nelements; i++) {
-	 AiArraySetPtr(nodes, i * nkeys, masterNode);
-      }
-      AiNodeSetArray(instancer, str::nodes, nodes);
-      // node_idxs
-      AtArray* node_idxs = AiArrayAllocate(nelements, nkeys, AI_TYPE_UINT);
-      for (uint32_t i = 0; i < nelements; i++) {
-	 AiArraySetUInt(node_idxs, i * nkeys, i);
-      }
-      AiNodeSetArray(instancer, str::node_idxs, node_idxs);
-      // initialized
-      m_isFirstInstance = true;
-   }
-
-   if (!GetSessionOptions().IsMayaUsd())
-     ExportInstanceMatrix(instancer, instanceNum);
-
-   // AiNodeSetPtr(instancer, str::nodes, masterNode);
-
-   AtByte visibility = ComputeVisibility();
-   AiNodeSetByte(instancer, str::visibility, visibility);
-
-   if (RequiresShaderExport())
-   {
-      //
-      // SHADERS
-      //
-      // MFnMesh           meshNode(m_dagPath.node());
-      MFnMesh meshNode(m_geometry);
-      MPlug plug = meshNode.findPlug("instObjGroups", true);
-
-      MPlugArray conns0, connsI;
-
-      bool shadersDifferent = false;
-
-      // checking the connections from the master instance
-      plug.elementByLogicalIndex(masterInstanceNum).connectedTo(conns0, false, true);
-      // checking the connections from the actual instance
-      plug.elementByLogicalIndex(instanceNum).connectedTo(connsI, false, true);
-
-      // checking if it`s connected to a different shading network
-      // this should be enough, because arnold does not supports
-      // overriding per face assignment per instance
-      // it`s safe to ignore if the instanced object is
-      // using a different per face assignment
-      // If the original object has per face assignment
-      // then the length is zero (because the shading group is
-      // connected to a different place)
-      const unsigned int conns0Length = conns0.length();
-      const unsigned int connsILength = connsI.length();
-      if (conns0Length != connsILength)
-         shadersDifferent = true;
-      else
-      {
-         if (conns0Length  > 0)
-         {
-            if (conns0[0].node() != connsI[0].node())
-               shadersDifferent = true;
-         }
-      }
-
-      if (shadersDifferent)
-      {
-         MPlug stepSizePlug = meshNode.findPlug("aiStepSize", true);
-         bool isVolume = (stepSizePlug.isNull()) ? false : (stepSizePlug.asFloat() > AI_EPSILON);
-         MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
-         MPlug shaderPlug = MtoaGetAssignedShaderPlug(shadingGroupPlug, isVolume);
-
-         // In case Instance has per face assignment, use first SG assigned to it
-         if(shaderPlug.isNull())
-         {
-            MPlugArray        connections;
-            MFnDependencyNode fnDGNode(m_geometry);
-            MPlug plug(m_geometry, fnDGNode.attribute("instObjGroups"));
-            plug = plug.elementByLogicalIndex(instanceNum);
-            MObject obGr = MFnDependencyNode(GetMayaObject()).attribute("objectGroups");
-            plug = plug.child(obGr);
-            plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
-            if(connections.length() > 0)
-               shaderPlug = MtoaGetAssignedShaderPlug(connections[0], isVolume);
-
-         }
-
-         AtNode* shader = ExportConnectedNode(shaderPlug);
-         AiNodeSetPtr(instancer, str::shader, shader);
-      }
-   }
-   // Export light linking per instance
-   ExportLightLinking(instancer);
-
-   return instancer;
-}
-
 void CPolygonGeometryTranslator::Export(AtNode *anode)
 {
    if (!IsExported())
@@ -1751,11 +1633,6 @@ void CPolygonGeometryTranslator::Export(AtNode *anode)
       if (strcmp(nodeType, "ginstance") == 0)
       {
          ExportInstance(anode, GetMasterInstance());
-      }
-      else if (strcmp(nodeType, "instancer") == 0)
-      {
-	 const MDagPath& minstance = GetMasterInstance();
-         ExportInstancer(anode, minstance);
       }
       else if (strcmp(nodeType, "polymesh") == 0)
       {
