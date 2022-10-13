@@ -93,6 +93,8 @@ public:
    virtual void ProgressiveRenderFinished();
    virtual void IPRStopped();
 
+   virtual void RenderTimerCallback();
+
    static void SelectionChangedCallback(void *);
    static void RenderLayerChangedCallback(void *);
    static void SceneSaveCallback(void *);
