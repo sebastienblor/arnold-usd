@@ -133,6 +133,8 @@ public:
 
    virtual void PrintSystemInfo();
 
+   bool IsColorManagementEnabled() const {return m_cmEnabled;}
+
 protected:
       
    void SetSessionName(const MString &name) {m_sessionName = name;}
@@ -169,6 +171,8 @@ protected:
    bool m_requestUpdate;
    bool m_updateCallbacks;
    bool m_batch;
+   bool m_cmEnabled;
+
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
    std::unordered_map<std::string, std::string> m_updateTxFiles;
 

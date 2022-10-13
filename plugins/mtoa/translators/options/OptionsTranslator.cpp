@@ -1236,6 +1236,9 @@ void COptionsTranslator::Export(AtNode *options)
          } else if (strcmp(paramName, "texture_use_existing_tx") == 0)
          {
             AiNodeSetBool(options, str::texture_use_existing_tx, sessionOptions.GetUseExistingTx());
+         } else if (strcmp(paramName, "texture_auto_generate_tx") == 0)
+         {
+            AiNodeSetBool(options, str::texture_auto_generate_tx, sessionOptions.GetAutoTx());
          } else if (strcmp(paramName, "meters_per_unit") == 0)
          {
             MDistance dist(1.0 / sessionOptions.GetScaleFactor(), MDistance::uiUnit());
