@@ -93,6 +93,8 @@ public:
    virtual void ProgressiveRenderFinished();
    virtual void IPRStopped();
 
+   virtual void RenderTimerCallback();
+
    static void SelectionChangedCallback(void *);
    static void RenderLayerChangedCallback(void *);
    static void SceneSaveCallback(void *);
@@ -121,8 +123,6 @@ private:
    bool UpdateDefaultRenderCallbacks();
    void RunPreRenderCallbacks();
    void RunPostRenderCallbacks();
-
-   void RenderTimerCallback();
 
 #if MAYA_API_VERSION >= 20190000
    class CustomCallback;
