@@ -174,7 +174,9 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                      # Ignore.
 
                   # Kill subprocess (recursively)
-                  subprocess.call(['taskkill', '/F', '/T', '/PID', str(p.pid)])
+                  subprocess.call(['pskill', '-t', str(p.pid)])
+                  # Get pskill above from here:
+                  # https://learn.microsoft.com/en-gb/sysinternals/downloads/pskill
                else:
                   p.send_signal(signal.SIGABRT)
          killer = threading.Timer(timeout, kill, [process])
