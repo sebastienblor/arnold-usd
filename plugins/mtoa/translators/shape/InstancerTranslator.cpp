@@ -34,7 +34,7 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
 {
    // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
    IsMasterInstance();
-   return AddArnoldNode("ginstance");
+   return AddArnoldNode("instancer");
 }
 
 
@@ -658,8 +658,8 @@ void CInstancerTranslator::PostExport(AtNode *node)
 
    int globalIndex = 0;
 
-   // create ONE instancer for ALL particles
-   AtNode* instancer = AddArnoldNode("instancer");
+   // instancer created in CInstancerTranslator::CreateArnoldNodes should be in node!
+   AtNode* instancer = node;
    // TODO: nelements, nkeys
    uint32_t nelements = m_particleIDMap.size();
    uint8_t nkeys = 1;
