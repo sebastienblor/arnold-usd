@@ -89,6 +89,7 @@ vars.AddVariables(
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
     BoolVariable('SWATCHES_SKIP_LICENSE', 'Skip License check for render swatches', True),
+    BoolVariable('STRICT_ARNOLD_VERSION', 'Fails to build if the Arnold version is not the expected one (based on dependencies.json)', False),
     PathVariable('BUILD_DIR',
                  'Directory where temporary build files are placed by scons', 
                  'build', PathVariable.PathIsDirCreate),
@@ -405,18 +406,36 @@ try:
 except ImportError:
    import simplejson as json
 
+expected_arnold_version = None
 try:
     json_data = open('dependencies.json')
     data = json.load(json_data)
-    if data['arnold'] != arnold_version:
+    expected_arnold_version = data['arnold']
+except:
+    pass
+
+if expected_arnold_version != arnold_version:
+    
+    if env['STRICT_ARNOLD_VERSION']:
+        print '''
+        You are trying to build with arnold %s instead
+        of the officially supported version %s. 
+        
+        Aborting the build. 
+        
+        To allow the compilation, you can set the 
+        build variable "STRICT_ARNOLD_VERSION" to False
+        ''' % (arnold_version, expected_arnold_version)
+    
+        Exit(1)
+    else:
         print '''
         You are building with arnold %s instead
         of the officially supported version %s. 
         You might encounter bugs, build errors 
         or undefined behavior.
-        ''' % (arnold_version, data['arnold'])
-except:
-    pass
+        ''' % (arnold_version, expected_arnold_version)
+
 
 ################################
 ## COMPILER OPTIONS
@@ -1136,9 +1155,9 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
                      exports     = 'env BUILD_BASE_DIR')
 SConscriptChdir(1)
 
-env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
-if not env['DISABLE_COMMON']:
-    env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
+env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'arnold.mtd'))
+# if not env['DISABLE_COMMON']:
+#     env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
 
 if system.os == 'windows':
@@ -1196,6 +1215,8 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'osl'), glob.glob(os.path.join(ARNOLD, 'osl', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), glob.glob(os.path.join(ARNOLD, 'materialx', '*')))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'ocio'), glob.glob(os.path.join(ARNOLD, 'ocio', '*')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'bin'), glob.glob(os.path.join('plugins', 'mtoa', 'arnold.mtd')))
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'plugins'), glob.glob(os.path.join('plugins', 'mtoa', 'cryptomatte.mtd')))
 # install all arnold sdk headers
 env.Install(os.path.join(TARGET_INCLUDE_PATH, 'arnold'), glob.glob(os.path.join(ARNOLD, 'include', '*')))
 
@@ -1572,7 +1593,8 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
-[os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
+[os.path.join('plugins', 'mtoa', 'arnold.mtd'), 'bin'],
+[os.path.join('plugins', 'mtoa', 'cryptomatte.mtd'), 'plugins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
@@ -1773,8 +1795,8 @@ if env['ENABLE_GPU_CACHE'] == 1:
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
 
-if not env['DISABLE_COMMON']:
-    PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
+# if not env['DISABLE_COMMON']:
+#     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
 
 for p in scriptfiles:
     (d, f) = os.path.split(p)
@@ -1847,7 +1869,7 @@ def create_installer(target, source, env):
         copiedNsi = os.path.join(tempdir, 'MtoA.nsi')
         shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), copiedNsi)
 
-        if MOD_SUFFIX:
+        if MOD_SUFFIX and int(maya_version_base) >= 2023:
             # edit the Mtoa.nsi installer to add an additional mod installation suffix
             nsiFile = open(copiedNsi, "rt")
             nsiFileData = nsiFile.read()
@@ -1943,7 +1965,7 @@ def create_installer(target, source, env):
         postCommand = "hdiutil detach /Volumes/ArnoldLicensing"
         postScript.write(postCommand)        
        
-        if MOD_SUFFIX:
+        if MOD_SUFFIX  and int(maya_version_base) >= 2023:
             mod_suffix_folder = maya_version + MOD_SUFFIX
             postScript.write('\n')
             postCommand = "SUFFIX_FOLDER=/Users/Shared/Autodesk/modules/maya/%s\n" % mod_suffix_folder

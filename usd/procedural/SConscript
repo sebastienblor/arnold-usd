@@ -42,10 +42,12 @@ usd_supported_modes = ['opt', 'debug', 'profile']
 
 usd_include_dir = os.path.join(usd_install_dir, 'include')
 boost_lib = os.path.join(usd_install_dir, 'lib')
-usd_lib_prefix = 'lib'
 
 mayaRoot = local_env['MAYA_ROOT']
 mayaVersion = int(local_env['MAYA_VERSION_BASE'])
+
+usd_version = local_env.get('USD_VERSION')
+usd_lib_prefix = 'lib'
 # For Maya 2022, python3 means python3.7
 # For Maya 2023, it is python3.9
 pythonMinor = '7' if mayaVersion < 2023 else '9'
@@ -60,7 +62,8 @@ else:
 
 if platform.system().lower() == 'windows':
     boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
-    boost_lib_name = 'boost_%s{}{}-vc141-mt-x64-1_70'.format(pythonVersion, pythonMinor)
+    msvc_version = '141' if mayaVersion <= 2023 else '142'
+    boost_lib_name = 'boost_%s{}{}-vc{}-mt-x64-1_70'.format(pythonVersion, pythonMinor, msvc_version) 
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
@@ -68,6 +71,9 @@ else:
         boost_lib_name = 'boost_%s'
     else:
         boost_lib_name = 'boost_%s{}{}'.format(pythonVersion, pythonMinor)
+
+if int(usd_version) >= 2208:
+    usd_lib_prefix += 'usd_'
 
 usd_procedural_folder = _targetPath.abspath
 
@@ -82,7 +88,8 @@ if not os.path.exists(usd_include_dir):
     
 
 usd_procedural = os.path.join(usd_procedural_folder, 'usd_cache_proc'+lib_extension)
-prefix_folder = 'tmp_proc_{}'.format(local_env.get('USD_VERSION'))
+
+prefix_folder = 'tmp_proc_{}'.format(usd_version)
 if pythonVersion == '2':
     prefix_folder += '_python2'
 def _usd_procedural(target, source, env):
@@ -109,7 +116,7 @@ def _usd_procedural(target, source, env):
       BUILD_USD_IMAGING_PLUGIN=False,
       MODE= local_env['MODE'],
       WARN_LEVEL='warn-only',
-      MSVC_VERSION='14.1',
+      MSVC_VERSION='14.1' if mayaVersion <= 2023 else '14.2',
       CXX_STANDARD='14',
       BOOST_INCLUDE=boost_include,
       BOOST_LIB_NAME=boost_lib_name,
@@ -140,7 +147,7 @@ def _usd_procedural(target, source, env):
     if platform.system().lower() == 'windows':
        args['PYTHON_LIB_NAME']   = 'python{}{}'.format(pythonVersion, pythonMinor)  
 
-    build_dir = 'build_proc_{}'.format(local_env.get('USD_VERSION'))
+    build_dir = 'build_proc_{}'.format(usd_version)
     if pythonVersion == '2':
         build_dir += '_python2'
     args['BUILD_DIR'] = build_dir
@@ -154,16 +161,17 @@ def _usd_procedural(target, source, env):
         raise SCons.Errors.UserError('arnold-usd scons file not found')
 
     usd_scons_site = os.path.join(usd_project, 'tools', 'scons-custom')
+
     # Note that these builds should run with a single thread, since MtoA's Scons is already running this job in parallel with others #MTOA-869
     args = ['-B', usd_scons, '--site-dir={}'.format(usd_scons_site), 'procedural-install', '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
-   
+    
     sub = subprocess.Popen([sys.executable] + args, cwd=usd_project)
     sub.communicate()
     if sub.returncode != 0:
         raise SCons.Errors.UserError('Error building arnold-usd subrepository!')
     return None
 
-procedural_action_log = 'Building USD {} procedural '.format(local_env.get('USD_VERSION'))
+procedural_action_log = 'Building USD {} procedural '.format(usd_version)
 if pythonVersion == '2':
     procedural_action_log += 'for Python 2'
 procedural_action_log += '....'

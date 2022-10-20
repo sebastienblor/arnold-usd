@@ -208,6 +208,9 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("coatRotation", label="Rotation", annotation="Coat Anisotropy Rotation")
         self.addSeparator()
         self.addControl("coatNormal", label="Normal", annotation="Coat Normal")
+        self.addSeparator()
+        self.addControl("coatAffectColor", label="Coat Affect Color", annotation="Coat Affect Color")
+        self.addControl("coatAffectRoughness", label="Coat Affect Roughness", annotation="Coat Affect Roughness")
         self.endLayout()
 
         self.beginLayout("Sheen", collapse=True)

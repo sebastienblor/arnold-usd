@@ -1236,6 +1236,9 @@ void COptionsTranslator::Export(AtNode *options)
          } else if (strcmp(paramName, "texture_use_existing_tx") == 0)
          {
             AiNodeSetBool(options, str::texture_use_existing_tx, sessionOptions.GetUseExistingTx());
+         } else if (strcmp(paramName, "texture_auto_generate_tx") == 0)
+         {
+            AiNodeSetBool(options, str::texture_auto_generate_tx, sessionOptions.GetAutoTx());
          } else if (strcmp(paramName, "meters_per_unit") == 0)
          {
             MDistance dist(1.0 / sessionOptions.GetScaleFactor(), MDistance::uiUnit());
@@ -1268,7 +1271,7 @@ void COptionsTranslator::Export(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
    AiNodeSetFlt(options, str::reference_time, 0.f);
-
+   
    AddProjectFoldersToSearchPaths(options);
    
    // BACKGROUND SHADER
@@ -1382,14 +1385,7 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetInt(options, str::region_min_y, height - maxy - 1);
       AiNodeSetInt(options, str::region_max_x, maxx);
       AiNodeSetInt(options, str::region_max_y, height - miny - 1);      
-   } else
-   {
-      AiNodeResetParameter(options, str::region_min_x);
-      AiNodeResetParameter(options, str::region_min_y);
-      AiNodeResetParameter(options, str::region_max_x);
-      AiNodeResetParameter(options, str::region_max_y);
-   }
-
+   } // otherwise, don't reset the region attributes as they were set in the previous attributes loop #MTOA-999
 
    // We used to apply outputOverscan only for batch & ass.
    MString overscanString = FindMayaPlug("outputOverscan").asString();

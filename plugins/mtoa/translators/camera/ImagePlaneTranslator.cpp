@@ -149,7 +149,11 @@ void CImagePlaneTranslator::Export(AtNode *node)
 
       AiNodeSetStr(image, str::filename, AtString(resolvedFilename.asChar()));
 
-      if (m_impl->m_session->IsFileExport() && (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
+      if (!m_impl->m_session->IsColorManagementEnabled())
+      {
+         // If color management is disabled in the Maya preferences, we want an empty color space here
+         AiNodeSetStr(image, str::color_space, AtString());
+      } else if (m_impl->m_session->IsFileExport() && (GetSessionOptions().outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
       {   
          // if the export option for color managers is turned off, consider that color management is disabled #2995
          // here we want to reset the color_space attribute so that it's left to arnold's "automatic" default mode,

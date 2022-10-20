@@ -507,6 +507,12 @@ void CRenderViewMtoA::RenderChanged()
       MGlobal::executeCommandOnIdle("refresh -f;");
 }
 
+void CRenderViewMtoA::RenderTimerCallback()
+{
+   if (m_viewportRendering)
+      MGlobal::executeCommandOnIdle("refresh -cv -f;");
+}
+
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
@@ -517,6 +523,9 @@ void CRenderViewMtoA::UpdateSceneChanges()
 {
    if (m_session)
    {
+      if (UpdateDefaultRenderCallbacks())
+         RunPreRenderCallbacks();
+
       m_session->Update();
       SetFrame((float)m_session->GetOptions().GetExportFrame());
    }
@@ -562,9 +571,6 @@ void CRenderViewMtoA::UpdateFullScene()
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-   MGlobal::executeCommand(renderGlobals.postMel);
-   MGlobal::executeCommand(renderGlobals.postRenderMel);
-
    // Make sure the caches are flushed (#3369)
    AiUniverseCacheFlush(nullptr, AI_CACHE_ALL);
 
@@ -603,9 +609,14 @@ void CRenderViewMtoA::UpdateFullScene()
       }
 
       m_session->SetExportCamera(renderCamera, false);
+      
+      m_preRenderCallbacks.clear();
+      m_postRenderCallbacks.clear();
 
-      MGlobal::executeCommand(renderGlobals.preMel);
-      MGlobal::executeCommand(renderGlobals.preRenderMel);
+      // populate the pre and postRenderMel calblack arrays
+      // and run the preRender callbacks before exporting the scene if they are updated
+      if (UpdateDefaultRenderCallbacks())
+         RunPreRenderCallbacks();
 
       if (!renderGlobals.renderAll)
       {
@@ -630,10 +641,12 @@ void CRenderViewMtoA::UpdateFullScene()
 
    UpdateRenderCallbacks();
 }
+
 void CRenderViewMtoA::SetCameraName(const MString &name)
 {
    s_lastCameraName=name.asChar();
 }
+
 void CRenderViewMtoA::UpdateRenderCallbacks()
 {
    if (!m_session)
@@ -659,6 +672,92 @@ void CRenderViewMtoA::UpdateRenderCallbacks()
    m_hasPostProgressiveStep = (m_postProgressiveStep != "");
    m_hasProgressiveRenderStarted = (m_progressiveRenderStarted != "");
    m_hasProgressiveRenderFinished = (m_progressiveRenderFinished != "");
+}
+
+bool CRenderViewMtoA::UpdateDefaultRenderCallbacks()
+{
+   bool result = false;
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+   // clear the preRender callbacks if they differ from the current set callbacks
+   if (m_preRenderCallbacks.length() == 3)
+   {
+      if (renderGlobals.preMel != m_preRenderCallbacks[0] ||
+          renderGlobals.preRenderLayerMel != m_preRenderCallbacks[1] ||
+          renderGlobals.preRenderMel != m_preRenderCallbacks[2]
+      )
+      {
+         m_preRenderCallbacks.clear();
+      }
+   }
+
+   // clear the postRender callbacks if they differ from the current set callbacks
+   if (m_postRenderCallbacks.length() == 3)
+   {
+      if (renderGlobals.postRenderMel != m_postRenderCallbacks[0] ||
+          renderGlobals.postRenderLayerMel != m_postRenderCallbacks[1] ||
+          renderGlobals.postMel != m_postRenderCallbacks[2]
+      )
+      {
+         m_postRenderCallbacks.clear();
+      }
+   }
+
+   if (!m_preRenderCallbacks.length())
+   {
+      if (renderGlobals.preMel.length() > 0)
+         m_preRenderCallbacks.append(renderGlobals.preMel);
+      if (renderGlobals.preRenderLayerMel.length() > 0)
+         m_preRenderCallbacks.append(renderGlobals.preRenderLayerMel);
+      if (renderGlobals.preRenderMel.length() > 0)
+         m_preRenderCallbacks.append(renderGlobals.preRenderMel);
+      
+      result = true;
+   }
+
+   if (!m_postRenderCallbacks.length())
+   {
+      if (renderGlobals.postRenderMel.length() > 0)
+         m_postRenderCallbacks.append(renderGlobals.postRenderMel);
+      if (renderGlobals.postRenderLayerMel.length() > 0)
+         m_postRenderCallbacks.append(renderGlobals.postRenderLayerMel);
+      if (renderGlobals.postMel.length() > 0)
+         m_postRenderCallbacks.append(renderGlobals.postMel);
+   
+      result = true;
+   }
+
+   return result;
+ 
+}
+
+void CRenderViewMtoA::RunPreRenderCallbacks()
+{
+   int numPreRenderCallbacks = m_preRenderCallbacks.length();
+   if (numPreRenderCallbacks)
+   {
+      MString melCmd = "";
+      for (int i = 0;i < numPreRenderCallbacks;i++ )
+      {
+         melCmd += m_preRenderCallbacks[i] + ";";
+      }
+      MGlobal::executeCommand(melCmd);
+   }
+}
+
+void CRenderViewMtoA::RunPostRenderCallbacks()
+{
+   int numpostRenderCallbacks = m_postRenderCallbacks.length();
+   if (numpostRenderCallbacks)
+   {
+      MString melCmd = "";
+      for (int i = 0;i < numpostRenderCallbacks;i++ )
+      {
+         melCmd += m_postRenderCallbacks[i] + ";";
+      }
+      MGlobal::executeCommandOnIdle(melCmd);
+   }
 }
 
 static void GetSelectionVector(std::vector<AtNode *> &selectedNodes, CArnoldRenderViewSession *session)
@@ -1116,11 +1215,11 @@ void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 
    if (m_session)
    {
+      // only execute postRender callbacks if it hasn't run before
+      RunPostRenderCallbacks();
+      m_postRenderCallbacks.clear();
+      m_preRenderCallbacks.clear();
 
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-      MGlobal::executeCommand(renderGlobals.postRenderMel);
-      MGlobal::executeCommand(renderGlobals.postMel);
       m_session->Clear();  
    }
 }
@@ -1862,8 +1961,30 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
    if (s_sequenceData && s_sequenceData->renderStarted) {
       s_sequenceData->renderFinished = true;
    }
+
+   if (m_postRenderCallbacks.length() || m_preRenderCallbacks.length())
+   {
+      // only execute the postRenderMEL calls if we are not running in IPR mode and
+      // the status is AI_RENDER_STATUS_FINISHED
+      AtRenderStatus status = AiRenderGetStatus(GetRenderSession());
+      MString isIPRRunning = m_session->GetRenderViewOption("Run IPR");
+      if (isIPRRunning == MString("0") && status == AI_RENDER_STATUS_FINISHED)
+      {
+         RunPostRenderCallbacks();      
+         m_postRenderCallbacks.clear();
+         m_preRenderCallbacks.clear();
+      }
+   }
+   
    if (!m_hasProgressiveRenderFinished) return;
    MGlobal::executeCommand(m_progressiveRenderFinished, false, true);
+}
+
+void CRenderViewMtoA::IPRStopped()
+{
+   RunPostRenderCallbacks();
+   m_postRenderCallbacks.clear();
+   m_preRenderCallbacks.clear();
 }
 
 void CRenderViewMtoA::Resize(int width, int height, bool drawableArea)

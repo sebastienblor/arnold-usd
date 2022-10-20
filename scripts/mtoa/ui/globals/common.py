@@ -35,7 +35,6 @@ import maya.OpenMayaRender
 import maya.mel as mel
 import mtoa.melUtils as mu
 
-from maya.app.stereo import stereoCameraRig
 _maya_version = utils.getMayaVersion()
 if _maya_version >= 2019:
     import maya.app.general.updateRenderableCamerasList as updateCameras
@@ -58,9 +57,17 @@ CAM_MENU_IGNORE     = 4
 
 
 def _listStereoRigs():
-    return stereoCameraRig.listRigs(True) or []
+    # Ensure we don't import the stereo cams module if it's not loaded MTOA-1154
+    if cmds.pluginInfo("stereoCamera", query=True, loaded=True):
+        from maya.app.stereo import stereoCameraRig
+        return stereoCameraRig.listRigs(True) or []
+    return []
 def _isMono(camera):
-    return not stereoCameraRig.rigRoot(camera)
+    # Ensure we don't import the stereo cams module if it's not loaded MTOA-1154
+    if cmds.pluginInfo("stereoCamera", query=True, loaded=True):
+        from maya.app.stereo import stereoCameraRig
+        return not stereoCameraRig.rigRoot(camera)
+    return True
 
 def getStereoLeftCamera(camera):
     result = cmds.listConnections('{}.leftCam'.format(camera), d=False, s=True)                

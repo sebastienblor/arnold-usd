@@ -81,17 +81,20 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
       }
       else if (arnoldNodeTypeName == "driver")
       {
-        if  (arnold == MString("imager_light_mixer") )
-        {
+         AtString subtype;
+         AiMetaDataGetStr(arnoldNodeEntry, AtString(), str::subtype, &subtype);
+
+         if  (arnold == MString("imager_light_mixer") )
+         {
             creator = CImagerLightMixer::creator;
             initialize = CImagerLightMixer::NodeInitializer;
-        }
-        else if (arnold == MString("imager_color_curves") )
-        {
+         }
+         else if (arnold == MString("imager_color_curves") )
+         {
             creator = CImagerColorCurvesTranslator::creator;
             initialize = CImagerColorCurvesTranslator::NodeInitializer;
-        }
-         else if (arnold.length() > 7 && arnold.substringW(0, 6) == MString("imager_")) 
+         }
+         else if (subtype == str::imager) 
          {
             creator = CImagerTranslator::creator;
             initialize = CImagerTranslator::NodeInitializer;

@@ -91,6 +91,9 @@ public:
    virtual void PostProgressiveStep();
    virtual void ProgressiveRenderStarted();
    virtual void ProgressiveRenderFinished();
+   virtual void IPRStopped();
+
+   virtual void RenderTimerCallback();
 
    static void SelectionChangedCallback(void *);
    static void RenderLayerChangedCallback(void *);
@@ -117,6 +120,9 @@ public:
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
+   bool UpdateDefaultRenderCallbacks();
+   void RunPreRenderCallbacks();
+   void RunPostRenderCallbacks();
 
 #if MAYA_API_VERSION >= 20190000
    class CustomCallback;
@@ -149,6 +155,8 @@ private:
    MString m_postProgressiveStep;
    MString m_progressiveRenderStarted;
    MString m_progressiveRenderFinished;
+   MStringArray m_preRenderCallbacks;
+   MStringArray m_postRenderCallbacks;
 };
 
 #ifndef MTOA_DISABLE_RV

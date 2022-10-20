@@ -223,6 +223,10 @@ public:
    virtual void PostProgressiveStep() {}
    virtual void ProgressiveRenderStarted() {}
    virtual void ProgressiveRenderFinished() {}
+   virtual void IPRStopped() {}
+
+   // callback for when the render timer is triggered at every second
+   virtual void RenderTimerCallback() {}
 
    // Function used by Maya color picking.
    AtRGBA GetWidgetColorAtPosition(unsigned posX, unsigned posY, bool viewTransform, QWidget* pickedWidget = NULL);

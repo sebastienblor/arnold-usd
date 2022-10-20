@@ -43,6 +43,7 @@
 #include "commands/ArnoldRenderToTextureCmd.h"
 #include "commands/ArnoldExportToMaterialXCmd.h"
 #include "commands/ArnoldExportOperatorsCmd.h"
+#include "commands/ArnoldExportImagersCmd.h"
 #include "commands/ArnoldPluginCmd.h"
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
@@ -164,7 +165,8 @@ namespace // <anonymous>
       {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
       {"arnoldViewport", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax},
       {"arnoldExportToMaterialX", CArnoldExportToMaterialXCmd::creator, CArnoldExportToMaterialXCmd::newSyntax},
-      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax}
+      {"arnoldExportOperators", CArnoldExportOperatorsCmd::creator, CArnoldExportOperatorsCmd::newSyntax},
+      {"arnoldExportImagers", CArnoldExportImagersCmd::creator, CArnoldExportImagersCmd::newSyntax}
 #ifdef ENABLE_ALEMBIC
       ,{"arnoldExportAlembic", CArnoldExportAbcCmd::creator, CArnoldExportAbcCmd::createSyntax}
 #endif
@@ -809,7 +811,7 @@ namespace // <anonymous>
 #if MAYA_API_VERSION >= 20210000
          int ltAbout = 0;
 #ifdef MOD_SUFFIX
-         MString aboutCmd = MString("about -"+MString(MOD_SUFFIX)+"Version");
+         MString aboutCmd = MString("proc int getLtVersion(){ int $i=1; if (`about -apiVersion` >= 20230200){ $i = `about -"+MString(MOD_SUFFIX)+"Version`; } else { $i=`about -ltVersion`; } return $i;} getLtVersion");
 #else
          MString aboutCmd = MString("about -ltVersion");
 #endif
@@ -1181,12 +1183,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    bool isBatch = IsBatch();
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
-
-   // Load metadata for builtin (mtoa.mtd)
-   // FIXME to be moved to bin/arnold.mtd so that it's loaded automatically by arnold
-   MString loadpath = plugin.loadPath();
-   MString metafile = loadpath + "/" + "mtoa.mtd";
-   SetMetafile(metafile);
 
    ArnoldBegin(GetStartupLogLevel());
 

@@ -18,12 +18,12 @@ from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
 from mtoa.ui.qt import MtoAStyle
 
 from mtoa.ui.qt.treeView import *
-
+import arnold as ai
 
 IMAGER_MIME_TYPE = "application/arnold/imager"
 MAX_WIDTH = 16777215
 IMAGERS_ATTR = "defaultArnoldRenderOptions.imagers"
-
+defaultFolder = ""
 
 class ImagerStackView(BaseTreeView):
     """docstring for ProceduralTree"""
@@ -601,6 +601,14 @@ class ImagersUI(QtWidgets.QFrame):
 
         self.removeImagerButton.pressed.connect(self.removeImagerAction)
 
+        self.exportImagersButton = QtWidgets.QPushButton("Export Imagers")
+        self.toolBar.layout().addWidget(self.exportImagersButton)
+        self.exportImagersButton.released.connect(self.exportImagersAction)
+
+        self.importImagersButton = QtWidgets.QPushButton("Import Imagers")
+        self.toolBar.layout().addWidget(self.importImagersButton)
+        self.importImagersButton.released.connect(self.importImagersAction)
+        
         self.toolBar.layout().addItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
         self.splitter = QtWidgets.QSplitter(self)
@@ -847,6 +855,26 @@ class ImagersUI(QtWidgets.QFrame):
             cmdsLbl = re.sub(r'((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))', r' \1', imager.replace("aiImager", ""))
             self.imagerMenu.addAction(cmdsLbl)
 
+    def importImagersAction(self):
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+
+        objFilter = "ASS File (*.ass);; USD File (*.usd *.usda *.usdc)"
+        ret = cmds.fileDialog2(cap='Import Imagers',okc='Select',fm=1,ff=objFilter,dir=defaultFolder) or []
+        if len(ret):
+            defaultFolder = ret[0]
+            cmds.arnoldImportAss(f=ret[0],  mask=ai.AI_NODE_DRIVER)
+
+    def exportImagersAction(self):
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+        objFilter = "ASS File (*.ass);; USD File (*.usd *.usda *.usdc);;"
+        
+        ret = cmds.fileDialog2(cap='Select File',okc='Select',ff=objFilter,fm=0,dir=defaultFolder) or []
+        if len(ret) > 0:
+            cmds.arnoldExportImagers(filename = ret[0])
 
 def createImagersWidgetForARV():
     imagerShadersFrame = cmds.frameLayout('arnoldImagersFrame#', label='Imagers', borderVisible=False, labelVisible=False)

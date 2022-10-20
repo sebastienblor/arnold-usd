@@ -343,7 +343,7 @@ public:
    /// Get the status of global motion blur for a specific motion type
    bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY);
    /// Get the Maya Object containing the Arnold global options
-   const MObject& GetArnoldRenderOptions();
+   const MObject& GetArnoldRenderOptions() const;
    /// Get the shutter length for motion blur
    double GetMotionByFrame();
    /// Get the list of motion steps that being processed by current export

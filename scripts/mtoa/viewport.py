@@ -1,13 +1,14 @@
 # import tempfile
 # import datetime
+from genericpath import exists
 import os
 from functools import partial
 import maya.cmds as cmds         
 import maya.mel as mel         
-import maya.utils as utils     
 
 import mtoa.aovs as aovs
 import mtoa.core as core
+import mtoa.utils as utils     
 import mtoa.callbacks as callbacks
 
 CROP_CTX = 'arnoldViewportRegionToolContext1'
@@ -47,6 +48,7 @@ def getViewportOptions():
     """
     options = {}
     options['viewportShowHUD'] = True
+    options['viewportHUDColor'] = 18 # Yellow by default
 
     for option, default in options.items():
         if not cmds.optionVar(exists="arnold_{}".format(option)):
@@ -66,8 +68,17 @@ def setViewportOptions(ui, option):
         ui (str): UI to get value from
         option (str): option to set
     """
+    value=None
+    if cmds.checkBoxGrp(ui, exists=True):
+        value = cmds.checkBoxGrp(ui, query=True, value1=True)
+    elif cmds.colorIndexSliderGrp(ui, exists=True):
+        value = cmds.colorIndexSliderGrp(ui, query=True, value=True)
+
+    if value == None:
+        return
+
     options = {}
-    options[option] = cmds.checkBoxGrp(ui, query=True, value1=True)
+    options[option] = value
 
     for option, value in options.items():
         if type(value) in [bool, int]:
@@ -84,7 +95,9 @@ def applyOptions():
     for option, value in options.items():
         if option == 'viewportShowHUD':
             cmds.arnoldViewport(hud=value)
-            cmds.refresh(cv=True, force=True)    
+        elif option == 'viewportHUDColor':
+            cmds.arnoldViewport(hc=value)
+        cmds.refresh(cv=True, force=True)
 
 def arnoldViewportUpdateOptionsUI():
     """Update the arnold viewport options UI, set the values of the controls
@@ -92,6 +105,7 @@ def arnoldViewportUpdateOptionsUI():
     options = getViewportOptions()
 
     cmds.checkBoxGrp("arnoldViewportHUDCB", edit=True, value1=options['viewportShowHUD'])
+    cmds.colorIndexSliderGrp("arnoldViewportHUDColorIndexCtrl", edit=True, value=options['viewportHUDColor'])
 
 def arnoldViewOverrideOptionBox():
     """Main call to generate Arnold Viewport options UI
@@ -125,6 +139,9 @@ def arnoldViewOverrideOptionBox():
     arnoldViewportHUDCB = cmds.checkBoxGrp("arnoldViewportHUDCB",
                      numberOfCheckBoxes=1,
                      label="Show Status in HUD")
+    
+    arnoldViewportHUDColorIndexCtrl = cmds.colorIndexSliderGrp("arnoldViewportHUDColorIndexCtrl",
+                     label='Select HUD Color', min=0, max=20, value=10)
 
     cmds.setParent("..")
     cmds.setParent("..")
@@ -134,7 +151,11 @@ def arnoldViewOverrideOptionBox():
 
     cmds.checkBoxGrp("arnoldViewportHUDCB",
                      edit=True,
-                     cc=lambda arg=None, ui=arnoldViewportHUDCB, option='viewportShowHUD':setViewportOptions(ui, option))
+                     cc=lambda  arg=None, ui=arnoldViewportHUDCB, option='viewportShowHUD':setViewportOptions(ui, option))
+
+    cmds.colorIndexSliderGrp("arnoldViewportHUDColorIndexCtrl",
+                     edit=True,
+                     cc=lambda arg=None, ui=arnoldViewportHUDColorIndexCtrl, option='viewportHUDColor':setViewportOptions(ui, option))
 
     if os.path.exists(totalString):
             cmds.window(windowName, edit=True, widthHeight=[456,400], topLeftCorner=[220,220])
@@ -281,6 +302,7 @@ class ArnoldViewportRenderControl():
                     rendererOverrideName=True) != VIEW_OVERRIDE:
                 cmds.modelEditor(arnold_panel, e=True,
                         rendererOverrideName=VIEW_OVERRIDE)
+                applyOptions()
 
             self.toggle_crop(arnold_panel, False, False)
             # constantly switching IPr on and off can cause crashes
@@ -363,8 +385,8 @@ class ArnoldViewportRenderControl():
                 self.set_ipr(ON)
 
         cmds.refresh(cv=True, force=True)
-
-        self.update_icon_bar_enable_state(arnold_panel, state)
+        if not self.get_option_state("toggle", arnold_panel) and stop_ipr:
+            self.update_icon_bar_enable_state(arnold_panel, state)
 
         # make sure the icon state reflects the actual tool state.
         self.update_button_state("avp_crop", arnold_panel, state)
