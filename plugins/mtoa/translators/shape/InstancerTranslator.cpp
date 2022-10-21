@@ -736,7 +736,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
 	    AiArraySetPtr(nodes, partID, obj);
             // AiNodeSetBool(instance, str::inherit_xform, true);
             // AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
-	    AiArraySetMtx(instance_matrix, partID, AiArrayGetMtx(m_vec_matrixArrays[j], 0));
+            AtMatrix origM = AiNodeGetMatrix(obj, str::matrix);
+            AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
+            AtMatrix total_matrix = AiM4Mult(origM, particleMatrix);
+	    AiArraySetMtx(instance_matrix, partID, total_matrix);
          }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
