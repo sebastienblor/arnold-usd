@@ -312,20 +312,6 @@ env['ENABLE_ALEMBIC'] = 0
 
 arnold_version    = get_arnold_version(ARNOLD_API_INCLUDES)
 env['ARNOLD_VERSION'] = arnold_version
-clm_version = 1
-
-p = subprocess.Popen(os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), shell=True, stdout = subprocess.PIPE)
-retcode = p.wait()
-for line in p.stdout:
-    if 'clm-' in line:
-        clmIndex = line.find('clm-')
-        if line[clmIndex + 4:clmIndex + 5] == '2':
-            clm_version = 2
-
-if clm_version == 2:
-    env.Append(CPPDEFINES = Split('CLIC_V2')) 
-else:
-    env.Append(CPPDEFINES = Split('CLIC_V1')) 
 
 if env['ENABLE_AXFTOA']:
     env.Append(CPPDEFINES = Split('ENABLE_AXFTOA')) 
@@ -381,7 +367,6 @@ print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
-print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os)
 print 'Threads        : %s' % GetOption('num_jobs')
