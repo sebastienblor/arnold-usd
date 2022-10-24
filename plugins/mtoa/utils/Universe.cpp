@@ -41,6 +41,8 @@ bool ArnoldBegin(int logFlags)
    {
       // Report MtoA product usage to ADP
       MtoAADPPayloads::ADPPostProductMetadata();
+      if (!logFlags)
+	AiMsgSetConsoleFlags(NULL, AI_LOG_NONE);
 
       AiBegin(AI_SESSION_INTERACTIVE);
       MtoaSetupLogging(logFlags);
