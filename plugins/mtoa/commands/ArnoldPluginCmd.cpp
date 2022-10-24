@@ -241,13 +241,10 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    }
    else if(args.isFlagSet("getClmVersion"))
    {
-#ifdef CLIC_V1
-      setResult(MString("1"));
-#endif
-#ifdef CLIC_V2
+      // set to the main version of CLM used by arnold core
       setResult(MString("2"));
-#endif
-   } else if(args.isFlagSet("listMatchMetadata"))
+   } 
+   else if(args.isFlagSet("listMatchMetadata"))
    {
       MString metadataName, metadataValue;
       args.getFlagArgument("listMatchMetadata", 0, metadataName);
