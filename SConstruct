@@ -38,7 +38,7 @@ elif system.os == 'linux':
     # linux conventions would be to actually use lib for dynamic libraries!
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
     glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
-    glew_default_include = '/usr/include'
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
 elif system.os == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
     arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
