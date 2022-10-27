@@ -133,7 +133,7 @@ bool isRenderable(const MObject & object);
 // for iDepth > 1
 MString stripNamespaces(const MString & iNodeName, unsigned int iDepth);
 
-// returns the Help string for CArnoldExportAbcCmd
+// returns the Help string for AbcExport
 MString getHelpText();
 
 } // namespace util
