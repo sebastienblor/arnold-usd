@@ -30,7 +30,7 @@ void InstallNodes()
                          "mtoa",
                          (AtNodeMethods*) mtoa_driver_mtd,
                          AI_VERSION);
-  
+
    }
 }
 
@@ -41,13 +41,15 @@ bool ArnoldBegin(int logFlags)
    {
       // Report MtoA product usage to ADP
       MtoAADPPayloads::ADPPostProductMetadata();
+      if (!logFlags)
+         AiMsgSetConsoleFlags(NULL, AI_LOG_NONE);
 
       AiBegin(AI_SESSION_INTERACTIVE);
       MtoaSetupLogging(logFlags);
 
-       MString mayaVersion = MGlobal::mayaVersion();     
-       MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
-       AiSetAppString(appString.asChar());
+      MString mayaVersion = MGlobal::mayaVersion();
+      MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
+      AiSetAppString(appString.asChar());
 
       return true;
    }
