@@ -1734,7 +1734,7 @@ bool isPerParticleAttributes( const MFnDependencyNode &iNode, MObject attrObj )
 {
     MStatus status(MS::kSuccess);
 
-    if ( !iNode.hasObj(MFn::kParticle))
+    if ( !iNode.object().hasFn(MFn::kParticle))
     {
         return false;
     }
@@ -2216,7 +2216,7 @@ bool AttributesWriter::hasAnyAttr(const MFnDependencyNode & iNode,
 
     std::vector< PlugAndObjArray > staticPlugObjArrayVec;
 
-    if (iNode.hasObj(MFn::kParticle))
+    if (iNode.object().hasFn(MFn::kParticle))
     {
         // Particles always have extra attributes
         return true;
