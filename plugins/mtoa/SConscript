@@ -190,7 +190,7 @@ if local_env['ENABLE_ALEMBIC']:
                                  File(os.path.join(openexr_lib_dir, 'libImath-2_4.a')), 
                                  File(os.path.join(openexr_lib_dir, 'libHalf-2_4.a')),
                                  File(os.path.join(openexr_lib_dir, 'libIex-2_4.a'))])
-        # local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+        local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     elif system.os == 'windows':
         local_env.Append(LIBS = ['Alembic.lib', 
                                  'Half-2_4.lib',
