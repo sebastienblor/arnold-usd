@@ -418,7 +418,6 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    MVector origin = m_impl->m_session->GetOptions().GetOrigin();
    if (origin.length() > 0.0)
    {
-      // (-1.0) * m_impl->m_session->GetOptions().GetOrigin()
       AtMatrix matrix = AiM4Translation(AtVector(-origin.x, -origin.y, -origin.z));
       AiNodeSetMatrix(curve, str::matrix, matrix);
    }
