@@ -415,6 +415,12 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    // We don't export the matrix, as it's already considered in each curves inclusiveMatrix.
    // Since the curve collector is necessarily the curves parent, we would be applying the matrix twice (#3228)
    //ExportMatrix(curve);
+   MVector origin = m_impl->m_session->GetOptions().GetOrigin();
+   if (origin.length() > 0.0)
+   {
+      AtMatrix matrix = AiM4Translation(AtVector(-origin.x, -origin.y, -origin.z));
+      AiNodeSetMatrix(curve, str::matrix, matrix);
+   }
    ProcessRenderFlags(curve);
 
    MPlug plug;
