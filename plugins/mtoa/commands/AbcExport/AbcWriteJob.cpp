@@ -366,7 +366,7 @@ bool AbcWriteJob::checkCurveGrp()
     return true;
 }
 
-void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMembersMap& gmMap)
+void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent)
 {
     MStatus status;
 
@@ -412,7 +412,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
        }
 
         MayaNurbsCurveWriterPtr nurbsCurve;
-        if (iParent == nullptr)
+        if (iParent == NULL)
         {
             Alembic::Abc::OObject obj = mRoot.getTop();
             nurbsCurve = MayaNurbsCurveWriterPtr(new MayaNurbsCurveWriter(
@@ -458,7 +458,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
         }
 
         // parented to the root case
-        if (iParent == nullptr)
+        if (iParent == NULL)
         {
             Alembic::Abc::OObject obj = mRoot.getTop();
             trans = MayaTransformWriterPtr(new MayaTransformWriter(
@@ -491,7 +491,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
         {
             if (mCurDag.push(mCurDag.child(i)) == MS::kSuccess)
             {
-                setup(iFrame, trans, gmMap);
+                setup(iFrame, trans);
                 mCurDag.pop();
             }
         }
@@ -513,7 +513,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != nullptr)
+        if (iParent != NULL)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaLocatorWriterPtr locator(new MayaLocatorWriter(
@@ -557,7 +557,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != nullptr)
+        if (iParent != NULL)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaPointPrimitiveWriterPtr particle(new MayaPointPrimitiveWriter(
@@ -603,11 +603,11 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != nullptr)
+        if (iParent != NULL)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaMeshWriterPtr mesh(new MayaMeshWriter(mCurDag, obj,
-                mShapeTimeIndex, mArgs, gmMap));
+                mShapeTimeIndex, mArgs));
 
             if (mesh->isAnimated() && mShapeTimeIndex != 0)
             {
@@ -644,6 +644,18 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             AttributesWriterPtr attrs = mesh->getAttrs();
             if (mShapeTimeIndex != 0 && attrs->isAnimated())
                 mShapeAttrList.push_back(attrs);
+
+            if (mShapeTimeIndex != 0)
+            {
+                std::vector< MayaFaceSetWriterPtr >::iterator it;
+                for (it = mesh->beginFaces(); it != mesh->endFaces(); ++it)
+                {
+                    if ((*it)->getAttrs() && (*it)->getAttrs()->isAnimated())
+                    {
+                        mShapeAttrList.push_back((*it)->getAttrs());
+                    }
+                }
+            }
         }
         else
         {
@@ -669,7 +681,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != nullptr)
+        if (iParent != NULL)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaCameraWriterPtr camera(new MayaCameraWriter(
@@ -711,7 +723,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != nullptr)
+        if (iParent != NULL)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaNurbsSurfaceWriterPtr nurbsSurface(new MayaNurbsSurfaceWriter(
@@ -757,7 +769,7 @@ void AbcWriteJob::setup(double iFrame, MayaTransformWriterPtr iParent, GetMember
             return;
         }
 
-        if (iParent != nullptr)
+        if (iParent != NULL)
         {
             Alembic::Abc::OObject obj = iParent->getObject();
             MayaNurbsCurveWriterPtr nurbsCurve(new MayaNurbsCurveWriter(
@@ -824,23 +836,26 @@ bool AbcWriteJob::eval(double iFrame)
             userInfo = "";
         }
 
+        MTime sec(1.0, MTime::kSeconds);
+        double fps(sec.as(MTime::uiUnit()));
+
 #ifdef ALEMBIC_WITH_HDF5
         if (mAsOgawa)
         {
             mRoot = CreateArchiveWithInfo(Alembic::AbcCoreOgawa::WriteArchive(),
-                mFileName, appWriter, userInfo,
+                mFileName, fps, appWriter, userInfo,
                 Alembic::Abc::ErrorHandler::kThrowPolicy);
         }
         else
         {
             mRoot = CreateArchiveWithInfo(Alembic::AbcCoreHDF5::WriteArchive(),
-                mFileName, appWriter, userInfo,
+                mFileName, fps, appWriter, userInfo,
                 Alembic::Abc::ErrorHandler::kThrowPolicy);
         }
 #else
         // just write it out as Ogawa
         mRoot = CreateArchiveWithInfo(Alembic::AbcCoreOgawa::WriteArchive(),
-            mFileName, appWriter, userInfo,
+            mFileName, fps, appWriter, userInfo,
             Alembic::Abc::ErrorHandler::kThrowPolicy);
 #endif
 
@@ -859,12 +874,11 @@ bool AbcWriteJob::eval(double iFrame)
         mArgs.setFirstAnimShape = (iFrame == *mShapeFrames.begin());
 
         util::ShapeSet::const_iterator end = mArgs.dagPaths.end();
-        GetMembersMap gmMap;
         for (util::ShapeSet::const_iterator it = mArgs.dagPaths.begin();
             it != end; ++it)
         {
             mCurDag = *it;
-            setup(iFrame * util::spf(), MayaTransformWriterPtr(), gmMap);
+            setup(iFrame * util::spf(), MayaTransformWriterPtr());
         }
         perFrameCallback(iFrame);
     }
@@ -874,7 +888,7 @@ bool AbcWriteJob::eval(double iFrame)
         bool foundShapeFrame = false;
         if (checkFrame != mShapeFrames.end())
         {
-            assert(mRoot != nullptr);
+            assert(mRoot != NULL);
             foundShapeFrame = true;
             mShapeSamples ++;
             double curTime = iFrame * util::spf();

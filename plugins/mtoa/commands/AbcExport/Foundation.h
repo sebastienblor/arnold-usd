@@ -58,6 +58,7 @@
 #include <maya/MFnAmbientLight.h>
 #include <maya/MFnAttribute.h>
 #include <maya/MFnCamera.h>
+#include <maya/MFnComponentListData.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MFnData.h>
 #include <maya/MFnDependencyNode.h>
@@ -132,6 +133,6 @@
 #include <assert.h>
 
 
-#define CArnoldExportAbcCmd_VERSION "1.0"
+#define CArnoldExportAbcCmd_VERSION "1.1"
 
 #endif  // CArnoldExportAbcCmd_Foundation_h
