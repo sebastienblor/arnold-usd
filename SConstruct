@@ -378,6 +378,8 @@ if system.os == 'linux':
             p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
             compiler_version, err = p.communicate()
             print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
+        if system.linux_distro['name'] != None:
+            print("Linux distro\t: {name} {version}".format(**system.linux_distro))
     except:
         pass
 elif system.os == 'windows':
@@ -488,7 +490,7 @@ if env['COMPILER'] == 'gcc':
     if system.os == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
         # for Maya < 2023 we need to make sure we compile with the old ABI in RH8
-        if int(maya_version_base) <= 2023 and system.linux_distro['version'][0] >= '8':
+        if int(maya_version_base) <= 2023 and (system.linux_distro['version'] and system.linux_distro['version'][0] >= '8'):
             env.Append(CXXFLAGS = Split('-D_GLIBCXX_USE_CXX11_ABI=0'))
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     

@@ -49,8 +49,7 @@ if is_linux:
    if ospath.exists(linux_release_file):
       with open(linux_release_file) as f:
          linux_distro_str = f.read()
-
-      m = re.match("^([\w\s]+) release (\d\.\d) \(([\w\s]+)\)", linux_distro_str)
+      m = re.match("^([\w\s]+) release ([\d\.]+) \(([\w\s]+)\)", linux_distro_str)
       if m:
          g = m.groups()
          linux_distro = {'name':g[0], 'version':g[1].split('.')}
