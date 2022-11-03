@@ -12,6 +12,7 @@ import signal
 import sys
 import threading
 import time
+import re
 from os import path as ospath
 
 # Obtain information about the system only once, when loaded
@@ -40,6 +41,18 @@ LIBRARY_PATH = {
    _darwin : 'DYLD_LIBRARY_PATH',
    _windows: 'PATH'
 }.get(os, None)
+
+linux_distro = {'name':None, 'version':None}
+if is_linux:
+   linux_distro_str = ""
+   linux_release_file = "/etc/redhat-release"
+   if ospath.exists(linux_release_file):
+      with open(linux_release_file) as f:
+         linux_distro_str = f.read()
+      m = re.match("^([\w\s]+) release ([\d\.]+) \(([\w\s]+)\)", linux_distro_str)
+      if m:
+         g = m.groups()
+         linux_distro = {'name':g[0], 'version':g[1].split('.')}
 
 # This "safe" version of "print" works atomically, avoiding the mess caused by
 # multiple threads writing at the same time. It has the same declaration and
@@ -174,7 +187,9 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                      # Ignore.
 
                   # Kill subprocess (recursively)
-                  subprocess.call(['taskkill', '/F', '/T', '/PID', str(p.pid)])
+                  subprocess.call(['pskill', '-t', str(p.pid)])
+                  # Get pskill above from here:
+                  # https://learn.microsoft.com/en-gb/sysinternals/downloads/pskill
                else:
                   p.send_signal(signal.SIGABRT)
          killer = threading.Timer(timeout, kill, [process])

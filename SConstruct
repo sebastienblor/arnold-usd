@@ -38,7 +38,7 @@ elif system.os == 'linux':
     # linux conventions would be to actually use lib for dynamic libraries!
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
     glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'lib', system.os, 'libGLEW.a')
-    glew_default_include = '/usr/include'
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'include')
 elif system.os == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
     arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
@@ -312,20 +312,6 @@ env['ENABLE_ALEMBIC'] = 0
 
 arnold_version    = get_arnold_version(ARNOLD_API_INCLUDES)
 env['ARNOLD_VERSION'] = arnold_version
-clm_version = 1
-
-p = subprocess.Popen(os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), shell=True, stdout = subprocess.PIPE)
-retcode = p.wait()
-for line in p.stdout:
-    if 'clm-' in line:
-        clmIndex = line.find('clm-')
-        if line[clmIndex + 4:clmIndex + 5] == '2':
-            clm_version = 2
-
-if clm_version == 2:
-    env.Append(CPPDEFINES = Split('CLIC_V2')) 
-else:
-    env.Append(CPPDEFINES = Split('CLIC_V1')) 
 
 if env['ENABLE_AXFTOA']:
     env.Append(CPPDEFINES = Split('ENABLE_AXFTOA')) 
@@ -381,7 +367,6 @@ print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
-print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os)
 print 'Threads        : %s' % GetOption('num_jobs')
@@ -393,6 +378,8 @@ if system.os == 'linux':
             p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
             compiler_version, err = p.communicate()
             print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
+        if system.linux_distro['name'] != None:
+            print("Linux distro\t: {name} {version}".format(**system.linux_distro))
     except:
         pass
 elif system.os == 'windows':
@@ -502,6 +489,9 @@ if env['COMPILER'] == 'gcc':
     ## Hardcode '.' directory in RPATH in linux
     if system.os == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
+        # for Maya < 2023 we need to make sure we compile with the old ABI in RH8
+        if int(maya_version_base) <= 2023 and (system.linux_distro['version'] and system.linux_distro['version'][0] >= '8'):
+            env.Append(CXXFLAGS = Split('-D_GLIBCXX_USE_CXX11_ABI=0'))
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
     
     if int(maya_version_base) >= 2021:
