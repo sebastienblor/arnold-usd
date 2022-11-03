@@ -237,6 +237,7 @@ ASTR(input2);
 ASTR(input8);
 ASTR(inputs);
 ASTR(instance_matrix);
+ASTR(instance_rgbPP);
 ASTR(instance_visibility);
 ASTR(intensity);
 ASTR(interpolation);
