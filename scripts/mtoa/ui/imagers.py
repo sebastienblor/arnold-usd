@@ -110,8 +110,9 @@ class ImagerStackView(BaseTreeView):
 
     def removeImager(self, index):
         item = index.internalPointer()
-        self.model().removeImager(item.name)
-        self.itemRemoved.emit(item.name)
+        if item:
+            self.model().removeImager(item.name)
+            self.itemRemoved.emit(item.name)
 
     def moveImagerUp(self, itemIndex):
         self.model().moveImagerUp(itemIndex)
@@ -601,13 +602,14 @@ class ImagersUI(QtWidgets.QFrame):
 
         self.removeImagerButton.pressed.connect(self.removeImagerAction)
 
-        self.exportImagersButton = QtWidgets.QPushButton("Export Imagers")
-        self.toolBar.layout().addWidget(self.exportImagersButton)
-        self.exportImagersButton.released.connect(self.exportImagersAction)
-
         self.importImagersButton = QtWidgets.QPushButton("Import Imagers")
         self.toolBar.layout().addWidget(self.importImagersButton)
         self.importImagersButton.released.connect(self.importImagersAction)
+        
+        self.exportImagersButton = QtWidgets.QPushButton("Export Imagers")
+        self.toolBar.layout().addWidget(self.exportImagersButton)
+        self.exportImagersButton.released.connect(self.exportImagersAction)
+        self.exportImagersButton.setDisabled(True)
         
         self.toolBar.layout().addItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
@@ -771,6 +773,8 @@ class ImagersUI(QtWidgets.QFrame):
                     self.showItemProperties(n)
 
             self.removeImagerButton.setDisabled(not len(self.imagerStack.selectedIndexes()))
+            self.exportImagersButton.setDisabled(len(self.nodes) == 0)
+
             #self.scriptJobs.append(cmds.scriptJob(connectionChange=[IMAGERS_ATTR, self.connectionUpdate]))
 
     def updateSelection(self, node=None):
