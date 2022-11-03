@@ -88,10 +88,7 @@ MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
 
 if not local_env['MTOA_DISABLE_RV']:
     renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')
-    if system.os == 'darwin' and  int(maya_version_base) >= 2024:
-        # For now we only use 2024 ARV libs for Mac
-        renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', '2024')
-    elif int(maya_version_base) >= 2021:
+    if int(maya_version_base) >= 2021:
         renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', '2022')
     else:
         renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib')
