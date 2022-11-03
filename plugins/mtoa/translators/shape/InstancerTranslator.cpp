@@ -761,9 +761,16 @@ void CInstancerTranslator::PostExport(AtNode *node)
                // if (m_cloneInstances[idx]) // override the light color
                //    AiNodeSetRGB(instance, str::color, (float)vecAttrValue.x, (float)vecAttrValue.y, (float)vecAttrValue.z); 
                
-               // if (!AiNodeLookUpUserParameter(instance, attrName))
-               //    AiNodeDeclare(instance, attrName, str::constant_RGB);
-               // AiNodeSetRGB(instance, attrName,(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
+               if (!AiNodeLookUpUserParameter(instancer, attrName))
+                  AiNodeDeclare(instancer, attrName, str::constant_ARRAY_RGB);
+	       AtArray* rgbPP = AiArrayAllocate(nelements, nkeys, AI_TYPE_RGB);
+	       for (uint32_t i = 0; i < nelements; i++) {
+		 AiArraySetRGB(rgbPP, i * nkeys,
+			       AtRGB((float)vecAttrValue.x,
+				     (float)vecAttrValue.y,
+				     (float)vecAttrValue.z));
+	       }
+	       AiNodeSetArray(instancer, str::rgbPP, rgbPP);
             }
             else
             {
