@@ -670,6 +670,14 @@ void CInstancerTranslator::PostExport(AtNode *node)
       AiArraySetMtx(instance_matrix, i * nkeys, matrix);
    }
    AiNodeSetArray(instancer, str::instance_matrix, instance_matrix);
+   // instance_inherit_xform
+   if (!AiNodeLookUpUserParameter(instancer, str::instance_inherit_xform))
+     AiNodeDeclare(instancer, str::instance_inherit_xform, str::constant_ARRAY_BOOL);
+   AtArray* instance_inherit_xform = AiArrayAllocate(1, nkeys, AI_TYPE_BOOLEAN);
+   for (uint32_t i = 0; i < 1; i++) {
+      AiArraySetBool(instance_inherit_xform, i * nkeys, true);
+   }
+   AiNodeSetArray(instancer, str::instance_inherit_xform, instance_inherit_xform);
    // nodes
    AtArray* nodes = AiArrayAllocate(nelements, nkeys, AI_TYPE_NODE);
    for (uint32_t i = 0; i < nelements; i++) {
@@ -745,10 +753,11 @@ void CInstancerTranslator::PostExport(AtNode *node)
 	    AiArraySetPtr(nodes, partID, obj);
             // AiNodeSetBool(instance, str::inherit_xform, true);
             // AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
-            AtMatrix origM = AiNodeGetMatrix(obj, str::matrix);
-            AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
-            AtMatrix total_matrix = AiM4Mult(origM, particleMatrix);
-	    AiArraySetMtx(instance_matrix, partID, total_matrix);
+            // AtMatrix origM = AiNodeGetMatrix(obj, str::matrix);
+            // AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
+            // AtMatrix total_matrix = AiM4Mult(origM, particleMatrix);
+	    // AiArraySetMtx(instance_matrix, partID, total_matrix);
+	    AiArraySetMtx(instance_matrix, partID, AiArrayGetMtx(m_vec_matrixArrays[j], 0));
          }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
