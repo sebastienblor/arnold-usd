@@ -43,9 +43,10 @@ LIBRARY_PATH = {
 }.get(os, None)
 
 linux_distro = {'name':None, 'version':None}
+linux_distro_version = 0
 if is_linux:
    linux_distro_str = ""
-   linux_release_file = "/etc/redhat-release"
+   linux_release_file = "/etc/system-release"
    if ospath.exists(linux_release_file):
       with open(linux_release_file) as f:
          linux_distro_str = f.read()
@@ -53,6 +54,8 @@ if is_linux:
       if m:
          g = m.groups()
          linux_distro = {'name':g[0], 'version':g[1].split('.')}
+         linux_distro_version = int(linux_distro['version'][0])
+
 
 # This "safe" version of "print" works atomically, avoiding the mess caused by
 # multiple threads writing at the same time. It has the same declaration and
