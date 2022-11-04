@@ -340,20 +340,50 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          CURL *curl;
          CURLcode res;
          std::string readBuffer;
-
+         curl_global_init(CURL_GLOBAL_ALL);
          curl = curl_easy_init();
+         std::cout << "get curl" << std::endl;
+
          if(curl) {
+
             curl_easy_setopt(curl, CURLOPT_URL, "https://arnoldrenderer.com/getversion/maya");
-            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
+            curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
             res = curl_easy_perform(curl);
-            /* always cleanup */ 
-            curl_easy_cleanup(curl);
+            std::cout << "connection res: " << curl_easy_strerror(res) << std::endl;
+            /* check for errors */ 
+            if(res != CURLE_OK) {
+               std::cout << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+               setResult("0.0.0.0");  
+            } else {
 
-            setResult(readBuffer.c_str());   
+               // OK, now we are connected (if nothing bad happened), 
+               // but it would be nice to communicate with the server: 
+               curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0L);
+
+               curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+               curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+               curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+               res = curl_easy_perform(curl);
+               std::cout << "read res: " << curl_easy_strerror(res) << std::endl;
+
+               if(res != CURLE_OK) {
+                  std::cout << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                  setResult("0.0.0.0");  
+               }
+               else
+               {
+                  setResult(readBuffer.c_str());   
+               }
+            }
+            
+
          }
+         /* always cleanup */ 
+         curl_easy_cleanup(curl);
+         curl_global_cleanup();
+
    } else if (args.isFlagSet("reloadPlugins"))
    {
 	 if (AiArnoldIsActive())

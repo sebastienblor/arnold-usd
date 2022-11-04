@@ -145,9 +145,10 @@ if system.os == 'linux':
     OPENSSL_LIB = os.path.join(OPENSSL_LIB_PATH, "libssl.a")
     CRYPTO_LIB = os.path.join(OPENSSL_LIB_PATH, "libcrypto.a")
     CURL_LIB = os.path.join(CURL_LIB_PATH, "libcurl.a")
+    CARES_LIB = os.path.join(CURL_LIB_PATH, "libcares.a")
     #ZLIB_LIB = os.path.join(ZLIB_LIB_PATH, "libz.a")
     local_env.Append(CPPPATH = [GLEW_INCLUDES, CURL_INCLUDES, OPENSSL_INCLUDES])
-    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB)])
+    local_env.Append(LIBS = [File(GLEW_LIB), File(CURL_LIB), File(CARES_LIB), File(OPENSSL_LIB), File(CRYPTO_LIB)])
     local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 elif system.os == 'windows':
     local_env.Append(CPPDEFINES = ['CURL_STATICLIB'])
