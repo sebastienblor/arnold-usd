@@ -724,41 +724,8 @@ void CInstancerTranslator::PostExport(AtNode *node)
          MString instanceKey = "inst";
          instanceKey += globalIndex;
 
-         if (m_cloneInstances[idx])
-         {
-            MString instName = baseName + MString("/") + instanceKey;
-         
-            // Clone the master node (lights can't be instanced in arnold)
-            // instance  = AiNodeClone(obj, AtString(instName.asChar()));
-   
-            // AddExistingArnoldNode(instance, instanceKey.asChar());
-            // AiNodeSetDisabled(instance, false);
-            // no motion blur on lights
-            // AtMatrix origM = AiNodeGetMatrix(instance, str::matrix);
-            // AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
-            // AtMatrix total_matrix = AiM4Mult(particleMatrix, origM);
-            // AiNodeSetMatrix(instance, str::matrix, total_matrix);
-         } else
-         { 
-            // Regular instances
-            // instance = (globalIndex == 0) ? node : GetArnoldNode(instanceKey.asChar());
-            // if (instance == NULL)
-            // {
-            //    // Create and register this ginstance node, so that it is properly cleared later
-            //    instance = AddArnoldNode("ginstance", instanceKey.asChar());
-            //    // We no longer set the name of these instances since AddArnoldNode already does,
-            //    // and takes the prefix into account (#2684)
-            // }
-            // AiNodeSetPtr(instance, str::node, obj);
-	    AiArraySetPtr(nodes, partID, obj);
-            // AiNodeSetBool(instance, str::inherit_xform, true);
-            // AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
-            // AtMatrix origM = AiNodeGetMatrix(obj, str::matrix);
-            // AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
-            // AtMatrix total_matrix = AiM4Mult(origM, particleMatrix);
-	    // AiArraySetMtx(instance_matrix, partID, total_matrix);
-	    AiArraySetMtx(instance_matrix, partID, AiArrayGetMtx(m_vec_matrixArrays[j], 0));
-         }
+	 AiArraySetPtr(nodes, partID, obj);
+	 AiArraySetMtx(instance_matrix, partID, AiArrayGetMtx(m_vec_matrixArrays[j], 0));
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
         
