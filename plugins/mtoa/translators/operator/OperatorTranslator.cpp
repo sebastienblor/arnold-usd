@@ -84,6 +84,8 @@ void COperatorTranslator::NodeInitializer(CAbTranslator context)
 // We could derive operator translator classes to handle this, but for now it's still quite simple
 void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
 {
+   const CSessionOptions& options = GetSessionOptions();
+
    AtArray *assignments = AiNodeGetArray(shader, str::assignment);
    if (assignments == NULL)
       return;
@@ -130,5 +132,17 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
          continue;
 
       ExportConnectedNode(dummyPlug); // do export the shader
+
+      // Currently the assignment value has the maya shader name, 
+      // but this shader name can be different from the maya one (e.g. with export prefix)
+      // So we need to get the arnold node name and eventually update the assignment string
+      MString outName = options.GetArnoldNaming(shaderNode);
+      outName = MString("'") + outName + MString("'");
+      if (outName != assignmentSplit[1])
+      {         
+         MString outVal = assignmentSplit[0] + MString("=") + outName;
+         // Need to update the array value so that it uses the real arnold name #MTOA-10554
+         AiArraySetStr(assignments, i, AtString(outVal.asChar()));
+      }
    }
 }
