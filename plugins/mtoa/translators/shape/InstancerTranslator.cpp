@@ -660,7 +660,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
 
    // instancer created in CInstancerTranslator::CreateArnoldNodes should be in node!
    AtNode* instancer = node;
-   // TODO: nelements, nkeys
+   // TODO: nkeys
    uint32_t nelements = m_particleIDMap.size();
    uint8_t nkeys = 1;
    // instance_matrix
@@ -696,16 +696,40 @@ void CInstancerTranslator::PostExport(AtNode *node)
       AiArraySetByte(instance_visibility, i * nkeys, 255);
    }
    AiNodeSetArray(instancer, str::instance_visibility, instance_visibility);
-   // instance_rgbPP
-   if (!AiNodeLookUpUserParameter(instancer, str::instance_rgbPP))
-     AiNodeDeclare(instancer, str::instance_rgbPP, str::constant_ARRAY_RGB);
-   AtArray* instance_rgbPP = AiArrayAllocate(nelements, nkeys, AI_TYPE_RGB);
-   for (uint32_t i = 0; i < nelements; i++) {
-     AiArraySetRGB(instance_rgbPP, i * nkeys,
-		   AtRGB(0.0f, 0.0f, 0.0f));
+   // check first if there is rgbPP data
+   bool hasRgbPP = false;
+   for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
+        it !=  m_particleIDMap.end(); ++it)
+   {
+      int partID = it->first;
+      int j = it->second;
+      if (j >= (int)m_vec_matrixArrays.size()) continue;
+      for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
+      {
+         unordered_map<std::string, MVectorArray>::iterator custVect;
+         for (custVect = m_out_customVectorAttrArrays.begin(); custVect != m_out_customVectorAttrArrays.end(); custVect++)
+         {
+            if (MString(custVect->first.c_str()) == "rgbPP")
+            {
+	      hasRgbPP = true;
+	      break;
+            }
+         }
+      }
    }
-   AiNodeSetArray(instancer, str::instance_rgbPP, instance_rgbPP);
-
+   // instance_rgbPP
+   AtArray* instance_rgbPP = NULL;
+   if (hasRgbPP) {
+      if (!AiNodeLookUpUserParameter(instancer, str::instance_rgbPP))
+	 AiNodeDeclare(instancer, str::instance_rgbPP, str::constant_ARRAY_RGB);
+      instance_rgbPP = AiArrayAllocate(nelements, nkeys, AI_TYPE_RGB);
+      for (uint32_t i = 0; i < nelements; i++) {
+	 AiArraySetRGB(instance_rgbPP, i * nkeys,
+		       AtRGB(0.0f, 0.0f, 0.0f));
+      }
+      AiNodeSetArray(instancer, str::instance_rgbPP, instance_rgbPP);
+   }
+   
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
         it !=  m_particleIDMap.end(); ++it)
    {
@@ -756,11 +780,12 @@ void CInstancerTranslator::PostExport(AtNode *node)
             {
                // if (m_cloneInstances[idx]) // override the light color
                //    AiNodeSetRGB(instance, str::color, (float)vecAttrValue.x, (float)vecAttrValue.y, (float)vecAttrValue.z); 
-               
-	       AiArraySetRGB(instance_rgbPP, partID,
-			     AtRGB((float)vecAttrValue.x,
-				   (float)vecAttrValue.y,
-				   (float)vecAttrValue.z));
+	       if (instance_rgbPP) {
+		  AiArraySetRGB(instance_rgbPP, partID,
+				AtRGB((float)vecAttrValue.x,
+				      (float)vecAttrValue.y,
+				      (float)vecAttrValue.z));
+	       }
             }
             else
             {
