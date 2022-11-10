@@ -659,40 +659,40 @@ void CInstancerTranslator::PostExport(AtNode *node)
 
    // instancer created in CInstancerTranslator::CreateArnoldNodes should be in node!
    AtNode* instancer = node;
-   // TODO: nkeys
    uint32_t nelements = m_particleIDMap.size();
-   uint8_t nkeys = 1;
+   bool hasMotion = (RequiresMotionData() && m_motionDeform);
+   uint8_t nkeys = ((hasMotion) ? GetNumMotionSteps() : 1);
    // instance_matrix
    AtArray* instance_matrix = AiArrayAllocate(nelements, nkeys, AI_TYPE_MATRIX);
    AtMatrix matrix = AiM4Identity();
-   for (uint32_t i = 0; i < nelements; i++) {
-      AiArraySetMtx(instance_matrix, i * nkeys, matrix);
+   for (uint32_t i = 0; i < nelements * nkeys; i++) {
+      AiArraySetMtx(instance_matrix, i, matrix);
    }
    AiNodeSetArray(instancer, str::instance_matrix, instance_matrix);
    // instance_inherit_xform
    if (!AiNodeLookUpUserParameter(instancer, str::instance_inherit_xform))
      AiNodeDeclare(instancer, str::instance_inherit_xform, str::constant_ARRAY_BOOL);
-   AtArray* instance_inherit_xform = AiArrayAllocate(nelements, nkeys, AI_TYPE_BOOLEAN);
+   AtArray* instance_inherit_xform = AiArrayAllocate(nelements, 1, AI_TYPE_BOOLEAN);
    for (uint32_t i = 0; i < nelements; i++) {
-      AiArraySetBool(instance_inherit_xform, i * nkeys, true);
+      AiArraySetBool(instance_inherit_xform, i, true);
    }
    AiNodeSetArray(instancer, str::instance_inherit_xform, instance_inherit_xform);
    // nodes
-   AtArray* nodes = AiArrayAllocate(nelements, nkeys, AI_TYPE_NODE);
+   AtArray* nodes = AiArrayAllocate(nelements, 1, AI_TYPE_NODE);
    for (uint32_t i = 0; i < nelements; i++) {
-      AiArraySetPtr(nodes, i * nkeys, NULL);
+      AiArraySetPtr(nodes, i, NULL);
    }
    AiNodeSetArray(instancer, str::nodes, nodes);
    // node_idxs
-   AtArray* node_idxs = AiArrayAllocate(nelements, nkeys, AI_TYPE_UINT);
+   AtArray* node_idxs = AiArrayAllocate(nelements, 1, AI_TYPE_UINT);
    for (uint32_t i = 0; i < nelements; i++) {
-      AiArraySetUInt(node_idxs, i * nkeys, i);
+      AiArraySetUInt(node_idxs, i, i);
    }
    AiNodeSetArray(instancer, str::node_idxs, node_idxs);
    // instance_visibility
-   AtArray* instance_visibility = AiArrayAllocate(nelements, nkeys, AI_TYPE_BYTE);
+   AtArray* instance_visibility = AiArrayAllocate(nelements, 1, AI_TYPE_BYTE);
    for (uint32_t i = 0; i < nelements; i++) {
-      AiArraySetByte(instance_visibility, i * nkeys, 255);
+      AiArraySetByte(instance_visibility, i, 255);
    }
    AiNodeSetArray(instancer, str::instance_visibility, instance_visibility);
    // check first if there is user data
@@ -721,10 +721,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
             AtString attrName((std::string("instance_") + custDouble->first).c_str());
             if (!AiNodeLookUpUserParameter(instancer, attrName)) {
                AiNodeDeclare(instancer, attrName, str::constant_ARRAY_FLOAT);
-               AtArray* doubleArray = AiArrayAllocate(nelements, nkeys, AI_TYPE_FLOAT);
+               AtArray* doubleArray = AiArrayAllocate(nelements, 1, AI_TYPE_FLOAT);
                doubleArrays[std::string("instance_") + custDouble->first] = doubleArray;
                for (uint32_t i = 0; i < nelements; i++) {
-                 AiArraySetFlt(doubleArray, i * nkeys, 0.0);
+                 AiArraySetFlt(doubleArray, i, 0.0);
                }
                AiNodeSetArray(instancer, attrName, doubleArray);
             }
@@ -735,10 +735,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
             AtString attrName((std::string("instance_") + custInt->first).c_str());
             if (!AiNodeLookUpUserParameter(instancer, attrName)) {
                AiNodeDeclare(instancer, attrName, str::constant_ARRAY_INT);
-               AtArray* intArray = AiArrayAllocate(nelements, nkeys, AI_TYPE_INT);
+               AtArray* intArray = AiArrayAllocate(nelements, 1, AI_TYPE_INT);
                intArrays[std::string("instance_") + custInt->first] = intArray;
                for (uint32_t i = 0; i < nelements; i++) {
-                 AiArraySetInt(intArray, i * nkeys, 0);
+                 AiArraySetInt(intArray, i, 0);
                }
                AiNodeSetArray(instancer, attrName, intArray);
             }
@@ -750,9 +750,9 @@ void CInstancerTranslator::PostExport(AtNode *node)
    if (hasRgbPP) {
       if (!AiNodeLookUpUserParameter(instancer, str::instance_rgbPP))
          AiNodeDeclare(instancer, str::instance_rgbPP, str::constant_ARRAY_RGB);
-      instance_rgbPP = AiArrayAllocate(nelements, nkeys, AI_TYPE_RGB);
+      instance_rgbPP = AiArrayAllocate(nelements, 1, AI_TYPE_RGB);
       for (uint32_t i = 0; i < nelements; i++) {
-         AiArraySetRGB(instance_rgbPP, i * nkeys,
+         AiArraySetRGB(instance_rgbPP, i,
                        AtRGB(0.0f, 0.0f, 0.0f));
       }
       AiNodeSetArray(instancer, str::instance_rgbPP, instance_rgbPP);
@@ -778,7 +778,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
          AiArraySetPtr(nodes, partID, obj);
          if (m_cloneInstances[idx])
          {
-            AiArraySetBool(instance_inherit_xform, partID * nkeys, false);
+            AiArraySetBool(instance_inherit_xform, partID, false);
             AtMatrix origM = AiNodeGetMatrix(obj, str::matrix);
             AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
             AtMatrix total_matrix = AiM4Mult(particleMatrix, origM);
@@ -786,7 +786,12 @@ void CInstancerTranslator::PostExport(AtNode *node)
          } else
          {
             // Regular instances
-            AiArraySetMtx(instance_matrix, partID, AiArrayGetMtx(m_vec_matrixArrays[j], 0));
+            AtArray* mblurMatrix = m_vec_matrixArrays[j];
+            for (uint32_t nkey = 0; nkey < nkeys; nkey++) {
+              AiArraySetMtx(instance_matrix,
+                            nkey * nelements + partID,
+                            AiArrayGetMtx(mblurMatrix, nkey));
+            }
          }
 
          // need this in case instance sources are hidden
