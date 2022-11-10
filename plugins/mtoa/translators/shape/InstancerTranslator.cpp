@@ -697,7 +697,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
    AiNodeSetArray(instancer, str::instance_visibility, instance_visibility);
    // check first if there is user data
    bool hasRgbPP = false;
-   bool hasCustInt = false;
+   unordered_map<std::string, AtArray*> doubleArrays;
    unordered_map<std::string, AtArray*> intArrays;
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
         it !=  m_particleIDMap.end(); ++it)
@@ -715,6 +715,20 @@ void CInstancerTranslator::PostExport(AtNode *node)
                hasRgbPP = true;
             }
          }
+         unordered_map<std::string, MDoubleArray>::iterator custDouble;
+         for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
+         {
+            AtString attrName((std::string("instance_") + custDouble->first).c_str());
+            if (!AiNodeLookUpUserParameter(instancer, attrName)) {
+               AiNodeDeclare(instancer, attrName, str::constant_ARRAY_FLOAT);
+               AtArray* doubleArray = AiArrayAllocate(nelements, nkeys, AI_TYPE_FLOAT);
+               doubleArrays[std::string("instance_") + custDouble->first] = doubleArray;
+	       for (uint32_t i = 0; i < nelements; i++) {
+		 AiArraySetFlt(doubleArray, i * nkeys, 0.0);
+	       }
+	       AiNodeSetArray(instancer, attrName, doubleArray);
+            }
+         }
          unordered_map<std::string, MIntArray>::iterator custInt;
          for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
          {
@@ -724,11 +738,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
                AtArray* intArray = AiArrayAllocate(nelements, nkeys, AI_TYPE_INT);
                intArrays[std::string("instance_") + custInt->first] = intArray;
 	       for (uint32_t i = 0; i < nelements; i++) {
-		 AiArraySetInt(intArray, i * nkeys, 255);
+		 AiArraySetInt(intArray, i * nkeys, 0);
 	       }
 	       AiNodeSetArray(instancer, attrName, intArray);
             }
-            hasCustInt = true;
          }
       }
    }
@@ -810,11 +823,18 @@ void CInstancerTranslator::PostExport(AtNode *node)
          for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
          {
             float doubleAttrValue = (float)custDouble->second[j];
-            AtString attrName(custDouble->first.c_str());
-            // if (!AiNodeLookUpUserParameter(instance, attrName))
-            //    AiNodeDeclare(instance, attrName, str::constant_FLOAT);
-            // AiNodeSetFlt(instance, attrName, doubleAttrValue );
-
+            AtString attrName((std::string("instance_") + custDouble->first).c_str());
+            unordered_map<std::string, AtArray*>::iterator got = doubleArrays.find(std::string("instance_") + custDouble->first);
+            if (got != doubleArrays.end()) {
+               AiArraySetFlt(got->second, partID, doubleAttrValue);
+               AiMsgWarning("DEBUG: doubleArrays[\"%s\"][%d] == %f worked?",
+                            (std::string("instance_") + custDouble->first).c_str(),
+                            partID, doubleAttrValue);
+            } else {
+               AiMsgWarning("DEBUG: doubleArrays[\"%s\"][%d] == %f failed",
+                            (std::string("instance_") + custDouble->first).c_str(),
+                            partID, doubleAttrValue);
+            }
          }
          unordered_map<std::string, MIntArray>::iterator custInt;
          for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
