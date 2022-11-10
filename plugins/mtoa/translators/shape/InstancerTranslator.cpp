@@ -723,10 +723,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
                AiNodeDeclare(instancer, attrName, str::constant_ARRAY_FLOAT);
                AtArray* doubleArray = AiArrayAllocate(nelements, nkeys, AI_TYPE_FLOAT);
                doubleArrays[std::string("instance_") + custDouble->first] = doubleArray;
-	       for (uint32_t i = 0; i < nelements; i++) {
-		 AiArraySetFlt(doubleArray, i * nkeys, 0.0);
-	       }
-	       AiNodeSetArray(instancer, attrName, doubleArray);
+               for (uint32_t i = 0; i < nelements; i++) {
+                 AiArraySetFlt(doubleArray, i * nkeys, 0.0);
+               }
+               AiNodeSetArray(instancer, attrName, doubleArray);
             }
          }
          unordered_map<std::string, MIntArray>::iterator custInt;
@@ -737,10 +737,10 @@ void CInstancerTranslator::PostExport(AtNode *node)
                AiNodeDeclare(instancer, attrName, str::constant_ARRAY_INT);
                AtArray* intArray = AiArrayAllocate(nelements, nkeys, AI_TYPE_INT);
                intArrays[std::string("instance_") + custInt->first] = intArray;
-	       for (uint32_t i = 0; i < nelements; i++) {
-		 AiArraySetInt(intArray, i * nkeys, 0);
-	       }
-	       AiNodeSetArray(instancer, attrName, intArray);
+               for (uint32_t i = 0; i < nelements; i++) {
+                 AiArraySetInt(intArray, i * nkeys, 0);
+               }
+               AiNodeSetArray(instancer, attrName, intArray);
             }
          }
       }
