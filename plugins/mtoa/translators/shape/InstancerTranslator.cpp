@@ -697,6 +697,8 @@ void CInstancerTranslator::PostExport(AtNode *node)
    AiNodeSetArray(instancer, str::instance_visibility, instance_visibility);
    // check first if there is user data
    bool hasRgbPP = false;
+   bool hasCustVect = false;
+   unordered_map<std::string, AtArray*> vecArrays;
    unordered_map<std::string, AtArray*> doubleArrays;
    unordered_map<std::string, AtArray*> intArrays;
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
@@ -713,6 +715,20 @@ void CInstancerTranslator::PostExport(AtNode *node)
             if (MString(custVect->first.c_str()) == "rgbPP")
             {
                hasRgbPP = true;
+            }
+            else
+            {
+               AtString attrName((std::string("instance_") + custVect->first).c_str());
+               if (!AiNodeLookUpUserParameter(instancer, attrName)) {
+                  AiNodeDeclare(instancer, attrName, str::constant_ARRAY_VECTOR);
+                  AtArray* vecArray = AiArrayAllocate(nelements, 1, AI_TYPE_VECTOR);
+                  vecArrays[std::string("instance_") + custVect->first] = vecArray;
+                  for (uint32_t i = 0; i < nelements; i++) {
+                     AiArraySetVec(vecArray, i, AtVector(0.0f, 0.0f, 0.0f));
+                  }
+                  AiNodeSetArray(instancer, attrName, vecArray);
+               }
+               hasCustVect = true;
             }
          }
          unordered_map<std::string, MDoubleArray>::iterator custDouble;
@@ -804,7 +820,6 @@ void CInstancerTranslator::PostExport(AtNode *node)
          {
 
             MVector vecAttrValue = custVect->second[j];
-            AtString attrName(custVect->first.c_str());
             if (MString(custVect->first.c_str()) == "rgbPP")
             {
                // if (m_cloneInstances[idx]) // override the light color
@@ -818,10 +833,17 @@ void CInstancerTranslator::PostExport(AtNode *node)
             }
             else
             {
-
-               // if (!AiNodeLookUpUserParameter(instance, attrName))
-               //    AiNodeDeclare(instance, attrName, str::constant_VECTOR);
-               // AiNodeSetVec(instance, attrName,(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
+               if (hasCustVect) {
+                  AtString attrName((std::string("instance_") + custVect->first).c_str());
+                  unordered_map<std::string, AtArray*>::iterator got =
+                     vecArrays.find(std::string("instance_") + custVect->first);
+                  if (got != vecArrays.end()) {
+                     AiArraySetVec(got->second, partID,
+                                   AtVector((float)vecAttrValue.x,
+                                            (float)vecAttrValue.y,
+                                            (float)vecAttrValue.z));
+                  }
+               }
             }
          }
          unordered_map<std::string, MDoubleArray>::iterator custDouble;
