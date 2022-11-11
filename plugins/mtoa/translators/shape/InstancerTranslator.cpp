@@ -832,13 +832,6 @@ void CInstancerTranslator::PostExport(AtNode *node)
             unordered_map<std::string, AtArray*>::iterator got = doubleArrays.find(std::string("instance_") + custDouble->first);
             if (got != doubleArrays.end()) {
                AiArraySetFlt(got->second, partID, doubleAttrValue);
-               AiMsgWarning("DEBUG: doubleArrays[\"%s\"][%d] == %f worked?",
-                            (std::string("instance_") + custDouble->first).c_str(),
-                            partID, doubleAttrValue);
-            } else {
-               AiMsgWarning("DEBUG: doubleArrays[\"%s\"][%d] == %f failed",
-                            (std::string("instance_") + custDouble->first).c_str(),
-                            partID, doubleAttrValue);
             }
          }
          unordered_map<std::string, MIntArray>::iterator custInt;
@@ -849,13 +842,6 @@ void CInstancerTranslator::PostExport(AtNode *node)
             unordered_map<std::string, AtArray*>::iterator got = intArrays.find(std::string("instance_") + custInt->first);
             if (got != intArrays.end()) {
                AiArraySetInt(got->second, partID, intAttrValue);
-               AiMsgWarning("DEBUG: intArrays[\"%s\"][%d] == %d worked?",
-                            (std::string("instance_") + custInt->first).c_str(),
-                            partID, intAttrValue);
-            } else {
-               AiMsgWarning("DEBUG: intArrays[\"%s\"][%d] == %d failed",
-                            (std::string("instance_") + custInt->first).c_str(),
-                            partID, intAttrValue);
             }
          }
       }
