@@ -63,6 +63,10 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("sst", "frame_step", MSyntax::kDouble);   
    syntax.addFlag("sst", "frame_step", MSyntax::kDouble);   
    syntax.addFlag("pad", "frame_padding", MSyntax::kUnsigned);   
+   syntax.addFlag("mix", "region_min_x",  MSyntax::kLong);
+   syntax.addFlag("miy", "region_min_y",  MSyntax::kLong);
+   syntax.addFlag("max", "region_max_x",  MSyntax::kLong);
+   syntax.addFlag("may", "region_max_y",  MSyntax::kLong);
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -278,6 +282,26 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       AiNodeSetInt(options_node, str::xres, resolution);
       AiNodeSetInt(options_node, str::yres, resolution);
 
+      if (args.isFlagSet("region_min_x"))
+      {
+	 int region_min_x = args.flagArgumentInt("region_min_x", 0);
+         AiNodeSetInt(options_node, str::region_min_x, region_min_x);
+      }
+      if (args.isFlagSet("region_min_y"))
+      {
+	 int region_min_y = args.flagArgumentInt("region_min_y", 0);
+         AiNodeSetInt(options_node, str::region_min_y, region_min_y);
+      }
+      if (args.isFlagSet("region_max_x"))
+      {
+	 int region_max_x = args.flagArgumentInt("region_max_x", 0);
+         AiNodeSetInt(options_node, str::region_max_x, region_max_x);
+      }
+      if (args.isFlagSet("region_max_y"))
+      {
+	 int region_max_y = args.flagArgumentInt("region_max_y", 0);
+         AiNodeSetInt(options_node, str::region_max_y, region_max_y);
+      }
       
       if (argDB.isFlagSet("aa_samples"))
       {

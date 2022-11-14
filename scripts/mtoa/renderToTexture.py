@@ -37,6 +37,10 @@ class MtoARenderToTexture(object):
 
         resolution = cmds.intFieldGrp('resolution', q=True, v1=True)
         aa_sampling = cmds.intFieldGrp('aa_samples', q=True, v1=True)
+        region_min_x = cmds.intFieldGrp('region_min_x', q=True, v1=True)
+        region_min_y = cmds.intFieldGrp('region_min_y', q=True, v1=True)
+        region_max_x = cmds.intFieldGrp('region_max_x', q=True, v1=True)
+        region_max_y = cmds.intFieldGrp('region_max_y', q=True, v1=True)
 
         filter_type = cmds.optionMenuGrp('filter', q=True, v=True)
         all_udims = cmds.checkBox('all_udims', q=True, v=True)
@@ -63,7 +67,7 @@ class MtoARenderToTexture(object):
             cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set, normal_offset=normalOffset, enable_aovs=enableAovs, extend_edges=extendEdges,u_start=uStart, u_scale=uScale, v_start=vStart, v_scale=vScale, sequence= useSequence, frame_start=frameStart, frame_end=frameEnd, frame_step=frameStep, frame_padding=framePadding)
+        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set, normal_offset=normalOffset, enable_aovs=enableAovs, extend_edges=extendEdges,u_start=uStart, u_scale=uScale, v_start=vStart, v_scale=vScale, sequence= useSequence, frame_start=frameStart, frame_end=frameEnd, frame_step=frameStep, frame_padding=framePadding, region_min_x=region_min_x, region_min_y=region_min_y, region_max_x=region_max_x, region_max_y=region_max_y)
 
         cmds.deleteUI(self.window)
         return True
@@ -124,6 +128,15 @@ class MtoARenderToTexture(object):
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
         cmds.intFieldGrp('resolution', label='Resolution', value1=512, ct2=('left', 'left'),  cw2=(90,110), w=230)
         cmds.intFieldGrp('aa_samples', label='Camera Samples (AA)', cw2=(150,60), value1=3, w=200)
+        cmds.setParent("..")
+
+        cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
+        cmds.intFieldGrp('region_min_x', label='Region Minx', value1=-2147483648, ct2=('left', 'left'),  cw2=(90,110), w=230)
+        cmds.intFieldGrp('region_min_y', label='Region Miny', cw2=(150,60), value1=-2147483648, w=230)
+        cmds.setParent("..")
+        cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
+        cmds.intFieldGrp('region_max_x', label='Region Maxx', value1=-2147483648, ct2=('left', 'left'),  cw2=(90,110), w=230)
+        cmds.intFieldGrp('region_max_y', label='Region Maxy', cw2=(150,60), value1=-2147483648, w=230)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
