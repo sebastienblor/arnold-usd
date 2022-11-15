@@ -132,11 +132,11 @@ class MtoARenderToTexture(object):
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
         cmds.intFieldGrp('region_min_x', label='Region Minx', value1=-2147483648, ct2=('left', 'left'),  cw2=(90,110), w=230)
-        cmds.intFieldGrp('region_min_y', label='Region Miny', cw2=(150,60), value1=-2147483648, w=230)
+        cmds.intFieldGrp('region_min_y', label='Region Miny', cw2=(90,110), value1=-2147483648, w=200)
         cmds.setParent("..")
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
         cmds.intFieldGrp('region_max_x', label='Region Maxx', value1=-2147483648, ct2=('left', 'left'),  cw2=(90,110), w=230)
-        cmds.intFieldGrp('region_max_y', label='Region Maxy', cw2=(150,60), value1=-2147483648, w=230)
+        cmds.intFieldGrp('region_max_y', label='Region Maxy', cw2=(90,100), value1=-2147483648, w=200)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
