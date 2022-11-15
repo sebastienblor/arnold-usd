@@ -1181,6 +1181,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    sceneOpenCallback = 0;
 
    bool isBatch = IsBatch();
+   if (isBatch)
+      AiADPDisableDialogWindow();
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
