@@ -132,6 +132,7 @@ def _usd_procedural(target, source, env):
         args['SDK_VERSION']       = local_env['SDK_VERSION']
         args['MACOS_VERSION_MIN'] = local_env['MACOS_VERSION_MIN']
         args['PYTHON_LIB_NAME']   = 'libpython{}.{}'.format(pythonVersion, pythonMinor)
+        args['MACOS_ARCH']        = local_env['TARGET_ARCH']
 
     if platform.system().lower() == 'linux':
         if local_env.get('SHCXX'):
