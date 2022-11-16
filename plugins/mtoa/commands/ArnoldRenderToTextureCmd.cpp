@@ -789,6 +789,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                AiNodeSetStr(aovDrivers[aov], str::filename, AtString(aovFilename.asChar()));
             }
             AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+	    AtParamValueMap* params = AiParamValueMap();
+	    AiParamValueMapSetInt(params, AtString("mask"), AI_NODE_ALL);
+	    AiSceneWrite(universe, "/tmp/MTOA-1069.ass", params);
             AiRenderBegin(renderSession);
             while(true)
             {
