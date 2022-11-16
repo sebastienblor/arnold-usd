@@ -789,9 +789,23 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                AiNodeSetStr(aovDrivers[aov], str::filename, AtString(aovFilename.asChar()));
             }
             AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-	    AtParamValueMap* params = AiParamValueMap();
-	    AiParamValueMapSetInt(params, AtString("mask"), AI_NODE_ALL);
-	    AiSceneWrite(universe, "/tmp/MTOA-1069.ass", params);
+            // CExtensionsManager::GetImagers(MStringArray& result)
+            MStringArray imagers;
+            CExtensionsManager::GetImagers(imagers);
+            unsigned int imagersLength = imagers.length();
+            AiMsgWarning("DEBUG: %d imagers found!", imagersLength);
+            for (unsigned int imagersIdx = 0; imagersIdx < imagersLength; imagersIdx++)
+            {
+               MString imager = imagers[imagersIdx];
+               if (imager.indexW("aiImagerDenoiser") == 0)
+               {
+                  AiMsgWarning("DEBUG: imager[%d] = %s", imagersIdx, imager.asChar());
+               }
+            }
+            // Write tmp .ass file for debugging
+            AtParamValueMap* params = AiParamValueMap();
+            AiParamValueMapSetInt(params, AtString("mask"), AI_NODE_ALL);
+            AiSceneWrite(universe, "/tmp/MTOA-1069.ass", params);
             AiRenderBegin(renderSession);
             while(true)
             {
