@@ -6,6 +6,7 @@
 #include "utils/MtoAAdpPayloads.h"
 #include "session/ArnoldSession.h"
 #include "session/SessionManager.h"
+#include "nodes/options/ArnoldOptionsNode.h"
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -789,6 +790,22 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                AiNodeSetStr(aovDrivers[aov], str::filename, AtString(aovFilename.asChar()));
             }
             AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+            // options node in Maya
+            MObject mayaOptions = CArnoldOptionsNode::getOptionsNode();
+            MFnDependencyNode fnNode(mayaOptions, &status);
+            CHECK_MSTATUS(status);
+            MPlugArray connections;
+            status = fnNode.getConnections(connections);
+            CHECK_MSTATUS(status);
+            unsigned int connectionsLength = connections.length();
+            AiMsgWarning("DEBUG: connectionsLength =  %d", connectionsLength);
+            for (unsigned int connectionsIdx = 0; connectionsIdx < connectionsLength; connectionsIdx++)
+            {
+               MPlug connectionsPlug = connections[connectionsIdx];
+               AiMsgWarning("DEBUG: connectionsPlug[%d] = %s",
+                            connectionsIdx,
+                            connectionsPlug.name().asChar());
+            }
             // CExtensionsManager::GetImagers(MStringArray& result)
             MStringArray imagers;
             CExtensionsManager::GetImagers(imagers);
