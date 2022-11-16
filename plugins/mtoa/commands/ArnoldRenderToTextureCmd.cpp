@@ -798,25 +798,25 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             status = fnNode.getConnections(connections);
             CHECK_MSTATUS(status);
             unsigned int connectionsLength = connections.length();
-            AiMsgWarning("DEBUG: connectionsLength =  %d", connectionsLength);
             for (unsigned int connectionsIdx = 0; connectionsIdx < connectionsLength; connectionsIdx++)
             {
                MPlug connectionsPlug = connections[connectionsIdx];
-               AiMsgWarning("DEBUG: connectionsPlug[%d] = %s",
-                            connectionsIdx,
-                            connectionsPlug.name().asChar());
-            }
-            // CExtensionsManager::GetImagers(MStringArray& result)
-            MStringArray imagers;
-            CExtensionsManager::GetImagers(imagers);
-            unsigned int imagersLength = imagers.length();
-            AiMsgWarning("DEBUG: %d imagers found!", imagersLength);
-            for (unsigned int imagersIdx = 0; imagersIdx < imagersLength; imagersIdx++)
-            {
-               MString imager = imagers[imagersIdx];
-               if (imager.indexW("aiImagerDenoiser") == 0)
+               MString connectionName = connectionsPlug.name();
+               int indexW = connectionName.indexW("imagers[0]");
+               if (indexW != -1)
                {
-                  AiMsgWarning("DEBUG: imager[%d] = %s", imagersIdx, imager.asChar());
+                  MPlugArray connectedTo;
+                  bool hasConnection = connectionsPlug.connectedTo(connectedTo,
+                                                                   true /* asDst */,
+                                                                   false /* asSrc */,
+                                                                   &status);
+                  if (hasConnection && connectedTo.length() == 1)
+                  {
+                      MPlug source = connectedTo[0];
+                      AiMsgWarning("DEBUG: %s -> %s",
+                                   source.name().asChar(),
+                                   connectionName.asChar());
+                  }
                }
             }
             // Write tmp .ass file for debugging
