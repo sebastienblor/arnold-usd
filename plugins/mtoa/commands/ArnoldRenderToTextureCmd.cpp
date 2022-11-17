@@ -813,16 +813,17 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   if (hasConnection && connectedTo.length() == 1)
                   {
                       MPlug source = connectedTo[0];
-                      AiMsgWarning("DEBUG: %s -> %s",
-                                   source.name().asChar(),
-                                   connectionName.asChar());
+                      // get denoiser name from source
+                      MString sourceName = source.name();
+                      int dotPos = sourceName.rindexW('.') - 1;
+                      MString mayaString = sourceName.substringW(0, dotPos);
+                      AtString arnoldString(mayaString.asChar());
+                      // set input for driver
+                      AtNode* denoiser = AiNodeLookUpByName(universe, arnoldString);
+                      AiNodeSetPtr(driver, str::input, denoiser);
                   }
                }
             }
-            // Write tmp .ass file for debugging
-            AtParamValueMap* params = AiParamValueMap();
-            AiParamValueMapSetInt(params, AtString("mask"), AI_NODE_ALL);
-            AiSceneWrite(universe, "/tmp/MTOA-1069.ass", params);
             AiRenderBegin(renderSession);
             while(true)
             {
