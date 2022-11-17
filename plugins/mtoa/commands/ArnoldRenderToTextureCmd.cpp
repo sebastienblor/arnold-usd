@@ -6,7 +6,6 @@
 #include "utils/MtoAAdpPayloads.h"
 #include "session/ArnoldSession.h"
 #include "session/SessionManager.h"
-#include "nodes/options/ArnoldOptionsNode.h"
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
