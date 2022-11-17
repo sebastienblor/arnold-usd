@@ -790,37 +790,31 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                AiNodeSetStr(aovDrivers[aov], str::filename, AtString(aovFilename.asChar()));
             }
             AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-            // options node in Maya
-            MObject mayaOptions = CArnoldOptionsNode::getOptionsNode();
-            MFnDependencyNode fnNode(mayaOptions, &status);
-            CHECK_MSTATUS(status);
-            MPlugArray connections;
-            status = fnNode.getConnections(connections);
-            CHECK_MSTATUS(status);
-            unsigned int connectionsLength = connections.length();
-            for (unsigned int connectionsIdx = 0; connectionsIdx < connectionsLength; connectionsIdx++)
+            // imagers
+            COptionsTranslator* translator = session->GetOptionsTranslator();
+            MPlug pImg = translator->FindMayaPlug("imagers");
+            if (!pImg.isNull())
             {
-               MPlug connectionsPlug = connections[connectionsIdx];
-               MString connectionName = connectionsPlug.name();
-               int indexW = connectionName.indexW("imagers[0]");
-               if (indexW != -1)
+               MPlugArray conns;
+               unsigned numImagers = pImg.numElements();
+               for (unsigned int imagerIdx = 0; imagerIdx < numImagers; imagerIdx++)
                {
-                  MPlugArray connectedTo;
-                  bool hasConnection = connectionsPlug.connectedTo(connectedTo,
-                                                                   true /* asDst */,
-                                                                   false /* asSrc */,
-                                                                   &status);
-                  if (hasConnection && connectedTo.length() == 1)
+                  MPlug imagerPlug = pImg[imagerIdx];
+                  conns.clear();
+                  bool hasConnection = imagerPlug.connectedTo(conns,
+                                                              true  /* asDst */,
+                                                              false /* asSrc */);
+                  if (hasConnection && conns.length() == 1)
                   {
-                      MPlug source = connectedTo[0];
-                      // get denoiser name from source
-                      MString sourceName = source.name();
-                      int dotPos = sourceName.rindexW('.') - 1;
-                      MString mayaString = sourceName.substringW(0, dotPos);
-                      AtString arnoldString(mayaString.asChar());
-                      // set input for driver
-                      AtNode* denoiser = AiNodeLookUpByName(universe, arnoldString);
-                      AiNodeSetPtr(driver, str::input, denoiser);
+                     MPlug source = conns[0];
+                     // get denoiser name from source
+                     MString sourceName = source.name();
+                     int dotPos = sourceName.rindexW('.') - 1;
+                     MString mayaString = sourceName.substringW(0, dotPos);
+                     AtString arnoldString(mayaString.asChar());
+                     // set input for driver
+                     AtNode* denoiser = AiNodeLookUpByName(universe, arnoldString);
+                     AiNodeSetPtr(driver, str::input, denoiser);
                   }
                }
             }
