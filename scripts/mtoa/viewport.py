@@ -226,7 +226,7 @@ class ArnoldViewportRenderControl():
     def modelPanelChangedCallback(self, *args):
         # get panel with focus
         focusPanel = cmds.getPanel(withFocus=True)
-        if not cmds.modelPanel(focusPanel, q=True, exists=True):
+        if not focusPanel or not cmds.modelPanel(focusPanel, q=True, exists=True):
             return
         # get isolateSelected state
         panel_isolateState = cmds.isolateSelect(focusPanel, q=True, state=True)
@@ -459,7 +459,7 @@ class ArnoldViewportRenderControl():
         None if there is no panel currently rendering.
         """
         # find renderman panel
-        panel_list = cmds.getPanel(type='modelPanel')
+        panel_list = cmds.getPanel(type='modelPanel') or []
         arnold_panel = None
         for panel in panel_list:
             if cmds.modelEditor(
@@ -715,7 +715,7 @@ class ArnoldViewportRenderControl():
         """
         uip = cmds.setParent(q=True)
         arnold_panel = self.get_arnold_panel()
-        panel_list = cmds.getPanel(type='modelPanel')
+        panel_list = cmds.getPanel(type='modelPanel') or []
         if not panel_list:
             return
         for panel in panel_list:
@@ -727,7 +727,7 @@ class ArnoldViewportRenderControl():
                 self.setup_icon_bar(iconbar, panel, uip)
     
     def update_panels(self, reset=False):
-        panel_list = cmds.getPanel(type='modelPanel')
+        panel_list = cmds.getPanel(type='modelPanel') or []
         if not panel_list:
             return
         for panel in panel_list:
