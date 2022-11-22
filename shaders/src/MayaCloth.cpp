@@ -43,6 +43,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "maya.name", "cloth");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x5254434C);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
    
 }
 

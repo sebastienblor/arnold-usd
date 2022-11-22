@@ -26,6 +26,7 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "envSphere");
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
    
 }
 

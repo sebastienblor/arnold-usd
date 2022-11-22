@@ -1382,15 +1382,11 @@
     [attr thin_film_thickness]
         min             FLOAT   0.0
         softmax         FLOAT   2000.0
+        label           STRING  "Thickness"
     [attr thin_film_IOR]
         min             FLOAT   0.0
         softmax         FLOAT   3.0
-    [attr coat_anisotropy]
-        min             FLOAT   0.0
-        max             FLOAT   1.0
-    [attr coat_rotation]
-        softmin         FLOAT   0.0
-        softmax         FLOAT   1.0
+        label           STRING  "IOR"
 
 
 [node utility]
@@ -1727,16 +1723,13 @@
     maya.name               STRING  "aiStandardHair"
     maya.id                 INT    0x00115D52  
     maya.classification     STRING  "shader/surface"
+    ui.groups               STRING "Color:base base_color melanin melanin_redness melanin_randomize,Specular:roughness roughness_anisotropic roughness_azimuthal ior shift,Tint:specular_tint specular2_tint transmission_tint,Diffuse:diffuse diffuse_color,Emission:emission emission_color,:opacity,AOVs:aov_id1 id1 aov_id2 id2 aov_id3 id3 aov_id4 id4 aov_id5 id5 aov_id6 id6 aov_id7 id7 aov_id8 id8,Advanced:indirect_diffuse indirect_specular extra_depth extra_samples"
     [attr base]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+    [attr specular2_tint]
+        label               STRING "2nd Specular Tint"
     [attr diffuse]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
-    [attr specular]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
-    [attr specular2]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
     [attr transmission]
@@ -1748,6 +1741,12 @@
     [attr roughness_azimuthal]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+        label               STRING "Azimuthal Roughness"
+    [attr roughness_anisotropic]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        label               STRING "Anisotropic Roughness"
+    
     [attr ior]
         min                 FLOAT   0.0
         softmax             FLOAT   5.0
@@ -1781,24 +1780,50 @@
     maya.name               STRING  "aiStandardVolume"
     maya.id                 INT     0x00115D53  
     maya.classification     STRING  "shader/volume"
+    ui.groups               STRING  "Volume:density density_channel interpolation displacement,Scatter:scatter scatter_color scatter_color_channel,Anisotropy:scatter_anisotropy scatter_secondary_anisotropy_mix scatter_secondary_anisotropy,Transparent:transparent transparent_depth transparent_channel,Emission:emission_mode emission_scaling emission emission_color emission_channel,Temperature:temperature temperature_channel blackbody_kelvin blackbody_intensity blackbody_contrast"
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   5.0
     [attr scatter]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+        label               STRING  "Weight"
+    [attr scatter_color]
+        label               STRING  "Color"
+    [attr scatter_color_channel]
+        label               STRING  "Color Channel"    
     [attr scatter_anisotropy]
         min                 FLOAT   -1.0
         max                 FLOAT   1.0
+        label               STRING  "Anisotropy"
     [attr scatter_secondary_anisotropy]
         min                 FLOAT   -1.0
         max                 FLOAT   1.0
+        label               STRING  "Secondary Anisotropy"
     [attr scatter_secondary_anisotropy_mix]
         min                 FLOAT   -1.0
         max                 FLOAT   1.0
+        label               STRING  "Secondary Mix"
+    [attr transparent]
+        label               STRING  "Color"
+    [attr transparent_depth]
+        label               STRING  "Depth"
+    [attr transparent_channel]
+        label               STRING  "Channel"
     [attr emission]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
+        label               STRING  "Weight"
+    [attr emission_mode]
+        label               STRING  "Mode"
+    [attr emission_scaling]
+        label               STRING  "Scaling"
+    [attr emission_color]
+        label               STRING  "Color"
+    [attr emission_channel]
+        label               STRING  "Channel"
+    [attr temperature_channel]
+        label               STRING  "Channel"    
     [attr blackbody_kelvin]
         min                 FLOAT   0.0
         softmax             FLOAT   20000.0
@@ -3232,77 +3257,100 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "outColor"
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D8B
-    [attr coat]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr coat_color]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr coat_roughness]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr coat_IOR]
-        min             FLOAT   0
-        softmax         FLOAT   5
-
-    [attr specular]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr specular_color]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr specular_light_facing]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr specular_falloff]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr specular_roughness]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr specular_IOR]
-        min             FLOAT   0
-        softmax         FLOAT   3
-    [attr transmission_color]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr flake_color]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr flake_light_facing]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr flake_falloff]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr flake_roughness]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr flake_IOR]
-        min             FLOAT   0
-        softmax         FLOAT   100
-    [attr flake_scale]
-        min             FLOAT   0.000001
-        softmax         FLOAT   100
-    [attr flake_density]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr flake_layers]
-        min             INT   1
-        softmax         INT   4
-    [attr flake_normal_randomize]
-        min             FLOAT   0
-        max             FLOAT   1
+    ui.groups               STRING "Base: base base_color base_roughness ,Specular: specular specular_color specular_roughness specular_light_facing specular_falloff specular_IOR specular_flip_flop, Transmission:transmission_color, Flakes:flake_color flake_light_facing flake_falloff flake_roughness flake_IOR flake_scale flake_density flake_layers flake_normal_randomize flake_coord_space flake_flip_flop pref_name,Coat:coat coat_color coat_roughness coat_IOR coat_normal"
 
     [attr base]
         min             FLOAT   0
         max             FLOAT   1
+        label           STRING  "Weight"
     [attr base_color]
-        min             FLOAT   0
-        max             FLOAT   1
+        label           STRING  "Color"
     [attr base_roughness]
         min             FLOAT   0
         max             FLOAT   1
+        label           STRING  "Roughness"
+    [attr specular]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Weight"
+    [attr specular_color]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Color"
+    [attr specular_light_facing]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Light Facing"
+    [attr specular_falloff]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Falloff"
+    [attr specular_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Roughness"
+    [attr specular_IOR]
+        min             FLOAT   0
+        softmax         FLOAT   3
+        label           STRING  "IOR"    
+    [attr flake_color]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Color"
+    [attr flake_light_facing]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Light Facing"
+    [attr flake_falloff]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Falloff"
+    [attr flake_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Roughness"
+    [attr flake_IOR]
+        min             FLOAT   0
+        softmax         FLOAT   100
+        label           STRING  "IOR"
+    [attr flake_scale]
+        min             FLOAT   0.000001
+        softmax         FLOAT   100
+        label           STRING  "Scale"
+    [attr flake_density]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Density"
+    [attr flake_layers]
+        min             INT   1
+        softmax         INT   4
+        label           STRING  "Layers"
+    [attr flake_normal_randomize]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING  "Normal Randomize"
+    [attr coat]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING "Weight"
+    [attr coat_color]
+        label           STRING "Color"
+        
+    [attr coat_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+        label           STRING "Roughness"
+    [attr coat_IOR]
+        min             FLOAT   0
+        softmax         FLOAT   5
+        label           STRING "IOR"
+
+    [attr transmission_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    
+
+    
 
 [node layer_shader]
     desc                    STRING  "Layer shader"
@@ -3696,22 +3744,28 @@ desc STRING "Apply a gamma correction to the color."
     
 
 [node c4d_texture_tag]
+    hide      BOOL TRUE
     maya.hide BOOL TRUE
     
 [node c4d_texture_tag_rgba]
+    maya      BOOL TRUE
     maya.hide BOOL TRUE
 
 [node driver_no_op]
+    hide      BOOL TRUE
     maya.hide BOOL TRUE
 
 [node maya_layered_shader]
+    hide      BOOL TRUE
     maya.hide BOOL TRUE
 
 [node query_shape]
     maya.hide BOOL TRUE
+    hide      BOOL TRUE
 
 [node visible_light]
     maya.hide BOOL TRUE
+    hide      BOOL TRUE
 
 [node clip_geo]
     desc                    STRING  "CSG Clip Shader"

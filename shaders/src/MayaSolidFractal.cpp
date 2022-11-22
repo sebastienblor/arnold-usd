@@ -82,6 +82,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "maya.name", "solidFractal");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544633);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
 }
 
 node_initialize
