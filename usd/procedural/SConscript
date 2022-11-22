@@ -139,7 +139,10 @@ def _usd_procedural(target, source, env):
             args['SHCXX'] = local_env['SHCXX']
         if local_env.get('CXX_STANDARD'):
             args['CXX_STANDARD'] = local_env['CXX_STANDARD']
-        args['DISABLE_CXX11_ABI']=True 
+        # don't set this flag for 2024 and up, as it won't load in RH8 #MTOA-1215
+        if mayaVersion < 2024:
+            args['DISABLE_CXX11_ABI']=True 
+        
         if pythonVersion == '3':
             args['PYTHON_LIB_NAME']   = 'libpython3.{}{}'.format(pythonMinor, pythonDirChar)
         else:
