@@ -59,10 +59,15 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("vsc", "v_scale", MSyntax::kDouble);
    syntax.addFlag("seq", "sequence", MSyntax::kBoolean);
    syntax.addFlag("fst", "frame_start", MSyntax::kDouble);
-   syntax.addFlag("fen", "frame_end", MSyntax::kDouble);   
-   syntax.addFlag("sst", "frame_step", MSyntax::kDouble);   
-   syntax.addFlag("sst", "frame_step", MSyntax::kDouble);   
-   syntax.addFlag("pad", "frame_padding", MSyntax::kUnsigned);   
+   syntax.addFlag("fen", "frame_end", MSyntax::kDouble);
+   syntax.addFlag("sst", "frame_step", MSyntax::kDouble);
+   syntax.addFlag("sst", "frame_step", MSyntax::kDouble);
+   syntax.addFlag("pad", "frame_padding", MSyntax::kUnsigned);
+   syntax.addFlag("ur", "use_region", MSyntax::kBoolean);
+   syntax.addFlag("mix", "region_min_x",  MSyntax::kLong);
+   syntax.addFlag("miy", "region_min_y",  MSyntax::kLong);
+   syntax.addFlag("max", "region_max_x",  MSyntax::kLong);
+   syntax.addFlag("may", "region_max_y",  MSyntax::kLong);
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -132,7 +137,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       return MS::kSuccess;
    }
 
-      
+
    // only display progressBar in Interactive sessions
    // or in batch it might fail
    bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
@@ -140,8 +145,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    std::vector<double> frames;
    double currentFrame = 0.f;
    MString cmd = MString("currentTime -query");
-   MGlobal::executeCommand(cmd, currentFrame); 
- 
+   MGlobal::executeCommand(cmd, currentFrame);
+
    bool sequence = false;
    if (argDB.isFlagSet("sequence")) argDB.getFlagArgument("sequence", 0, sequence);
    int framePadding = 0;
@@ -162,7 +167,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          frames.push_back(f);
    } else
    {
-      frames.push_back(currentFrame); 
+      frames.push_back(currentFrame);
    }
 
    for (size_t i = 0; i < frames.size(); ++i)
@@ -180,11 +185,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       AtUniverse *universe = session->GetUniverse();
       options.SetForceTranslateShadingEngines(true);
       AtRenderSession *renderSession = session->GetRenderSession();
-      
+
 
       double currentFrame = 0.f;
       MString cmd = MString("currentTime -query");
-      MGlobal::executeCommand(cmd, currentFrame); 
+      MGlobal::executeCommand(cmd, currentFrame);
 
       if (currentFrame != frame)
       {
@@ -209,7 +214,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       session->Export();
       AtNode *shaderNode = 0;
-      
+
       if (argDB.isFlagSet("shader"))
       {
          MString shaderName = "";
@@ -278,14 +283,39 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       AiNodeSetInt(options_node, str::xres, resolution);
       AiNodeSetInt(options_node, str::yres, resolution);
 
-      
+      bool useRegion = false;
+      if (argDB.isFlagSet("use_region")) argDB.getFlagArgument("use_region", 0, useRegion);
+      if (useRegion)
+      {
+         if (args.isFlagSet("region_min_x"))
+         {
+            int region_min_x = args.flagArgumentInt("region_min_x", 0);
+            AiNodeSetInt(options_node, str::region_min_x, region_min_x);
+         }
+         if (args.isFlagSet("region_min_y"))
+         {
+            int region_min_y = args.flagArgumentInt("region_min_y", 0);
+            AiNodeSetInt(options_node, str::region_min_y, region_min_y);
+         }
+         if (args.isFlagSet("region_max_x"))
+         {
+            int region_max_x = args.flagArgumentInt("region_max_x", 0);
+            AiNodeSetInt(options_node, str::region_max_x, region_max_x);
+         }
+         if (args.isFlagSet("region_max_y"))
+         {
+            int region_max_y = args.flagArgumentInt("region_max_y", 0);
+            AiNodeSetInt(options_node, str::region_max_y, region_max_y);
+         }
+      }
+
       if (argDB.isFlagSet("aa_samples"))
       {
          int aa_samples = 1;
          argDB.getFlagArgument("aa_samples", 0, aa_samples);
          AiNodeSetInt(options_node, str::AA_samples, aa_samples);
       }
-      
+
       // create a filter
       MString filterType = "gaussian_filter";
       if (argDB.isFlagSet("filter"))
@@ -293,7 +323,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          argDB.getFlagArgument("filter", 0, filterType);
          filterType += "_filter";
       }
-      
+
       AtNode *filterNode = AiNode(universe, AtString(filterType.asChar()));
       if (filterNode == 0)
       {
@@ -363,11 +393,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       std::vector<std::string> aovNames;
 
       outputsList.push_back("RGBA RGBA defaultArnoldFilter/cameraMapperFilter defaultArnoldDriver/cameraMapperOutput");
-      
+
       // create a driver that will write the output texture
       static std::string uvMapperDriverName ("defaultArnoldDriver/cameraMapperOutput");
       AtNode *driver = AiNode(universe, str::driver_exr, AtString(uvMapperDriverName.c_str()));
-      
+
       if (extendEdges)
          AiNodeSetBool(driver, str::tiled, false);
 
@@ -375,7 +405,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       if (enableAovs && prevOutputs && AiArrayGetNumElements(prevOutputs) > 1)
       {
          MString mainFilter;
-         // AOVs have to be added to my outputs list      
+         // AOVs have to be added to my outputs list
          for (unsigned int p = 0; p < AiArrayGetNumElements(prevOutputs); ++p)
          {
             AtString aovStr = AiArrayGetStr(prevOutputs, p);
@@ -387,7 +417,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             MString aovName = aovElemSplit[0];
             MString aovFilter = aovElemSplit[2];
-            
+
             if (aovName == "RGBA")
             {
                mainFilter = aovFilter;
@@ -432,14 +462,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       // assign it to the render options
       AiNodeSetArray(options_node, str::outputs, outputs);
 
-      MString mayaVersion = MGlobal::mayaVersion();     
+      MString mayaVersion = MGlobal::mayaVersion();
       MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
       AiSetAppString(appString.asChar());
 
       // We need to ensure that a render camera is set, otherwise subdivision might fail (#3264)
       AtNode *renderCam = (AtNode*)AiNodeGetPtr(options_node, str::camera);
       if (renderCam == NULL)
-      {      
+      {
          // Please don't tell anyone that I'm creating a dummy camera here,
          // it will be deleted at the end of this function anyway.
          renderCam = AiNode(universe, str::persp_camera, str::__mtoa_baking_cam);
@@ -483,7 +513,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(node);
          const char *typeName = AiNodeEntryGetName(nodeEntry);
 
-         if(AiNodeEntryGetDerivedType(nodeEntry) == AI_NODE_SHAPE_PROCEDURAL) 
+         if(AiNodeEntryGetDerivedType(nodeEntry) == AI_NODE_SHAPE_PROCEDURAL)
          {
             // this is a procedural node...
             // need to get all the children nodes
@@ -504,7 +534,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                }
                // test if the root parent node is the one I'm treating
                if (rootNode != node) continue;
-               
+
                if (AiNodeIs(loopNode, str::polymesh) )
                {
                   nodes.push_back(loopNode);
@@ -516,7 +546,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          {
             nodes.push_back(node);
          } else
-         {         
+         {
             MString errLog = "[mtoa] Render to Texture : ";
             errLog += typeName;
             errLog += " nodes are not supported types";
@@ -527,7 +557,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       for (size_t i = 0; i < nodes.size(); ++i)
       {
          AtNode *mesh = nodes[i];
-         
+
          std::string meshName = AiNodeGetName(mesh);
          std::string fullMeshName = meshName;
 
@@ -593,14 +623,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          if (AiNodeLookUpUserParameter(mesh, str::dcc_name))
          {
             // if the user data "dcc_name" exists, I want to use it for the output image filename
-            meshNameStr = AiNodeGetStr(mesh, str::dcc_name); 
+            meshNameStr = AiNodeGetStr(mesh, str::dcc_name);
          }
          MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshNameStr.c_str()));
 
          std::replace( meshNameStr.begin(), meshNameStr.end(), ':', '_'); // replace all ':' to '_'
          std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
          std::replace( meshNameStr.begin(), meshNameStr.end(), '|', '_'); // replace all '|' to '_'
-         
+
          std::string shaderNameStr;
          if (shader_name)
          {
@@ -612,10 +642,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AtByte sidedness = AiNodeGetByte(mesh, str::sidedness);
          // remove camera sidedness since we're offsetting towards the normal's direction
          // this could remove some artefacts caused by the normal offset
-         sidedness &= ~AI_RAY_CAMERA; 
+         sidedness &= ~AI_RAY_CAMERA;
          AiNodeSetByte(mesh, str::sidedness, sidedness);
          AiNodeSetBool(mesh, str::opaque, true); // force opaque to true since a transparent material wouldn't work at all
-         
+
          if (allUdims || udimsSet.size()>0)
          {
 
@@ -661,7 +691,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   return MS::kSuccess;
                }
 
-               
+
                AiNodeSetPtr(camera, str::mesh, (void*) mesh);
                AiNodeSetStr(camera, str::uv_set, AtString(uvSet.asChar()));
                AiNodeSetFlt(camera, str::u_offset, (float)(-u_offset -uStart));
@@ -674,7 +704,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                // need to adjust the near plane to make sure it's not bigger than the offset
                AiNodeSetFlt(camera, str::near_clip, (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, str::near_clip)));
                AiNodeSetPtr(options_node, str::camera, camera);
-               
+
                AiNodeSetStr(driver, str::filename, AtString(filename.c_str()));
 
                MString filenameStr(filename.c_str());
@@ -722,7 +752,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   }
                }
                AiRenderEnd(renderSession);
-               
+
                MRenderUtil::sendRenderProgressInfo(filenameStr, 100); // magic number for end
                MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + MString(filename.c_str()));
 
@@ -743,7 +773,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a uv_camera node");
                return MS::kSuccess;
             }
-            
+
             MString filename = folderName + "/" + meshNameStr.c_str();
             MString baseFilename = filename;
             if (sequence)
