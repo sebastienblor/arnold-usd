@@ -789,6 +789,34 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                AiNodeSetStr(aovDrivers[aov], str::filename, AtString(aovFilename.asChar()));
             }
             AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
+            // imagers
+            COptionsTranslator* translator = session->GetOptionsTranslator();
+            MPlug pImg = translator->FindMayaPlug("imagers");
+            if (!pImg.isNull())
+            {
+               MPlugArray conns;
+               unsigned numImagers = pImg.numElements();
+               for (unsigned int imagerIdx = 0; imagerIdx < numImagers; imagerIdx++)
+               {
+                  MPlug imagerPlug = pImg[imagerIdx];
+                  conns.clear();
+                  bool hasConnection = imagerPlug.connectedTo(conns,
+                                                              true  /* asDst */,
+                                                              false /* asSrc */);
+                  if (hasConnection && conns.length() == 1)
+                  {
+                     MPlug source = conns[0];
+                     // get imager name from source
+                     MString sourceName = source.name();
+                     int dotPos = sourceName.rindexW('.') - 1;
+                     MString mayaString = sourceName.substringW(0, dotPos);
+                     AtString arnoldString(mayaString.asChar());
+                     // set input for driver
+                     AtNode* imager = AiNodeLookUpByName(universe, arnoldString);
+                     AiNodeSetPtr(driver, str::input, imager);
+                  }
+               }
+            }
             AiRenderBegin(renderSession);
             while(true)
             {
