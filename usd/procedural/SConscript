@@ -50,7 +50,11 @@ usd_version = local_env.get('USD_VERSION')
 usd_lib_prefix = 'lib'
 # For Maya 2022, python3 means python3.7
 # For Maya 2023, it is python3.9
-pythonMinor = '7' if mayaVersion < 2023 else '9'
+# For Maya 2024, it is python3.10
+pythonVersions = {2022:('3','7'),
+                  2023:('3','9'),
+                  2024:('3','10')}
+pythonMinor = pythonVersions[mayaVersion][1] if mayaVersion in pythonVersions else "7"
 pythonDirChar = 'm' if mayaVersion < 2023 else ''
 if platform.system().lower() == 'darwin':
     python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.{}'.format(pythonVersion, pythonMinor), 'include', 'python{}.{}{}'.format(pythonVersion, pythonMinor, pythonDirChar))

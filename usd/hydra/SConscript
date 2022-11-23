@@ -32,7 +32,11 @@ mayaRoot = local_env['MAYA_ROOT']
 mayaVersion = int(local_env['MAYA_VERSION_BASE'])
 # For Maya 2022, python3 means python3.7
 # For Maya 2023, it is python3.9
-pythonMinor = '7' if mayaVersion < 2023 else '9'
+# For Maya 2024, it is python3.10
+pythonVersions = {2022:('3','7'),
+                  2023:('3','9'),
+                  2024:('3','10')}
+pythonMinor = pythonVersions[mayaVersion][1] if mayaVersion in pythonVersions else "7"
 pythonDirChar = 'm' if mayaVersion < 2023 else ''
 
 lib_extension = {'darwin' : '.dylib' , 'linux'  : '.so' , 'windows': '.dll'}.get(platform.system().lower(), None)
