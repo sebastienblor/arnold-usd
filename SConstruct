@@ -1145,7 +1145,7 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
                      exports     = 'env BUILD_BASE_DIR')
 SConscriptChdir(1)
 
-env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'arnold.mtd'))
+#env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'arnold.mtd'))
 # if not env['DISABLE_COMMON']:
 #     env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 

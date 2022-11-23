@@ -27,6 +27,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "maya.name", "bulge");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544255);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
    
 }
 

@@ -59,6 +59,7 @@ node_parameters
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
    AiMetaDataSetStr(nentry, NULL, "_synonym", "mayaCrater");
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
 
 }
 

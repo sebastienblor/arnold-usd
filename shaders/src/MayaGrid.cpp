@@ -42,6 +42,7 @@ node_parameters
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
    AiMetaDataSetStr(nentry, NULL, "maya.name", "grid");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544744);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
 }
 
 node_initialize
