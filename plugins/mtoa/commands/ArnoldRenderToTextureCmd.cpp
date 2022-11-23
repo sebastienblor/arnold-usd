@@ -806,14 +806,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   if (hasConnection && conns.length() == 1)
                   {
                      MPlug source = conns[0];
-                     // get denoiser name from source
+                     // get imager name from source
                      MString sourceName = source.name();
                      int dotPos = sourceName.rindexW('.') - 1;
                      MString mayaString = sourceName.substringW(0, dotPos);
                      AtString arnoldString(mayaString.asChar());
                      // set input for driver
-                     AtNode* denoiser = AiNodeLookUpByName(universe, arnoldString);
-                     AiNodeSetPtr(driver, str::input, denoiser);
+                     AtNode* imager = AiNodeLookUpByName(universe, arnoldString);
+                     AiNodeSetPtr(driver, str::input, imager);
                   }
                }
             }
