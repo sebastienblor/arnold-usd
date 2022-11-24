@@ -56,6 +56,7 @@ pythonVersions = {2022:('3','7'),
                   2024:('3','10')}
 pythonMinor = pythonVersions[mayaVersion][1] if mayaVersion in pythonVersions else "7"
 pythonDirChar = 'm' if mayaVersion < 2023 else ''
+boost_version = '1_70' if mayaVersion <= 2023 else '1_76'
 if platform.system().lower() == 'darwin':
     python_include = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.{}'.format(pythonVersion, pythonMinor), 'include', 'python{}.{}{}'.format(pythonVersion, pythonMinor, pythonDirChar))
     python_lib = os.path.join(mayaRoot, 'Frameworks', 'Python.framework', 'Versions', '{}.{}'.format(pythonVersion, pythonMinor), 'lib')
@@ -65,9 +66,9 @@ else:
     python_lib = os.path.join(mayaRoot, 'lib')
 
 if platform.system().lower() == 'windows':
-    boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70' if mayaVersion <= 2023 else 'boost-1_76')
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost-{}'.format(boost_version))
     msvc_version = '141' if mayaVersion <= 2023 else '142'
-    boost_lib_name = 'boost_%s{}{}-vc{}-mt-x64-1_76'.format(pythonVersion, pythonMinor, msvc_version) 
+    boost_lib_name = 'boost_%s{}{}-vc{}-mt-x64-{}'.format(pythonVersion, pythonMinor, msvc_version, boost_version) 
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
