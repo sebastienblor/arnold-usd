@@ -679,7 +679,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
          if (m_cloneInstances[idx])
          {
             MString instName = baseName + MString("/") + instanceKey;
-         
+
             // Clone the master node (lights can't be instanced in arnold)
             instance  = AiNodeClone(obj, AtString(instName.asChar()));
    
@@ -702,8 +702,24 @@ void CInstancerTranslator::PostExport(AtNode *node)
                // and takes the prefix into account (#2684)
             }
             AiNodeSetPtr(instance, str::node, obj);
-            AiNodeSetBool(instance, str::inherit_xform, true);
             AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
+
+            // Check for any translations from the origin and if so:
+            // (1) Turn off inherit xform
+            // (2) compute an offset translation for each instance (MTOA-1216)
+            MVector origin = GetSessionOptions().GetOrigin();
+            if (origin.length() > 0.0f)
+            {
+               AiNodeSetBool(instance, str::inherit_xform, false);
+               AtMatrix matrix = AiNodeGetMatrix(instance, str::matrix);
+               AtMatrix transMatrix = AiM4Translation(AtVector(origin.x, origin.y, origin.z));
+               matrix = AiM4Mult(matrix, transMatrix);
+               AiNodeSetMatrix(instance, str::matrix, matrix);
+            }
+            else
+            {
+               AiNodeSetBool(instance, str::inherit_xform, true);
+            }
          }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
