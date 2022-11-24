@@ -342,7 +342,6 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          std::string readBuffer;
          curl_global_init(CURL_GLOBAL_ALL);
          curl = curl_easy_init();
-         std::cout << "get curl" << std::endl;
 
          if(curl) {
 
