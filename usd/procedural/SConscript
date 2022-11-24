@@ -65,9 +65,9 @@ else:
     python_lib = os.path.join(mayaRoot, 'lib')
 
 if platform.system().lower() == 'windows':
-    boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70')
+    boost_include = os.path.join(usd_install_dir, 'include', 'boost-1_70' if mayaVersion <= 2023 else 'boost-1_76')
     msvc_version = '141' if mayaVersion <= 2023 else '142'
-    boost_lib_name = 'boost_%s{}{}-vc{}-mt-x64-1_70'.format(pythonVersion, pythonMinor, msvc_version) 
+    boost_lib_name = 'boost_%s{}{}-vc{}-mt-x64-1_76'.format(pythonVersion, pythonMinor, msvc_version) 
     usd_lib_prefix = ''
 else:
     boost_include = os.path.join(usd_install_dir, 'include', 'boost')
