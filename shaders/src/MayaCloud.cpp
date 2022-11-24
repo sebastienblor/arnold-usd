@@ -60,6 +60,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "maya.name", "cloud");
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544344);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
 }
 
 node_initialize

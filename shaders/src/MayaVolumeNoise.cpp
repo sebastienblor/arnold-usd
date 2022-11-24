@@ -108,6 +108,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "maya.name", "volumeNoise");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52545633);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "hide", true);
 }
 
 node_initialize
