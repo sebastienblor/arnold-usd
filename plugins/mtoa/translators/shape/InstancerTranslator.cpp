@@ -407,7 +407,20 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          {
             AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
-            ConvertMatrix(matrix, mayaMatrices[j]);
+            // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
+            // ConvertMatrix adds an additional offset: MSource * offset * instance * Mnode * offset
+            // Use a revised version of ConvertMatrix where we omit translation and scaling transformations (MTOA-1216)
+            //ConvertMatrix(matrix, mayaMatrices[j]);
+            MTransformationMatrix trMat = mayaMatrices[j];
+            MMatrix copyMayaMatrix = trMat.asMatrix();
+
+            for (int J = 0; (J < 4); ++J)
+            {
+               for (int I = 0; (I < 4); ++I)
+               {
+                  matrix[I][J] = (float) copyMayaMatrix[I][J];
+               }
+            }
             AiArraySetMtx(outMatrix, step, matrix);
 
             m_vec_matrixArrays.push_back(outMatrix);
@@ -456,7 +469,19 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (it != tempMap.end())   // found the particle in the scene already
             {
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j]);
+               // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
+               // ConvertMatrix adds an additional offset: MSource * offset * instance * Mnode * offset
+               // Use a revised version of ConvertMatrix where we omit translation and scaling transformations (MTOA-1216)
+               //ConvertMatrix(matrix, mayaMatrices[j]);
+               MMatrix copyMayaMatrix = trMat.asMatrix();
+
+               for (int J = 0; (J < 4); ++J)
+               {
+                  for (int I = 0; (I < 4); ++I)
+                  {
+                     matrix[I][J] = (float) copyMayaMatrix[I][J];
+                  }
+               }
                // setting the matrix with the index corresponding to the original index
                if (it->second < (int)m_vec_matrixArrays.size())
                   AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
@@ -475,7 +500,19 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                newParticleCount++;
                AtArray* outMatrix = AiArrayAllocate(1, numMotionSteps, AI_TYPE_MATRIX);
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j]);
+               // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
+               // ConvertMatrix adds an additional offset: MSource * offset * instance * Mnode * offset
+               // Use a revised version of ConvertMatrix where we omit translation and scaling transformations (MTOA-1216)
+               //ConvertMatrix(matrix, mayaMatrices[j]);
+               MMatrix copyMayaMatrix = trMat.asMatrix();
+
+               for (int J = 0; (J < 4); ++J)
+               {
+                  for (int I = 0; (I < 4); ++I)
+                  {
+                     matrix[I][J] = (float) copyMayaMatrix[I][J];
+                  }
+               }
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
                for (int i = 0; i < numMotionSteps; i++)
@@ -704,22 +741,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
             AiNodeSetPtr(instance, str::node, obj);
             AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
 
-            // Check for any translations from the origin and if so:
-            // (1) Turn off inherit xform
-            // (2) compute an offset translation for each instance (MTOA-1216)
-            MVector origin = GetSessionOptions().GetOrigin();
-            if (origin.length() > 0.0f)
-            {
-               AiNodeSetBool(instance, str::inherit_xform, false);
-               AtMatrix matrix = AiNodeGetMatrix(instance, str::matrix);
-               AtMatrix transMatrix = AiM4Translation(AtVector(origin.x, origin.y, origin.z));
-               matrix = AiM4Mult(matrix, transMatrix);
-               AiNodeSetMatrix(instance, str::matrix, matrix);
-            }
-            else
-            {
-               AiNodeSetBool(instance, str::inherit_xform, true);
-            }
+            AiNodeSetBool(instance, str::inherit_xform, true);
          }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
