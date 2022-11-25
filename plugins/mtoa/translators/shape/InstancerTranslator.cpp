@@ -13,7 +13,19 @@
 #include "utils/MtoaLog.h"
 #include "utils/ConstantStrings.h"
 
+void ConvertMatrixWithoutOffset(AtMatrix& matrix, const MMatrix& mayaMatrix) 
+{
+   MTransformationMatrix trMat = mayaMatrix;
+   MMatrix copyMayaMatrix = trMat.asMatrix();
 
+   for (int J = 0; (J < 4); ++J)
+   {
+      for (int I = 0; (I < 4); ++I)
+      {
+         matrix[I][J] = (float) copyMayaMatrix[I][J];
+      }
+   }
+}
 
 void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
                          const MVector& velocityVector)
@@ -408,19 +420,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
             // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
-            // ConvertMatrix adds an additional offset: MSource * offset * instance * Mnode * offset
-            // Use a revised version of ConvertMatrix where we omit translation and scaling transformations (MTOA-1216)
-            //ConvertMatrix(matrix, mayaMatrices[j]);
-            MTransformationMatrix trMat = mayaMatrices[j];
-            MMatrix copyMayaMatrix = trMat.asMatrix();
+            // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
+            // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+            ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
 
-            for (int J = 0; (J < 4); ++J)
-            {
-               for (int I = 0; (I < 4); ++I)
-               {
-                  matrix[I][J] = (float) copyMayaMatrix[I][J];
-               }
-            }
             AiArraySetMtx(outMatrix, step, matrix);
 
             m_vec_matrixArrays.push_back(outMatrix);
@@ -470,18 +473,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             {
                AtMatrix matrix;
                // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
-               // ConvertMatrix adds an additional offset: MSource * offset * instance * Mnode * offset
-               // Use a revised version of ConvertMatrix where we omit translation and scaling transformations (MTOA-1216)
-               //ConvertMatrix(matrix, mayaMatrices[j]);
-               MMatrix copyMayaMatrix = trMat.asMatrix();
+               // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
+               // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+               ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
 
-               for (int J = 0; (J < 4); ++J)
-               {
-                  for (int I = 0; (I < 4); ++I)
-                  {
-                     matrix[I][J] = (float) copyMayaMatrix[I][J];
-                  }
-               }
                // setting the matrix with the index corresponding to the original index
                if (it->second < (int)m_vec_matrixArrays.size())
                   AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
@@ -501,18 +496,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                AtArray* outMatrix = AiArrayAllocate(1, numMotionSteps, AI_TYPE_MATRIX);
                AtMatrix matrix;
                // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
-               // ConvertMatrix adds an additional offset: MSource * offset * instance * Mnode * offset
-               // Use a revised version of ConvertMatrix where we omit translation and scaling transformations (MTOA-1216)
-               //ConvertMatrix(matrix, mayaMatrices[j]);
-               MMatrix copyMayaMatrix = trMat.asMatrix();
-
-               for (int J = 0; (J < 4); ++J)
-               {
-                  for (int I = 0; (I < 4); ++I)
-                  {
-                     matrix[I][J] = (float) copyMayaMatrix[I][J];
-                  }
-               }
+               // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
+               // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+               ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
+               
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
                for (int i = 0; i < numMotionSteps; i++)
@@ -822,3 +809,4 @@ void CInstancerTranslator::RequestUpdate()
    SetUpdateMode(AI_RECREATE_NODE);
    CShapeTranslator::RequestUpdate();
 }
+
