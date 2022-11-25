@@ -13,7 +13,19 @@
 #include "utils/MtoaLog.h"
 #include "utils/ConstantStrings.h"
 
+void ConvertMatrixWithoutOffset(AtMatrix& matrix, const MMatrix& mayaMatrix) 
+{
+   MTransformationMatrix trMat = mayaMatrix;
+   MMatrix copyMayaMatrix = trMat.asMatrix();
 
+   for (int J = 0; (J < 4); ++J)
+   {
+      for (int I = 0; (I < 4); ++I)
+      {
+         matrix[I][J] = (float) copyMayaMatrix[I][J];
+      }
+   }
+}
 
 void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
                          const MVector& velocityVector)
@@ -407,7 +419,11 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          {
             AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
-            ConvertMatrix(matrix, mayaMatrices[j]);
+            // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
+            // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
+            // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+            ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
+
             AiArraySetMtx(outMatrix, step, matrix);
 
             m_vec_matrixArrays.push_back(outMatrix);
@@ -456,7 +472,11 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (it != tempMap.end())   // found the particle in the scene already
             {
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j]);
+               // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
+               // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
+               // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+               ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
+
                // setting the matrix with the index corresponding to the original index
                if (it->second < (int)m_vec_matrixArrays.size())
                   AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
@@ -475,7 +495,11 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                newParticleCount++;
                AtArray* outMatrix = AiArrayAllocate(1, numMotionSteps, AI_TYPE_MATRIX);
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j]);
+               // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
+               // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
+               // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+               ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
+               
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
                for (int i = 0; i < numMotionSteps; i++)
@@ -679,7 +703,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
          if (m_cloneInstances[idx])
          {
             MString instName = baseName + MString("/") + instanceKey;
-         
+
             // Clone the master node (lights can't be instanced in arnold)
             instance  = AiNodeClone(obj, AtString(instName.asChar()));
    
@@ -702,8 +726,9 @@ void CInstancerTranslator::PostExport(AtNode *node)
                // and takes the prefix into account (#2684)
             }
             AiNodeSetPtr(instance, str::node, obj);
-            AiNodeSetBool(instance, str::inherit_xform, true);
             AiNodeSetArray(instance, str::matrix, AiArrayCopy(m_vec_matrixArrays[j]));
+
+            AiNodeSetBool(instance, str::inherit_xform, true);
          }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
@@ -784,3 +809,4 @@ void CInstancerTranslator::RequestUpdate()
    SetUpdateMode(AI_RECREATE_NODE);
    CShapeTranslator::RequestUpdate();
 }
+
