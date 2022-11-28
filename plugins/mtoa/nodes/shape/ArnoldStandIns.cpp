@@ -332,7 +332,7 @@ float convertToFloat(const char *number)
       return static_cast<float>(atof(number));
 }
 
-
+/*
 bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInData* geom = GetStandinData();
@@ -346,7 +346,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
 
    AtMetadataStore *mds = AiMetadataStore();
    AtString boundsStr;
-   
+
    if (AiMetadataStoreLoadFromASS(mds, path_val.asChar()) && 
        AiMetadataStoreGetStr(mds, str::bounds, &boundsStr))
    {
@@ -366,7 +366,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
             MPoint max(xmax, ymax, zmax);
             geom->m_bbox = MBoundingBox(min, max);
          } 
-         
+
          AiMetadataStoreDestroy(mds);   
          return true;
       }
@@ -411,7 +411,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
          MPoint max(xmax, ymax, zmax);
          geom->m_bbox = MBoundingBox(min, max);
       } 
-      
+
       delete []str;
       return true;
    }
@@ -419,7 +419,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
    {
       return false;
    }
-}
+}*/
 
 void* CArnoldStandInShape::creator()
 {
@@ -822,12 +822,14 @@ void CArnoldStandInShape::updateGeometry()
    if (data->drawOverride == 3)
       return;
 
-   // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
-   // If we can't, we have to load the .ass file and compute it ourselves
-   if (m_data->m_mode != 0 || !LoadBoundingBox()) {
-
-      LoadFile();
-   }
+   // Load the bounding box from the .ass file and compute said bounds. In the past, we would load
+   // the bounding box from metadata before loading the .ass file. This introduces a defect
+   // where the StandIn bounding box will not be updated to reflect the geometry. This results
+   // from situations where the measurements units of an .ass file is not the same as that of
+   // measurement units set in Maya (e.g., if the .ass file is generate from Houdini,
+   // where 1 unit = 1m), and the latter is cached as the dimensions of the StandIn's bounding box
+   // prior to loading the actual bounding box of the StandIn in the file (MTOA-1035).
+   LoadFile();
 
    MPoint bbMin = m_data->m_bbox.min();
    MPoint bbMax = m_data->m_bbox.max();
