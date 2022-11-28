@@ -340,7 +340,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          CURL *curl;
          CURLcode res;
          std::string readBuffer;
-         curl_global_init(CURL_GLOBAL_ALL);
+         curl_global_init(CURL_GLOBAL_DEFAULT);
          curl = curl_easy_init();
 
          if(curl) {
@@ -348,6 +348,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
             curl_easy_setopt(curl, CURLOPT_URL, "https://arnoldrenderer.com/getversion/maya");
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
             curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // Fix for windows CA certificate error
             res = curl_easy_perform(curl);
             /* check for errors */ 
             if(res != CURLE_OK) {
