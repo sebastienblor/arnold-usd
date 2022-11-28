@@ -823,12 +823,12 @@ void CArnoldStandInShape::updateGeometry()
       return;
 
    // Load the bounding box from the .ass file and compute said bounds. In the past, we would load
-   // the bounding box from metadata before loading the .ass file. This introduces a defect
-   // where the StandIn bounding box will not be updated to reflect the geometry. This results
-   // from situations where the measurements units of an .ass file is not the same as that of
-   // measurement units set in Maya (e.g., if the .ass file is generate from Houdini,
-   // where 1 unit = 1m), and the latter is cached as the dimensions of the StandIn's bounding box
-   // prior to loading the actual bounding box of the StandIn in the file (MTOA-1035).
+   // the bounding box from metadata before loading the .ass file. Loading the bounding box from 
+   // metadata introduces a defect where the StandIn bounding box will not be updated to reflect 
+   // the geometry if the measurement units on an .ass file is not the same as that of the measurement 
+   // units set in Maya (e,g. if the .ass file is generate from Houdini where 1 unit = 1m, and Maya 
+   //is set to default 1 unit = 1cm). This results in the bounding box generated from the measurement units 
+   // set in Maya being cached as the bounding box of the StandIn. (MTOA-1035).
    LoadFile();
 
    MPoint bbMin = m_data->m_bbox.min();
