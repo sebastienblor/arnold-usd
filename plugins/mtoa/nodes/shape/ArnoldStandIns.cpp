@@ -39,7 +39,6 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MDagPath.h>
 #include <maya/MDrawData.h>
-#include <maya/MDistance.h>
 #include <maya/MPlug.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MMatrix.h>
@@ -176,7 +175,7 @@ MStatus CArnoldStandInShape::LoadFile()
 
       MDistance dist(1.0, MDistance::uiUnit());
       AiNodeSetFlt(AiUniverseGetOptions(proc_universe), str::meters_per_unit, float(dist.asMeters()));
-   
+
 
       // setup procedural search path
       MString proceduralPath = "";
@@ -332,7 +331,33 @@ float convertToFloat(const char *number)
       return static_cast<float>(atof(number));
 }
 
-/*
+double CArnoldStandInShape::ConvertWorkingUnits(MDistance dist) {
+   double conversionScalar = 1.0f;
+   if (MDistance::uiUnit() != dist.unit()) {
+      switch (MDistance::uiUnit()) {
+         case MDistance::kInches:
+         conversionScalar = dist.asInches();
+         break;
+       case MDistance::kFeet:
+         conversionScalar = dist.asFeet();
+         break;
+         case MDistance::kYards:
+         conversionScalar = dist.asYards();
+         break;
+      case MDistance::kMillimeters:
+         conversionScalar = dist.asMillimeters();
+         break;
+      case MDistance::kCentimeters:
+         conversionScalar = dist.asCentimeters();
+         break;
+      case MDistance::kMeters:
+         conversionScalar = dist.asMeters();
+         break;
+      }
+   }
+   return conversionScalar;
+}
+
 bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInData* geom = GetStandinData();
@@ -354,12 +379,31 @@ bool CArnoldStandInShape::LoadBoundingBox()
       MStringArray boundsElems;
       if ((bounds.split(' ', boundsElems) == MS::kSuccess) && boundsElems.length() >= 6)
       {
-         double xmin = convertToFloat(boundsElems[0].asChar());
-         double ymin = convertToFloat(boundsElems[1].asChar());
-         double zmin = convertToFloat(boundsElems[2].asChar());
-         double xmax = convertToFloat(boundsElems[3].asChar());
-         double ymax = convertToFloat(boundsElems[4].asChar());
-         double zmax = convertToFloat(boundsElems[5].asChar());
+
+         AtString metersPerUnitMetadata;
+         AiMetadataStoreGetStr(mds, str::meters_per_unit, &metersPerUnitMetadata);
+         double metersPerUnit = atof(metersPerUnitMetadata.c_str());
+         double conversionScalar = 1.0f;
+         if (metersPerUnit == MUNIT_INCHES.asMeters())
+            conversionScalar = ConvertWorkingUnits(MUNIT_INCHES);
+         if (metersPerUnit == MUNIT_FEET.asMeters())
+            conversionScalar = ConvertWorkingUnits(MUNIT_FEET);
+         if (metersPerUnit == MUNIT_YARDS.asMeters())
+            conversionScalar = ConvertWorkingUnits(MUNIT_YARDS);
+         if (metersPerUnit == MUNIT_MILLIMETERS.asMeters())
+            conversionScalar = ConvertWorkingUnits(MUNIT_MILLIMETERS);
+         if (metersPerUnit == MUNIT_CENTIMETERS.asMeters())
+            conversionScalar = ConvertWorkingUnits(MUNIT_CENTIMETERS);
+         if (metersPerUnit == MUNIT_METERS.asMeters())
+            conversionScalar = ConvertWorkingUnits(MUNIT_METERS);
+
+         double xmin = convertToFloat(boundsElems[0].asChar()) * conversionScalar;
+         double ymin = convertToFloat(boundsElems[1].asChar()) * conversionScalar;
+         double zmin = convertToFloat(boundsElems[2].asChar()) * conversionScalar;
+         double xmax = convertToFloat(boundsElems[3].asChar()) * conversionScalar;
+         double ymax = convertToFloat(boundsElems[4].asChar()) * conversionScalar;
+         double zmax = convertToFloat(boundsElems[5].asChar()) * conversionScalar;
+
          if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
          {
             MPoint min(xmin, ymin, zmin);
@@ -419,7 +463,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
    {
       return false;
    }
-}*/
+}
 
 void* CArnoldStandInShape::creator()
 {
@@ -822,15 +866,12 @@ void CArnoldStandInShape::updateGeometry()
    if (data->drawOverride == 3)
       return;
 
-   // Load the bounding box from the .ass file and compute said bounds. In the past, we would load
-   // the bounding box from metadata before loading the .ass file. Loading the bounding box from 
-   // metadata introduces a defect where the StandIn bounding box will not be updated to reflect 
-   // the geometry if the measurement units on an .ass file is not the same as that of the measurement 
-   // units set in Maya (e,g. if the .ass file is generate from Houdini where 1 unit = 1m, and Maya 
-   //is set to default 1 unit = 1cm). This results in the bounding box generated from the measurement units 
-   // set in Maya being cached as the bounding box of the StandIn. (MTOA-1035).
-   LoadFile();
-
+   CArnoldStandInData* geom = GetStandinData();
+   // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
+   // If we can't, we have to load the .ass file and compute it ourselves
+   if (m_data->m_mode != 0 || !LoadBoundingBox()) {
+      LoadFile();
+   }
    MPoint bbMin = m_data->m_bbox.min();
    MPoint bbMax = m_data->m_bbox.max();
    // If BBox has zero size, make it default size
