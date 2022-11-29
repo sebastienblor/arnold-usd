@@ -379,7 +379,11 @@ bool CArnoldStandInShape::LoadBoundingBox()
       MStringArray boundsElems;
       if ((bounds.split(' ', boundsElems) == MS::kSuccess) && boundsElems.length() >= 6)
       {
-
+         // Check whether the scene unit conversion is needed so that the StandIn bounding box
+         // will reflect the size of the geometry. This is for cases where the measurement
+         // units in an .ass file is not the same as that of the measurement units set in Maya.
+         // (e.g. if the .ass file is generate from Houdini where 1 unit = 1m, and Maya
+         // is set to default 1 unit = 1cm). (MTOA-1035).
          AtString metersPerUnitMetadata;
          AiMetadataStoreGetStr(mds, str::meters_per_unit, &metersPerUnitMetadata);
          double metersPerUnit = atof(metersPerUnitMetadata.c_str());
