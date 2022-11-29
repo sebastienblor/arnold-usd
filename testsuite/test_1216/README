@@ -1,0 +1,5 @@
+Origin offset should only move instances once. This is testing
+to ensure that offsets are not applied multiple times onto the
+instance. See MTOA-1216.
+
+author: Juan de Joya (juan.de.joya@autodesk.com)
