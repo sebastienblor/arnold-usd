@@ -388,18 +388,16 @@ bool CArnoldStandInShape::LoadBoundingBox()
          AiMetadataStoreGetStr(mds, str::meters_per_unit, &metersPerUnitMetadata);
          double metersPerUnit = atof(metersPerUnitMetadata.c_str());
          double conversionScalar = 1.0f;
-         if (metersPerUnit == MUNIT_INCHES.asMeters())
-            conversionScalar = ConvertWorkingUnits(MUNIT_INCHES);
-         if (metersPerUnit == MUNIT_FEET.asMeters())
-            conversionScalar = ConvertWorkingUnits(MUNIT_FEET);
-         if (metersPerUnit == MUNIT_YARDS.asMeters())
-            conversionScalar = ConvertWorkingUnits(MUNIT_YARDS);
-         if (metersPerUnit == MUNIT_MILLIMETERS.asMeters())
-            conversionScalar = ConvertWorkingUnits(MUNIT_MILLIMETERS);
-         if (metersPerUnit == MUNIT_CENTIMETERS.asMeters())
-            conversionScalar = ConvertWorkingUnits(MUNIT_CENTIMETERS);
-         if (metersPerUnit == MUNIT_METERS.asMeters())
-            conversionScalar = ConvertWorkingUnits(MUNIT_METERS);
+         static const std::vector<MDistance> unitsList{ MUNIT_INCHES, MUNIT_FEET, MUNIT_YARDS,
+            MUNIT_MILLIMETERS,  MUNIT_CENTIMETERS, MUNIT_METERS};
+         for (const MDistance &unit : unitsList)
+         {
+            if (metersPerUnit == unit.asMeters())
+            {
+               conversionScalar = ConvertWorkingUnits(unit);
+               break;
+            }
+         }
 
          double xmin = convertToFloat(boundsElems[0].asChar()) * conversionScalar;
          double ymin = convertToFloat(boundsElems[1].asChar()) * conversionScalar;
