@@ -1580,6 +1580,8 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'ADPClientService%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'AdpSDKCore%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'arnold.mtd'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'cryptomatte.mtd'), 'plugins'],
 [MTOA_SHADERS[0], 'shaders'],
