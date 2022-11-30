@@ -1618,6 +1618,7 @@ if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
             [os.path.join(ARNOLD, 'plugins', 'usd', p), os.path.join('plugins', 'usd', d)]
         ]
 if system.os == 'darwin':
+    PACKAGE_FILES += [[os.path.join(ARNOLD_BINARIES, '*.bundle'), 'bin']]
     license_manager_app = find_files_recursive(os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager.app'), None)
     for p in license_manager_app:
         (d, f) = os.path.split(p)
