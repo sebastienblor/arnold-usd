@@ -12,7 +12,7 @@ from utils.mtoa_build_tools import *
 #from solidangle_tools import *
 
 from multiprocessing import cpu_count
-
+import distutils.dir_util as dir_util
 import SCons
 import shutil
 
@@ -1919,6 +1919,9 @@ def create_installer(target, source, env):
 
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'ArnoldLicenseManager.app', 'Contents', 'MacOS', 'ArnoldLicenseManager')])
                 
+        dir_util.copy_tree(os.path.join(ARNOLD_BINARIES, 'senddmp.app'), os.path.join(tempdir, maya_version, 'bin', 'senddmp.app'), preserve_symlinks=True)
+        dir_util.copy_tree(os.path.join(ARNOLD_BINARIES, 'AdpSDKUtil.app'), os.path.join(tempdir, maya_version, 'bin', 'AdpSDKUtil.app'), preserve_symlinks=True)
+
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
         
         installerFiles = glob.glob(os.path.join(tempdir, maya_version, 'license', 'installer', '*'))
