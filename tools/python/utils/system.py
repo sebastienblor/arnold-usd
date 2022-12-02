@@ -157,11 +157,12 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
       return e.errno, e.strerror.splitlines()
    else:
       if timeout:
-         def kill(p):
+         def kill(p, cmd):
             if p.returncode is None:
                if is_linux:
                   execute("gstack " + str(p.pid) + " > timeout-stack.txt", cwd=cwd, shell=True, timeout=0)
                if is_windows:
+                  '''
                   # Try to create a minidump of the process
                   try:
                      # Check child itself as well as all subprocesses of the child
@@ -188,14 +189,16 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                   except psutil.Error as e:
                      print("Failed to generate minidump: {}".format(e))
                      # Ignore.
+                  '''
 
                   # Kill subprocess (recursively)
+                  print('Killing PID {} for command {}'.format(p.pid, cmd))
                   subprocess.call(['pskill', '-t', str(p.pid)])
                   # Get pskill above from here:
                   # https://learn.microsoft.com/en-gb/sysinternals/downloads/pskill
                else:
                   p.send_signal(signal.SIGABRT)
-         killer = threading.Timer(timeout, kill, [process])
+         killer = threading.Timer(timeout, kill, [process, cmd])
          killer.start()
       output = []
       if not redirectOutputToFile:
