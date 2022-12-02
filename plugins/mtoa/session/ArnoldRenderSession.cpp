@@ -76,42 +76,43 @@ bool CArnoldRenderSession::BatchRender()
 
 
    float lastProgress = -1;
-   AiRenderBegin(renderSession, AI_RENDER_MODE_CAMERA);
-   while (true)
-   {
-      AtRenderStatus status = AiRenderGetStatus(renderSession);
-      if (status == AI_RENDER_STATUS_FINISHED)
+   if (AiRenderBegin(renderSession, AI_RENDER_MODE_CAMERA) == AI_SUCCESS)
+   {      
+      while (true)
       {
-         AiRenderEnd(renderSession);
-         result =  true;
-         break;
-      }
-      if (status == AI_RENDER_STATUS_FAILED)
-      {
-         AiRenderEnd(renderSession);
-         result = false;
-         break;
-      }
-#ifdef WIN32
-      Sleep(0);
-#else
-      sleep(0);
-#endif
-      if (m_displayProgress)
-      {
-         float progress = 0;
-         static AtString total_progress_str("total_progress");
-         AiRenderGetHintFlt(renderSession, total_progress_str, progress);
-         if (progress != lastProgress)
+         AtRenderStatus status = AiRenderGetStatus(renderSession);
+         if (status == AI_RENDER_STATUS_FINISHED)
          {
-            lastProgress = progress;
-            MRenderUtil::sendRenderProgressInfo(filename, (int)progress);
+            result =  true;
+            break;
+         }
+         if (status == AI_RENDER_STATUS_FAILED || status == AI_RENDER_STATUS_PAUSED)
+         {
+            result = false;
+            break;
+         }
+   #ifdef WIN32
+         Sleep(0);
+   #else
+         sleep(0);
+   #endif
+         if (m_displayProgress)
+         {
+            float progress = 0;
+            static AtString total_progress_str("total_progress");
+            AiRenderGetHintFlt(renderSession, total_progress_str, progress);
+            if (progress != lastProgress)
+            {
+               lastProgress = progress;
+               MRenderUtil::sendRenderProgressInfo(filename, (int)progress);
+            }
          }
       }
    }
+   AiRenderEnd(renderSession);
+
    if (m_displayProgress)
       MRenderUtil::sendRenderProgressInfo(filename, 100); // magic number for end
-
 
    return result;
 }
