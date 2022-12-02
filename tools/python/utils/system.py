@@ -192,8 +192,13 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                   '''
 
                   # Kill subprocess (recursively)
-                  print('Killing PID {} for command {}'.format(p.pid, cmd))
-                  subprocess.call(['pskill', '-t', str(p.pid)])
+                  
+                  if os.path.exists(os.path.join(os.getcwd(), 'pskill.exe')):
+                     print('Killing PID {} with pskill for command {}'.format(p.pid, cmd))
+                     subprocess.call(['pskill', '-t', str(p.pid)])
+                  else:
+                     print('Killing PID {} with taskkill for command {}'.format(p.pid, cmd))
+                     subprocess.call(['taskkill', '/F', '/T', '/PID', str(p.pid)])
                   # Get pskill above from here:
                   # https://learn.microsoft.com/en-gb/sysinternals/downloads/pskill
                else:
