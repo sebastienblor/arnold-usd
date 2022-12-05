@@ -15,6 +15,9 @@ from utils.test_stats      import *
 from utils.testsuite       import *
 from utils.valgrind        import *
 
+import urllib2
+import zipfile
+            
 # Obtain information about the system only once, when loaded
 os_name = platform.system().lower()
 
@@ -315,6 +318,7 @@ def run_test(target, source, env):
       ## Also without this testsuite crashes with Maya 2018
       local_env["MAYA_DISABLE_CIP"] = "1"
       local_env["MAYA_DISABLE_CER"] = "1"
+      local_env["ARNOLD_ADP_DISABLE"] = "1"
 
       if show_test_output:
          print '====Exec %s' % cmd
@@ -829,6 +833,32 @@ try:
    test_env['TIMELIMIT'] = float(timeLimit)
 except ValueError:
    test_env['TIMELIMIT'] = 0
+
+if is_windows:
+   # Check if pskill is present in the current directory
+   pskillExe = os.path.join(os.getcwd(), 'pskill.exe')
+   if not os.path.exists(pskillExe):
+      pskillZip = os.path.join(os.getcwd(), 'pskill.zip')
+      print('Downloading pskill')
+      url = 'https://download.sysinternals.com/files/PSTools.zip'
+      try:
+         with open(pskillZip, 'wb') as f:
+            f.write(urllib2.urlopen(url).read())
+            f.close()
+
+            tmp_pskill_folder = os.path.join(os.getcwd(), 'tmp_pskill')
+            if not os.path.isdir(tmp_pskill_folder):
+               os.mkdir(tmp_pskill_folder)
+            with zipfile.ZipFile(pskillZip, 'r') as zip_ref:
+               zip_ref.extractall(tmp_pskill_folder)
+               shutil.copy(os.path.join(tmp_pskill_folder, 'pskill.exe'), pskillExe)
+
+            sa.path.remove(tmp_pskill_folder)
+      except urllib2.HTTPError:
+         print("Unable to retrieve content of %s" % url)
+
+      if os.path.exists(pskillZip):
+         sa.path.remove(pskillZip)
 
 ## First stage. Process build targets, expanding the groups and patterns into single tests
 index = 0
