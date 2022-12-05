@@ -14,6 +14,7 @@ import threading
 import time
 import re
 from os import path as ospath
+from os import getcwd as osgetcwd
 
 # Obtain information about the system only once, when loaded
 os = platform.system().lower()
@@ -191,9 +192,8 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                      # Ignore.
                   '''
 
-                  # Kill subprocess (recursively)
-                  
-                  if os.path.exists(os.path.join(os.getcwd(), 'pskill.exe')):
+                  # Kill subprocess (recursively)                  
+                  if ospath.exists(ospath.join(osgetcwd(), 'pskill.exe')):
                      print('Killing PID {} with pskill for command {}'.format(p.pid, cmd))
                      subprocess.call(['pskill', '-t', str(p.pid)])
                   else:
