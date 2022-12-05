@@ -12,6 +12,7 @@ mtoa.kdev4
 /*.vcproj
 /*.obj
 /*.patch
+/pskill.exe
 /custom.*py
 /plugins/mtoa/utils/MercurialID.h
 /plugins/mtoa/utils/BuildID.h
