@@ -12,7 +12,7 @@ from utils.mtoa_build_tools import *
 #from solidangle_tools import *
 
 from multiprocessing import cpu_count
-
+import distutils.dir_util as dir_util
 import SCons
 import shutil
 
@@ -1582,6 +1582,8 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oiiotool%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'ADPClientService%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'AdpSDKUtil%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'arnold.mtd'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'cryptomatte.mtd'), 'plugins'],
 [MTOA_SHADERS[0], 'shaders'],
@@ -1620,6 +1622,7 @@ if os.path.exists(os.path.join(ARNOLD, 'plugins', 'usd')):
             [os.path.join(ARNOLD, 'plugins', 'usd', p), os.path.join('plugins', 'usd', d)]
         ]
 if system.os == 'darwin':
+    PACKAGE_FILES += [[os.path.join(ARNOLD_BINARIES, '*.bundle'), 'bin']]
     license_manager_app = find_files_recursive(os.path.join(ARNOLD_BINARIES, 'ArnoldLicenseManager.app'), None)
     for p in license_manager_app:
         (d, f) = os.path.split(p)
@@ -1921,6 +1924,9 @@ def create_installer(target, source, env):
 
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'ArnoldLicenseManager.app', 'Contents', 'MacOS', 'ArnoldLicenseManager')])
                 
+        dir_util.copy_tree(os.path.join(ARNOLD_BINARIES, 'senddmp.app'), os.path.join(tempdir, maya_version, 'bin', 'senddmp.app'), preserve_symlinks=True)
+        dir_util.copy_tree(os.path.join(ARNOLD_BINARIES, 'AdpSDKUtil.app'), os.path.join(tempdir, maya_version, 'bin', 'AdpSDKUtil.app'), preserve_symlinks=True)
+
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
         
         installerFiles = glob.glob(os.path.join(tempdir, maya_version, 'license', 'installer', '*'))
