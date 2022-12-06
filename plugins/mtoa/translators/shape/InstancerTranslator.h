@@ -46,9 +46,9 @@ protected:
 
 protected:
    MFnParticleSystem m_fnParticleSystem;
-   int m_particleCount;
+   int m_particleCount = 0;
    MString m_customAttrs;
-
+   bool m_sceneTransforms = false;
 
    unordered_map<std::string, MVectorArray > m_out_customVectorAttrArrays;
    unordered_map<std::string, MDoubleArray > m_out_customDoubleAttrArrays;
@@ -58,11 +58,10 @@ protected:
    unordered_map<std::string, MDoubleArray > m_instant_customDoubleAttrArrays;
    unordered_map<std::string, MIntArray > m_instant_customIntAttrArrays;
 
-
-
    MVectorArray m_instantVeloArray;
    std::vector< AtArray* > m_vec_matrixArrays;
    MStringArray m_objectNames;
+   MMatrixArray m_objectMatrices;
    std::vector<bool> m_cloneInstances;
    MDagPathArray m_objectDagPaths;
    unordered_map<int, int>  m_particleIDMap;
