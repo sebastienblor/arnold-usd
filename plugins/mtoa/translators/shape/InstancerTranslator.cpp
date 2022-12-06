@@ -691,8 +691,6 @@ void CInstancerTranslator::PostExport(AtNode *node)
          AtNode *instance = NULL;
          AtNode* obj = AiNodeLookUpByName(GetUniverse(), AtString(m_objectNames[idx].asChar()));
 
-         // if offset : get obj matrix array !
-
          MString instanceKey = "inst";
          instanceKey += globalIndex;
 
