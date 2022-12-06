@@ -323,7 +323,7 @@ def run_test(target, source, env):
       if show_test_output:
          print '====Exec %s' % cmd
          print os.getenv('PATH')
-      
+
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
 
       with open(logfile, 'w') as f:
@@ -860,6 +860,7 @@ if is_windows:
       if os.path.exists(pskillZip):
          sa.path.remove(pskillZip)
 
+print('Running the testsuite with TIMELIMIT={}'.format(test_env.get('TIMELIMIT', 0)))
 ## First stage. Process build targets, expanding the groups and patterns into single tests
 index = 0
 while True:
