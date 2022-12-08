@@ -13,7 +13,7 @@
 #include "utils/MtoaLog.h"
 #include "utils/ConstantStrings.h"
 
-void ConvertMatrixWithoutOffset(AtMatrix& matrix, const MMatrix& mayaMatrix) 
+void ConvertMatrixWithoutOffset(AtMatrix& matrix, const MMatrix& mayaMatrix)
 {
    MTransformationMatrix trMat = mayaMatrix;
    MMatrix copyMayaMatrix = trMat.asMatrix();

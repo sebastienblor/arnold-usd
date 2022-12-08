@@ -319,7 +319,7 @@ public:
 
    /// Convert a matrix from Maya to Arnold data
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
-      
+
    // Request an update of the TX textures generation
    void RequestTxUpdate(const std::string &filename, const std::string &colorSpace);
 
