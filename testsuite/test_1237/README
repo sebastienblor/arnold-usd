@@ -1,0 +1,5 @@
+Ensure the instance transform is not applied twice
+
+See MTOA-1237
+
+author: sebastien.ortega
