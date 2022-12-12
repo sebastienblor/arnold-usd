@@ -1,0 +1,186 @@
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\dejoyaj\\AppData\\Local\\Temp', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\Users\\dejoyaj\\Projects\\Builds\\MtoA\\2023\\mtoa-1206', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.19041.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.19041.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\Users\\dejoyaj\\Projects\\Builds\\MtoA\\2023\\mtoa-1206\\bin;C:\\Program Files\\Autodesk\\Maya2023\\bin;C:\\Users\\dejoyaj\\Projects\\Builds\\MtoA\\2023\\mtoa-1206\\lib;C:\\Users\\dejoyaj\\Projects\\Builds\\MtoA\\2023\\mtoa-1206\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\\\Extensions\\Microsoft\\IntelliCode\\CLI;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\MSBuild\\Current\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\vs2019\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\vs2019\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\Tools\\devinit;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\\\MSBuild\\Current\\Bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\Users\\dejoyaj\\Projects\\Repos\\arnold-mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\dejoyaj\\AppData\\Local\\Temp', 'LOCALAPPDATA': 'C:\\Users\\dejoyaj\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'ARNOLD_ADP_DISABLE': '1', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\Users\\dejoyaj\\Projects\\Repos\\arnold-mtoa\\build\\windows_x86_64\\20230000\\msvc_opt\\testsuite\\test_1206', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\Users\\dejoyaj\\Projects\\Builds\\MtoA\\2023\\mtoa-1206', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29910\\include;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\Users\\dejoyaj\\Projects\\Repos\\arnold-mtoa\\build\\windows_x86_64\\20230000\\msvc_opt\\testsuite\\test_1206'}
+ 
+ ==== Exec cmd ==== 
+ 
+Render -proj "C:\Users\dejoyaj\Projects\Repos\arnold-mtoa\build\windows_x86_64\20230000\msvc_opt\testsuite\test_1206" -rd "C:\Users\dejoyaj\Projects\Repos\arnold-mtoa\build\windows_x86_64\20230000\msvc_opt\testsuite\test_1206" -r arnold -x 160 -y 120 -lic 0  "C:\Users\dejoyaj\Projects\Repos\arnold-mtoa\build\windows_x86_64\20230000\msvc_opt\testsuite\test_1206\test.ma"
+ 
+ 
+Starting "C:\Program Files\Autodesk\Maya2023\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+
+  Version : 2016.11.62.12. Feature Level 5.
+
+  Adapter : NVIDIA RTX A1000 Laptop GPU/PCIe/SSE2
+
+  Vendor ID: 4318. Device ID : 18056
+
+  Driver : C:\Windows\System32\DriverStore\FileRepository\nvltwi.inf_amd64_39e7effa0e746c2b\nvoglv64.dll.dll:31.0.15.1740.
+
+  API : OpenGL V.4.6.
+
+  Max texture size : 16384 * 16384.
+
+  Max texture coords : 32
+
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+
+  Shader compiler profile : (Best card profile)
+
+  Active stereo support available : 0
+
+  GPU Memory Limit : 4096 MB.
+
+  CPU Memory Limit : 61942.9 MB.
+
+  MultiDraw consolidation : enabled
+
+}
+
+OpenCL evaluator is attempting to initialize OpenCL.
+
+Detected 2 OpenCL Platforms: 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 3.0 CUDA 11.7.102.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_3d_image_writes cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics cl_nv_kernel_attribute cl_khr_device_uuid cl_khr_pci_bus_info cl_khr_external_semaphore cl_khr_external_memory cl_khr_external_semaphore_win32 cl_khr_external_memory_win32 
+
+ Selected matching OpenCL Platform: NVIDIA Corporation NVIDIA CUDA OpenCL 3.0 CUDA 11.7.102.
+
+ 1: Intel(R) Corporation. Intel(R) OpenCL HD Graphics. OpenCL 3.0 .
+
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_fp16 cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_icd cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_intel_command_queue_families cl_intel_subgroups cl_intel_required_subgroup_size cl_intel_subgroups_short cl_khr_spir cl_intel_accelerator cl_intel_driver_diagnostics cl_khr_priority_hints cl_khr_throttle_hints cl_khr_create_command_queue cl_intel_subgroups_char cl_intel_subgroups_long cl_khr_il_program cl_intel_mem_force_host_memory cl_khr_subgroup_extended_types cl_khr_subgroup_non_uniform_vote cl_khr_subgroup_ballot cl_khr_subgroup_non_uniform_arithmetic cl_khr_subgroup_shuffle cl_khr_subgroup_shuffle_relative cl_khr_subgroup_clustered_reduce cl_intel_device_attribute_query cl_khr_suggested_local_work_size cl_intel_split_work_group_barrier cl_intel_spirv_media_block_io cl_intel_spirv_subgroups cl_khr_spirv_no_integer_wrap_decoration cl_intel_unified_shared_memory cl_khr_mipmap_image cl_khr_mipmap_image_writes cl_intel_planar_yuv cl_intel_packed_yuv cl_khr_int64_base_atomics cl_khr_int64_extended_atomics cl_khr_image2d_from_buffer cl_khr_depth_images cl_khr_3d_image_writes cl_intel_media_block_io cl_khr_gl_sharing cl_khr_gl_depth_images cl_khr_gl_event cl_khr_gl_msaa_sharing cl_khr_d3d10_sharing cl_khr_d3d11_sharing cl_intel_d3d11_nv12_media_sharing cl_intel_sharing_format_query cl_khr_pci_bus_info cl_intel_subgroup_local_block_io cl_intel_simultaneous_sharing  
+
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+
+00:00:01   772MB         | log started Wed Dec  7 22:23:01 2022
+
+00:00:01   772MB         | Arnold 7.1.4.0 [8d3c3dc4] windows clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.0.27 rlm-14.1.3 optix-6.6.0 2022/11/03 15:26:15
+
+00:00:01   772MB         | running on ADSKPF40J2ZK, pid=10720
+
+00:00:01   772MB         |  1 x 12th Gen Intel(R) Core(TM) i9-12950HX (24 cores, 24 logical) with 65203MB
+
+00:00:01   772MB         |  NVIDIA driver version 517.40 (Optix 60803)
+
+00:00:01   772MB         |  GPU 0: NVIDIA RTX A1000 Laptop GPU @ 1627MHz (compute 8.6) with 4095MB (2857MB available) (NVLink:0)
+
+00:00:01   772MB         |  Windows 10 (version 10.0, build 19044)
+
+00:00:01   772MB         |  soft limit for open files changed from 512 to 2048
+
+00:00:01   772MB         |  
+
+00:00:01   772MB         | [metadata] loading metadata file: C:\Users\dejoyaj\Projects\Builds\MtoA\2023\mtoa-1206\bin\arnold.mtd
+
+00:00:01   789MB         | [color_manager_ocio] default ocio.config found in C:\Users\dejoyaj\Projects\Builds\MtoA\2023\mtoa-1206\bin\../ocio/configs/arnold/config.ocio
+
+00:00:01   789MB         | loading plugins from C:\Users\dejoyaj\Projects\Builds\MtoA\2023\mtoa-1206\bin\..\plugins ...
+
+00:00:01   789MB         |  alembic_proc.dll: alembic uses Arnold 7.1.4.0
+
+00:00:01   789MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.1.4.0
+
+00:00:01   789MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 7.1.4.0
+
+00:00:01   789MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 7.1.4.0
+
+00:00:01   789MB         |  [metadata] loading metadata file: C:\Users\dejoyaj\Projects\Builds\MtoA\2023\mtoa-1206\bin\..\plugins\cryptomatte.mtd
+
+00:00:01   790MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 7.1.4.0
+
+00:00:01   814MB         |  usd_proc.dll: usd uses Arnold 7.1.4.0
+
+00:00:01   814MB         | loaded 6 plugins from 4 lib(s) in 0:00.09
+
+###############################################################################
+
+Begin attempted read of a shade fragment XML file.
+
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+
+Errors loading XML:
+
+-------------------------------------------------------------------------------
+
+Could not find file: aiRectangleAreaLight.xml
+
+-------------------------------------------------------------------------------
+
+End attempted read of fragment XML.
+
+###############################################################################
+
+Warning: file: C:/Users/dejoyaj/Projects/Repos/arnold-mtoa/build/windows_x86_64/20230000/msvc_opt/testsuite/test_1206/test.ma line 255: Unrecognized node type 'nodeGraphEditorInfo'; preserving node information during this session.
+
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+
+File read in  0.025 seconds.
+
+Result: C:/Users/dejoyaj/Projects/Repos/arnold-mtoa/build/windows_x86_64/20230000/msvc_opt/testsuite/test_1206/test.ma
+
+Exporting Arnold Scene...
+
+Updating Arnold Scene...
+
+00:00:04  1394MB         | log started Wed Dec  7 22:23:05 2022
+
+00:00:04  1394MB         | Arnold 7.1.4.0 [8d3c3dc4] windows clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.0.27 rlm-14.1.3 optix-6.6.0 2022/11/03 15:26:15
+
+00:00:04  1394MB         | host application: MtoA 5.2.3 e3a1eb71 (MTOA-1206.1) Maya 2023
+
+00:00:04  1394MB         | running on ADSKPF40J2ZK, pid=10720
+
+00:00:04  1394MB         |  1 x 12th Gen Intel(R) Core(TM) i9-12950HX (24 cores, 24 logical) with 65203MB
+
+00:00:04  1394MB         |  NVIDIA driver version 517.40 (Optix 60803)
+
+00:00:04  1394MB         |  GPU 0: NVIDIA RTX A1000 Laptop GPU @ 1627MHz (compute 8.6) with 4095MB (2857MB available) (NVLink:0)
+
+00:00:04  1394MB         |  Windows 10 (version 10.0, build 19044)
+
+00:00:04  1394MB         |  soft limit for open files is set at 2048
+
+00:00:04  1394MB         |  
+
+00:00:04  1394MB WARNING | rendering with watermarks because the skip_license_check option was enabled
+
+Scene C:\Users\dejoyaj\Projects\Repos\arnold-mtoa\build\windows_x86_64\20230000\msvc_opt\testsuite\test_1206\test.ma completed.
+
+00:00:04  1387MB         |   unloading 14 plugins
+
+00:00:04  1387MB         |    closing alembic_proc.dll ...
+
+00:00:04  1387MB         |    closing cryptomatte.dll ...
+
+00:00:04  1387MB         |    closing synColor_shaders.dll ...
+
+00:00:04  1386MB         |    closing usd_proc.dll ...
+
+00:00:04  1383MB         |    closing hairPhysicalShader_shaders.dll ...
+
+00:00:04  1383MB         |    closing lookdevkit_shaders.dll ...
+
+00:00:04  1383MB         |    closing mtoa_shaders.dll ...
+
+00:00:04  1382MB         |    closing renderSetup_shaders.dll ...
+
+00:00:04  1382MB         |    closing xgenSpline_shaders.dll ...
+
+00:00:04  1382MB         |    closing mtoa_ParticleInstancer_proc.dll ...
+
+00:00:04  1382MB         |    closing mtoa_ParticleVolume_proc.dll ...
+
+00:00:04  1382MB         |    closing xgenSpline_procedural.dll ...
+
+00:00:04  1382MB         |    closing xgen_procedural.dll ...
+
+00:00:04  1382MB         |    closing arnold_bifrost.dll ...
+
+00:00:04  1382MB         |   unloading plugins done
+
+00:00:04  1382MB         |  Arnold shutdown
+
