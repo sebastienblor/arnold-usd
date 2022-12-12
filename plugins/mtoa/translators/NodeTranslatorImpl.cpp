@@ -834,7 +834,24 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             MObject matObj = plug.asMObject();
             MFnMatrixData matData(matObj);
             MMatrix mm = matData.matrix();
-            m_tr.ConvertMatrix(am, mm);
+            if (AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) == AI_NODE_SHADER)
+            {
+               // Covert matrix without offsets (MTOA-1206)
+               MTransformationMatrix trMat = mm;
+               MMatrix copyMayaMatrix = trMat.asMatrix();
+
+               for (int J = 0; (J < 4); ++J)
+               {
+                  for (int I = 0; (I < 4); ++I)
+                  {
+                     am[I][J] = (float) copyMayaMatrix[I][J];
+                  }
+               }
+            }
+            else
+            {
+               m_tr.ConvertMatrix(am, mm);
+            }
             AiNodeSetMatrix(arnoldNode, arnoldParamNameStr, am);
          }
       }
