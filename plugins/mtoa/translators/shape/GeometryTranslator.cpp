@@ -31,6 +31,20 @@ namespace
       memcpy(vectorList, data, AiArrayGetKeySize(arr));
       AiArrayUnmap(arr);      
    }
+
+   void ConvertMatrixWithoutOffset(AtMatrix& matrix, const MMatrix& mayaMatrix)
+   {
+      MTransformationMatrix trMat = mayaMatrix;
+      MMatrix copyMayaMatrix = trMat.asMatrix();
+
+      for (int J = 0; (J < 4); ++J)
+      {
+         for (int I = 0; (I < 4); ++I)
+         {
+            matrix[I][J] = (float) copyMayaMatrix[I][J];
+         }
+      }
+   }
 }
 
 bool CPolygonGeometryTranslator::GetVertices(const MObject& geometry,
@@ -1303,7 +1317,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          if (exportRefVerts)
          {
             AtMatrix worldMatrix;
-            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
+            ConvertMatrixWithoutOffset(worldMatrix, m_dagPathRef.inclusiveMatrix());
             AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_VECTOR);
             const AtVector* vRefVertices = (const AtVector*)refVertices;
             for (unsigned int i = 0; i < numVerts; ++i)

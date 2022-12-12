@@ -13,7 +13,7 @@
 #include "utils/MtoaLog.h"
 #include "utils/ConstantStrings.h"
 
-void ConvertMatrixWithoutOffset(AtMatrix& matrix, const MMatrix& mayaMatrix) 
+void ConvertMatrixWithoutOffset(AtMatrix& matrix, const MMatrix& mayaMatrix)
 {
    MTransformationMatrix trMat = mayaMatrix;
    MMatrix copyMayaMatrix = trMat.asMatrix();
@@ -52,13 +52,19 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
 
 void CInstancerTranslator::Export(AtNode* anode)
 {
-   ExportMatrix(anode);
+   // We don't want to export the matrix, because the instancer
+   // world matrix is actually included in the matrices returned
+   // by allInstances
+   // ExportMatrix(anode);
    ExportInstances(anode);
 }
 
 void CInstancerTranslator::ExportMotion(AtNode* anode)
 {
-   ExportMatrix(anode);
+   // We don't want to export the matrix, because the instancer
+   // world matrix is actually included in the matrices returned
+   // by allInstances
+   // ExportMatrix(anode);
 
    if (IsMasterInstance() && m_motionDeform)
    {
@@ -376,10 +382,29 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       m_cloneInstances.clear();
       m_objectDagPaths.clear();
 
+      MVector originOffset = GetSessionOptions().GetOrigin();
+      double scaleFactor = GetSessionOptions().GetScaleFactor();
+      m_sceneTransforms = (originOffset.length() > AI_EPSILON ||
+         std::abs(scaleFactor - 1.f) > AI_EPSILON);
+
+      if (m_sceneTransforms)
+      {
+         // We're skipping the ExportMatrix call, but we still
+         // need to apply the origin offset / scene scale. To do that,
+         // we call ConvertMatrix with an identity matrix, and set this
+         // as the instancer matrix
+         MMatrix instancerMatrix;
+         AtMatrix atMatrix;
+         ConvertMatrix(atMatrix, instancerMatrix);
+         AiNodeSetMatrix(instancer, str::matrix, atMatrix);
+      } else 
+         AiNodeResetParameter(instancer, str::matrix);
 
       /// export instance object masters
       int numObjects = paths.length();
       m_cloneInstances.reserve(numObjects);
+      m_objectMatrices.resize(numObjects);
+
       MFnDagNode fnDag;
       for (int i = 0; i < numObjects; ++i)
       {
@@ -409,6 +434,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          }
          m_objectNames.append(GetSessionOptions().GetArnoldNaming(dagPathMaster).asChar());
          m_objectDagPaths.append(dagPathMaster);
+         ConvertMatrixWithoutOffset(m_objectMatrices[i], dagPathMaster.inclusiveMatrix());         
       }
       // Done export object masters
       if (mayaMatrices.length() > 0)
@@ -419,9 +445,9 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          {
             AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
-            // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
-            // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
-            // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+            // We want to ensure that the per-instance matrices we get
+            // don't include origin offset / scale, otherwise it will be applied
+            // multiple times MTOA-1216
             ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
 
             AiArraySetMtx(outMatrix, step, matrix);
@@ -472,9 +498,9 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (it != tempMap.end())   // found the particle in the scene already
             {
                AtMatrix matrix;
-               // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
-               // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
-               // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+               // We want to ensure that the per-instance matrices we get
+               // don't include origin offset / scale, otherwise it will be applied
+               // multiple times MTOA-1216
                ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
 
                // setting the matrix with the index corresponding to the original index
@@ -494,9 +520,9 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                newParticleCount++;
                AtArray* outMatrix = AiArrayAllocate(1, numMotionSteps, AI_TYPE_MATRIX);
                AtMatrix matrix;
-               // Matrix multiplications should occur as follows: MSource * instance * Mnode * offset
-               // ConvertMatrix() adds an additional offset: MSource * offset * instance * Mnode * offset
-               // Use ConvertMatrixWithoutOffset() where we omit translation and scaling transformations (MTOA-1216)
+               // We want to ensure that the per-instance matrices we get
+               // don't include origin offset / scale, otherwise it will be applied
+               // multiple times MTOA-1216
                ConvertMatrixWithoutOffset(matrix, mayaMatrices[j]);
                
                AiArraySetMtx(outMatrix, step, matrix);
@@ -692,13 +718,17 @@ void CInstancerTranslator::PostExport(AtNode *node)
    for (uint32_t i = 0; i < nelements * nkeys; i++) {
       AiArraySetMtx(instance_matrix, i, matrix);
    }
+
    AiNodeSetArray(instancer, str::instance_matrix, instance_matrix);
    // instance_inherit_xform
    if (!AiNodeLookUpUserParameter(instancer, str::instance_inherit_xform))
      AiNodeDeclare(instancer, str::instance_inherit_xform, str::constant_ARRAY_BOOL);
    AtArray* instance_inherit_xform = AiArrayAllocate(nelements, 1, AI_TYPE_BOOLEAN);
+   // If there are scene transforms (offset/scale), we want to initialize
+   // inherit_xform to false instead of true, and we'll compute
+   // the matrices manually
    for (uint32_t i = 0; i < nelements; i++) {
-      AiArraySetBool(instance_inherit_xform, i, true);
+      AiArraySetBool(instance_inherit_xform, i, !m_sceneTransforms);
    }
    AiNodeSetArray(instancer, str::instance_inherit_xform, instance_inherit_xform);
    // nodes
@@ -816,21 +846,24 @@ void CInstancerTranslator::PostExport(AtNode *node)
          instanceKey += globalIndex;
 
          AiArraySetPtr(nodes, partID, obj);
+
          if (m_cloneInstances[idx])
          {
             AiArraySetBool(instance_inherit_xform, partID, false);
-            AtMatrix origM = AiNodeGetMatrix(obj, str::matrix);
             AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
-            AtMatrix total_matrix = AiM4Mult(particleMatrix, origM);
-            AiArraySetMtx(instance_matrix, partID, total_matrix);
+            AiArraySetMtx(instance_matrix, partID, AiM4Mult(particleMatrix, m_objectMatrices[idx]));
          } else
          {
             // Regular instances
             AtArray* mblurMatrix = m_vec_matrixArrays[j];
             for (uint32_t nkey = 0; nkey < nkeys; nkey++) {
-              AiArraySetMtx(instance_matrix,
+
+               AtMatrix tmpMtx = AiArrayGetMtx(mblurMatrix, nkey);
+
+               AiArraySetMtx(instance_matrix,
                             nkey * nelements + partID,
-                            AiArrayGetMtx(mblurMatrix, nkey));
+                            (m_sceneTransforms) ? 
+                            AiM4Mult(tmpMtx, m_objectMatrices[idx]) : tmpMtx);
             }
          }
 

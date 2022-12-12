@@ -1,0 +1,186 @@
+==== Setting Path ===== 
+ 
+ {'TMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\1', 'LIB': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\lib\\x64;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.7.2\\lib\\um\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.19041.0\\um\\x64', 'MAYA_MODULE_PATH': 'C:\\solidangle\\mtoadeploy\\2023', 'PYMEL_SKIP_MEL_INIT': '1', 'SystemDrive': 'C:', 'LIBPATH': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\ATLMFC\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\lib\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\lib\\x86\\store\\references;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.19041.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.19041.0;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319', 'SystemRoot': 'C:\\Windows', 'PATH': 'C:\\solidangle\\mtoadeploy\\2023\\bin;C:\\Program Files\\Autodesk\\Maya2023\\bin;C:\\solidangle\\mtoadeploy\\2023\\lib;C:\\solidangle\\mtoadeploy\\2023\\plug-ins;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\\\Extensions\\Microsoft\\IntelliCode\\CLI;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\bin\\HostX64\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\VC\\VCPackages;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\MSBuild\\Current\\bin\\Roslyn;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Team Tools\\Performance Tools\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Team Tools\\Performance Tools;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\vs2019\\\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Common\\VSPerfCollectionTools\\vs2019\\;C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.7.2 Tools\\x64\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\Tools\\devinit;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\\\MSBuild\\Current\\Bin;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\Tools\\;C:\\Windows\\System32;C:\\Windows\\System32\\Wbem;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe;.', 'ARNOLD_TESTSUITE_COMMON': 'C:\\arnold\\mtoa\\testsuite\\common', 'TEMP': 'C:\\Users\\blaines.ADS\\AppData\\Local\\Temp\\1', 'LOCALAPPDATA': 'C:\\Users\\blaines.ADS\\AppData\\Local', 'VSCMD_ARG_app_plat': 'Desktop', 'ProgramW6432': 'C:\\Program Files', 'ARNOLD_ADP_DISABLE': '1', 'COMSPEC': 'C:\\Windows\\system32\\cmd.exe', 'ADCLMHUB_LOG_DIR': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20230200\\msvc_opt\\testsuite\\test_1236', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'MAYA_RENDER_DESC_PATH': 'C:\\solidangle\\mtoadeploy\\2023', 'PATHEXT': '.COM;.EXE;.BAT;.CMD', 'MAYA_DISABLE_CER': '1', 'INCLUDE': 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.7.2\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\winrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.19041.0\\cppwinrt', 'ARNOLD_MATERIALX_SEARCH_PATH': 'C:\\arnold\\mtoa\\build\\windows_x86_64\\20230200\\msvc_opt\\testsuite\\test_1236'}
+ 
+ ==== Exec cmd ==== 
+ 
+Render -proj "C:\arnold\mtoa\build\windows_x86_64\20230200\msvc_opt\testsuite\test_1236" -rd "C:\arnold\mtoa\build\windows_x86_64\20230200\msvc_opt\testsuite\test_1236" -r arnold -x 160 -y 120 -lic 0  "C:\arnold\mtoa\build\windows_x86_64\20230200\msvc_opt\testsuite\test_1236\test.ma"
+ 
+ 
+Starting "C:\Program Files\Autodesk\Maya2023\bin\mayabatch.exe"
+Warning: in readPlugInfoObject at line 78 of S:\jenkins\workspace\ECP\ecg-maya-usd\ecg-mayausd-full-2023-windows\ecg-maya-usd\maya-usd\lib\mayaUsd\utils\plugRegistryHelper.cpp -- Plugin info file c:/solidangle/mtoadeploy/2023/usd/mayaUsdPlugInfo.json couldn't be read
+
+Initialized VP2.0 renderer {
+
+  Version : 2016.11.62.12. Feature Level 5.
+
+  Adapter : Quadro RTX 4000/PCIe/SSE2
+
+  Vendor ID: 4318. Device ID : 7857
+
+  Driver : C:\Windows\System32\DriverStore\FileRepository\nvlw.inf_amd64_3c5a23dba523d240\nvoglv64.dll.dll:30.0.15.1165.
+
+  API : OpenGL V.4.6.
+
+  Max texture size : 16384 * 16384.
+
+  Max texture coords : 32
+
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+
+  Shader compiler profile : (Best card profile)
+
+  Active stereo support available : 0
+
+  GPU Memory Limit : 8192 MB.
+
+  CPU Memory Limit : 61896.3 MB.
+
+  MultiDraw consolidation : enabled
+
+}
+
+OpenCL evaluator is attempting to initialize OpenCL.
+
+Detected 1 OpenCL Platforms: 
+
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 3.0 CUDA 11.6.99.
+
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_3d_image_writes cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer cl_khr_int64_base_atomics cl_khr_int64_extended_atomics cl_nv_kernel_attribute cl_khr_device_uuid cl_khr_pci_bus_info cl_khr_external_semaphore cl_khr_external_memory cl_khr_external_semaphore_win32 cl_khr_external_memory_win32 
+
+ Selected matching OpenCL Platform: NVIDIA Corporation NVIDIA CUDA OpenCL 3.0 CUDA 11.6.99.
+
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+
+C:\Program Files\Autodesk\MayaUSD\Maya2023\0.19.0\mayausd\USD\lib\python\pxr\UsdUtils\updateSchemaWithSdrNode.py:372: SyntaxWarning: "is not" with a literal. Did you mean "!="?
+
+  if sdrIdentifier is not "":
+
+00:00:03   935MB         | log started Tue Dec  6 21:46:06 2022
+
+00:00:03   935MB         | Arnold 7.1.5.0 [c2b74326] windows x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2022/11/30 09:32:52
+
+00:00:03   935MB         | running on REMS4QL1726, pid=72468
+
+00:00:03   935MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
+
+00:00:03   935MB         |  NVIDIA driver version 511.65 (Optix 60802)
+
+00:00:03   935MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8191MB (5410MB available) (NVLink:0)
+
+00:00:03   935MB         |  Windows 10 (version 10.0, build 19044)
+
+00:00:03   935MB         |  soft limit for open files changed from 512 to 2048
+
+00:00:03   935MB         |  
+
+00:00:03   935MB         | [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\arnold.mtd
+
+00:00:03   952MB         | [color_manager_ocio] default ocio.config found in C:\solidangle\mtoadeploy\2023\bin\../ocio/configs/arnold/config.ocio
+
+00:00:03   952MB         | loading plugins from C:\solidangle\mtoadeploy\2023\bin\..\plugins ...
+
+00:00:03   952MB         |  alembic_proc.dll: alembic uses Arnold 7.1.5.0
+
+00:00:03   952MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.1.5.0
+
+00:00:03   952MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 7.1.5.0
+
+00:00:03   952MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 7.1.5.0
+
+00:00:03   953MB         |  [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\..\plugins\cryptomatte.mtd
+
+00:00:03   954MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 7.1.5.0
+
+00:00:03  1024MB         |  usd_proc.dll: usd uses Arnold 7.1.5.0
+
+00:00:03  1024MB         | loaded 6 plugins from 4 lib(s) in 0:00.15
+
+###############################################################################
+
+Begin attempted read of a shade fragment XML file.
+
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+
+Errors loading XML:
+
+-------------------------------------------------------------------------------
+
+Could not find file: aiRectangleAreaLight.xml
+
+-------------------------------------------------------------------------------
+
+End attempted read of fragment XML.
+
+###############################################################################
+
+Warning: line 1: particleShape1: No cache file found for this object, runup may be needed. Check your workspace particles directory.
+
+Warning: line 1: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
+
+File read in  0.082 seconds.
+
+Result: C:/arnold/mtoa/build/windows_x86_64/20230200/msvc_opt/testsuite/test_1236/test.ma
+
+Exporting Arnold Scene...
+
+Updating Arnold Scene...
+
+00:00:05  1145MB         | log started Tue Dec  6 21:46:11 2022
+
+00:00:05  1145MB         | Arnold 7.1.5.0 [c2b74326] windows x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2022/11/30 09:32:52
+
+00:00:05  1145MB         | host application: MtoA 5.2.3 f0e80207 (master) Maya 2023
+
+00:00:05  1145MB         | running on REMS4QL1726, pid=72468
+
+00:00:05  1145MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
+
+00:00:05  1145MB         |  NVIDIA driver version 511.65 (Optix 60802)
+
+00:00:05  1145MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8191MB (5404MB available) (NVLink:0)
+
+00:00:05  1145MB         |  Windows 10 (version 10.0, build 19044)
+
+00:00:05  1145MB         |  soft limit for open files is set at 2048
+
+00:00:05  1145MB         |  
+
+00:00:05  1145MB WARNING | rendering with watermarks because the skip_license_check option was enabled
+
+Scene C:\arnold\mtoa\build\windows_x86_64\20230200\msvc_opt\testsuite\test_1236\test.ma completed.
+
+00:00:05  1178MB         |   unloading 13 plugins
+
+00:00:05  1178MB         |    closing alembic_proc.dll ...
+
+00:00:05  1178MB         |    closing cryptomatte.dll ...
+
+00:00:05  1178MB         |    closing synColor_shaders.dll ...
+
+00:00:05  1177MB         |    closing usd_proc.dll ...
+
+00:00:05  1172MB         |    closing hairPhysicalShader_shaders.dll ...
+
+00:00:05  1172MB         |    closing lookdevkit_shaders.dll ...
+
+00:00:05  1172MB         |    closing mtoa_shaders.dll ...
+
+00:00:05  1172MB         |    closing renderSetup_shaders.dll ...
+
+00:00:05  1172MB         |    closing xgenSpline_shaders.dll ...
+
+00:00:05  1172MB         |    closing mtoa_ParticleInstancer_proc.dll ...
+
+00:00:05  1172MB         |    closing mtoa_ParticleVolume_proc.dll ...
+
+00:00:05  1172MB         |    closing xgenSpline_procedural.dll ...
+
+00:00:05  1172MB         |    closing xgen_procedural.dll ...
+
+00:00:05  1172MB         |   unloading plugins done
+
+00:00:05  1172MB         |  Arnold shutdown
+
