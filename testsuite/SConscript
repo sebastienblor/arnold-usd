@@ -319,6 +319,7 @@ def run_test(target, source, env):
       local_env["MAYA_DISABLE_CIP"] = "1"
       local_env["MAYA_DISABLE_CER"] = "1"
       local_env["ARNOLD_ADP_DISABLE"] = "1"
+      local_env["ARNOLD_CER_ENABLED"] = "off"
 
       if show_test_output:
          print '====Exec %s' % cmd
