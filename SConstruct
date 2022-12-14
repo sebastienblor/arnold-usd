@@ -963,14 +963,13 @@ else:
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
-        maya_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL', 'Qt5Widgets'])
 
     elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
         maya_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5', 'Qt5Widgets.5'])
-        
+
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
     if env['PREBUILT_MTOA']:       
