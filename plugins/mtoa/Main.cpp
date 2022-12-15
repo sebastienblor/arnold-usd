@@ -1181,9 +1181,15 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    sceneOpenCallback = 0;
 
    bool isBatch = IsBatch();
+   // For batch renders, we want to ensure the CER reports window 
+   // doesn't show up
    if (isBatch)
-      AiADPDisableDialogWindow();
+      AiErrorReportingSetEnabled(false);
 
+   // Since Maya already handles the display of the ADP window,
+   // we can always disable in in the Arnold side
+   AiADPDisableDialogWindow();
+   
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    ArnoldBegin(GetStartupLogLevel());
