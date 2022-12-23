@@ -206,7 +206,7 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                   print_safe(line)
                if callback:
                   callback(line)
-      process.wait(300)
+      process.wait()
       if timeout:
          killer.cancel()
       
