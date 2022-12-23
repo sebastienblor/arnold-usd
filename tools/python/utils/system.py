@@ -185,11 +185,11 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                         continue
                      print_safe('Kill child process {} with cmd {}'.format(child.pid, child.cmdline()))
                      child.kill()
-                     child.wait(5)
-                  gone, still_alive = psutil.wait_procs(children, timeout=5)
+                     child.wait(300)
+                  gone, still_alive = psutil.wait_procs(children, timeout=300)
                   
                   parent.kill()
-                  parent.wait(5)
+                  parent.wait(300)
                except OSError as e:
                   print_safe(e.strerror)
          killer = threading.Timer(timeout, kill, [process, cmd, childPattern])
@@ -206,7 +206,7 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
                   print_safe(line)
                if callback:
                   callback(line)
-      process.wait()
+      process.wait(300)
       if timeout:
          killer.cancel()
       
