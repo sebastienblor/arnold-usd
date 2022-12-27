@@ -131,7 +131,7 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda
 '''
 ### Version from Arnold core
 
-def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, timeout=0, logToFile=None):
+def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, timeout=0, logToFile=None, childPattern=None):
    '''
    Executes a command and returns a tuple with the exit code and the output
    '''
@@ -158,52 +158,41 @@ def execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=None, 
       return e.errno, e.strerror.splitlines()
    else:
       if timeout:
-         def kill(p, cmd):
+         def kill(p, cmd, childPattern):
             if p.returncode is None:
-               if is_linux:
-                  execute("gstack " + str(p.pid) + " > timeout-stack.txt", cwd=cwd, shell=True, timeout=0)
-               if is_windows:
-                  '''
-                  # Try to create a minidump of the process
-                  try:
-                     # Check child itself as well as all subprocesses of the child
-                     # Compare with the executable to find which process is the relevant one
-                     relevant_command = shlex.split(cmd, posix=is_unix)[0]
-                     child = psutil.Process(p.pid)
-                     relevant_process = None
-                     if child.cmdline()[0] == relevant_command:
-                        relevant_process = child
-                     else:
-                        children = child.children(recursive=True)
-                        for candidate_process in children:
-                           if (candidate_process.cmdline()[0] == relevant_command):
-                              relevant_process = candidate_process
-                              break
-                     if relevant_process:
-                        procdump_command = "procdump -accepteula -mm {}".format(relevant_process.pid)
-                        print("Generating minidump for process '{}' using command '{}')".format(" ".join(relevant_process.cmdline()), procdump_command))
-                        # Create a minidump of the process
-                        retval, err = execute(procdump_command, cwd=cwd)
-                        print("procdump returned {}:\n{}".format(retval, "\n".join(err)))
-                     else:
-                        print("Could not find child process running {} to generate a minidump for.".format(relevant_command))
-                  except psutil.Error as e:
-                     print("Failed to generate minidump: {}".format(e))
-                     # Ignore.
-                  '''
-
-                  # Kill subprocess (recursively)                  
-                  if ospath.exists(ospath.join(osgetcwd(), 'pskill.exe')):
-                     print('Killing PID {} with pskill for command {}'.format(p.pid, cmd))
-                     subprocess.call(['pskill', '-t', str(p.pid)])
-                  else:
-                     print('Killing PID {} with taskkill for command {}'.format(p.pid, cmd))
-                     subprocess.call(['taskkill', '/F', '/T', '/PID', str(p.pid)])
-                  # Get pskill above from here:
-                  # https://learn.microsoft.com/en-gb/sysinternals/downloads/pskill
-               else:
-                  p.send_signal(signal.SIGABRT)
-         killer = threading.Timer(timeout, kill, [process, cmd])
+               parent = None
+               pid = p.pid
+               if not psutil.pid_exists(pid):
+                  print_safe('Process {} does not exist anymore for command {}'.format(pid, cmd))
+                  if childPattern:
+                     for proc in psutil.process_iter():
+                        if proc.parent() != None:
+                           continue
+                        procName = proc.name()
+                        for n in childPattern:
+                           if procName.startswith(n):
+                              # found a potential job, let's check the command line now
+                              print_safe('Killing job {} that has no parent : {}'.format(proc.pid, proc.cmdline()))
+                              proc.kill()
+                              return
+                              continue
+                  return   
+               try:
+                  parent = psutil.Process(pid)
+                  children = parent.children(recursive=True)
+                  for child in children:
+                     if child.pid == pid:
+                        continue
+                     print_safe('Kill child process {} with cmd {}'.format(child.pid, child.cmdline()))
+                     child.kill()
+                     child.wait(300)
+                  gone, still_alive = psutil.wait_procs(children, timeout=300)
+                  
+                  parent.kill()
+                  parent.wait(300)
+               except OSError as e:
+                  print_safe(e.strerror)
+         killer = threading.Timer(timeout, kill, [process, cmd, childPattern])
          killer.start()
       output = []
       if not redirectOutputToFile:
