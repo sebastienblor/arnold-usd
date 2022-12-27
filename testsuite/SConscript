@@ -325,7 +325,11 @@ def run_test(target, source, env):
          print '====Exec %s' % cmd
          print os.getenv('PATH')
 
-      retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
+      childPattern = ['mayabatch']
+      if sa.system.is_windows:
+         childPattern += ['Render']
+      
+      retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output, childPattern=childPattern)
 
       with open(logfile, 'w') as f:
          f.write('==== Setting Path ===== \n \n ')
@@ -835,31 +839,6 @@ try:
 except ValueError:
    test_env['TIMELIMIT'] = 0
 
-if is_windows:
-   # Check if pskill is present in the current directory
-   pskillExe = os.path.join(os.getcwd(), 'pskill.exe')
-   if not os.path.exists(pskillExe):
-      pskillZip = os.path.join(os.getcwd(), 'pskill.zip')
-      print('Downloading pskill')
-      url = 'https://download.sysinternals.com/files/PSTools.zip'
-      try:
-         with open(pskillZip, 'wb') as f:
-            f.write(urllib2.urlopen(url).read())
-            f.close()
-
-            tmp_pskill_folder = os.path.join(os.getcwd(), 'tmp_pskill')
-            if not os.path.isdir(tmp_pskill_folder):
-               os.mkdir(tmp_pskill_folder)
-            with zipfile.ZipFile(pskillZip, 'r') as zip_ref:
-               zip_ref.extractall(tmp_pskill_folder)
-               shutil.copy(os.path.join(tmp_pskill_folder, 'pskill.exe'), pskillExe)
-
-            sa.path.remove(tmp_pskill_folder)
-      except urllib2.HTTPError:
-         print("Unable to retrieve content of %s" % url)
-
-      if os.path.exists(pskillZip):
-         sa.path.remove(pskillZip)
 
 print('Running the testsuite with TIMELIMIT={}'.format(test_env.get('TIMELIMIT', 0)))
 ## First stage. Process build targets, expanding the groups and patterns into single tests
