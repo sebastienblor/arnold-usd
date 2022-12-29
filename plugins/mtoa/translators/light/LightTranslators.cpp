@@ -382,6 +382,8 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       return NULL;
 
    AtNode* meshNode = GetArnoldNode("mesh");
+   // force polymesh.smoothing to true
+   AiNodeSetBool(meshNode, str::smoothing, true);
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
