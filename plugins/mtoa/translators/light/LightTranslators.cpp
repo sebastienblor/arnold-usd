@@ -398,7 +398,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
      smoothing = ssPlug.asBool(&status);
      CHECK_MSTATUS(status);
    }
-   AiNodeSetBool(meshNode, str::smoothing, true);
+   AiNodeSetBool(meshNode, str::smoothing, smoothing);
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
