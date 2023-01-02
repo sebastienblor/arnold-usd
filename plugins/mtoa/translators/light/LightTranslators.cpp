@@ -384,20 +384,13 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
    AtNode* meshNode = GetArnoldNode("mesh");
    // use Maya's smoothShading attribute for Arnold's polymesh.smoothing
    bool smoothing = true;
-   if (this->GetTranslatorName() == MString("mesh_light")) {
-     // old method: Setting Arnold Translator to mesh_light in Maya
-     smoothing = FindMayaPlug("smoothShading").asBool();
-   } else {
-     // new method: Arnold->Lights->Mesh Light
-     MStatus status;
-     // get Maya's smoothShading attribute from meshObject
-     MFnDependencyNode fnNode(meshObject, &status);
-     CHECK_MSTATUS(status);
-     MPlug ssPlug = fnNode.findPlug("smoothShading", true, &status);
-     CHECK_MSTATUS(status);
-     smoothing = ssPlug.asBool(&status);
-     CHECK_MSTATUS(status);
-   }
+   // get Maya's smoothShading attribute from meshObject
+   MFnDependencyNode fnNode(meshObject, &status);
+   CHECK_MSTATUS(status);
+   MPlug ssPlug = fnNode.findPlug("smoothShading", true, &status);
+   CHECK_MSTATUS(status);
+   smoothing = ssPlug.asBool(&status);
+   CHECK_MSTATUS(status);
    AiNodeSetBool(meshNode, str::smoothing, smoothing);
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
