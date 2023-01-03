@@ -21,7 +21,7 @@ try:
     import mtoa.ui.qt as qt
     from mtoa.ui.globals.settings import updateBackgroundSettings, updateAtmosphereSettings
     import mtoa.ui.ae.utils as aeUtils
-    from mtoa.ui.arnoldmenu import createArnoldMenu
+    from mtoa.ui.arnoldmenu import createArnoldMenu, updateAvailable, MTOA_RELEASENOTES_URL, MTOA_HELP_URL
     from mtoa.ui.ae.customShaderTemplates import appendToSSTemplate
     import mtoa.cmds.arnoldRender as arnoldRender
     from mtoa.cmds.rendererCallbacks import aiRenderSettingsBuiltCallback
@@ -276,6 +276,18 @@ def _register():
         cmds.renderer('arnold', edit=True, supportColorManagement=True)
 
     aiRenderSettingsBuiltCallback("arnold")
+
+    newVersionAvaialble, latestVersionNumber = updateAvailable()
+
+    if (newVersionAvaialble):
+        icon = 'arnold_updateAvailable.png'
+        url = MTOA_RELEASENOTES_URL.format(latestVersionNumber.replace('.', ''))
+    else:
+        icon = 'arnold_logo.png'
+        url = MTOA_HELP_URL
+
+    cmds.renderer('arnold', edit=True, logoImageName=icon, logoCallbackProcedure='launch -webPage "{}"'.format(url))
+
     cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
     cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
     cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')
