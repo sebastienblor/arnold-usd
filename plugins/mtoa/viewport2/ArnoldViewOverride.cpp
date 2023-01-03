@@ -524,7 +524,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             float progress =  session->GetRenderView().GetProgress(isFinalPass);
             mHUDRender->setProgress(progress);
 
-            mHUDRender->setRenderStatus(session->GetRenderView().GetRenderStatusMessage());
+            mHUDRender->setRenderStatus(session->GetRenderView().GetRenderStatusMessage()); // Set the current render status text from the Render View API
 
             std::stringstream statusStr;
             const char *debugShading = session->GetRenderViewOption(MString("Debug Shading")).asChar();
@@ -805,8 +805,8 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         drawManager2D.setColorIndex( mHUDColorIndex );
         // Set font size
         uint fontsize = 11;
-        drawManager2D.setFontSize( fontsize );
-        drawManager2D.setFontWeight( 25 );
+        drawManager2D.setFontSize( fontsize ); 
+        drawManager2D.setFontWeight( 25 ); // Style font weight to a slim style
     #ifdef _DARWIN
         drawManager2D.setFontName("monaco");
     #else
@@ -817,7 +817,7 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         frameContext.getViewportDimensions( x, y, w, h );
         float offset = 15.0f*mPixelRatio;
         float hoffset = 20.0f*mPixelRatio;
-        float hHUDoffset = (20.0f*mHOffset)*mPixelRatio;
+        float hHUDoffset = (20.0f*mHOffset)*mPixelRatio; // offset from Maya HUD elements
 
         MColor backgroundColor( 0.1, 0.1, 0.1);
         // Draw time and stats
@@ -841,7 +841,7 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
                                  MVector(0.0,1.0), 
                                  (progressbar_max_width/2), 
                                  4.0*mPixelRatio);
-            
+            // Draw fill of progress bar
             drawManager2D.rect2d(MPoint(progress_step_width+(offset), (h-(hoffset*2.70))-hHUDoffset),
                                  MVector(0.0,1.0), 
                                  std::max(progress_step_width, 0.0), 
