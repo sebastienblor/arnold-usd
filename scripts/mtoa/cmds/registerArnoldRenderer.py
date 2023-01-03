@@ -281,7 +281,7 @@ def _register():
 
     if (newVersionAvaialble):
         icon = 'arnold_updateAvailable.png'
-        url = MTOA_RELEASENOTES_URL.format(latestVersionNumber.replace('.', ''))
+        url = MTOA_RELEASENOTES_URL.format(version=latestVersionNumber.replace('.', ''))
     else:
         icon = 'arnold_logo.png'
         url = MTOA_HELP_URL
