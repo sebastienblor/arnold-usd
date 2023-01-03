@@ -303,7 +303,7 @@ select -ne :defaultRenderGlobals;
 	setAttr ".ren" -type "string" "arnold";
 	setAttr ".outf" 51;
 	setAttr ".imfkey" -type "string" "tif";
-	setAttr ".ifp" -type "string" "testrender.tif";
+	setAttr ".ifp" -type "string" "testrender";
 	setAttr ".dss" -type "string" "lambert1";
 select -ne :defaultResolution;
 	setAttr ".w" 160;
