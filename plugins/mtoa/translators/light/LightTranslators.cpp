@@ -382,6 +382,16 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       return NULL;
 
    AtNode* meshNode = GetArnoldNode("mesh");
+   // use Maya's smoothShading attribute for Arnold's polymesh.smoothing
+   bool smoothing = true;
+   // get Maya's smoothShading attribute from meshObject
+   MFnDependencyNode fnNode(meshObject, &status);
+   CHECK_MSTATUS(status);
+   MPlug ssPlug = fnNode.findPlug("smoothShading", true, &status);
+   CHECK_MSTATUS(status);
+   smoothing = ssPlug.asBool(&status);
+   CHECK_MSTATUS(status);
+   AiNodeSetBool(meshNode, str::smoothing, smoothing);
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
