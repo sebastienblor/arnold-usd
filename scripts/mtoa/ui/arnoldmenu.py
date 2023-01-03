@@ -32,8 +32,8 @@ defaultOperatorsFolder = ""
 _maya_version = mutils.getMayaVersion()
 
 MTOA_DOWNLOAD_URL = 'https://www.arnoldrenderer.com/arnold/download/'
-MTOA_RELEASENOTES_URL = 'https://docs.arnoldrenderer.com/display/A5AFMUG/{version}'
-MTOA_HELP_URL = 'https://docs.arnoldrenderer.com/x/VwxkAg'
+MTOA_RELEASENOTES_URL = 'https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_{version}_html'
+MTOA_HELP_URL = 'https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Arnold_for_Maya_User_Guide_html'
 
 def doCreateStandInFile():
     node = createStandIn()
@@ -158,7 +158,7 @@ def arnoldAboutDialog():
     pluginPath = os.path.dirname(os.path.dirname(cmds.pluginInfo( 'mtoa', query=True, path=True)))
     pluginPath = os.path.join(pluginPath,"scripts","mtoa","ui","AboutArnold.txt")
 
-    newVersionAvaialble, latestVersionNumber = updateAvailable()
+    newVersionAvailable, latestVersionNumber = updateAvailable()
 
     legaltext = arnold.AiGetCopyrightNotices(arnold.AI_COPYRIGHT_NOTICES_PLUGINS)
     arnoldAboutText =  u"Arnold for Maya\n\n"
@@ -182,14 +182,14 @@ def arnoldAboutDialog():
 
     cmds.setParent( '..' )
   
-    if (newVersionAvaialble):
+    if (newVersionAvailable):
         cmds.rowColumnLayout(numberOfColumns=2,  columnWidth=[(1,72), (2, 430)], rowSpacing=([1,5],[2,5],[3,5]))
         cmds.text(label="")
         newVersionText = "New Mtoa Version " + latestVersionNumber + " is now available"
         cmds.text(align="left",label=newVersionText, font = "boldLabelFont",  hlc = (0.21, 0.64, 0.80) )
 
         cmds.text(label="")       
-        cmds.button(label='Click For More Info', c=lambda *args: cmds.launch(webPage= MTOA_RELEASENOTES_URL.format(version=latestVersionNumber)))
+        cmds.button(label='Click For More Info', c=lambda *args: cmds.launch(webPage= MTOA_RELEASENOTES_URL.format(version=latestVersionNumber.replace('.', ''))))
         cmds.text(label="")       
         cmds.setParent("..")
 
