@@ -91,10 +91,12 @@ class Test:
       # Note that we won't be loading the scene because it seems that the script is called before scene load.
       # So it's the script itself that loads whatever scene it wants
       if os.path.exists(os.path.join(test_dir, 'test.mel')):
-         if system.is_windows:
-            mayabatch_cmd = 'mayabatch'
-         else:
-            mayabatch_cmd = 'maya -batch'
+         # For windows we used to run mayabatch, but this is causing 
+         # hangs when arnold is the current renderer (MTOA-1249).
+         # In the meantime we're switching to maya -batch in the testsuite
+         # if system.is_windows:
+         #   mayabatch_cmd = 'mayabatch'
+         mayabatch_cmd = 'maya -batch'
          if not ' ' in env['MAYA_ROOT']:
             mayabatch_cmd = os.path.join(env['MAYA_ROOT'], 'bin', mayabatch_cmd)
 
