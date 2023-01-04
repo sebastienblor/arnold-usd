@@ -856,10 +856,6 @@ void CInstancerTranslator::PostExport(AtNode *node)
          if (idx >= (int)m_objectNames.length()) continue;
 
          AtNode* obj = AiNodeLookUpByName(GetUniverse(), AtString(m_objectNames[idx].asChar()));
-	 AiMsgWarning("DEBUG: partID = %d", partID);
-	 AiMsgWarning("DEBUG: (j, k) = (%d, %d)", j, k);
-	 AiMsgWarning("DEBUG: idx = %d", idx);
-	 AiMsgWarning("DEBUG: %s", m_objectNames[idx].asChar());
 
          MString instanceKey = "inst";
          instanceKey += globalIndex;
