@@ -80,6 +80,9 @@ public:
 
    // return the current status text
    const char *GetDisplayedStatus();
+
+   // return the render status message
+   const char *GetRenderStatusMessage();
    // return the current render timestamp object
    const size_t GetRenderTime();
    // Render the scene.
