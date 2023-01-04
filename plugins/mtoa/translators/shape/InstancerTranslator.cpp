@@ -705,11 +705,25 @@ void CInstancerTranslator::PostExport(AtNode *node)
 
    MString baseName = GetSessionOptions().GetArnoldNaming(GetMayaDagPath());
 
-   int globalIndex = 0;
+   uint32_t nelements = 0;
+   for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
+        it !=  m_particleIDMap.end(); ++it)
+   {
+      int partID = it->first;
+      int j = it->second;
+      if (j >= (int)m_vec_matrixArrays.size()) continue;
+
+      for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++)
+      {
+         int idx = m_particlePathsMap[partID][k];
+         if (idx >= (int)m_objectNames.length()) continue;
+         AtNode* obj = AiNodeLookUpByName(GetUniverse(), AtString(m_objectNames[idx].asChar()));
+	 if (obj) nelements++;
+      }
+   }
 
    // instancer created in CInstancerTranslator::CreateArnoldNodes should be in node!
    AtNode* instancer = node;
-   uint32_t nelements = m_particleIDMap.size();
    bool hasMotion = (RequiresMotionData() && m_motionDeform);
    uint8_t nkeys = ((hasMotion) ? GetNumMotionSteps() : 1);
    // instance_matrix
@@ -761,7 +775,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
       int partID = it->first;
       int j = it->second;
       if (j >= (int)m_vec_matrixArrays.size()) continue;
-      for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
+      for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++)
       {
          unordered_map<std::string, MVectorArray>::iterator custVect;
          for (custVect = m_out_customVectorAttrArrays.begin(); custVect != m_out_customVectorAttrArrays.end(); custVect++)
@@ -828,6 +842,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
       AiNodeSetArray(instancer, str::instance_rgbPP, instance_rgbPP);
    }
 
+   int globalIndex = 0;
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
         it !=  m_particleIDMap.end(); ++it)
    {
@@ -845,13 +860,13 @@ void CInstancerTranslator::PostExport(AtNode *node)
          MString instanceKey = "inst";
          instanceKey += globalIndex;
 
-         AiArraySetPtr(nodes, partID, obj);
+         AiArraySetPtr(nodes, globalIndex, obj);
 
          if (m_cloneInstances[idx])
          {
-            AiArraySetBool(instance_inherit_xform, partID, false);
+            AiArraySetBool(instance_inherit_xform, globalIndex, false);
             AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
-            AiArraySetMtx(instance_matrix, partID, AiM4Mult(particleMatrix, m_objectMatrices[idx]));
+            AiArraySetMtx(instance_matrix, globalIndex, AiM4Mult(particleMatrix, m_objectMatrices[idx]));
          } else
          {
             // Regular instances
@@ -861,7 +876,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
                AtMatrix tmpMtx = AiArrayGetMtx(mblurMatrix, nkey);
 
                AiArraySetMtx(instance_matrix,
-                            nkey * nelements + partID,
+                            nkey * nelements + globalIndex,
                             (m_sceneTransforms) ? 
                             AiM4Mult(tmpMtx, m_objectMatrices[idx]) : tmpMtx);
             }
@@ -869,7 +884,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
 
          // need this in case instance sources are hidden
          AtByte visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
-         AiArraySetByte(instance_visibility, partID, visibility);
+         AiArraySetByte(instance_visibility, globalIndex, visibility);
 
          // add the custom user selected attributes to export
          unordered_map<std::string, MVectorArray>::iterator custVect;
@@ -882,7 +897,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
                // if (m_cloneInstances[idx]) // override the light color
                //    AiNodeSetRGB(instance, str::color, (float)vecAttrValue.x, (float)vecAttrValue.y, (float)vecAttrValue.z); 
                if (instance_rgbPP) {
-                  AiArraySetRGB(instance_rgbPP, partID,
+                  AiArraySetRGB(instance_rgbPP, globalIndex,
                                 AtRGB((float)vecAttrValue.x,
                                       (float)vecAttrValue.y,
                                       (float)vecAttrValue.z));
@@ -895,7 +910,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
                   unordered_map<std::string, AtArray*>::iterator got =
                      vecArrays.find(std::string("instance_") + custVect->first);
                   if (got != vecArrays.end()) {
-                     AiArraySetVec(got->second, partID,
+                     AiArraySetVec(got->second, globalIndex,
                                    AtVector((float)vecAttrValue.x,
                                             (float)vecAttrValue.y,
                                             (float)vecAttrValue.z));
@@ -910,7 +925,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
             AtString attrName((std::string("instance_") + custDouble->first).c_str());
             unordered_map<std::string, AtArray*>::iterator got = doubleArrays.find(std::string("instance_") + custDouble->first);
             if (got != doubleArrays.end()) {
-               AiArraySetFlt(got->second, partID, doubleAttrValue);
+               AiArraySetFlt(got->second, globalIndex, doubleAttrValue);
             }
          }
          unordered_map<std::string, MIntArray>::iterator custInt;
@@ -920,7 +935,7 @@ void CInstancerTranslator::PostExport(AtNode *node)
             AtString attrName((std::string("instance_") + custInt->first).c_str());
             unordered_map<std::string, AtArray*>::iterator got = intArrays.find(std::string("instance_") + custInt->first);
             if (got != intArrays.end()) {
-               AiArraySetInt(got->second, partID, intAttrValue);
+               AiArraySetInt(got->second, globalIndex, intAttrValue);
             }
          }
       }
