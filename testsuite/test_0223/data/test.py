@@ -7,7 +7,7 @@ maya_root_path    = sys.argv[1]
 mtoa_root_path    = sys.argv[2]
 
 makeTxPath        = os.path.join(mtoa_root_path, 'bin', 'maketx')
-synColor_path     = os.path.join(maya_root_path, 'synColor')
+ocio_path = os.path.join(maya_root_path, 'resources', 'OCIO-configs', 'Maya2022-default', 'config.ocio')
 
 ''' We no longer need that, since the syncolor color_manager node points directly to the installed syncolor folder
 # Create a syncolorConfig file with the path to maya syncolor native catalogs
@@ -18,8 +18,7 @@ with open('synColorConfig.xml','w') as f:
     f.write(synColorConfig)
 '''
 
-cmd = '%s --nomipmap --colorengine "syncolor" --colorconfig "%s" --colorconvert "Sony SLog2" "ACEScg" texture.jpg -o testrender.tif' \
-    % (makeTxPath, synColor_path)
+cmd = '{} --nomipmap --colorconfig "{}" --colorconvert "Sony SLog3 / SGamut3" "ACEScg" texture.jpg -o testrender.tif'.format(makeTxPath, ocio_path)
 
 print(cmd)
 
