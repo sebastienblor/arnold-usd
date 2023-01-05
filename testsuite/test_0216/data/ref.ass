@@ -42,7 +42,7 @@ driver_tiff
  format "int16"
  tiled off
  output_padded off
- color_space ""
+ color_space "ACES 1.0 SDR-video (sRGB)"
  dither on
  unpremult_alpha off
  skip_alpha off
