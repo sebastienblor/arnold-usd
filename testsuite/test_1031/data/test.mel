@@ -9,7 +9,14 @@ sysFile -delete $osoUnix;
 // copy tmp/hda.osl to plugin/hda.osl
 string $destUnix = ($cwd + "/plugin/hda.osl");
 string $srcUnix = ($cwd + "/tmp/hda.osl");
-sysFile -copy $destUnix $srcUnix;
+
+if (`about -mac`)
+{
+    system("cp " + $srcUnix + " " + $destUnix);
+}else
+{
+    sysFile -copy  $destUnix $srcUnix;
+}
 
 arnoldPlugins -rlp;
 
