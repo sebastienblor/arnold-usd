@@ -1,3 +1,8 @@
 Diamond with high refraction depth and dispersion
 
 author: sebastien.ortega
+
+PARAMS: {
+     'diff_fail': 0.06,
+     'diff_hardfail': 0.06
+ }

@@ -1,0 +1,76 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_ADP_DISABLE': '1', 'ARNOLD_TESTSUITE_COMMON': '/Users/sebastienblaineau-ortega/Desktop/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/Applications/Autodesk/Arnold/mtoa/2024', 'PYMEL_SKIP_MEL_INIT': '1', 'MAYA_DISABLE_ADP': '1', 'ADCLMHUB_LOG_DIR': '/Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac', 'MAYA_DISABLE_CIP': '1', 'PATHOSX': '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac', 'MAYA_RENDER_DESC_PATH': '/Applications/Autodesk/Arnold/mtoa/2024', 'PATH': '/Applications/Autodesk/Arnold/mtoa/2024/bin;/Users/sebastienblaineau-ortega/Desktop/Maya/2024/runtime/Maya.app/Contents/bin;/Applications/Autodesk/Arnold/mtoa/2024/lib;/Applications/Autodesk/Arnold/mtoa/2024/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:.', 'MAYA_DISABLE_CER': '1', 'ARNOLD_CER_ENABLED': 'off'}
+ 
+ ==== Exec cmd ==== 
+ 
+/Users/sebastienblaineau-ortega/Desktop/Maya/2024/runtime/Maya.app/Contents/bin/Render -proj "/Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac" -rd "/Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac" -r arnold -x 160 -y 120 -lic 0  "/Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac/test.ma"
+ 
+ /Users/sebastienblaineau-ortega/Desktop/Maya/2024/runtime/Maya.app/Contents/MacOS /Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac
+
+Starting "/Users/sebastienblaineau-ortega/Desktop/Maya/2024/runTime/Maya.app/Contents/MacOS/maya"
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   399MB         | log started Fri Jan  6 09:10:30 2023
+00:00:00   399MB         | Arnold 7.1.5.0 [ebe9296b] darwin arm64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 2022/12/16 20:20:17
+00:00:00   399MB         | running on mtlpc1hj49l.ads.autodesk.com, pid=17360
+00:00:00   399MB         |  1 x Apple M1 Pro (10 cores, 10 logical) with 32768MB
+00:00:00   399MB         |  Mac OS 12.4.0, Darwin kernel 21.5.0
+00:00:00   399MB         |  soft limit for open files changed from 2560 to 10238
+00:00:00   399MB         |  
+00:00:00   399MB         | [metadata] loading metadata file: /Applications/Autodesk/Arnold/mtoa/2024/bin/arnold.mtd
+00:00:00   415MB         | [color_manager_ocio] default ocio.config found in /Applications/Autodesk/Arnold/mtoa/2024/bin/../ocio/configs/arnold/config.ocio
+00:00:00   415MB         | loading plugins from /Applications/Autodesk/Arnold/mtoa/2024/bin/../plugins ...
+00:00:00   416MB         |  cryptomatte.dylib: cryptomatte uses Arnold 7.1.5.0
+00:00:00   416MB         |  cryptomatte.dylib: cryptomatte_filter uses Arnold 7.1.5.0
+00:00:00   416MB         |  cryptomatte.dylib: cryptomatte_manifest_driver uses Arnold 7.1.5.0
+00:00:00   416MB         |  [metadata] loading metadata file: /Applications/Autodesk/Arnold/mtoa/2024/bin/../plugins/cryptomatte.mtd
+00:00:00   423MB         |  usd_proc.dylib: usd uses Arnold 7.1.5.0
+00:00:00   423MB         |  alembic_proc.dylib: alembic uses Arnold 7.1.5.0
+00:00:00   423MB         | loaded 5 plugins from 3 lib(s) in 0:00.01
+Warning: file: /Users/sebastienblaineau-ortega/Library/Preferences/Autodesk/maya/2024/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/sebastienblaineau-ortega/Library/Preferences/Autodesk/maya/2024/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/sebastienblaineau-ortega/Library/Preferences/Autodesk/maya/2024/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+Warning: line 1: About -ltVersion is deprecated
+00:00:00   427MB WARNING |  unable to load dynamic library: dlopen(/Applications/Autodesk/Arnold/mtoa/2024/procedurals/xgenSpline_procedural.dylib, 0x0005): Library not loaded: @rpath/libAdskSeExpr.dylib
+  Referenced from: /Applications/Autodesk/Arnold/mtoa/2024/procedurals/xgenSpline_procedural.dylib
+  Reason: tried: '/Users/sebastienblaineau-ortega/Desktop/Maya/2024/runTime/Maya.app/Contents/MacOS/./libAdskSeExpr.dylib' (no such file), '/Applications/Autodesk/Arnold/mtoa/2024/bin/./libAdskSeExpr.dylib' (no such file), '/Users/sebastienblaineau-ortega/Desktop/Maya/2024/runTime/Maya.app/Contents/MacOS/libAdskSeExpr.dylib' (no such file), '/usr/local/lib/libAdskSeExpr.dylib' (no such file), '/usr/lib/libAdskSeExpr.dylib' (no such file)
+00:00:00   427MB WARNING |  unable to load dynamic library: dlopen(/Applications/Autodesk/Arnold/mtoa/2024/procedurals/xgen_procedural.dylib, 0x0005): Library not loaded: @rpath/libAdskSeExpr.dylib
+  Referenced from: /Applications/Autodesk/Arnold/mtoa/2024/procedurals/xgen_procedural.dylib
+  Reason: tried: '/Users/sebastienblaineau-ortega/Desktop/Maya/2024/runTime/Maya.app/Contents/MacOS/./libAdskSeExpr.dylib' (no such file), '/Applications/Autodesk/Arnold/mtoa/2024/bin/./libAdskSeExpr.dylib' (no such file), '/Users/sebastienblaineau-ortega/Desktop/Maya/2024/runTime/Maya.app/Contents/MacOS/libAdskSeExpr.dylib' (no such file), '/usr/local/lib/libAdskSeExpr.dylib' (no such file), '/usr/lib/libAdskSeExpr.dylib' (no such file)
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Error: file: /Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac/test.ma line 8: RuntimeError: file <maya console> line 1: Plug-in, "stereoCamera", was not found on MAYA_PLUG_IN_PATH.
+Warning: file: /Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac/test.ma line 101: Unrecognized node type 'stereoRigTransform'; preserving node information during this session.
+Warning: file: /Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac/test.ma line 119: Unrecognized node type 'stereoRigFrustum'; preserving node information during this session.
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+File read in  1.8 seconds.
+Viewport 2.0 floating point render target is turned off.
+Viewport 2.0 floating point render target is turned on for color management.
+Result: /Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac/test.ma
+Exporting Arnold Scene...
+Updating Arnold Scene...
+00:00:01   515MB         | log started Fri Jan  6 09:10:32 2023
+00:00:01   515MB         | Arnold 7.1.5.0 [ebe9296b] darwin arm64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 2022/12/16 20:20:17
+00:00:01   515MB         | host application: MtoA 5.2.3 eb7a8f1a (master) Maya 2024
+00:00:01   515MB         | running on mtlpc1hj49l.ads.autodesk.com, pid=17360
+00:00:01   515MB         |  1 x Apple M1 Pro (10 cores, 10 logical) with 32768MB
+00:00:01   515MB         |  Mac OS 12.4.0, Darwin kernel 21.5.0
+00:00:01   515MB         |  soft limit for open files is set at 10238
+00:00:01   515MB         |  
+00:00:01   515MB WARNING | rendering with watermarks because the skip_license_check option was enabled
+Scene /Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac/test.ma completed.
+00:00:01   542MB         |   unloading 10 plugins
+00:00:01   542MB         |    closing cryptomatte.dylib ...
+00:00:01   542MB         |    closing usd_proc.dylib ...
+00:00:01   542MB         |    closing alembic_proc.dylib ...
+00:00:01   542MB         |    closing renderSetup_shaders.dylib ...
+00:00:01   542MB         |    closing mtoa_shaders.dylib ...
+00:00:01   542MB         |    closing xgenSpline_shaders.dylib ...
+00:00:01   542MB         |    closing hairPhysicalShader_shaders.dylib ...
+00:00:01   541MB         |    closing lookdevkit_shaders.dylib ...
+00:00:01   541MB         |    closing mtoa_ParticleVolume_proc.dylib ...
+00:00:01   541MB         |    closing mtoa_ParticleInstancer_proc.dylib ...
+00:00:01   541MB         |   unloading plugins done
+00:00:01   541MB         |  Arnold shutdown
+/Users/sebastienblaineau-ortega/Desktop/mtoa/build/darwin_arm64_x86_64/20240000/gcc_opt/testsuite/test_0144_mac

@@ -35,15 +35,15 @@ ignore: test_0004 test_0005 test_0006 test_0007 test_0060 test_0066 test_0074 te
 
 # Ignoring all xgen on windows
 # temporarily ignoring render-to-texture tests
-ignore_windows: test_0318 test_0209 test_0235 test_0240 test_0309 test_0314 test_0315 test_0180 test_0140 test_0141 test_0317 test_0368 test_0305 test_0188 test_0181 test_0229 test_0237 test_0305 test_0369 test_0232 test_0304
+ignore_windows: test_0318 test_0209 test_0235 test_0240 test_0309 test_0314 test_0315 test_0180 test_0140 test_0141 test_0317 test_0368 test_0305 test_0188 test_0181 test_0229 test_0237 test_0305 test_0369 test_0232 test_0304 test_0144_mac
 
-ignore_linux: test_0248 test_0260
-ignore_darwin: test_0248 test_0318 test_0399
+ignore_linux: test_0248 test_0260 test_0144_mac
+ignore_darwin: test_0248 test_0318 test_0399 test_0144
 
 ignore_2020: test_0242 test_0213_Maya2022 test_0948 test_0813 test_0947
 ignore_2022: test_0213 test_0948
 ignore_2023: test_0242 test_0213
-ignore_2024: test_0242 test_0213
+ignore_2024: test_0242 test_0213 test_0144_mac
 
 
 gui: test_0143 test_0153 test_0154 test_0155 test_0156 test_0157 test_0160 test_0189 test_0199 test_0263
