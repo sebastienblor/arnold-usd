@@ -1,3 +1,8 @@
 Light Groups AOVs (#2830)
 
 author: sebastien.ortega
+
+PARAMS: {
+     'diff_fail': 0.01,
+     'diff_hardfail': 0.08
+ }

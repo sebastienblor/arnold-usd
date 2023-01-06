@@ -3,3 +3,8 @@ Cylinder and disk aiAreaLight scale
 Cylinder and disk aiAreaLight scale (Ticket #613)
 
 author: pedro.gomez
+
+PARAMS: {
+     'diff_fail': 0.06,
+     'diff_hardfail': 0.06
+ }

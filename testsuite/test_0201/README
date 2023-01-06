@@ -1,3 +1,8 @@
 Export unassigned shaders, using Standin's override_nodes 
 
 author: sebastien.ortega
+
+PARAMS: {
+     'diff_fail': 0.01,
+     'diff_hardfail': 0.03
+}

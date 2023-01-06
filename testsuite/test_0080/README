@@ -1,3 +1,9 @@
 Testing Shadow Matte shader. (Ticker #870)
 
 author: Pal 
+
+
+PARAMS: {
+     'diff_fail': 0.06,
+     'diff_hardfail': 0.06
+ }
