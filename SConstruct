@@ -218,9 +218,11 @@ if system.os == 'windows':
     maya_version_base = maya_version[0:4]
 
     msvc_version = '14.0'
-
+    # Visual studio 2022
+    if int(maya_version_base) >= 2024 or tmp_env['MAYA_MAINLINE']:
+        msvc_version = '14.3'
     # Visual Studio 2019
-    if int(maya_version_base) >= 2022 or tmp_env['MAYA_MAINLINE']:
+    elif int(maya_version_base) >= 2022:
         msvc_version = '14.2'
     
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
