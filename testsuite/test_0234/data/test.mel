@@ -45,7 +45,13 @@ file -force -type "mayaAscii" -save;
 
 if ($format == 1 && $ior == 5 && $opaque == 0)
 {
-	sysFile -copy  "testrender.tif" "ok.tif";
+    if (`about -mac`)
+    {
+         system("cp ok.tif testrender.tif");
+    }else
+    {
+	    sysFile -copy  "testrender.tif" "ok.tif";
+	}
 }else
 {
 	print "FAIL";

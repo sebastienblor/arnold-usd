@@ -109,16 +109,15 @@ class Test:
          if not ' ' in env['MAYA_ROOT']:
             maya_cmd = os.path.join(env['MAYA_ROOT'], 'bin', maya_cmd)
 
-         test_script = maya_cmd + ' -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
+         test_script = maya_cmd + ' -script "' + os.path.join("%dir%", 'gui_test.mel')+ '" -proj "%proj%"'
       elif os.path.exists(os.path.join(test_dir, 'test.py')):
 
          maya_root = env['MAYA_ROOT']
          test_script = ''
          if system.is_darwin:   
-            test_script = 'python '
             maya_root = maya_root.replace('/Maya.app/Contents', '')
 
-         test_script += os.path.join(test_dir, 'test.py "%s" "%s"' % (maya_root, env['TARGET_MODULE_PATH']) )
+         test_script += os.path.join("%dir%", 'test.py "%s" "%s"' % (maya_root, env['TARGET_MODULE_PATH']) )
 
       elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
       # If the test.py is found, we want to run mayapy with this script
@@ -128,8 +127,8 @@ class Test:
             maya_root = maya_root.replace('/Maya.app/Contents', '')
          if not ' ' in env['MAYA_ROOT']:
             mayapy_cmd = os.path.join(env['MAYA_ROOT'], 'bin', mayapy_cmd)
-         test_script = mayapy_cmd + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
-            % (maya_root, env['TARGET_MODULE_PATH'], test_dir) )
+         test_script = mayapy_cmd + os.path.join("%dir%", 'mayapy_test.py "%s" "%s" "%s"' \
+            % (maya_root, env['TARGET_MODULE_PATH'], "%dir%") )
 
 
       # Now check if a post_script.py file exists.
