@@ -108,7 +108,7 @@ createNode mesh -n "pPlaneShape1" -p "pPlane1";
 	setAttr ".ugsdt" no;
 	setAttr ".vnm" 0;
 	setAttr ".ai_translator" -type "string" "polymesh";
-	setAttr ".mtoa_difColTexture" -type "string" "./happy_face.tif";
+	setAttr ".mtoa_difColTexture" -type "string" "happy_face.tif";
 createNode lightLinker -s -n "lightLinker1";
 	rename -uid "44D0F747-465F-4737-9ED8-C0901F14A46A";
 	setAttr -s 4 ".lnk";

@@ -318,6 +318,7 @@ def run_test(target, source, env):
       ## Also without this testsuite crashes with Maya 2018
       local_env["MAYA_DISABLE_CIP"] = "1"
       local_env["MAYA_DISABLE_CER"] = "1"
+      local_env["MAYA_DISABLE_ADP"] = "1"
       local_env["ARNOLD_ADP_DISABLE"] = "1"
       local_env["ARNOLD_CER_ENABLED"] = "off"
 

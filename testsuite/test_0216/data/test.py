@@ -6,12 +6,14 @@ import sys
 maya_root_path    = sys.argv[1]
 mtoa_root_path    = sys.argv[2]
 
-shaders_path = os.path.join(mtoa_root_path, "shaders")
-synColor_path = os.path.join(maya_root_path, "synColor")
+if sys.platform == 'darwin':
+	ocio_path = os.path.join(maya_root_path, 'Maya.app', 'Contents', 'Resources', 'OCIO-configs', 'Maya2022-default', 'config.ocio')
+else:
+	ocio_path = os.path.join(maya_root_path, 'resources', 'OCIO-configs', 'Maya2022-default', 'config.ocio')
 
 kick = os.path.join(mtoa_root_path, 'bin', 'kick')
-cmd = '%s -v 0 -dp -dw ref.ass -l "%s" -r 160 120 -set defaultColorMgtGlobals.native_catalog_path "%s" -o testrender.tif' \
-  % (kick, shaders_path, synColor_path)
+cmd = '%s -v 0 -dp -dw ref.ass -r 160 120 -set defaultColorMgtGlobals.config "%s" -o testrender.tif' \
+  % (kick, ocio_path)
 
 print(cmd)
 

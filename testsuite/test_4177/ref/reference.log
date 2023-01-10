@@ -1,0 +1,9 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_ADP_DISABLE': '1', 'ARNOLD_TESTSUITE_COMMON': '/home/handsca/Dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/opt/solidangle/mtoa/5.2.3-dev/2023', 'PYMEL_SKIP_MEL_INIT': '1', 'ADCLMHUB_LOG_DIR': '/home/handsca/Dev/mtoa/build/linux_x86_64/20230200/gcc_debug/testsuite/test_4177', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/handsca/Dev/mtoa/build/linux_x86_64/20230200/gcc_debug/testsuite/test_4177', 'MAYA_RENDER_DESC_PATH': '/opt/solidangle/mtoa/5.2.3-dev/2023', 'PATH': '/opt/solidangle/mtoa/5.2.3-dev/2023/bin;/software/maya/2023/bin;/opt/solidangle/mtoa/5.2.3-dev/2023/lib;/opt/solidangle/mtoa/5.2.3-dev/2023/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'MAYA_DISABLE_CER': '1', 'ARNOLD_CER_ENABLED': 'off', 'LD_LIBRARY_PATH': '/software/maya/2023/lib'}
+ 
+ ==== Exec cmd ==== 
+ 
+"/software/python/2.7.14/bin/python" post_script.py . /home/handsca/Dev/mtoa/external/OpenImageIO/bin/linux/oiiotool /opt/solidangle/mtoa/5.2.3-dev/2023
+ 
+ /home/handsca/Dev/mtoa/external/OpenImageIO/bin/linux/oiiotool --create 160x120 3 -d uint8 --fill:color=0,1,0 160x120 -o ./testrender.tif

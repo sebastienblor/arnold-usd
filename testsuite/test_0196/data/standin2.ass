@@ -4,57 +4,6 @@
 
 
 
-options
-{
- AA_samples 3
- outputs "RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_exr.RGBA"
- xres 960
- yres 540
- texture_per_file_stats on
- texture_searchpath "./"
- texture_automip off
- texture_specular_blur 0
- camera "perspShape"
- color_manager "defaultColorMgtGlobals"
- procedural_searchpath "./"
- GI_diffuse_depth 1
- GI_specular_depth 1
- declare frame constant FLOAT
- frame 1
- declare render_layer constant STRING
- render_layer "defaultRenderLayer"
- declare fps constant FLOAT
- fps 24
-}
-
-gaussian_filter
-{
- name defaultArnoldFilter@gaussian_filter
- width 2
-}
-
-driver_exr
-{
- name defaultArnoldDriver@driver_exr.RGBA
- filename "untitled.exr"
- compression "zip"
- half_precision off
- tiled off
- color_space ""
- preserve_layer_name off
- autocrop off
- append off
-}
-
-color_manager_syncolor
-{
- name defaultColorMgtGlobals
- native_catalog_path "C:/Program Files/Autodesk/Maya2017/synColor"
- custom_catalog_path "C:/Users/blaines/Documents/maya/synColor/Shared/"
- rendering_color_space "scene-linear Rec 709/sRGB"
- view_transform_space "sRGB gamma"
-}
-
 polymesh
 {
  name pSphereShape1
@@ -67,7 +16,7 @@ polymesh
  0 1 0 0
  0 0 1 0
  0 0 0 1
- shader "aiStandardSurface1SG"
+ shader "aiStandardSurface1"
  opaque on
  matte off
  id 2723756714
@@ -660,17 +609,9 @@ polymesh
   0.574999988 1 0.625 1 0.675000012 1 0.725000024 1 0.775000036 1 0.824999988 1 0.875 1
   0.925000012 1 0.975000024 1
  smoothing on
- declare mtoa_shading_groups constant ARRAY NODE
- mtoa_shading_groups "aiStandardSurface1SG"
+
 }
 
-MayaShadingEngine
-{
- name aiStandardSurface1SG
- beauty aiStandardSurface1
- enable_matte off
- matte_color 0 0 0 0
-}
 
 standard_surface
 {

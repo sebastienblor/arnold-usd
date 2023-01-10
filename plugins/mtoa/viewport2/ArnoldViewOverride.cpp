@@ -517,15 +517,14 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         // get the current render time from the current render
         size_t rtime = session->GetRenderView().GetRenderTime();
         std::string display_status(session->GetRenderView().GetDisplayedStatus());
-        if (rtime > 0 && display_status.length())
+        if (rtime > 0)
         {
 
             bool isFinalPass = false;
             float progress =  session->GetRenderView().GetProgress(isFinalPass);
             mHUDRender->setProgress(progress);
 
-            std::string render_status("Rendering");
-            mHUDRender->setRenderStatus(ltrim(render_status).c_str());
+            mHUDRender->setRenderStatus(session->GetRenderView().GetRenderStatusMessage()); // Set the current render status text from the Render View API
 
             std::stringstream statusStr;
             const char *debugShading = session->GetRenderViewOption(MString("Debug Shading")).asChar();
@@ -805,7 +804,9 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
         // Set font color
         drawManager2D.setColorIndex( mHUDColorIndex );
         // Set font size
-        drawManager2D.setFontSize( 10 );
+        uint fontsize = 11;
+        drawManager2D.setFontSize( fontsize ); 
+        drawManager2D.setFontWeight( 25 ); // Style font weight to a slim style
     #ifdef _DARWIN
         drawManager2D.setFontName("monaco");
     #else
@@ -814,10 +815,18 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
 
         int x=0, y=0, w=0, h=0;
         frameContext.getViewportDimensions( x, y, w, h );
-        float offset = 20.0f*mPixelRatio;
-        float hoffset = (20.0f*mHOffset)*mPixelRatio;
+        float offset = 15.0f*mPixelRatio;
+        float hoffset = 20.0f*mPixelRatio;
+        float hHUDoffset = (20.0f*mHOffset)*mPixelRatio; // offset from Maya HUD elements
 
         MColor backgroundColor( 0.1, 0.1, 0.1);
+        // Draw time and stats
+        drawManager2D.text( MPoint(offset, (h-(hoffset))-hHUDoffset), mStatus, MHWRender::MUIDrawManager::kLeft );
+        
+        // Draw render status 
+        drawManager2D.text( MPoint(offset, (h-(hoffset*2.0)-hHUDoffset)), mRenderStatus, MHWRender::MUIDrawManager::kLeft );
+        int statuslength = mRenderStatus.numChars()+1;
+        float statusOffset = (statuslength*fontsize);
         
         if (mOldProgress < 100.0)
         {
@@ -826,29 +835,23 @@ void ArnoldViewHUDRender::addUIDrawables( MHWRender::MUIDrawManager& drawManager
             if (mProgress >= 0.0)
                 progress_step_width = (mProgress*((progressbar_max_width/2)/100.0));
             
-            int statuslength = mRenderStatus.numChars()+1;
-            float statusOffset = (statuslength*8.0)*mPixelRatio;
-
-            drawManager2D.text( MPoint(offset, (h*0.95f)-hoffset), mRenderStatus, MHWRender::MUIDrawManager::kLeft );
             // Draw progress bar
             drawManager2D.setLineStyle( MHWRender::MUIDrawManager::kSolid );
-            drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(statusOffset), (h*0.955)-hoffset),
+            drawManager2D.rect2d(MPoint((progressbar_max_width/2)+(offset), (h-(hoffset*2.70))-hHUDoffset),
                                  MVector(0.0,1.0), 
                                  (progressbar_max_width/2), 
                                  4.0*mPixelRatio);
-            
-            drawManager2D.rect2d(MPoint(progress_step_width+(statusOffset), (h*0.955)-hoffset),
+            // Draw fill of progress bar
+            drawManager2D.rect2d(MPoint(progress_step_width+(offset), (h-(hoffset*2.70))-hHUDoffset),
                                  MVector(0.0,1.0), 
                                  std::max(progress_step_width, 0.0), 
                                  4.0*mPixelRatio,
                                  true);
             char buffer[8];
             std::snprintf(buffer, 8, "%.2f%%", mProgress);
-            drawManager2D.text( MPoint((10.0*mPixelRatio)+statusOffset+progressbar_max_width, (h*0.95f)-hoffset), MString(buffer), MHWRender::MUIDrawManager::kLeft );
+            drawManager2D.text( MPoint(offset+progressbar_max_width+(10.0*mPixelRatio), (h-(hoffset*3))-hHUDoffset), MString(buffer), MHWRender::MUIDrawManager::kLeft );
             
         }
-        // Draw status text
-        drawManager2D.text( MPoint(offset, (h*0.97f)-hoffset), mStatus, MHWRender::MUIDrawManager::kLeft );
 
         // End draw UI
         drawManager2D.endDrawable();

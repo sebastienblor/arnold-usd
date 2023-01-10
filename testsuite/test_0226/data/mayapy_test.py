@@ -6,12 +6,8 @@ import sys
 maya_root_path    = sys.argv[1]
 mtoa_root_path    = sys.argv[2]
 
-shaders_path = os.path.join(mtoa_root_path, "shaders")
-synColor_path = os.path.join(maya_root_path, "synColor")
-
 kick = os.path.join(mtoa_root_path, 'bin', 'kick')
-cmd = '%s -v 0 -dp -dw ref.ass -l "%s" -r 160 120 -set defaultColorMgtGlobals.native_catalog_path "%s" -set defaultColorMgtGlobals.ocioconfig_path "ocio/config.ocio"   -t 64 -o testrender.tif' \
- % (kick, shaders_path, synColor_path)
+cmd = '{} -v 0 -dp -dw ref.ass -r 160 120 -set defaultColorMgtGlobals.config "ocio/config.ocio" -o testrender.tif'.format(kick)
 
 print(cmd)
 

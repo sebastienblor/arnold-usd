@@ -5,4 +5,10 @@ print "about to export scene";
 arnoldExportAss -f "test.ass";
 print "exported scene";
 
-sysFile -copy  "testrender.tif" "ok.tif";
+if (`about -mac`)
+{
+    system("cp ok.tif testrender.tif");
+} else
+{
+    sysFile -copy  "testrender.tif" "ok.tif";
+}

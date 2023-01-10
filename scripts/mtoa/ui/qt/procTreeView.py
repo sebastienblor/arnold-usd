@@ -4,7 +4,7 @@ from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .utils import dpiScale
-from qt.treeView import BaseTreeView, BaseModel, BaseItem
+from .treeView import BaseTreeView, BaseModel, BaseItem
 
 
 class ProceduralTreeView(BaseTreeView):

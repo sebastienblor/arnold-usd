@@ -176,7 +176,7 @@ createNode polyPlane -n "polyPlane2";
 	setAttr ".cuv" 2;
 createNode file -n "file1";
 	rename -uid "8CD99819-476C-E5FB-2E93-AC810D361A3C";
-	setAttr ".ftn" -type "string" "nr_u<u>v<v>.tga";
+	setAttr ".ftn" -type "string" "nr_u<u>v<v>.tx";
 	setAttr ".uvt" 1;
 	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture1";

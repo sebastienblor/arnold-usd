@@ -91,10 +91,12 @@ class Test:
       # Note that we won't be loading the scene because it seems that the script is called before scene load.
       # So it's the script itself that loads whatever scene it wants
       if os.path.exists(os.path.join(test_dir, 'test.mel')):
-         if system.is_windows:
-            mayabatch_cmd = 'mayabatch'
-         else:
-            mayabatch_cmd = 'maya -batch'
+         # For windows we used to run mayabatch, but this is causing 
+         # hangs when arnold is the current renderer (MTOA-1249).
+         # In the meantime we're switching to maya -batch in the testsuite
+         # if system.is_windows:
+         #   mayabatch_cmd = 'mayabatch'
+         mayabatch_cmd = 'maya -batch'
          if not ' ' in env['MAYA_ROOT']:
             mayabatch_cmd = os.path.join(env['MAYA_ROOT'], 'bin', mayabatch_cmd)
 
@@ -107,16 +109,15 @@ class Test:
          if not ' ' in env['MAYA_ROOT']:
             maya_cmd = os.path.join(env['MAYA_ROOT'], 'bin', maya_cmd)
 
-         test_script = maya_cmd + ' -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
+         test_script = maya_cmd + ' -script "' + os.path.join("%dir%", 'gui_test.mel')+ '" -proj "%proj%"'
       elif os.path.exists(os.path.join(test_dir, 'test.py')):
 
          maya_root = env['MAYA_ROOT']
          test_script = ''
          if system.is_darwin:   
-            test_script = 'python '
             maya_root = maya_root.replace('/Maya.app/Contents', '')
 
-         test_script += os.path.join(test_dir, 'test.py "%s" "%s"' % (maya_root, env['TARGET_MODULE_PATH']) )
+         test_script += os.path.join("%dir%", 'test.py "%s" "%s"' % (maya_root, env['TARGET_MODULE_PATH']) )
 
       elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
       # If the test.py is found, we want to run mayapy with this script
@@ -126,8 +127,8 @@ class Test:
             maya_root = maya_root.replace('/Maya.app/Contents', '')
          if not ' ' in env['MAYA_ROOT']:
             mayapy_cmd = os.path.join(env['MAYA_ROOT'], 'bin', mayapy_cmd)
-         test_script = mayapy_cmd + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
-            % (maya_root, env['TARGET_MODULE_PATH'], test_dir) )
+         test_script = mayapy_cmd + os.path.join("%dir%", 'mayapy_test.py "%s" "%s" "%s"' \
+            % (maya_root, env['TARGET_MODULE_PATH'], "%dir%") )
 
 
       # Now check if a post_script.py file exists.
