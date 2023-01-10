@@ -318,7 +318,9 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          if ( AiNodeEntryGetNameAtString(node_entry) == str::osl && (component == str::m_outValue || component == str::m_outTransparency))
             component = MString("");
 
-         if (num_outputs > 1 && AiNodeEntryGetNameAtString(node_entry) == str::osl)
+         if (num_outputs > 1 &&
+	     AiNodeEntryGetNameAtString(node_entry) == str::osl &&
+	     component != MString(""))
          {
             component = MString("param_") + component;
          }
