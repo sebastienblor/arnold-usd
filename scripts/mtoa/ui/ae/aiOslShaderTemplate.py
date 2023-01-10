@@ -136,6 +136,10 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
 
     def compiler(self, attrName):
         nodeName = attrName.split('.')[0]
+        compileText = cmds.getAttr(nodeName + '.codeCache');
+        # avoid compilation for empty shader code
+        if compileText == "":
+            return
         # reset attrs
         self._attrs[nodeName] = {}
         # store attribute values
@@ -158,7 +162,6 @@ class AEaiOslShaderTemplate(ShaderAETemplate):
                         if outNodeName == nodeName:
                             fromSlots.append(inConnection)
                             toSlots.append(outConnection)
-        compileText = cmds.getAttr(nodeName + '.codeCache');
         cmds.setAttr(nodeName + '.code', compileText, type="string")
         oslMayaScene = mtoa.osl.OSLSceneModel(compileText, nodeName)
         if oslMayaScene.compileState:
