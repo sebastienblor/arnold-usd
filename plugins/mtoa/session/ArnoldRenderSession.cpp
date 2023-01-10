@@ -28,7 +28,8 @@ CArnoldRenderSession::CArnoldRenderSession() :
                            m_IPRIdleCallbackId(0),
                            m_renderThread(nullptr),
                            m_comp(0),
-                           m_idle_cb(0)
+                           m_idle_cb(0),
+                           m_sequenceRender(false)
                            
 {
 }
@@ -49,6 +50,12 @@ CArnoldRenderSession::~CArnoldRenderSession()
       m_renderThread = nullptr; 
    }
 
+}
+AtRenderSession *CArnoldRenderSession::GetRenderSession()
+{
+   if (m_renderSession == nullptr)
+      m_renderSession = AiRenderSession(m_universe, m_sequenceRender || IsBatchSession() ? AI_SESSION_BATCH : AI_SESSION_INTERACTIVE);
+   return m_renderSession;
 }
 
 bool CArnoldRenderSession::BatchRender()
