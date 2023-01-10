@@ -265,9 +265,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // Check if in multiframe mode
    if (multiframe)
    {
-      // If in batch rendering mode, check if a port was given to use for communication
-      int port = batch && args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
-
       double startframe;
       double endframe;
       double byframestep;
