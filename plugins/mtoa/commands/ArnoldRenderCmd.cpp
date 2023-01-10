@@ -267,9 +267,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // TODO: This really needs to go. We're translating the whole scene for a couple of
       // render options.
 
-      // If in batch rendering mode, check if a port was given to use for communication
-      int port = batch && args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
-
       double startframe;
       double endframe;
       double byframestep;

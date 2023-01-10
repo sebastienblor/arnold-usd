@@ -345,21 +345,6 @@ def registerArnoldRenderer():
             core.MTOA_GLOBALS['COMMAND_PORT'] = None
 
             if not cmds.about(batch=True):
-                commandPortBase = 4700
-                try:
-                    commandPortBase = int(os.environ['MTOA_COMMAND_PORT'])
-                except:
-                    commandPortBase = 4700
-                # opening a command port for different tools and maya batch progress messages
-                for port in range(commandPortBase, commandPortBase + 100):
-                    commandPortName = ':%i' % port
-                    try:
-                        cmds.commandPort(name=commandPortName)
-                        core.MTOA_GLOBALS['COMMAND_PORT'] = port
-                        break
-                    except:
-                        pass
-            if not cmds.about(batch=True):
                 cmds.evalDeferred(arnoldShelf.createArnoldShelf)
 
             addSpreadSheetHooks()
