@@ -318,6 +318,10 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          if ( AiNodeEntryGetNameAtString(node_entry) == str::osl && (component == str::m_outValue || component == str::m_outTransparency))
             component = MString("");
 
+        if (AiNodeEntryGetNameAtString(node_entry) == str::osl)
+        {
+           component = MString("param_") + component;
+        }
          if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))
          {
             AiMsgWarning("[mtoa] Could not link %s.%s to %s.%s.",
