@@ -213,6 +213,10 @@ class ArnoldViewportRenderControl():
             self.ipr_state = getOption("Run IPR") == "1"
             self.crop_state = getOption("Crop Region") == "1"
             self.update_icon_bar_enable_state(current_panel, True)
+        elif panel == None:
+            self.ipr_state = getOption("Run IPR") == "1"
+            self.crop_state = getOption("Crop Region") == "1"
+            self.update_panels()
 
         if self.crop_state:
             reg = []
@@ -458,7 +462,7 @@ class ArnoldViewportRenderControl():
         """Return the name of panel containg a rendering viewport.
         None if there is no panel currently rendering.
         """
-        # find renderman panel
+        # find arnold viewport panel
         panel_list = cmds.getPanel(type='modelPanel') or []
         arnold_panel = None
         for panel in panel_list:
