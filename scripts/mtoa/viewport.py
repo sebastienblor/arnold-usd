@@ -202,7 +202,7 @@ class ArnoldViewportRenderControl():
         current_panel = self.get_arnold_panel()
         options = getViewportOptions()
         showHUD = options['viewportShowHUD']
-        if panel == "arnoldRenderView":
+        if panel == "arnoldRenderView" or panel == None:
             # if the given panel is arnoldRenderView, reset all icons
             self.ipr_state = OFF
             self.crop_state = OFF
@@ -458,7 +458,7 @@ class ArnoldViewportRenderControl():
         """Return the name of panel containg a rendering viewport.
         None if there is no panel currently rendering.
         """
-        # find renderman panel
+        # find arnold viewport panel
         panel_list = cmds.getPanel(type='modelPanel') or []
         arnold_panel = None
         for panel in panel_list:
