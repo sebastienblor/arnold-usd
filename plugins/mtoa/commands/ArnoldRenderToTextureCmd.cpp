@@ -479,13 +479,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       // Dirty hack... this is initializing all the polymeshes triangles
       // which is necessary for CameraUvMapper to work correctly
       AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-      AiRenderBegin(renderSession, AI_RENDER_MODE_FREE);
-      while(AiRenderGetStatus(renderSession) != AI_RENDER_STATUS_PAUSED)
-      {
-         continue;
-      }
-      AiRenderEnd(renderSession);
-
+      AiRender(renderSession, AI_RENDER_MODE_FREE);
+      
       std::vector<AtNode*> nodes;
       // convert list of Maya selection to list of AtNodes selection
       for (unsigned int i = 0; i < selected.length(); ++i)

@@ -108,6 +108,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    {
       session = new CArnoldRenderSession();
       CSessionManager::AddActiveSession(s_arnoldRenderSessionId, session);
+      session->SetSequenceRender(sequence);
    }// else : FIXME what to do if the session already exists ??
    else
    {
@@ -245,7 +246,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       {
          MGlobal::displayError("[mtoa] Failed to export scene to ass");
       }
-
+      CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
       return status;
    }
 
@@ -264,9 +265,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // Check if in multiframe mode
    if (multiframe)
    {
-      // TODO: This really needs to go. We're translating the whole scene for a couple of
-      // render options.
-
       double startframe;
       double endframe;
       double byframestep;
@@ -296,6 +294,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          if (sel.getDagPath(0, dagPath) != MStatus::kSuccess)
          {
             AiMsgError("[mtoa] Could not get path to camera");
+            CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
             return MStatus::kFailure;
          }
          cameras.append(dagPath);
@@ -309,6 +308,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             if (!dagIterCameras.getPath(dagPath))
             {
                AiMsgError("[mtoa] Could not get path for DAG iterator");
+               CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
                return MStatus::kFailure;
             }
 
@@ -455,6 +455,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
                if (!session->Render())
                {
+                  CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
                   return MS::kFailure;
                }
                
@@ -493,8 +494,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          sessionOptions.SetRenderViewPanelName(renderViewPanelName);
 
       // Start the render.
-      if (!session->Render())
+      if (!session->Render()) {
+         CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
          return MS::kFailure;
+      }
 
       MGlobal::executeCommand(renderGlobals.postRenderMel, false, true);
 
@@ -512,6 +515,5 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    }
 
    CSessionManager::DeleteActiveSession(s_arnoldRenderSessionId);
-
    return status;
 }

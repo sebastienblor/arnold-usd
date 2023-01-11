@@ -120,11 +120,8 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
 
    AtRenderSession *renderSession = session->GetRenderSession();
    AiRenderSetHintStr(renderSession, AI_ADP_RENDER_CONTEXT, AI_ADP_RENDER_CONTEXT_OTHER);
-   AiRenderBegin(renderSession, AI_RENDER_MODE_FREE);
-   while(AiRenderGetStatus(renderSession) != AI_RENDER_STATUS_PAUSED)
-   {
-      continue;
-   }
+   AiRender(renderSession, AI_RENDER_MODE_FREE);
+   
    // The default mode of export for this command is look export as the look export has to 
    // deal with more information than just the material. 
    // The material Export flag when set write out just information about the material
