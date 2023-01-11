@@ -202,7 +202,7 @@ class ArnoldViewportRenderControl():
         current_panel = self.get_arnold_panel()
         options = getViewportOptions()
         showHUD = options['viewportShowHUD']
-        if panel == "arnoldRenderView" or panel == None:
+        if panel == "arnoldRenderView":
             # if the given panel is arnoldRenderView, reset all icons
             self.ipr_state = OFF
             self.crop_state = OFF
@@ -213,6 +213,10 @@ class ArnoldViewportRenderControl():
             self.ipr_state = getOption("Run IPR") == "1"
             self.crop_state = getOption("Crop Region") == "1"
             self.update_icon_bar_enable_state(current_panel, True)
+        elif panel == None:
+            self.ipr_state = getOption("Run IPR") == "1"
+            self.crop_state = getOption("Crop Region") == "1"
+            self.update_panels()
 
         if self.crop_state:
             reg = []
