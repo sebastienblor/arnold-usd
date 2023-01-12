@@ -94,8 +94,11 @@ MStatus CMaterialView::startAsync(const JobParams& params)
       AiRenderEnd(m_renderSession);
    }
 
-   // This will take care of "use existing Tx"
-   m_arnoldSession->ExportTxFiles();
+
+   // Ensure we're not generating any TX, but use it if it was already generated
+   AtNode *options = AiUniverseGetOptions(m_arnoldSession->GetUniverse());
+   AiNodeSetBool(options, str::texture_auto_generate_tx, false);
+   AiNodeSetBool(options, str::texture_use_existing_tx, true);
    
    AiRenderSetHintBool(m_renderSession, AtString("progressive"), true);
    AiRenderSetHintBool(m_renderSession, AtString("progressive_show_all_outputs"), false);
