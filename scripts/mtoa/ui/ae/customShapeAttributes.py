@@ -666,6 +666,11 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
                 
         self.addSeparator()
 
+        self.addControl("aiRoundness")
+        self.addControl("aiSoftEdge")
+
+        self.addSeparator()
+
         self.commonLightAttributes(addVisibility=True)
 
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
