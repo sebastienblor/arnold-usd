@@ -55,8 +55,8 @@ node_initialize
 node_update
 {
    AtMatrix* worldToCam = (AtMatrix*)AiNodeGetLocalData(node);
-   AtNode* options = AiUniverseGetOptions();
-   AtNode* camera = AiUniverseGetCamera();
+   AtNode* options = AiUniverseGetOptions(AiNodeGetUniverse(node));
+   AtNode* camera = AiUniverseGetCamera(AiNodeGetUniverse(node));
    AiWorldToCameraMatrix(camera, AiNodeGetFlt(options, "reference_time"), *worldToCam);
 }
 

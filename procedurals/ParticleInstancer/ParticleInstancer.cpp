@@ -41,12 +41,11 @@ procedural_init
 {
 
    *user_ptr = node;
-   particleSystem = AiNodeLookUpByName(AiNodeGetStr(node, "data"));
+   particleSystem = AiNodeLookUpByName(AiNodeGetUniverse(node), AiNodeGetStr(node, "data"));
 
    if (AiNodeLookUpUserParameter(node, "pathIndices") == NULL)
    {
       AiMsgError("[INSTANCER] No path Indices");
-      AiRenderAbort();
    }
 
    AtArray* pathIndicesArray = AiArrayCopy(AiNodeGetArray(node, "pathIndices"));
@@ -54,7 +53,6 @@ procedural_init
    if (AiNodeLookUpUserParameter(node, "pathStartIndices") == NULL)
    {
       AiMsgError("[INSTANCER] No path Start Indices");
-      AiRenderAbort();
    }
 
    AtArray* pathStartIndices = AiArrayCopy(AiNodeGetArray(node, "pathStartIndices"));
@@ -73,7 +71,6 @@ procedural_init
          {
             AiMsgError("[INSTANCER] No matrix datas.");
             AiMsgError("[INSTANCER] Check preserve_scene_data option.");
-            AiRenderAbort();
          }
 
          nbInsts = AiArrayGetNumElements(pathIndicesArray);
@@ -211,21 +208,18 @@ procedural_init
          if (nbObjects == 0)
          {
             AiMsgError("[INSTANCER] No object to instance");
-            AiRenderAbort();
          }
 
       }
       else
       {
          AiMsgError("[INSTANCER] data is not a particle system");
-         AiRenderAbort();
       }
 
    }
    else
    {
       AiMsgError("[INSTANCER] data is not a valid node");
-      AiRenderAbort();
    }
 
    return true;
@@ -261,13 +255,13 @@ procedural_num_nodes
 procedural_get_node
 {
    AtNode *instance;
-   instance = AiNode("ginstance");
+   instance = AiNode(AiNodeGetUniverse(node), "ginstance");
    char nodeName[MAX_NAME_SIZE];
    AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
    
    //AiNodeSetInt(instance, "visibility", AI_RAY_ALL);
    int idx = AiArrayGetInt(indxArray, i);
-   AtNode* obj = AiNodeLookUpByName(AiArrayGetStr(objArray,idx));
+   AtNode* obj = AiNodeLookUpByName(AiNodeGetUniverse(node), AiArrayGetStr(objArray,idx));
    AiNodeSetPtr(instance, "node", obj);
    AiNodeSetBool(instance, "inherit_xform", false);
    int steps = AiArrayGetNumKeys(partArray);

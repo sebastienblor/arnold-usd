@@ -390,7 +390,7 @@ node_update
    if (camera != NULL) // Use a custom camera for the perspective projection
       data->camera = camera;
    else
-      data->camera = AiUniverseGetCamera();
+      data->camera = AiUniverseGetCamera(AiNodeGetUniverse(node));
       
    if (data->camera != NULL)
    {
@@ -403,7 +403,7 @@ node_update
       }
    } 
 
-   AtNode *renderCamera = AiUniverseGetCamera();
+   AtNode *renderCamera = AiUniverseGetCamera(AiNodeGetUniverse(node));
    if (renderCamera)
    {  
       data->shutter_start  = AiNodeGetFlt(renderCamera, "shutter_start");
@@ -436,7 +436,7 @@ node_update
    }
 
    data->render_aspect = 1.0f;
-   AtNode *univ = AiUniverseGetOptions();
+   AtNode *univ = AiUniverseGetOptions(AiNodeGetUniverse(node));
    int xres = AiNodeGetInt(univ, "xres");
    int yres = AiNodeGetInt(univ, "yres");
    data->render_aspect = (float(xres) / float(yres));

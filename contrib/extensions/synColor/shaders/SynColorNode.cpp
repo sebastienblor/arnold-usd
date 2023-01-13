@@ -61,28 +61,6 @@ namespace DataStr
 // The type used for the color transformation cache
 
 
-// Helper class for critical section gaurd
-class ThreadGuard
-{
-public:
-   ThreadGuard(AtCritSec& section)
-      : m_section(section)
-   {
-      AiCritSecEnter(&m_section);
-   }
-   ~ThreadGuard()
-   {
-      AiCritSecLeave(&m_section);
-   }
-
-private:
-   AtCritSec& m_section;
-
-private:
-   ThreadGuard(const ThreadGuard&);
-   ThreadGuard& operator=(ThreadGuard const&);
-};
-
 // this will be retrieved through Get and SetLocalData
 // useful for storing precomputed or cached values to be used
 // during render time
@@ -92,15 +70,10 @@ public:
    ColorManagerData()
    {
       m_initialization_done = false;
-
-      AiCritSecInit(&m_output_guard);
-      AiCritSecInit(&m_input_guard);
    }
 
-   ~ColorManagerData()
+   ~ColorManagerData() 
    {
-      AiCritSecClose(&m_output_guard);
-      AiCritSecClose(&m_input_guard);
    }
 
    // Enforce to initialize the template only once and only when needed
@@ -121,19 +94,19 @@ public:
    
    // Keep a cache of all output transforms to only compute them once
    SYNCOLOR::TemplatePtr m_output_template;
-   AtCritSec             m_output_guard;
+   
    ProcessorMap          m_output_transforms;
 
    // Keep a cache of all input transforms to only compute them once
    SYNCOLOR::TemplatePtr m_input_template;
-   AtCritSec             m_input_guard;
    ProcessorMap          m_input_transforms;
 };
 
 bool ColorManagerData::m_initialization_library_done = false;
 static ColorManagerData s_colorData = ColorManagerData();
-static std::mutex s_mutex;
-
+static AtMutex  s_mutex;
+static AtMutex  s_output_guard;
+static AtMutex  s_input_guard;
 namespace
 {
    const SYNCOLOR::OptimizerFlags optimizerFlags(SYNCOLOR::OPTIMIZER_LOSSLESS);
@@ -534,7 +507,7 @@ namespace
       }
       else
       {
-         ThreadGuard guard(colorData->m_input_guard);
+         s_input_guard.lock();
 
          ProcessorMap::iterator it2 = colorData->m_input_transforms.find(key);
          if(it2->second.get()!=0x0)
@@ -552,16 +525,10 @@ namespace
                if(status)
                {
                   it2->second = transform;
-/*
-                  AiMsgInfo("[color_manager_syncolor] Computation of %s input color transformation from '%s' to '%s'"\
-                            " for a buffer from '%s' to '%s'",
-                     direction==SYNCOLOR::TransformForward ? "forward" : "reverse",
-                     color_space.c_str(), colorData->m_rendering_color_space.c_str(),
-                     pixelFormatStr(src_pixel_format), pixelFormatStr(dst_pixel_format));
-*/
                }
             }
          }
+         s_input_guard.unlock();
       }
 
       return status;
@@ -636,7 +603,7 @@ namespace
       }
       else
       {
-         ThreadGuard guard(colorData->m_output_guard);
+         s_output_guard.lock();
 
          ProcessorMap::iterator it2 = colorData->m_output_transforms.find(key);
          if(it2->second.get()!=0x0)
@@ -654,16 +621,10 @@ namespace
                if(status)
                {
                   it2->second = transform;
-/*
-                  AiMsgInfo("[color_manager_syncolor] Computation of %s output color transformation from '%s' to '%s'"\
-                            " for a buffer from '%s' to '%s'",
-                     direction==SYNCOLOR::TransformForward ? "forward" : "reverse",
-                     colorData->m_rendering_color_space.c_str(), color_space.c_str(),
-                     pixelFormatStr(src_pixel_format), pixelFormatStr(dst_pixel_format));
-*/
                }
             }
          }
+         s_output_guard.unlock();
       }
 
       return status;

@@ -134,10 +134,11 @@ node_update
       AiTextureHandleDestroy(idata->texture_handle);
 
    idata->color_space = AiNodeGetStr(node, "color_space");
+   AtUniverse *universe = AiNodeGetUniverse(node);
 
    idata->sourceTexture = (AtNode*)AiNodeGetPtr(node, "sourceTexture");
-   idata->xres =  AiNodeGetInt(AiUniverseGetOptions(), "xres");
-   idata->yres = AiNodeGetInt(AiUniverseGetOptions(), "yres");
+   idata->xres =  AiNodeGetInt(AiUniverseGetOptions(universe), "xres");
+   idata->yres = AiNodeGetInt(AiUniverseGetOptions(universe), "yres");
    idata->texture_handle = NULL;
    idata->iWidth = idata->xres;
    idata->iHeight = idata->yres;

@@ -40,7 +40,7 @@ node_initialize
 node_update
 {
    animColorData *data = (animColorData*)AiNodeGetLocalData(node);
-   AtNode *camera = AiUniverseGetCamera();
+   AtNode *camera = AiUniverseGetCamera(AiNodeGetUniverse(node));
    if (camera)
    {  
       data->shutter_start  = AiNodeGetFlt(camera, "shutter_start");

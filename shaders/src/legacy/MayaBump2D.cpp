@@ -75,7 +75,7 @@ node_update
    data->bumpMode = AiNodeGetInt(node, "use_as");
    data->bumpMap = AiNodeGetLink(node, "bump_map");
    
-   AtNode* options = AiUniverseGetOptions();
+   AtNode* options = AiUniverseGetOptions(AiNodeGetUniverse(node));
    if (AiNodeGetBool(options, "ignore_bump"))
       data->bumpMap = 0;
    

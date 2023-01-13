@@ -12,29 +12,7 @@
 
 using namespace XGenArnold;
 
-class Guard
-{
-public:
-
-    Guard(){
-        AiCritSecInitRecursive(&critical_section);
-    }
-    virtual ~Guard() {
-        AiCritSecClose(&critical_section);
-    }
-
-    void enter() {
-        AiCritSecEnter(&critical_section);
-    }
-    void leave() {
-        AiCritSecLeave(&critical_section);
-    }
-
-private:
-    AtCritSec critical_section;
-};
-
-Guard guard;
+static AtMutex s_mutex;
 
 AI_PROCEDURAL_NODE_EXPORT_METHODS(XgArnoldProceduralMtd);
 
@@ -56,18 +34,18 @@ procedural_init
       return 1;
    }
 
-   guard.enter();
+   s_mutex.lock();
    ProceduralWrapper* ud = new ProceduralWrapper( new Procedural(), false /* Won't do cleanup */ );
    if( !ud )
    {
-      guard.leave();
+      s_mutex.unlock();
       return 0;
    }
 
    *user_ptr = (void*)ud;
 
    int result = ud->Init( node, true ); // "true" means that the procedural parent must be set
-   guard.leave();
+   s_mutex.unlock();
 
    return result;
 }

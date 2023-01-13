@@ -191,7 +191,6 @@ struct ParticleVolumePluginData
         if (tid >= per_thread_intervals.size())
         {
             AiMsgError("[volume_particle] catastrophic error: thread ID too large!");
-            AiRenderAbort();
             return per_thread_intervals.back();
         }
         return per_thread_intervals[tid];
@@ -202,7 +201,6 @@ struct ParticleVolumePluginData
         if (tid >= per_thread_prims.size())
         {
             AiMsgError("[volume_particle] catastrophic error: thread ID too large!");
-            AiRenderAbort();
             return per_thread_prims.back();
         }
         return per_thread_prims[tid];
@@ -494,7 +492,7 @@ volume_update
     std::vector<AtBBox> prim_bboxes;
     prim_bboxes.resize(pn);
     AtBBox bbox;
-    bbox.init(AI_INFINITE);
+    bbox.init();
     for (unsigned int i = 0; i < pn; ++i)
     {
         float radius = (rn == pn) ? AiArrayGetFlt(radiiArray, i) : AiArrayGetFlt(radiiArray, 0);

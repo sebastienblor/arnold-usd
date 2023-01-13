@@ -47,7 +47,7 @@ node_update
    AtArray* sets = (AtArray*)AiNodeGetLocalData(node);
    if (sets != NULL)
       AiArrayDestroy(sets);
-   sets = StringArrayToNodeArray(AiNodeGetArray(node, "sets"));
+   sets = StringArrayToNodeArray(node, "sets");
    AiNodeSetLocalData(node, sets);
 }
 
