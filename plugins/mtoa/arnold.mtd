@@ -833,7 +833,7 @@
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
     maya.swatch             BOOL    false
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr barndoor_bottom_edge]
         min                 FLOAT   0
         max                 FLOAT   1.0
@@ -879,7 +879,7 @@
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
     maya.swatch             BOOL    false
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -901,7 +901,7 @@
     maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight aiMeshLight mesh"
     maya.output             INT     0x05
     maya.swatch             BOOL    false
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -928,7 +928,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight aiMeshLight mesh"
     maya.swatch             BOOL    false
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -1660,7 +1660,7 @@
     ui.groups               STRING  "Image Attributes:filename filter mipmap_bias multiply offset color_space ignore_missing_textures missing_texture_color,UV Coordinates:uvset uvcoords soffset toffset swrap twrap sscale tscale sflip tflip swap_st"
     [attr filename]
         maya.usedAsFilename BOOL    true     
-        ldx:asset           BOOL    true
+        ldx_asset           BOOL    true
     [attr multiply]
         linkable            BOOL    true
         maya.channelbox     BOOL    true
@@ -2008,7 +2008,7 @@
     maya.name               STRING  "aiPhysicalSky"
     maya.id                 INT     0x00115D1E
     maya.classification     STRING  "texture/environment"
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr turbidity]
         softmin             FLOAT   1
         softmax             FLOAT   10
@@ -2256,7 +2256,7 @@
     maya.id                 INT     0x00115D11
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
-    ldx:hide                BOOL    true
+    ldx_hide                BOOL    true
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]
@@ -2268,7 +2268,7 @@
     maya.id                 INT     0x00115D87
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
-    ldx:hide                BOOL    true
+    ldx_hide                BOOL    true
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]
@@ -2279,7 +2279,7 @@
     maya.id                 INT     0x00115D10
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
-    ldx:hide                BOOL    true
+    ldx_hide                BOOL    true
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]
@@ -2292,7 +2292,7 @@
     maya.id                 INT     0x00115D98
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
-    ldx:hide                BOOL    true
+    ldx_hide                BOOL    true
 
     [attr aov_input]
         maya.name           STRING  "input"
@@ -2306,7 +2306,7 @@
     maya.id                 INT     0x00115DBB
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
-    ldx:hide                BOOL    true
+    ldx_hide                BOOL    true
 
     [attr aov_input]
         maya.name           STRING  "input"
@@ -3954,7 +3954,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB5
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr exposure]
         softmin             FLOAT     -10
         softmax             FLOAT     10
@@ -3969,7 +3969,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB6
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr main_saturation]
@@ -4044,7 +4044,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB7
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr vignetting]
         softmin             FLOAT     0
         softmax             FLOAT     100
@@ -4069,7 +4069,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB8
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr temperature]
@@ -4084,7 +4084,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DB9
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr filmic_toe_strength]
@@ -4123,7 +4123,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC0
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr layer_selection]
@@ -4146,7 +4146,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC1
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr layer_selection]
@@ -4159,7 +4159,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC2
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr tile_size]
@@ -4173,7 +4173,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC3
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr tile_size]
@@ -4187,7 +4187,7 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT      0x00115DC4
-    ldx:hide                BOOL     true
+    ldx_hide                BOOL     true
     [attr input]
         maya.hide               BOOL     TRUE
     [attr layer_selection]
