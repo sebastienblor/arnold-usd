@@ -72,9 +72,6 @@ class StandInTransverser(ProceduralTransverser):
 
     def getNumNodes(self, filename):
 
-        if not ai.AiUniverseIsActive():
-            ai.AiBegin()
-
         universe = ai.AiUniverse()
         ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
 
@@ -153,9 +150,6 @@ class StandInTransverser(ProceduralTransverser):
             if filename:
                 numNodes = self.getNumNodes(filename)
             FILE_CACHE[filename][0][PROC_NUM_CHILDREN] = numNodes
-
-            if not ai.AiUniverseIsActive():
-                ai.AiBegin()
 
             universe = ai.AiUniverse()
             ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)

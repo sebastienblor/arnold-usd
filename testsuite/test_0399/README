@@ -1,4 +1,6 @@
 Test Multiple Outputs with compiled C Shaders
+For ABI changes in Arnold, the plugins need to be recompiled with 
+"abuild extensionTest"
 
 author: krishnan
 

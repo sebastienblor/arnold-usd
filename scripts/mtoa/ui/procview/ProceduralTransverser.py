@@ -72,14 +72,6 @@ NODE_TYPE_CACHE = {}
 
 OPERATOR_CACHE = {}
 
-def ArnoldUniverseOnlyBegin():
-    if not AiUniverseIsActive():
-        AiBegin()
-        AiMsgSetConsoleFlags(AI_LOG_NONE)
-        return True
-    return False
-
-
 def GetNodeType(node):
     global NODE_TYPE_CACHE
     if node not in NODE_TYPE_CACHE:            
@@ -186,7 +178,6 @@ class ProceduralTransverser(BaseTransverser):
         for nodeType in node_types:
             if nodeType and nodeType not in self.paramDict:
                 self.paramDict[nodeType] = {}
-                AiUniverseCreated = ArnoldUniverseOnlyBegin()
                 AiMsgSetConsoleFlags(AI_LOG_NONE)
 
                 nodeEntry = AiNodeEntryLookUp(nodeType)
@@ -683,7 +674,6 @@ class ProceduralTransverser(BaseTransverser):
 
     def _getDefaultValue(self, param, param_type):
 
-        AiUniverseCreated = ArnoldUniverseOnlyBegin()
         AiMsgSetConsoleFlags(AI_LOG_NONE)
 
         value = None

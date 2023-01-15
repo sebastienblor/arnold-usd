@@ -406,18 +406,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     state.enabled = (restoreIPR) ? true : arvRunIpr != MString("0");
     mRegionRenderStateMap[destination.asChar()] = state;
 
-    // if the session is not rendering, but the state is enabled
-    // end the current empty scene and start a new rendering
-    /* FIXME, do we still need this ?
-    if (!session->IsRendering() && state.enabled)
-    {
-        session->InterruptRender(true); // we shouldn't need this based on the condition above
-        if (AiUniverseIsActive())
-            AiEnd();
-
-        needsRefresh = true;
-    }*/
-
     // now get the current bits
     // and create a texture from them.
     AtBBox2 bounds;
