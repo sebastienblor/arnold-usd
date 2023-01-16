@@ -14,7 +14,7 @@ from arnold import *
 initArnold = False
 if not AiArnoldIsActive():
     AiBegin()
-    initArnold
+    initArnold = True
 
 AiSceneLoad(None, 'test.ass', None)
 success = True
