@@ -8,8 +8,6 @@ Render -proj "C:\arnold\mtoa\build\windows_x86_64\20230200\msvc_opt\testsuite\te
  
  
 Starting "C:\Program Files\Autodesk\Maya2023\bin\mayabatch.exe"
-Warning: in readPlugInfoObject at line 78 of S:\jenkins\workspace\ECP\ecg-maya-usd\ecg-mayausd-full-2023-windows\ecg-maya-usd\maya-usd\lib\mayaUsd\utils\plugRegistryHelper.cpp -- Plugin info file c:/solidangle/mtoadeploy/2023/usd/mayaUsdPlugInfo.json couldn't be read
-
 Initialized VP2.0 renderer {
 
   Version : 2016.11.62.12. Feature Level 5.
@@ -58,45 +56,111 @@ C:\Program Files\Autodesk\MayaUSD\Maya2023\0.19.0\mayausd\USD\lib\python\pxr\Usd
 
   if sdrIdentifier is not "":
 
-00:00:02   937MB         | log started Tue Jan 10 18:41:08 2023
+00:00:02   827MB         | log started Mon Jan 16 15:10:19 2023
 
-00:00:02   937MB         | Arnold 7.1.5.0 [3a9aa1cd] windows x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2022/12/09 00:02:56
+00:00:02   827MB         | Arnold 7.2.0.0 [f99ccc6f] windows x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/13 17:16:45
 
-00:00:02   937MB         | running on REMS4QL1726, pid=31200
+00:00:02   827MB         | running on REMS4QL1726, pid=12900
 
-00:00:02   937MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
+00:00:02   827MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
 
-00:00:02   937MB         |  NVIDIA driver version 511.65 (Optix 60802)
+00:00:02   827MB         |  NVIDIA driver version 511.65 (Optix 60802)
 
-00:00:02   937MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8191MB (6549MB available) (NVLink:0)
+00:00:02   827MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8191MB (6644MB available) (NVLink:0)
 
-00:00:02   937MB         |  Windows 10 (version 10.0, build 19044)
+00:00:02   827MB         |  Windows 10 (version 10.0, build 19044)
 
-00:00:02   937MB         |  soft limit for open files changed from 512 to 2048
+00:00:02   827MB         |  soft limit for open files changed from 512 to 2048
 
-00:00:02   937MB         |  
+00:00:02   827MB         |  
 
-00:00:02   937MB         | [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\arnold.mtd
+00:00:02   827MB         | [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\arnold.mtd
 
-00:00:02   954MB         | [color_manager_ocio] default ocio.config found in C:\solidangle\mtoadeploy\2023\bin\../ocio/configs/arnold/config.ocio
+00:00:02   844MB         | [color_manager_ocio] default ocio.config found in C:\solidangle\mtoadeploy\2023\bin\../ocio/configs/arnold/config.ocio
 
-00:00:02   954MB         | loading plugins from C:\solidangle\mtoadeploy\2023\bin\..\plugins ...
+00:00:02   844MB         | loading plugins from C:\solidangle\mtoadeploy\2023\bin\..\plugins ...
 
-00:00:02   954MB         |  alembic_proc.dll: alembic uses Arnold 7.1.5.0
+00:00:02   844MB         |  alembic_proc.dll: alembic uses Arnold 7.2.0.0
 
-00:00:02   954MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.1.5.0
+00:00:02   844MB         |  cryptomatte.dll: cryptomatte uses Arnold 7.2.0.0
 
-00:00:02   954MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 7.1.5.0
+00:00:02   844MB         |  cryptomatte.dll: cryptomatte_filter uses Arnold 7.2.0.0
 
-00:00:02   954MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 7.1.5.0
+00:00:02   844MB         |  cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 7.2.0.0
 
-00:00:02   955MB         |  [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\..\plugins\cryptomatte.mtd
+00:00:02   844MB         |  [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\..\plugins\cryptomatte.mtd
 
-00:00:02   955MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 7.1.5.0
+00:00:02   845MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 7.2.0.0
 
-00:00:02  1026MB         |  usd_proc.dll: usd uses Arnold 7.1.5.0
+00:00:02   916MB         |  usd_proc.dll: usd uses Arnold 7.2.0.0
 
-00:00:02  1026MB         | loaded 6 plugins from 4 lib(s) in 0:00.15
+00:00:02   916MB         | loaded 6 plugins from 4 lib(s) in 0:00.16
+
+00:00:02   964MB         | [color_manager_ocio] default ocio.config found in C:\solidangle\mtoadeploy\2023\bin\../ocio/configs/arnold/config.ocio
+
+00:00:02   981MB         |  
+
+00:00:02   981MB         | releasing resources
+
+00:00:02   967MB         |   
+
+00:00:02   967MB         |  releasing resources
+
+00:00:02   947MB         |   unloading 4 plugins
+
+00:00:02   947MB         |    closing alembic_proc.dll ...
+
+00:00:02   928MB         |    closing cryptomatte.dll ...
+
+00:00:02   910MB         |    closing synColor_shaders.dll ...
+
+00:00:02   908MB         |    closing usd_proc.dll ...
+
+00:00:02   904MB         |   unloading plugins done
+
+00:00:02   904MB         |   ARNOLD_ADP_DISABLE envar passed in -- ADP is disabled for this session
+
+00:00:02   905MB         |  Arnold shutdown
+
+00:00:00   889MB         |  log started Mon Jan 16 15:10:23 2023
+
+00:00:00   889MB         |  Arnold 7.2.0.0 [f99ccc6f] windows x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/13 17:16:45
+
+00:00:00   889MB         |  running on REMS4QL1726, pid=12900
+
+00:00:00   889MB         |   2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
+
+00:00:00   901MB         |   NVIDIA driver version 511.65 (Optix 60802)
+
+00:00:00   901MB         |   GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8191MB (6646MB available) (NVLink:0)
+
+00:00:00   901MB         |   Windows 10 (version 10.0, build 19044)
+
+00:00:00   901MB         |   soft limit for open files is set at 2048
+
+00:00:00   901MB         |   
+
+00:00:00   903MB         |  [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\arnold.mtd
+
+00:00:00   920MB         |  [color_manager_ocio] default ocio.config found in C:\solidangle\mtoadeploy\2023\bin\../ocio/configs/arnold/config.ocio
+
+00:00:00   920MB         |  loading plugins from C:\solidangle\mtoadeploy\2023\bin\..\plugins ...
+
+00:00:00   920MB         |   alembic_proc.dll: alembic uses Arnold 7.2.0.0
+
+00:00:00   920MB         |   cryptomatte.dll: cryptomatte uses Arnold 7.2.0.0
+
+00:00:00   920MB         |   cryptomatte.dll: cryptomatte_filter uses Arnold 7.2.0.0
+
+00:00:00   920MB         |   cryptomatte.dll: cryptomatte_manifest_driver uses Arnold 7.2.0.0
+
+00:00:00   920MB         |   [metadata] loading metadata file: C:\solidangle\mtoadeploy\2023\bin\..\plugins\cryptomatte.mtd
+
+00:00:00   921MB         |   synColor_shaders.dll: color_manager_syncolor uses Arnold 7.2.0.0
+
+00:00:00   991MB         |   usd_proc.dll: usd uses Arnold 7.2.0.0
+
+00:00:00   991MB         |  loaded 6 plugins from 4 lib(s) in 0:00.16
 
 ###############################################################################
 
@@ -116,9 +180,15 @@ End attempted read of fragment XML.
 
 ###############################################################################
 
+
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 734
+
+: (kFailure): Unexpected Internal Failure
+
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 
-File read in  0.53 seconds.
+File read in  0.5 seconds.
 
 Result: C:/arnold/mtoa/build/windows_x86_64/20230200/msvc_opt/testsuite/test_0123/test.ma
 
@@ -126,71 +196,71 @@ Exporting Arnold Scene...
 
 Exporting Motion Data...
 
-00:00:05  1135MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.self_shadows: ProcessParameter should not be called during motion export
+00:00:03  1098MB WARNING |  [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.self_shadows: ProcessParameter should not be called during motion export
 
-00:00:05  1135MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.opaque: ProcessParameter should not be called during motion export
+00:00:03  1098MB WARNING |  [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.opaque: ProcessParameter should not be called during motion export
 
-00:00:05  1135MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.matte: ProcessParameter should not be called during motion export
+00:00:03  1098MB WARNING |  [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.matte: ProcessParameter should not be called during motion export
 
-00:00:05  1135MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.receive_shadows: ProcessParameter should not be called during motion export
+00:00:03  1098MB WARNING |  [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.receive_shadows: ProcessParameter should not be called during motion export
 
-00:00:09  1137MB WARNING | [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.self_shadows: ProcessParameter should not be called during motion export
+00:00:06  1100MB WARNING |  [mtoa] [translator <built-in>] /nParticle1/nParticleShape1Deformed.self_shadows: ProcessParameter should not be called during motion export
 
 Updating Arnold Scene...
 
-00:00:09  1153MB         | log started Tue Jan 10 18:41:18 2023
+00:00:06  1117MB         |  log started Mon Jan 16 15:10:29 2023
 
-00:00:09  1153MB         | Arnold 7.1.5.0 [3a9aa1cd] windows x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2022/12/09 00:02:56
+00:00:06  1117MB         |  Arnold 7.2.0.0 [f99ccc6f] windows x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/13 17:16:45
 
-00:00:09  1153MB         | host application: MtoA 5.2.3 d1118ead (master) Maya 2023
+00:00:06  1117MB         |  host application: MtoA 5.3.0 f942a0ba (7.2.0-deprecate) Maya 2023
 
-00:00:09  1153MB         | running on REMS4QL1726, pid=31200
+00:00:06  1117MB         |  running on REMS4QL1726, pid=12900
 
-00:00:09  1153MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
+00:00:06  1117MB         |   2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 65154MB
 
-00:00:09  1153MB         |  NVIDIA driver version 511.65 (Optix 60802)
+00:00:06  1117MB         |   NVIDIA driver version 511.65 (Optix 60802)
 
-00:00:09  1153MB         |  GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8191MB (6549MB available) (NVLink:0)
+00:00:06  1117MB         |   GPU 0: Quadro RTX 4000 @ 1545MHz (compute 7.5) with 8191MB (6652MB available) (NVLink:0)
 
-00:00:09  1153MB         |  Windows 10 (version 10.0, build 19044)
+00:00:06  1117MB         |   Windows 10 (version 10.0, build 19044)
 
-00:00:09  1153MB         |  soft limit for open files is set at 2048
+00:00:06  1117MB         |   soft limit for open files is set at 2048
 
-00:00:09  1153MB         |  
+00:00:06  1117MB         |   
 
-00:00:09  1153MB WARNING | rendering with watermarks because the skip_license_check option was enabled
+00:00:06  1117MB WARNING |  rendering with watermarks because the skip_license_check option was enabled
 
 Scene C:\arnold\mtoa\build\windows_x86_64\20230200\msvc_opt\testsuite\test_0123\test.ma completed.
 
-00:00:09  1187MB         |   unloading 13 plugins
+00:00:07  1150MB         |   unloading 13 plugins
 
-00:00:09  1187MB         |    closing alembic_proc.dll ...
+00:00:07  1150MB         |    closing alembic_proc.dll ...
 
-00:00:09  1187MB         |    closing cryptomatte.dll ...
+00:00:07  1150MB         |    closing cryptomatte.dll ...
 
-00:00:09  1187MB         |    closing synColor_shaders.dll ...
+00:00:07  1150MB         |    closing synColor_shaders.dll ...
 
-00:00:09  1186MB         |    closing usd_proc.dll ...
+00:00:07  1149MB         |    closing usd_proc.dll ...
 
-00:00:09  1182MB         |    closing hairPhysicalShader_shaders.dll ...
+00:00:07  1145MB         |    closing hairPhysicalShader_shaders.dll ...
 
-00:00:09  1182MB         |    closing lookdevkit_shaders.dll ...
+00:00:07  1145MB         |    closing lookdevkit_shaders.dll ...
 
-00:00:09  1182MB         |    closing mtoa_shaders.dll ...
+00:00:07  1145MB         |    closing mtoa_shaders.dll ...
 
-00:00:09  1182MB         |    closing renderSetup_shaders.dll ...
+00:00:07  1144MB         |    closing renderSetup_shaders.dll ...
 
-00:00:09  1182MB         |    closing xgenSpline_shaders.dll ...
+00:00:07  1144MB         |    closing xgenSpline_shaders.dll ...
 
-00:00:09  1182MB         |    closing mtoa_ParticleInstancer_proc.dll ...
+00:00:07  1144MB         |    closing mtoa_ParticleInstancer_proc.dll ...
 
-00:00:09  1181MB         |    closing mtoa_ParticleVolume_proc.dll ...
+00:00:07  1144MB         |    closing mtoa_ParticleVolume_proc.dll ...
 
-00:00:09  1181MB         |    closing xgenSpline_procedural.dll ...
+00:00:07  1144MB         |    closing xgenSpline_procedural.dll ...
 
-00:00:09  1181MB         |    closing xgen_procedural.dll ...
+00:00:07  1144MB         |    closing xgen_procedural.dll ...
 
-00:00:09  1181MB         |   unloading plugins done
+00:00:07  1144MB         |   unloading plugins done
 
-00:00:09  1181MB         |  Arnold shutdown
+00:00:07  1144MB         |  Arnold shutdown
 

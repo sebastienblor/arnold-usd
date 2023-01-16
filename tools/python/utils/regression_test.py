@@ -4,6 +4,7 @@ import os, glob
 from SCons.Script import *
 
 import system
+import shutil
 import testsuite
 import string
 import platform
@@ -154,6 +155,10 @@ class Test:
       test_build_dir = os.path.join(env.Dir('.').abspath, test_name)
 
       env.VariantDir(test_build_dir, test_data_dir)
+
+      # clear existing folder to ensure we're not running the test with previously created files
+      if os.path.exists(test_build_dir):
+         shutil.rmtree(test_build_dir)
 
       # If an execution command line was not specified or generated, set the default one
       #if not self.script:
