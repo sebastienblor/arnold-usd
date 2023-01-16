@@ -33,6 +33,7 @@ def updateAutotileSettings(*args):
 def updateAutoTxSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.autotx') == 0
     cmds.attrControlGrp('use_existing_tiled_textures', edit=True, enable=flag)
+    cmds.attrControlGrp('texture_auto_tx_path', edit=True, enable=(flag == 0))
 
 
 def updateSamplingSettings(*args):
@@ -1361,6 +1362,10 @@ def createArnoldTextureSettings():
                         cc=updateAutoTxSettings,
                         label="Auto-convert Textures to TX ", 
                         attribute='defaultArnoldRenderOptions.autotx')
+
+    cmds.attrControlGrp('texture_auto_tx_path', 
+                        label="TX Path", 
+                        attribute='defaultArnoldRenderOptions.texture_auto_tx_path')
 
     cmds.attrControlGrp('use_existing_tiled_textures',
                         label="Use Existing TX Textures", 
