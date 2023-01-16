@@ -11,12 +11,15 @@ os.environ['PATH']= '{}:{}'.format(os.environ['PATH'], os.path.join(mtoa_path, '
 sys.path.append(os.path.join(mtoa_path, 'scripts'))
 
 from arnold import *
+initArnold = False
+if not AiArnoldIsActive():
+    AiBegin()
+    initArnold = True
 
-AiBegin()
-AiASSLoad('test.ass')
+AiSceneLoad(None, 'test.ass', None)
 success = True
 
-textMesh = AiNodeLookUpByName('/typeMesh1/typeMeshShape1')
+textMesh = AiNodeLookUpByName(None, '/typeMesh1/typeMeshShape1')
 if textMesh is None:
     success = False
     print('No mesh has been exported with the expected name')
@@ -41,7 +44,8 @@ else:
     print('FAIL')
     shutil.copy('fail.tif', 'testrender.tif')
 
-
+if initArnold:
+    AiEnd()
 
 
 

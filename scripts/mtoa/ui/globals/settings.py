@@ -575,10 +575,8 @@ def createGpuSettings():
     cmds.columnLayout(adjustableColumn=True)
 
     isGPU = False
-    if not ai.AiUniverseIsActive():
-        ai.AiBegin()
 
-    if ai.AiNodeEntryLookUpParameter(ai.AiNodeGetNodeEntry(ai.AiUniverseGetOptions()), "render_device"):
+    if ai.AiNodeEntryLookUpParameter(ai.AiNodeGetNodeEntry(ai.AiUniverseGetOptions(None)), "render_device"):
         isGPU = True
         
     if isGPU:

@@ -1039,13 +1039,15 @@ bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg)
    return true;
 }
 
-AtArray* StringArrayToNodeArray(AtArray* setNames)
+AtArray* StringArrayToNodeArray(AtNode *node, const char *arrayName)
 {
+   AtArray* setNames = AiNodeGetArray(node, AtString(arrayName));
+
    std::vector<AtNode*> setNodes;
    for (unsigned int i=0; i < AiArrayGetNumElements(setNames); i++)
    {
       const char* nodeName = AiArrayGetStr(setNames, i);
-      AtNode* setNode = AiNodeLookUpByName(nodeName);
+      AtNode* setNode = AiNodeLookUpByName(AiNodeGetUniverse(node), nodeName);
       if (setNode != NULL)
          setNodes.push_back(setNode);
    }

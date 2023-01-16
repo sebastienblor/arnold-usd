@@ -459,7 +459,7 @@ node_update
          strcpy(idata->origPath, newfname.c_str());
 
          // For each thread, create a processPath with the first text chunk already copied to it.
-         AtNode* nodeOpt = AiUniverseGetOptions();
+         AtNode* nodeOpt = AiUniverseGetOptions(AiNodeGetUniverse(node));
          idata->numThreads = AiNodeGetInt(nodeOpt, "threads");
          idata->processPath = (char**) AiMalloc(sizeof(char*) * idata->numThreads);
          for(int k = 0; k < idata->numThreads; k++)

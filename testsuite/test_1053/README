@@ -3,3 +3,9 @@ Multiple outputs on inline OSL shaders
 see #MTOA-1053
 
 author: Jan Walter
+
+
+PARAMS: {
+   'diff_fail': 0.01,
+   'diff_hardfail': 0.06
+}

@@ -328,7 +328,7 @@ node_initialize
    AiNodeSetLocalData(node, data);
 
    const char* polymesh = AiNodeGetStr(node, "polymesh");
-   AtNode* input_node = AiNodeLookUpByName(polymesh);
+   AtNode* input_node = AiNodeLookUpByName(AiNodeGetUniverse(node), polymesh);
 
    
    if (input_node == 0)

@@ -133,31 +133,7 @@ struct XgMergedData
    }
 };
 
-
-class XgMutex
-{
-public:
-   XgMutex()
-   {
-      AiCritSecInitRecursive(&mMutex);
-   }
-   virtual ~XgMutex()
-   {
-      AiCritSecClose(&mMutex);
-   }
-   void enter()
-   {
-      AiCritSecEnter(&mMutex);
-   }
-   void leave()
-   {
-      AiCritSecLeave(&mMutex);
-   }
-private:
-   AtCritSec mMutex;
-};
-
-XgMutex* s_mutex = new XgMutex();
+static AtMutex s_mutex;
 
 #define MAX_NAME_SIZE 65535
 
@@ -854,9 +830,9 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    bool mergeDataCreated = false;
    if ( !m_merged_data )
    {
-      s_mutex->enter();      
+      s_mutex.lock();
       mergeDataCreated = createMergedCurves();
-      s_mutex->leave();
+      s_mutex.unlock();
    }
    if (mergeDataCreated)
    {  
@@ -865,12 +841,12 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    } else
       pushCustomParams( NULL, pc );
    
-   s_mutex->enter();
+   s_mutex.lock();
    m_merged_data->add_array( "num_points", num_points );
    m_merged_data->add_array( "points", points );
    m_merged_data->add_array( "radius", radius );
    if( orientations ) m_merged_data->add_array( "orientations", orientations );
-   s_mutex->leave();
+   s_mutex.unlock();
 
 
    if (num_points)
@@ -956,9 +932,9 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
    if (m_sphere == NULL)
    {   
-      s_mutex->enter();
+      s_mutex.lock();
       createBaseSphere();
-      s_mutex->leave();
+      s_mutex.unlock();
    }
 
    // Build up the token and parameter lists to output for all
@@ -1111,10 +1087,10 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
       // Add custom parameters and call sphere.
       pc->inverseXformParams( j, xP0, xN );
       if (m_multithread)
-         s_mutex->enter();
+         s_mutex.lock();
       string strID = itoa( (int)m_nodes.size() );
       if (m_multithread)
-         s_mutex->leave();
+         s_mutex.unlock();
         
       // and a geometry instance node.
       string nodeName = strParentName + string("_ginstance_") + strID;
@@ -1155,10 +1131,10 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
       // Keep our new nodes.
       if (m_multithread)
-         s_mutex->enter();
+         s_mutex.lock();
       m_nodes.push_back( nodeInstance );
       if (m_multithread)
-         s_mutex->leave();
+         s_mutex.unlock();
    }
 }
 
@@ -1211,10 +1187,10 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
           0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f );
  
       if (m_multithread)
-         s_mutex->enter();
+         s_mutex.lock();
       string strID = itoa( (int)m_nodes.size() );
       if (m_multithread)
-         s_mutex->leave();      
+         s_mutex.unlock();      
 
       // and a geometry instance node.
       string nodeName = strParentName + string("_nurbs_") + strID;
@@ -1259,10 +1235,10 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 
       // Keep our new nodes.
       if (m_multithread)
-         s_mutex->enter();
+         s_mutex.lock();
       m_nodes.push_back( nodeCard );
       if (m_multithread)
-         s_mutex->leave();
+         s_mutex.unlock();
     }
 
 }
@@ -1436,10 +1412,10 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
                   if ( m_merged_data )
                   {
                      if (m_multithread)
-                        s_mutex->enter();
+                        s_mutex.lock();
                      m_merged_data->add_array( fixedAttrName.c_str(), a );
                      if (m_multithread)
-                        s_mutex->leave();
+                        s_mutex.unlock();
                   }
                   else
                      AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
@@ -1543,10 +1519,10 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         
       int jj=j*lodLevels*numSamples;
       if (m_multithread)
-         s_mutex->enter();
+         s_mutex.lock();
       string strID = itoa((int)m_nodes.size());
       if (m_multithread)
-         s_mutex->leave();
+         s_mutex.unlock();
       
       string instance_name = strParentName + string("_archive_") + strID;
       for ( unsigned int i=0; i <numSamples; i++ )
@@ -1682,7 +1658,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
          std::string materialName = vecMaterials[i];
          std::string uniqueName = instance_name + "_" + itoa((int)i);
 
-         AtNode* materialNode = AiNodeLookUpByName(materialName.c_str());
+         AtNode* materialNode = AiNodeLookUpByName(AiNodeGetUniverse(m_node), materialName.c_str());
          if (materialNode == NULL && m_initArnoldFunc != NULL)
          {
             materialNode = m_initArnoldFunc(materialName.c_str());            
@@ -1700,7 +1676,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             if (materialNameLength > 2 && materialName[materialNameLength - 2] == 'S' && materialName[materialNameLength - 1] == 'G')
             {
                materialName = materialName.substr(0, materialNameLength - 2);
-               materialNode = AiNodeLookUpByName(materialName.c_str());
+               materialNode = AiNodeLookUpByName(AiNodeGetUniverse(m_node), materialName.c_str());
                if (materialNode == NULL && m_initArnoldFunc != NULL)
                   materialNode = m_initArnoldFunc(materialName.c_str());            
             }
@@ -1779,10 +1755,10 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             pushCustomParams( archive_procedural, pc ,j);
 
             if (m_multithread)
-               s_mutex->enter();
+               s_mutex.lock();
             m_nodes.push_back( archive_procedural );
             if (m_multithread)
-               s_mutex->leave();
+               s_mutex.unlock();
          }
       }
 
@@ -1818,10 +1794,10 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
 
    string strParentName = AiNodeGetName( m_node );
    if (m_multithread)
-      s_mutex->enter();
+      s_mutex.lock();
    string strID = itoa( (int)m_nodes.size() );
    if (m_multithread)
-      s_mutex->leave();  
+      s_mutex.unlock();  
 
 
    // and a geometry instance node.
