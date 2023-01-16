@@ -44,7 +44,8 @@ else:
     print('FAIL')
     shutil.copy('fail.tif', 'testrender.tif')
 
-
+if initArnold:
+    AiEnd()
 
 
 

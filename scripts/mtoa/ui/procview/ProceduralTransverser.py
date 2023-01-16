@@ -178,7 +178,7 @@ class ProceduralTransverser(BaseTransverser):
         for nodeType in node_types:
             if nodeType and nodeType not in self.paramDict:
                 self.paramDict[nodeType] = {}
-                AiMsgSetConsoleFlags(AI_LOG_NONE)
+                AiMsgSetConsoleFlags(None, AI_LOG_NONE)
 
                 nodeEntry = AiNodeEntryLookUp(nodeType)
                 paramIter = AiNodeEntryGetParamIterator(nodeEntry)
@@ -674,7 +674,7 @@ class ProceduralTransverser(BaseTransverser):
 
     def _getDefaultValue(self, param, param_type):
 
-        AiMsgSetConsoleFlags(AI_LOG_NONE)
+        AiMsgSetConsoleFlags(None, AI_LOG_NONE)
 
         value = None
         param_default = AiParamGetDefault(param)
