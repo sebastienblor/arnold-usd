@@ -50,7 +50,7 @@ node_initialize
 node_update
 {
    animMatrixData *data = (animMatrixData*)AiNodeGetLocalData(node);
-   AtNode *camera = AiUniverseGetCamera();
+   AtNode *camera = AiUniverseGetCamera(AiNodeGetUniverse(node));
    if (camera)
    {  
       data->shutter_start  = AiNodeGetFlt(camera, "shutter_start");

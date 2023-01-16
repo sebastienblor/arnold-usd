@@ -123,7 +123,7 @@ float CosWaves(float posX, float posY, float posTime, int numWaves);
 
 // used by AOV nodes
 bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg);
-AtArray* StringArrayToNodeArray(AtArray* setNames);
+AtArray* StringArrayToNodeArray(AtNode *node, const char *arrayName);
 
 bool SetRefererencePoints(AtShaderGlobals *sg, AtVector &tmpPts);
 bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs);

@@ -121,11 +121,6 @@ class AEaiIncludeGraphTemplate(OperatorAETemplate):
         print(filename)
         target_ops = []
 
-        universeCreated = False
-        if not ai.AiUniverseIsActive():
-            universeCreated = True
-            ai.AiBegin()
-
         universe = ai.AiUniverse()
         ai.AiASSLoad(universe, filename)
 

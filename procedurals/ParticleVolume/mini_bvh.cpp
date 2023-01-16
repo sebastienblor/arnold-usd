@@ -20,7 +20,7 @@ struct BVHNode
 
     BVHNode() : m_prim(0), m_left(0)
     {
-        m_bbox.init(std::numeric_limits<float>::max());
+        m_bbox.init();
     }
 
     bool interiorNode()  const   { return m_prim == 0xffffffff; }

@@ -126,10 +126,6 @@ class UsdTransverser(ProceduralTransverser):
             return
 
         if len(FILE_CACHE[self.proceduralFilename]) == 1:
-            beginSession = (not ai.AiUniverseIsActive())
-            if beginSession:
-                ai.AiBegin(ai.AI_SESSION_INTERACTIVE)
-
             universe = ai.AiUniverse()
             proc = ai.AiNode(universe, 'usd')
             ai.AiNodeSetStr(proc, self.proceduralFilenameAttr, self.proceduralFilename)

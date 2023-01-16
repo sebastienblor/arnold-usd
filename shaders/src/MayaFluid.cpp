@@ -319,7 +319,7 @@ node_update
    data->enableDeformationBlur = AiNodeGetBool(node, "enable_deformation_blur");
    data->fpsDivider = AI_BIG;
 
-   AtNode* options = AiUniverseGetOptions();
+   AtNode* options = AiUniverseGetOptions(AiNodeGetUniverse(node));
    if (AiNodeLookUpUserParameter(options, "fps"))
    {
       data->fpsDivider = 1.0f / AiNodeGetFlt(options, "fps");

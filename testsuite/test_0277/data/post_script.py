@@ -12,19 +12,22 @@ sys.path.append(os.path.join(mtoa_path, 'scripts'))
 
 from arnold import *
 
-AiBegin(AI_SESSION_INTERACTIVE)
-AiASSLoad('scene.ass')
+initArnold = False
+if not AiArnoldIsActive():
+	initArnold = True
+	AiBegin(AI_SESSION_INTERACTIVE)
+AiSceneLoad(None, 'scene.ass', None)
 success = True
 
-success = success and AiNodeLookUpByName('lambert1')
+success = success and AiNodeLookUpByName(None, 'lambert1')
 for i in range(1,10):
 	shaderName = 'aiShader{}'.format(i)
-	success = success and AiNodeLookUpByName(shaderName)
+	success = success and AiNodeLookUpByName(None, shaderName)
 
-success = success and AiNodeLookUpByName('aiStandardSurface1SG')
-success = success and AiNodeLookUpByName('aiStandardSurface1SG/aov1')
-success = success and AiNodeLookUpByName('aiImage1')
-success = success and AiNodeLookUpByName('aiNoise1')
+success = success and AiNodeLookUpByName(None, 'aiStandardSurface1SG')
+success = success and AiNodeLookUpByName(None, 'aiStandardSurface1SG/aov1')
+success = success and AiNodeLookUpByName(None, 'aiImage1')
+success = success and AiNodeLookUpByName(None, 'aiNoise1')
 
 print('Success is %s' % success)
 
@@ -33,7 +36,8 @@ if success:
 else:
 	shutil.copy('fail.tif', 'testrender.tif')
 
-AiEnd()
+if initArnold:
+	AiEnd()
 
 
 

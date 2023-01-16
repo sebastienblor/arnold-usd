@@ -110,10 +110,6 @@ class OSLSceneModel():
         We're not using the output attribute yet, as we dont have a way to get named output attributes from Arnold yet.
         '''
 
-        isActive = AiUniverseIsActive()
-        if not isActive:
-            AiBegin()
-
         # create a universe dedicated to OSL node compilation
         # for parameter/output type introspection and error checking
         compilation_universe = AiUniverse()

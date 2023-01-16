@@ -124,7 +124,7 @@ class TxProcessor(QtCore.QObject):
         
         cmds.arnoldScene(mode='create')
 
-        ai.AiMsgSetConsoleFlags(ai.AI_LOG_INFO)
+        ai.AiMsgSetConsoleFlags(None, ai.AI_LOG_INFO)
 
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
 
