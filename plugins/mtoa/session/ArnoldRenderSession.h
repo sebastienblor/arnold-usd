@@ -32,6 +32,7 @@ public:
    {
       return m_renderViewCaptionCmd;
    }
+   virtual AtRenderSession *GetRenderSession() override;
 
    void SetRenderViewCaptionCmd(const MString &cmd)
    {
@@ -48,6 +49,9 @@ public:
    static void DoAddIdleRenderViewCallback(void* data);
    void AddIdleRenderViewCallback(const MString& postRenderMel);
    void ClearIdleRenderViewCallback();
+
+   void SetSequenceRender(bool b) {m_sequenceRender = b;}
+   bool IsSequenceRender() const {return m_sequenceRender;}
 protected:
    
 
@@ -62,5 +66,6 @@ protected:
    MComputation *m_comp;
    MCallbackId m_idle_cb;
    MString m_postRenderMel;
+   bool m_sequenceRender;
 
 }; 

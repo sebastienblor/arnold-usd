@@ -1,0 +1,64 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_ADP_DISABLE': '1', 'ARNOLD_TESTSUITE_COMMON': '/home/jan/git/autodesk/arnold-mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/home/jan/build/mtoa/maya2023', 'PYMEL_SKIP_MEL_INIT': '1', 'MAYA_DISABLE_ADP': '1', 'ADCLMHUB_LOG_DIR': '/home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053', 'MAYA_RENDER_DESC_PATH': '/home/jan/build/mtoa/maya2023', 'PATH': '/home/jan/build/mtoa/maya2023/bin;/usr/autodesk/maya2023/bin;/home/jan/build/mtoa/maya2023/lib;/home/jan/build/mtoa/maya2023/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'MAYA_DISABLE_CER': '1', 'ARNOLD_CER_ENABLED': 'off'}
+ 
+ ==== Exec cmd ==== 
+ 
+/usr/autodesk/maya2023/bin/Render -proj "/home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053" -rd "/home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053" -r arnold -x 160 -y 120 -lic 0  "/home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053/test.ma"
+ 
+ 
+Starting "/usr/autodesk/maya2023/bin/maya"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/var/tmp/runtime-jan'
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   446MB         | log started Wed Jan 11 14:41:43 2023
+00:00:00   446MB         | Arnold 7.2.0.0 [f520c89a] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/10 11:26:23
+00:00:00   446MB         | running on ADSKR90Z2D4V, pid=23287
+00:00:00   446MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
+00:00:00   446MB         |  NVIDIA driver version 515.57 (Optix 60803)
+00:00:00   446MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (2837MB available) (NVLink:0)
+00:00:00   446MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
+00:00:00   446MB         |  soft limit for open files changed from 1024 to 4094
+00:00:00   446MB         |  
+00:00:00   446MB         | [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/arnold.mtd
+00:00:00   460MB         | [color_manager_ocio] default ocio.config found in /home/jan/build/mtoa/maya2023/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:00   460MB         | loading plugins from /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins ...
+00:00:00   460MB         |  alembic_proc.so: alembic uses Arnold 7.2.0.0
+00:00:00   461MB         |  cryptomatte.so: cryptomatte uses Arnold 7.2.0.0
+00:00:00   461MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.2.0.0
+00:00:00   461MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.2.0.0
+00:00:00   461MB         |  [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins/cryptomatte.mtd
+00:00:00   467MB         |  usd_proc.so: usd uses Arnold 7.2.0.0
+00:00:00   473MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 7.2.0.0
+00:00:00   473MB         | loaded 6 plugins from 4 lib(s) in 0:00.01
+File read in  2.3 seconds.
+Result: /home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053/test.ma
+Exporting Arnold Scene...
+Updating Arnold Scene...
+00:00:02   582MB         | log started Wed Jan 11 14:41:45 2023
+00:00:02   582MB         | Arnold 7.2.0.0 [f520c89a] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/10 11:26:23
+00:00:02   582MB         | host application: MtoA 5.3.0 f4385bf8 (master) Maya 2023
+00:00:02   582MB         | running on ADSKR90Z2D4V, pid=23287
+00:00:02   582MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
+00:00:02   582MB         |  NVIDIA driver version 515.57 (Optix 60803)
+00:00:02   582MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (2821MB available) (NVLink:0)
+00:00:02   582MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
+00:00:02   582MB         |  soft limit for open files is set at 4094
+00:00:02   582MB         |  
+00:00:02   582MB WARNING | rendering with watermarks because the skip_license_check option was enabled
+Scene /home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053/test.ma completed.
+00:00:02   623MB         |   unloading 13 plugins
+00:00:02   623MB         |    closing alembic_proc.so ...
+00:00:02   623MB         |    closing cryptomatte.so ...
+00:00:02   623MB         |    closing usd_proc.so ...
+00:00:02   623MB         |    closing synColor_shaders.so ...
+00:00:02   616MB         |    closing hairPhysicalShader_shaders.so ...
+00:00:02   616MB         |    closing lookdevkit_shaders.so ...
+00:00:02   616MB         |    closing mtoa_shaders.so ...
+00:00:02   615MB         |    closing renderSetup_shaders.so ...
+00:00:02   615MB         |    closing xgenSpline_shaders.so ...
+00:00:02   615MB         |    closing xgen_procedural.so ...
+00:00:02   615MB         |    closing xgenSpline_procedural.so ...
+00:00:02   615MB         |    closing mtoa_ParticleInstancer_proc.so ...
+00:00:02   615MB         |    closing mtoa_ParticleVolume_proc.so ...
+00:00:02   615MB         |   unloading plugins done
+00:00:02   615MB         |  Arnold shutdown

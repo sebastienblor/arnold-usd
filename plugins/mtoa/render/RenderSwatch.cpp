@@ -441,13 +441,9 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    // to look for the render options node parameters and fill the options before calling ExportTxFiles
    MStatus stat;
    MFnDependencyNode fnOptions(sessionOptions.GetArnoldRenderOptions(), &stat);
-   if (stat != MS::kSuccess || fnOptions.findPlug("use_existing_tiled_textures", true).asBool())
-   {
-      sessionOptions.SetAutoTx(false);
-      sessionOptions.SetUseExistingTx(true);
-      session->ExportTxFiles();
-   }
-
+   sessionOptions.SetAutoTx(false);
+   sessionOptions.SetUseExistingTx(true);
+   
    // Use the render view output driver. It will *not* be displayed
    // in the render view, we're just using the Arnold Node.
    // See DisplayUpdateQueueToMImage() for how we get the image.
@@ -465,7 +461,9 @@ bool CRenderSwatchGenerator::DoSwatchRender()
    AiNodeDeclare(options, str::is_swatch, str::constant_BOOL);
    AiNodeSetBool(options, str::is_swatch, true);
    AiNodeSetInt(options, str::threads, 4);
-
+   // Ensure we're not generating any TX, but use it if it was already generated
+   AiNodeSetBool(options, str::texture_auto_generate_tx, false);
+   AiNodeSetBool(options, str::texture_use_existing_tx, true);
    MString texture_searchpath = fnOptions.findPlug("texture_searchpath", true).asString();
    if (texture_searchpath.length() > 0)
       AiNodeSetStr(options, str::texture_searchpath, AtString(texture_searchpath.asChar()));
