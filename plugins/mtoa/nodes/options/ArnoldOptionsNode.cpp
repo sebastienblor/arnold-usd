@@ -480,6 +480,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_untiled");
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
+   s_attributes.MakeInput("texture_auto_tx_path");
    
    s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
