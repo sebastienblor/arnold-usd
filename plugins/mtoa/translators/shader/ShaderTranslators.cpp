@@ -220,6 +220,7 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    AiNodeSetVec(shader, str::sun_direction, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
    ProcessParameter(shader, "enable_sun", AI_TYPE_BOOLEAN, "enable_sun");
+   ProcessParameter(shader, "enable_sky", AI_TYPE_BOOLEAN, "enable_sky");
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT, "intensity");
    
    plug = FindMayaPlug("sky_tint", &status);

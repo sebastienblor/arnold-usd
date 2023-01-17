@@ -24,6 +24,7 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         self.addControl("sunTint", label="Sun Tint")
         self.addControl("sunSize", label="Sun Size")
         self.addControl("enableSun", label="Enable Sun")
+        self.addControl("enableSky", label="Enable Sky")
         
         self.endLayout()
         
