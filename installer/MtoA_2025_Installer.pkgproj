@@ -408,7 +408,7 @@
 																			<key>GID</key>
 																			<integer>80</integer>
 																			<key>PATH</key>
-																			<string>2019/mtoa.mod</string>
+																			<string>2025/mtoa.mod</string>
 																			<key>PATH_TYPE</key>
 																			<integer>1</integer>
 																			<key>PERMISSIONS</key>
@@ -422,7 +422,7 @@
 																	<key>GID</key>
 																	<integer>0</integer>
 																	<key>PATH</key>
-																	<string>2019</string>
+																	<string>2025</string>
 																	<key>PATH_TYPE</key>
 																	<integer>0</integer>
 																	<key>PERMISSIONS</key>
@@ -542,7 +542,7 @@
 				<key>IDENTIFIER</key>
 				<string>com.solidangle.pkg.MtoAConf2019</string>
 				<key>NAME</key>
-				<string>Configure MtoA Maya 2019</string>
+				<string>Configure MtoA Maya 2025</string>
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>RELOCATABLE</key>
@@ -580,7 +580,7 @@
 														<key>GID</key>
 														<integer>80</integer>
 														<key>PATH</key>
-														<string>2019</string>
+														<string>2025</string>
 														<key>PATH_TYPE</key>
 														<integer>1</integer>
 														<key>PERMISSIONS</key>
@@ -1108,7 +1108,7 @@
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
-				<string>MtoA Maya 2019</string>
+				<string>MtoA Maya 2025</string>
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
@@ -1324,7 +1324,7 @@
 						<key>LANGUAGE</key>
 						<string>English</string>
 						<key>VALUE</key>
-						<string>MtoA 5.3.0 Maya 2019</string>
+						<string>MtoA 5.3.0 Maya 2025</string>
 					</dict>
 				</array>
 			</dict>
