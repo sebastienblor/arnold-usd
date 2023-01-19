@@ -172,9 +172,6 @@ vars.AddVariables(
     PathVariable('TARGET_USD_PATH', 
                  'Path used for installation of arnold USD modules', 
                  os.path.join('$TARGET_MODULE_PATH', 'usd'), PathVariable.PathIsDirCreate),
-    PathVariable('SHAVE_API', 
-                 'Where to find Shave API', 
-                 '.', PathVariable.PathIsDir),
     PathVariable('TOOLS_PATH',
                  'Where to find external tools required for sh',
                  '.', PathVariable.PathIsDir),
@@ -300,7 +297,6 @@ TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 TARGET_VP2_PATH = env.subst(env['TARGET_VP2_PATH'])
 TARGET_PRESETS_PATH = env.subst(env['TARGET_PRESETS_PATH'])
-SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 MOD_SUFFIX = env.get('MOD_SUFFIX')
 env['ENABLE_BIFROST'] = 0
