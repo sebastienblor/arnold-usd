@@ -204,10 +204,6 @@ class TxProcessor(QtCore.QObject):
                     if tile_info['bit_depth'] <= 8:
                         txArguments += ' --format exr -d half --compression dwaa'
 
-                # need to invalidate the TX texture from the cache
-                outputTx = os.path.splitext(inputFile)[0] + '.tx'
-                ai.AiTextureInvalidate(outputTx)
-
                 textureList.append([inputFile, txArguments, textureData['index']])
 
         self.txManager.filesToCreate = len(textureList)
@@ -257,29 +253,17 @@ class TxProcessor(QtCore.QObject):
         for i in range(0, num_submitted.value):
 
             src_str = str(source_files[i])
-            invalidate = True
 
             if (status[i] == ai.AiTxUpdated):
                 self.filesCreated += 1
                 print("[mtoa.tx] {}: {} was updated".format(i, src_str))
             elif (status[i] == ai.AiTxError):
                 self.createdErrors += 1
-                invalidate = False
                 print("[mtoa.tx] {}: {} could not be updated".format(i, src_str))
             elif (status[i] == ai.AiTxUpdate_unneeded):
-                invalidate = False
                 print("[mtoa.tx] {}: {} did not need to be updated".format(i, src_str))
             elif (status[i] == ai.AiTxAborted):
-                # invalidate = False
                 print("[mtoa.tx] {}: {} was aborted".format(i, src_str))
-
-            # need to invalidate the TX texture from the cache
-            outputTx = os.path.splitext(src_str)[0] + '.tx'
-            if outputTx[0] == '"':
-                outputTx = outputTx[1:]
-
-            if invalidate:
-                ai.AiTextureInvalidate(outputTx)
 
         utils.executeDeferred(self.txManager.on_refresh)
 
