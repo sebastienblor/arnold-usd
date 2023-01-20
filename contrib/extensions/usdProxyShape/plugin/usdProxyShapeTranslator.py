@@ -427,7 +427,7 @@ else:
 
         global _usdToMayaNodes
         global _usdToMayaAttrs
-        activeUniverse = ai.AiUniverseIsActive()
+        activeUniverse = ai.AiArnoldIsActive()
         if not activeUniverse:
             ai.AiBegin()
 
