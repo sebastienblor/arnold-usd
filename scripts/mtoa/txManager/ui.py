@@ -410,6 +410,18 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
             item.setText(PATH, data['path'])
             item.setText(USAGE, ','.join([x.split('.')[0] for x in data['usage']]))
             self.texture_list.addTopLevelItem(item)
+            # loop the texture nodes and populate the child information
+            for node in data['usage']:
+                child_data = copy.deepcopy(data['usage'][node])
+                child_data['name'] = node
+                child_item = QtWidgets.QTreeWidgetItem(item)
+                child_item.setData(0, QtCore.Qt.UserRole, child_data)
+                child_item.setText(NAME, child_data['name'])
+                child_item.setText(STATUS, child_data['status'])
+                child_item.setText(COLORSPACE, child_data['colorspace'])
+                child_item.setText(TXPATH, child_data['txpath'])
+                child_item.setText(PATH, child_data['path'])
+                item.addChild(child_item)
 
     def on_update_args(self):
         '''Callback for any changes in maketx argument widgets'''
@@ -455,7 +467,15 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         # colorspaces = set()
         for item in texture_selection:
             data = item.data(0, QtCore.Qt.UserRole)
-            cmds.select(data['usage'], add=True)
+            name = data['name']
+            if 'usage' in data:
+                usage_nodes = list(data['usage'].keys())
+                selection = usage_nodes
+            elif cmds.objExists(name):
+                selection=name
+            
+            cmds.select(selection, add=True)
+
         #     colorspaces.add(data['colorspace'])
 
         # self._dontupdate = True

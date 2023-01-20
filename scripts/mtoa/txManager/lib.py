@@ -36,7 +36,7 @@ img_extensions = [
 ]
 
 default_texture_data = {
-    'usage': [],
+    'usage': {},
     'root': '',
     'name': '',
     'status': 'notx',
@@ -117,24 +117,26 @@ class TxProcessor(QtCore.QObject):
 
     def createTx(self):
         selected_textures = self.txManager.get_selected_textures()
+        print(selected_textures)
         if not selected_textures:
             return
 
         # first we need to make sure the options & color manager node were converted to arnold
-        
-        cmds.arnoldScene(mode='create')
+        # cmds.arnoldScene(mode='create')
 
-        ai.AiMsgSetConsoleFlags(None, ai.AI_LOG_INFO)
-
+        # ai.AiMsgSetConsoleFlags(None, ai.AI_LOG_INFO)
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
 
         cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
 
+        print("createTx", render_colorspace, cmEnable)
         textureList = []
 
         arg_options = self.txManager.get_tx_args()
 
+        self.maxProgress.emit(len(selected_textures))
         for textureData in selected_textures:
+            print(textureData)
             texture = textureData['path']
 
             # we could use textureData[2] for the colorSpace
@@ -147,38 +149,38 @@ class TxProcessor(QtCore.QObject):
             if textureData['colorspace'] != '':
                 colorSpace = textureData['colorspace']
 
-            for node in nodes:
-                if not cmds.attributeQuery("colorSpace", node=node, exists=True):
-                    continue
+            # for node in nodes:
+            #     if not cmds.attributeQuery("colorSpace", node=node, exists=True):
+            #         continue
 
-                nodeColorSpace = cmds.getAttr(node+'.colorSpace')
-                if detected_colorSpace != 'auto' and detected_colorSpace != nodeColorSpace:
-                    conflictSpace = True
+            #     nodeColorSpace = cmds.getAttr(node+'.colorSpace')
+            #     if detected_colorSpace != 'auto' and detected_colorSpace != nodeColorSpace:
+            #         conflictSpace = True
 
-                detected_colorSpace = nodeColorSpace
+            #     detected_colorSpace = nodeColorSpace
 
             if not texture:
                 continue
 
-            # if a conflict is found, pop-up a dialog
-            if conflictSpace:
-                msg = os.path.basename(texture)
-                msg += '\n'
-                msg += 'has conflicting Color Spaces in texture nodes.\n'
-                msg += 'Use ('
-                msg += colorSpace
-                msg += ') ?'
+            # # if a conflict is found, pop-up a dialog
+            # if conflictSpace:
+            #     msg = os.path.basename(texture)
+            #     msg += '\n'
+            #     msg += 'has conflicting Color Spaces in texture nodes.\n'
+            #     msg += 'Use ('
+            #     msg += colorSpace
+            #     msg += ') ?'
 
-                result = cmds.confirmDialog(
-                    title='Conflicting Color Spaces',
-                    message=msg,
-                    button=['OK', 'Cancel'],
-                    defaultButton='OK',
-                    cancelButton='Cancel',
-                    dismissString='Cancel')
+            #     result = cmds.confirmDialog(
+            #         title='Conflicting Color Spaces',
+            #         message=msg,
+            #         button=['OK', 'Cancel'],
+            #         defaultButton='OK',
+            #         cancelButton='Cancel',
+            #         dismissString='Cancel')
 
-                if result == 'Cancel':
-                    break
+            #     if result == 'Cancel':
+            #         break
 
             # Process all the files that were found previously for this texture (eventually multiple tokens)
             inputFiles = utils.executeInMainThreadWithResult(makeTx.expandFilenameWithSearchPaths, texture)
@@ -204,10 +206,6 @@ class TxProcessor(QtCore.QObject):
                     if tile_info['bit_depth'] <= 8:
                         txArguments += ' --format exr -d half --compression dwaa'
 
-                # need to invalidate the TX texture from the cache
-                outputTx = os.path.splitext(inputFile)[0] + '.tx'
-                ai.AiTextureInvalidate(outputTx)
-
                 textureList.append([inputFile, txArguments, textureData['index']])
 
         self.txManager.filesToCreate = len(textureList)
@@ -222,8 +220,9 @@ class TxProcessor(QtCore.QObject):
         # let's give  this list to arnold
         for i, textureToConvert in enumerate(textureList):
             self.txManager.set_status(textureToConvert[2], "processing ..")
-            ai.AiMakeTx(textureToConvert[0], textureToConvert[1])
-
+            self.progress.emit(i)
+            # ai.AiMakeTx(textureToConvert[0], textureToConvert[1])
+        return
         status = ai.POINTER(ai.AtMakeTxStatus)() # returns the current status of the input files
         source_files = ai.POINTER(ai.AtPythonString)() # returns the list of input files in the same order as the status
         num_submitted = ai.c_uint()
@@ -257,34 +256,22 @@ class TxProcessor(QtCore.QObject):
         for i in range(0, num_submitted.value):
 
             src_str = str(source_files[i])
-            invalidate = True
 
             if (status[i] == ai.AiTxUpdated):
                 self.filesCreated += 1
                 print("[mtoa.tx] {}: {} was updated".format(i, src_str))
             elif (status[i] == ai.AiTxError):
                 self.createdErrors += 1
-                invalidate = False
                 print("[mtoa.tx] {}: {} could not be updated".format(i, src_str))
             elif (status[i] == ai.AiTxUpdate_unneeded):
-                invalidate = False
                 print("[mtoa.tx] {}: {} did not need to be updated".format(i, src_str))
             elif (status[i] == ai.AiTxAborted):
-                # invalidate = False
                 print("[mtoa.tx] {}: {} was aborted".format(i, src_str))
-
-            # need to invalidate the TX texture from the cache
-            outputTx = os.path.splitext(src_str)[0] + '.tx'
-            if outputTx[0] == '"':
-                outputTx = outputTx[1:]
-
-            if invalidate:
-                ai.AiTextureInvalidate(outputTx)
 
         utils.executeDeferred(self.txManager.on_refresh)
 
         # an arnold scene was created above, let's delete it now
-        cmds.arnoldScene(mode="destroy")
+        # cmds.arnoldScene(mode="destroy")
 
         return True
 
@@ -304,15 +291,13 @@ def is_image(file):
     return ext in img_extensions
 
 
-def get_colorspace(textureData):
+def get_colorspace(nodeattr):
 
-    nodes = [x.split('.')[0] for x in textureData['usage']]
+    node = nodeattr.split('.')[0]
     colorSpace = 'auto'
 
-    for node in nodes:
-        if not cmds.attributeQuery("colorSpace", node=node, exists=True):
-            continue
-
+    if cmds.attributeQuery("colorSpace", node=node, exists=True):
+       
         nodeColorSpace = cmds.getAttr(node+'.colorSpace')
 
         colorSpace = nodeColorSpace
@@ -373,6 +358,8 @@ def get_scanned_files(scan_attributes):
 
         for attribute in attributes:
 
+            node = attribute.split('.')[0]
+
             # for some attributes we need to use a differnt computed attribute
             # to get the actual result or expressions etc
             attr_exp = attribute
@@ -386,7 +373,7 @@ def get_scanned_files(scan_attributes):
             texture_path = os.path.normpath(texture_path)
             textures.setdefault(
                 texture_path, copy.deepcopy(default_texture_data))
-            textures[texture_path]['usage'].append(attribute)
+            textures[texture_path]['usage'][node] = {}
             textures[texture_path]['path'] = texture_path
             textures[texture_path]['name'] = os.path.basename(texture_path)
 
@@ -408,39 +395,77 @@ def build_texture_data(textures, expand=True):
 
         root, name = os.path.split(texture_exp)
         name_noext, ext = os.path.splitext(name)
-        if ext == '.tx':
-            txstatus = 'onlytx'
-            txpath = texture
-        else:
-            txpath_exp = os.path.join(root, name_noext + '.tx')
-            if os.path.isfile(txpath_exp):
-                txstatus = 'hastx'
-                txpath = os.path.splitext(texture)[0] + '.tx'
-            else:
-                txstatus = 'notx'
-                txpath = None
-
-        if not os.path.isfile(texture_exp):
-            txstatus = 'missing'
-
-        if texture not in textures.keys():
-            textures.setdefault(
-                texture, copy.deepcopy(textures[texture]))
-
-        textures[texture]['root'] = root
-        textures[texture]['name'] = os.path.split(texture)[-1]
-        textures[texture]['status'] = txstatus
-        textures[texture]['txpath'] = txpath
-        textures[texture]['path'] = texture
+        render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
+        combined_status = []
         iinfo = makeTx.imageInfo(texture_exp)
-        cs = get_colorspace(textures[texture])
-        if cs == 'auto':
-            cs = makeTx.guessColorspace(iinfo)
-        if cs == 'linear':
-            cs = 'Raw'
-        textures[texture]['colorspace'] = cs
-        for k,v in iinfo.items():
-            textures[texture][k] = v
+        auto_cs =  makeTx.guessColorspace(iinfo)
+        if len(texture_data['usage']):
+            for node in texture_data['usage'].keys():
+                cs = get_colorspace(node)
+                if cs == 'auto':
+                    cs = auto_cs
+                if cs == 'linear':
+                    cs = 'Raw'
+
+                if ext == '.tx':
+                    txstatus = 'onlytx'
+                    txpath = texture
+                else:
+                    # FIXME use core API to get the tx generated for this texture or None
+                    # AiResolveTextureFilename()
+                    txpath_exp = os.path.join(root, name + "_{}_{}".format(render_colorspace, cs) + '.tx')
+                    if os.path.isfile(txpath_exp):
+                        txstatus = 'hastx'
+                        txpath = os.path.splitext(texture)[0] + '.tx'
+                    else:
+                        txstatus = 'notx'
+                        txpath = None
+
+                if not os.path.isfile(texture_exp):
+                    txstatus = 'missing'
+
+                if texture not in textures.keys():
+                    textures.setdefault(
+                        texture, copy.deepcopy(textures[texture]))
+                
+                if txstatus not in combined_status:
+                    combined_status.append(txstatus)
+
+                texture_data['usage'][node]['root'] = root
+                texture_data['usage'][node]['name'] = node
+                texture_data['usage'][node]['status'] = txstatus
+                texture_data['usage'][node]['txpath'] = txpath
+                texture_data['usage'][node]['path'] = texture
+                texture_data['usage'][node]['colorspace'] = cs
+                for k,v in iinfo.items():
+                    texture_data['usage'][node][k] = v
+            textures[texture]['status'] = ','.join(combined_status)
+        else:
+            cs = auto_cs
+
+            if ext == '.tx':
+                txstatus = 'onlytx'
+                txpath = texture
+            else:
+                # FIXME use core API to get the tx generated for this texture or None
+                # AiResolveTextureFilename()
+                txpath_exp = os.path.join(root, name + "_{}_{}".format(render_colorspace, cs) + '.tx')
+                if os.path.isfile(txpath_exp):
+                    txstatus = 'hastx'
+                    txpath = os.path.splitext(texture)[0] + '.tx'
+                else:
+                    txstatus = 'notx'
+                    txpath = None
+
+            if not os.path.isfile(texture_exp):
+                txstatus = 'missing'
+
+            textures[texture]['txpath'] = txpath
+        
+        textures[texture]['root'] = root
+        textures[texture]['name'] = name
+        textures[texture]['status'] = txstatus
+        textures[texture]['path'] = texture
 
     return textures
 
@@ -466,7 +491,7 @@ def update_texture_data(texture_data):
         txstatus = 'missing'
     texture_data['status'] = txstatus
     texture_data['txpath'] = txpath
-    cs = get_colorspace(texture_data)
+    cs = get_colorspace(texture_data['name'])
     iinfo = makeTx.imageInfo(texture_exp)
     if cs == 'auto':
         cs = makeTx.guessColorspace(iinfo)
