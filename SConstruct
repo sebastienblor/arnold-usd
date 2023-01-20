@@ -946,10 +946,6 @@ if system.os == 'windows':
                                       duplicate   = 0,
                                       exports     = 'maya_env')
 
-    MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
-                                                variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
-                                                duplicate   = 0,
-                                                exports     = 'env')
     
 else:
     maya_env = env.Clone()
@@ -1024,10 +1020,6 @@ else:
                               duplicate   = 0,
                               exports     = 'maya_env')
 
-    MTOA_PROCS = env.SConscript(os.path.abspath(os.path.join('procedurals', 'SConscript')),
-                                variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
-                                duplicate   = 0,
-                                exports     = 'env')
                                  
     def osx_hardcode_path(target, source, env):
         cmd = None
@@ -1050,7 +1042,6 @@ else:
         env.AddPostAction(MTOA_API[0],  Action(osx_hardcode_path, 'Adjusting paths in mtoa_api.dylib ...'))
         env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Adjusting paths in mtoa.boundle ...'))
         #env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_shaders ...'))
-        #env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
 
 # Install all USD modules (render delegate and shader registry)
 if ENABLE_USD:
@@ -1154,11 +1145,6 @@ if system.os == 'windows':
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
     nprocs = []
-    for proc in MTOA_PROCS:
-        if str(proc)[-3:] == 'dll':
-            nprocs.append(proc)
-    MTOA_PROCS = nprocs
-    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
     
     libs = MTOA_API[1]
     env.Install(env['TARGET_LIB_PATH'], libs)
@@ -1168,7 +1154,6 @@ if system.os == 'windows':
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
-    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
     if system.os == 'linux':
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
@@ -1371,7 +1356,7 @@ package_name_inst = package_name
 
 
 
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 import ftplib
@@ -1780,9 +1765,6 @@ if env['ENABLE_GPU_CACHE'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'gpuCache', 'plugin', '*.py'), 'extensions'])
 
-
-for p in MTOA_PROCS:
-    PACKAGE_FILES += [[p, 'procedurals']]
 
 # if not env['DISABLE_COMMON']:
 #     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
