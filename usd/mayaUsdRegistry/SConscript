@@ -64,7 +64,8 @@ mayaVersion = int(local_env['MAYA_VERSION_BASE'])
 # For Maya 2024, it is python3.10
 pythonVersions = {2022:('3','7'),
                   2023:('3','9'),
-                  2024:('3','10')}
+                  2024:('3','10'),
+                  2025:('3','10')}
 pythonMinor = pythonVersions[mayaVersion][1] if mayaVersion in pythonVersions else "7"
 pythonDirChar = 'm' if mayaVersion < 2023 else ''
 boost_version = '1_70' if mayaVersion <= 2023 else '1_76'
