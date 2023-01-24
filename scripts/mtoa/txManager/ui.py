@@ -450,11 +450,19 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         '''returns list of texture data dictionaries for the selected items'''
         selectedTextures = []
         texture_selection = self.texture_list.selectedItems()
-
         for item in texture_selection:
-            data = item.data(0, QtCore.Qt.UserRole)
-            data['index'] = self.texture_list.indexOfTopLevelItem(item)
-            selectedTextures.append(data)
+            # if this is a toplevelitem that has children add the child items if they are not already in the list
+            if item.childCount():
+                for c in range(item.childCount()):
+                    child_item = item.child(c)
+                    if child_item not in texture_selection:
+                        _data = child_item.data(0, QtCore.Qt.UserRole)
+                        _data['item'] = child_item
+                        selectedTextures.append(_data)
+            else:
+                data = item.data(0, QtCore.Qt.UserRole)
+                data['item'] = item
+                selectedTextures.append(data)
 
         return selectedTextures
 
@@ -625,16 +633,17 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         self.action_rm.setEnabled(True)
         self.on_refresh()
 
-    def set_status(self, row, status="N/A"):
-        item = self.texture_list.topLevelItem(row)
+    def set_status(self, item, status="N/A"):
+        # item = self.texture_list.itemFromIndex(index)
+        return
         if item:
             data = item.data(0, QtCore.Qt.UserRole)
             data['status'] = status
             item.setData(0, QtCore.Qt.UserRole, data)
             item.setText(1, status)
 
-    def get_status(self, row):
-        item = self.texture_list.topLevelItem(row)
+    def get_status(self, item):
+        # item = self.texture_list.topLevelItem(row)
         if item:
             data = item.data(0, QtCore.Qt.UserRole)
             return data['status']
@@ -644,8 +653,8 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
     def get_use_autotx(self):
         return self.tx_use_autotx.isChecked()
 
-    def update_data(self, row):
-        item = self.texture_list.topLevelItem(row)
+    def update_data(self, item):
+        # item = self.texture_list.topLevelItem(row)
         if item:
             data = item.data(0, QtCore.Qt.UserRole)
             new_data = lib.update_texture_data(data)
