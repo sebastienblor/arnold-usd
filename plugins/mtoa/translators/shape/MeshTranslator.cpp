@@ -176,7 +176,7 @@ void CMeshTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
    const MString plugName = plug.partialName(false, false, false, false, false, true);
    
-   bool recreate_geom = (plugName == "pnts" || plugName == "inMesh" || plugName == "dispResolution" || plugName == "useMeshSculptCache");
+   bool recreate_geom = (plugName == "pnts" || plugName == "inMesh" || plugName == "dispResolution"  || plugName == "mikktspaceTangentGen" || plugName == "useMeshSculptCache");
    recreate_geom = recreate_geom || (plugName.length() > 8 && plugName.substring(0,7) == "aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
    recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1); // parameters relative to smooth
    recreate_geom = recreate_geom || (plugName.length() > 6 && plugName.substring(0,5) == "aiDisp");

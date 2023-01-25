@@ -39,9 +39,9 @@ ignore_windows: test_0318 test_0209 test_0235 test_0240 test_0309 test_0314 test
 ignore_linux: test_0248 test_0260 test_0144_mac
 ignore_darwin: test_0248 test_0318 test_0144 test_0167 test_0260
 
-ignore_2020: test_0242_2022 test_0242_2023 test_0213_Maya2022 test_0948 test_0813 test_0947
-ignore_2022: test_0213 test_0948 test_0242_2023
-ignore_2023: test_0242_2022 test_0213
+ignore_2020: test_0242_2022 test_0242_2023 test_0213_Maya2022 test_0948 test_0813 test_0947 test_1183
+ignore_2022: test_0213 test_0948 test_0242_2023 test_1183
+ignore_2023: test_0242_2022 test_0213 test_1183
 ignore_2024: test_0242_2022 test_0242_2023 test_0213 test_0144_mac
 
 
@@ -52,6 +52,9 @@ ipr: test_0341 test_0343 test_0344 test_0345 test_0346 test_0347 test_0348 test_
 
 # XGEN procedural tests
 xgen: test_0140 test_0141 test_0180 test_0181 test_0188 test_0209 test_0229 test_0235 test_0237 test_0240 test_0305 test_0309 test_0305 test_0314 test_0315 test_0317 test_0318 test_0368 test_0369
+
+# Tests for Maya API testing, including just the first one for now
+maya: test_0000
 
 ############################
 # USER-DEFINED TEST GROUPS #

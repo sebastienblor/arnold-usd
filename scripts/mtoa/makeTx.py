@@ -172,9 +172,6 @@ def guessColorspace(img_info):
             return 'sRGB'
         else:
             return 'linear'
-
-        # now discard the image file as AiTextureGetFormat has loaded it
-        AiTextureInvalidate(img_info['filename'])
     except:
         print('[maketx] Error: Could not guess colorspace for "%s"' % img_info['filename'])
         return 'linear'
@@ -247,9 +244,6 @@ def makeTx(filename, colorspace='auto', arguments=''):
         if colorspace == 'auto':
             colorspace = guessColorspace(tile_info)
 
-        outputTx = os.path.splitext(tile)[0] + '.tx'
-        AiTextureInvalidate(outputTx)
-
         AiMsgInfo( "[maketx] info : {}".format(','.join(["{}={}".format(k,v) for k, v in tile_info.items()])) )
 
         # promote 8-bit images to EXR half with DWAA compression to avoid quantization errors (#3919)
@@ -270,7 +264,6 @@ def makeTx(filename, colorspace='auto', arguments=''):
             mo = re.search(_maketx_rx_stats, res)
             if mo:
                 print('[maketx] Generated TX for "%s" (%s) in %s seconds' % (tile, colorspace, mo.group(1)))
-                AiTextureInvalidate(outputTx) 
                 status[0] += 1
             else:
                 print('[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace))

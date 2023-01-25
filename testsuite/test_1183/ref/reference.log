@@ -1,0 +1,245 @@
+==== Setting Path ===== 
+ 
+ {'ARNOLD_ADP_DISABLE': '1', 'ARNOLD_TESTSUITE_COMMON': '/home/handsca/Dev/mtoa/testsuite/common', 'MAYA_MODULE_PATH': '/opt/solidangle/mtoa/5.3.0-dev/2024', 'PYMEL_SKIP_MEL_INIT': '1', 'MAYA_DISABLE_ADP': '1', 'ADCLMHUB_LOG_DIR': '/home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183', 'MAYA_DISABLE_CIP': '1', 'ADCLMHUB_LOG_LEVEL': 'T', 'ARNOLD_MATERIALX_SEARCH_PATH': '/home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183', 'MAYA_RENDER_DESC_PATH': '/opt/solidangle/mtoa/5.3.0-dev/2024', 'PATH': '/opt/solidangle/mtoa/5.3.0-dev/2024/bin;/software/maya/2024/bin;/opt/solidangle/mtoa/5.3.0-dev/2024/lib;/opt/solidangle/mtoa/5.3.0-dev/2024/plug-ins;/usr/local/bin:/opt/bin:/bin:/usr/bin:.', 'MAYA_DISABLE_CER': '1', 'ARNOLD_CER_ENABLED': 'off'}
+ 
+ ==== Exec cmd ==== 
+ 
+/software/maya/2024/bin/Render -proj "/home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183" -rd "/home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183" -r arnold -x 160 -y 120 -lic 0  "/home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183/test.ma"
+ 
+ 
+Starting "/software/maya/2024/bin/maya"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/var/tmp/runtime-handsca'
+This plugin does not support createPlatformOpenGLContext!
+00:00:00   701MB         | log started Tue Jan 24 15:58:56 2023
+00:00:00   701MB         | Arnold 7.2.0.0 [e7d021da] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/19 18:49:27
+00:00:00   701MB         | running on bcnr9135vpm.ads.autodesk.com, pid=62076
+00:00:00   701MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 63819MB
+00:00:00   701MB         |  NVIDIA driver version 515.76 (Optix 60803)
+00:00:00   701MB         |  GPU 0: Quadro RTX 6000 @ 1770MHz (compute 7.5) with 24220MB (24211MB available) (NVLink:0)
+00:00:00   701MB         |  GPU 1: Quadro P2200 @ 1493MHz (compute 6.1) with 5056MB (283MB available) (NVLink:0)
+00:00:00   701MB         |  Rocky Linux 8.7 (Green Obsidian), Linux kernel 4.18.0-425.3.1.el8.x86_64
+00:00:00   701MB         |  soft limit for open files changed from 1024 to 262142
+00:00:00   701MB         |  
+00:00:00   701MB         | [metadata] loading metadata file: /opt/solidangle/mtoa/5.3.0-dev/2024/plug-ins/../bin/arnold.mtd
+00:00:00   716MB         | [color_manager_ocio] default ocio.config found in /opt/solidangle/mtoa/5.3.0-dev/2024/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:00   716MB         | loading plugins from /opt/solidangle/mtoa/5.3.0-dev/2024/plug-ins/../bin/../plugins ...
+00:00:00   716MB         |  alembic_proc.so: alembic uses Arnold 7.2.0.0
+00:00:00   717MB         |  cryptomatte.so: cryptomatte uses Arnold 7.2.0.0
+00:00:00   717MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.2.0.0
+00:00:00   717MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.2.0.0
+00:00:00   717MB         |  [metadata] loading metadata file: /opt/solidangle/mtoa/5.3.0-dev/2024/plug-ins/../bin/../plugins/cryptomatte.mtd
+00:00:00   725MB         |  usd_proc.so: usd uses Arnold 7.2.0.0
+00:00:00   725MB         | loaded 5 plugins from 3 lib(s) in 0:00.02
+File read in  2 seconds.
+Result: /home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183/test.ma
+Exporting Arnold Scene...
+00:00:01   842MB WARNING | [MtoA] No uv coordinate exists for uv set uvSet at polygon 0 at vertex 0 on mesh raptor_lowShape.
+00:00:01   842MB WARNING | [MtoA] No uv coordinate exists for uv set uvSet at polygon 0 at vertex 1 on mesh raptor_lowShape.
+00:00:01   842MB WARNING | [MtoA] No uv coordinate exists for uv set uvSet at polygon 0 at vertex 2 on mesh raptor_lowShape.
+00:00:01   842MB WARNING | [MtoA] No uv coordinate exists for uv set uvSet at polygon 0 at vertex 3 on mesh raptor_lowShape.
+00:00:01   842MB WARNING | [MtoA] No uv coordinate exists for uv set uvSet at polygon 1 at vertex 0 on mesh raptor_lowShape.
+Updating Arnold Scene...
+00:00:02   862MB         | log started Tue Jan 24 15:58:58 2023
+00:00:02   862MB         | Arnold 7.2.0.0 [e7d021da] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/19 18:49:27
+00:00:02   862MB         | host application: MtoA 5.3.0 ca118154 (MTOA-1289-regenerate-mesh-data-if-mikkt-tangents-are-toggled) Maya 2024
+00:00:02   862MB         | running on bcnr9135vpm.ads.autodesk.com, pid=62076
+00:00:02   862MB         |  2 x Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz (32 cores, 64 logical) with 63819MB
+00:00:02   862MB         |  NVIDIA driver version 515.76 (Optix 60803)
+00:00:02   862MB         |  GPU 0: Quadro RTX 6000 @ 1770MHz (compute 7.5) with 24220MB (24211MB available) (NVLink:0)
+00:00:02   862MB         |  GPU 1: Quadro P2200 @ 1493MHz (compute 6.1) with 5056MB (266MB available) (NVLink:0)
+00:00:02   862MB         |  Rocky Linux 8.7 (Green Obsidian), Linux kernel 4.18.0-425.3.1.el8.x86_64
+00:00:02   862MB         |  soft limit for open files is set at 262142
+00:00:02   862MB         |  
+00:00:02   862MB         | 
+00:00:02   862MB WARNING | rendering with watermarks because the skip_license_check option was enabled
+00:00:02   862MB         | 
+00:00:02   863MB         | [color_manager] using color manager of type "color_manager_ocio"
+00:00:02   864MB         | [color_manager_ocio] using config file /software/maya/2024/resources/OCIO-configs/Maya-legacy/config.ocio
+00:00:02   864MB         | [color_manager] unable to determine rendering color space chromaticities, assuming "sRGB"
+00:00:02   878MB         |  
+00:00:02   878MB         | there are 1 light and 2 objects:
+00:00:02   878MB         |       1 persp_camera
+00:00:02   878MB         |       1 quad_light
+00:00:02   878MB         |       1 image
+00:00:02   878MB         |       2 utility
+00:00:02   878MB         |       1 standard_surface
+00:00:02   878MB         |       1 normal_map
+00:00:02   878MB         |       1 driver_tiff
+00:00:02   878MB         |       1 gaussian_filter
+00:00:02   878MB         |       1 polymesh
+00:00:02   878MB         |       2 list_aggregate
+00:00:02   878MB         |       3 color_manager_ocio
+00:00:02   878MB         |  
+00:00:02   878MB         | rendering image at 160 x 120, 3 AA samples
+00:00:02   878MB         |   AA samples max    <disabled>
+00:00:02   878MB         |   AA sample clamp   <disabled>
+00:00:02   878MB         |   diffuse           samples  2 / depth  1
+00:00:02   878MB         |   specular          samples  2 / depth  1
+00:00:02   878MB         |   transmission      samples  2 / depth  8
+00:00:02   878MB         |   volume indirect   <disabled by depth>
+00:00:02   878MB         |   total                          depth 10
+00:00:02   878MB         |   bssrdf            samples  2
+00:00:02   878MB         |   transparency      depth 10
+00:00:02   878MB         | initializing 13 nodes
+00:00:02   903MB         |  creating root object list ...
+00:00:02   903MB         | node initialization done in 0:00.04 (multithreaded)
+00:00:02   903MB         | updating 14 nodes
+00:00:02   903MB         |  /aiAreaLight1/aiAreaLightShape1: quad_light using 1 sample, 2 volume samples
+00:00:02   903MB         |  [color_manager_ocio] using config file /opt/solidangle/mtoa/5.3.0-dev/2024/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:02   904MB         |  scene bounds: (-39.8637428 0.809902608 -255.455627) -> (39.8637428 203.197632 134.508713)
+00:00:02   904MB         | node update done in 0:00.00 (multithreaded)
+00:00:02   904MB         | [aov] parsing 1 output statements ...
+00:00:02   904MB         | [aov] registered driver: "defaultArnoldDriver/driver_tiff.RGBA" (driver_tiff)
+00:00:02   904MB         | [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter/gaussian_filter" (gaussian_filter)
+00:00:02   904MB         | [aov] done preparing 2 AOVs for 1 output to 1 driver (0 deep AOVs)
+00:00:02   905MB         | starting 64 bucket workers of size 64x64 ...
+00:00:02   922MB         |  [accel] polymesh bvh4 done - 0:00.00 (wall time) - 75072 prims, 1 key
+00:00:02   924MB         |  [maketx] maketx: no update required for "/home/handsca/maya/projects/default/sampledNormals_mikk.tif_Raw_scene-linear Rec 709_sRGB.tx"
+00:00:02   958MB         |    5% done - 315 rays/pixel
+00:00:02   958MB         |   20% done - 13 rays/pixel
+00:00:02   962MB         |   35% done - 46 rays/pixel
+00:00:02   965MB         |   60% done - 78 rays/pixel
+00:00:02   965MB         |   80% done - 0 rays/pixel
+00:00:02   965MB         |  100% done - 22 rays/pixel
+00:00:02   965MB         | render done in 0:00.124
+00:00:02   965MB         | [driver_tiff] writing file `/home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183/testrender.tif'
+00:00:02   965MB         | render done
+00:00:02   965MB         |  
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | scene creation time          0:02.19    machine utilization (0.00%) 
+00:00:02   965MB         |  unaccounted                 0:02.19 
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | frame time                   0:00.21    machine utilization (40.01%) 
+00:00:02   965MB         |  node init                   0:00.05 
+00:00:02   965MB         |  driver init/close           0:00.01 
+00:00:02   965MB         |  rendering                   0:00.12 
+00:00:02   965MB         |   subdivision                0:00.01 
+00:00:02   965MB         |    threads blocked           0:00.01 
+00:00:02   965MB         |   threads blocked            0:00.01 
+00:00:02   965MB         |   pixel rendering            0:00.09 
+00:00:02   965MB         |  unaccounted                 0:00.01 
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | top session self-times by category 
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | top session self-times by node 
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | peak CPU memory used      965.38MB 
+00:00:02   965MB         |  at startup               694.38MB 
+00:00:02   965MB         |  AOV samples                3.02MB 
+00:00:02   965MB         |  output buffers             0.45MB 
+00:00:02   965MB         |  framebuffers               0.38MB 
+00:00:02   965MB         |  node overhead              0.00MB 
+00:00:02   965MB         |  message passing            0.13MB 
+00:00:02   965MB         |  memory pools              89.55MB 
+00:00:02   965MB         |  geometry                   4.55MB 
+00:00:02   965MB         |   polymesh                  4.55MB 
+00:00:02   965MB         |  accel structs              2.51MB 
+00:00:02   965MB         |  strings                   24.25MB 
+00:00:02   965MB         |  texture cache              1.54MB 
+00:00:02   965MB         |  unaccounted              144.63MB 
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | ray counts                       ( /pixel, /sample) (% total) (avg. hits) (max hits)
+00:00:02   965MB         |  camera                   178252 (   9.28,    1.00) ( 15.43%) (     0.47) (       2)
+00:00:02   965MB         |  shadow                   301931 (  15.73,    1.69) ( 26.13%) (     0.03) (       1)
+00:00:02   965MB         |  diffuse_reflect          345232 (  17.98,    1.94) ( 29.88%) (     0.06) (       1)
+00:00:02   965MB         |  specular_reflect         330046 (  17.19,    1.85) ( 28.56%) (     0.05) (       1)
+00:00:02   965MB         |  total                   1155461 (  60.18,    6.48) (100.00%) (     0.11) (       2)
+00:00:02   965MB         | by ray depth:              0     1     2
+00:00:02   965MB         |  total                   38.3% 60.2%  1.5% 
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | shader calls                     (  /pixel,  /sample) (% total)
+00:00:02   965MB         |  primary                  359532 (   18.73,     2.02) (100.00%)
+00:00:02   965MB         |  total                    359532 (   18.73,     2.02) (100.00%)
+00:00:02   965MB         | by ray depth:              0     1     2
+00:00:02   965MB         |  total                   69.2% 28.0%  2.8% 
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | geometry                         (% hit ) (instances) (  init mem,  final mem)
+00:00:02   965MB         |  lists                         1 (100.0%) (        0) (      0.00,       0.00)
+00:00:02   965MB         |  polymeshes                    1 (100.0%) (        0) (      4.55,       4.55)
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | geometric elements               (      min) (       avg.) (      max)
+00:00:02   965MB         |  polygons                  75072 (    75072) (    75072.0) (    75072)
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | triangle tessellation            (      min) (       avg.) (      max) (/ element) (% total)
+00:00:02   965MB         |  polymeshes               150144 (   150144) (   150144.0) (   150144) (     2.00) (100.00%)
+00:00:02   965MB         |  unique triangles         150144 
+00:00:02   965MB         |  CPU memory use             4.55MB 
+00:00:02   965MB         |   vertices                  0.86MB 
+00:00:02   965MB         |   vertex indices            0.61MB 
+00:00:02   965MB         |   packed normals            0.27MB 
+00:00:02   965MB         |   normal indices            0.61MB 
+00:00:02   965MB         |   uv coords                 0.30MB 
+00:00:02   965MB         |   uv coords idxs            0.61MB 
+00:00:02   965MB         |   uniform indices           0.15MB 
+00:00:02   965MB         |   userdata                  1.15MB 
+00:00:02   965MB         |  largest polymeshes by triangle count 
+00:00:02   965MB         |     150144 tris -- /raptor_low/raptor_lowShape
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | acceleration structures:         (% total)
+00:00:02   965MB         |  list                          1 ( 50.00%)
+00:00:02   965MB         |  bvh                           1 ( 50.00%)
+00:00:02   965MB         |  total                         2 (100.00%)
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | OpenImageIO Texture statistics
+00:00:02   965MB         |   Options:  gray_to_rgb=true flip_t=false max_tile_channels=6 
+00:00:02   965MB         |   Queries/batches : 
+00:00:02   965MB         |     texture     :  119844 queries in 119844 batches
+00:00:02   965MB         |     texture 3d  :  0 queries in 0 batches
+00:00:02   965MB         |     shadow      :  0 queries in 0 batches
+00:00:02   965MB         |     environment :  0 queries in 0 batches
+00:00:02   965MB         |     gettextureinfo :  0 queries
+00:00:02   965MB         |   Interpolations :
+00:00:02   965MB         |     closest  : 0
+00:00:02   965MB         |     bilinear : 245656
+00:00:02   965MB         |     bicubic  : 149770
+00:00:02   965MB         |   Average anisotropic probes : 1.74
+00:00:02   965MB         |   Max anisotropy in the wild : 210
+00:00:02   965MB         | 
+00:00:02   965MB         | OpenImageIO ImageCache statistics (0xc2890c0) ver 2.4.1.1dev
+00:00:02   965MB         |   Options:  max_memory_MB=4096.0 max_open_files=261630 autotile=0
+00:00:02   965MB         |             autoscanline=true automip=false forcefloat=false
+00:00:02   965MB         |             accept_untiled=true accept_unmipped=true deduplicate=true
+00:00:02   965MB         |             unassociatedalpha=false failure_retries=0 openexr:core=0 
+00:00:02   965MB         |   Images : 1 unique
+00:00:02   965MB         |     ImageInputs : 1 created, 1 current, 1 peak
+00:00:02   965MB         |     Total pixel data size of all images referenced : 4.0 MB
+00:00:02   965MB         |     Total actual file size of all images referenced : 395 KB
+00:00:02   965MB         |     Pixel data read : 1.5 MB
+00:00:02   965MB         |     File I/O time : 0.2s (0.0s average per thread, for 64 threads)
+00:00:02   965MB         |     File open time only : 0.0s
+00:00:02   965MB         |   Tiles: 194 created, 131 current, 131 peak
+00:00:02   965MB         |     total tile requests : 474295
+00:00:02   965MB         |     micro-cache misses : 11558 (2.4%)
+00:00:02   965MB         |     main cache misses : 194 (0.0%)
+00:00:02   965MB         |     redundant reads: 0 tiles, 0 B
+00:00:02   965MB         |     Peak cache memory : 1.5 MB
+00:00:02   965MB         |   Image file statistics:
+00:00:02   965MB         |         opens   tiles    MB read   --redundant--   I/O time  res              File
+00:00:02   965MB         |       1    1      131        1.5                  0.2s       1024x1024x3.u8   /home/handsca/maya/projects/default/sampledNormals_mikk.tif_Raw_scene-linear Rec 709_sRGB.tx  MIP-COUNT[73,34,13,4,1,1,1,1,1,1,1]
+00:00:02   965MB         | 
+00:00:02   965MB         |   Tot:     1      131        1.5   (    0    0.0) 0.2s     
+00:00:02   965MB         |   Broken or invalid files: 0
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | number of warnings, warning type:
+00:00:02   965MB         | 299904:  [MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.
+00:00:02   965MB         |     1:  rendering with watermarks because the skip_license_check option was enabled
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+00:00:02   965MB         | performance warnings:
+00:00:02   965MB WARNING |  Scene creation was a significant amount of total time (91%). Consider optimizing this process first.
+00:00:02   965MB         | -----------------------------------------------------------------------------------
+Scene /home/handsca/Dev/mtoa/build/linux_x86_64/20240000/gcc_debug/testsuite/test_1183/test.ma completed.
+00:00:02   925MB         |   unloading 12 plugins
+00:00:02   925MB         |    closing alembic_proc.so ...
+00:00:02   925MB         |    closing cryptomatte.so ...
+00:00:02   925MB         |    closing usd_proc.so ...
+00:00:02   925MB         |    closing renderSetup_shaders.so ...
+00:00:02   925MB         |    closing hairPhysicalShader_shaders.so ...
+00:00:02   925MB         |    closing lookdevkit_shaders.so ...
+00:00:02   925MB         |    closing mtoa_shaders.so ...
+00:00:02   924MB         |    closing xgenSpline_shaders.so ...
+00:00:02   924MB         |    closing xgen_procedural.so ...
+00:00:02   924MB         |    closing xgenSpline_procedural.so ...
+00:00:02   924MB         |    closing mtoa_ParticleInstancer_proc.so ...
+00:00:02   924MB         |    closing mtoa_ParticleVolume_proc.so ...
+00:00:02   924MB         |   unloading plugins done
+00:00:02   924MB         |  Arnold shutdown

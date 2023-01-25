@@ -192,11 +192,10 @@ void CArnoldOptionsNode::attrChangeCallback(MNodeMessage::AttributeMessage msg,
    if (msg != (MNodeMessage::kAttributeSet|MNodeMessage::kIncomingDirection))
       return;
 
-   const char *plugName = plug.partialName(0,0,0,0,0,1).asChar();
-   if (strstr("enable_swatch_render", plugName) == NULL) {
+   const MString plugName = plug.partialName(0,0,0,0,0,1);
+   if (plugName == MString("enable_swatch_render"))
       return;
-   }
-
+   
    MString command = "for ($shad in `ls -mat -tex`){renderThumbnailUpdate -fu $shad;}";
    MGlobal::executeCommandOnIdle(command);
 }
