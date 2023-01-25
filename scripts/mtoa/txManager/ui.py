@@ -634,8 +634,6 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         self.on_refresh()
 
     def set_status(self, item, status="N/A"):
-        # item = self.texture_list.itemFromIndex(index)
-        return
         if item:
             data = item.data(0, QtCore.Qt.UserRole)
             data['status'] = status
@@ -643,7 +641,6 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
             item.setText(1, status)
 
     def get_status(self, item):
-        # item = self.texture_list.topLevelItem(row)
         if item:
             data = item.data(0, QtCore.Qt.UserRole)
             return data['status']
@@ -652,19 +649,6 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
     def get_use_autotx(self):
         return self.tx_use_autotx.isChecked()
-
-    def update_data(self, item):
-        # item = self.texture_list.topLevelItem(row)
-        if item:
-            data = item.data(0, QtCore.Qt.UserRole)
-            new_data = lib.update_texture_data(data)
-            item.setData(0, QtCore.Qt.UserRole, new_data)
-            item.setText(NAME, new_data['name'])
-            item.setText(STATUS, new_data['status'])
-            item.setText(COLORSPACE, new_data['colorspace'])
-            item.setText(TXPATH, new_data['txpath'])
-            item.setText(PATH, new_data['path'])
-            item.setText(USAGE, ','.join([x.split('.')[0] for x in new_data['usage']]))
 
 
 def show():

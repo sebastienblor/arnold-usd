@@ -403,7 +403,12 @@ def build_texture_data(textures, expand=True):
                 texture_data['usage'][node]['colorspace'] = cs
                 for k,v in iinfo.items():
                     texture_data['usage'][node][k] = v
-            textures[texture]['status'] = ','.join(combined_status)
+            
+            if (len(combined_status) > 1):
+                txstatus = "mixed"
+            else:
+                txstatus = txstatus
+
         else:
             cs = auto_cs
 
@@ -439,40 +444,6 @@ def get_output_tx_path(input_file, colorspace, render_colorspace):
     # txpath = AiTextureGetTxFileName(input_file, colorspace, render_colorspace)
     txpath = os.path.join(input_file + "_{}_{}".format(colorspace, render_colorspace) + '.tx')
     return txpath
-
-def update_texture_data(texture_data):
-    path = texture_data['path']
-    texture_exp = makeTx.expandFilenameWithSearchPaths(path)
-    if len(texture_exp):
-        texture_exp = texture_exp[0]
-    else:
-        texture_exp = path
-    path_noext, ext = os.path.splitext(path)
-    render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
-    txpath = texture_data['txpath']
-    txstatus = 'notx'
-    if not txpath:
-        txpath = get_output_tx_path(path, cs, render_colorspace)
-        if os.path.isfile(txpath):
-            txstatus = 'hastx'
-        else:
-            txstatus = 'notx'
-            txpath = None
-    if not os.path.isfile(texture_exp):
-        txstatus = 'missing'
-    texture_data['status'] = txstatus
-    texture_data['txpath'] = txpath
-    cs = get_colorspace(texture_data['name'])
-    iinfo = makeTx.imageInfo(texture_exp)
-    if cs == 'auto':
-        cs = makeTx.guessColorspace(iinfo)
-    if cs == 'linear':
-        cs = 'Raw'
-    texture_data['colorspace'] = cs
-    for k,v in iinfo.items():
-        texture_data[k] = v
-
-    return texture_data
 
 
 def build_tx_arguments(
@@ -547,11 +518,6 @@ class DummyManager(object):
             i += 1
 
         return self.textures
-
-    def update_data(self, row):
-
-        data = self.textures[row]
-        self.textures[row] = update_texture_data(data)
 
 
 def updateAllTx(force, threaded=True):
