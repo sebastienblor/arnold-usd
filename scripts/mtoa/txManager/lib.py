@@ -124,17 +124,10 @@ class TxProcessor(QtCore.QObject):
         return 
 
     def createTx(self):
-        print("createTx")
         selected_textures = utils.executeInMainThreadWithResult(self.txManager.get_selected_textures)
         if not selected_textures:
             return self.test_progress()
-        
-        # return self.test_progress()
-       
-        # first we need to make sure the options & color manager node were converted to arnold
-        # cmds.arnoldScene(mode='create')
-        # previous_flags = ai.AiMsgGetConsoleFlags(None)
-        # ai.AiMsgSetConsoleFlags(None, ai.AI_LOG_INFO)
+             
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
 
         cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
@@ -186,8 +179,6 @@ class TxProcessor(QtCore.QObject):
             else:
                 texture_dict[tex[0]].append(tex[2])
 
-        print(texture_dict)
-
         num_jobs_left = len(textureList)   # default to arbitrary value > 0
 
         # set the max progress on the progress bar/dialog
@@ -197,8 +188,6 @@ class TxProcessor(QtCore.QObject):
         # let's give this list to arnold
         for i, textureToConvert in enumerate(textureList):
             self.txManager.set_status(textureToConvert[2], "processing ..")
-            # self.progress.emit(i)
-            print("Processing {}".format(textureToConvert[0]))
             ai.AiMakeTx(textureToConvert[0], textureToConvert[1])
         status = ai.POINTER(ai.AtMakeTxStatus)() # returns the current status of the input files
         source_files = ai.POINTER(ai.AtPythonString)() # returns the list of input files in the same order as the status
@@ -218,22 +207,15 @@ class TxProcessor(QtCore.QObject):
             for i in range(0, num_submitted.value):
                 # get the status and update the ui
                 src_str = str(source_files[i])
-                print(src_str)
                 items = texture_dict.get(src_str, [])
-                print(items)
-                print("{} Status : {}".format(src_str, status[i]))
                 for item in items:
-                    print(item)
                     data = item.data(0, QtCore.Qt.UserRole)
                     output_tx = get_output_tx_path(src_str, data['colorspace'], render_colorspace)
-                    # utils.executeInMainThreadWithResult(self.txManager.update_data, item)
-                    # if status[i] is not ai.AiTxPending and self.txManager.get_status(item) in ["processing ..", "notx"]:
                     if status[i] is not ai.AiTxPending and os.path.exists(output_tx):
                         processed += 1
 
             # emit progress to the progress bar/dialog
-            # self.progress.emit(processed)
-        # self.test_progress()
+            self.progress.emit(processed)
 
         if (num_submitted.value > len(textureList)):
             ai.AiMsgFatal("There are more submitted textures than there are textures! "
@@ -255,10 +237,6 @@ class TxProcessor(QtCore.QObject):
                 print("[mtoa.tx] {}: {} was aborted".format(i, src_str))
 
         utils.executeDeferred(self.txManager.on_refresh)
-
-        # an arnold scene was created above, let's delete it now
-        # cmds.arnoldScene(mode="destroy")
-        # ai.AiMsgSetConsoleFlags(None,previous_flags)
 
         return True
 
@@ -398,12 +376,11 @@ def build_texture_data(textures, expand=True):
                     txstatus = 'onlytx'
                     txpath = texture
                 else:
-                    # FIXME use core API to get the tx generated for this texture or None
-                    # AiResolveTextureFilename()
-                    txpath_exp = os.path.join(texture_exp + "_{}_{}".format(cs, render_colorspace) + '.tx')
+                    txpath_exp = get_output_tx_path(texture_exp, cs, render_colorspace)                    
+                    ui_txpath = get_output_tx_path(texture, cs, render_colorspace)
                     if os.path.isfile(txpath_exp):
                         txstatus = 'hastx'
-                        txpath = os.path.splitext(texture)[0] + '.tx'
+                        txpath = ui_txpath
                     else:
                         txstatus = 'notx'
                         txpath = None
@@ -434,12 +411,11 @@ def build_texture_data(textures, expand=True):
                 txstatus = 'onlytx'
                 txpath = texture
             else:
-                # FIXME use core API to get the tx generated for this texture or None
-                # AiResolveTextureFilename()
                 txpath_exp = get_output_tx_path(texture_exp, cs, render_colorspace)
+                ui_txpath = get_output_tx_path(texture, cs, render_colorspace)
                 if os.path.isfile(txpath_exp):
                     txstatus = 'hastx'
-                    txpath = os.path.splitext(texture)[0] + '.tx'
+                    txpath = ui_txpath
                 else:
                     txstatus = 'notx'
                     txpath = None
@@ -460,7 +436,7 @@ def build_texture_data(textures, expand=True):
 def get_output_tx_path(input_file, colorspace, render_colorspace):
 
     # FIXME use core API to get the tx generated for this texture or None
-    # AiResolveTextureFilename()
+    # txpath = AiTextureGetTxFileName(input_file, colorspace, render_colorspace)
     txpath = os.path.join(input_file + "_{}_{}".format(colorspace, render_colorspace) + '.tx')
     return txpath
 
