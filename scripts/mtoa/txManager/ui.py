@@ -410,6 +410,18 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
             item.setText(PATH, data['path'])
             item.setText(USAGE, ','.join([x.split('.')[0] for x in data['usage']]))
             self.texture_list.addTopLevelItem(item)
+            # loop the texture nodes and populate the child information
+            for node in data['usage']:
+                child_data = copy.deepcopy(data['usage'][node])
+                child_data['name'] = node
+                child_item = QtWidgets.QTreeWidgetItem(item)
+                child_item.setData(0, QtCore.Qt.UserRole, child_data)
+                child_item.setText(NAME, child_data['name'])
+                child_item.setText(STATUS, child_data['status'])
+                child_item.setText(COLORSPACE, child_data['colorspace'])
+                child_item.setText(TXPATH, child_data['txpath'])
+                child_item.setText(PATH, child_data['path'])
+                item.addChild(child_item)
 
     def on_update_args(self):
         '''Callback for any changes in maketx argument widgets'''
@@ -438,11 +450,19 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         '''returns list of texture data dictionaries for the selected items'''
         selectedTextures = []
         texture_selection = self.texture_list.selectedItems()
-
         for item in texture_selection:
-            data = item.data(0, QtCore.Qt.UserRole)
-            data['index'] = self.texture_list.indexOfTopLevelItem(item)
-            selectedTextures.append(data)
+            # if this is a toplevelitem that has children add the child items if they are not already in the list
+            if item.childCount():
+                for c in range(item.childCount()):
+                    child_item = item.child(c)
+                    if child_item not in texture_selection:
+                        _data = child_item.data(0, QtCore.Qt.UserRole)
+                        _data['item'] = child_item
+                        selectedTextures.append(_data)
+            else:
+                data = item.data(0, QtCore.Qt.UserRole)
+                data['item'] = item
+                selectedTextures.append(data)
 
         return selectedTextures
 
@@ -455,7 +475,15 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         # colorspaces = set()
         for item in texture_selection:
             data = item.data(0, QtCore.Qt.UserRole)
-            cmds.select(data['usage'], add=True)
+            name = data['name']
+            if 'usage' in data:
+                usage_nodes = list(data['usage'].keys())
+                selection = usage_nodes
+            elif cmds.objExists(name):
+                selection=name
+            
+            cmds.select(selection, add=True)
+
         #     colorspaces.add(data['colorspace'])
 
         # self._dontupdate = True
@@ -605,16 +633,14 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         self.action_rm.setEnabled(True)
         self.on_refresh()
 
-    def set_status(self, row, status="N/A"):
-        item = self.texture_list.topLevelItem(row)
+    def set_status(self, item, status="N/A"):
         if item:
             data = item.data(0, QtCore.Qt.UserRole)
             data['status'] = status
             item.setData(0, QtCore.Qt.UserRole, data)
             item.setText(1, status)
 
-    def get_status(self, row):
-        item = self.texture_list.topLevelItem(row)
+    def get_status(self, item):
         if item:
             data = item.data(0, QtCore.Qt.UserRole)
             return data['status']
@@ -623,19 +649,6 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
     def get_use_autotx(self):
         return self.tx_use_autotx.isChecked()
-
-    def update_data(self, row):
-        item = self.texture_list.topLevelItem(row)
-        if item:
-            data = item.data(0, QtCore.Qt.UserRole)
-            new_data = lib.update_texture_data(data)
-            item.setData(0, QtCore.Qt.UserRole, new_data)
-            item.setText(NAME, new_data['name'])
-            item.setText(STATUS, new_data['status'])
-            item.setText(COLORSPACE, new_data['colorspace'])
-            item.setText(TXPATH, new_data['txpath'])
-            item.setText(PATH, new_data['path'])
-            item.setText(USAGE, ','.join([x.split('.')[0] for x in new_data['usage']]))
 
 
 def show():
