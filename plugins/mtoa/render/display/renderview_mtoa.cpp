@@ -734,6 +734,9 @@ bool CRenderViewMtoA::UpdateDefaultRenderCallbacks()
 
 void CRenderViewMtoA::RunPreRenderCallbacks()
 {
+   if (!m_session)
+      return;
+
    int numPreRenderCallbacks = m_preRenderCallbacks.length();
    if (numPreRenderCallbacks && m_session->IsActive())
    {
