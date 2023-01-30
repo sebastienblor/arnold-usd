@@ -358,7 +358,7 @@ def build_texture_data(textures, expand=True):
         else:
             texture_exp = texture
 
-        root, name = os.path.split(texture_exp)
+        root, name = os.path.split(texture)
         name_noext, ext = os.path.splitext(name)
         render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
         combined_status = []
@@ -376,7 +376,7 @@ def build_texture_data(textures, expand=True):
                     txstatus = 'onlytx'
                     txpath = texture
                 else:
-                    txpath_exp = get_output_tx_path(texture_exp, cs, render_colorspace)                    
+                    txpath_exp = get_output_tx_path(texture_exp, cs, render_colorspace)   
                     ui_txpath = get_output_tx_path(texture, cs, render_colorspace)
                     if os.path.isfile(txpath_exp):
                         txstatus = 'hastx'
@@ -440,9 +440,7 @@ def build_texture_data(textures, expand=True):
 
 def get_output_tx_path(input_file, colorspace, render_colorspace):
 
-    # FIXME use core API to get the tx generated for this texture or None
-    # txpath = AiTextureGetTxFileName(input_file, colorspace, render_colorspace)
-    txpath = os.path.join(input_file + "_{}_{}".format(colorspace, render_colorspace) + '.tx')
+    txpath = str(ai.AiTextureGetTxFileName(input_file, colorspace, render_colorspace))
     return txpath
 
 

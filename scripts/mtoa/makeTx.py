@@ -48,6 +48,19 @@ else:
 #_token_tile_rx = re.compile('<tile:?[^>]*>')
 _token_generic_rx = re.compile('<[^>]*>')
 
+def generateSequenceRegex(path):
+    startIndex = path.find('#')
+    hashCount = 0
+    if startIndex >= 0 :
+        for i in range(startIndex, len(path)):
+            if path[i] == '#':
+                hashCount=hashCount+1
+            else:
+                break
+        hashCountStr = str(hashCount)
+        
+        path = path.replace('#'*hashCount, '[0-9]{'+hashCountStr+'}')
+    return path 
 
 ## Function to expand the filename. This function does not account for the search path, and
 # will return an empty filename if it cannot be expanded. The client code has to call it 
@@ -135,9 +148,15 @@ def expandFilenameWithSearchPaths(filename):
            them in a more generic way (instead of specially looking for <udim>, <tile>, <attr:>)
         '''
         expand_glob = re.sub(_token_generic_rx, '*', abs_path)
+        expand_glob = re.sub('#+', '*', expand_glob)
 
-        found_files = glob.glob(expand_glob)
-        for expanded_img in found_files:
+        # match sequeneces
+        seq_path_rx = generateSequenceRegex(abs_path)
+
+        tmp_found_files = glob.glob(expand_glob)
+        for expanded_img in tmp_found_files:
+            if re.match(seq_path_rx, expanded_img):
+                found_files.append(expanded_img)
             if os.path.splitext(expanded_img)[1] != '.tx':
                 # don't invalidate .tx files
                 AiTextureInvalidate(expanded_img)
