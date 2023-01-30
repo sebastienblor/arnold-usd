@@ -338,6 +338,14 @@ class TxManagerWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         # Initialization
         self.on_update_args()
 
+        # first we need to make sure the options & color manager node were converted to arnold        
+        cmds.arnoldScene(mode='create')
+    
+    def closeEvent(self, event):
+        # an arnold scene was created above, let's delete it now
+        cmds.arnoldScene(mode='destroy')
+        event.accept()
+
     def set_editable(self):
         '''Helper to set scan attributes editable'''
         for item in self.scene_include.selectedItems():
