@@ -127,11 +127,6 @@ class TxProcessor(QtCore.QObject):
         selected_textures = utils.executeInMainThreadWithResult(self.txManager.get_selected_textures)
         if not selected_textures:
             return self.test_progress()
-             
-        # first we need to make sure the options & color manager node were converted to arnold
-        cmds.arnoldScene(mode='create')
-
-        ai.AiMsgSetConsoleFlags(ai.AI_LOG_INFO)
 
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
 
@@ -242,9 +237,6 @@ class TxProcessor(QtCore.QObject):
                 print("[mtoa.tx] {}: {} was aborted".format(i, src_str))
 
         utils.executeDeferred(self.txManager.on_refresh)
-
-        # an arnold scene was created above, let's delete it now
-        cmds.arnoldScene(mode="destroy")
     
         return True
 
