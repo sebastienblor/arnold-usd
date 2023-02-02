@@ -150,8 +150,6 @@ class TxProcessor(QtCore.QObject):
 
             for inputFile in inputFiles:
 
-                # tile_info = makeTx.imageInfo(inputFile)
-
                 txArguments = "-v --unpremult --oiio"
                 if self.force:
                     txArguments += " -u"
