@@ -151,6 +151,11 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
             string param_name(AiParamGetName(param_entry));
             AtNode* input_node = AiNodeGetLink(node, param_name.c_str(), &output_component);
 
+	    if (input_node)
+	    {
+	      AtString input_node_name = AiNodeGetStr(input_node, str::name);
+	      AiMsgWarning("DEBUG: %s %s", param_name.c_str(), input_node_name.c_str());
+	    }
             if (!input_node || AiParamGetType(param_entry) != AI_TYPE_FLOAT )
             {
                 continue;
@@ -237,7 +242,7 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
     }
 }
 
-// Sanitize input componets Ex.:
+// Sanitize input components Ex.:
 // xxx   -> yyy.r ==> xxx->float_to_rgbx(r)->yyy
 // xxx.r -> yyy.r ==> xxx.r->float_to_rgbx(r)->yyy
 //
@@ -247,8 +252,8 @@ void CShaderLinkSanitizer::SanitizeInputComponents()
         FixShadersWithInputComponents();
 }
 
-// Sanitize output componets (ex. xxx.r -> yyy).
-// In order to work, input components must have been previously senitized,
+// Sanitize output components (ex. xxx.r -> yyy).
+// In order to work, input components must have been previously sanitized,
 // that is there is no connection such as xxx.r->yyy.r
 void CShaderLinkSanitizer::SanitizeOutputComponents()
 {
