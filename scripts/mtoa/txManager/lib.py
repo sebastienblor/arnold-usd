@@ -150,7 +150,7 @@ class TxProcessor(QtCore.QObject):
 
             for inputFile in inputFiles:
 
-                tile_info = makeTx.imageInfo(inputFile)
+                # tile_info = makeTx.imageInfo(inputFile)
 
                 txArguments = "-v --unpremult --oiio"
                 if self.force:
@@ -158,16 +158,14 @@ class TxProcessor(QtCore.QObject):
                 if not self.txManager.get_use_autotx():
                     txArguments = ' '.join(arg_options)
 
-                if cmEnable and colorSpace != render_colorspace:
-
-                    txArguments += ' --colorconvert "'
-                    txArguments += colorSpace
-                    txArguments += '" "'
-                    txArguments += render_colorspace
-                    txArguments += '"'
-
-                    if tile_info['bit_depth'] <= 8:
-                        txArguments += ' --format exr -d half --compression dwaa'
+                    if cmEnable:
+                        txArguments += ' --colorconvert "'
+                        txArguments += colorSpace
+                        txArguments += '" "'
+                        txArguments += render_colorspace
+                        txArguments += '"'
+                else:
+                    txArguments += " " + str(ai.AiTextureAutoTxFlags(inputFile, colorSpace, None))
 
                 textureList.append([inputFile, txArguments, textureData['item']])
 
@@ -197,6 +195,7 @@ class TxProcessor(QtCore.QObject):
         self.filesCreated = 0
 
         processed = 0
+        processed_images = []
         while (num_jobs_left > 0):
             if self.is_canceled:
                 print("[mtoa.tx] tx generation has been cancelled")
@@ -211,8 +210,10 @@ class TxProcessor(QtCore.QObject):
                 for item in items:
                     data = item.data(0, QtCore.Qt.UserRole)
                     output_tx = get_output_tx_path(src_str, data['colorspace'], render_colorspace)
-                    if status[i] is not ai.AiTxPending and os.path.exists(output_tx):
-                        processed += 1
+                    if status[i] in (ai.AiTxUpdated, ai.AiTxUpdate_unneeded) and os.path.exists(output_tx):
+                        if src_str not in processed_images:
+                            processed += 1
+                            processed_images.append(src_str)
 
             # emit progress to the progress bar/dialog
             self.progress.emit(processed)
@@ -440,7 +441,7 @@ def build_texture_data(textures, expand=True):
 
 def get_output_tx_path(input_file, colorspace, render_colorspace):
 
-    txpath = str(ai.AiTextureGetTxFileName(input_file, colorspace, render_colorspace))
+    txpath = str(ai.AiTextureGetTxFileName(input_file, colorspace, render_colorspace, None))
     return txpath
 
 
