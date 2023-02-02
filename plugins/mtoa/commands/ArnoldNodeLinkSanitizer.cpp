@@ -137,6 +137,7 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
 #endif
     m_parameters.clear();
     int output_component = -1;
+    int output_component2 = -1;
 
     AtNodeIterator* it = AiUniverseGetNodeIterator(m_universe, AI_NODE_SHADER);
     while (!AiNodeIteratorFinished(it))
@@ -151,11 +152,32 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
             string param_name(AiParamGetName(param_entry));
             AtNode* input_node = AiNodeGetLink(node, param_name.c_str(), &output_component);
 
-	    if (input_node)
-	    {
-	      AtString input_node_name = AiNodeGetStr(input_node, str::name);
-	      AiMsgWarning("DEBUG: %s %s", param_name.c_str(), input_node_name.c_str());
-	    }
+            if (input_node)
+            {
+               AtString input_node_name = AiNodeGetStr(input_node, str::name);
+               AiMsgWarning("DEBUG: %s %s", param_name.c_str(), input_node_name.c_str());
+            } else {
+               uint8_t param_type = AiParamGetType(param_entry);
+               if (param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA)
+               {
+                  for (int comp_idx = 0; comp_idx < 4; comp_idx++)
+                  {
+                     AtNode* input_node2 = AiNodeGetLink(node,
+                                                         (param_name + "." +
+                                                          string(m_rgba_from_int[comp_idx].c_str())).c_str(),
+                                                         &output_component2);
+                     if (input_node2)
+                     {
+                        AtString input_node_name2 = AiNodeGetStr(input_node2, str::name);
+                        AiMsgWarning("DEBUG: %s.%s %s.%s",
+                                     param_name.c_str(),
+                                     m_rgba_from_int[comp_idx].c_str(),
+                                     input_node_name2.c_str(),
+                                     m_rgba_from_int[output_component2].c_str());
+                     }
+                  }
+               }
+            }
             if (!input_node || AiParamGetType(param_entry) != AI_TYPE_FLOAT )
             {
                 continue;
