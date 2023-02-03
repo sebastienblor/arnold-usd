@@ -149,6 +149,7 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
         while (!AiParamIteratorFinished(param_it))
         {
             const AtParamEntry* param_entry = AiParamIteratorGetNext(param_it);
+            uint8_t param_type = AiParamGetType(param_entry);
             string param_name(AiParamGetName(param_entry));
             AtNode* input_node = AiNodeGetLink(node, param_name.c_str(), &output_component);
 
@@ -156,10 +157,13 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
             {
                AtString input_node_name = AiNodeGetStr(input_node, str::name);
                AiMsgWarning("DEBUG: %s %s", param_name.c_str(), input_node_name.c_str());
+               if (!(param_type == AI_TYPE_FLOAT || param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA)) {
+                  continue;
+               }
             } else {
-               uint8_t param_type = AiParamGetType(param_entry);
                if (param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA)
                {
+                  int connection_count = 0;
                   for (int comp_idx = 0; comp_idx < 4; comp_idx++)
                   {
                      AtNode* input_node2 = AiNodeGetLink(node,
@@ -174,20 +178,26 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
                                      m_rgba_from_int[comp_idx].c_str(),
                                      input_node_name2.c_str(),
                                      m_rgba_from_int[output_component2].c_str());
+                        connection_count++;
                      }
                   }
+                  if (connection_count == 0)
+                  {
+                     continue;
+                  }
+               } else {
+                  continue;
                }
             }
-            if (!input_node || AiParamGetType(param_entry) != AI_TYPE_FLOAT )
-            {
-                continue;
-            }
+            // if (!input_node || AiParamGetType(param_entry) != AI_TYPE_FLOAT )
+            // {
+            //     continue;
+            // }
             // we have an input component toward node.param_name
 #if LOG_ME
             string node_name(AiNodeGetName(node));
             fprintf(stderr, "%s: %s.%s is linked by %s (component = %d)\n", __func__, node_name.c_str(), param_name.c_str(), AiNodeGetName(input_node), output_component);
 #endif
-            uint8_t param_type = AiParamGetType(param_entry);
             int param_nb_components = GetTypeNbComponents(param_type);
             Parameter p = { node, param_name, param_type, param_nb_components }; // all info about THIS parameter (not the one linked by this)
             m_parameters.push_back(p);
