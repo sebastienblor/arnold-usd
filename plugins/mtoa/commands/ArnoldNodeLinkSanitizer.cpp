@@ -250,6 +250,8 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
             if (input_node_nb_components < 3 || input_node_nb_components > 4) // no vec2
                 continue;
 
+            if (p.m_param_type == input_node_entry_type)
+                continue;
             adapter = CreateNode(input_node_nb_components == 3 ? AtString("rgb_to_float") : AtString("rgba_to_float")); // rgb_to_float or rgba_to_float
             if (output_component == -1)
             {
