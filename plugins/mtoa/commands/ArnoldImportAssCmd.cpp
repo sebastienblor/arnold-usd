@@ -114,8 +114,10 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, const MString con
          MString attr = MString(targetMayaNode.c_str()) + MString(".") + MString(s_outAttrs[ind]);
          MString cmd = MString("objExists ") + attr;
          MGlobal::executeCommand(cmd, exists);
-         if (exists)
+         if (exists) {
             fullTargetAttr = attr;
+            break;
+         }
          ind++;
       }
    }
