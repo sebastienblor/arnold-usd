@@ -431,6 +431,30 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                   const std::string output_component = getComponentName(AiNodeEntryGetOutputType(node_entry), output_comp);
                   connected_attr += MString(".")+ MString(output_component.c_str());
                }
+            } else {
+               auto param_type = AiParamGetType(paramEntry);
+               switch (param_type)
+               {
+               case AI_TYPE_RGB:
+               case AI_TYPE_RGBA:
+                  int output_param2, output_comp2;
+                  for (int component_idx = 0; component_idx < 3; component_idx++)
+                  {
+                     const std::string output_component = getComponentName(param_type, component_idx);
+                     string param_comp = string(paramName.c_str()) + "." + string(output_component.c_str());
+                     AtNode* connected_node2 = AiNodeGetLinkOutput(node, param_comp.c_str(), output_param2, output_comp2);
+                     if (connected_node2) {
+                        AiMsgWarning("DEBUG: %s.%s", paramName.c_str(), output_component.c_str());
+                        const char* cp1 = mayaFullAttr.asChar();
+                        const char* cp2 = connected_attr.asChar();
+                        AiMsgWarning("DEBUG: %s, %s", cp1, cp2);
+                        AiMsgWarning("DEBUG: %p %s %d %d", connected_node2, param_comp.c_str(), output_param2, output_comp2);
+                     }
+                  }
+                  break;
+               default:
+                  break;
+               }
             }
             ConnectMayaFromArnold(mayaFullAttr, connected_attr , connected_node, arnoldToMayaNames);
          } else

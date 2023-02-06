@@ -155,8 +155,6 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
 
             if (input_node)
             {
-               AtString input_node_name = AiNodeGetStr(input_node, str::name);
-               AiMsgWarning("DEBUG: %s %s", param_name.c_str(), input_node_name.c_str());
                if (!(param_type == AI_TYPE_FLOAT || param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA)) {
                   continue;
                }
@@ -172,12 +170,6 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
                                                          &output_component2);
                      if (input_node2)
                      {
-                        AtString input_node_name2 = AiNodeGetStr(input_node2, str::name);
-                        AiMsgWarning("DEBUG: %s.%s %s.%s",
-                                     param_name.c_str(),
-                                     m_rgba_from_int[comp_idx].c_str(),
-                                     input_node_name2.c_str(),
-                                     m_rgba_from_int[output_component2].c_str());
                         connection_count++;
                      }
                   }
