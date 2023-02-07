@@ -161,6 +161,46 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr,
       }
       if (useComps)
          connectCmd = MString("connectAttr -f ") + fullTargetAttr + comp1 + MString(" ") + mayaFullAttr + comp2;
+   } else if (index2 != -1) {
+      bool useComps = true;
+      MString comp1;
+      MString comp2;
+      switch (index2) {
+      case 0:
+        comp2 = MString("R");
+        break;
+      case 1:
+        comp2 = MString("G");
+        break;
+      case 2:
+        comp2 = MString("B");
+        break;
+      default:
+        useComps = false;
+        break;
+      }
+      if (useComps)
+         connectCmd = MString("connectAttr -f ") + fullTargetAttr + comp2 + MString(" ") + mayaFullAttr + comp1;
+   } else if (index1 != -1) {
+      bool useComps = true;
+      MString comp1;
+      MString comp2;
+      switch (index1) {
+      case 0:
+        comp1 = MString("R");
+        break;
+      case 1:
+        comp1 = MString("G");
+        break;
+      case 2:
+        comp1 = MString("B");
+        break;
+      default:
+        useComps = false;
+        break;
+      }
+      if (useComps)
+         connectCmd = MString("connectAttr -f ") + fullTargetAttr + comp2 + MString(" ") + mayaFullAttr + comp1;
    }
    MGlobal::displayInfo(connectCmd);
    MGlobal::executeCommand(connectCmd);
@@ -459,6 +499,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
             int output_param, output_comp;
             AtNode* connected_node = AiNodeGetLinkOutput(node, paramName, output_param, output_comp);
             MString connected_attr;
+            bool doConnectCall = true;
             if (output_param >= 0)
             {
                auto node_entry = AiNodeGetNodeEntry(connected_node) ;
@@ -475,6 +516,10 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                auto param_type = AiParamGetType(paramEntry);
                switch (param_type)
                {
+               case AI_TYPE_FLOAT:
+                  ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node, arnoldToMayaNames, -1, output_comp);
+                  doConnectCall = false;
+                  break;
                case AI_TYPE_RGB:
                case AI_TYPE_RGBA:
                   int output_param2, output_comp2;
@@ -485,7 +530,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                      AtNode* connected_node2 = AiNodeGetLinkOutput(node, param_comp.c_str(), output_param2, output_comp2);
                      if (connected_node2) {
                         // use additional arguments for connection indices
-                        ConnectMayaFromArnold(mayaFullAttr, connected_attr , connected_node2, arnoldToMayaNames, component_idx, output_comp2);
+                        ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node2, arnoldToMayaNames, component_idx, output_comp2);
                      }
                   }
                   break;
@@ -493,7 +538,8 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                   break;
                }
             }
-            ConnectMayaFromArnold(mayaFullAttr, connected_attr , connected_node, arnoldToMayaNames);
+            if (doConnectCall)
+               ConnectMayaFromArnold(mayaFullAttr, connected_attr , connected_node, arnoldToMayaNames);
          } else
          {
             bool setAttrValue = true;
