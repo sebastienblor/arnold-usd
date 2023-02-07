@@ -88,7 +88,12 @@ MSyntax CArnoldImportAssCmd::newSyntax()
 
 static const char* s_outAttrs[] = {"outColor", "outValue", "out", "message", NULL};
 
-static bool ConnectMayaFromArnold(const MString &mayaFullAttr, const MString connected_output, AtNode *target, const unordered_map<std::string, std::string> &arnoldToMayaNames)
+static bool ConnectMayaFromArnold(const MString &mayaFullAttr,
+                                  const MString connected_output,
+                                  AtNode *target,
+                                  const unordered_map<std::string, std::string> &arnoldToMayaNames,
+                                  int index1 = -1,
+                                  int index2 = -1)
 {
    if (target == NULL)
       return false; // shit happens...
@@ -122,6 +127,41 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr, const MString con
       }
    }
    MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + MString(" ") + mayaFullAttr;
+   if (index1 != -1 && index2 != -1) {
+      bool useComps = true;
+      MString comp1;
+      switch (index1) {
+      case 0:
+        comp1 = MString("R");
+        break;
+      case 1:
+        comp1 = MString("G");
+        break;
+      case 2:
+        comp1 = MString("B");
+        break;
+      default:
+        useComps = false;
+        break;
+      }
+      MString comp2;
+      switch (index2) {
+      case 0:
+        comp2 = MString("R");
+        break;
+      case 1:
+        comp2 = MString("G");
+        break;
+      case 2:
+        comp2 = MString("B");
+        break;
+      default:
+        useComps = false;
+        break;
+      }
+      if (useComps)
+         connectCmd = MString("connectAttr -f ") + fullTargetAttr + comp1 + MString(" ") + mayaFullAttr + comp2;
+   }
    MGlobal::displayInfo(connectCmd);
    MGlobal::executeCommand(connectCmd);
    return true;
@@ -444,11 +484,8 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                      string param_comp = string(paramName.c_str()) + "." + string(output_component.c_str());
                      AtNode* connected_node2 = AiNodeGetLinkOutput(node, param_comp.c_str(), output_param2, output_comp2);
                      if (connected_node2) {
-                        AiMsgWarning("DEBUG: %s.%s", paramName.c_str(), output_component.c_str());
-                        const char* cp1 = mayaFullAttr.asChar();
-                        const char* cp2 = connected_attr.asChar();
-                        AiMsgWarning("DEBUG: %s, %s", cp1, cp2);
-                        AiMsgWarning("DEBUG: %p %s %d %d", connected_node2, param_comp.c_str(), output_param2, output_comp2);
+                        // use additional arguments for connection indices
+                        ConnectMayaFromArnold(mayaFullAttr, connected_attr , connected_node2, arnoldToMayaNames, component_idx, output_comp2);
                      }
                   }
                   break;
