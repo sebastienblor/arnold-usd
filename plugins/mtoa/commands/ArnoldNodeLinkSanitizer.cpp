@@ -155,7 +155,9 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
 
             if (input_node)
             {
-               if (!(param_type == AI_TYPE_FLOAT || param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA)) {
+               if (!(param_type == AI_TYPE_FLOAT ||
+		     param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA ||
+		     param_type == AI_TYPE_VECTOR || param_type == AI_TYPE_VECTOR2)) {
                   continue;
                }
             } else {
@@ -167,6 +169,24 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
                      AtNode* input_node2 = AiNodeGetLink(node,
                                                          (param_name + "." +
                                                           string(m_rgba_from_int[comp_idx].c_str())).c_str(),
+                                                         &output_component2);
+                     if (input_node2)
+                     {
+                        connection_count++;
+                     }
+                  }
+                  if (connection_count == 0)
+                  {
+                     continue;
+                  }
+               } else if (param_type == AI_TYPE_VECTOR || param_type == AI_TYPE_VECTOR2)
+               {
+                  int connection_count = 0;
+                  for (int comp_idx = 0; comp_idx < 3; comp_idx++)
+                  {
+                     AtNode* input_node2 = AiNodeGetLink(node,
+                                                         (param_name + "." +
+                                                          string(m_xyz_from_int[comp_idx].c_str())).c_str(),
                                                          &output_component2);
                      if (input_node2)
                      {

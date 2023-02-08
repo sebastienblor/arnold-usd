@@ -45,4 +45,5 @@ private:
     void    GetParameterValue(AtNode* in_node, string in_param_name, float* out_value);
 
     const AtString m_rgba_from_int[4] = { AtString("r"), AtString("g"), AtString("b"), AtString("a") };
+    const AtString m_xyz_from_int[4] = { AtString("x"), AtString("y"), AtString("z") };
 };
