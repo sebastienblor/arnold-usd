@@ -92,8 +92,8 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr,
                                   const MString connected_output,
                                   AtNode *target,
                                   const unordered_map<std::string, std::string> &arnoldToMayaNames,
-                                  int paramIndex = -1,
-                                  int targetIndex = -1)
+                                  MString paramComp = MString(""),
+                                  MString targetComp = MString(""))
 {
    if (target == NULL)
       return false; // shit happens...
@@ -128,204 +128,7 @@ static bool ConnectMayaFromArnold(const MString &mayaFullAttr,
          ind++;
       }
    }
-   MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + MString(" ") + mayaFullAttr;
-   if (paramIndex != -1 && targetIndex != -1) {
-      bool useComps = true;
-      MString paramComp;
-      MString cmd;
-      int exists = 0;
-      MStringArray paramParts;
-      mayaFullAttr.split('.', paramParts);
-      MString paramMayaNode = paramParts[0];
-      MString paramOutAttr = paramParts[1];
-      switch (paramIndex) {
-      case 0:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                paramOutAttr + MString("R ") +
-                paramMayaNode);
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            paramComp = MString("R");
-         } else {
-            paramComp = MString("X");
-         }
-        break;
-      case 1:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                paramOutAttr + MString("G ") +
-                paramMayaNode);
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            paramComp = MString("G");
-         } else {
-            paramComp = MString("Y");
-         }
-        break;
-      case 2:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                paramOutAttr + MString("B ") +
-                paramMayaNode);
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            paramComp = MString("B");
-         } else {
-            paramComp = MString("Z");
-         }
-        break;
-      default:
-        useComps = false;
-        break;
-      }
-      MString targetComp;
-      switch (targetIndex) {
-      case 0:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                targetOutAttr + MString("R ") +
-                MString(targetMayaNode.c_str()));
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            targetComp = MString("R");
-         } else {
-            targetComp = MString("X");
-         }
-        break;
-      case 1:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                targetOutAttr + MString("G ") +
-                MString(targetMayaNode.c_str()));
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            targetComp = MString("G");
-         } else {
-            targetComp = MString("Y");
-         }
-        break;
-      case 2:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                targetOutAttr + MString("B ") +
-                MString(targetMayaNode.c_str()));
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            targetComp = MString("B");
-         } else {
-            targetComp = MString("Z");
-         }
-        break;
-      default:
-        useComps = false;
-        break;
-      }
-      if (useComps)
-         connectCmd = MString("connectAttr -f ") + fullTargetAttr + targetComp + MString(" ") + mayaFullAttr + paramComp;
-   } else if (targetIndex != -1) {
-      bool useComps = true;
-      MString paramComp;
-      MString targetComp;
-      MString cmd;
-      int exists = 0;
-      switch (targetIndex) {
-      case 0:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                targetOutAttr + MString("R ") +
-                MString(targetMayaNode.c_str()));
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            targetComp = MString("R");
-         } else {
-            targetComp = MString("X");
-         }
-        break;
-      case 1:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                targetOutAttr + MString("G ") +
-                MString(targetMayaNode.c_str()));
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            targetComp = MString("G");
-         } else {
-            targetComp = MString("Y");
-         }
-        break;
-      case 2:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                targetOutAttr + MString("B ") +
-                MString(targetMayaNode.c_str()));
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            targetComp = MString("B");
-         } else {
-            targetComp = MString("Z");
-         }
-        break;
-      default:
-        useComps = false;
-        break;
-      }
-      if (useComps)
-         connectCmd = MString("connectAttr -f ") + fullTargetAttr + targetComp + MString(" ") + mayaFullAttr + paramComp;
-   } else if (paramIndex != -1) {
-      bool useComps = true;
-      MString paramComp;
-      MString targetComp;
-      MString cmd;
-      int exists = 0;
-      MStringArray paramParts;
-      mayaFullAttr.split('.', paramParts);
-      MString paramMayaNode = paramParts[0];
-      MString paramOutAttr = paramParts[1];
-      switch (paramIndex) {
-      case 0:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                paramOutAttr + MString("R ") +
-                paramMayaNode);
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            paramComp = MString("R");
-         } else {
-            paramComp = MString("X");
-         }
-        break;
-      case 1:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                paramOutAttr + MString("G ") +
-                paramMayaNode);
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            paramComp = MString("G");
-         } else {
-            paramComp = MString("Y");
-         }
-        break;
-      case 2:
-         exists = 0;
-         cmd = (MString("attributeExists ") +
-                paramOutAttr + MString("B ") +
-                paramMayaNode);
-         MGlobal::executeCommand(cmd, exists);
-         if (exists) {
-            paramComp = MString("B");
-         } else {
-            paramComp = MString("Z");
-         }
-        break;
-      default:
-        useComps = false;
-        break;
-      }
-      if (useComps)
-         connectCmd = MString("connectAttr -f ") + fullTargetAttr + targetComp + MString(" ") + mayaFullAttr + paramComp;
-   }
+   MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + targetComp + MString(" ") + mayaFullAttr + paramComp;
    MGlobal::displayInfo(connectCmd);
    MGlobal::executeCommand(connectCmd);
    return true;
@@ -638,11 +441,28 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                }
             } else {
                auto param_type = AiParamGetType(paramEntry);
-	       int output_param2, output_comp2;
+               auto param_type2 = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(connected_node));
+               int output_param2, output_comp2;
+               MString paramComp = MString("");
+               MString targetComp = MString("");
                switch (param_type)
                {
                case AI_TYPE_FLOAT:
-                  ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node, arnoldToMayaNames, -1, output_comp);
+                  // use additional arguments for connection strings
+                  switch (param_type2)
+                  {
+                  case AI_TYPE_RGB:
+                  case AI_TYPE_RGBA:
+                     targetComp = (output_comp >= 0 && output_comp < 3) ? rgbComp[output_comp] : MString("");
+                     break;
+                  case AI_TYPE_VECTOR:
+                  case AI_TYPE_VECTOR2:
+                     targetComp = (output_comp >= 0 && output_comp < 3) ? vectorComp[output_comp] : MString("");
+                     break;
+                  default:
+                     break;
+                  }
+                  ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node, arnoldToMayaNames, paramComp, targetComp);
                   doConnectCall = false;
                   break;
                case AI_TYPE_RGB:
@@ -653,8 +473,23 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                      string param_comp = string(paramName.c_str()) + "." + string(output_component.c_str());
                      AtNode* connected_node2 = AiNodeGetLinkOutput(node, param_comp.c_str(), output_param2, output_comp2);
                      if (connected_node2) {
-                        // use additional arguments for connection indices
-                        ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node2, arnoldToMayaNames, component_idx, output_comp2);
+                        // use additional arguments for connection strings
+                        paramComp = (component_idx >= 0 && component_idx < 3) ? rgbComp[component_idx] : MString("");
+                        param_type2 = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(connected_node2));
+                        switch (param_type2)
+                        {
+                        case AI_TYPE_RGB:
+                        case AI_TYPE_RGBA:
+                           targetComp = (output_comp2 >= 0 && output_comp2 < 3) ? rgbComp[output_comp2] : MString("");
+                           break;
+                        case AI_TYPE_VECTOR:
+                        case AI_TYPE_VECTOR2:
+                           targetComp = (output_comp2 >= 0 && output_comp2 < 3) ? vectorComp[output_comp2] : MString("");
+                           break;
+                        default:
+                           break;
+                        }
+                        ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node2, arnoldToMayaNames, paramComp, targetComp);
                      }
                   }
                   break;
@@ -666,8 +501,23 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                      string param_comp = string(paramName.c_str()) + "." + string(output_component.c_str());
                      AtNode* connected_node2 = AiNodeGetLinkOutput(node, param_comp.c_str(), output_param2, output_comp2);
                      if (connected_node2) {
-                        // use additional arguments for connection indices
-                        ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node2, arnoldToMayaNames, component_idx, output_comp2);
+                        // use additional arguments for connection strings
+                        paramComp = (component_idx >= 0 && component_idx < 3) ? vectorComp[component_idx] : MString("");
+                        param_type2 = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(connected_node2));
+                        switch (param_type2)
+                        {
+                        case AI_TYPE_RGB:
+                        case AI_TYPE_RGBA:
+                           targetComp = (output_comp2 >= 0 && output_comp2 < 3) ? rgbComp[output_comp2] : MString("");
+                           break;
+                        case AI_TYPE_VECTOR:
+                        case AI_TYPE_VECTOR2:
+                           targetComp = (output_comp2 >= 0 && output_comp2 < 3) ? vectorComp[output_comp2] : MString("");
+                           break;
+                        default:
+                           break;
+                        }
+                        ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node2, arnoldToMayaNames, paramComp, targetComp);
                      }
                   }
                   break;

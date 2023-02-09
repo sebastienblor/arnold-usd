@@ -6,8 +6,17 @@
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MDagPath.h>
 #include <maya/MDagPathArray.h>
+#include <maya/MStringArray.h>
 
 #include <ai_universe.h>
+
+namespace // <anonymous>
+{
+const char* rgbComp[3] = {"R", "G", "B"};
+const MStringArray RGB_COMPONENTS(rgbComp, 3);
+const char* vectorComp[3] = {"X", "Y", "Z"};
+const MStringArray VECTOR_COMPONENTS(vectorComp, 3);
+}
 
 class CArnoldImportAssCmd
    :   public MPxCommand
