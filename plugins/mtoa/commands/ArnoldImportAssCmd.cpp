@@ -638,6 +638,7 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                }
             } else {
                auto param_type = AiParamGetType(paramEntry);
+	       int output_param2, output_comp2;
                switch (param_type)
                {
                case AI_TYPE_FLOAT:
@@ -646,7 +647,19 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
                   break;
                case AI_TYPE_RGB:
                case AI_TYPE_RGBA:
-                  int output_param2, output_comp2;
+                  for (int component_idx = 0; component_idx < 3; component_idx++)
+                  {
+                     const std::string output_component = getComponentName(param_type, component_idx);
+                     string param_comp = string(paramName.c_str()) + "." + string(output_component.c_str());
+                     AtNode* connected_node2 = AiNodeGetLinkOutput(node, param_comp.c_str(), output_param2, output_comp2);
+                     if (connected_node2) {
+                        // use additional arguments for connection indices
+                        ConnectMayaFromArnold(mayaFullAttr, connected_attr, connected_node2, arnoldToMayaNames, component_idx, output_comp2);
+                     }
+                  }
+                  break;
+               case AI_TYPE_VECTOR:
+               case AI_TYPE_VECTOR2:
                   for (int component_idx = 0; component_idx < 3; component_idx++)
                   {
                      const std::string output_component = getComponentName(param_type, component_idx);
