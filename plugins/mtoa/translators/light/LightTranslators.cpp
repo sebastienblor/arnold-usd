@@ -170,7 +170,10 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    // quad light attributes
-   helper.MakeInput("shadow_color");
+   if (context.maya == MString("aiAreaLight"))
+   {
+      helper.MakeInput("shadow_color");
+   }
    helper.MakeInput("resolution");
    helper.MakeInput("spread");
    helper.MakeInput("roundness");
