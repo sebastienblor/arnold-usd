@@ -137,6 +137,7 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
 #endif
     m_parameters.clear();
     int output_component = -1;
+    int output_component2 = -1;
 
     AtNodeIterator* it = AiUniverseGetNodeIterator(m_universe, AI_NODE_SHADER);
     while (!AiNodeIteratorFinished(it))
@@ -148,19 +149,67 @@ bool CShaderLinkSanitizer::FindShadersWithOutputComponents()
         while (!AiParamIteratorFinished(param_it))
         {
             const AtParamEntry* param_entry = AiParamIteratorGetNext(param_it);
+            uint8_t param_type = AiParamGetType(param_entry);
             string param_name(AiParamGetName(param_entry));
             AtNode* input_node = AiNodeGetLink(node, param_name.c_str(), &output_component);
 
-            if (!input_node || AiParamGetType(param_entry) != AI_TYPE_FLOAT )
+            if (input_node)
             {
-                continue;
+               if (!(param_type == AI_TYPE_FLOAT ||
+		     param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA ||
+		     param_type == AI_TYPE_VECTOR || param_type == AI_TYPE_VECTOR2)) {
+                  continue;
+               }
+            } else {
+               if (param_type == AI_TYPE_RGB || param_type == AI_TYPE_RGBA)
+               {
+                  int connection_count = 0;
+                  for (int comp_idx = 0; comp_idx < 4; comp_idx++)
+                  {
+                     AtNode* input_node2 = AiNodeGetLink(node,
+                                                         (param_name + "." +
+                                                          string(m_rgba_from_int[comp_idx].c_str())).c_str(),
+                                                         &output_component2);
+                     if (input_node2)
+                     {
+                        connection_count++;
+                     }
+                  }
+                  if (connection_count == 0)
+                  {
+                     continue;
+                  }
+               } else if (param_type == AI_TYPE_VECTOR || param_type == AI_TYPE_VECTOR2)
+               {
+                  int connection_count = 0;
+                  for (int comp_idx = 0; comp_idx < 3; comp_idx++)
+                  {
+                     AtNode* input_node2 = AiNodeGetLink(node,
+                                                         (param_name + "." +
+                                                          string(m_xyz_from_int[comp_idx].c_str())).c_str(),
+                                                         &output_component2);
+                     if (input_node2)
+                     {
+                        connection_count++;
+                     }
+                  }
+                  if (connection_count == 0)
+                  {
+                     continue;
+                  }
+               } else {
+                  continue;
+               }
             }
+            // if (!input_node || AiParamGetType(param_entry) != AI_TYPE_FLOAT )
+            // {
+            //     continue;
+            // }
             // we have an input component toward node.param_name
 #if LOG_ME
             string node_name(AiNodeGetName(node));
             fprintf(stderr, "%s: %s.%s is linked by %s (component = %d)\n", __func__, node_name.c_str(), param_name.c_str(), AiNodeGetName(input_node), output_component);
 #endif
-            uint8_t param_type = AiParamGetType(param_entry);
             int param_nb_components = GetTypeNbComponents(param_type);
             Parameter p = { node, param_name, param_type, param_nb_components }; // all info about THIS parameter (not the one linked by this)
             m_parameters.push_back(p);
@@ -213,6 +262,12 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
             if (input_node_nb_components < 3 || input_node_nb_components > 4) // no vec2
                 continue;
 
+            if (p.m_param_type == input_node_entry_type)
+                continue;
+            if (p.m_param_type == AI_TYPE_RGB && input_node_entry_type == AI_TYPE_RGBA)
+                continue;
+            if (p.m_param_type == AI_TYPE_FLOAT && (input_node_entry_type == AI_TYPE_RGB || input_node_entry_type == AI_TYPE_RGBA))
+                continue;
             adapter = CreateNode(input_node_nb_components == 3 ? AtString("rgb_to_float") : AtString("rgba_to_float")); // rgb_to_float or rgba_to_float
             if (output_component == -1)
             {
@@ -237,7 +292,7 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
     }
 }
 
-// Sanitize input componets Ex.:
+// Sanitize input components Ex.:
 // xxx   -> yyy.r ==> xxx->float_to_rgbx(r)->yyy
 // xxx.r -> yyy.r ==> xxx.r->float_to_rgbx(r)->yyy
 //
@@ -247,8 +302,8 @@ void CShaderLinkSanitizer::SanitizeInputComponents()
         FixShadersWithInputComponents();
 }
 
-// Sanitize output componets (ex. xxx.r -> yyy).
-// In order to work, input components must have been previously senitized,
+// Sanitize output components (ex. xxx.r -> yyy).
+// In order to work, input components must have been previously sanitized,
 // that is there is no connection such as xxx.r->yyy.r
 void CShaderLinkSanitizer::SanitizeOutputComponents()
 {
