@@ -738,7 +738,7 @@ void CRenderViewMtoA::RunPreRenderCallbacks()
       return;
 
    int numPreRenderCallbacks = m_preRenderCallbacks.length();
-   if (numPreRenderCallbacks && m_session->IsActive())
+   if (numPreRenderCallbacks)
    {
       MString melCmd = "";
       for (int i = 0;i < numPreRenderCallbacks;i++ )
