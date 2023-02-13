@@ -33,6 +33,7 @@
 #include <maya/MPlug.h>
 #include <maya/MPoint.h>
 #include <maya/MSelectInfo.h>
+#include <maya/MDistance.h>
 #include <maya/MDrawInfo.h>
 #include <maya/MDrawRequest.h>
 #include <maya/MDrawRequestQueue.h>
@@ -331,33 +332,6 @@ float convertToFloat(const char *number)
       return static_cast<float>(atof(number));
 }
 
-double CArnoldStandInShape::ConvertWorkingUnits(MDistance dist) {
-   double conversionScalar = 1.0f;
-   if (MDistance::uiUnit() != dist.unit()) {
-      switch (MDistance::uiUnit()) {
-         case MDistance::kInches:
-         conversionScalar = dist.asInches();
-         break;
-       case MDistance::kFeet:
-         conversionScalar = dist.asFeet();
-         break;
-         case MDistance::kYards:
-         conversionScalar = dist.asYards();
-         break;
-      case MDistance::kMillimeters:
-         conversionScalar = dist.asMillimeters();
-         break;
-      case MDistance::kCentimeters:
-         conversionScalar = dist.asCentimeters();
-         break;
-      case MDistance::kMeters:
-         conversionScalar = dist.asMeters();
-         break;
-      }
-   }
-   return conversionScalar;
-}
-
 bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInData* geom = GetStandinData();
@@ -379,26 +353,11 @@ bool CArnoldStandInShape::LoadBoundingBox()
       MStringArray boundsElems;
       if ((bounds.split(' ', boundsElems) == MS::kSuccess) && boundsElems.length() >= 6)
       {
-         // Check whether the scene unit conversion is needed so that the StandIn bounding box
-         // will reflect the size of the geometry. This is for cases where the measurement
-         // units in an .ass file is not the same as that of the measurement units set in Maya.
-         // (e.g. if the .ass file is generate from Houdini where 1 unit = 1m, and Maya
-         // is set to default 1 unit = 1cm). (MTOA-1035).
-         AtString metersPerUnitMetadata;
-         AiMetadataStoreGetStr(mds, str::meters_per_unit, &metersPerUnitMetadata);
-         double metersPerUnit = atof(metersPerUnitMetadata.c_str());
-         double conversionScalar = 1.0f;
-         static const std::vector<MDistance> unitsList{ MUNIT_INCHES, MUNIT_FEET, MUNIT_YARDS,
-            MUNIT_MILLIMETERS,  MUNIT_CENTIMETERS, MUNIT_METERS};
-         for (const MDistance &unit : unitsList)
-         {
-            if (metersPerUnit == unit.asMeters())
-            {
-               conversionScalar = ConvertWorkingUnits(unit);
-               break;
-            }
-         }
-
+         AtString metersPerUnitStr;
+         AiMetadataStoreGetStr(mds, str::meters_per_unit, &metersPerUnitStr);
+         double metersPerUnit = atof(metersPerUnitStr.c_str());
+         MDistance dist(1.0, MDistance::uiUnit());
+         double conversionScalar = (metersPerUnit)/dist.asMeters();
          double xmin = convertToFloat(boundsElems[0].asChar()) * conversionScalar;
          double ymin = convertToFloat(boundsElems[1].asChar()) * conversionScalar;
          double zmin = convertToFloat(boundsElems[2].asChar()) * conversionScalar;

@@ -16,15 +16,6 @@
 #include <vector>
 #include <map>
 
-// Measurement Unit Systems
-const MDistance MUNIT_INCHES(1.0f, MDistance::kInches);
-const MDistance MUNIT_FEET(1.0f, MDistance::kFeet);
-const MDistance MUNIT_YARDS(1.0f, MDistance::kYards);
-const MDistance MUNIT_MILES(1.0f, MDistance::kMiles);
-const MDistance MUNIT_MILLIMETERS(1.0f, MDistance::kMillimeters);
-const MDistance MUNIT_CENTIMETERS(1.0f, MDistance::kCentimeters);
-const MDistance MUNIT_METERS(1.0f, MDistance::kMeters);
-
 // Geometry class
 class CArnoldStandInData : public CArnoldProceduralData
 {
@@ -77,7 +68,6 @@ public:
 
 private:
    CArnoldStandInData *GetStandinData();
-   double ConvertWorkingUnits(MDistance dist);
 
    // Attributes
    static CStaticAttrHelper s_attributes;

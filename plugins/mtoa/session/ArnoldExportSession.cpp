@@ -76,11 +76,10 @@ AtBBox CArnoldExportSession::GetBoundingBox()
 
       globalBox.expand(box);
    }
+
    AtVector boxmin((float)globalBox.min()[0], (float)globalBox.min()[1], (float)globalBox.min()[2]);
    AtVector boxmax((float)globalBox.max()[0], (float)globalBox.max()[1], (float)globalBox.max()[2]);
    return AtBBox(boxmin, boxmax);
-   
-   return AI_BBOX_ZERO;
 }
 
 MString CArnoldExportSession::GetExportFilename(const MString& customName,
@@ -200,8 +199,6 @@ void CArnoldExportSession::WriteScene(MString customFileName, const bool compres
       MGlobal::executePythonCommand("import getpass; getpass.getuser();", currentUser);
       if (currentUser.length() > 0)
          AiMetadataStoreSetStr(mds, str::user, AtString(currentUser.asChar()));
-
-
 
       MString sceneFileName;
       MGlobal::executeCommand("file -q -sn", sceneFileName);
