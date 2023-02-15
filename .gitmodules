@@ -1,3 +1,6 @@
 [submodule "external/arnold-usd"]
 	path = external/arnold-usd
 	url = https://github.com/Autodesk/arnold-usd.git
+[submodule "external/arnold-renderview"]
+	path = external/arnold-renderview
+	url = git@git.autodesk.com:arnold/arnold-renderview.git
