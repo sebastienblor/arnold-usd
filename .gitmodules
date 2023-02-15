@@ -3,4 +3,4 @@
 	url = https://github.com/Autodesk/arnold-usd.git
 [submodule "external/arnold-renderview"]
 	path = external/arnold-renderview
-	url = git@git.autodesk.com:arnold/arnold-renderview.git
+	url = https://git.autodesk.com/arnold/arnold-renderview.git
