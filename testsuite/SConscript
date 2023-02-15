@@ -37,14 +37,15 @@ TOTAL_RUNNING_TIME = 0
 
 ## define some variables in use by multiple tests
 root_path        = env.Dir('#').abspath
-kick_path        = env['ARNOLD_BINARIES']
+bin_path        = env['ARNOLD_BINARIES']
 
-if '$ARNOLD_PATH' in kick_path:
-   kick_path = kick_path.replace('$ARNOLD_PATH', env['ARNOLD_PATH'])
+if '$ARNOLD_PATH' in bin_path:
+   bin_path = bin_path.replace('$ARNOLD_PATH', env['ARNOLD_PATH'])
    
 
-oiiotool_path = os.path.join(env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', os_name, 'oiiotool')
-maketx_path      = os.path.join(root_path, 'contrib', 'OpenImageIO', 'bin', sa.system.os, 'maketx')
+# oiiotool and maketx are in the same bin folder as kick
+oiiotool_path = os.path.join(bin_path, 'oiiotool')
+maketx_path      = os.path.join(bin_path, 'maketx')
 testsuite_common = os.path.abspath(os.path.join('testsuite', 'common'))
 move_command     = sa.system.is_windows and '$move /Y' or '$mv'
 lib_extension    = {'darwin' : '.so', 'linux'  : '.so', 'windows': '.dll'}.get(sa.system.os, None)
@@ -248,7 +249,7 @@ def run_test(target, source, env):
       tokens = cmd.split()
 
       if tokens[0] == 'kick':
-         cmd = os.path.join(kick_path, cmd)
+         cmd = os.path.join(bin_path, cmd)
          # Append additional parameters if given
          cmd += ' ' + test_env['KICK_PARAMS']
          cmd += ' -l ' + test_env['USD_PROCEDURAL_INSTALL_PATH']
