@@ -136,9 +136,8 @@ class Test:
       post_script = os.path.join(test_dir, 'post_script.py')
       if os.path.exists(post_script):
          bin_path = env['ARNOLD_BINARIES']
-
-         if '$ARNOLD_PATH' in bin_path:
-            bin_path = bin_path.replace('$ARNOLD_PATH', env['ARNOLD_PATH'])
+         if '$ARNOLD' in bin_path:
+            bin_path = bin_path.replace('$ARNOLD', env['ARNOLD'])
 
          oiiotool_path = os.path.join(bin_path, 'oiiotool')
          test_script += '\n'

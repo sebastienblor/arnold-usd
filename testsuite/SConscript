@@ -39,9 +39,8 @@ TOTAL_RUNNING_TIME = 0
 root_path        = env.Dir('#').abspath
 bin_path        = env['ARNOLD_BINARIES']
 
-if '$ARNOLD_PATH' in bin_path:
-   bin_path = bin_path.replace('$ARNOLD_PATH', env['ARNOLD_PATH'])
-   
+if '$ARNOLD' in bin_path:
+   bin_path = bin_path.replace('$ARNOLD', env['ARNOLD'])
 
 # oiiotool and maketx are in the same bin folder as kick
 oiiotool_path = os.path.join(bin_path, 'oiiotool')
