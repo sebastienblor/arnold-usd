@@ -20,8 +20,9 @@ from colorama import init
 init()
 from colorama import Fore, Back, Style
 
-# we don't have rv_env
+# we don't have rv_env (env comes from arnold-mtoa repo root SConstruct)
 Import('env')
+BUILD_BASE_DIR = env['BUILD_BASE_DIR']
 ###############################################################################
 # copied from external/arnold-renderview/SConstruct
 RENDERVIEW_VERSION = 0.1
@@ -551,7 +552,6 @@ env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
 BUILD_DIR = os.path.abspath(os.path.join(os.getcwd(), '..', 'build'))
 print('DEBUG: BUILD_DIR = %s' % BUILD_DIR)
 ## configure base directory for temp files
-BUILD_BASE_DIR = os.path.join(BUILD_DIR, '%s_%s' % (system.os(), env['TARGET_ARCH']), '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 print('DEBUG: BUILD_BASE_DIR = %s' % BUILD_BASE_DIR)
 
@@ -651,7 +651,7 @@ for include_file in include_files:
     print "moc %s" % include_file
     header_path = os.path.join(src_base_dir, include_file)
     basename = os.path.basename(header_path)
-    output_path = os.path.join(local_env2['ROOT_DIR'], local_env2["BUILD_BASE_DIR"], "generated", "moc_%s.cpp" % os.path.splitext(basename)[0])
+    output_path = os.path.join(local_env2['ROOT_DIR'], env["BUILD_BASE_DIR"], "generated", "moc_%s.cpp" % os.path.splitext(basename)[0])
 
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
@@ -667,7 +667,7 @@ for resource_file in resource_files:
     print "rcc %s" % resource_file
     qrc_path = os.path.join(icons_dir, resource_file)
     basename = os.path.basename(qrc_path)
-    output_path = os.path.join(local_env2['ROOT_DIR'], local_env2["BUILD_BASE_DIR"], "generated", "res_%s.cpp" % os.path.splitext(basename)[0])
+    output_path = os.path.join(local_env2['ROOT_DIR'], env["BUILD_BASE_DIR"], "generated", "res_%s.cpp" % os.path.splitext(basename)[0])
 
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
