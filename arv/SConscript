@@ -1,0 +1,702 @@
+# vim: filetype=python
+
+
+
+# first extend path
+import sys, os
+sys.path = ["../external/arnold-renderview/tools/python"] + sys.path
+# now we can import system
+import system
+# import * instead of only find_files_recursive, get_maya_version
+from build_tools import *
+from distutils import sysconfig
+
+# see external/arnold-renderview/SConstruct
+from solidangle_tools import *
+# see external/arnold-renderview/SConstruct
+import SCons
+# copy colorama stuff from external/arnold-renderview/SConstruct
+from colorama import init
+init()
+from colorama import Fore, Back, Style
+
+# we don't have rv_env
+Import('env')
+###############################################################################
+# copied from external/arnold-renderview/SConstruct
+RENDERVIEW_VERSION = 0.1
+
+################################################################################
+#   Operating System detection
+################################################################################
+
+# changed EXTERNAL_PATH
+EXTERNAL_PATH = os.path.abspath('../external/arnold-renderview/3rdparty')
+
+if system.os() == 'darwin':
+    ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
+    arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'lib', 'darwin', 'libGLEW.a')
+elif system.os() == 'linux':
+    ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
+    # linux conventions would be to actually use lib for dynamic libraries!
+    arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'lib', 'linux', 'libGLEW.a')
+
+elif system.os() == 'windows':
+    ALLOWED_COMPILERS = ('msvc', 'icc')
+    arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'lib', 'windows', 'glew32s.lib')
+else:
+    print "Unknown operating system: %s" % system.os()
+    Exit(1)
+
+glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-2.0.0', 'include')
+
+def StringVariable(key, help, default):
+    # We always get string values, so it's always valid and trivial to convert
+    return (key, help, default, lambda k, v, e: True, lambda s: s)
+
+################################################################################
+#   Build system options
+################################################################################
+
+# changed path to custom.py
+vars = Variables(os.path.join('..', 'custom.py'))
+vars.AddVariables(
+    ## basic options
+    StringVariable('TARGET_ARCH', 'Target Architecture', 'x86_64'),
+    EnumVariable('MODE'       , 'Set compiler configuration', 'debug'             , allowed_values=('opt', 'debug', 'profile')),
+    EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'warn-only'            , allowed_values=('strict', 'warn-only', 'none')),
+    EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
+    ('COMPILER_VERSION'       , 'Version of compiler to use', ''),
+    BoolVariable('MULTIPROCESS','Enable multiprocessing in the testsuite', True),
+    BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
+    PathVariable('LINK', 'Linker to use', None),
+    PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
+    PathVariable('SHCXX', 'Path to C++ (gcc) compiler used for generating shared-library objects', None),
+    ('FTP'            , 'Path of the FTP to upload the package'        , ''),
+    ('FTP_SUBDIR'     , 'Subdirectory on the FTP to place the package' , ''),
+    ('FTP_USER'       , 'Username for the FTP'                         , ''),
+    ('FTP_PASS'       , 'Password for the FTP'                         , ''),
+    ('PACKAGE_SUFFIX' , 'Suffix for the package names'                 , ''),
+                  
+    BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', True),
+    EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
+    BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
+    ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
+    ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
+    ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
+    BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
+    BoolVariable('RV_MAX', 'Special flag for 3dsMax customizations', False),
+    BoolVariable('RV_OCIO', 'Enable OCIO support in the RenderView', False),
+    BoolVariable('RV_SYNCOLOR', 'Enable SynColor support in the RenderView', True),
+    PathVariable('SYNCOLOR_LIB', 'Directory where SynColor lib is found', os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os())), 
+    PathVariable('SYNCOLOR_INCLUDE', 'Directory where SynColor includes are found', os.path.join(EXTERNAL_PATH, 'synColor', 'include')),
+    BoolVariable('RV_QT5', 'Compile against Qt 5', True),
+    StringVariable('QT_VERSION'       , 'Qt version to build against', '5.6.1'),
+    PathVariable('BOOST_INCLUDE', 'Directory where Boost Includes can be found', None),    
+    PathVariable('BUILD_DIR',
+                 'Directory where temporary build files are placed by scons', 
+                 'build', PathVariable.PathIsDirCreate),
+    
+    PathVariable('ARNOLD', 
+                 'Where to find Arnold installation', 
+                 get_default_path('ARNOLD_HOME', 'Arnold')),                   
+    PathVariable('ARNOLD_API_INCLUDES', 
+                 'Where to find Arnold API includes', 
+                 os.path.join('$ARNOLD', 'include'), PathVariable.PathIsDir),
+    PathVariable('ARNOLD_API_LIB', 
+                 'Where to find Arnold API static libraries', 
+                 arnold_default_api_lib, PathVariable.PathIsDir),
+    PathVariable('ARNOLD_BINARIES', 
+                 'Where to find Arnold API dynamic libraries and executables', 
+                 os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),
+    PathVariable('ARNOLD_PYTHON', 
+                 'Where to find Arnold python bindings', 
+                 os.path.join('$ARNOLD', 'python'), PathVariable.PathIsDir),  
+    PathVariable('GLEW_INCLUDES', 
+                 'Where to find GLEW includes', 
+                 glew_default_include, PathVariable.PathIsDir),
+    PathVariable('GLEW_LIB', 
+                 'Where to find -a static library', 
+                 glew_default_lib, PathVariable.PathIsFile),
+    PathVariable('TOOLS_PATH',
+                 'Where to find external tools required for sh',
+                 '.', PathVariable.PathIsDir),
+    PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
+                 '.', PathVariable.PathIsDir),
+    PathVariable('QT_INCLUDE_PATH', 
+                 'Where to find QT Include files', 
+                 '.'), 
+    PathVariable('QT_LIB_PATH', 
+                 'Where to find QT Lib files', 
+                 '.'),
+    PathVariable('QT_BIN_PATH', 
+                 'Where to find QT bin files', 
+                 '.'),
+    EnumVariable('MSVC_VERSION', 
+                 'Version of Visual Studio', 
+                 '11.0', allowed_values=('10.0', '11.0', '14.0', '14.1', '14.2')), 
+    PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
+    ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
+    BoolVariable('KICK_VIEW', 'Build Kick View ', False),
+    PathVariable('INSTALL_DIR', 
+                 'Path used for installation of the renderview lib ', 
+                 '.', PathVariable.PathIsDirCreate),
+)
+
+if system.os() == 'darwin':
+    vars.Add(StringVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', None))
+    vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
+    vars.Add(StringVariable('MACOS_VERSION_MIN', 'Target MacOS version', '10.11'))
+
+if system.os() == 'windows':
+    vars.Add(BoolVariable('USE_VISUAL_STUDIO_EXPRESS', 'Use the express version of visual studio. (UNSUPPORTED!)', False))
+    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
+    # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
+    tmp_env = Environment(variables = vars, tools=[])
+    TARGET_ARCH = tmp_env['TARGET_ARCH']
+    
+    tmp_env.Append(MSVC_ARCH = 'amd64')
+    
+    msvc_version = ""
+    
+    msvc_version = tmp_env['MSVC_VERSION']
+    if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
+        msvc_version += 'Exp'
+    tmp_env['MSVC_VERSION'] = msvc_version
+    #print tmp_env['MSVC_VERSION']
+    env = tmp_env.Clone(tools=['default'])
+    # restore as the Clone overrides it
+    env['TARGET_ARCH'] = TARGET_ARCH
+else:
+    env = Environment(variables = vars)
+
+
+env.Append(BUILDERS = {'MakeModule' : make_module})
+
+env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
+
+# Configure colored output
+color_green   = ''
+color_red     = ''
+color_bright  = ''
+color_bgreen  = ''
+color_bred    = ''
+color_reset   = ''
+if env['COLOR_CMDS']:
+    color_green   = Fore.GREEN
+    color_red     = Fore.RED
+    color_bright  = Style.BRIGHT
+    color_bgreen  = color_green + color_bright
+    color_bred    = color_red   + color_bright
+    color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
+
+#define shortcuts for the above paths, with substitution of environment variables
+
+env['EXTERNAL_PATH'] = EXTERNAL_PATH
+ARNOLD = env.subst(env['ARNOLD'])
+ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
+ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
+ARNOLD_BINARIES = env.subst(env['ARNOLD_BINARIES'])
+ARNOLD_PYTHON = env.subst(env['ARNOLD_PYTHON']) 
+PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
+QT_INCLUDE_PATH = env.subst(env['QT_INCLUDE_PATH'])
+QT_LIB_PATH = env.subst(env['QT_LIB_PATH'])
+QT_BIN_PATH = env.subst(env['QT_BIN_PATH'])
+
+QT_ROOT_PATH = os.path.join('3rdparty', 'Qt', env['QT_VERSION'])
+
+if QT_INCLUDE_PATH == '.':
+    QT_INCLUDE_PATH = os.path.abspath(os.path.join(QT_ROOT_PATH, 'include'))
+
+if QT_LIB_PATH == '.':
+    QT_LIB_PATH = os.path.abspath(os.path.join(QT_ROOT_PATH, 'lib', system.os()))
+
+if system.linux_distro_version >= 8:
+    QT_LIB_PATH += "-rh{}".format(system.linux_distro_version)
+
+if QT_BIN_PATH == '.':
+    QT_BIN_PATH = os.path.abspath(os.path.join(QT_ROOT_PATH, 'bin', system.os()))
+
+env['QT_LIB_PATH'] = QT_LIB_PATH
+env['QT_INCLUDE_PATH'] = QT_INCLUDE_PATH
+env['QT_BIN_PATH'] = QT_BIN_PATH
+
+SYNCOLOR_LIB = env.subst(env['SYNCOLOR_LIB'])
+SYNCOLOR_INCLUDE = env.subst(env['SYNCOLOR_INCLUDE'])
+
+env['ENV']['LD_LIBRARY_PATH'] = ARNOLD_BINARIES
+
+# Get arnold and maya versions used for this build
+arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
+
+# print build info
+print ''
+print 'Building       : ' + 'RENDERVIEW %s' % (RENDERVIEW_VERSION)
+print 'Arnold version : %s' % arnold_version
+print 'Arnold includes : %s' % ARNOLD_API_INCLUDES
+print 'Qt Includes    : %s' % QT_INCLUDE_PATH
+print 'Qt Libraries   : %s' % QT_LIB_PATH
+
+if env['RV_SYNCOLOR']:
+    print 'SynColor Includes    : %s' % SYNCOLOR_INCLUDE
+    print 'SynColor Libraries   : %s' % SYNCOLOR_LIB
+    
+print 'Mode           : %s' % (env['MODE'])
+print 'Host OS        : %s' % (system.os())
+
+if system.os() == 'linux':
+    try:
+        if env['SHCC'] != '' and env['SHCC'] != '$CC':
+            print 'Compiler       : %s'  % (env['SHCC'])
+        else:
+            p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
+            compiler_version, err = p.communicate()
+            print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
+    except:
+        pass
+elif system.os() == 'windows':
+    print 'MSVC version   : %s' % (env['MSVC_VERSION'])
+print 'SCons          : %s' % (SCons.__version__)
+print ''
+
+try:
+   import json
+except ImportError:
+   import simplejson as json
+
+try:
+    json_data = open('dependencies.json')
+    data = json.load(json_data)
+    if data['arnold'] != arnold_version:
+        print '''
+        You are building with arnold %s instead
+        of the officially supported version %s. 
+        You might encounter bugs, build errors 
+        or undefined behavior.
+        ''' % (arnold_version, data['arnold'])
+except:
+    pass
+
+################################
+## COMPILER OPTIONS
+################################
+
+## Generic Windows stuff476
+if system.os() == 'windows':
+    # Embed manifest in executables and dynamic libraries
+    env['LINKCOM'] = [env['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
+    env['SHLINKCOM'] = [env['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
+
+export_symbols = env['MODE'] in ['debug', 'profile']
+
+
+if env['COMPILER'] == 'gcc':
+    if system.os() == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
+        env['CC'] = env['SHCC']
+        env['CXX'] = env['SHCXX']
+    else:
+        compiler_version = env['COMPILER_VERSION']
+        if compiler_version != '':
+            env['CC']  = 'gcc' + compiler_version
+            env['CXX'] = 'g++' + compiler_version
+
+    if env['MODE'] == 'opt': 
+        env.Append(CPPDEFINES = Split('NDEBUG')) 
+
+    ## Hide all internal symbols (the ones without AI_API decoration)
+    env.Append(CCFLAGS = Split('-fvisibility=hidden'))
+    env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
+    env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+
+    env.Append(CCFLAGS = Split('-fPIC'))
+    env.Append(CXXFLAGS = Split('-fPIC'))
+    env.Append(LINKFLAGS = Split('-fPIC'))
+
+    env.Append(LINKFLAGS = Split('-Wl,-v'))
+    
+    ## Hardcode '.' directory in RPATH in linux
+    if system.os() == 'linux':
+        env.Append(LINKFLAGS = Split('-z origin') )
+        env.Append(LINKFLAGS = Split('-Wl,--version-script=src/renderview.map '))
+    elif system.os() == 'darwin' and env['MODE'] != 'debug':
+        env.Append(LINKFLAGS = Split('-Xlinker -S -Xlinker -x ' + '-Xlinker -exported_symbol -Xlinker "*CRenderViewInterface*"'))
+
+    ## warning level
+    if env['WARN_LEVEL'] == 'none':
+        env.Append(CCFLAGS = Split('-w'))
+    else:
+        env.Append(CCFLAGS = Split('-Wall -Wsign-compare -Wno-strict-aliasing'))
+        if env['WARN_LEVEL'] == 'strict':
+            env.Append(CCFLAGS = Split('-Werror'))
+
+    ## optimization flags
+    if env['MODE'] == 'opt' or env['MODE'] == 'profile':
+        env.Append(CCFLAGS = Split(env['GCC_OPT_FLAGS']))
+    if env['MODE'] == 'debug' or env['MODE'] == 'profile':
+        if system.os() == 'darwin': 
+            env.Append(CCFLAGS = Split('-g3')) 
+            env.Append(CXXFLAGS = Split('-g3'))
+            env.Append(LINKFLAGS = Split('-g3')) 
+        else: 
+            env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
+            env.Append(LINKFLAGS = Split('-g')) 
+
+    if system.os() == 'darwin':
+        if env['TARGET_ARCH'] == 'x86_64':
+            env.Append(CCFLAGS   = ['-arch', 'x86_64'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
+        if env['TARGET_ARCH'] == 'arm64':
+            env.Append(CCFLAGS   = ['-arch', 'arm64'])
+            env.Append(LINKFLAGS = ['-arch', 'arm64'])
+        if env['TARGET_ARCH'].find('arm64') >= 0 and env['TARGET_ARCH'].find('x86_64') >= 0:
+            env.Append(CCFLAGS   = ['-arch', 'arm64'])
+            env.Append(CCFLAGS   = ['-arch', 'x86_64'])
+            env.Append(LINKFLAGS = ['-arch', 'arm64'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
+
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=' + env['MACOS_VERSION_MIN']))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min='+ env['MACOS_VERSION_MIN']))
+
+
+        if env['SDK_VERSION']:
+            env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+            env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+
+        
+        env.Append(CCFLAGS = Split('-stdlib=libc++'))
+        env.Append(LINKFLAGS = Split('-stdlib=libc++'))
+        
+        env.Append(LINKFLAGS = env.Split(['-framework', 'Security']))
+
+    env.Append(CXXFLAGS = Split('-std=c++14'))
+    env.Append(CCFLAGS = Split('-std=c++14'))
+
+    ''' We used to set c++11 for non-OCIO2  builds, but this is now causing issues with OIIO 
+    env.Append(CXXFLAGS = Split('-std=c++11'))
+    env.Append(CCFLAGS = Split('-std=c++11'))
+    '''
+
+elif env['COMPILER'] == 'msvc':
+    MSVC_FLAGS  = " /W3"         # Warning level : 3
+    MSVC_FLAGS += " /wd 4005"
+    MSVC_FLAGS += " /EHsc"       # enable synchronous C++ exception handling model & 
+                                 #   assume extern "C" functions do not throw exceptions
+    MSVC_FLAGS += " /Gd"         # makes __cdecl the default calling convention 
+    MSVC_FLAGS += " /fp:precise" # precise floating point model: results are predictable
+
+    if env['WARN_LEVEL'] == 'strict':
+        MSVC_FLAGS += " /WX"  # treats warnings as errors
+
+    
+
+
+    LINK_FLAGS  = " /MANIFEST"
+
+    if env['MODE'] in ['opt', 'profile']:
+        MSVC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
+        MSVC_FLAGS += " /GL"     # enables whole program optimization
+        MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
+        MSVC_FLAGS += " /Ox"     # selects maximum optimization
+        MSVC_FLAGS += " /Zi"     # generates complete debug information
+        
+        LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
+    else:  ## Debug mode
+        MSVC_FLAGS += " /Od"   # disables all optimizations
+        MSVC_FLAGS += " /MD"   # uses *NON-DEBUG* multithreaded DLL runtime library
+
+    LINK_FLAGS += " /DEBUG"
+
+    env.Append(CCFLAGS = Split(MSVC_FLAGS))
+    env.Append(LINKFLAGS = Split(LINK_FLAGS))
+   
+    if env['MODE'] == 'opt':
+        env.Append(CPPDEFINES = Split('NDEBUG'))
+    
+    env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
+elif env['COMPILER'] == 'icc':
+    env.Tool('intelc', abi = 'intel64')
+
+    ICC_FLAGS  = " /W3"            # displays remarks, warnings, and errors
+    ICC_FLAGS += " /Qstd:c99"      # conforms to The ISO/IEC 9899:1999 International Standard
+    ICC_FLAGS += " /EHsc"          # enable synchronous C++ exception handling model & 
+                                  # assume extern "C" functions do not throw exceptions
+    ICC_FLAGS += " /GS"            # generates code that detects some buffer overruns 
+    ICC_FLAGS += " /Qprec"         # improves floating-point precision and consistency 
+    ICC_FLAGS += " /Qvec-report0"  # disables diagnostic information reported by the vectorizer 
+
+    if env['WARN_LEVEL'] == 'strict':
+        ICC_FLAGS += " /WX"  # treats warnings as errors
+
+    # Disables the following warnings:
+    #
+    #  424 : 
+    #  537 : 
+    #  991 : 
+    # 1478 : 
+    # 1572 : 
+    # 1786 : 
+    ICC_FLAGS += " /Qdiag-disable:424,537,991,1478,1572,1786" 
+
+    XILINK_FLAGS  = " /LARGEADDRESSAWARE"
+
+    if export_symbols:
+        ICC_FLAGS    += " /debug:full"  # generates complete debug information
+        ICC_FLAGS    += " /Zi"          # 
+        XILINK_FLAGS += " /DEBUG"
+
+    if env['MODE'] in ['opt', 'profile']:
+        ICC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
+        ICC_FLAGS += " -Qipo"   # enables interprocedural optimization between files
+        ICC_FLAGS += " /G7"     # optimize for latest Intel processors (deprecated)
+        ICC_FLAGS += " /QaxW"   # optimize for Intel processors with SSE2 (deprecated)
+        ICC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
+        ICC_FLAGS += " -O3"     # max optimization level
+
+        if env['MODE'] == 'profile':
+            ICC_FLAGS += " /FR"     # Enable browse information
+
+            XILINK_FLAGS += " /FIXED:NO"
+
+        XILINK_FLAGS += " /INCREMENTAL:NO"
+    else:
+        ICC_FLAGS += " /Od"   # disables all optimizations
+        ICC_FLAGS += " /MD"   # uses *NON-DEBUG* multithreaded DLL runtime library
+
+        XILINK_FLAGS += " /INCREMENTAL"
+
+    env.Append(CCFLAGS = Split(ICC_FLAGS))
+    env.Append(LINKFLAGS = Split(XILINK_FLAGS))
+   
+    if env['MODE'] == 'opt':
+        env.Append(CPPDEFINES = Split('NDEBUG'))
+# We cannot enable this define, as it will try to use symbols from the debug runtime library  
+#   if env['MODE'] == 'debug':
+#      env.Append(CPPDEFINES = Split('_DEBUG'))
+
+
+## platform related defines
+if system.os() == 'windows':
+    env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
+    env.Append(CPPDEFINES = Split('_WIN64'))
+elif system.os() == 'darwin':
+    env.Append(CPPDEFINES = Split('_DARWIN OSMac_'))
+elif system.os() == 'linux':
+    env.Append(CPPDEFINES = Split('_LINUX'))
+
+# We seem to need this flag to be able to build with MSVC 14.0 and up
+env.Append(CPPDEFINES = Split('QT_COMPILING_QSTRING_COMPAT_CPP'))
+
+if env['RV_MAX']:
+    env.Append(CPPDEFINES = Split('RV_MAX'))
+
+if env['RV_OCIO']:
+    print 'Enabling OCIO'
+    env.Append(CPPDEFINES = Split('RV_OCIO'))
+    # We need to have the OCIO includes in a folder OpenColorIO so that
+    # OpenColorIOapphelpers can find the includes
+    OCIO_INCLUDE = os.path.join(EXTERNAL_PATH, 'OCIO', 'include');
+    OCIO_LIB = os.path.join(EXTERNAL_PATH, 'OCIO', 'lib', system.os())
+    # zlib is adependency as well for OCIO 2.2.x
+    ZLIB_INCLUDE = os.path.join(EXTERNAL_PATH, 'zlib', 'include');
+    ZLIB_LIB = os.path.join(EXTERNAL_PATH, 'zlib', 'lib', system.os())
+
+    env.Append(CPPPATH = [OCIO_INCLUDE, ZLIB_INCLUDE])
+    env.Append(LIBPATH = [OCIO_LIB, ZLIB_LIB])
+
+    env.Append(CPPDEFINES = ['OpenColorIO_SKIP_IMPORTS'])
+
+    if (system.os() == "windows"):
+        env.Append(LIBS=Split('OpenColorIO.lib'))
+        env.Append(LIBS=Split('Gdi32.lib'))
+        env.Append(LIBS=Split('user32.lib'))
+        env.Append(LIBS=Split('zlibstatic.lib'))
+    else:
+        env.Append(LIBS=Split('OpenColorIO'))
+        env.Append(LIBS=Split('z'))
+
+    if system.os() == 'darwin':
+        env.Append(LINKFLAGS  = ['-framework','Carbon'])
+        env.Append(LINKFLAGS  = ['-framework','IOKit' ])
+
+    # When OCIO is enabled we also need to link against OpenEXR libs Half and Imath
+    env.Append(LIBPATH = os.path.join(EXTERNAL_PATH, 'OpenEXR', 'lib', system.os()))
+    if system.os() == "windows":
+        env.Append(LIBS=Split('Half-2_4.lib Imath-2_4.lib'))
+    else:
+        env.Append(LIBS=Split('Half-2_4 Imath-2_4'))
+
+if env['RV_SYNCOLOR']:
+    print 'Enabling SynColor'
+    env.Append(CPPDEFINES = Split('RV_SYNCOLOR'))
+
+    env.Append(CPPPATH = [SYNCOLOR_INCLUDE])
+    env.Append(LIBPATH = [SYNCOLOR_LIB])
+    if (system.os() == "windows"):
+        env.Append(LIBS=Split('synColor.lib'))
+    else:
+        env.Append(LIBS=Split('synColor'))
+
+if env['RV_QT5']:
+    env.Append(CPPDEFINES = Split('RV_QT5'))
+
+
+## Add path to Arnold API by default
+env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
+env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
+   
+## configure base directory for temp files
+BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os(), env['TARGET_ARCH']), '%s_%s' % (env['COMPILER'], env['MODE']))
+env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
+
+if not env['SHOW_CMDS']:
+    ## hide long compile lines from the user
+    env['CCCOMSTR']     = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+    env['SHCCCOMSTR']   = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+    env['CXXCOMSTR']    = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+    env['SHCXXCOMSTR']  = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+    env['LINKCOMSTR']   = color_bred   + 'Linking $TARGET ...'   + color_reset
+    env['SHLINKCOMSTR'] = color_bred   + 'Linking $TARGET ...'   + color_reset
+
+################################
+## BUILD TARGETS
+################################
+
+env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
+env['ROOT_DIR'] = os.path.abspath(os.path.join(os.getcwd(), '..', 'external', 'arnold-renderview'))
+
+if system.os() == 'windows':
+    rv_env = env.Clone()
+    rv_env.Append(CPPPATH = ['.'])
+    rv_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
+   
+    rv_env.Append(LIBS=Split('ai.lib OpenGl32.lib shell32.lib'))
+else:
+    rv_env = env.Clone()
+    rv_env.Append(CPPPATH = ['.'])
+    rv_env.Append(CPPDEFINES = Split('_BOOL REQUIRE_IOSTREAM'))
+
+    if system.os() == 'linux':
+        rv_env.Append(LIBS=Split('GL'))
+        rv_env.Append(CPPDEFINES = Split('LINUX'))
+    #elif system.os() == 'darwin':
+        # MAYA_LOCATION on osx includes Maya.app/Contents
+
+    rv_env.Append(LIBS=Split('ai pthread'))
+
+###############################################################################
+# now use rv_env (renamed local_env to local_env2 below)
+# copied from external/arnold-renderview/src/SConstruct
+local_env2 = rv_env.Clone()
+
+GLEW_INCLUDES = local_env2.subst(local_env2['GLEW_INCLUDES'])
+GLEW_LIB = local_env2.subst(local_env2['GLEW_LIB'])
+if system.os() == 'linux':
+    local_env2.Append(CPPPATH = [GLEW_INCLUDES])
+    local_env2.Append(LIBS = [File(GLEW_LIB)])
+elif system.os() == 'windows':
+    local_env2.Append(CPPPATH = [GLEW_INCLUDES])
+    local_env2.Append(LIBPATH = [os.path.dirname(GLEW_LIB)])
+    local_env2.Append(LIBS = [os.path.basename(GLEW_LIB)])
+    local_env2.Append(CPPDEFINES = ['GLEW_STATIC'])
+elif system.os() == 'darwin':
+    local_env2.Append(CPPPATH = [GLEW_INCLUDES])
+    local_env2.Append(LIBS = [File(GLEW_LIB)])
+    local_env2.Append(CPPDEFINES = ['GLEW_STATIC'])
+
+src_base_dir  = os.path.join(local_env2['ROOT_DIR'], 'src')
+icons_dir  = os.path.join(local_env2['ROOT_DIR'], 'icons')
+
+print('DEBUG: %s' % src_base_dir)
+source_files = [f for f in find_files_recursive(src_base_dir, ['.c', '.cpp']) if not f.startswith('glcontext_guard')]
+include_files = [f for f in find_files_recursive(src_base_dir, ['.h']) if not f.startswith('glcontext_guard')]
+resource_files = [f for f in find_files_recursive(icons_dir, ['.qrc'])]
+
+if system.os() == 'darwin':
+    source_files += Split('glcontext_guard_mac.mm')
+else:
+    source_files += Split('glcontext_guard.cpp')
+
+# Qt moc files
+QT_BIN_PATH = local_env2['QT_BIN_PATH']
+
+if system.os() == 'windows':
+    QT_MOC_PATH = os.path.join(QT_BIN_PATH, "moc.exe")
+    QT_RCC_PATH = os.path.join(QT_BIN_PATH, "rcc.exe")
+else:
+    QT_MOC_PATH = os.path.join(QT_BIN_PATH, "moc")
+    QT_RCC_PATH = os.path.join(QT_BIN_PATH, "rcc")
+
+for include_file in include_files:
+    print "moc %s" % include_file
+    header_path = os.path.join(src_base_dir, include_file)
+    basename = os.path.basename(header_path)
+    output_path = os.path.join(local_env2['ROOT_DIR'], local_env2["BUILD_BASE_DIR"], "generated", "moc_%s.cpp" % os.path.splitext(basename)[0])
+
+    if not os.path.exists(os.path.dirname(output_path)):
+        os.makedirs(os.path.dirname(output_path))
+
+    command = '"{moc}" -f {header} -i "$SOURCE" -o "$TARGET"'.format(moc=QT_MOC_PATH, header=basename)
+    local_env2.Command(output_path, header_path, command)
+    source_files.append(output_path)
+
+for resource_file in resource_files:
+    print "rcc %s" % resource_file
+    qrc_path = os.path.join(icons_dir, resource_file)
+    basename = os.path.basename(qrc_path)
+    output_path = os.path.join(local_env2['ROOT_DIR'], local_env2["BUILD_BASE_DIR"], "generated", "res_%s.cpp" % os.path.splitext(basename)[0])
+
+    if not os.path.exists(os.path.dirname(output_path)):
+        os.makedirs(os.path.dirname(output_path))
+
+    command = '"{rcc}" -o "$TARGET" "$SOURCE"'.format(rcc=QT_RCC_PATH)
+    local_env2.Command(output_path, qrc_path, command)
+    source_files.append(output_path)
+
+
+QtIncludes = local_env2['QT_INCLUDE_PATH']
+local_env2.Append(CPPPATH = [QtIncludes])
+local_env2.Append(CPPPATH = [local_env2.subst(local_env2['ROOT_DIR'])])
+
+local_env2.Append(CPPPATH = [sysconfig.get_python_inc()])
+
+local_env2.Append(CPPDEFINES=Split('QT_NO_DEBUG'))
+local_env2.Append(CPPDEFINES=Split('QT_NO_IMPORT_QT47_QML'))
+local_env2.Append(CPPDEFINES=Split('QT_GUI_LIB'))
+local_env2.Append(CPPDEFINES=Split('QT_CORE_LIB'))
+local_env2.Append(CPPDEFINES=Split('QT_THREAD_SUPPORT'))
+local_env2.Append(CPPDEFINES=Split('QT_NO_DYNAMIC_CAST'))
+
+QtLibs = local_env2['QT_LIB_PATH']
+local_env2.Append(LIBPATH = [QtLibs])
+
+if system.os() == 'windows':
+    if local_env2['RV_QT5']:
+    	local_env2.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib', 'Qt5Sql'])
+    else:
+    	local_env2.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+
+elif system.os() == 'linux':
+    if local_env2['RV_QT5']:
+        local_env2.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL', 'Qt5Widgets', 'Qt5X11Extras', 'Qt5Sql'])
+    else:
+    	local_env2.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
+else:
+    #darwin
+    if local_env2['RV_QT5']:
+        local_env2.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL', 'Qt5Widgets', 'Qt5Sql'])
+    else:
+        local_env2.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
+
+#local_env2.Append(LIBS = ['GLEW'])
+
+MTOA_ARV = local_env2.SharedLibrary('ai_renderview', source_files)
+
+if system.os() == 'darwin':
+    local_env2.Append(CPPDEFINES = Split('DARWIN'))
+    local_env2.Append(FRAMEWORKS=Split('OpenGl AGL Cocoa'))
+    local_env2.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
+
+Return('MTOA_ARV')

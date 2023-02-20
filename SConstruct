@@ -973,6 +973,7 @@ else:
         else:
             MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.so')]
         MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders' + get_library_extension())]
+        MTOA_ARV = [os.path.join(BUILD_BASE_DIR, 'arv', 'ai_renderview' + get_library_extension())]
         for usd_version in USD_VERSIONS:
             usd_folder = usd_version[USD_CUT_VERSION]
             if usd_version[USD_CUT_PYTHON] == '2':
@@ -997,6 +998,10 @@ else:
                                       variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                       duplicate   = 0,
                                       exports     = 'env')
+        MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
+                                  duplicate   = 0,
+                                  exports     = 'env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
@@ -1154,6 +1159,7 @@ if system.os == 'windows':
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
+    env.Install(TARGET_SHADER_PATH, MTOA_ARV)
     if system.os == 'linux':
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
@@ -1355,8 +1361,8 @@ if env['MODE'] in ['debug', 'profile']:
 package_name_inst = package_name
 
 
-
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+# DEBUG: some prints above and then sys.exit()
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_ARV + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 import ftplib
@@ -1569,6 +1575,7 @@ PACKAGE_FILES = [
 [os.path.join('plugins', 'mtoa', 'arnold.mtd'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'cryptomatte.mtd'), 'plugins'],
 [MTOA_SHADERS[0], 'shaders'],
+[MTOA_ARV[0], 'shaders'],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 # [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
@@ -2050,6 +2057,7 @@ aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_PATH']))
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
+top_level_alias(env, 'arv', MTOA_ARV)
 top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
