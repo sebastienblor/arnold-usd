@@ -22,7 +22,8 @@ from colorama import Fore, Back, Style
 
 # we don't have rv_env (env comes from arnold-mtoa repo root SConstruct)
 Import('env')
-BUILD_BASE_DIR = env['BUILD_BASE_DIR']
+# compensate for the external/arnold-renderview/ subdirectory by using '..'
+BUILD_BASE_DIR = os.path.join('..', '..', env['BUILD_BASE_DIR'])
 ###############################################################################
 # copied from external/arnold-renderview/SConstruct
 RENDERVIEW_VERSION = 0.1
