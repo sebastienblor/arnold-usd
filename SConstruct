@@ -898,6 +898,7 @@ if system.os == 'windows':
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
         MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.dll'), os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.lib')]
         MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders.dll')]
+        MTOA_ARV = [os.path.join(BUILD_BASE_DIR, 'arv', 'ai_renderview.dll')]
         for usd_version in USD_VERSIONS:
             usd_folder = usd_version[USD_CUT_VERSION]
             if usd_version[USD_CUT_PYTHON] == '2':
@@ -922,6 +923,10 @@ if system.os == 'windows':
                                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                                     duplicate   = 0,
                                                     exports     = 'env')
+        MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
+                                  duplicate   = 0,
+                                  exports     = 'env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
