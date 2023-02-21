@@ -1210,12 +1210,6 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-    # if int(maya_version_base) >= 2024 and system.os == 'linux':
-    #     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2024', RENDERVIEW_DYLIB)
-    # elif int(maya_version_base) >= 2021:
-    #     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2022', RENDERVIEW_DYLIB)
-    # else:
-    #     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
     RENDERVIEW_DYLIBPATH = os.path.join(BUILD_BASE_DIR, 'arv', RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
@@ -1364,7 +1358,6 @@ if env['MODE'] in ['debug', 'profile']:
 package_name_inst = package_name
 
 
-# DEBUG: some prints above and then sys.exit()
 PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_ARV + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
