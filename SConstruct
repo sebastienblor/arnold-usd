@@ -1123,6 +1123,7 @@ if ENABLE_USD:
 
 
 Depends(MTOA, MTOA_API[0])
+Depends(MTOA, MTOA_ARV[0])
 Depends(MTOA, ARNOLD_API_LIB)
 
 
@@ -1149,6 +1150,7 @@ if system.os == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
+    env.Install(TARGET_SHADER_PATH, MTOA_ARV[0])
     nprocs = []
     
     libs = MTOA_API[1]
@@ -1208,12 +1210,13 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-    if int(maya_version_base) >= 2024 and system.os == 'linux':
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2024', RENDERVIEW_DYLIB)
-    elif int(maya_version_base) >= 2021:
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2022', RENDERVIEW_DYLIB)
-    else:
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
+    # if int(maya_version_base) >= 2024 and system.os == 'linux':
+    #     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2024', RENDERVIEW_DYLIB)
+    # elif int(maya_version_base) >= 2021:
+    #     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2022', RENDERVIEW_DYLIB)
+    # else:
+    #     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
+    RENDERVIEW_DYLIBPATH = os.path.join(BUILD_BASE_DIR, 'arv', RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
@@ -1575,7 +1578,7 @@ PACKAGE_FILES = [
 [os.path.join('plugins', 'mtoa', 'arnold.mtd'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'cryptomatte.mtd'), 'plugins'],
 [MTOA_SHADERS[0], 'shaders'],
-[MTOA_ARV[0], 'shaders'],
+[MTOA_ARV[0], 'bin'],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 # [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
