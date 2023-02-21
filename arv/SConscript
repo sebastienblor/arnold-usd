@@ -615,7 +615,7 @@ src_base_dir  = os.path.join(local_env2['ROOT_DIR'], 'src')
 icons_dir  = os.path.join(local_env2['ROOT_DIR'], 'icons')
 
 print('DEBUG: %s' % src_base_dir)
-source_files = ['src/' + f for f in find_files_recursive(src_base_dir, ['.c', '.cpp']) if not f.startswith('glcontext_guard')]
+source_files = [os.path.join(src_base_dir, f) for f in find_files_recursive(src_base_dir, ['.c', '.cpp']) if not f.startswith('glcontext_guard')]
 for source_file in source_files:
     print('DEBUG: %s' % source_file)
 include_files = [f for f in find_files_recursive(src_base_dir, ['.h']) if not f.startswith('glcontext_guard')]
@@ -628,7 +628,7 @@ for resource_file in resource_files:
 if system.os() == 'darwin':
     source_files += Split('glcontext_guard_mac.mm')
 else:
-    source_files += Split('src/' + 'glcontext_guard.cpp')
+    source_files += Split(os.path.join(src_base_dir, 'glcontext_guard.cpp'))
 
 # Qt moc files
 QT_BIN_PATH = local_env2['QT_BIN_PATH']
@@ -658,9 +658,6 @@ for include_file in include_files:
         os.makedirs(os.path.dirname(output_path))
 
     command = '"{moc}" -f {header} -i "$SOURCE" -o "$TARGET"'.format(moc=QT_MOC_PATH, header=basename)
-    ##print "output_path =  %s" % output_path
-    ##print "command =  %s" % command
-    print "header_path =  %s" % header_path
     local_env2.Command(output_path, header_path, command)
     source_files.append(output_path)
 
