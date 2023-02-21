@@ -211,16 +211,16 @@ QT_BIN_PATH = env.subst(env['QT_BIN_PATH'])
 QT_ROOT_PATH = os.path.join('3rdparty', 'Qt', env['QT_VERSION'])
 
 if QT_INCLUDE_PATH == '.':
-    QT_INCLUDE_PATH = os.path.abspath(os.path.join(QT_ROOT_PATH, 'include'))
+    QT_INCLUDE_PATH = os.path.abspath(os.path.join(os.getcwd(), '..', 'external', 'arnold-renderview', QT_ROOT_PATH, 'include'))
 
 if QT_LIB_PATH == '.':
-    QT_LIB_PATH = os.path.abspath(os.path.join(QT_ROOT_PATH, 'lib', system.os()))
+    QT_LIB_PATH = os.path.abspath(os.path.join(os.getcwd(), '..', 'external', 'arnold-renderview', QT_ROOT_PATH, 'lib', system.os()))
 
 if system.linux_distro_version >= 8:
     QT_LIB_PATH += "-rh{}".format(system.linux_distro_version)
 
 if QT_BIN_PATH == '.':
-    QT_BIN_PATH = os.path.abspath(os.path.join(QT_ROOT_PATH, 'bin', system.os()))
+    QT_BIN_PATH = os.path.abspath(os.path.join(os.getcwd(), '..', 'external', 'arnold-renderview', QT_ROOT_PATH, 'bin', system.os()))
 
 env['QT_LIB_PATH'] = QT_LIB_PATH
 env['QT_INCLUDE_PATH'] = QT_INCLUDE_PATH
