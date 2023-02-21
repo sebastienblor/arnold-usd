@@ -551,10 +551,8 @@ env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 # TODO: Do not hardcode
 BUILD_DIR = os.path.abspath(os.path.join(os.getcwd(), '..', 'build'))
-print('DEBUG: BUILD_DIR = %s' % BUILD_DIR)
 ## configure base directory for temp files
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
-print('DEBUG: BUILD_BASE_DIR = %s' % BUILD_BASE_DIR)
 
 if not env['SHOW_CMDS']:
     ## hide long compile lines from the user
@@ -614,16 +612,9 @@ elif system.os() == 'darwin':
 src_base_dir  = os.path.join(local_env2['ROOT_DIR'], 'src')
 icons_dir  = os.path.join(local_env2['ROOT_DIR'], 'icons')
 
-print('DEBUG: %s' % src_base_dir)
 source_files = [os.path.join(src_base_dir, f) for f in find_files_recursive(src_base_dir, ['.c', '.cpp']) if not f.startswith('glcontext_guard')]
-for source_file in source_files:
-    print('DEBUG: %s' % source_file)
 include_files = [f for f in find_files_recursive(src_base_dir, ['.h']) if not f.startswith('glcontext_guard')]
-for include_file in include_files:
-    print('DEBUG: %s' % include_file)
 resource_files = [f for f in find_files_recursive(icons_dir, ['.qrc'])]
-for resource_file in resource_files:
-    print('DEBUG: %s' % resource_file)
 
 if system.os() == 'darwin':
     source_files += Split('glcontext_guard_mac.mm')
@@ -637,7 +628,6 @@ QT_BIN_PATH = os.path.abspath(os.path.join(os.getcwd(), '..',
                                            'external',
                                            'arnold-renderview',
                                            '3rdparty', 'Qt', '5.6.1', 'bin', 'linux'))
-print('DEBUG: QT_BIN_PATH = %s' % QT_BIN_PATH)
 
 if system.os() == 'windows':
     QT_MOC_PATH = os.path.join(QT_BIN_PATH, "moc.exe")
@@ -645,8 +635,6 @@ if system.os() == 'windows':
 else:
     QT_MOC_PATH = os.path.join(QT_BIN_PATH, "moc")
     QT_RCC_PATH = os.path.join(QT_BIN_PATH, "rcc")
-print('DEBUG: QT_MOC_PATH = %s' % QT_MOC_PATH)
-print('DEBUG: QT_RCC_PATH = %s' % QT_RCC_PATH)
 
 for include_file in include_files:
     print "moc %s" % include_file
@@ -676,7 +664,6 @@ for resource_file in resource_files:
 
 
 QtIncludes = local_env2['QT_INCLUDE_PATH']
-print('DEBUG: QtIncludes = %s' % QtIncludes)
 local_env2.Append(CPPPATH = [QtIncludes])
 local_env2.Append(CPPPATH = [local_env2.subst(local_env2['ROOT_DIR'])])
 local_env2.Append(CPPPATH = [local_env2.subst(local_env2['ROOT_DIR'] + '/src')])
