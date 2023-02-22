@@ -95,7 +95,7 @@ if system.os == 'windows':
 if not local_env['MTOA_DISABLE_RV']:
     print 'Linking with Arnold RenderView'
     renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'arnold-renderview', 'sdk')
-    renderViewLibFolder = os.path.abspath(os.path.join('..', '..', local_env['BUILD_BASE_DIR'], 'arv'))
+    renderViewLibFolder = os.path.abspath(os.path.join('..', 'arv'))
 
     local_env.Append(LIBPATH = [renderViewLibFolder])
     local_env.Append(CPPPATH = [renderViewIncludeFolder])

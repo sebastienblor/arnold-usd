@@ -1006,7 +1006,7 @@ else:
         MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
                                   variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
                                   duplicate   = 0,
-                                  exports     = 'env')
+                                  exports     = 'maya_env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
@@ -1127,8 +1127,8 @@ if ENABLE_USD:
     env.Install(os.path.join(TARGET_USD_PATH), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json'))
 
 
+Depends(MTOA_API, MTOA_ARV[0])
 Depends(MTOA, MTOA_API[0])
-Depends(MTOA, MTOA_ARV[0])
 Depends(MTOA, ARNOLD_API_LIB)
 
 
@@ -1363,7 +1363,7 @@ if env['MODE'] in ['debug', 'profile']:
 package_name_inst = package_name
 
 
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_ARV + MTOA_API_DOCS)
+PACKAGE = env.MakePackage(package_name, MTOA_ARV + MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 import ftplib
