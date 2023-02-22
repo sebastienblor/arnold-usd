@@ -926,7 +926,7 @@ if system.os == 'windows':
         MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
                                   variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
                                   duplicate   = 0,
-                                  exports     = 'env')
+                                  exports     = 'maya_env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]

@@ -17,8 +17,8 @@ import system
 from utils.build_tools import find_files_recursive
 
 # import build env
-Import('env')
-local_env = env.Clone()
+Import('maya_env')
+local_env = maya_env.Clone()
 _targetPath = local_env.Dir('.')
 globals()['MTOA_ARV'] = []
 
