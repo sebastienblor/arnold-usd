@@ -4,7 +4,11 @@
 
 # first extend path
 import sys, os
-sys.path = ["../external/arnold-renderview/tools/python"] + sys.path
+sys.path = [os.path.join('..',
+                         'external',
+                         'arnold-renderview',
+                         'tools',
+                         'python')] + sys.path
 # now we can import system
 import system
 # import * instead of only find_files_recursive, get_maya_version
@@ -33,7 +37,10 @@ RENDERVIEW_VERSION = 0.1
 ################################################################################
 
 # changed EXTERNAL_PATH
-EXTERNAL_PATH = os.path.abspath('../external/arnold-renderview/3rdparty')
+EXTERNAL_PATH = os.path.abspath(os.path.join('..',
+                                             'external',
+                                             'arnold-renderview',
+                                             '3rdparty'))
 
 if system.os() == 'darwin':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
@@ -576,6 +583,11 @@ if system.os() == 'windows':
     rv_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
    
     rv_env.Append(LIBS=Split('ai.lib OpenGl32.lib shell32.lib'))
+    if env['MODE'] == 'opt':
+        MSVC_FLAGS = " /Zi"
+        MSVC_FLAGS += " /FS"
+        MSVC_FLAGS += " /Fd"+os.path.join(BUILD_DIR + '\\arv_tmp.pdb')
+        rv_env.Append(CCFLAGS = Split(MSVC_FLAGS))
 else:
     rv_env = env.Clone()
     rv_env.Append(CPPPATH = ['.'])
@@ -623,11 +635,25 @@ else:
 
 # Qt moc files
 QT_BIN_PATH = local_env2['QT_BIN_PATH']
-# TODO: Do not hardcode
-QT_BIN_PATH = os.path.abspath(os.path.join(os.getcwd(), '..',
-                                           'external',
-                                           'arnold-renderview',
-                                           '3rdparty', 'Qt', '5.6.1', 'bin', 'linux'))
+if system.os() == 'windows':
+    QT_BIN_PATH = os.path.abspath(os.path.join(os.getcwd(), '..',
+                                               'external',
+                                               'arnold-renderview',
+                                               '3rdparty', 'Qt', '5.6.1', 'bin',
+                                               'windows'))
+elif system.os() == 'linux':
+    QT_BIN_PATH = os.path.abspath(os.path.join(os.getcwd(), '..',
+                                               'external',
+                                               'arnold-renderview',
+                                               '3rdparty', 'Qt', '5.6.1', 'bin',
+                                               'linux'))
+else:
+    #darwin
+    QT_BIN_PATH = os.path.abspath(os.path.join(os.getcwd(), '..',
+                                               'external',
+                                               'arnold-renderview',
+                                               '3rdparty', 'Qt', '5.6.1', 'bin',
+                                               'darwin'))
 
 if system.os() == 'windows':
     QT_MOC_PATH = os.path.join(QT_BIN_PATH, "moc.exe")
