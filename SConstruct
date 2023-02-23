@@ -172,6 +172,9 @@ vars.AddVariables(
     PathVariable('TARGET_USD_PATH', 
                  'Path used for installation of arnold USD modules', 
                  os.path.join('$TARGET_MODULE_PATH', 'usd'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_ARV_PATH',
+                 'Path used for installation of arnold renderview',
+                 os.path.join('$TARGET_MODULE_PATH', 'arv'), PathVariable.PathIsDirCreate),
     PathVariable('TOOLS_PATH',
                  'Where to find external tools required for sh',
                  '.', PathVariable.PathIsDir),
@@ -290,6 +293,7 @@ TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
 TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
 TARGET_USD_PATH = env.subst(env['TARGET_USD_PATH'])
+TARGET_ARV_PATH = env.subst(env['TARGET_ARV_PATH'])
 TARGET_PLUGINS_PATH = env.subst(env['TARGET_PLUGINS_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
@@ -2054,6 +2058,7 @@ aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))
 aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_PATH']))
+aliases.append(env.Alias('install-arv', env['TARGET_ARV_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)
