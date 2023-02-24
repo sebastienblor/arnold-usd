@@ -4,26 +4,25 @@ import sys, os
 import SCons.Action
 import subprocess
 
-# first extend path
-sys.path = [os.path.join('..',
-                         'external',
-                         'arnold-renderview',
-                         'tools',
-                         'python')] + sys.path
-# now we can import system
-import system
-## load our own python modules
-##import utils.system as system
-from utils.build_tools import find_files_recursive
-
 # import build env
 Import('maya_env')
 local_env = maya_env.Clone()
 _targetPath = local_env.Dir('.')
 globals()['MTOA_ARV'] = []
 
-# source and include files
+# let's get the base/root directory first
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'external', 'arnold-renderview')
+# extend the module path to load our own modules
+py_tools_dir = os.path.join(src_base_dir,
+                            'tools',
+                            'python')
+if py_tools_dir not in sys.path:
+    sys.path = [py_tools_dir] + sys.path
+# load our own python modules
+import system
+from utils.build_tools import find_files_recursive
+
+# source and include files
 icons_dir  = os.path.join(local_env['ROOT_DIR'], 'icons')
 source_files = [os.path.join(src_base_dir, f) for f in find_files_recursive(src_base_dir, ['.c', '.cpp']) if not f.startswith('glcontext_guard')]
 include_files = [f for f in find_files_recursive(src_base_dir, ['.h']) if not f.startswith('glcontext_guard')]
@@ -51,7 +50,7 @@ def _mtoa_arv(target, source, env):
     )
     arv_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-renderview')).abspath
     arv_scons = os.path.join(arv_project, '3rdparty', 'scons', 'scons.py')
-    args = ['-B', arv_scons, '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
+    args = ['-B', arv_scons, 'arv-install', '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
     print('DEBUG: sys.executable = %s' % sys.executable)
     print('DEBUG: args = %s' % args)
     sub = subprocess.Popen([sys.executable] + args, cwd=arv_project)
