@@ -172,9 +172,6 @@ vars.AddVariables(
     PathVariable('TARGET_USD_PATH', 
                  'Path used for installation of arnold USD modules', 
                  os.path.join('$TARGET_MODULE_PATH', 'usd'), PathVariable.PathIsDirCreate),
-    PathVariable('TARGET_ARV_PATH',
-                 'Path used for installation of arnold renderview',
-                 os.path.join('$TARGET_MODULE_PATH', 'arv'), PathVariable.PathIsDirCreate),
     PathVariable('TOOLS_PATH',
                  'Where to find external tools required for sh',
                  '.', PathVariable.PathIsDir),
@@ -182,6 +179,7 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
+    StringVariable('ARV_PATH', 'Use pre-compiled library (and headers) for ARV', None),
     StringVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
     StringVariable('MAYAUSD_PATH', 'Maya-USD installation root', None),
     StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
@@ -1170,7 +1168,7 @@ if system.os == 'windows':
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
-    env.Install(TARGET_SHADER_PATH, MTOA_ARV)
+    env.Install(TARGET_BINARIES, MTOA_ARV)
     if system.os == 'linux':
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
