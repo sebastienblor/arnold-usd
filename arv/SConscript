@@ -41,7 +41,9 @@ def _mtoa_arv(target, source, env):
     args = dict(
         ARNOLD = local_env['ARNOLD'],
         SHOW_CMDS = env['SHOW_CMDS'],
+        CC = env['CC'],
         CXX = env['CXX'],
+        SHCCC = env['SHCC'],
         SHCXX = env['SHCXX'],
     )
     arv_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-renderview')).abspath
