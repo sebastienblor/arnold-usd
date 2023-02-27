@@ -44,6 +44,10 @@ def _mtoa_arv(target, source, env):
         CXX = env['CXX'],
         SHCCC = env['SHCC'],
         SHCXX = env['SHCXX'],
+        QT_LIB_PATH = env['QT_LIB_PATH'],
+        QT_INCLUDE_PATH = env['QT_INCLUDE_PATH'],
+        RV_OCIO = env['RV_OCIO'],
+        RV_SYNCOLOR = env['RV_SYNCOLOR'],
         INSTALL_DIR = mtoa_arv_folder,
     )
     arv_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-renderview')).abspath
