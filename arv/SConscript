@@ -30,8 +30,13 @@ resource_files = [f for f in find_files_recursive(icons_dir, ['.qrc'])]
 
 if system.os() == 'darwin':
     source_files += Split('glcontext_guard_mac.mm')
+    lib_ext = '.dylib'
 else:
     source_files += Split(os.path.join(src_base_dir, 'glcontext_guard.cpp'))
+    if system.os() == 'windows':
+        lib_ext = '.dll'
+    else: # linux
+        lib_ext = '.so'
 
 mtoa_arv_folder = _targetPath.abspath
 
@@ -44,10 +49,10 @@ def _mtoa_arv(target, source, env):
         CXX = env['CXX'],
         SHCCC = env['SHCC'],
         SHCXX = env['SHCXX'],
-        QT_LIB_PATH = env['QT_LIB_PATH'],
-        QT_INCLUDE_PATH = env['QT_INCLUDE_PATH'],
-        RV_OCIO = env['RV_OCIO'],
-        RV_SYNCOLOR = env['RV_SYNCOLOR'],
+        # QT_LIB_PATH = local_env['QT_LIB_PATH'],
+        # QT_INCLUDE_PATH = local_env['QT_INCLUDE_PATH'],
+        # RV_OCIO = local_env['RV_OCIO'],
+        # RV_SYNCOLOR = local_env['RV_SYNCOLOR'],
         INSTALL_DIR = mtoa_arv_folder,
     )
     arv_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-renderview')).abspath
@@ -61,7 +66,7 @@ def _mtoa_arv(target, source, env):
 
 mtoa_arv_action_log = 'Building MTOA ARV ...'
 mtoa_arv_action  = SCons.Action.Action(_mtoa_arv, mtoa_arv_action_log)
-MTOA_ARV = local_env.Command(os.path.join(mtoa_arv_folder, 'libai_renderview.so'), [], mtoa_arv_action)
+MTOA_ARV = local_env.Command(os.path.join(mtoa_arv_folder, 'libai_renderview%s' % lib_ext), [], mtoa_arv_action)
 local_env.Alias('mtoa_arv', MTOA_ARV)
 
 Return('MTOA_ARV')
