@@ -37,18 +37,18 @@ mtoa_arv_folder = _targetPath.abspath
 
 def _mtoa_arv(target, source, env):
     arv_env = env.Clone()
-    # TODO
     args = dict(
-        ARNOLD = local_env['ARNOLD'],
+        ARNOLD = env['ARNOLD'],
         SHOW_CMDS = env['SHOW_CMDS'],
         CC = env['CC'],
         CXX = env['CXX'],
         SHCCC = env['SHCC'],
         SHCXX = env['SHCXX'],
+        INSTALL_DIR = mtoa_arv_folder,
     )
     arv_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-renderview')).abspath
     arv_scons = os.path.join(arv_project, '3rdparty', 'scons', 'scons.py')
-    args = ['-B', arv_scons, 'arv-install', '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
+    args = ['-B', arv_scons, 'install', '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
     sub = subprocess.Popen([sys.executable] + args, cwd=arv_project)
     sub.communicate()
     if sub.returncode != 0:
@@ -57,7 +57,7 @@ def _mtoa_arv(target, source, env):
 
 mtoa_arv_action_log = 'Building MTOA ARV ...'
 mtoa_arv_action  = SCons.Action.Action(_mtoa_arv, mtoa_arv_action_log)
-MTOA_ARV = local_env.Command(mtoa_arv_folder, [], mtoa_arv_action)
+MTOA_ARV = local_env.Command(os.path.join(mtoa_arv_folder, 'libai_renderview.so'), [], mtoa_arv_action)
 local_env.Alias('mtoa_arv', MTOA_ARV)
 
 Return('MTOA_ARV')
