@@ -1156,7 +1156,7 @@ if system.os == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
-    env.Install(TARGET_SHADER_PATH, MTOA_ARV[0])
+    env.Install(TARGET_BINARIES, MTOA_ARV[0])
     nprocs = []
     
     libs = MTOA_API[1]
