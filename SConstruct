@@ -847,6 +847,8 @@ for usd_path in usd_path_list:
                 if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
                     os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
 
+if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'arv')):
+    os.makedirs(os.path.join(BUILD_BASE_DIR, 'arv'))
 
 mayausd_path_list = []
 mayausd_path_python2_count = 0
