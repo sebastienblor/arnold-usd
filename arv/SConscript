@@ -28,6 +28,8 @@ source_files = [os.path.join(src_base_dir, f) for f in find_files_recursive(src_
 include_files = [f for f in find_files_recursive(src_base_dir, ['.h']) if not f.startswith('glcontext_guard')]
 resource_files = [f for f in find_files_recursive(icons_dir, ['.qrc'])]
 
+mayaVersion = int(local_env['MAYA_VERSION_BASE'])
+
 if system.os() == 'darwin':
     source_files += Split('glcontext_guard_mac.mm')
     lib_ext = '.dylib'
@@ -43,16 +45,21 @@ mtoa_arv_folder = _targetPath.abspath
 def _mtoa_arv(target, source, env):
     arv_env = env.Clone()
     args = dict(
-        ARNOLD = env['ARNOLD'],
-        SHOW_CMDS = env['SHOW_CMDS'],
-        CC = env['CC'],
-        CXX = env['CXX'],
-        SHCCC = env['SHCC'],
-        SHCXX = env['SHCXX'],
+        ARNOLD = local_env['ARNOLD'],
+        SHOW_CMDS = local_env['SHOW_CMDS'],
+        CCFLAGS = local_env['CCFLAGS'],
+        MSVC_VERSION = '14.2',
+        TARGET_ARCH = local_env['TARGET_ARCH'],
+        MODE = local_env['MODE'],
+        # CC = env['CC'],
+        # CXX = env['CXX'],
+        # SHCCC = env['SHCC'],
+        # SHCXX = env['SHCXX'],
         # QT_LIB_PATH = local_env['QT_LIB_PATH'],
         # QT_INCLUDE_PATH = local_env['QT_INCLUDE_PATH'],
-        # RV_OCIO = local_env['RV_OCIO'],
-        # RV_SYNCOLOR = local_env['RV_SYNCOLOR'],
+        RV_OCIO = True,
+        RV_SYNCOLOR = False,
+        QT_VERSION = '5.15.2',
         INSTALL_DIR = mtoa_arv_folder,
     )
     arv_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-renderview')).abspath
