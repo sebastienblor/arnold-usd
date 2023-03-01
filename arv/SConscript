@@ -73,7 +73,10 @@ def _mtoa_arv(target, source, env):
 
 mtoa_arv_action_log = 'Building MTOA ARV ...'
 mtoa_arv_action  = SCons.Action.Action(_mtoa_arv, mtoa_arv_action_log)
-MTOA_ARV = local_env.Command(os.path.join(mtoa_arv_folder, 'libai_renderview%s' % lib_ext), [], mtoa_arv_action)
+if system.os() == 'windows':
+    MTOA_ARV = local_env.Command(os.path.join(mtoa_arv_folder, 'ai_renderview%s' % lib_ext), [], mtoa_arv_action)
+else:
+    MTOA_ARV = local_env.Command(os.path.join(mtoa_arv_folder, 'libai_renderview%s' % lib_ext), [], mtoa_arv_action)
 local_env.Alias('mtoa_arv', MTOA_ARV)
 
 Return('MTOA_ARV')
