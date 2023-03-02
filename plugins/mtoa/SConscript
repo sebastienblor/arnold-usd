@@ -92,10 +92,16 @@ MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
 if system.os == 'windows':
     local_env.Append(LIBS = ['user32.lib', 'advapi32.lib']) # this is needed for the licensing tools, for system environment variables
 
+ARV_PATH = local_env.get('ARV_PATH')
+
 if not local_env['MTOA_DISABLE_RV']:
     print 'Linking with Arnold RenderView'
-    renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'arnold-renderview', 'sdk')
-    renderViewLibFolder = os.path.join(local_env['BUILD_BASE_DIR'], 'arv')
+    if ARV_PATH == None:
+        renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'arnold-renderview', 'sdk')
+        renderViewLibFolder = os.path.join(local_env['BUILD_BASE_DIR'], 'arv')
+    else:
+        renderViewIncludeFolder = ARV_PATH
+        renderViewLibFolder = ARV_PATH
 
     local_env.Append(LIBPATH = [renderViewLibFolder])
     local_env.Append(CPPPATH = [renderViewIncludeFolder])

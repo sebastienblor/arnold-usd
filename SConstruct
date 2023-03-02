@@ -757,6 +757,7 @@ if env['MTOA_DISABLE_RV']:
 env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
 
+ARV_PATH = env.get('ARV_PATH')
 
 (USD_CUT_PATH,
  USD_CUT_VERSION,
@@ -926,10 +927,11 @@ if system.os == 'windows':
                                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                                     duplicate   = 0,
                                                     exports     = 'env')
-        MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
-                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
-                                  duplicate   = 0,
-                                  exports     = 'maya_env')
+        if ARV_PATH == None:
+            MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
+                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
+                                      duplicate   = 0,
+                                      exports     = 'maya_env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
@@ -1006,10 +1008,11 @@ else:
                                       variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                       duplicate   = 0,
                                       exports     = 'env')
-        MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
-                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
-                                  duplicate   = 0,
-                                  exports     = 'maya_env')
+        if ARV_PATH == None:
+            MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
+                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
+                                      duplicate   = 0,
+                                      exports     = 'maya_env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
@@ -1130,7 +1133,8 @@ if ENABLE_USD:
     env.Install(os.path.join(TARGET_USD_PATH), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json'))
 
 
-Depends(MTOA_API, MTOA_ARV[0])
+if ARV_PATH == None:
+    Depends(MTOA_API, MTOA_ARV[0])
 Depends(MTOA, MTOA_API[0])
 Depends(MTOA, ARNOLD_API_LIB)
 
@@ -1158,7 +1162,8 @@ if system.os == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
-    env.Install(TARGET_BINARIES, MTOA_ARV[0])
+    if ARV_PATH == None:
+        env.Install(TARGET_BINARIES, MTOA_ARV[0])
     nprocs = []
     
     libs = MTOA_API[1]
@@ -1169,7 +1174,8 @@ if system.os == 'windows':
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
-    env.Install(TARGET_BINARIES, MTOA_ARV)
+    if ARV_PATH == None:
+        env.Install(TARGET_BINARIES, MTOA_ARV)
     if system.os == 'linux':
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
@@ -1218,7 +1224,10 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-    RENDERVIEW_DYLIBPATH = os.path.join(BUILD_BASE_DIR, 'arv', RENDERVIEW_DYLIB)
+    if ARV_PATH == None:
+        RENDERVIEW_DYLIBPATH = os.path.join(BUILD_BASE_DIR, 'arv', RENDERVIEW_DYLIB)
+    else:
+        RENDERVIEW_DYLIBPATH = os.path.join(ARV_PATH, RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
@@ -1366,7 +1375,10 @@ if env['MODE'] in ['debug', 'profile']:
 package_name_inst = package_name
 
 
-PACKAGE = env.MakePackage(package_name, MTOA_ARV + MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+if ARV_PATH == None:
+    PACKAGE = env.MakePackage(package_name, MTOA_ARV + MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+else:
+    PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 import ftplib
@@ -1579,13 +1591,14 @@ PACKAGE_FILES = [
 [os.path.join('plugins', 'mtoa', 'arnold.mtd'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'cryptomatte.mtd'), 'plugins'],
 [MTOA_SHADERS[0], 'shaders'],
-[MTOA_ARV[0], 'bin'],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 # [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 [os.path.join(ARNOLD, 'include'), os.path.join('include', 'arnold')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
+if ARV_PATH == None:
+    PACKAGE_FILES += [MTOA_ARV[0], 'bin']
 
 materialx_files = find_files_recursive(os.path.join(ARNOLD, 'materialx'), None)
 for p in materialx_files:
@@ -2061,7 +2074,8 @@ aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_PATH']))
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
-top_level_alias(env, 'arv', MTOA_ARV)
+if ARV_PATH == None:
+    top_level_alias(env, 'arv', MTOA_ARV)
 top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
