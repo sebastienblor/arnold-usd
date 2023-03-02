@@ -53,7 +53,8 @@ def _mtoa_arv(target, source, env):
         MODE = local_env['MODE'],
         RV_OCIO = True,
         RV_SYNCOLOR = False,
-        QT_VERSION = '5.15.2',
+        QT_LIB_PATH = os.path.join(local_env['MAYA_ROOT'], 'lib'),
+        QT_INCLUDE_PATH = local_env['QT_ROOT_DIR'],
         INSTALL_DIR = mtoa_arv_folder,
     )
     if system.os() == 'linux':
