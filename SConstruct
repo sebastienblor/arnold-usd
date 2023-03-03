@@ -870,11 +870,12 @@ if int(maya_version_base) >= 2021:
 
 mayapy_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy')
 
+if env['UPDATE_SUBMODULES']:
+    print ('updating all submodules...')
+    system.execute('git submodule sync')
+    system.execute('git submodule update --init --recursive')
+
 if ENABLE_USD:
-    if env['UPDATE_SUBMODULES']:
-        print ('updating usd submodule...')
-        system.execute('git submodule sync')
-        system.execute('git submodule update --init --recursive')
      
         # We need to ensure that jinja2 will be installed through mayapy   
         mayapy_cmd = mayapy_bin + " -m pip install jinja2"
