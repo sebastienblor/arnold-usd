@@ -1598,7 +1598,7 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
 if ARV_PATH == None:
-    PACKAGE_FILES += [MTOA_ARV[0], 'bin']
+    PACKAGE_FILES += [[MTOA_ARV[0], 'bin']]
 
 materialx_files = find_files_recursive(os.path.join(ARNOLD, 'materialx'), None)
 for p in materialx_files:
