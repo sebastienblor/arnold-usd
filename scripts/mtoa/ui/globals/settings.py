@@ -1268,10 +1268,29 @@ def createArnoldMotionBlurSettings():
 
     cmds.setUITemplate(popTemplate=True)
 
+def toggleLightSamples(*args):
+    globalLightSamples = cmds.getAttr('defaultArnoldRenderOptions.globalLightSamplesEnabled')
+    cmds.attrControlGrp('lightSamples', edit=True, enable=globalLightSamples)
+
+
 def createArnoldLightSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
+
+    lightSamplesEnabled = cmds.getAttr('defaultArnoldRenderOptions.globalLightSamplesEnabled')
+
+    cmds.attrControlGrp('globalLightSamplesEnabled',
+                        label="Global Light Sampling",
+                        cc=toggleLightSamples,
+                        attribute='defaultArnoldRenderOptions.globalLightSamplesEnabled')
+
+    cmds.attrControlGrp('lightSamples',
+                        label="Light Samples",
+                        attribute='defaultArnoldRenderOptions.lightSamples',
+                        enable=lightSamplesEnabled,
+                        annotation="When enabled, this many light samples are shared across all lights, and individual lights sampling settings are ignored. This does not apply to environment- or directional lights, volume-, or GPU rendering.")
+    cmds.separator()
 
     cmds.attrControlGrp('lightThreshold',
                         label="Low Light Threshold",

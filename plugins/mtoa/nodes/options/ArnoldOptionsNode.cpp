@@ -62,6 +62,7 @@ MObject CArnoldOptionsNode::s_aa_seed;
 MObject CArnoldOptionsNode::s_filterType;
 MObject CArnoldOptionsNode::s_filter;
 MObject CArnoldOptionsNode::s_driver_gamma;
+MObject CArnoldOptionsNode::s_light_samples_enable;
 MObject CArnoldOptionsNode::s_light_linking;
 MObject CArnoldOptionsNode::s_shadow_linking;
 MObject CArnoldOptionsNode::s_motion_blur_enable;
@@ -406,6 +407,12 @@ MStatus CArnoldOptionsNode::initialize()
       eAttr.addField("Maya Shadow Links", MTOA_SHADOWLINK_MAYA);
       eAttr.setDefault(MTOA_SHADOWLINK_LIGHT);
       addAttribute(s_shadow_linking);
+
+   s_light_samples_enable = nAttr.create("globalLightSamplesEnabled", "lsen", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_light_samples_enable);
+
+   s_attributes.MakeInput("light_samples");
 
    s_attributes.MakeInput("low_light_threshold");
 
