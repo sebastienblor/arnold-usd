@@ -2051,6 +2051,17 @@
         linkable            BOOL    false
         maya.channelbox     BOOL    false
         
+[node distance]
+    desc                    STRING  "Distance shader interpolates between near and far color values based on nearest surface."
+    maya.name               STRING  "aiDistance"
+    maya.id                 INT     0x00115D22
+    maya.classification     STRING  "utility/shader"
+    [attr samples]
+        min                 INT     1
+    [attr distance]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+
 # dag nodes
 
 [node polymesh]
