@@ -161,49 +161,77 @@ def arnoldAboutDialog():
     newVersionAvailable, latestVersionNumber = updateAvailable()
 
     legaltext = arnold.AiGetCopyrightNotices(arnold.AI_COPYRIGHT_NOTICES_PLUGINS)
-    arnoldAboutText =  u"Arnold for Maya\n\n"
-    arnoldAboutText += "MtoA " + cmds.pluginInfo( 'mtoa', query=True, version=True)
+    arnoldAboutText = "MtoA " + cmds.pluginInfo( 'mtoa', query=True, version=True)
     arnoldBuildID = cmds.arnoldPlugins(getBuildID=True)
     mtoaBuildDate = cmds.arnoldPlugins(getBuildDate=True)
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
-    arnoldAboutText += "\nArnold Core "+ai.AiGetVersionString()
+    arnoldAboutText += "\nArnold Core : "+ai.AiGetVersionInfo()
 
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
     w = cmds.window("AboutArnold", title="About")
     cmds.window("AboutArnold", edit=True, width=520, height=280)
+    form = cmds.formLayout("ArnoldAboutBoxLayout")
 
-    cmds.rowColumnLayout(numberOfColumns=1)
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,72), (2, 430)] )
+    attachControl_args = []
+    attachForm_args = []
 
-    cmds.image(image="arnold_small.png")
-    cmds.text(align="left",label=arnoldAboutText)
+    arnoldLogo = cmds.image(image="arnold_small.png")
+    arnoldAboutTitle =  cmds.text(label="Arnold for Maya")
+    versionTopAttach = arnoldAboutTitle
 
-    cmds.setParent( '..' )
-  
     if (newVersionAvailable):
-        cmds.rowColumnLayout(numberOfColumns=2,  columnWidth=[(1,72), (2, 430)], rowSpacing=([1,5],[2,5],[3,5]))
-        cmds.text(label="")
+        
+        newVersionLayout = cmds.frameLayout(collapsable=False, labelVisible=False)
+        cmds.rowLayout(numberOfColumns=2)
         newVersionText = "New Mtoa Version " + latestVersionNumber + " is now available"
-        cmds.text(align="left",label=newVersionText, font = "boldLabelFont",  hlc = (0.21, 0.64, 0.80) )
+        newVersionInfo = cmds.text(align="left",label=newVersionText, font = "boldLabelFont",  hlc = (0.21, 0.64, 0.80) )
 
-        cmds.text(label="")       
-        cmds.button(label='Click For More Info', c=lambda *args: cmds.launch(webPage= MTOA_RELEASENOTES_URL.format(version=latestVersionNumber.replace('.', ''))))
-        cmds.text(label="")       
-        cmds.setParent("..")
+        newVersionButton = cmds.button(label='Click For More Info', c=lambda *args: cmds.launch(webPage= MTOA_RELEASENOTES_URL.format(version=latestVersionNumber.replace('.', ''))))
 
-    cmds.rowColumnLayout( numberOfColumns=2,  columnWidth=[(1,72), (2, 430)], rowSpacing=([1,5],[2,5],[3,5]) )
-    cmds.text(label="")       
-    cmds.scrollField(editable=False, wordWrap=True, font="plainLabelFont", height=200, text=legaltext)
+        cmds.setParent('..')
+        cmds.setParent('..')
 
-    cmds.text(label="")       
-    cmds.button(label='OK', command= 'import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)')
-    cmds.text(label="") 
-    cmds.text(label="") 
+        attachControl_args += [(newVersionLayout, 'top', 5, arnoldAboutTitle),
+                               (newVersionLayout, 'left', 5, arnoldLogo)]
+        
+        attachForm_args += [(newVersionLayout, 'right', 5)]
 
+        versionTopAttach = newVersionLayout
+
+    aboutMtoAText = cmds.scrollField(editable=False, wordWrap=True, font="plainLabelFont", height=50, text=arnoldAboutText)
+
+    attachControl_args += [(aboutMtoAText, 'top', 5, versionTopAttach),
+                          (aboutMtoAText, 'left', 5, arnoldLogo),
+                          (arnoldAboutTitle, 'left', 5, arnoldLogo)
+                          ]
+    attachForm_args += [(arnoldLogo, 'top', 5),
+                       (arnoldLogo, 'left', 5),
+                       (arnoldAboutTitle, 'top', 5),
+                       (arnoldAboutTitle, 'right', 5),
+                       (aboutMtoAText, 'right', 5),                       
+                      ]
+
+    
+
+    arnoldAboutLegal = cmds.scrollField(editable=False, wordWrap=True, font="plainLabelFont", height=200, text=legaltext)
+    closeButton = cmds.button(label='OK', height=25, command= 'import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)')
+    
     cmds.setParent( '..' )
-    cmds.setParent( '..' )
+
+    attachControl_args += [(arnoldAboutLegal, 'top', 5, aboutMtoAText),
+                           (arnoldAboutLegal, 'left', 5, arnoldLogo),
+                           (closeButton, 'left', 45, arnoldLogo),
+                           (arnoldAboutLegal, 'bottom', 5, closeButton)]
+    
+    attachForm_args += [(closeButton, 'bottom', 5),
+                       (closeButton, 'right', 50),
+                       (arnoldAboutLegal, 'right', 5)]
+
+    cmds.formLayout("ArnoldAboutBoxLayout", edit=True,
+                    attachForm=attachForm_args,
+                    attachControl=attachControl_args)
 
     cmds.showWindow(w)
 
