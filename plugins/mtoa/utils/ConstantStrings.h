@@ -270,6 +270,7 @@ ASTR(lifespanPP);
 ASTR(light);
 ASTR(light_group);
 ASTR(light_path_expressions);
+ASTR(light_samples);
 ASTR(lights);
 ASTR(linear);
 ASTR(linkable);

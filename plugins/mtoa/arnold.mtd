@@ -206,6 +206,12 @@
         min                 INT     0
         softmax             INT     10
         linkable            BOOL    false
+    [attr light_samples]
+        maya.keyable        BOOL    false
+        min                 INT     0
+        softmax             INT     10
+        default             INT     2
+        linkable            BOOL    false
     [attr low_light_threshold]
         maya.keyable        BOOL    false
         min                 FLOAT   0.0

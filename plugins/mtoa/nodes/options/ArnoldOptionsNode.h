@@ -82,6 +82,8 @@ public:
 
    static MObject s_driver_gamma;
 
+   static MObject s_light_samples_enable;
+   
    static MObject s_light_linking;
    static MObject s_shadow_linking;
 
