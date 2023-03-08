@@ -180,7 +180,6 @@ def arnoldAboutDialog():
     arnoldLogo = cmds.image(image="arnold_small.png")
     arnoldAboutTitle =  cmds.text(label="Arnold for Maya")
     versionTopAttach = arnoldAboutTitle
-    newVersionAvailable=True
 
     if (newVersionAvailable):
         
@@ -194,14 +193,6 @@ def arnoldAboutDialog():
         cmds.setParent('..')
         cmds.setParent('..')
 
-        # attachControl_args += [
-        #     (newVersionInfo, 'top', 5, arnoldAboutTitle),
-        #     (newVersionInfo, 'left', 5, arnoldLogo),
-        # ]
-
-        # attachForm_args += [
-        #   (newVersionLayout, 'right', 5)
-        # ]
         attachControl_args += [(newVersionLayout, 'top', 5, arnoldAboutTitle),
                                (newVersionLayout, 'left', 5, arnoldLogo)]
         
