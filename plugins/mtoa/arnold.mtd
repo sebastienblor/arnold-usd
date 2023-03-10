@@ -206,6 +206,12 @@
         min                 INT     0
         softmax             INT     10
         linkable            BOOL    false
+    [attr light_samples]
+        maya.keyable        BOOL    false
+        min                 INT     0
+        softmax             INT     10
+        default             INT     2
+        linkable            BOOL    false
     [attr low_light_threshold]
         maya.keyable        BOOL    false
         min                 FLOAT   0.0
@@ -2045,6 +2051,17 @@
         linkable            BOOL    false
         maya.channelbox     BOOL    false
         
+[node distance]
+    desc                    STRING  "Distance shader interpolates between near and far color values based on nearest surface."
+    maya.name               STRING  "aiDistance"
+    maya.id                 INT     0x00115D22
+    maya.classification     STRING  "utility/shader"
+    [attr samples]
+        min                 INT     1
+    [attr distance]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+
 # dag nodes
 
 [node polymesh]

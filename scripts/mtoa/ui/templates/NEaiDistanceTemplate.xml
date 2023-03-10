@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiDistance'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='distance' type='maya.float'>
+			<label>Distance</label>
+		</attribute>
+		<attribute name='samples' type='maya.int'>
+			<label>Samples</label>
+		</attribute>
+		<attribute name='nearColor' type='maya.float3'>
+			<label>Near Color</label>
+		</attribute>
+		<attribute name='farColor' type='maya.float3'>
+			<label>Far Color</label>
+		</attribute>
+		<attribute name='insideColor' type='maya.float3'>
+			<label>Inside Color</label>
+		</attribute>
+		<attribute name='outsideColor' type='maya.float3'>
+			<label>Outside Color</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiDistance'>
+		<property name='outColor'/>
+		<property name='samples'/>
+		<property name='distance'/>
+		<property name='nearColor'/>
+		<property name='farColor'/>
+		<property name='insideColor'/>
+		<property name='outsideColor'/>
+
+	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiDistance'>
+		<property name='outColor'/>
+	</view>
+</templates>

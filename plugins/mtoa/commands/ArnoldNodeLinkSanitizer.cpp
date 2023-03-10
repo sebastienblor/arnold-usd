@@ -266,6 +266,8 @@ void CShaderLinkSanitizer::FixShadersWithOutputComponents()
                 continue;
             if (p.m_param_type == AI_TYPE_RGB && input_node_entry_type == AI_TYPE_RGBA)
                 continue;
+            if (p.m_param_type == AI_TYPE_RGBA && input_node_entry_type == AI_TYPE_RGB)
+                continue;
             if (p.m_param_type == AI_TYPE_FLOAT && (input_node_entry_type == AI_TYPE_RGB || input_node_entry_type == AI_TYPE_RGBA))
                 continue;
             adapter = CreateNode(input_node_nb_components == 3 ? AtString("rgb_to_float") : AtString("rgba_to_float")); // rgb_to_float or rgba_to_float

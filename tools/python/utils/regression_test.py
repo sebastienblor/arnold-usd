@@ -135,8 +135,11 @@ class Test:
       # All the commands will be executed sequentially.
       post_script = os.path.join(test_dir, 'post_script.py')
       if os.path.exists(post_script):
-         # FIXME could we get the ooiotool_path somehow from the environment somehow ?
-         oiiotool_path = os.path.join(env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', os_name, 'oiiotool')
+         bin_path = env['ARNOLD_BINARIES']
+         if '$ARNOLD' in bin_path:
+            bin_path = bin_path.replace('$ARNOLD', env['ARNOLD'])
+
+         oiiotool_path = os.path.join(bin_path, 'oiiotool')
          test_script += '\n'
          test_script += '{} {} {} {}'.format('post_script.py', '.', oiiotool_path,  env['TARGET_MODULE_PATH'])
          

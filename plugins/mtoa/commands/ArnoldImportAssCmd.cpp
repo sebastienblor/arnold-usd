@@ -460,6 +460,42 @@ void setAttributeValues(const AtNode* node,
           break;
       }
     case AI_TYPE_MATRIX:
+      {
+	  AtMatrix mat = AiNodeGetMatrix(node, paramName);
+	  attrValue += "-type \"matrix\" ";
+	  attrValue += (float) mat[0][0];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[0][1];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[0][2];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[0][3];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[1][0];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[1][1];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[1][2];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[1][3];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[2][0];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[2][1];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[2][2];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[2][3];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[3][0];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[3][1];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[3][2];
+	  attrValue += MString(" ");
+	  attrValue += (float) mat[3][3];
+      }
+      break;
     case AI_TYPE_CLOSURE:
     case AI_TYPE_USHORT:
     case AI_TYPE_HALF:
@@ -664,8 +700,15 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
             {
                auto node_entry = AiNodeGetNodeEntry(connected_node) ;
                auto param_entry = AiNodeEntryGetOutput(node_entry,output_param);
-               MString connected_output(AiParamGetName(param_entry));
-               connected_attr = MString(AiParamGetName(param_entry).c_str());
+               AtString param_name = AiParamGetName(param_entry);
+               bool connectedIsOsl = AiNodeIs(connected_node, str::osl);
+               MString connected_output(param_name);
+               const char* param_name_p = param_name.c_str();
+               if (strstr(param_name_p, "param_")  == param_name_p) {
+                  connected_attr = MString(param_name_p + 6);
+               } else {
+                  connected_attr = MString(param_name_p);
+               }
                // If the connection has a component
                if (output_comp > -1)
                {

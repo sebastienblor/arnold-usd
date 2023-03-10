@@ -1243,6 +1243,13 @@ void COptionsTranslator::Export(AtNode *options)
          {
             MDistance dist(1.0 / sessionOptions.GetScaleFactor(), MDistance::uiUnit());
             AiNodeSetFlt(options, str::meters_per_unit, (float)dist.asMeters());
+         } else if (strcmp(paramName, "light_samples") == 0)
+         {
+            if (FindMayaPlug("globalLightSamplesEnabled").asBool())
+            {
+               const int light_samples = FindMayaPlug("light_samples").asInt();
+               AiNodeSetInt(options, str::light_samples, light_samples);
+            }
          }
          else
          {
