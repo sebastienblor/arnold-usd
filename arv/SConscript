@@ -64,6 +64,7 @@ def _mtoa_arv(target, source, env):
             args['SHCC'] = local_env['SHCC']
     elif system.os() == 'darwin':
         args['SDK_VERSION'] = local_env.get('SDK_VERSION', '')
+        args['QT_LIB_PATH'] = os.path.join(local_env['MAYA_ROOT'], 'MacOS')
     arv_project = env.Dir(os.path.join(env['ROOT_DIR'], env['EXTERNAL_PATH'], 'arnold-renderview')).abspath
     arv_scons = os.path.join(arv_project, '3rdparty', 'scons', 'scons.py')
     args = ['-B', arv_scons, 'install', '-j', '1'] + ['{}={}'.format(k, v) for k, v in args.items()]
