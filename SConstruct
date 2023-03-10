@@ -179,6 +179,7 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
+    StringVariable('ARV_PATH', 'Use pre-compiled library (and headers) for ARV', None),
     StringVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
     StringVariable('MAYAUSD_PATH', 'Maya-USD installation root', None),
     StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
@@ -733,7 +734,7 @@ env['QT_ROOT_DIR'] = mayaQtFolder
 env.Append(CPPPATH = [mayaQtFolder])
 
 ## configure base directory for temp files
-BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, env['TARGET_ARCH']), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+BUILD_BASE_DIR = os.path.abspath(os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, env['TARGET_ARCH']), maya_version, '%s_%s' % (env['COMPILER'], env['MODE'])))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
@@ -756,6 +757,7 @@ if env['MTOA_DISABLE_RV']:
 env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
 
+ARV_PATH = env.get('ARV_PATH')
 
 (USD_CUT_PATH,
  USD_CUT_VERSION,
@@ -846,6 +848,8 @@ for usd_path in usd_path_list:
                 if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'usd')):
                     os.makedirs(os.path.join(BUILD_BASE_DIR, 'usd'))
 
+if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'arv')):
+    os.makedirs(os.path.join(BUILD_BASE_DIR, 'arv'))
 
 mayausd_path_list = []
 mayausd_path_python2_count = 0
@@ -866,11 +870,12 @@ if int(maya_version_base) >= 2021:
 
 mayapy_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy')
 
+if env['UPDATE_SUBMODULES']:
+    print ('updating all submodules...')
+    system.execute('git submodule sync')
+    system.execute('git submodule update --init --recursive')
+
 if ENABLE_USD:
-    if env['UPDATE_SUBMODULES']:
-        print ('updating usd submodule...')
-        system.execute('git submodule sync')
-        system.execute('git submodule update --init --recursive')
      
         # We need to ensure that jinja2 will be installed through mayapy   
         mayapy_cmd = mayapy_bin + " -m pip install jinja2"
@@ -898,6 +903,7 @@ if system.os == 'windows':
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
         MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.dll'), os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.lib')]
         MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders.dll')]
+        MTOA_ARV = [os.path.join(BUILD_BASE_DIR, 'arv', 'ai_renderview.dll')]
         for usd_version in USD_VERSIONS:
             usd_folder = usd_version[USD_CUT_VERSION]
             if usd_version[USD_CUT_PYTHON] == '2':
@@ -922,6 +928,11 @@ if system.os == 'windows':
                                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                                     duplicate   = 0,
                                                     exports     = 'env')
+        if ARV_PATH == None:
+            MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
+                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
+                                      duplicate   = 0,
+                                      exports     = 'maya_env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
@@ -973,6 +984,7 @@ else:
         else:
             MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.so')]
         MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders' + get_library_extension())]
+        MTOA_ARV = [os.path.join(BUILD_BASE_DIR, 'arv', get_library_prefix() + 'ai_renderview' + get_library_extension())]
         for usd_version in USD_VERSIONS:
             usd_folder = usd_version[USD_CUT_VERSION]
             if usd_version[USD_CUT_PYTHON] == '2':
@@ -997,6 +1009,11 @@ else:
                                       variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                       duplicate   = 0,
                                       exports     = 'env')
+        if ARV_PATH == None:
+            MTOA_ARV = env.SConscript(os.path.join('arv', 'SConscript'),
+                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'arv'),
+                                      duplicate   = 0,
+                                      exports     = 'maya_env')
 
         for usd_version in USD_VERSIONS:
             maya_env['USD_PATH'] = usd_version[USD_CUT_PATH]
@@ -1117,6 +1134,8 @@ if ENABLE_USD:
     env.Install(os.path.join(TARGET_USD_PATH), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdPlugInfo.json'))
 
 
+if ARV_PATH == None:
+    Depends(MTOA_API, MTOA_ARV[0])
 Depends(MTOA, MTOA_API[0])
 Depends(MTOA, ARNOLD_API_LIB)
 
@@ -1144,6 +1163,8 @@ if system.os == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
+    if ARV_PATH == None:
+        env.Install(TARGET_BINARIES, MTOA_ARV[0])
     nprocs = []
     
     libs = MTOA_API[1]
@@ -1154,6 +1175,8 @@ if system.os == 'windows':
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
+    if ARV_PATH == None:
+        env.Install(TARGET_BINARIES, MTOA_ARV)
     if system.os == 'linux':
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
@@ -1202,12 +1225,10 @@ if os.path.exists(os.path.join(os.path.join(ARNOLD, 'plugins', 'usd'))):
 
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-    if int(maya_version_base) >= 2024 and system.os == 'linux':
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2024', RENDERVIEW_DYLIB)
-    elif int(maya_version_base) >= 2021:
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', '2022', RENDERVIEW_DYLIB)
+    if ARV_PATH == None:
+        RENDERVIEW_DYLIBPATH = os.path.join(BUILD_BASE_DIR, 'arv', RENDERVIEW_DYLIB)
     else:
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', RENDERVIEW_DYLIB)
+        RENDERVIEW_DYLIBPATH = os.path.join(ARV_PATH, RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
@@ -1355,8 +1376,10 @@ if env['MODE'] in ['debug', 'profile']:
 package_name_inst = package_name
 
 
-
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+if ARV_PATH == None:
+    PACKAGE = env.MakePackage(package_name, MTOA_ARV + MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+else:
+    PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 import ftplib
@@ -1575,6 +1598,8 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD, 'include'), os.path.join('include', 'arnold')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
+if ARV_PATH == None:
+    PACKAGE_FILES += [[MTOA_ARV[0], 'bin']]
 
 materialx_files = find_files_recursive(os.path.join(ARNOLD, 'materialx'), None)
 for p in materialx_files:
@@ -2050,6 +2075,8 @@ aliases.append(env.Alias('install-usd_delegate', env['TARGET_USD_PATH']))
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'docs', MTOA_API_DOCS)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
+if ARV_PATH == None:
+    top_level_alias(env, 'arv', MTOA_ARV)
 top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)

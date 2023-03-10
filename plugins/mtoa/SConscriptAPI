@@ -86,14 +86,15 @@ maya_version_base = maya_version[0:4]
 
 MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
 
+ARV_PATH = local_env.get('ARV_PATH')
+
 if not local_env['MTOA_DISABLE_RV']:
-    renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')
-    if int(maya_version_base) >= 2024 and system.os == 'linux':
-        renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', '2024')
-    elif int(maya_version_base) >= 2021:
-        renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', '2022')
+    if ARV_PATH == None:
+        renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'arnold-renderview', 'sdk')
+        renderViewLibFolder = os.path.join(local_env['BUILD_BASE_DIR'], 'arv')
     else:
-        renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib')
+        renderViewIncludeFolder = ARV_PATH
+        renderViewLibFolder = ARV_PATH
 
     local_env.Append(LIBPATH = [renderViewLibFolder])
     local_env.Append(CPPPATH = [renderViewIncludeFolder])
