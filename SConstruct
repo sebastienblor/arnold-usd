@@ -984,7 +984,7 @@ else:
         else:
             MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.so')]
         MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders' + get_library_extension())]
-        MTOA_ARV = [os.path.join(BUILD_BASE_DIR, 'arv', 'ai_renderview' + get_library_extension())]
+        MTOA_ARV = [os.path.join(BUILD_BASE_DIR, 'arv', get_library_prefix() + 'ai_renderview' + get_library_extension())]
         for usd_version in USD_VERSIONS:
             usd_folder = usd_version[USD_CUT_VERSION]
             if usd_version[USD_CUT_PYTHON] == '2':
