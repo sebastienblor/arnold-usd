@@ -116,7 +116,7 @@ void CSynColorTranslator::Export(AtNode* node)
       MGlobal::displayWarning("Updating All TX after rendering space change....");
       MGlobal::executeCommand("arnoldRenderView -status \"Updating All TX after rendering space change....\"");
       
-      updateAllTx();
+      // updateAllTx();
       m_renderingSpaceChanged = false;
    }
 }
