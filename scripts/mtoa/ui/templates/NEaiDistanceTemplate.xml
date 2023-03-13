@@ -17,12 +17,6 @@
 		<attribute name='farColor' type='maya.float3'>
 			<label>Far Color</label>
 		</attribute>
-		<!-- <attribute name='insideColor' type='maya.float3'> -->
-		<!-- 	<label>Inside Color</label> -->
-		<!-- </attribute> -->
-		<!-- <attribute name='outsideColor' type='maya.float3'> -->
-		<!-- 	<label>Outside Color</label> -->
-		<!-- </attribute> -->
 	</template>
 	<view name='NEDefault' template='NEaiDistance'>
 		<property name='outColor'/>
@@ -30,8 +24,6 @@
 		<property name='distance'/>
 		<property name='nearColor'/>
 		<property name='farColor'/>
-		<!-- <property name='insideColor'/> -->
-		<!-- <property name='outsideColor'/> -->
 
 	</view>
 	<view name='NEDefaultSoloOutput' template='NEaiDistance'>
