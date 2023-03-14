@@ -210,7 +210,7 @@
         maya.keyable        BOOL    false
         min                 INT     0
         softmax             INT     10
-        default             INT     2
+        default             INT     4
         linkable            BOOL    false
     [attr low_light_threshold]
         maya.keyable        BOOL    false
