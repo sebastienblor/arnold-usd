@@ -1289,7 +1289,7 @@ def createArnoldLightSettings():
                         label="Light Samples",
                         attribute='defaultArnoldRenderOptions.lightSamples',
                         enable=lightSamplesEnabled,
-                        annotation="When enabled, this many light samples are shared across all lights, and individual lights sampling settings are ignored. This does not apply to environment- or directional lights, volume-, or GPU rendering.")
+                        annotation="When enabled, the light sample settings on individual lights are ignored and the overall contribution of <b>all</b> lights together is computed using only a total number of this many samples. Does not apply to environment or directional lights, volumes, or GPU rendering.")
     cmds.separator()
 
     cmds.attrControlGrp('lightThreshold',
