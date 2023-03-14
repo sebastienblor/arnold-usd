@@ -28,6 +28,7 @@ class AEaiUvTransformTemplate(ShaderAETemplate):
         self.addControl('rotate')
         self.addControl('pivot')
         self.addControl('coverage')
+        self.addControl('uvcoords', label="UV Coords")
         self.beginLayout('UVW Transform', collapse=False)
         self.addControl('wset', label="W Set", annotation="user parameter name on mesh that will provide w data" )
         self.addControl('uvwMatrix', label="UVW Matrix", annotation="transform matrix for UVW transforms")
