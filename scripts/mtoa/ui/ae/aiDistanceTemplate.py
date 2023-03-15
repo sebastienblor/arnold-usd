@@ -8,10 +8,7 @@ class AEaiDistanceTemplate(ShaderAETemplate):
         self.addSwatch()
         self.beginScrollLayout()
 
-        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
-
         self.beginLayout('Distance Attributes', collapse=False)
-        print('DEBUG: AEaiDistanceTemplate::setup()')
         self.addControl('samples', label='Samples')
         self.addControl('distance', label='Distance')
         self.addControl('nearColor', label='Near Color')
