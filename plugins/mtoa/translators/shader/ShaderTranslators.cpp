@@ -3894,7 +3894,7 @@ void CAiOslShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
    // as the parameters and output type might become different
    if (plugName == MString("code"))
       SetUpdateMode(AI_RECREATE_NODE);
-   if (plugName == MString("codeCache"))
+   if (plugName == MString("codeCache") || plugName == MString("compileStatus"))
      return;
 
    CShaderTranslator::NodeChanged(node, plug);
