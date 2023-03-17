@@ -1068,6 +1068,20 @@ if ENABLE_USD:
     if not os.path.exists(os.path.join(TARGET_USD_PATH, 'hydra')):
         os.makedirs(os.path.join(TARGET_USD_PATH, 'hydra'))
 
+    def AddHdArnoldJsonDesc(usd_cut_version, usd_cut_full_version, usd_cut_python):
+        jsonFileText = "\t\t{\n\t\t\t\"PlugPath\":\"hydra/"
+        jsonFileText += usd_cut_version
+        if usd_cut_python == '2':
+            jsonFileText += '_python2'
+        jsonFileText += "\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"'
+        jsonFileText += usd_cut_python
+        jsonFileText += '",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(usd_cut_full_version)
+        jsonFileText += '\t\t\t}\n\t\t}'
+        return jsonFileText
+
     for usd_version in USD_VERSIONS:
         if usd_version[USD_CUT_DELEGATE]:
             if modulesFound:
@@ -1076,17 +1090,11 @@ if ENABLE_USD:
             if isinstance(usd_version[USD_CUT_DELEGATE], SCons.Node.NodeList):
                 usd_version[USD_CUT_DELEGATE] = usd_version[USD_CUT_DELEGATE][0]
             usd_delegate = usd_version[USD_CUT_DELEGATE]
-            jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"hydra/"
-            jsonFileText += usd_version[USD_CUT_VERSION]
-            if usd_version[USD_CUT_PYTHON] == '2':
-                jsonFileText += '_python2'
-            jsonFileText += "\",\n"
-            jsonFileText += '\t\t\t"VersionCheck":{\n'
-            jsonFileText += '\t\t\t\t"Python":"'
-            jsonFileText += usd_version[USD_CUT_PYTHON]
-            jsonFileText += '",\n'
-            jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(usd_version[USD_CUT_FULL_VERSION])
-            jsonFileText += '\t\t\t}\n\t\t}'
+            jsonFileText += AddHdArnoldJsonDesc(usd_version[USD_CUT_VERSION],usd_version[USD_CUT_FULL_VERSION], usd_version[USD_CUT_PYTHON])
+            if usd_version[USD_CUT_FULL_VERSION] == '0.22.11':
+                jsonFileText += ',\n'
+                jsonFileText += AddHdArnoldJsonDesc(usd_version[USD_CUT_VERSION],'0.22.11-ad1', usd_version[USD_CUT_PYTHON])
+
             env.Install(os.path.join(TARGET_USD_PATH, 'hydra'), usd_delegate)
 
         if usd_version[USD_CUT_PROCEDURAL]:
