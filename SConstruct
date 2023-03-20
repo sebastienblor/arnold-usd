@@ -181,9 +181,7 @@ vars.AddVariables(
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     StringVariable('ARV_PATH', 'Use pre-compiled library (and headers) for ARV', None),
     StringVariable('USD_PATH', 'Path to the USD root folder, to build the render delegate', None),
-    StringVariable('MAYAUSD_PATH', 'Maya-USD installation root', None),
     StringVariable('USD_PATH_PYTHON2', 'Path to the USD root folder, to build the render delegate for python2', None),
-    StringVariable('MAYAUSD_PATH_PYTHON2', 'Maya-USD installation root for python2', None),
     StringVariable('MOD_SUFFIX', 'Install another mod file with a given suffix', None),
     StringVariable('TIMELIMIT', 'Time limit for each test (in seconds)', '300'),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
@@ -765,9 +763,8 @@ ARV_PATH = env.get('ARV_PATH')
  USD_CUT_PYTHON,
  USD_CUT_DELEGATE,
  USD_CUT_PROCEDURAL,
- USD_CUT_MAYAUSD_PATH,
  USD_CUT_REGISTRY,
- USD_CUT_LIST_COUNT) = range(9)
+ USD_CUT_LIST_COUNT) = range(8)
 
 USD_VERSIONS = []
 
@@ -775,12 +772,8 @@ USD_DELEGATES = []
 USD_DELEGATES_PYTHON2 = []
 USD_PROCEDURALS = []
 USD_PROCEDURALS_PYTHON2 = []
-MAYAUSD_REGISTRIES = []
-MAYAUSD_REGISTRIES_PYTHON2 = []
 USD_PATHS = env.get('USD_PATH')
 USD_PATHS_PYTHON2 = env.get('USD_PATH_PYTHON2')
-MAYAUSD_PATHS = env.get('MAYAUSD_PATH')
-MAYAUSD_PATHS_PYTHON2 = env.get('MAYAUSD_PATH_PYTHON2')
 PATH_SEPARATOR = ';' if system.os == 'windows' else ':'
 ENABLE_USD = False
 
@@ -851,23 +844,6 @@ for usd_path in usd_path_list:
 if not os.path.exists(os.path.join(BUILD_BASE_DIR, 'arv')):
     os.makedirs(os.path.join(BUILD_BASE_DIR, 'arv'))
 
-mayausd_path_list = []
-mayausd_path_python2_count = 0
-if int(maya_version_base) >= 2021:
-    if MAYAUSD_PATHS_PYTHON2 and len(MAYAUSD_PATHS_PYTHON2) > 0:
-        MAYAUSD_PATHS_PYTHON2 = env.subst(MAYAUSD_PATHS_PYTHON2)
-        mayausd_path_list += MAYAUSD_PATHS_PYTHON2.split(PATH_SEPARATOR)
-        mayausd_path_python2_count = len(mayausd_path_list)
-    
-    if MAYAUSD_PATHS and len(MAYAUSD_PATHS) > 0:
-        MAYAUSD_PATHS = env.subst(MAYAUSD_PATHS)
-        mayausd_path_list += MAYAUSD_PATHS.split(PATH_SEPARATOR)
-    if len(mayausd_path_list) == len(usd_path_list) and mayausd_path_python2_count == usd_path_python2_count:
-        ind = 0
-        for usd_version in USD_VERSIONS:
-            usd_version[USD_CUT_MAYAUSD_PATH] = mayausd_path_list[ind]
-            ind = ind + 1
-
 mayapy_bin = os.path.join(env['MAYA_ROOT'], 'bin', 'mayapy')
 
 if env['UPDATE_SUBMODULES']:
@@ -910,8 +886,7 @@ if system.os == 'windows':
                 usd_folder += '_python2'
             usd_version[USD_CUT_DELEGATE] = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', usd_folder)
             usd_version[USD_CUT_PROCEDURAL] = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', usd_folder, 'usd_cache_proc.dll')
-            if usd_version[USD_CUT_MAYAUSD_PATH]:
-                usd_version[USD_CUT_REGISTRY] = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder, 'mayaUsdRegistry.dll')
+            usd_version[USD_CUT_REGISTRY] = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder, 'mayaUsdRegistry.dll')
 
     else:
         MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
@@ -950,12 +925,10 @@ if system.os == 'windows':
                               duplicate   = 0,
                               exports     = 'maya_env')
             
-            if usd_version[USD_CUT_MAYAUSD_PATH]:
-                maya_env['MAYAUSD_PATH'] = usd_version[USD_CUT_MAYAUSD_PATH]
-                usd_version[USD_CUT_REGISTRY] = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
-                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder),
-                                      duplicate   = 0,
-                                      exports     = 'maya_env')
+            usd_version[USD_CUT_REGISTRY] = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder),
+                                  duplicate   = 0,
+                                  exports     = 'maya_env')
 
     
 else:
@@ -991,8 +964,7 @@ else:
                 usd_folder += '_python2'
             usd_version[USD_CUT_DELEGATE] = os.path.join(BUILD_BASE_DIR, 'usd', 'hydra', usd_folder)
             usd_version[USD_CUT_PROCEDURAL] = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', usd_folder, 'usd_cache_proc' + get_library_extension())
-            if usd_version[USD_CUT_MAYAUSD_PATH]:
-                usd_version[USD_CUT_REGISTRY] = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder, 'mayaUsdRegistry'+ get_library_extension())
+            usd_version[USD_CUT_REGISTRY] = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder, 'mayaUsdRegistry'+ get_library_extension())
             
     else:
         MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
@@ -1030,12 +1002,10 @@ else:
                               variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'proc', usd_folder),
                               duplicate   = 0,
                               exports     = 'maya_env')
-            if usd_version[USD_CUT_MAYAUSD_PATH]:
-                maya_env['MAYAUSD_PATH'] = usd_version[USD_CUT_MAYAUSD_PATH]
-                usd_version[USD_CUT_REGISTRY] = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
-                              variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder),
-                              duplicate   = 0,
-                              exports     = 'maya_env')
+            usd_version[USD_CUT_REGISTRY] = env.SConscript(os.path.join('usd', 'mayaUsdRegistry', 'SConscript'),
+                          variant_dir = os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder),
+                          duplicate   = 0,
+                          exports     = 'maya_env')
 
                                  
     def osx_hardcode_path(target, source, env):
@@ -1068,11 +1038,23 @@ if ENABLE_USD:
     if not os.path.exists(os.path.join(TARGET_USD_PATH, 'hydra')):
         os.makedirs(os.path.join(TARGET_USD_PATH, 'hydra'))
 
-    def AddHdArnoldJsonDesc(usd_cut_version, usd_cut_full_version, usd_cut_python):
+    def AddHydraJsonDesc(usd_cut_version, usd_cut_full_version, usd_cut_python):
         jsonFileText = "\t\t{\n\t\t\t\"PlugPath\":\"hydra/"
         jsonFileText += usd_cut_version
         if usd_cut_python == '2':
             jsonFileText += '_python2'
+        jsonFileText += "\",\n"
+        jsonFileText += '\t\t\t"VersionCheck":{\n'
+        jsonFileText += '\t\t\t\t"Python":"'
+        jsonFileText += usd_cut_python
+        jsonFileText += '",\n'
+        jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(usd_cut_full_version)
+        jsonFileText += '\t\t\t}\n\t\t}'
+        return jsonFileText
+
+    def AddRegistryJsonDesc(usd_cut_version, usd_cut_full_version, usd_cut_python):
+        jsonFileText = "\t\t{\n\t\t\t\"PlugPath\":\"mayaUsdRegistry/"
+        jsonFileText += usd_cut_version            
         jsonFileText += "\",\n"
         jsonFileText += '\t\t\t"VersionCheck":{\n'
         jsonFileText += '\t\t\t\t"Python":"'
@@ -1090,10 +1072,10 @@ if ENABLE_USD:
             if isinstance(usd_version[USD_CUT_DELEGATE], SCons.Node.NodeList):
                 usd_version[USD_CUT_DELEGATE] = usd_version[USD_CUT_DELEGATE][0]
             usd_delegate = usd_version[USD_CUT_DELEGATE]
-            jsonFileText += AddHdArnoldJsonDesc(usd_version[USD_CUT_VERSION],usd_version[USD_CUT_FULL_VERSION], usd_version[USD_CUT_PYTHON])
+            jsonFileText += AddHydraJsonDesc(usd_version[USD_CUT_VERSION],usd_version[USD_CUT_FULL_VERSION], usd_version[USD_CUT_PYTHON])
             if usd_version[USD_CUT_FULL_VERSION] == '0.22.11':
                 jsonFileText += ',\n'
-                jsonFileText += AddHdArnoldJsonDesc(usd_version[USD_CUT_VERSION],'0.22.11-ad1', usd_version[USD_CUT_PYTHON])
+                jsonFileText += AddHydraJsonDesc(usd_version[USD_CUT_VERSION],'0.22.11-ad1', usd_version[USD_CUT_PYTHON])
 
             env.Install(os.path.join(TARGET_USD_PATH, 'hydra'), usd_delegate)
 
@@ -1120,16 +1102,12 @@ if ENABLE_USD:
             if modulesFound:
                 jsonFileText += ',\n'
             modulesFound = True
-            jsonFileText += "\t\t{\n\t\t\t\"PlugPath\":\"mayaUsdRegistry/"
-            jsonFileText += usd_folder            
-            jsonFileText += "\",\n"
-            jsonFileText += '\t\t\t"VersionCheck":{\n'
-            jsonFileText += '\t\t\t\t"Python":"'
-            jsonFileText += usd_version[USD_CUT_PYTHON]
-            jsonFileText += '",\n'
-            jsonFileText += '\t\t\t\t"USD":"{}"\n'.format(usd_version[USD_CUT_FULL_VERSION])
-            jsonFileText += '\t\t\t}\n\t\t}'
 
+            jsonFileText += AddRegistryJsonDesc(usd_folder, usd_version[USD_CUT_FULL_VERSION], usd_version[USD_CUT_PYTHON])
+            if usd_version[USD_CUT_FULL_VERSION] == '0.22.11':
+                jsonFileText += ',\n'
+                jsonFileText += AddRegistryJsonDesc(usd_folder,'0.22.11-ad1', usd_version[USD_CUT_PYTHON])
+            
             env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', usd_folder), usd_registry)
             env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', usd_folder), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder, 'plugInfo.json'))
             env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', usd_folder), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder, 'mayaUsdRegistry'))
