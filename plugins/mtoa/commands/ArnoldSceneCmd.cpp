@@ -99,6 +99,8 @@ typedef void (*WriteUsdStageCacheFunction)(int, bool, float);
 // Write the current Arnold universe to USD, using a given USD cacheID.
 // We want to dlopen the mayaUsdRegistry DSO, and invoke the function WriteUsdStageCache.
 // This is required as it links against USD, as opposed to MtoA.
+static void *s_pluginLib = nullptr; 
+
 static bool WriteUsdFile(int cacheId, bool defaultTime, double time)
 {
    // Get the path of this MtoA root install   
@@ -137,27 +139,30 @@ static bool WriteUsdFile(int cacheId, bool defaultTime, double time)
    filename += LIBEXT;
 
    // Load the mayaUsdRegistry DSO
-   void *pluginLib = LibraryLoad(filename.c_str());
-   if (pluginLib == NULL)
+   if (s_pluginLib == nullptr)
+      s_pluginLib = LibraryLoad(filename.c_str());
+   if (s_pluginLib == nullptr)
    {
       AiMsgWarning("[mtoa] Error loading USD library: %s", LibraryLastError());
       return false;
    }
-   
+
    // Check if we find the symbol for the WriteUsdStageCache function
-   void* fn = LibrarySymbol(pluginLib, "WriteUsdStageCache");
+   void* fn = LibrarySymbol(s_pluginLib, "WriteUsdStageCache");
    if (fn == NULL)
    {            
       AiMsgWarning("[mtoa] Error loading USD function: %s", LibraryLastError());
-      LibraryUnload(pluginLib);
+      LibraryUnload(s_pluginLib);
       return false;
    }
 
+   // We are not unloading the plugin lib anymore because it can 
+   // cause crashes in some cases (see MTOA-1365)
+   
    // Invoke the DSO function
    const WriteUsdStageCacheFunction &writeFunc = (WriteUsdStageCacheFunction)(fn);
    (writeFunc)(cacheId, defaultTime, float(time));
-   // unload the library now
-   LibraryUnload(pluginLib);
+
    return true;
 }
 static inline void GetTranslatorsList(const MSelectionList &sel, CArnoldSession *session, std::vector<CNodeTranslator*> &translators)
