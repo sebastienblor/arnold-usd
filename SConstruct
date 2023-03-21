@@ -1073,9 +1073,9 @@ if ENABLE_USD:
                 usd_version[USD_CUT_DELEGATE] = usd_version[USD_CUT_DELEGATE][0]
             usd_delegate = usd_version[USD_CUT_DELEGATE]
             jsonFileText += AddHydraJsonDesc(usd_version[USD_CUT_VERSION],usd_version[USD_CUT_FULL_VERSION], usd_version[USD_CUT_PYTHON])
-            if usd_version[USD_CUT_FULL_VERSION] == '0.22.11':
+            if usd_version[USD_CUT_FULL_VERSION] == '0.22.11' or usd_version[USD_CUT_FULL_VERSION] == '0.21.11':
                 jsonFileText += ',\n'
-                jsonFileText += AddHydraJsonDesc(usd_version[USD_CUT_VERSION],'0.22.11-ad1', usd_version[USD_CUT_PYTHON])
+                jsonFileText += AddHydraJsonDesc(usd_version[USD_CUT_VERSION],'{}-ad1'.format(usd_version[USD_CUT_FULL_VERSION]), usd_version[USD_CUT_PYTHON])
 
             env.Install(os.path.join(TARGET_USD_PATH, 'hydra'), usd_delegate)
 
@@ -1104,9 +1104,9 @@ if ENABLE_USD:
             modulesFound = True
 
             jsonFileText += AddRegistryJsonDesc(usd_folder, usd_version[USD_CUT_FULL_VERSION], usd_version[USD_CUT_PYTHON])
-            if usd_version[USD_CUT_FULL_VERSION] == '0.22.11':
+            if usd_version[USD_CUT_FULL_VERSION] == '0.22.11' or usd_version[USD_CUT_FULL_VERSION] == '0.21.11':
                 jsonFileText += ',\n'
-                jsonFileText += AddRegistryJsonDesc(usd_folder,'0.22.11-ad1', usd_version[USD_CUT_PYTHON])
+                jsonFileText += AddRegistryJsonDesc(usd_folder,'{}-ad1'.format(usd_version[USD_CUT_FULL_VERSION]), usd_version[USD_CUT_PYTHON])
             
             env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', usd_folder), usd_registry)
             env.Install(os.path.join(TARGET_USD_PATH, 'mayaUsdRegistry', usd_folder), os.path.join(BUILD_BASE_DIR, 'usd', 'mayaUsdRegistry', usd_folder, 'plugInfo.json'))
