@@ -14,6 +14,8 @@
 
 void CDirectionalLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
    CLightTranslator::Export(light);
 
    AiNodeSetFlt(light, str::angle, FindMayaPlug("aiAngle").asFloat());
@@ -34,6 +36,9 @@ void CDirectionalLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CPointLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    CLightTranslator::Export(light);
 
    MPlug plug;
@@ -66,6 +71,9 @@ void CPointLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CSpotLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    MPlug plug;
    MFnSpotLight fnLight(m_dagPath);
 
@@ -103,6 +111,9 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
 // FIXME in which universe to flush the cache ?
 void CQuadLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    if (m_flushCache)
    {
       AiUniverseCacheFlush(GetUniverse(), AI_CACHE_QUAD);
@@ -188,6 +199,9 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
 //
 void CCylinderLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    CLightTranslator::Export(light);
 
    AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
@@ -219,6 +233,9 @@ void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
 //
 void CDiskLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    CLightTranslator::Export(light);
 
    AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
@@ -250,6 +267,9 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CSkyDomeLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    if (m_flushCache)
    {
       AiUniverseCacheFlush(GetUniverse(), AI_CACHE_BACKGROUND);
@@ -301,6 +321,9 @@ void CSkyDomeLightTranslator::NodeChanged(MObject& node, MPlug& plug)
 }
 void CPhotometricLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    CLightTranslator::Export(light);
    AiNodeSetFlt(light, str::radius, FindMayaPlug("aiRadius").asFloat());
    AiNodeSetBool(light, str::cast_volumetric_shadows, FindMayaPlug("aiCastVolumetricShadows").asBool());
@@ -508,6 +531,9 @@ MObject CMeshLightTranslator::GetMeshObject() const
 
 void CMeshLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    CLightTranslator::Export(light);
    
    MStatus status;
@@ -615,6 +641,9 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CMeshLightTranslator::ExportMotion(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    AtMatrix matrix;
    GetMatrix(matrix);
    int step = GetMotionStep();

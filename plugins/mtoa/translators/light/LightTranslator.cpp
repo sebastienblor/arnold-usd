@@ -32,8 +32,23 @@ bool CLightTranslator::RequiresMotionData()
    return m_impl->m_session->GetOptions().IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
 }
 
+// MayaUSD can create UFE lights that will show up as maya light objects here.
+// But we want to ignore them, since these light will already show up in the usd 
+// file and therefore we could have them duplicated MTOA-1366
+bool CLightTranslator::IsUfe()
+{
+   MStatus status;
+   MPlug ufeRuntimePlug = FindMayaPlug("ufeRuntime");
+   if (ufeRuntimePlug.isNull())
+      return false;
+   return (ufeRuntimePlug.asString() == "USD");
+}
+
 void CLightTranslator::Export(AtNode* light)
 {
+   if (light == nullptr)
+      return;
+
    MPlug plug;
    AtMatrix matrix;
 
@@ -127,7 +142,7 @@ void CLightTranslator::Export(AtNode* light)
 void CLightTranslator::ExportMotion(AtNode* light)
 {
    // Don't export matrices during mayaUSD exports
-   if (GetSessionOptions().IsMayaUsd())
+   if (light == nullptr || GetSessionOptions().IsMayaUsd())
       return;
    
    AtMatrix matrix;
@@ -280,6 +295,9 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
 
 void CLightTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
+   if (GetArnoldNode() == nullptr)
+      return;
+
    MString plugName = plug.partialName(false, false, false, false, false, true);
    
    // this plug is dirtied when the light editor is opened

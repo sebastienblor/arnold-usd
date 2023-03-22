@@ -26,8 +26,8 @@ protected:
    /// static function that adds the attributes that are common to all Lights in arnold
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
-
 public:
    /// handles the color temperature conversion to RGB
    static AtRGB ConvertKelvinToRGB(float kelvin);
+   bool IsUfe();
 };

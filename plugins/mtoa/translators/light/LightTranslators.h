@@ -13,6 +13,9 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+
       return AddArnoldNode("distant_light");
    }
 
@@ -30,6 +33,9 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+      
       return AddArnoldNode("point_light");
    }
 };
@@ -45,6 +51,9 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+      
       return AddArnoldNode("spot_light");
    }
 };
@@ -61,6 +70,9 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+      
       m_flushCache = false; // initialize to false
       m_colorTexture = false;
       return AddArnoldNode("quad_light");
@@ -84,6 +96,9 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+      
       return AddArnoldNode("cylinder_light");
    }
 };
@@ -99,6 +114,9 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+      
       return AddArnoldNode("disk_light");
    }
 };
@@ -115,6 +133,9 @@ public:
    AtNode* CreateArnoldNodes()
    {
       m_flushCache = false; // initialize to false
+      if (IsUfe())
+         return nullptr;
+      
       return AddArnoldNode("skydome_light");
 
    }
@@ -139,6 +160,9 @@ public:
 
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+      
       return AddArnoldNode("photometric_light");
    }
 };
@@ -159,6 +183,9 @@ public:
 
    AtNode* CreateArnoldNodes()
    {
+      if (IsUfe())
+         return nullptr;
+      
       AddArnoldNode("polymesh", "mesh");
       AddArnoldNode("two_sided", "two_sided");
       AddArnoldNode("ray_switch_shader", "shader");
