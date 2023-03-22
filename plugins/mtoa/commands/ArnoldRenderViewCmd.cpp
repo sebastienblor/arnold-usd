@@ -25,7 +25,6 @@
 #include <vector>
 
 static bool s_wasVisible = false;
-static bool s_wasOpened = false;
 MSyntax CArnoldRenderViewCmd::newSyntax()
 {
    MSyntax syntax;
@@ -124,7 +123,6 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    if (mode == "close")
    {  
       s_wasVisible = false;      
-      s_wasOpened = false;
       session->CloseRenderView();
       return MS::kSuccess;
    }
@@ -176,12 +174,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
          // A render view session has already been started
          // let's pop-up the window, and eventually re-render
-         if (mode != "render_silent") {
-            if (!s_wasOpened) {
-               s_wasOpened = true;
-               session->OpenRenderView();
-            }
-         }
+         if (mode != "render_silent")
+            session->OpenRenderView();
 
          if (mode == "render" || mode == "render_silent" || mode == "sequence")
          {
@@ -197,10 +191,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       {  
          // Just open the renderview
          session->SetCamerasList();
-         if (!s_wasOpened) {
-            s_wasOpened = true;
-            session->OpenRenderView();
-         }
+         session->OpenRenderView();
          // do we need the options here ? session->ExportOptions();
          
          session->SetRenderViewOption("Run IPR", "0");
@@ -264,12 +255,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       
       if (mode == "render_silent")
          session->GetRenderView().SetUniverse(session->GetUniverse());
-      else {
-         if (!s_wasOpened) {
-            s_wasOpened = true;
-            session->OpenRenderView();
-         }
-      }
+      else
+         session->OpenRenderView();
 
       if (is_region)
       {
