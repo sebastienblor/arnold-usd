@@ -18,6 +18,9 @@ class AEaiSetTransformTemplate(OperatorAETemplate):
         self.addControl("rotate_order")
         self.addControl("mode")
         self.endLayout()
+        self.beginLayout('Matrix', collapse=False)
+        self.addControl('matrix')
+        self.endLayout()
         self.addOperatorInputs()
 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
