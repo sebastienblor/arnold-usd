@@ -905,7 +905,10 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
    if (renderViewMtoA->m_session == nullptr)
       return;
 
-   MString layerName;
+   if (s_renderLayer.length() == 0)
+      s_renderLayer = "masterLayer";
+
+   MString layerName;   
    MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
 
    // we haven't changed the visible render layer
