@@ -60,7 +60,7 @@ class UsdTransverser(ProceduralTransverser):
         return self.items[iObj].data
 
 
-    def buildTree(self, parentIndex, nameSplit, nameSplitIndex, entry=None, entryType=None):
+    def buildTree(self, universe,  parentIndex, nameSplit, nameSplitIndex, entry=None, entryType=None):
         global FILE_CACHE
         if nameSplitIndex >= len(nameSplit):
             return
@@ -89,7 +89,7 @@ class UsdTransverser(ProceduralTransverser):
                 this_entry = entry
                 this_entryType = entryType
 
-            node = ai.AiNodeLookUpByName(path)
+            node = ai.AiNodeLookUpByName(universe, path)
             FILE_CACHE[self.proceduralFilename][parentIndex]['children'].append(childIndex)
             if PROC_NUM_CHILDREN >= len(FILE_CACHE[self.proceduralFilename][parentIndex]['data']):
                 FILE_CACHE[self.proceduralFilename][parentIndex]['data'].append(0)
@@ -98,7 +98,7 @@ class UsdTransverser(ProceduralTransverser):
                                                         'data': [path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]})
 
         # now call buildTree recursively
-        self.buildTree(childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
+        self.buildTree(universe, childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
         return
 
     def getRootObjectInfo(self, node):
@@ -149,7 +149,7 @@ class UsdTransverser(ProceduralTransverser):
                 startIndex = 0
                 if len(nameSplit[0]) == 0:
                     startIndex = 1
-                self.buildTree(0, nameSplit, startIndex, entryName, entryType)
+                self.buildTree(universe, 0, nameSplit, startIndex, entryName, entryType)
 
             ai.AiParamValueMapDestroy(paramMap)
             ai.AiNodeIteratorDestroy(iter)
