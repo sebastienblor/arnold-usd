@@ -905,7 +905,10 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
    if (renderViewMtoA->m_session == nullptr)
       return;
 
-   MString layerName;
+   if (s_renderLayer.length() == 0)
+      s_renderLayer = "masterLayer";
+
+   MString layerName;   
    MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
 
    // we haven't changed the visible render layer
@@ -1151,8 +1154,8 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 
 void CRenderViewMtoA::RenderViewClosed(bool close_ui)
 {
-
-#ifdef ARV_DOCKED
+   
+   #ifdef ARV_DOCKED
    if (close_ui)
    {
       if (!s_arvWorkspaceControl)
@@ -1984,7 +1987,7 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 }
 
 void CRenderViewMtoA::IPRStopped()
-{
+{   
    RunPostRenderCallbacks();
    m_postRenderCallbacks.clear();
    m_preRenderCallbacks.clear();
