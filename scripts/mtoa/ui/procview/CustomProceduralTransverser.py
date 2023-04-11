@@ -62,7 +62,7 @@ class CustomProceduralTransverser(ProceduralTransverser):
         return self.items[iObj].data
 
 
-    def buildTree(self, parentIndex, nameSplit, nameSplitIndex, entry=None, entryType=None):
+    def buildTree(self, universe, parentIndex, nameSplit, nameSplitIndex, entry=None, entryType=None):
         global FILE_CACHE
         if nameSplitIndex >= len(nameSplit):
             return
@@ -91,7 +91,7 @@ class CustomProceduralTransverser(ProceduralTransverser):
                 this_entry = entry
                 this_entryType = entryType
 
-            node = ai.AiNodeLookUpByName(path)
+            node = ai.AiNodeLookUpByName(universe, path)
             if node:
                 entry = ai.AiNodeEntryGetName(ai.AiNodeGetNodeEntry(node))
                 entryType = ai.AiNodeEntryGetTypeName(ai.AiNodeGetNodeEntry(node))
@@ -103,7 +103,7 @@ class CustomProceduralTransverser(ProceduralTransverser):
                                                         'data': [path, name, parentPath, 'visible', path, this_entry, childIndex, this_entryType, 0]})
 
         # now call buildTree recursively
-        self.buildTree(childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
+        self.buildTree(universe, childIndex, nameSplit, nameSplitIndex+1, entry, entryType)
         return
 
     def getRootObjectInfo(self, node):
@@ -156,7 +156,7 @@ class CustomProceduralTransverser(ProceduralTransverser):
                 startIndex = 0
                 if len(nameSplit[0]) == 0:
                     startIndex = 1
-                self.buildTree(0, nameSplit, startIndex, entryName, entryType)
+                self.buildTree(universe, 0, nameSplit, startIndex, entryName, entryType)
 
             ai.AiNodeIteratorDestroy(iter)
 
