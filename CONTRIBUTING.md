@@ -17,8 +17,9 @@ git config --global url."https://github.com/autodesk-external".insteadOf https:/
 
 ```
 cd arnold-mtoa
-git config --local submodule."core/src/shaders/c4dtoa/noises".update none
+git config --local submodule."external/arnold-renderview".update none
 ```
+
 
 ## Fork the upstream repository
 
@@ -46,6 +47,23 @@ git fetch --all
 ```
 
 At this point you have two remotes configured (`origin` being your fork, the default remote when cloning). You can list them by running `git remote -v`. Anytime you execute `git fetch --all` you'll fetch all the new content in both remotes (origin and upstream). If you just want to fetch only the new content from one of the remotes, you can make so with `git fetch origin` or `git fetch upstream`. A plain `git fetch` will fetch only from origin (since it's the default remote).
+
+## Add prebuilt Arnold Render View libraries
+
+The external/arnold-rednerview submodule has restricted access to external contributers. Instead there is an optional build variable called ARV_PATH that can be given to point to a folder which contains a prebuilt renderview libraries and the SDK header file `renderview_interface.h`
+
+For example:
+
+* make a directory at the root of the mtoa source called `arv_prebuilt`
+* copy `renderview_interface.h` from the `<MTOA_ROOT>/headers/renderview` folder to the `arv_prebuilt` folder
+* copy `ai_renderview.so/dylib/dll` from the `<MTOA_ROOT>/bin` folder to the `arv_prebuilt` folder
+* **[windows only]** copy `ai_renderview.lib` from the `<MTOA_ROOT>/lib` folder to the `arv_prebuilt` folder
+
+then in your [custom.py](README.md#build-settings) file add the line:
+
+```python
+ARV_PATH = os.path.abspath(r'arv_prebuilt')
+```
 
 ## Contributing with Pull Requests
 

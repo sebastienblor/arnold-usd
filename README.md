@@ -13,6 +13,17 @@ To use the build system, you need to install:
 git lfs install
 ```
 
+### clone and update the submodules
+
+```
+git submodule sync
+git submodule update --init --recursive
+```
+
+**Note for those without access to arnold-renderview repository**
+ 
+_See the [CONTRIBUTING](CONTRIBUTING.md#add-prebuilt-arnold-render-view-libraries) guide on how to use prebuilt renderview libraries_
+
 ## Python
 MtoA build uses SCons with [​Python 2.7](https://www.python.org/downloads/release/python-2711/)<br>
 
@@ -21,12 +32,6 @@ On Centos install the simplejson module for python, this is required for the bui
 ```bash
 yum install python-simplejson
 ```
-
-## Glew
-[​Glew 1.10.0](https://sourceforge.net/projects/glew/files/glew/1.10.0/)<br>
-
-On linux download the ​GLEW source code, and call make & make install, while on windows it's included in the external repository. If you already have a GLEW built into your system you can use GLEW_LIB and GLEW_INCLUDES to override the default path.
-
 ## Development Toolset
 |Maya Version|Visual Studio Version|Linux devtoolset/gcc|XCode|
 |------------|------------|------------|------------|
