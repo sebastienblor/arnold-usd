@@ -18,6 +18,9 @@ _stageNames = {}
 global _sessionName
 _sessionName = ''
 
+global _updateCounter
+_updateCounter = {}
+
 global _usdToMayaNodes
 _usdToMayaNodes = {}
 
@@ -39,6 +42,7 @@ def UsdArnoldListener(cacheId, shapeName, sessionName = 'arnoldRenderView'):
     global _stageCacheDict
     global _stageNames
     global _sessionName
+    global _updateCounter
 
     stageCache = UsdUtils.StageCache.Get()
     id = Usd.StageCache.Id.FromLongInt(cacheId);
@@ -52,13 +56,32 @@ def UsdArnoldListener(cacheId, shapeName, sessionName = 'arnoldRenderView'):
     _stageNames[cacheId] = shapeName
     _sessionName = sessionName
 
+    # Keep track of the updateId attribute in the usdProxyShape, 
+    # to confirm when we need to restart the render
+    updateIdAttr = '{}.updateId'.format(shapeName)
+    # this code can be used with older versions of MayaUSD where the updateId attribute doesn't exist
+    _updateCounter[cacheId] = cmds.getAttr(updateIdAttr) if cmds.objExists(updateIdAttr) else 0
+    
 def OnStageContentsChanged(notice, stage):
+    global _updateCounter
+    global _stageNames
     # the USD stage has changed, we need to tell MtoA to update the render if an interactive render is going on
     stageCache = UsdUtils.StageCache.Get()
     if not stageCache:
         return
     id = stageCache.GetId(stage)
     cacheId = id.ToLongInt()
+
+    # If the updateId attribute exists in the proxyShape, let's check if the new value is 
+    # higher than the one we previously stored.
+    updateIdAttr = '{}.updateId'.format(_stageNames[cacheId])
+    if cmds.objExists(updateIdAttr):
+        updateId = cmds.getAttr(updateIdAttr)
+        if updateId <= _updateCounter[cacheId]:
+            return
+        # Now update the counter
+        _updateCounter[cacheId] = updateId
+
     cmds.arnoldScene(_stageNames.get(cacheId), mode='update_selected', session=_sessionName)
 
 ### Python scripts for mayaUsd exports
