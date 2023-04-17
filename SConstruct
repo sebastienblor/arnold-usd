@@ -756,6 +756,9 @@ env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparin
 env['ROOT_DIR'] = os.getcwd()
 
 ARV_PATH = env.get('ARV_PATH')
+ARV_ROOT = ""
+if ARV_PATH == None:
+    ARV_ROOT = os.path.join(env['ROOT_DIR'], 'external', 'arnold-renderview')
 
 (USD_CUT_PATH,
  USD_CUT_VERSION,
@@ -1219,7 +1222,6 @@ if not env['MTOA_DISABLE_RV']:
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
-
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
@@ -1585,8 +1587,6 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD, 'include'), os.path.join('include', 'arnold')],
 [os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
-if ARV_PATH == None:
-    PACKAGE_FILES += [[MTOA_ARV[0], 'bin']]
 
 materialx_files = find_files_recursive(os.path.join(ARNOLD, 'materialx'), None)
 for p in materialx_files:
@@ -1829,6 +1829,11 @@ elif system.os == 'darwin':
 
 if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
+    if ARV_PATH == None:
+        PACKAGE_FILES += [
+                        [os.path.splitext(str(MTOA_ARV[0]))[0] + '.lib', 'lib'],
+                        [os.path.join(ARV_ROOT, 'sdk', 'renderview_interface.h'), os.path.join('include', 'renderview')]
+                        ]
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
