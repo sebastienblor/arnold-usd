@@ -8,28 +8,29 @@
  
  QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/var/tmp/runtime-jan'
 This plugin does not support createPlatformOpenGLContext!
-00:00:00   599MB         | log started Thu Feb  9 14:29:58 2023
-00:00:00   599MB         | Arnold 7.2.1.0 [33e8e95a] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/02/01 16:38:56
-00:00:00   599MB         | running on ADSKR90Z2D4V, pid=6812
-00:00:00   599MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
-00:00:00   599MB         |  NVIDIA driver version 515.57 (Optix 60803)
-00:00:00   599MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (3248MB available) (NVLink:0)
-00:00:00   599MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
-00:00:00   599MB         |  soft limit for open files changed from 1024 to 4094
-00:00:00   599MB         |  
-00:00:00   599MB         | [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/arnold.mtd
-00:00:00   601MB         | [color_manager_ocio] default ocio.config found in /home/jan/build/mtoa/maya2023/plug-ins/../bin/../ocio/configs/arnold/config.ocio
-00:00:00   601MB         | loading plugins from /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins ...
-00:00:00   601MB         |  alembic_proc.so: alembic uses Arnold 7.2.1.0
-00:00:00   601MB         |  cryptomatte.so: cryptomatte uses Arnold 7.2.1.0
-00:00:00   601MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.2.1.0
-00:00:00   601MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.2.1.0
-00:00:00   601MB         |  [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins/cryptomatte.mtd
-00:00:00   605MB         |  usd_proc.so: usd uses Arnold 7.2.1.0
-00:00:00   612MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 7.2.1.0
-00:00:00   612MB         | loaded 6 plugins from 4 lib(s) in 0:00.00
+00:00:00   480MB         | log started Wed Mar 29 16:23:31 2023
+00:00:00   480MB         | Arnold 7.2.1.0.beta50 [2d076d4e] linux x86_64 clang-15.0.7 oiio-2.4.1 osl-1.12.9 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/03/10 01:15:10
+00:00:00   480MB         | running on ADSKR90Z2D4V, pid=1809
+00:00:00   480MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
+00:00:00   480MB         |  NVIDIA driver version 515.57 (Optix 60803)
+00:00:00   480MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (3168MB available) (NVLink:0)
+00:00:00   480MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
+00:00:00   480MB         |  soft limit for open files changed from 1024 to 4094
+00:00:00   480MB         |  
+00:00:00   480MB         | Installing system handler with mask 255
+00:00:00   488MB         | [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/arnold.mtd
+00:00:00   489MB         | [color_manager_ocio] default ocio.config found in /home/jan/build/mtoa/maya2023/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:00   489MB         | loading plugins from /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins ...
+00:00:00   490MB         |  alembic_proc.so: alembic uses Arnold 7.2.1.0.beta50
+00:00:00   490MB         |  cryptomatte.so: cryptomatte uses Arnold 7.2.1.0.beta50
+00:00:00   490MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.2.1.0.beta50
+00:00:00   490MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.2.1.0.beta50
+00:00:00   490MB         |  [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins/cryptomatte.mtd
+00:00:00   494MB         |  usd_proc.so: usd uses Arnold 7.2.1.0.beta50
+00:00:00   501MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 7.2.1.0.beta50
+00:00:00   501MB         | loaded 6 plugins from 4 lib(s) in 0:00.06
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  2.1 seconds.
+File read in  4.3 seconds.
 Viewport 2.0 floating point render target is turned off.
 Viewport 2.0 floating point render target is turned on for color management.
 Result: /home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_0378/test.ma
@@ -52,13 +53,13 @@ connectAttr -f remapColor1_R_ramp.outValue remapColor1.inputR
 connectAttr -f remapColor1_G_ramp.outValue remapColor1.inputG
 connectAttr -f remapColor1_B_ramp.outValue remapColor1.inputB
 connectAttr -f aiCellNoise1.outColorR bump3d1.bumpMap
-00:00:02   708MB         | log started Thu Feb  9 14:30:00 2023
-00:00:02   708MB         | Arnold 7.2.1.0 [33e8e95a] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/02/01 16:38:56
-00:00:02   708MB         | host application: MtoA 5.3.1 83805009 (MTOA-353) Maya 2023
-00:00:02   708MB         | running on ADSKR90Z2D4V, pid=6812
-00:00:02   708MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
-00:00:02   708MB         |  NVIDIA driver version 515.57 (Optix 60803)
-00:00:02   708MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (3246MB available) (NVLink:0)
-00:00:02   708MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
-00:00:02   708MB         |  soft limit for open files is set at 4094
-00:00:02   708MB         |  
+00:00:03   597MB         | log started Wed Mar 29 16:23:35 2023
+00:00:03   597MB         | Arnold 7.2.1.0.beta50 [2d076d4e] linux x86_64 clang-15.0.7 oiio-2.4.1 osl-1.12.9 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/03/10 01:15:10
+00:00:03   597MB         | host application: MtoA 5.3.2 1a620bac (TESTSUITE) Maya 2023
+00:00:03   597MB         | running on ADSKR90Z2D4V, pid=1809
+00:00:03   597MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
+00:00:03   597MB         |  NVIDIA driver version 515.57 (Optix 60803)
+00:00:03   597MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (3168MB available) (NVLink:0)
+00:00:03   597MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
+00:00:03   597MB         |  soft limit for open files is set at 4094
+00:00:03   597MB         |  

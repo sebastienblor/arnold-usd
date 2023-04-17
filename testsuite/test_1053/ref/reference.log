@@ -10,55 +10,54 @@
 Starting "/usr/autodesk/maya2023/bin/maya"
 QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/var/tmp/runtime-jan'
 This plugin does not support createPlatformOpenGLContext!
-00:00:00   446MB         | log started Wed Jan 11 14:41:43 2023
-00:00:00   446MB         | Arnold 7.2.0.0 [f520c89a] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/10 11:26:23
-00:00:00   446MB         | running on ADSKR90Z2D4V, pid=23287
-00:00:00   446MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
-00:00:00   446MB         |  NVIDIA driver version 515.57 (Optix 60803)
-00:00:00   446MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (2837MB available) (NVLink:0)
-00:00:00   446MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
-00:00:00   446MB         |  soft limit for open files changed from 1024 to 4094
-00:00:00   446MB         |  
-00:00:00   446MB         | [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/arnold.mtd
-00:00:00   460MB         | [color_manager_ocio] default ocio.config found in /home/jan/build/mtoa/maya2023/plug-ins/../bin/../ocio/configs/arnold/config.ocio
-00:00:00   460MB         | loading plugins from /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins ...
-00:00:00   460MB         |  alembic_proc.so: alembic uses Arnold 7.2.0.0
-00:00:00   461MB         |  cryptomatte.so: cryptomatte uses Arnold 7.2.0.0
-00:00:00   461MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.2.0.0
-00:00:00   461MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.2.0.0
-00:00:00   461MB         |  [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins/cryptomatte.mtd
-00:00:00   467MB         |  usd_proc.so: usd uses Arnold 7.2.0.0
-00:00:00   473MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 7.2.0.0
-00:00:00   473MB         | loaded 6 plugins from 4 lib(s) in 0:00.01
-File read in  2.3 seconds.
+00:00:00   595MB         | log started Mon Mar 27 18:06:16 2023
+00:00:00   595MB         | Arnold 7.2.1.0.beta50 [2d076d4e] linux x86_64 clang-15.0.7 oiio-2.4.1 osl-1.12.9 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/03/10 01:15:10
+00:00:00   595MB         | running on ADSKR90Z2D4V, pid=9686
+00:00:00   595MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
+00:00:00   595MB         |  NVIDIA driver version 515.57 (Optix 60803)
+00:00:00   595MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (3210MB available) (NVLink:0)
+00:00:00   595MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
+00:00:00   595MB         |  soft limit for open files changed from 1024 to 4094
+00:00:00   595MB         |  
+00:00:00   595MB         | Installing system handler with mask 255
+00:00:00   603MB         | [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/arnold.mtd
+00:00:00   604MB         | [color_manager_ocio] default ocio.config found in /home/jan/build/mtoa/maya2023/plug-ins/../bin/../ocio/configs/arnold/config.ocio
+00:00:00   604MB         | loading plugins from /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins ...
+00:00:00   605MB         |  alembic_proc.so: alembic uses Arnold 7.2.1.0.beta50
+00:00:00   605MB         |  cryptomatte.so: cryptomatte uses Arnold 7.2.1.0.beta50
+00:00:00   605MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 7.2.1.0.beta50
+00:00:00   605MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 7.2.1.0.beta50
+00:00:00   605MB         |  [metadata] loading metadata file: /home/jan/build/mtoa/maya2023/plug-ins/../bin/../plugins/cryptomatte.mtd
+00:00:00   609MB         |  usd_proc.so: usd uses Arnold 7.2.1.0.beta50
+00:00:00   616MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 7.2.1.0.beta50
+00:00:00   616MB         | loaded 6 plugins from 4 lib(s) in 0:00.00
+File read in  1.7 seconds.
 Result: /home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053/test.ma
 Exporting Arnold Scene...
 Updating Arnold Scene...
-00:00:02   582MB         | log started Wed Jan 11 14:41:45 2023
-00:00:02   582MB         | Arnold 7.2.0.0 [f520c89a] linux x86_64 clang-10.0.1 oiio-2.4.1 osl-1.12.0 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/01/10 11:26:23
-00:00:02   582MB         | host application: MtoA 5.3.0 f4385bf8 (master) Maya 2023
-00:00:02   582MB         | running on ADSKR90Z2D4V, pid=23287
-00:00:02   582MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
-00:00:02   582MB         |  NVIDIA driver version 515.57 (Optix 60803)
-00:00:02   582MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (2821MB available) (NVLink:0)
-00:00:02   582MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
-00:00:02   582MB         |  soft limit for open files is set at 4094
-00:00:02   582MB         |  
-00:00:02   582MB WARNING | rendering with watermarks because the skip_license_check option was enabled
+00:00:01   711MB         | log started Mon Mar 27 18:06:18 2023
+00:00:01   711MB         | Arnold 7.2.1.0.beta50 [2d076d4e] linux x86_64 clang-15.0.7 oiio-2.4.1 osl-1.12.9 vdb-7.1.1 adlsdk-7.4.2.47 clmhub-3.1.1.43 rlm-14.2.5 optix-6.6.0 2023/03/10 01:15:10
+00:00:01   711MB         | host application: MtoA 5.3.2 8a89b49d (master) Maya 2023
+00:00:01   711MB         | running on ADSKR90Z2D4V, pid=9686
+00:00:01   711MB         |  1 x Intel(R) Core(TM) i7-9850H CPU @ 2.60GHz (6 cores, 12 logical) with 31818MB
+00:00:01   711MB         |  NVIDIA driver version 515.57 (Optix 60803)
+00:00:01   711MB         |  GPU 0: Quadro T2000 @ 1500MHz (compute 7.5) with 3878MB (3210MB available) (NVLink:0)
+00:00:01   711MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-1160.76.1.el7.x86_64
+00:00:01   711MB         |  soft limit for open files is set at 4094
+00:00:01   711MB         |  
+00:00:01   711MB WARNING | rendering with watermarks because the skip_license_check option was enabled
 Scene /home/jan/git/autodesk/arnold-mtoa/build/linux_x86_64/20230000/gcc_debug/testsuite/test_1053/test.ma completed.
-00:00:02   623MB         |   unloading 13 plugins
-00:00:02   623MB         |    closing alembic_proc.so ...
-00:00:02   623MB         |    closing cryptomatte.so ...
-00:00:02   623MB         |    closing usd_proc.so ...
-00:00:02   623MB         |    closing synColor_shaders.so ...
-00:00:02   616MB         |    closing hairPhysicalShader_shaders.so ...
-00:00:02   616MB         |    closing lookdevkit_shaders.so ...
-00:00:02   616MB         |    closing mtoa_shaders.so ...
-00:00:02   615MB         |    closing renderSetup_shaders.so ...
-00:00:02   615MB         |    closing xgenSpline_shaders.so ...
-00:00:02   615MB         |    closing xgen_procedural.so ...
-00:00:02   615MB         |    closing xgenSpline_procedural.so ...
-00:00:02   615MB         |    closing mtoa_ParticleInstancer_proc.so ...
-00:00:02   615MB         |    closing mtoa_ParticleVolume_proc.so ...
-00:00:02   615MB         |   unloading plugins done
-00:00:02   615MB         |  Arnold shutdown
+00:00:01   803MB         |   unloading 11 plugins
+00:00:01   803MB         |    closing alembic_proc.so ...
+00:00:01   803MB         |    closing cryptomatte.so ...
+00:00:01   803MB         |    closing usd_proc.so ...
+00:00:01   803MB         |    closing synColor_shaders.so ...
+00:00:01   796MB         |    closing hairPhysicalShader_shaders.so ...
+00:00:01   796MB         |    closing lookdevkit_shaders.so ...
+00:00:01   796MB         |    closing mtoa_shaders.so ...
+00:00:01   796MB         |    closing xgenSpline_shaders.so ...
+00:00:01   796MB         |    closing renderSetup_shaders.so ...
+00:00:01   796MB         |    closing xgenSpline_procedural.so ...
+00:00:01   796MB         |    closing xgen_procedural.so ...
+00:00:01   796MB         |   unloading plugins done
+00:00:01   796MB         |  Arnold shutdown
