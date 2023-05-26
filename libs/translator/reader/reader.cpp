@@ -196,9 +196,6 @@ bool UsdArnoldReader::Read(int cacheId, const std::string &path)
         delete _listener;
         _listener = nullptr;
     }
-    if (_interrupt) {
-        AiMsgWarning("[usd] UsdStage modified during translation: interrupting the render");
-    }
     return true;
 }
 
@@ -209,7 +206,8 @@ void UsdArnoldReader::OnObjectsChanged(const UsdNotice::ObjectsChanged & notice)
     UsdNotice::ObjectsChanged::PathRange pathRange = notice.GetResyncedPaths();
     if (pathRange.empty())
         return;
-    
+
+    AiMsgWarning("[usd] UsdStage modified during translation: interrupting the render");
     _interrupt = true;
 }
 
