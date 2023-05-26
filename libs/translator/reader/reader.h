@@ -31,7 +31,9 @@
 #include "read_skinning.h"
 #include "timesettings.h"
 #include "api_adapter.h"
+#include "notice.h"
 #include "procedural_reader.h"
+#include <pxr/usd/usd/notice.h>
 
 PXR_NAMESPACE_USING_DIRECTIVE
 
@@ -205,7 +207,8 @@ public:
         }
     }
    // void ComputeMotionRange(const UsdPrim &renderSettings);
-        
+   void OnObjectsChanged(const UsdNotice::ObjectsChanged& notice);
+   bool IsInterrupted() const {return _interrupt;} 
 private:
     const AtNode *_procParent;          // the created nodes are children of a procedural parent
     AtUniverse *_universe;              // only set if a specific universe is being used
@@ -239,6 +242,8 @@ private:
     WorkDispatcher *_dispatcher;
 
     unsigned int _id = 0; ///< Arnold shape ID for the procedural.
+    ArnoldUsdListener *_listener = nullptr;
+    bool _interrupt = false;
 };
 
 class UsdArnoldReaderThreadContext : public ArnoldAPIAdapter {

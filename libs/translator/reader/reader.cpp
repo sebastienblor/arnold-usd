@@ -42,6 +42,7 @@
 
 #include "prim_reader.h"
 #include "registry.h"
+#include "notice.h"
 
 #include "rendersettings_utils.h"
 #include "parameters_utils.h"
@@ -88,6 +89,10 @@ static std::unordered_map<int, int> s_cacheRefCount;
 
 UsdArnoldReader::~UsdArnoldReader()
 {
+    if (_listener) {
+        delete _listener;
+        _listener = nullptr;
+    }
     if (s_mustDeleteRegistry && _registry) {
         delete _registry;
         s_mustDeleteRegistry = false;
@@ -175,8 +180,37 @@ bool UsdArnoldReader::Read(int cacheId, const std::string &path)
         _cacheId = 0;
         return false;
     }
+
+    if (_listener == nullptr) {
+        _listener = new ArnoldUsdListener();
+        _listener->SetStage(stage);
+        _listener->SetStageObjectsChangedCallback(
+         [this](const UsdNotice::ObjectsChanged & notice) {
+                return OnObjectsChanged(notice);
+            });        
+    }
+
     ReadStage(stage, path);
+
+    if (_listener) {
+        delete _listener;
+        _listener = nullptr;
+    }
+    if (_interrupt) {
+        AiMsgWarning("[usd] UsdStage modified during translation: interrupting the render");
+    }
     return true;
+}
+
+void UsdArnoldReader::OnObjectsChanged(const UsdNotice::ObjectsChanged & notice)
+{
+    if (_interrupt)
+        return;
+    UsdNotice::ObjectsChanged::PathRange pathRange = notice.GetResyncedPaths();
+    if (pathRange.empty())
+        return;
+    
+    _interrupt = true;
 }
 
 void UsdArnoldReader::TraverseStage(UsdPrim *rootPrim, UsdArnoldReaderContext &context, 
@@ -200,6 +234,9 @@ void UsdArnoldReader::TraverseStage(UsdPrim *rootPrim, UsdArnoldReaderContext &c
     UsdPrimRange range = UsdPrimRange::PreAndPostVisit((rootPrim) ? 
                     *rootPrim : reader->GetStage()->GetPseudoRoot());
     for (auto iter = range.begin(); iter != range.end(); ++iter) {
+        if (_interrupt)
+            return;
+        
         const UsdPrim &prim(*iter);
         bool isInstanceable = prim.IsInstanceable();
 
@@ -339,6 +376,9 @@ unsigned int UsdArnoldReader::ProcessConnectionsThread(void *data)
 
 void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
 {
+    if (_interrupt)
+        return;
+    
     // set the stage while we're reading
     _stage = stage;
     if (stage == nullptr) {
@@ -461,6 +501,9 @@ void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
     size_t threadCount = _threadCount; // do we want to do something
                                        // automatic when threadCount = 0 ?
 
+    if (_interrupt)
+        return;
+    
     // If threads = 0, we'll start a single thread to traverse the stage,
     // and every time it finds a primitive to translate it will run a 
     // WorkDispatcher job. 
@@ -469,6 +512,9 @@ void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
         _dispatcher = new WorkDispatcher();
     }
 
+    if (_interrupt)
+        return;
+    
     // Multi-thread inspection where each thread has its own "context".
     // We'll be looping over the stage primitives,
     // but won't process any connection between nodes, since we need to wait for
@@ -487,6 +533,7 @@ void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
         threadData[i].context = new UsdArnoldReaderContext(&threadData[i].threadContext);
         threads[i] = AiThreadCreate(UsdArnoldReader::ReaderThread, &threadData[i], AI_PRIORITY_HIGH);
     }
+
 
     // Wait until all threads are finished and merge all the nodes that
     // they have created to our list
@@ -514,9 +561,11 @@ void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
     // In a second step, each thread goes through the connections it stacked
     // and processes them given that now all the nodes were supposed to be created.
     _readStep = READ_PROCESS_CONNECTIONS;
-    for (size_t i = 0; i < threadCount; ++i) {
-        // now I just want to append the links from each thread context
-        threads[i] = AiThreadCreate(UsdArnoldReader::ProcessConnectionsThread, &threadData[i], AI_PRIORITY_HIGH);
+    if (!_interrupt) {
+        for (size_t i = 0; i < threadCount; ++i) {
+            // now I just want to append the links from each thread context
+            threads[i] = AiThreadCreate(UsdArnoldReader::ProcessConnectionsThread, &threadData[i], AI_PRIORITY_HIGH);
+        }
     }
     std::vector<UsdArnoldReaderThreadContext::Connection> danglingConnections;
     // There is an exception though, some connections could be pointing
@@ -534,13 +583,13 @@ void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
             threadData[i].threadContext.GetConnections().end());
         threadData[i].threadContext.GetConnections().clear();
     }
-    
+
     // 3rd step, in case some links were pointing to nodes that didn't exist.
     // If they were skipped because of their visibility, we need to force
     // their export now. We handle this in a single thread to avoid costly
     // synchronizations between the threads.
     _readStep = READ_DANGLING_CONNECTIONS;
-    if (!danglingConnections.empty()) {
+    if (!_interrupt && !danglingConnections.empty()) {
         // We only use the first thread context
         UsdArnoldReaderThreadContext &context = threadData[0].threadContext;
         // loop over the dangling connections, ensure the node still doesn't exist
@@ -571,7 +620,8 @@ void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
     }
 
     // Finally, process all the light links
-    ReadLightLinks();
+    if (!_interrupt)
+        ReadLightLinks();
 
     for (size_t i = 0; i < threadCount; ++i) {
         delete threadData[i].context;
@@ -596,6 +646,9 @@ void UsdArnoldReader::ReadStage(UsdStageRefPtr stage, const std::string &path)
 
 void UsdArnoldReader::ReadPrimitive(const UsdPrim &prim, UsdArnoldReaderContext &context, bool isInstance, AtArray *parentMatrix)
 {
+    if (_interrupt)
+        return;
+    
     std::string objName = prim.GetPath().GetText();
     const TimeSettings &time = context.GetTimeSettings();
 
@@ -1157,6 +1210,9 @@ void UsdArnoldReaderThreadContext::ProcessConnections()
 
 bool UsdArnoldReaderThreadContext::ProcessConnection(const Connection &connection)
 {
+    if (_reader->IsInterrupted())
+        return false;
+
     UsdArnoldReader::ReadStep step = _reader->GetReadStep();
     if (connection.type == UsdArnoldReaderThreadContext::CONNECTION_ARRAY) {
         std::vector<AtNode *> vecNodes;
