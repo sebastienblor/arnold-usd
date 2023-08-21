@@ -385,7 +385,7 @@ inline void _SetRayFlag(AtNode* node, const std::string& paramName, const std::s
  **/
 void ReadArnoldParameters(
     const UsdPrim &prim, ArnoldAPIAdapter &context, AtNode *node, const TimeSettings &time,
-    const std::string &scope, bool acceptEmptyScope)
+    const std::string &scope)
 {    
     const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(node);
     if (nodeEntry == nullptr) {
@@ -434,6 +434,9 @@ void ReadArnoldParameters(
     for (size_t i = 0; i < attributeCount; ++i) {
         // The attribute can either come from the attributes list, or from the primvars list
         const UsdAttribute &attr = (readPrimvars) ? primvars[i].GetAttr() : attributes[i];
+        if (!attr.HasAuthoredValue())
+            continue;
+
         TfToken attrNamespace = attr.GetNamespace();
         std::string attrNamespaceStr = attrNamespace.GetString();
         std::string arnoldAttr = attr.GetBaseName().GetString();
@@ -462,9 +465,7 @@ void ReadArnoldParameters(
             if (arnoldAttr[0] == 'i' && (scope.empty() || namespaceIncludesScope)) {
                 _ReadArrayLink(prim, attr, time, context, node, scope);
             }
-            // this flag acceptEmptyScope is temporary and meant to be removed
-            if (!acceptEmptyScope || !attrNamespace.GetString().empty())
-                continue;
+            continue;
         }
         if (isOsl && arnoldAttr == "code")
             continue;
@@ -484,9 +485,7 @@ void ReadArnoldParameters(
             }
             continue;
         }
-        if (acceptEmptyScope && arnoldAttr == "xformOpOrder")
-            continue;
-
+        
         const AtParamEntry *paramEntry = AiNodeEntryLookUpParameter(nodeEntry, AtString(arnoldAttr.c_str()));
         if (paramEntry == nullptr) {
             // For custom procedurals, there will be an attribute node_entry that should be ignored.
