@@ -58,6 +58,7 @@ PXR_NAMESPACE_USING_DIRECTIVE
 // clang-format off
 TF_DEFINE_PRIVATE_TOKENS(
     _tokens,
+    (instance)
     (LightAPI)
     ((PrimvarsArnoldLightShaders, "primvars:arnold:light:shaders"))
 );
@@ -1358,8 +1359,9 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
     SdfPathVector protoPaths;
     pointInstancer.GetPrototypesRel().GetTargets(&protoPaths);
 
+    size_t numProtos = protoPaths.size();
     // get the visibility of each prototype, so that we can apply its visibility to all of its instances
-    std::vector<unsigned char> protoVisibility(protoPaths.size(), AI_RAY_ALL);
+    std::vector<unsigned char> protoVisibility(numProtos, AI_RAY_ALL);
 
     // get proto type index for all instances
     VtIntArray protoIndices;
@@ -1373,22 +1375,39 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
 
     AtNode *node = context.CreateArnoldNode("instancer", prim.GetPath().GetText());
 
+    // Get the amount of time samples that we need
+    std::vector<UsdTimeCode> times;
+    if (time.motionBlur) {
+        int numKeys = GetTimeSampleNumKeys(prim, time, _tokens->instance); // to be coherent with the delegate
+        if (numKeys > 1) {
+            for (int i = 0; i < numKeys; ++i) {
+                times.push_back(time.frame + time.motionStart + i * (time.motionEnd - time.motionStart) / (numKeys-1));
+            }
+        }
+    }
+    if (times.empty()) {
+        times.push_back(frame);
+    }
+    
     // initialize the nodes array to the proper size    
-    std::vector<AtNode *> nodesVec(protoPaths.size(), nullptr);
-    std::vector<std::string> nodesRefs(protoPaths.size());
+    std::vector<AtNode *> nodesVec(numProtos, nullptr);
+    std::vector<std::string> nodesRefs(numProtos);
 
     // We want to keep track of how which prototypes rely on a child usd procedural,
     // as they need to treat instance matrices differently
-    std::vector<bool> nodesChildProcs(protoPaths.size(), false);    
+    std::vector<bool> nodesChildProcs(numProtos, false);    
     int numChildProc = 0;    
     std::vector<float> protoLightIntensities;
+    
+    std::vector<std::pair<UsdPrim, UsdPrim>*> nodesParenting;
+    nodesParenting.assign(numProtos, nullptr);
 
-    for (size_t i = 0; i < protoPaths.size(); ++i) {
+            
+    for (size_t i = 0; i < numProtos; ++i) {
         const SdfPath &protoPath = protoPaths.at(i);
         // get the proto primitive, and ensure it's properly exported to arnold,
         // since we don't control the order in which nodes are read.
         UsdPrim protoPrim = reader->GetStage()->GetPrimAtPath(protoPath);
-
         // If some of the prototypes are lights we'll need to set a user data
         // instance_intensity, as we do for meshes visibility. 
         // There are currently different ways of having light primitives in USD.
@@ -1409,7 +1428,7 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
             // This prototype is a light, let's initialize our 
             // vector to a default intensity of 1
             if (protoLightIntensities.empty())
-                protoLightIntensities.assign(protoPaths.size(), 1.f);
+                protoLightIntensities.assign(numProtos, 1.f);
 
             // Get the intensity value from the light primitive
             float lightIntensity = 1.f;
@@ -1422,23 +1441,48 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
 
         std::string objType = (protoPrim) ? protoPrim.GetTypeName().GetText() : "";
 
-        if (protoPrim)
-        {
-            // Compute the USD visibility of this prototype. If it's hidden, we want all its instances
-            // to be hidden too #458
-            if (!IsPrimVisible(protoPrim, reader, frame)) {
-                protoVisibility[i] = 0;
-            }
-        }
-
         // I need to create a new proto node in case this primitive isn't directly translated as an Arnold AtNode.
         // As of now, this only happens for Xform or non-typed prims, so I'm checking for these types,
         // and also I'm verifying if the registry is able to read nodes of this type.
         // In the future we might want to make this more robust, we could eventually add a function in
         // the primReader telling us if this primitive will generate an arnold node with the same name or not.
-        bool createProto = (objType == "Xform" || objType.empty() ||
-             (reader->GetRegistry()->GetPrimReader(objType) == nullptr));
+        bool createProto = false;
+        auto isPrimTypeIgnored = [&](const std::string& objType) {
+            return (objType.empty() || objType == "Xform" || 
+                (reader->GetRegistry()->GetPrimReader(objType) == nullptr));
+        };
+        UsdPrim objectProtoPrim;
+        if (isPrimTypeIgnored(objType)) {
+            // I want to check what's below this primitive. If there's only a single
+            // primitive that can be translated, then we don't need to create a prototype nested procedural
+            int protoChildCount = 0;
+            UsdPrimRange range(protoPrim);
+            for (auto iter = range.begin(); iter != range.end(); ++iter) {
+                const UsdPrim &p(*iter);
+                if (isPrimTypeIgnored(p.GetTypeName().GetString())) {
+                    continue;
+                }
+                if ((++protoChildCount) > 1) {
+                    createProto = true;
+                    objectProtoPrim = UsdPrim();
+                    break;
+                }
+                objectProtoPrim = p.GetPrim();
+            }
 
+            if (protoChildCount == 0) {
+                createProto = true;
+            }
+            if (objectProtoPrim && !createProto) {
+                // Store a pair of UsdPrim, with the actual prototype
+                // that we're using as a first element, and the original one
+                // used by the point instancer as the second element.
+                nodesParenting[i] = new std::pair<UsdPrim, UsdPrim>();
+                nodesParenting[i]->first = objectProtoPrim;
+                nodesParenting[i]->second = protoPrim;
+            }
+        }
+        
         if (createProto) {
             // There's no AtNode for this proto, we need to create a usd procedural that loads
             // the same usd file but points only at this object path
@@ -1449,30 +1493,39 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
             nodesChildProcs[i] = true;
             numChildProc++;
         } else {
-            nodesRefs[i] = protoPath.GetText();
+            // objectProtoPath is either the actual prototype, or the single one of
+            // its child primitives that are supported by Arnold, as defined above
+            if (objectProtoPrim) {
+                // need to compute transforms for each parent
+                // and multiply includedXforms
+                nodesRefs[i] = objectProtoPrim.GetPath().GetText();
+            } else {
+                nodesRefs[i] = protoPath.GetText();
+
+            }            
         }
+        if (protoPrim)
+        {
+            // Compute the USD visibility of this prototype. If it's hidden, we want all its instances
+            // to be hidden too #458
+            if (!IsPrimVisible(objectProtoPrim ? objectProtoPrim : protoPrim, reader, frame)) {
+                protoVisibility[i] = 0;
+            }
+        }
+
     }
     AiNodeSetArray(node, str::nodes, AiArrayConvert(nodesVec.size(), 1, AI_TYPE_NODE, &nodesVec[0]));
     for (unsigned i = 0; i < nodesRefs.size(); ++i) {
-        if (nodesRefs[i].empty())
+        if (nodesRefs[i].empty()) {
             continue;
+        }
+
         std::string nodesAttrElem = TfStringPrintf("nodes[%d]", i);
         context.AddConnection(
             node, nodesAttrElem, nodesRefs[i], ArnoldAPIAdapter::CONNECTION_PTR);
     }
     
-    std::vector<UsdTimeCode> times;
-    if (time.motionBlur) {
-        int numKeys = GetTimeSampleNumKeys(prim, time, TfToken("instance")); // to be coherent with the delegate
-        if (numKeys > 1) {
-            for (int i = 0; i < numKeys; ++i) {
-                times.push_back(time.frame + time.motionStart + i * (time.motionEnd - time.motionStart) / (numKeys-1));
-            }
-        }
-    }
-    if (times.empty()) {
-        times.push_back(frame);
-    }
+    
     std::vector<bool> pruneMaskValues = pointInstancer.ComputeMaskAtTime(frame);
     if (!pruneMaskValues.empty() && pruneMaskValues.size() != numInstances) {
         // If the amount of prune mask elements doesn't match the amount of instances,
@@ -1480,31 +1533,29 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
         AiMsgError("[usd] Point instancer %s : Mismatch in length of indices and mask", primName.c_str());
         pruneMaskValues.clear();
     }
-
+    
     // Usually we'd get all the instance matrices, taking into account the prototype's transform (IncludeProtoXform),
     // and the arnold instances will be created with inherit_xform = false. But when the prototype is a child usd proc
     // then this doesn't work as inherit_xform will ignore the matrix of the child usd proc itself. The transform of the
     // root primitive will still be applied, so we will get double transformations #956
 
-    // So, if all prototypes are child procs, we just need to call ComputeInstanceTransformsAtTimes 
-    // with the ExcludeProtoXform flag
-    std::vector<VtArray<GfMatrix4d> > xformsArray;
-    pointInstancer.ComputeInstanceTransformsAtTimes(&xformsArray, times, frame, (numChildProc == (int) protoPaths.size()) ?
-                UsdGeomPointInstancer::ExcludeProtoXform : UsdGeomPointInstancer::IncludeProtoXform, 
-                UsdGeomPointInstancer::IgnoreMask);
-
-    // However, if some prototypes are child procs AND other prototypes are simple geometries, then we need 
-    // to get both instance matrices with / without the prototype xform and use the appropriate one.
-    // Note that this can seem overkill, but the assumption is that in practice this use case shouldn't be 
-    // the most frequent one
+    // If any of the prototypes is NOT a child proc, then we must compute the matrices including prototypes
+    std::vector<VtArray<GfMatrix4d> > includedXformsArray;
+    if (numChildProc < numProtos) {
+        pointInstancer.ComputeInstanceTransformsAtTimes(&includedXformsArray, times, frame, 
+                    UsdGeomPointInstancer::IncludeProtoXform, 
+                    UsdGeomPointInstancer::IgnoreMask);
+    }
+    
+    // If any of the prototypes is a child proc, we must compute the matrices excluding prototypes
     std::vector<VtArray<GfMatrix4d> > excludedXformsArray;
-    bool mixedProtos = numChildProc > 0 && numChildProc < (int) protoPaths.size();
-    if (mixedProtos) {
+    if (numChildProc > 0) {
         pointInstancer.ComputeInstanceTransformsAtTimes(&excludedXformsArray, times, frame, 
                 UsdGeomPointInstancer::ExcludeProtoXform, UsdGeomPointInstancer::IgnoreMask);
     }
 
-    unsigned int numKeys = xformsArray.size();
+    
+    unsigned int numKeys = AiMax(includedXformsArray.size(), excludedXformsArray.size());
     std::vector<unsigned char> instanceVisibilities(numInstances, AI_RAY_ALL);
     std::vector<unsigned int> instanceIdxs(numInstances, 0);
 
@@ -1512,6 +1563,7 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
     if (!protoLightIntensities.empty())
         instanceIntensities.assign(numInstances, 1.f);
 
+    
     // Create a big matrix array with all the instance matrices for the first key, 
     // then all matrices for the second key, etc..
     std::vector<AtMatrix> instance_matrices(numKeys * numInstances);
@@ -1525,30 +1577,63 @@ AtNode* UsdArnoldReadPointInstancer::Read(const UsdPrim &prim, UsdArnoldReaderCo
             if (!protoLightIntensities.empty())
                 instanceIntensities[i] = protoLightIntensities[protoIndices[i]];
         }
-
         // loop over all the motion steps and append the matrices as a big list of floats
         for (size_t t = 0; t < numKeys; ++t) {
-
+            
             // use the proper matrix, that was computed either with/without the proto's xform.
             // It depends on whether the prototype is a child usd proc or a simple geometry
-            const double *matrixArray = (mixedProtos && nodesChildProcs[protoIndices[i]]) ? 
-                excludedXformsArray[t][i].GetArray() : xformsArray[t][i].GetArray();
+            GfMatrix4d& instanceMatrix = nodesChildProcs[protoIndices[i]] ? 
+                excludedXformsArray[t][i] : includedXformsArray[t][i];
+
+
+            const std::pair<UsdPrim, UsdPrim>* nodeHierarchy = nodesParenting[protoIndices[i]];
+            if (nodeHierarchy) {
+                // There is a parenting matrix to apply here, since the prototype we'll use
+                // is not the same as the original USD one.
+                const UsdPrim &childPrim = nodeHierarchy->first;
+                const UsdPrim &ancestorPrim = nodeHierarchy->second;
+
+                UsdPrim currentPrim = childPrim;
+                GfMatrix4d subTransform(1.);
+                while(currentPrim != ancestorPrim && !currentPrim.IsPseudoRoot()) {
+                    if (currentPrim.IsA<UsdGeomXformable>()) {
+                        UsdGeomXformable xformable(currentPrim);
+                        GfMatrix4d localTransform;
+                        bool resetStack = true;
+                        if (xformable && xformable.GetLocalTransformation(&localTransform, &resetStack, times[t])) {
+                            subTransform = localTransform * subTransform;
+                        }
+                    }
+                    currentPrim = currentPrim.GetParent();
+                }
+                instanceMatrix = subTransform * instanceMatrix;
+            }
+            const double *matrixArray = instanceMatrix.GetArray();
             AtMatrix &matrix = instance_matrices[i + t * numInstances];
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j, matrixArray++)
                     matrix[i][j] = (float)*matrixArray;
+                                
+
         }
         instanceIdxs[i] = protoIndices[i];
     }
+        
     AiNodeSetArray(node, str::instance_matrix, AiArrayConvert(numInstances, numKeys, AI_TYPE_MATRIX, &instance_matrices[0]));
     AiNodeSetArray(node, str::instance_visibility, AiArrayConvert(numInstances, 1, AI_TYPE_BYTE, &instanceVisibilities[0]));
     AiNodeSetArray(node, str::node_idxs, AiArrayConvert(numInstances, 1, AI_TYPE_UINT, &instanceIdxs[0]));
 
+    
     // If some of the prototypes are lights, we need to set the instance_intensity user data
     // because the source prototype has its intensity set to 0
     if (!instanceIntensities.empty()) {
         AiNodeDeclare(node, str::instance_intensity, "constant ARRAY FLOAT");
         AiNodeSetArray(node, str::instance_intensity, AiArrayConvert(numInstances, 1, AI_TYPE_FLOAT, &instanceIntensities[0]));
+    }
+
+    for (size_t i = 0; i < nodesParenting.size(); ++i) {
+        if (nodesParenting[i])
+            delete nodesParenting[i];
     }
 
     ReadMatrix(prim, node, time, context);
