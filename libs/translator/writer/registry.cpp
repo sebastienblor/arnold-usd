@@ -63,6 +63,8 @@ UsdArnoldWriterRegistry::UsdArnoldWriterRegistry(bool writeBuiltin)
         RegisterWriter("driver_deepexr", new UsdArnoldWriteDriver());
         RegisterWriter("driver_jpeg", new UsdArnoldWriteDriver());
         RegisterWriter("driver_png", new UsdArnoldWriteDriver());
+
+        RegisterWriter("ginstance", new UsdArnoldWriteGinstance());
     }
 
     // Now let's iterate over all the arnold classes known at this point
@@ -79,9 +81,6 @@ UsdArnoldWriterRegistry::UsdArnoldWriterRegistry(bool writeBuiltin)
         universeCreated = true;
     }
 
-    // Register a writer for ginstance, whose behaviour is a
-    // bit special regarding default values
-    RegisterWriter("ginstance", new UsdArnoldWriteGinstance());
 
     // Iterate over all node types.
     // We are skipping filter nodes because they're translated through the options writer

@@ -44,3 +44,22 @@ public:
 private:
     std::string _nodeEntry;
 };
+
+/**
+ *   Ginstance nodes require a special treatment, because of the behaviour of
+ *   default values. In general we can skip authoring an attribute if the value
+ *   is different from default, but that's not the case for instances. Here,
+ *   we'll compare the value of the attribute with the corresponding value
+ *   for the instanced node. If it is different we will write it, even if the
+ *   value is equal to default
+ **/
+class UsdArnoldWriteGinstance : public UsdArnoldPrimWriter {
+public:
+    UsdArnoldWriteGinstance() : UsdArnoldPrimWriter() {}
+
+    void Write(const AtNode *node, UsdArnoldWriter &writer) override;
+
+    void _ProcessInstanceAttribute(
+        UsdPrim &prim, const AtNode *node, const AtNode *target, const char *attrName, int attrType, UsdArnoldWriter &writer);
+
+};

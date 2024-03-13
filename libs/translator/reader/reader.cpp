@@ -635,8 +635,14 @@ void UsdArnoldReader::ReadPrimitive(const UsdPrim &prim, UsdArnoldReaderContext 
             // therefore be created by a single thread in ProcessConnection. Given that this prim
             // is a prototype, it will be created as a nested usd procedural with object path set 
             // to the protoype prim's name. This will support instances of hierarchies.
-            context.AddConnection(
+            // Note that if this primitive has an attributes primvars:arnold:node, it means that it was
+            // created from an Arnold ginstance node, in which case we don't want to check the prototype
+            // path (which will always trigger a nested proc creation) #1775
+            UsdAttribute nodeAttr = prim.GetAttribute(str::t_primvars_arnold_node);
+            if (!nodeAttr || !nodeAttr.HasAuthoredValue()) {
+                context.AddConnection(
                         ginstance, "node", proto.GetPath().GetText(), ArnoldAPIAdapter::CONNECTION_PTR);
+            }
             return;
         }
     }        

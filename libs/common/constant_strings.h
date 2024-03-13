@@ -78,6 +78,7 @@ ASTR2(inputs_file, "inputs:file");
 ASTR2(inputs_intensity, "inputs:intensity");
 ASTR2(primvars_arnold, "primvars:arnold");
 ASTR2(primvars_arnold_light, "primvars:arnold:light");
+ASTR2(primvars_arnold_node, "primvars:arnold:node");
 ASTR2(log_file, "log:file");
 ASTR2(log_verbosity, "log:verbosity");
 ASTR2(primvars_arnold_subdiv_type, "primvars:arnold:subdiv_type");

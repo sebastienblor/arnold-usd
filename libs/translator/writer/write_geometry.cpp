@@ -17,6 +17,7 @@
 // limitations under the License.
 #include "write_geometry.h"
 
+#include <constant_strings.h>
 #include <ai.h>
 #include <cstdio>
 #include <cstring>
@@ -26,12 +27,17 @@
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/basisCurves.h>
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdGeom/points.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 
 //-*************************************************************************
 
 PXR_NAMESPACE_USING_DIRECTIVE
+TF_DEFINE_PRIVATE_TOKENS(
+    _tokens,
+    ((inherit_xform, "primvars:arnold:inherit_xform"))
+);
 
 void UsdArnoldWriteMesh::Write(const AtNode *node, UsdArnoldWriter &writer)
 {
@@ -352,4 +358,78 @@ void UsdArnoldWriteProceduralCustom::Write(const AtNode *node, UsdArnoldWriter &
 
     AiParamValueMapDestroy(params);
     AiUniverseDestroy(universe);
+}
+
+void UsdArnoldWriteGinstance::_ProcessInstanceAttribute(
+    UsdPrim &prim, const AtNode *node, const AtNode *target, 
+    const char *attrName, int attrType, UsdArnoldWriter &writer)
+{
+    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(target), AtString(attrName)) == nullptr)
+        return; // the attribute doesn't exist in the instanced node
+
+    // Now compare the values between the ginstance and the target node. If the value
+    // is different we'll want to write it even though it's the default value
+    bool writeValue = false;
+    SdfValueTypeName usdType;
+    if (attrType == AI_TYPE_BOOLEAN) {
+        writeValue = (AiNodeGetBool(node, AtString(attrName)) != AiNodeGetBool(target, AtString(attrName)));
+        usdType = SdfValueTypeNames->Bool;
+    } else if (attrType == AI_TYPE_BYTE) {
+        writeValue = (AiNodeGetByte(node, AtString(attrName)) != AiNodeGetByte(target, AtString(attrName)));
+        usdType = SdfValueTypeNames->UChar;
+    } else
+        return;
+
+    if (writeValue) {
+        std::string namespacedAttr = std::string("primvars:arnold:") + std::string(attrName);
+        UsdAttribute attr = prim.CreateAttribute(TfToken(namespacedAttr.c_str()), usdType, false);
+        if (attrType == AI_TYPE_BOOLEAN)
+            writer.SetAttribute(attr, AiNodeGetBool(node, AtString(attrName)));
+        else if (attrType == AI_TYPE_BYTE)
+            writer.SetAttribute(attr, AiNodeGetByte(node, AtString(attrName)));
+    }
+    _exportedAttrs.insert(attrName);
+}
+
+void UsdArnoldWriteGinstance::Write(const AtNode *node, UsdArnoldWriter &writer)
+{
+    AtNode *target = (AtNode*)AiNodeGetPtr(node, str::node);
+    if (target == nullptr)
+        return;
+
+    writer.WritePrimitive(target);
+    std::string targetName = UsdArnoldPrimWriter::GetArnoldNodeName(target, writer);
+    SdfPath targetPath(targetName);
+    UsdStageRefPtr stage = writer.GetUsdStage();    // get the current stage defined in the writer
+    UsdPrim targetPrim = stage->GetPrimAtPath(targetPath);
+    TfToken targetPrimType;
+    if (targetPrim)
+        targetPrimType = targetPrim.GetTypeName();
+
+    // get the output name of this USD primitive
+    std::string nodeName = GetArnoldNodeName(node, writer);
+    SdfPath objPath(nodeName);
+    writer.CreateHierarchy(objPath);
+    UsdPrim prim = stage->DefinePrim(objPath, targetPrimType);
+    prim.SetInstanceable(true);
+    prim.GetReferences().AddInternalReference(targetPath);
+
+    _ProcessInstanceAttribute(prim, node, target, "visibility", AI_TYPE_BYTE, writer);
+    _ProcessInstanceAttribute(prim, node, target, "sidedness", AI_TYPE_BYTE, writer);
+    _ProcessInstanceAttribute(prim, node, target, "matte", AI_TYPE_BOOLEAN, writer);
+    _ProcessInstanceAttribute(prim, node, target, "receive_shadows", AI_TYPE_BOOLEAN, writer);
+    _ProcessInstanceAttribute(prim, node, target, "invert_normals", AI_TYPE_BOOLEAN, writer);
+    _ProcessInstanceAttribute(prim, node, target, "self_shadows", AI_TYPE_BOOLEAN, writer);
+    
+    // Ensure inherit_xform is always authored, even if its value is left to default
+    UsdAttribute inheritXformAttr = prim.CreateAttribute(
+        _tokens->inherit_xform, SdfValueTypeNames->Bool, false);
+    writer.SetAttribute(inheritXformAttr, AiNodeGetBool(node, str::inherit_xform));
+    _exportedAttrs.insert("inherit_xform");
+
+    if (prim.IsA<UsdGeomXformable>()) {
+        UsdGeomXformable xformable(prim);
+        _WriteMatrix(xformable, node, writer);
+    }
+    _WriteArnoldParameters(node, writer, prim, "primvars:arnold");
 }
