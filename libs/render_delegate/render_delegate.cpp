@@ -304,7 +304,7 @@ const SupportedRenderSettings& _GetSupportedRenderSettings()
         {str::t_auto_transparency_depth, {"Auto Transparency Depth"}},
         {str::t_GI_diffuse_depth, {"Diffuse Depth", config.GI_diffuse_depth}},
         {str::t_GI_specular_depth, {"Specular Depth", config.GI_specular_depth}},
-        {str::t_GI_transmission_depth, {"Transmission Depth"}},
+        {str::t_GI_transmission_depth, {"Transmission Depth", config.GI_transmission_depth}},
         {str::t_GI_volume_depth, {"Volume Depth"}},
         {str::t_GI_total_depth, {"Total Depth"}},
         // Ignore settings
@@ -748,7 +748,7 @@ void HdArnoldRenderDelegate::_SetRenderSetting(const TfToken& _key, const VtValu
         // Solaris-specific command line, it can have an argument "-o output.exr" to override
         // the output image. We might end up using this for arnold drivers
         if (value.IsHolding<VtStringArray>()) {
-            const VtStringArray commandLine = value.UncheckedGet<VtArray<std::string>>();
+            const VtStringArray &commandLine = value.UncheckedGet<VtArray<std::string>>();
             for (unsigned int i = 0; i < commandLine.size(); ++i) {
                 // husk argument for output image
                 if (commandLine[i] == "-o" && i < commandLine.size() - 2) {

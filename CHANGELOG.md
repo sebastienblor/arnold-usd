@@ -4,21 +4,32 @@
 ## Pending release
 
 ### Feature
+- [usd#1894](https://github.com/Autodesk/arnold-usd/issues/1894) - Write cylinder lights as UsdLuxCylinderLight primitives
+
+## [7.3.1.0] - 2024-03-27
+
+### Feature
 - [usd#1730](https://github.com/Autodesk/arnold-usd/issues/1730) - Add light linking to the ArnoldProceduralCustom when using hydra.
 - [usd#168](https://github.com/Autodesk/arnold-usd/issues/168) - Support interactive USD updates in the procedural
 - [usd#1835](https://github.com/Autodesk/arnold-usd/issues/1835) - Support Arnold "help" metadata instead of previous "desc" metadata.
 - [usd#1865](https://github.com/Autodesk/arnold-usd/issues/1865) - Support ArnoldOptions primitives in Hydra
 - [usd#1852](https://github.com/Autodesk/arnold-usd/issues/1852) - Write Arnold options as UsdRenderSettings primitives
 - [usd#1870](https://github.com/Autodesk/arnold-usd/issues/1870) - Use new node type AI_NODE_IMAGER
+- [usd#1878](https://github.com/Autodesk/arnold-usd/issues/1878) - Make arnold relative path optional for image shaders
 - [usd#1874](https://github.com/Autodesk/arnold-usd/issues/1874) - Shader output attributes should be outputs:out to match the Sdr registry
 - [usd#1873](https://github.com/Autodesk/arnold-usd/issues/1873) - Ensure materials are written under a scope primitive
 - [usd#1775](https://github.com/Autodesk/arnold-usd/issues/1775) - Write Arnold ginstances as instanceable primitives
+- [usd#1868](https://github.com/Autodesk/arnold-usd/issues/1868) - Support velocities in PointInstancer primitive rendered through the procedural
+- [usd#1889](https://github.com/Autodesk/arnold-usd/issues/1889) - GI Transmission Depth should default to 8 in the Render Settings
 
 ### Bug fixes
 - [usd#1547](https://github.com/Autodesk/arnold-usd/issues/1547) - Fix mesh lights shutoff when there is a light link in the scene.
 - [usd#1859](https://github.com/Autodesk/arnold-usd/issues/1859) - Support PointInstancer invisibleIDs for lights 
+- [usd#1881](https://github.com/Autodesk/arnold-usd/issues/1881) - Support UDIM and relative paths on mtlx image shaders
+- [usd#1884](https://github.com/Autodesk/arnold-usd/issues/1884) - Set a proper name to skydome image node in Hydra
+- [usd#1890](https://github.com/Autodesk/arnold-usd/issues/1890) - Reduce VtArray memory consumption, mostly in the instancer. 
 
-## Next minor release - 5454a9e
+## [7.3.0.0] - 2024-03-27
 
 ### Feature
 - [usd#1758](https://github.com/Autodesk/arnold-usd/issues/1758) - Return a default value when an attribute type is not recognized
@@ -44,7 +55,7 @@
 ### Bug fixes
 - [usd#1854](https://github.com/Autodesk/arnold-usd/issues/1854) - Fix unnecessary updating of the scene in the render delegate when the camera is moving. This improves the interactivity in Solaris.
 
-## [7.2.5.2]
+## [7.2.5.2] and [7.2.5.3]
 
 ### Bug fixes
 - [usd#1808](https://github.com/Autodesk/arnold-usd/issues/1808) - Fix the error "Cannot load _htoa_pygeo library required for volume rendering in Solaris" in Houdini 19.5+.

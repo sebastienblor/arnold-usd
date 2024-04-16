@@ -214,16 +214,15 @@ void HdArnoldInstancer::CalculateInstanceMatrices(HdArnoldRenderDelegate* render
     const float fps = 1.0f / (reinterpret_cast<HdArnoldRenderParam*>(renderDelegate->GetRenderParam())->GetFPS());
     const float fps2 = fps * fps;
     VtValue velValue = GetDelegate()->Get(instancerId, HdTokens->velocities);
-    VtVec3fArray velocities;
-    if (velValue.IsHolding<VtVec3fArray>()) {
-        velocities = velValue.UncheckedGet<VtVec3fArray>();
-    }
+    VtVec3fArray emptyVelocities;
+    const VtVec3fArray& velocities =
+        velValue.IsHolding<VtVec3fArray>() ? velValue.UncheckedGet<VtVec3fArray>() : emptyVelocities;
 
     VtValue accelValue = GetDelegate()->Get(instancerId, HdTokens->accelerations);
-    VtVec3fArray accelerations;
-    if (accelValue.IsHolding<VtVec3fArray>()) {
-        accelerations = accelValue.UncheckedGet<VtVec3fArray>();
-    }
+    VtVec3fArray emptyAccelerations;
+    const VtVec3fArray& accelerations =
+        accelValue.IsHolding<VtVec3fArray>() ? accelValue.UncheckedGet<VtVec3fArray>() : emptyAccelerations;
+
     const bool hasVelocities = velocities.size() > 0;
     const bool hasAccelerations = accelerations.size() > 0;
     const bool velBlur = hasAccelerations || hasVelocities;
@@ -239,17 +238,15 @@ void HdArnoldInstancer::CalculateInstanceMatrices(HdArnoldRenderDelegate* render
         if (instancerTransforms.count > 0) {
             instancerTransform = instancerTransforms.Resample(t);
         }
-        // For the instancer Transform, we used the proper time.
-        // But when velocity blur is used, we will consider the default 0-time
-        // for all the attributes below that are per-instance.
-        float tInst = velBlur ? 0.f : t;
         VtMatrix4dArray transforms;
         if (_transforms.count > 0) {
-            transforms = _transforms.Resample(tInst);
+            transforms = _transforms.Resample(t);
         }
         VtVec3fArray translates;
         if (_translates.count > 0) {
-            translates = _translates.Resample(tInst);
+            // When velocity blur is used, we will consider the default 0-time
+            // for the per-instance positions        
+            translates = _translates.Resample(velBlur ? 0.f : t);
         }
 #if PXR_VERSION >= 2008
         VtQuathArray rotates;
@@ -257,11 +254,11 @@ void HdArnoldInstancer::CalculateInstanceMatrices(HdArnoldRenderDelegate* render
         VtVec4fArray rotates;
 #endif
         if (_rotates.count > 0) {
-            rotates = _rotates.Resample(tInst);
+            rotates = _rotates.Resample(t);
         }
         VtVec3fArray scales;
         if (_scales.count > 0) {
-            scales = _scales.Resample(tInst);
+            scales = _scales.Resample(t);
         }
 
         for (auto instance = decltype(numInstances){0}; instance < numInstances; instance += 1) {

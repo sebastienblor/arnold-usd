@@ -74,6 +74,8 @@ TF_DEFINE_ENV_SETTING(HDARNOLD_GI_diffuse_depth, 1, "Diffuse ray depth by defaul
 
 TF_DEFINE_ENV_SETTING(HDARNOLD_GI_specular_depth, 1, "Diffuse ray depth by default.");
 
+TF_DEFINE_ENV_SETTING(HDARNOLD_GI_transmission_depth, 8, "Transmission ray depth by default.");
+
 TF_DEFINE_ENV_SETTING(HDARNOLD_enable_progressive_render, true, "Enable progressive render.");
 
 TF_DEFINE_ENV_SETTING(HDARNOLD_progressive_min_AA_samples, -4, "Minimum AA samples for progressive rendering.");
@@ -94,7 +96,7 @@ TF_DEFINE_ENV_SETTING(
 
 TF_DEFINE_ENV_SETTING(HDARNOLD_interactive_fps_min, "5.0", "Minimum fps for progressive rendering.");
 
-TF_DEFINE_ENV_SETTING(HDARNOLD_profile_file, "", "Output file for profiling information.")
+TF_DEFINE_ENV_SETTING(HDARNOLD_profile_file, "", "Output file for profiling information.");
 
 TF_DEFINE_ENV_SETTING(HDARNOLD_texture_searchpath, "", "Texture search path.");
 
@@ -123,6 +125,7 @@ HdArnoldConfig::HdArnoldConfig()
     GI_volume_samples = std::max(0, TfGetEnvSetting(HDARNOLD_GI_volume_samples));
     GI_diffuse_depth = std::max(0, TfGetEnvSetting(HDARNOLD_GI_diffuse_depth));
     GI_specular_depth = std::max(0, TfGetEnvSetting(HDARNOLD_GI_specular_depth));
+    GI_transmission_depth = std::max(0, TfGetEnvSetting(HDARNOLD_GI_transmission_depth));
     enable_progressive_render = TfGetEnvSetting(HDARNOLD_enable_progressive_render);
     progressive_min_AA_samples = TfGetEnvSetting(HDARNOLD_progressive_min_AA_samples);
     enable_adaptive_sampling = TfGetEnvSetting(HDARNOLD_enable_adaptive_sampling);
