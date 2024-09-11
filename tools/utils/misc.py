@@ -10,6 +10,19 @@ except ImportError:
    # Python 3
    pass
 
+try:
+   # Python 2
+   # Empirically, it is faster to check explicitly for str and
+   # unicode than for basestring.
+   string_types = (str, unicode)
+except NameError:
+   # Python 3
+   string_types = (str)
+
+def is_string(obj):
+   return isinstance(obj, string_types)
+
+
 def arnold_version(path):
    '''
    Obtains Arnold library version by parsing 'ai_version.h'
