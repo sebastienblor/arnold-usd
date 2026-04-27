@@ -47,6 +47,7 @@
 #if PXR_VERSION >= 2302
 #include <pxr/usd/usdLux/lightAPI.h>
 #endif
+#include <pxr/usd/usdLux/shapingAPI.h>
 
 #include <constant_strings.h>
 #include <shape_utils.h>
