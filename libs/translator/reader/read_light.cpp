@@ -399,7 +399,7 @@ AtNode* UsdArnoldReadDistantLight::Read(const UsdPrim &prim, UsdArnoldReaderCont
         AiNodeSetFlt(node, str::intensity, 0.f);
 
     _ReadLightLinks(prim, node, context);
-    ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldShaders), node, context);
+    ReadLightShaders(prim, _tokens->PrimvarsArnoldShaders, node, context);
     return node;
 }
 
@@ -414,7 +414,7 @@ AtNode* UsdArnoldReadDomeLight::Read(const UsdPrim &prim, UsdArnoldReaderContext
     ReadLightCommon(prim, node, time);
 
     _ReadLightColorLinks(prim, node, context);
-    ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldShaders), node, context);
+    ReadLightShaders(prim, _tokens->PrimvarsArnoldShaders, node, context);
     
     TfToken format;
     if (GET_LIGHT_ATTR(light, TextureFormat).Get(&format, time.frame)) {
@@ -492,7 +492,7 @@ AtNode* UsdArnoldReadDiskLight::Read(const UsdPrim &prim, UsdArnoldReaderContext
         AiNodeSetFlt(node, str::intensity, 0.f);
 
     _ReadLightLinks(prim, node, context);
-    ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldShaders), node, context);
+    ReadLightShaders(prim, _tokens->PrimvarsArnoldShaders, node, context);
     return node;
 }
 
@@ -538,7 +538,7 @@ AtNode* UsdArnoldReadSphereLight::Read(const UsdPrim &prim, UsdArnoldReaderConte
         AiNodeSetFlt(node, str::intensity, 0.f);
 
     _ReadLightLinks(prim, node, context);
-    ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldShaders), node, context);
+    ReadLightShaders(prim, _tokens->PrimvarsArnoldShaders, node, context);
     return node;
 }
 
@@ -571,7 +571,7 @@ AtNode* UsdArnoldReadRectLight::Read(const UsdPrim &prim, UsdArnoldReaderContext
     AiNodeSetArray(node, str::vertices, AiArrayConvert(4, 1, AI_TYPE_VECTOR, vertices));
 
     _ReadLightColorLinks(prim, node, context);
-    ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldShaders), node, context);
+    ReadLightShaders(prim, _tokens->PrimvarsArnoldShaders, node, context);
 
     VtValue normalizeValue;
     if (GET_LIGHT_ATTR(light, Normalize).Get(&normalizeValue, time.frame)) {
@@ -649,7 +649,7 @@ AtNode* UsdArnoldReadCylinderLight::Read(const UsdPrim &prim, UsdArnoldReaderCon
     ReadArnoldParameters(prim, context, node, time, "primvars:arnold");
     ReadPrimvars(prim, node, time, context);
     _ReadLightLinks(prim, node, context);
-    ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldShaders), node, context);
+    ReadLightShaders(prim, _tokens->PrimvarsArnoldShaders, node, context);
     return node;
 }
 
@@ -711,7 +711,7 @@ AtNode* UsdArnoldReadGeometryLight::Read(const UsdPrim &prim, UsdArnoldReaderCon
             AiNodeSetFlt(node, str::intensity, 0.f);
 
         _ReadLightLinks(prim, node, context);
-        ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldShaders), node, context);
+        ReadLightShaders(prim, _tokens->PrimvarsArnoldShaders, node, context);
     }
     return res;
 }

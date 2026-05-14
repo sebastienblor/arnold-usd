@@ -44,15 +44,18 @@ namespace {
 UsdPrim _GetNodeGraph(UsdPrim& prim, UsdArnoldWriter &writer, const TfToken& lightShaderAttr)
 {
     std::string nodeGraphName = prim.GetPath().GetString() + "/light_shader";
-    SdfPath nodeGraphPath(nodeGraphName);        
+    SdfPath nodeGraphPath(nodeGraphName);
     UsdStageRefPtr stage = writer.GetUsdStage();
     UsdPrim nodeGraphPrim = stage->DefinePrim(nodeGraphPath, str::t_ArnoldNodeGraph);
 
-    UsdAttribute arnoldShaderAttr =
-        prim.CreateAttribute(lightShaderAttr,
-        SdfValueTypeNames->String, false);
+    // Author the link as a USD relationship so the target path is properly
+    // remapped under namespace composition (references, payloads, instancing).
+    // The legacy string + connection form was lost when the light prim was
+    // referenced under a different root, since the literal string did not get
+    // composed.
+    UsdRelationship rel = prim.CreateRelationship(lightShaderAttr, false);
+    rel.SetTargets({nodeGraphPrim.GetPath()});
     nodeGraphPrim.CreateAttribute(str::t_outputs_out, SdfValueTypeNames->Token, false);
-    arnoldShaderAttr.AddConnection(SdfPath(nodeGraphPrim.GetPath().GetString() + ".outputs:out"));
 
     return nodeGraphPrim;
 }

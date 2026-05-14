@@ -193,7 +193,7 @@ static inline void _ReadMeshLight(const UsdPrim &prim, UsdArnoldReaderContext &c
         AiNodeSetPtr(meshLightNode, str::mesh, (void*)node);
         // Read the arnold parameters for this light
         ReadArnoldParameters(prim, context, meshLightNode, time, "primvars:arnold:light");
-        ReadLightShaders(prim, prim.GetAttribute(_tokens->PrimvarsArnoldLightShaders), meshLightNode, context);
+        ReadLightShaders(prim, _tokens->PrimvarsArnoldLightShaders, meshLightNode, context);
     } else {
 #if PXR_VERSION >= 2302 
         if (prim.HasAPI(TfToken("MeshLightAPI"))) {

@@ -623,31 +623,46 @@ void ApplyParentMatrices(AtArray *matrices, const AtArray *parentMatrices)
     }
 }
 
-bool ReadNodeGraphAttr(const UsdPrim &prim, AtNode *node, const UsdAttribute &attr,
+bool ReadNodeGraphAttr(const UsdPrim &prim, AtNode *node, const TfToken &propertyName,
                                     const std::string &attrName, UsdArnoldReaderContext &context,
                                     UsdArnoldReaderContext::ConnectionType cType) {
 
     bool success = false;
     const TimeSettings &time = context.GetTimeSettings();
 
-    if (!attr)
-        return success;
-
-    // First check for a USD connection (new format: attr.connect = </path/nodeGraph.outputs:out>)
     UsdPrim ngPrim;
-    SdfPathVector attrConnections;
-    if (attr.HasAuthoredConnections() && attr.GetConnections(&attrConnections) && !attrConnections.empty())
-        ngPrim = context.GetReader()->GetStage()->GetPrimAtPath(attrConnections[0].GetPrimPath());
+    UsdStageRefPtr stage = context.GetReader()->GetStage();
 
-    // Fall back to reading the string value (old format: attr = "/path/nodeGraph")
-    if (!ngPrim) {
+    // First check for a USD relationship (current format). Relationships are
+    // composed across references/payloads, so the target path survives
+    // namespacing — unlike a literal string value.
+    UsdRelationship rel = prim.GetRelationship(propertyName);
+    if (rel) {
+        SdfPathVector targets;
+        if (rel.GetForwardedTargets(&targets) && !targets.empty())
+            ngPrim = stage->GetPrimAtPath(targets[0]);
+    }
+
+    // Then check for a USD attribute connection (legacy: attr.connect = </path/nodeGraph.outputs:out>)
+    UsdAttribute attr = prim.GetAttribute(propertyName);
+    if (!ngPrim && attr) {
+        SdfPathVector attrConnections;
+        if (attr.HasAuthoredConnections() && attr.GetConnections(&attrConnections) && !attrConnections.empty())
+            ngPrim = stage->GetPrimAtPath(attrConnections[0].GetPrimPath());
+    }
+
+    // Fall back to reading the string value (oldest format: attr = "/path/nodeGraph")
+    if (!ngPrim && attr) {
         VtValue value;
         if (attr.Get(&value, time.frame)) {
             std::string valStr = VtValueGetString(value);
             if (!valStr.empty())
-                ngPrim = context.GetReader()->GetStage()->GetPrimAtPath(SdfPath(valStr));
+                ngPrim = stage->GetPrimAtPath(SdfPath(valStr));
         }
     }
+
+    if (!ngPrim)
+        return success;
 
     // We verify if the primitive is indeed a ArnoldNodeGraph
     if (ngPrim && ngPrim.GetTypeName() == _tokens->ArnoldNodeGraph) {
@@ -695,26 +710,24 @@ bool ReadNodeGraphAttr(const UsdPrim &prim, AtNode *node, const UsdAttribute &at
 }
 
 
-void ReadLightShaders(const UsdPrim& prim, const UsdAttribute &shadersAttr, AtNode *node, UsdArnoldReaderContext &context)
+void ReadLightShaders(const UsdPrim& prim, const TfToken &propertyName, AtNode *node, UsdArnoldReaderContext &context)
 {
-    if (!shadersAttr || (!shadersAttr.HasAuthoredValue() && !shadersAttr.HasAuthoredConnections())) {
+    // Skip when neither a relationship nor an attribute is authored under this name.
+    UsdRelationship rel = prim.GetRelationship(propertyName);
+    UsdAttribute shadersAttr = prim.GetAttribute(propertyName);
+    const bool hasRel = rel && rel.HasAuthoredTargets();
+    const bool hasAttr = shadersAttr && (shadersAttr.HasAuthoredValue() || shadersAttr.HasAuthoredConnections());
+    if (!hasRel && !hasAttr)
         return;
-    }
-    
-    ReadNodeGraphAttr(prim, node, shadersAttr, "color", context, ArnoldAPIAdapter::CONNECTION_LINK);
-    ReadNodeGraphAttr(prim, node, shadersAttr, "filters", context, ArnoldAPIAdapter::CONNECTION_ARRAY);
+
+    ReadNodeGraphAttr(prim, node, propertyName, "color", context, ArnoldAPIAdapter::CONNECTION_LINK);
+    ReadNodeGraphAttr(prim, node, propertyName, "filters", context, ArnoldAPIAdapter::CONNECTION_ARRAY);
 }
 
 void ReadCameraShaders(const UsdPrim& prim, AtNode *node, UsdArnoldReaderContext &context)
-{   
-    UsdAttribute filtermapAttr = prim.GetAttribute(_tokens->PrimvarsArnoldFiltermap);
-    if (filtermapAttr && (filtermapAttr.HasAuthoredValue() || filtermapAttr.HasAuthoredConnections())) {
-        ReadNodeGraphAttr(prim, node, filtermapAttr, "filtermap", context, ArnoldAPIAdapter::CONNECTION_PTR);
-    }
-    UsdAttribute uvRemapAttr = prim.GetAttribute(_tokens->PrimvarsArnoldUvRemap);
-    if (uvRemapAttr && (uvRemapAttr.HasAuthoredValue() || uvRemapAttr.HasAuthoredConnections())) {
-        ReadNodeGraphAttr(prim, node, uvRemapAttr, "uv_remap", context, ArnoldAPIAdapter::CONNECTION_LINK);
-    }
+{
+    ReadNodeGraphAttr(prim, node, _tokens->PrimvarsArnoldFiltermap, "filtermap", context, ArnoldAPIAdapter::CONNECTION_PTR);
+    ReadNodeGraphAttr(prim, node, _tokens->PrimvarsArnoldUvRemap, "uv_remap", context, ArnoldAPIAdapter::CONNECTION_LINK);
 }
 
 // Return the number of keys needed by Arnold

@@ -10,6 +10,54 @@
             ],
             "primTypeName": "ArnoldUsdLuxLightFilter"
           },
+          "UsdImagingArnoldCylinderLightAdapter": {
+            "bases": [
+              "UsdImagingCylinderLightAdapter"
+            ],
+            "primTypeName": "CylinderLight"
+          },
+          "UsdImagingArnoldDiskLightAdapter": {
+            "bases": [
+              "UsdImagingDiskLightAdapter"
+            ],
+            "primTypeName": "DiskLight"
+          },
+          "UsdImagingArnoldDistantLightAdapter": {
+            "bases": [
+              "UsdImagingDistantLightAdapter"
+            ],
+            "primTypeName": "DistantLight"
+          },
+          "UsdImagingArnoldDomeLightAdapter": {
+            "bases": [
+              "UsdImagingDomeLightAdapter"
+            ],
+            "primTypeName": "DomeLight"
+          },
+          "UsdImagingArnoldDomeLight_1Adapter": {
+            "bases": [
+              "UsdImagingDomeLight_1Adapter"
+            ],
+            "primTypeName": "DomeLight_1"
+          },
+          "UsdImagingArnoldGeometryLightAdapter": {
+            "bases": [
+              "UsdImagingGeometryLightAdapter"
+            ],
+            "primTypeName": "GeometryLight"
+          },
+          "UsdImagingArnoldRectLightAdapter": {
+            "bases": [
+              "UsdImagingRectLightAdapter"
+            ],
+            "primTypeName": "RectLight"
+          },
+          "UsdImagingArnoldSphereLightAdapter": {
+            "bases": [
+              "UsdImagingSphereLightAdapter"
+            ],
+            "primTypeName": "SphereLight"
+          },
           "ArnoldNodeGraphAdapter": {
             "bases": [
               "UsdImagingPrimAdapter"

@@ -64,6 +64,16 @@ void ArnoldUsdCheckForSdfPathValue(const VtValue& value, F&& f)
 {
     if (value.IsHolding<SdfPath>()) {
         f(value.UncheckedGet<SdfPath>());
+    } else if (value.IsHolding<SdfPathVector>()) {
+        const auto& paths = value.UncheckedGet<SdfPathVector>();
+        if (!paths.empty()) {
+            f(paths.front());
+        }
+    } else if (value.IsHolding<VtArray<SdfPath>>()) {
+        const auto& paths = value.UncheckedGet<VtArray<SdfPath>>();
+        if (!paths.empty()) {
+            f(paths[0]);
+        }
     } else if (value.IsHolding<std::string>()) {
         const auto s = value.UncheckedGet<std::string>();
         if (!s.empty() && *s.begin() == '/') {
