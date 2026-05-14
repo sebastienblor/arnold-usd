@@ -145,9 +145,10 @@ static void _CreateNodeGraph(UsdPrim& prim, const AtNode* node, const AtString& 
 
     // Reference the nodeGraph in our RenderSetting's attribute (e.g. arnold:global:background)
     TfToken terminal(arnoldPrefix + attrStr);
-    UsdAttribute nodeGraphTerminal = 
+    UsdAttribute nodeGraphTerminal =
         prim.CreateAttribute(terminal, SdfValueTypeNames->String, false);
-    nodeGraphTerminal.Set(nodeGraphName);
+    nodeGraphPrim.CreateAttribute(str::t_outputs_out, SdfValueTypeNames->Token, false);
+    nodeGraphTerminal.AddConnection(SdfPath(nodeGraphName + ".outputs:out"));
 
     std::string idSuffix;
     // Loop through each of the nodes to write
@@ -562,9 +563,10 @@ void UsdArnoldWriteDriver::Write(const AtNode *node, UsdArnoldWriter &writer)
         UsdPrim imagerPrim = stage->GetPrimAtPath(imagerPath);
         // connect the nodeGraph to the render product
         TfToken arnoldInput = TfToken(attrPrefix + std::string(":input"));
-        UsdAttribute arnoldInputAttr = 
+        UsdAttribute arnoldInputAttr =
             renderProductPrim.CreateAttribute(arnoldInput, SdfValueTypeNames->String, false);
-        arnoldInputAttr.Set(imagerGraphName);
+        nodeGraphPrim.CreateAttribute(str::t_outputs_out, SdfValueTypeNames->Token, false);
+        arnoldInputAttr.AddConnection(SdfPath(imagerGraphName + ".outputs:out"));
         // connect the imager to the nodeGraph
         UsdAttribute nodeGraphAttr = nodeGraphPrim.CreateAttribute(_tokens->outputsInput, 
             SdfValueTypeNames->Token, false);

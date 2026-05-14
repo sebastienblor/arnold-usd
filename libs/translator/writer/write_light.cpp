@@ -48,10 +48,11 @@ UsdPrim _GetNodeGraph(UsdPrim& prim, UsdArnoldWriter &writer, const TfToken& lig
     UsdStageRefPtr stage = writer.GetUsdStage();
     UsdPrim nodeGraphPrim = stage->DefinePrim(nodeGraphPath, str::t_ArnoldNodeGraph);
 
-    UsdAttribute arnoldShaderAttr = 
-        prim.CreateAttribute(lightShaderAttr, 
+    UsdAttribute arnoldShaderAttr =
+        prim.CreateAttribute(lightShaderAttr,
         SdfValueTypeNames->String, false);
-    arnoldShaderAttr.Set(nodeGraphPrim.GetPath().GetString());
+    nodeGraphPrim.CreateAttribute(str::t_outputs_out, SdfValueTypeNames->Token, false);
+    arnoldShaderAttr.AddConnection(SdfPath(nodeGraphPrim.GetPath().GetString() + ".outputs:out"));
 
     return nodeGraphPrim;
 }

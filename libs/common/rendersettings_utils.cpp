@@ -110,44 +110,53 @@ ArnoldAOVTypes GetArnoldTypesFromFormatToken(const TfToken &type)
 static inline void UsdArnoldNodeGraphConnection(AtNode *node, const UsdPrim &prim, const UsdAttribute &attr,
                                                 const std::string &attrName, ArnoldAPIAdapter &context, const TimeSettings &time)
 {
-    VtValue value;
-    if (attr && attr.Get(&value, time.frame)) {
-        // RenderSettings have a string attribute, referencing a prim in the stage
-        std::string valStr = VtValueGetString(value);
-        if (!valStr.empty()) {
-            SdfPath path(valStr);
-            // We check if there is a primitive at the path of this string
-            UsdPrim ngPrim = prim.GetStage()->GetPrimAtPath(SdfPath(valStr));
-            // We verify if the primitive is indeed a ArnoldNodeGraph
-            if (ngPrim && ngPrim.GetTypeName() == _tokens->ArnoldNodeGraph) {
-                // We can use a UsdShadeShader schema in order to read connections
-                UsdShadeShader ngShader(ngPrim);
-                // the output attribute must have the same name as the input one in the RenderSettings
-                UsdShadeOutput outputAttr = ngShader.GetOutput(TfToken(attrName));
-                if (outputAttr) {
-                    SdfPathVector sourcePaths;
-                    // Check which shader is connected to this output
-                    if (outputAttr.HasConnectedSource() && outputAttr.GetRawConnectedSourcePaths(&sourcePaths) &&
-                        !sourcePaths.empty()) {
-                        SdfPath outPath(sourcePaths[0].GetPrimPath());
-                        UsdPrim outPrim = prim.GetStage()->GetPrimAtPath(outPath);
-                        if (outPrim) {
-                            std::string targetName = outPath.GetString();
-                            // If the primitive linked by the node graph, has a "name" attribute, we need to check it here
-                            // to eventually use it instead of the usd name
-                            UsdAttribute nameAttr = outPrim.GetAttribute(
-                                (outPrim.IsA<UsdShadeShader>()) ? _tokens->inputsName : _tokens->arnoldName);
-                            if (nameAttr && nameAttr.HasAuthoredValue()) {
-                                VtValue nameVal;
-                                if (nameAttr.Get(&nameVal, time.frame)) {
-                                    std::string nameStr = VtValueGetString(nameVal);
-                                    if (!nameStr.empty())
-                                        targetName = nameStr;
-                                }
-                            }
-                            context.AddConnection(node, attrName, targetName.c_str(), ArnoldAPIAdapter::CONNECTION_PTR);
+    if (!attr)
+        return;
+
+    // First check for a USD connection (new format: attr.connect = </path/nodeGraph.outputs:out>)
+    UsdPrim ngPrim;
+    SdfPathVector connections;
+    if (attr.HasAuthoredConnections() && attr.GetConnections(&connections) && !connections.empty())
+        ngPrim = prim.GetStage()->GetPrimAtPath(connections[0].GetPrimPath());
+
+    // Fall back to reading the string value (old format: attr = "/path/nodeGraph")
+    if (!ngPrim) {
+        VtValue value;
+        if (attr.Get(&value, time.frame)) {
+            std::string valStr = VtValueGetString(value);
+            if (!valStr.empty())
+                ngPrim = prim.GetStage()->GetPrimAtPath(SdfPath(valStr));
+        }
+    }
+
+    // We verify if the primitive is indeed a ArnoldNodeGraph
+    if (ngPrim && ngPrim.GetTypeName() == _tokens->ArnoldNodeGraph) {
+        // We can use a UsdShadeShader schema in order to read connections
+        UsdShadeShader ngShader(ngPrim);
+        // the output attribute must have the same name as the input one in the RenderSettings
+        UsdShadeOutput outputAttr = ngShader.GetOutput(TfToken(attrName));
+        if (outputAttr) {
+            SdfPathVector sourcePaths;
+            // Check which shader is connected to this output
+            if (outputAttr.HasConnectedSource() && outputAttr.GetRawConnectedSourcePaths(&sourcePaths) &&
+                !sourcePaths.empty()) {
+                SdfPath outPath(sourcePaths[0].GetPrimPath());
+                UsdPrim outPrim = prim.GetStage()->GetPrimAtPath(outPath);
+                if (outPrim) {
+                    std::string targetName = outPath.GetString();
+                    // If the primitive linked by the node graph, has a "name" attribute, we need to check it here
+                    // to eventually use it instead of the usd name
+                    UsdAttribute nameAttr = outPrim.GetAttribute(
+                        (outPrim.IsA<UsdShadeShader>()) ? _tokens->inputsName : _tokens->arnoldName);
+                    if (nameAttr && nameAttr.HasAuthoredValue()) {
+                        VtValue nameVal;
+                        if (nameAttr.Get(&nameVal, time.frame)) {
+                            std::string nameStr = VtValueGetString(nameVal);
+                            if (!nameStr.empty())
+                                targetName = nameStr;
                         }
                     }
+                    context.AddConnection(node, attrName, targetName.c_str(), ArnoldAPIAdapter::CONNECTION_PTR);
                 }
             }
         }
@@ -156,45 +165,61 @@ static inline void UsdArnoldNodeGraphConnection(AtNode *node, const UsdPrim &pri
 
 
 // Read eventual connections to a ArnoldNodeGraph primitive for the aov_shader shader array connections
-static inline void UsdArnoldNodeGraphAovConnection(AtNode *options, const UsdPrim &prim, 
+static inline void UsdArnoldNodeGraphAovConnection(AtNode *options, const UsdPrim &prim,
     const UsdAttribute &attr, const std::string &attrBase, ArnoldAPIAdapter &context, const TimeSettings &time)
 {
+    if (!attr)
+        return;
 
-    VtValue value;
-    if (attr && attr.Get(&value, time.frame)) {
-        // RenderSettings have a string attribute, referencing multiple prims in the stage
-        std::string valStr = VtValueGetString(value);
-        if (!valStr.empty()) {
-            AtArray* aovShadersArray = AiNodeGetArray(options, str::aov_shaders);
-            unsigned numElements = AiArrayGetNumElements(aovShadersArray);
-            for(const auto &nodeGraphPrimName: TfStringTokenize(valStr)) {
-                SdfPath nodeGraphPrimPath(nodeGraphPrimName);
-                // We check if there is a primitive at the path of this string
-                UsdPrim nodeGraphPrim = prim.GetStage()->GetPrimAtPath(nodeGraphPrimPath);
+    std::vector<UsdPrim> nodeGraphPrims;
 
-                if (nodeGraphPrim && nodeGraphPrim.GetTypeName() == _tokens->ArnoldNodeGraph) {
-                    // We can use a UsdShadeShader schema in order to read connections
-                    UsdShadeShader ngShader(nodeGraphPrim);
-                    for (unsigned aovShaderIndex=1;; aovShaderIndex++) {
-                        // the output terminal name will be aov_shader:i{1,...,n} as a contiguous array
-                        TfToken outputName(attrBase + std::string(":i") + std::to_string(aovShaderIndex));
-                        UsdShadeOutput outputAttr = ngShader.GetOutput(outputName);
-                        if (!outputAttr) {
-                            break;
-                        }
-                        SdfPathVector sourcePaths;
-                        // Check which shader is connected to this output
-                        if (outputAttr.HasConnectedSource() && outputAttr.GetRawConnectedSourcePaths(&sourcePaths)) {
-                            for(const SdfPath &aovShaderPath : sourcePaths) {
-                                SdfPath aovShaderPrimPath(aovShaderPath.GetPrimPath());
-                                UsdPrim outPrim = prim.GetStage()->GetPrimAtPath(aovShaderPrimPath);
-                                if (outPrim) {
-                                    // we connect to aov_shaders{0,...,n-1} parameters i.e. 0 indexed, offset from any previous connections
-                                    std::string optionAovShaderElement = attrBase + "[" + std::to_string(numElements++) + "]";
-                                    context.AddConnection(options, optionAovShaderElement, aovShaderPrimPath.GetText(), ArnoldAPIAdapter::CONNECTION_PTR);
-                                }
-                            }
-                        }
+    // First check for a USD connection (new format: attr.connect = </path/nodeGraph.outputs:out>)
+    SdfPathVector attrConnections;
+    if (attr.HasAuthoredConnections() && attr.GetConnections(&attrConnections) && !attrConnections.empty()) {
+        UsdPrim ngPrim = prim.GetStage()->GetPrimAtPath(attrConnections[0].GetPrimPath());
+        if (ngPrim)
+            nodeGraphPrims.push_back(ngPrim);
+    } else {
+        // Fall back to reading the string value (old format: space-separated paths)
+        VtValue value;
+        if (attr.Get(&value, time.frame)) {
+            std::string valStr = VtValueGetString(value);
+            if (!valStr.empty()) {
+                for (const auto &nodeGraphPrimName : TfStringTokenize(valStr)) {
+                    UsdPrim ngPrim = prim.GetStage()->GetPrimAtPath(SdfPath(nodeGraphPrimName));
+                    if (ngPrim)
+                        nodeGraphPrims.push_back(ngPrim);
+                }
+            }
+        }
+    }
+
+    if (nodeGraphPrims.empty())
+        return;
+
+    AtArray* aovShadersArray = AiNodeGetArray(options, str::aov_shaders);
+    unsigned numElements = AiArrayGetNumElements(aovShadersArray);
+    for (const auto &nodeGraphPrim : nodeGraphPrims) {
+        if (nodeGraphPrim.GetTypeName() != _tokens->ArnoldNodeGraph)
+            continue;
+        // We can use a UsdShadeShader schema in order to read connections
+        UsdShadeShader ngShader(nodeGraphPrim);
+        for (unsigned aovShaderIndex = 1;; aovShaderIndex++) {
+            // the output terminal name will be aov_shader:i{1,...,n} as a contiguous array
+            TfToken outputName(attrBase + std::string(":i") + std::to_string(aovShaderIndex));
+            UsdShadeOutput outputAttr = ngShader.GetOutput(outputName);
+            if (!outputAttr)
+                break;
+            SdfPathVector sourcePaths;
+            // Check which shader is connected to this output
+            if (outputAttr.HasConnectedSource() && outputAttr.GetRawConnectedSourcePaths(&sourcePaths)) {
+                for (const SdfPath &aovShaderPath : sourcePaths) {
+                    SdfPath aovShaderPrimPath(aovShaderPath.GetPrimPath());
+                    UsdPrim outPrim = prim.GetStage()->GetPrimAtPath(aovShaderPrimPath);
+                    if (outPrim) {
+                        // we connect to aov_shaders{0,...,n-1} parameters i.e. 0 indexed, offset from any previous connections
+                        std::string optionAovShaderElement = attrBase + "[" + std::to_string(numElements++) + "]";
+                        context.AddConnection(options, optionAovShaderElement, aovShaderPrimPath.GetText(), ArnoldAPIAdapter::CONNECTION_PTR);
                     }
                 }
             }
