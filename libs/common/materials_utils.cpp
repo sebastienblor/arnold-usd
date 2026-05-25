@@ -16,12 +16,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <ai.h>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 #include <numeric>
 #include <pxr/base/tf/token.h>
+#include <pxr/base/gf/matrix4d.h>
+#include <pxr/base/gf/matrix4f.h>
 #include <constant_strings.h>
 #include "materials_utils.h"
 #include "api_adapter.h"
@@ -29,6 +32,263 @@
 //-*************************************************************************
 
 PXR_NAMESPACE_USING_DIRECTIVE
+
+namespace {
+
+// Classification of a MaterialX shader node that may consume a USD coordSys.
+// MaterialX `position`, `normal`, `tangent`, `bitangent` nodes have a single
+// `space` input. `transformpoint`, `transformvector`, `transformnormal` nodes
+// have `fromspace` and `tospace` inputs.
+enum class MtlxCoordSysNodeKind {
+    None,
+    SingleSpacePoint,   // position
+    SingleSpaceVector,  // tangent, bitangent
+    SingleSpaceNormal,  // normal
+    TransformPoint,     // transformpoint
+    TransformVector,    // transformvector
+    TransformNormal,    // transformnormal
+};
+
+// Returns the kind of MaterialX node based on its shaderId. Matches the
+// USD MaterialX node-definition prefix (e.g. "ND_position_", "ND_transformpoint_").
+MtlxCoordSysNodeKind _ClassifyMtlxCoordSysNode(const TfToken& shaderId)
+{
+    const std::string& s = shaderId.GetString();
+    if (!TfStringStartsWith(s, "ND_"))
+        return MtlxCoordSysNodeKind::None;
+    if (TfStringStartsWith(s, "ND_position_"))      return MtlxCoordSysNodeKind::SingleSpacePoint;
+    if (TfStringStartsWith(s, "ND_normal_"))        return MtlxCoordSysNodeKind::SingleSpaceNormal;
+    if (TfStringStartsWith(s, "ND_tangent_"))       return MtlxCoordSysNodeKind::SingleSpaceVector;
+    if (TfStringStartsWith(s, "ND_bitangent_"))     return MtlxCoordSysNodeKind::SingleSpaceVector;
+    if (TfStringStartsWith(s, "ND_transformpoint_"))  return MtlxCoordSysNodeKind::TransformPoint;
+    if (TfStringStartsWith(s, "ND_transformvector_")) return MtlxCoordSysNodeKind::TransformVector;
+    if (TfStringStartsWith(s, "ND_transformnormal_")) return MtlxCoordSysNodeKind::TransformNormal;
+    return MtlxCoordSysNodeKind::None;
+}
+
+// Standard MaterialX space identifiers. Anything else is treated as a custom
+// USD coordSys name.
+bool _IsStandardMtlxSpace(const std::string& space)
+{
+    return space == "world" || space == "object" || space == "model";
+}
+
+// Returns the matrix_multiply_vector `type` enum value for a given node kind.
+const char* _MatrixMultiplyTypeForKind(MtlxCoordSysNodeKind kind)
+{
+    switch (kind) {
+        case MtlxCoordSysNodeKind::SingleSpacePoint:
+        case MtlxCoordSysNodeKind::TransformPoint:
+            return "point";
+        case MtlxCoordSysNodeKind::SingleSpaceNormal:
+        case MtlxCoordSysNodeKind::TransformNormal:
+            return "normal";
+        case MtlxCoordSysNodeKind::SingleSpaceVector:
+        case MtlxCoordSysNodeKind::TransformVector:
+            return "vector";
+        default:
+            return "vector";
+    }
+}
+
+// What the MaterialX node should be told to emit in, after we strip a custom
+// space and rewrite it. For a node that emits in world space, the MaterialX
+// shader sees `space = world`; our inserted matrix_multiply_vector then
+// converts world -> coordSys.
+static const char* kMtlxNeutralSpace = "world";
+
+struct MtlxCoordSysFixup {
+    MtlxCoordSysNodeKind kind = MtlxCoordSysNodeKind::None;
+    // Non-empty when the input-side `fromspace` (transform* nodes only)
+    // referenced a custom coordSys. The MaterialX node is told fromspace=world,
+    // and an input-side helper is inserted that converts coordSys -> world.
+    std::string customFromSpace;
+    // Non-empty when the output-side space (single `space` for position/normal/
+    // tangent/bitangent, or `tospace` for transform* nodes) referenced a custom
+    // coordSys. The MaterialX node is told (to)space=world, and an output-side
+    // helper is inserted that converts world -> coordSys.
+    std::string customToSpace;
+    // When the input-side helper is needed, the original upstream connection
+    // to the MaterialX node's `in` input is captured here (and removed from
+    // the InputAttributesList) so it can be re-wired to the helper's input.
+    SdfPath capturedInConnection;
+
+    bool Any() const { return !customFromSpace.empty() || !customToSpace.empty(); }
+};
+
+// Inspect `inputAttrs` for a MaterialX node and pull out any custom space
+// references. Mutates `inputAttrs` in place: any space input that names a
+// custom coordSys is rewritten to "world" so Arnold's MaterialX layer
+// translates the node in a known canonical space.
+MtlxCoordSysFixup _ExtractMtlxCoordSysFixup(const TfToken& shaderId,
+                                            InputAttributesList& inputAttrs)
+{
+    MtlxCoordSysFixup fixup;
+    fixup.kind = _ClassifyMtlxCoordSysNode(shaderId);
+    if (fixup.kind == MtlxCoordSysNodeKind::None)
+        return fixup;
+
+    auto rewriteIfCustom = [&](const TfToken& attrName, std::string& outCustomName) {
+        auto it = inputAttrs.find(attrName);
+        if (it == inputAttrs.end())
+            return;
+        InputAttribute& attr = it->second;
+        // We only handle constant-valued space inputs. A linked space is
+        // unusual and is left alone for Arnold's MaterialX layer to handle.
+        if (!attr.connection.IsEmpty() || attr.value.IsEmpty())
+            return;
+        std::string spaceValue = VtValueGetString(attr.value);
+        if (spaceValue.empty() || _IsStandardMtlxSpace(spaceValue))
+            return;
+        outCustomName = spaceValue;
+        attr.value = VtValue(std::string(kMtlxNeutralSpace));
+    };
+
+    const bool isTransformNode =
+        fixup.kind == MtlxCoordSysNodeKind::TransformPoint ||
+        fixup.kind == MtlxCoordSysNodeKind::TransformVector ||
+        fixup.kind == MtlxCoordSysNodeKind::TransformNormal;
+
+    if (isTransformNode) {
+        rewriteIfCustom(str::t_fromspace, fixup.customFromSpace);
+        rewriteIfCustom(str::t_tospace, fixup.customToSpace);
+        if (!fixup.customFromSpace.empty()) {
+            const TfToken inToken("in");
+            auto it = inputAttrs.find(inToken);
+            if (it != inputAttrs.end() && !it->second.connection.IsEmpty()) {
+                // Capture and remove the `in` attribute so ReadArnoldShader
+                // does not queue a deferred connection that bypasses our
+                // input helper.
+                fixup.capturedInConnection = it->second.connection;
+                inputAttrs.erase(it);
+            } else {
+                // Constant `in` value cannot be routed through the input
+                // helper. Leave the value in place (the MaterialX node will
+                // see it as if it were already in world space) and skip the
+                // input-side fixup. Production graphs typically connect `in`.
+                AiMsgWarning(
+                    "[arnold-usd] transform* node with custom fromspace='%s' "
+                    "has a constant `in` value; coordSys conversion is only "
+                    "applied to the output side",
+                    fixup.customFromSpace.c_str());
+                fixup.customFromSpace.clear();
+            }
+        }
+    } else {
+        rewriteIfCustom(str::t_space, fixup.customToSpace);
+    }
+    return fixup;
+}
+
+// Convert a GfMatrix4d to AtMatrix via the shared helper.
+AtMatrix _GfMatrixToAt(const GfMatrix4d& m)
+{
+    return VtValueGetMatrix(VtValue(m));
+}
+
+// Create a matrix_multiply_vector helper shader and configure it. The helper
+// converts its input vector by the given matrix.
+AtNode* _CreateMatrixMultiplyHelper(MaterialReader& materialReader,
+                                    const std::string& helperName,
+                                    const char* typeEnum,
+                                    const GfMatrix4d& matrix)
+{
+    AtNode* helper = materialReader.CreateArnoldNode(
+        str::matrix_multiply_vector.c_str(), helperName.c_str());
+    if (helper == nullptr)
+        return nullptr;
+    AiNodeSetStr(helper, str::type, AtString(typeEnum));
+    AiNodeSetMatrix(helper, str::matrix, _GfMatrixToAt(matrix));
+    return helper;
+}
+
+// Apply the coordSys fixup after the MaterialX node has been created.
+// May insert one or two matrix_multiply_vector helpers. Returns the AtNode
+// that should be exposed as the public output of the original MaterialX node
+// (i.e. what downstream consumers should resolve to).
+//
+// Downstream rewiring works through the ArnoldAPIAdapter's nodeName map:
+// LookupNode() in both the translator and Hydra render delegate checks the
+// nodeName map before falling back to AiNodeLookUpByName, so calling
+// AddNodeName(originalName, helper) makes deferred connections resolve to
+// the helper without touching any call sites.
+AtNode* _ApplyMtlxCoordSysFixup(const std::string& nodeName,
+                                const MtlxCoordSysFixup& fixup,
+                                AtNode* mtlxNode,
+                                ArnoldAPIAdapter& context,
+                                MaterialReader& materialReader,
+                                const TimeSettings& time)
+{
+    if (mtlxNode == nullptr || !fixup.Any())
+        return mtlxNode;
+
+    auto lookupOrIdentity = [&](const std::string& name, GfMatrix4d& out) {
+        TfToken nameTok(name);
+        if (materialReader.GetCoordSysMatrix(nameTok, time, out))
+            return;
+        AiMsgWarning(
+            "[arnold-usd] MaterialX coordSys '%s' not bound in the scene; falling back to identity",
+            name.c_str());
+        out.SetIdentity();
+    };
+
+    auto safeInverse = [&](const std::string& name, const GfMatrix4d& in, GfMatrix4d& out) {
+        if (std::abs(in.GetDeterminant()) < 1e-12) {
+            AiMsgWarning(
+                "[arnold-usd] MaterialX coordSys '%s' has a singular world matrix; using identity",
+                name.c_str());
+            out.SetIdentity();
+        } else {
+            out = in.GetInverse();
+        }
+    };
+
+    // Input-side: route whatever was feeding the MaterialX node's `in` input
+    // through a helper that converts coordSys -> world. transform* nodes only.
+    // The original `in` connection was captured and removed from inputAttrs in
+    // _ExtractMtlxCoordSysFixup so that ReadArnoldShader did not queue it.
+    if (!fixup.customFromSpace.empty()) {
+        GfMatrix4d coordSysToWorld;
+        lookupOrIdentity(fixup.customFromSpace, coordSysToWorld);
+        const std::string inHelperName = nodeName + "@coordsys_in";
+        AtNode* inHelper = _CreateMatrixMultiplyHelper(
+            materialReader, inHelperName,
+            _MatrixMultiplyTypeForKind(fixup.kind),
+            coordSysToWorld);
+        if (inHelper) {
+            if (!fixup.capturedInConnection.IsEmpty()) {
+                materialReader.ConnectShader(
+                    inHelper, "input", fixup.capturedInConnection,
+                    ArnoldAPIAdapter::CONNECTION_LINK);
+            }
+            AiNodeLink(inHelper, "in", mtlxNode);
+        }
+    }
+
+    // Output-side: build a helper that converts world -> coordSys, drive it
+    // from the MaterialX node, and redirect downstream lookups for the
+    // original node name to the helper via the API adapter's name map.
+    if (!fixup.customToSpace.empty()) {
+        GfMatrix4d coordSysToWorld;
+        lookupOrIdentity(fixup.customToSpace, coordSysToWorld);
+        GfMatrix4d worldToCoordSys;
+        safeInverse(fixup.customToSpace, coordSysToWorld, worldToCoordSys);
+        const std::string outHelperName = nodeName + "@coordsys_out";
+        AtNode* outHelper = _CreateMatrixMultiplyHelper(
+            materialReader, outHelperName,
+            _MatrixMultiplyTypeForKind(fixup.kind),
+            worldToCoordSys);
+        if (outHelper) {
+            AiNodeLink(mtlxNode, str::input, outHelper);
+            context.AddNodeName(nodeName, outHelper);
+            return outHelper;
+        }
+    }
+
+    return mtlxNode;
+}
+
+} // anonymous namespace
 
 // Generic function pointer to translate a shader based on its shaderId
 using ShaderReadFunc = AtNode* (*)(const std::string& nodeName,  
@@ -677,19 +937,19 @@ AtNode* ReadMtlxOslShader(const std::string& nodeName,
 }
 
 /// Read a shader with a given shaderId and translate it to Arnold.
-AtNode* ReadShader(const std::string& nodeName, const TfToken& shaderId, 
-    const InputAttributesList& inputAttrs, ArnoldAPIAdapter &context, 
+AtNode* ReadShader(const std::string& nodeName, const TfToken& shaderId,
+    const InputAttributesList& inputAttrs, ArnoldAPIAdapter &context,
     const TimeSettings& time, MaterialReader& materialReader)
 {
     if (shaderId.IsEmpty())
         return nullptr;
 
     // First, we check if the shaderId starts with "arnold:", in which case
-    // we're expecting to read an arnold native shader with a 1:1 mapping 
+    // we're expecting to read an arnold native shader with a 1:1 mapping
     if (TfStringStartsWith(shaderId.GetString(), str::t_arnold_prefix.GetString())) {
         TfToken arnoldShaderType(shaderId.GetString().substr(7).c_str());
         return ReadArnoldShader(nodeName, arnoldShaderType, inputAttrs, context, time, materialReader);
-    } 
+    }
 
     // Check if there is a specific conversion function defined for this shader.
     // This is used for usd builtin shaders, like UsdPreviewSurface, UsdUvTexture, etc...
@@ -697,10 +957,28 @@ AtNode* ReadShader(const std::string& nodeName, const TfToken& shaderId,
     if (readIt != _ShaderReadFuncs().end()) {
         return readIt->second(nodeName, inputAttrs, context, time, materialReader);
     }
+
+    // If this is one of the MaterialX nodes that consumes a `space` (or
+    // `fromspace`/`tospace`) input referencing a USD coordSys, mutate the
+    // input list to neutralize the custom space before handing off to Arnold's
+    // MaterialX layer. The conversion happens through an inserted
+    // matrix_multiply_vector helper after the MaterialX node is created.
+    // Whenever the kind matches we use the mutated list so the MaterialX
+    // shader never sees a custom space string it doesn't understand.
+    InputAttributesList mutableInputAttrs;
+    const InputAttributesList* effectiveInputs = &inputAttrs;
+    MtlxCoordSysFixup coordSysFixup;
+    coordSysFixup.kind = _ClassifyMtlxCoordSysNode(shaderId);
+    if (coordSysFixup.kind != MtlxCoordSysNodeKind::None) {
+        mutableInputAttrs = inputAttrs;
+        coordSysFixup = _ExtractMtlxCoordSysFixup(shaderId, mutableInputAttrs);
+        effectiveInputs = &mutableInputAttrs;
+    }
+
     // Finally, we ask Arnold if this shader corresponds to a
     // materialx node definition
 
-    // if a custom USD Materialx path is set, we need to provide it to 
+    // if a custom USD Materialx path is set, we need to provide it to
     // Arnold's Materialx lib so that it can find custom node definitions
     AtParamValueMap *params = AiParamValueMap();
 
@@ -731,11 +1009,24 @@ AtNode* ReadShader(const std::string& nodeName, const TfToken& shaderId,
     if (shaderNodeEntry) {
         AtString shaderNodeEntryName = AiNodeEntryGetNameAtString(shaderNodeEntry);
         if (shaderNodeEntryName == str::osl) {
-            // This mtlx shader can be rendered by arnold as an OSL shader
-            return ReadMtlxOslShader(nodeName, inputAttrs, shaderId, context, time, materialReader, params);
+            // This mtlx shader can be rendered by arnold as an OSL shader.
+            // CoordSys handling is intentionally not applied on the OSL path.
+            return ReadMtlxOslShader(nodeName, *effectiveInputs, shaderId, context, time, materialReader, params);
         } else {
-            // This mtlx shader can be rendered by arnold as a native shader
-            return ReadArnoldShader(nodeName, TfToken(shaderNodeEntryName.c_str()), inputAttrs, context, time, materialReader);
+            // This mtlx shader can be rendered by arnold as a native shader.
+            AtNode* mtlxNode = ReadArnoldShader(
+                nodeName, TfToken(shaderNodeEntryName.c_str()),
+                *effectiveInputs, context, time, materialReader);
+            if (coordSysFixup.kind != MtlxCoordSysNodeKind::None && mtlxNode != nullptr) {
+                AtNode* publicNode = coordSysFixup.Any()
+                    ? _ApplyMtlxCoordSysFixup(nodeName, coordSysFixup, mtlxNode, context, materialReader, time)
+                    : mtlxNode;
+                // Always anchor the redirect so any prior stale entry pointing
+                // to a destroyed helper from an earlier sync is overwritten.
+                context.AddNodeName(nodeName, publicNode);
+                return publicNode;
+            }
+            return mtlxNode;
         }
     }
     AiParamValueMapDestroy(params);

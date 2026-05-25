@@ -267,13 +267,15 @@ protected:
     /// The newly created Arnold Nodes are stored in the class instance. Every
     /// previously created Arnold Node that's not touched is destroyed.
     ///
+    /// @param sceneDelegate Pointer to the Scene Delegate (used to resolve
+    ///   USD coordSys bindings referenced from MaterialX shaders).
     /// @param network Const Reference to the Hydra Material Network.
     /// @param terminalType Type of the shading network (surface, displacement, volume, etc...)
     /// @param terminals Reference of a list of terminals root nodes, where elements can be removed inside the call
     /// @return Returns the Entry Point to the Arnold Shader Network.
     HDARNOLD_API
-    AtNode* ReadMaterialNetwork(const HdMaterialNetwork& network, const TfToken& terminalType, 
-        std::vector<SdfPath>& terminals);
+    AtNode* ReadMaterialNetwork(HdSceneDelegate* sceneDelegate, const HdMaterialNetwork& network,
+        const TfToken& terminalType, std::vector<SdfPath>& terminals);
 
     ArnoldNodeGraph _nodeGraphCache;         ///< Storing arnold shaders for terminals.
     HdArnoldRenderDelegate* _renderDelegate; ///< Pointer to the Render Delegate.

@@ -32,8 +32,13 @@
 #include "node_graph.h"
 #include <pxr/base/trace/trace.h>
 
+#include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec2f.h>
+#include <pxr/imaging/hd/coordSys.h>
+#include <pxr/imaging/hd/renderIndex.h>
+#include <pxr/imaging/hd/sceneDelegate.h>
+#include <pxr/imaging/hd/tokens.h>
 #include <pxr/usdImaging/usdImaging/tokens.h>
 
 #include <constant_strings.h>
@@ -70,18 +75,20 @@ inline void EnsureMaterialNetworPathsPrefix(HdMaterialNetwork& network, const Sd
 class MaterialHydraReader : public MaterialReader
 {
 public:
-    MaterialHydraReader(HdArnoldNodeGraph& nodeGraph, 
+    MaterialHydraReader(HdArnoldNodeGraph& nodeGraph,
                     const HdMaterialNetwork& network,
-                    HydraArnoldAPI& context) : 
+                    HydraArnoldAPI& context,
+                    HdSceneDelegate* sceneDelegate) :
                     MaterialReader(),
                     _nodeGraph(nodeGraph),
                     _network(network),
-                    _context(context)
+                    _context(context),
+                    _sceneDelegate(sceneDelegate)
                     {}
 
 
-    AtNode* CreateArnoldNode(const char* nodeType, const char* nodeName) override 
-    {        
+    AtNode* CreateArnoldNode(const char* nodeType, const char* nodeName) override
+    {
         return _nodeGraph.CreateArnoldNode(nodeType, nodeName);
     }
 
@@ -99,7 +106,7 @@ public:
         VtValue& value, TfToken& shaderId) override
     {
         for (const auto& node : _network.nodes) {
-            if (node.path != shaderPath) 
+            if (node.path != shaderPath)
                 continue;
 
             // found a node with the same name, let's store its shadeId
@@ -110,7 +117,7 @@ public:
                     continue;
                 // found the expected attribute, let's return its value
                 value = paramIt.second;
-                // return true if there is an actual value 
+                // return true if there is an actual value
                 // (should be the case at this stage)
                 return (!value.IsEmpty());
             }
@@ -121,10 +128,77 @@ public:
         return false;
     }
 
+    bool GetCoordSysMatrix(const TfToken& coordSysName,
+                           const TimeSettings& time,
+                           GfMatrix4d& outMatrix) override
+    {
+        if (_sceneDelegate == nullptr)
+            return false;
+        if (!_coordSysCachePopulated) {
+            _PopulateCoordSysCache();
+            _coordSysCachePopulated = true;
+        }
+        auto it = _coordSysMatrices.find(coordSysName);
+        if (it == _coordSysMatrices.end())
+            return false;
+        outMatrix = it->second;
+        return true;
+    }
+
 private:
+    // Walk every coordSys Sprim in the render index, extract the binding name
+    // from the Sprim path (UsdImaging uses `<targetXform>.coordSys:<name>`),
+    // and cache (name -> world matrix). Scene-global semantics: first-wins on
+    // duplicate names, mirroring the translator path.
+    void _PopulateCoordSysCache()
+    {
+        HdRenderIndex& renderIndex = _sceneDelegate->GetRenderIndex();
+        const SdfPathVector sprimPaths =
+            renderIndex.GetSprimSubtree(HdPrimTypeTokens->coordSys, SdfPath::AbsoluteRootPath());
+        for (const SdfPath& sprimId : sprimPaths) {
+            TfToken name = _ExtractCoordSysName(sprimId);
+            if (name.IsEmpty())
+                continue;
+            if (_coordSysMatrices.find(name) != _coordSysMatrices.end()) {
+                AiMsgWarning(
+                    "[arnold-usd] coordSys '%s' has multiple bindings (latest seen on <%s>); "
+                    "first binding wins",
+                    name.GetText(), sprimId.GetText());
+                continue;
+            }
+            GfMatrix4d xform = _sceneDelegate->GetTransform(sprimId);
+            _coordSysMatrices[name] = xform;
+        }
+    }
+
+    // UsdImaging encodes coordSys Sprims as a property path on the bound prim.
+    // The property name typically looks like `coordSys:<name>:binding` (the
+    // schema relationship name) or, depending on USD version, simply
+    // `coordSys:<name>`. Strip the `coordSys:` prefix and any trailing
+    // `:binding` suffix to recover the user-authored name.
+    static TfToken _ExtractCoordSysName(const SdfPath& sprimId)
+    {
+        std::string propertyName = sprimId.IsPropertyPath()
+            ? sprimId.GetName()
+            : sprimId.GetNameToken().GetString();
+        static const std::string kPrefix = "coordSys:";
+        static const std::string kBindingSuffix = ":binding";
+        if (propertyName.compare(0, kPrefix.size(), kPrefix) == 0)
+            propertyName = propertyName.substr(kPrefix.size());
+        if (propertyName.size() > kBindingSuffix.size() &&
+            propertyName.compare(propertyName.size() - kBindingSuffix.size(),
+                                 kBindingSuffix.size(), kBindingSuffix) == 0) {
+            propertyName.resize(propertyName.size() - kBindingSuffix.size());
+        }
+        return TfToken(propertyName);
+    }
+
     HdArnoldNodeGraph& _nodeGraph;
     const HdMaterialNetwork& _network;
     HydraArnoldAPI& _context;
+    HdSceneDelegate* _sceneDelegate = nullptr;
+    bool _coordSysCachePopulated = false;
+    std::unordered_map<TfToken, GfMatrix4d, TfToken::HashFunctor> _coordSysMatrices;
 };
 
 HdArnoldNodeGraph::HdArnoldNodeGraph(HdArnoldRenderDelegate* renderDelegate, const SdfPath& id)
@@ -218,8 +292,8 @@ void HdArnoldNodeGraph::Sync(HdSceneDelegate* sceneDelegate, HdRenderParam* rend
                 EnsureMaterialNetworPathsPrefix(network, GetId());
 
                 // Read the material network and retrieve the "root" shader that will referenced
-                // from other nodes through one of our terminals. 
-                AtNode* node = ReadMaterialNetwork(network, terminalType, terminals);
+                // from other nodes through one of our terminals.
+                AtNode* node = ReadMaterialNetwork(sceneDelegate, network, terminalType, terminals);
                 AtNode* oldTerminal = nullptr;
                 // UpdateTerminal assigns a given shader to a terminal name
                 if (node && _nodeGraphCache.UpdateTerminal(
@@ -323,7 +397,7 @@ AtNode* HdArnoldNodeGraph::GetOrCreateTerminal(HdSceneDelegate* sceneDelegate, c
                     EnsurePathHasMaterialPrefix(ter, GetId());
                 }
 
-                AtNode* node = ReadMaterialNetwork(network, terminalName, terminals);
+                AtNode* node = ReadMaterialNetwork(sceneDelegate, network, terminalName, terminals);
                 // UpdateTerminal assigns a given shader to a terminal name
                 if (node) {
                     AtNode *oldTerminal = nullptr;
@@ -371,7 +445,7 @@ std::vector<AtNode*> HdArnoldNodeGraph::GetOrCreateTerminals(
     return result;
 }
 
-AtNode* HdArnoldNodeGraph::ReadMaterialNetwork(const HdMaterialNetwork& network, const TfToken& terminalType, std::vector<SdfPath>& terminals)
+AtNode* HdArnoldNodeGraph::ReadMaterialNetwork(HdSceneDelegate* sceneDelegate, const HdMaterialNetwork& network, const TfToken& terminalType, std::vector<SdfPath>& terminals)
 {
     AiProfileBlock("hydra_proc:HdArnoldNodeGraph:ReadMaterialNetwork");
     TRACE_FUNCTION();
@@ -380,9 +454,9 @@ AtNode* HdArnoldNodeGraph::ReadMaterialNetwork(const HdMaterialNetwork& network,
         return nullptr;
 
     // Create a MaterialReader pointing to this HdMaterial. We'll use it to store the list of
-    // created nodes in our _nodes list. This way we can properly track the AtNodes that were 
+    // created nodes in our _nodes list. This way we can properly track the AtNodes that were
     // generated for this node graph
-    MaterialHydraReader materialReader(*this, network, _renderDelegate->GetAPIAdapter());
+    MaterialHydraReader materialReader(*this, network, _renderDelegate->GetAPIAdapter(), sceneDelegate);
 
     // Note that, in Hydra terminology, a relationship input refers to a shader's output attribute
     // and the relationship output refers to the shader input attributes.

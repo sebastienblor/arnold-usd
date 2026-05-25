@@ -1,0 +1,6 @@
+The reference.tif for this test must be generated locally. The expected
+output is a sphere whose base_color is the object-space position passed
+through ND_transformpoint_vector3 going from coordSys "src" (identity vs
+world) to coordSys "dst" (translated by (-0.3, 0.2, 0) in world). The
+sphere should show a color gradient shifted by (+0.3, -0.2, 0) compared
+with rendering the object position directly.

@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 
+#include <pxr/usd/usd/primRange.h>
+#include <pxr/usd/usdShade/coordSysAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/nodeGraph.h>
 #include <pxr/usd/usdShade/shader.h>
@@ -85,10 +87,10 @@ public:
 #endif
     }
 
-    bool GetShaderInput(const SdfPath& shaderPath, const TfToken& param, 
-        VtValue& value, TfToken& shaderId) override 
+    bool GetShaderInput(const SdfPath& shaderPath, const TfToken& param,
+        VtValue& value, TfToken& shaderId) override
     {
-        UsdPrim prim = 
+        UsdPrim prim =
             _reader->GetStage()->GetPrimAtPath(shaderPath);
 
         if (!prim || !prim.IsA<UsdShadeShader>())
@@ -101,21 +103,76 @@ public:
         if (!input)
             return false;
 
-        const UsdShadeAttributeVector attrs = 
+        const UsdShadeAttributeVector attrs =
             UsdShadeUtils::GetValueProducingAttributes(input);
 
         if (attrs.empty())
             return false;
 
         return attrs[0].Get(&value);
-        
+
+    }
+
+    bool GetCoordSysMatrix(const TfToken& coordSysName,
+                           const TimeSettings& time,
+                           GfMatrix4d& outMatrix) override
+    {
+        if (!_coordSysCachePopulated) {
+            _PopulateCoordSysCache(time.frame);
+            _coordSysCachePopulated = true;
+        }
+        auto it = _coordSysMatrices.find(coordSysName);
+        if (it == _coordSysMatrices.end())
+            return false;
+        outMatrix = it->second;
+        return true;
     }
 private:
+    void _PopulateCoordSysCache(float frame)
+    {
+        UsdStageRefPtr stage = _reader->GetStage();
+        if (!stage)
+            return;
+        UsdGeomXformCache* xformCache = _context.GetXformCache(frame);
+        for (const UsdPrim& prim : stage->Traverse()) {
+            if (!prim.HasAPI<UsdShadeCoordSysAPI>())
+                continue;
+            UsdShadeCoordSysAPI coordSysAPI(prim);
+            for (const auto& binding : coordSysAPI.GetLocalBindings()) {
+                TfToken name(binding.name);
+                if (_coordSysMatrices.find(name) != _coordSysMatrices.end()) {
+                    AiMsgWarning(
+                        "[arnold-usd] coordSys '%s' bound on multiple prims; "
+                        "first binding (<%s>) wins, ignoring binding on <%s>",
+                        name.GetText(),
+                        _coordSysFirstSource[name].GetText(),
+                        prim.GetPath().GetText());
+                    continue;
+                }
+                UsdPrim target = stage->GetPrimAtPath(binding.coordSysPrimPath);
+                if (!target) {
+                    AiMsgWarning(
+                        "[arnold-usd] coordSys '%s' binding target <%s> not found",
+                        name.GetText(),
+                        binding.coordSysPrimPath.GetText());
+                    continue;
+                }
+                GfMatrix4d xform(1.0);
+                _reader->GetWorldMatrix(target, xformCache, xform);
+                _coordSysMatrices[name] = xform;
+                _coordSysFirstSource[name] = prim.GetPath();
+            }
+        }
+    }
+
 #ifdef ARNOLD_USD_MATERIAL_READER
     UsdArnoldPrimReader& _shaderReader;
 #endif
     UsdArnoldReaderContext& _context;
     UsdArnoldReader *_reader = nullptr;
+    bool _coordSysCachePopulated = false;
+    std::unordered_map<TfToken, GfMatrix4d, TfToken::HashFunctor> _coordSysMatrices;
+    std::unordered_map<TfToken, SdfPath, TfToken::HashFunctor> _coordSysFirstSource;
 };
 
 AtNode* UsdArnoldReadNodeGraph::Read(const UsdPrim &prim, UsdArnoldReaderContext &context)

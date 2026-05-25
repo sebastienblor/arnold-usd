@@ -1,0 +1,94 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Sphere "sphere" (
+        prepend apiSchemas = ["MaterialBindingAPI", "CoordSysAPI:shifted"]
+    )
+    {
+        float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+        double radius = 1
+        rel material:binding = </World/materials/positionShader>
+        rel coordSys:shifted:binding = </World/CoordSys>
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+
+    # A coordinate system named "shifted" — the bound Xform is translated
+    # by (-0.5, 0, 0) in world space. World-space points read through this
+    # coordSys come out shifted by (+0.5, 0, 0) — i.e. world.x + 0.5.
+    def Xform "CoordSys"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (-0.5, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+
+    def Camera "camera"
+    {
+        float primvars:arnold:near_clip = 0.001
+        float primvars:arnold:fov = 60
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 4, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+
+    def DomeLight "light"
+    {
+        float inputs:intensity = 1
+    }
+
+    def Scope "materials"
+    {
+        def Material "positionShader"
+        {
+            token outputs:mtlx:surface.connect = </World/materials/positionShader/surface.outputs:out>
+
+            def Shader "surface"
+            {
+                uniform token info:id = "ND_standard_surface_surfaceshader"
+                color3f inputs:base_color.connect = </World/materials/positionShader/posToColor.outputs:out>
+                float inputs:base = 1
+                float inputs:specular = 0
+                float inputs:specular_roughness = 1
+                token outputs:out
+            }
+
+            # Convert the world-space (after coordSys remap) position to a color3.
+            def Shader "posToColor"
+            {
+                uniform token info:id = "ND_convert_vector3_color3"
+                color3f inputs:in.connect = </World/materials/positionShader/position.outputs:out>
+                color3f outputs:out
+            }
+
+            # ND_position_vector3 with a custom coordSys name in `space`.
+            # Arnold-USD inserts a matrix_multiply_vector helper that converts
+            # world -> coordSys, so the output is the world position expressed
+            # in the "shifted" frame: world + (0.5, 0, 0).
+            def Shader "position"
+            {
+                uniform token info:id = "ND_position_vector3"
+                string inputs:space = "shifted"
+                vector3f outputs:out
+            }
+        }
+    }
+}
+
+def Scope "Render"
+{
+    def RenderSettings "settings"
+    {
+        custom int arnold:AA_samples = 3
+        custom int arnold:GI_diffuse_depth = 0
+        custom int arnold:GI_specular_depth = 0
+        custom int arnold:GI_transmission_depth = 0
+        prepend rel camera = </World/camera>
+        uniform float pixelAspectRatio = 1
+        uniform int2 resolution = (160, 120)
+    }
+}

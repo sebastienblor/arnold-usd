@@ -1,0 +1,15 @@
+USD coordSys support for MaterialX transformpoint, both fromspace and tospace
+
+Companion to test_2650 — exercises ND_transformpoint_vector3 with both
+`fromspace` and `tospace` set to custom coordSys names. Two helpers are
+inserted: one on the input side (coordSys -> world) and one on the
+output side (world -> coordSys), per the bidirectional handling in
+libs/common/materials_utils.cpp.
+
+The MaterialX network feeds an explicit object-space position (driven by
+ND_position_vector3 with the standard "object" space) into a
+transformpoint that converts from coordSys "src" to coordSys "dst". The
+expected output equals the object position translated by the difference
+between the two bound Xforms.
+
+PARAMS: {'scene':'test.usda'}

@@ -1,0 +1,15 @@
+Support USD coordSys (UsdShadeCoordSysAPI) bindings for MaterialX shaders
+
+Verifies that a MaterialX ND_position_vector3 node with a custom `space`
+input referencing a USD coordSys binding picks up the bound Xform's world
+matrix and outputs positions in that frame. The conversion is applied via
+an inserted arnold matrix_multiply_vector helper (see
+libs/common/materials_utils.cpp).
+
+In this scene a sphere at the origin is shaded by a standard_surface whose
+base_color is driven by the world-space position seen through a coordSys
+named "shifted" that is translated by (-0.5, 0, 0). The rendered sphere
+therefore shows an asymmetric red gradient that would be symmetric without
+the coordSys conversion.
+
+PARAMS: {'scene':'test.usda'}

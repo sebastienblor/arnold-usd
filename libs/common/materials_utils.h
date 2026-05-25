@@ -6,6 +6,7 @@
 
 #include "api_adapter.h"
 #include <pxr/usd/usd/prim.h>
+#include <pxr/base/gf/matrix4d.h>
 #include <ai.h>
 #include <string>
 #include "timesettings.h"
@@ -23,12 +24,21 @@ class MaterialReader
 {
 public:
     MaterialReader() {}
+    virtual ~MaterialReader() {}
 
     virtual AtNode* CreateArnoldNode(const char* nodeType, const char* nodeName) = 0;
-    virtual void ConnectShader(AtNode* node, const std::string& attrName, 
+    virtual void ConnectShader(AtNode* node, const std::string& attrName,
             const SdfPath& target, ArnoldAPIAdapter::ConnectionType type) = 0;
     virtual bool GetShaderInput(const SdfPath& shaderPath, const TfToken& param,
                         VtValue& value, TfToken& shaderId) = 0;
+
+    /// Look up a USD coordinate system by name and return its world-space
+    /// matrix at the given time. Used by MaterialX shaders whose space input
+    /// references a UsdShadeCoordSysAPI binding. Returns false when the name
+    /// is not bound in the scene.
+    virtual bool GetCoordSysMatrix(const TfToken& coordSysName,
+                                   const TimeSettings& time,
+                                   GfMatrix4d& outMatrix) { return false; }
 
 };
 

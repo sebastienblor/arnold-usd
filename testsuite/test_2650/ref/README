@@ -1,0 +1,8 @@
+The reference.tif for this test must be generated locally (run the test
+once and copy the produced render into ref/reference.tif). The expected
+output is a sphere whose base_color is the world position read through
+coordSys "shifted" (translated by (-0.5, 0, 0) in world space). The red
+channel of the rendered sphere will be brighter on the right side because
+the coordSys remap adds +0.5 to world.x before it becomes the red
+component. Verify visually that disabling the coordSys binding makes the
+sphere render with a symmetric red gradient instead.

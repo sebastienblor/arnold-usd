@@ -37,6 +37,7 @@
 
 #include <pxr/imaging/hd/bprim.h>
 #include <pxr/imaging/hd/camera.h>
+#include <pxr/imaging/hd/coordSys.h>
 #include <pxr/imaging/hd/extComputation.h>
 #include <pxr/imaging/hd/instancer.h>
 #include <pxr/imaging/hd/resourceRegistry.h>
@@ -265,6 +266,7 @@ inline const TfTokenVector& _SupportedSprimTypes()
     static const TfTokenVector r{HdPrimTypeTokens->camera,
                                  HdPrimTypeTokens->material,
                                  str::t_ArnoldNodeGraph,
+                                 HdPrimTypeTokens->coordSys,
                                  HdPrimTypeTokens->distantLight,
                                  HdPrimTypeTokens->sphereLight,
                                  HdPrimTypeTokens->diskLight,
@@ -1339,6 +1341,13 @@ HdSprim* HdArnoldRenderDelegate::CreateSprim(const TfToken& typeId, const SdfPat
     }
     if (typeId == HdPrimTypeTokens->extComputation) {
         return new HdExtComputation(sprimId);
+    }
+    if (typeId == HdPrimTypeTokens->coordSys) {
+        // Hydra delivers UsdShadeCoordSysAPI bindings as HdCoordSys Sprims;
+        // we just need to acknowledge the type so Hydra registers them. The
+        // matrix is read on demand from the scene delegate during MaterialX
+        // shader translation in libs/common/materials_utils.cpp.
+        return new HdCoordSys(sprimId);
     }
     TF_CODING_ERROR("Unknown Sprim Type %s", typeId.GetText());
     return nullptr;
