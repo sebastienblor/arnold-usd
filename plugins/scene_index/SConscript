@@ -29,6 +29,7 @@ source_files = [
 	'propagateDirtyPrimsSIP.cpp',
     'nurbsApproximatingSIP.cpp',
     'meshLightResolvingSIP.cpp',
+    'portalLightResolvingSIP.cpp',
     'renderPassSIP.cpp',
     'renderSettingsFilteringSIP.cpp',
 ]

@@ -69,6 +69,12 @@
                         "priority": 0,
                         "displayName": "Arnold: mesh lights"
                     },
+                    "HdArnoldPortalLightResolvingSceneIndexPlugin" : {
+                        "bases": ["HdSceneIndexPlugin"],
+                        "loadWithRenderer": "Arnold",
+                        "priority": 0,
+                        "displayName": "Arnold: portal lights"
+                    },
                     "HdArnoldRenderPassSceneIndexPlugin" : {
                         "bases": ["HdSceneIndexPlugin"],
                         "loadWithRenderer": "Arnold",

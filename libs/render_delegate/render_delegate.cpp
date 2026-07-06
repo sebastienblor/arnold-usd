@@ -108,6 +108,7 @@ TF_DEFINE_PRIVATE_TOKENS(_tokens,
     (instantaneousShutter)
     ((aovShadersArray, "aov_shaders:i"))
     (GeometryLight)
+    (portalLight)
     (dataWindowNDC)
     (resolution)
     (renderSettingsSrc)
@@ -269,6 +270,9 @@ inline const TfTokenVector& _SupportedSprimTypes()
                                  HdPrimTypeTokens->material,
                                  str::t_ArnoldNodeGraph,
                                  HdPrimTypeTokens->lightFilter,
+                                 // portalLight must be synced BEFORE domeLight so the dome
+                                 // can look up its light_portal nodes during its own Sync.
+                                 _tokens->portalLight,
                                  HdPrimTypeTokens->distantLight,
                                  HdPrimTypeTokens->sphereLight,
                                  HdPrimTypeTokens->diskLight,
@@ -1363,8 +1367,14 @@ HdSprim* HdArnoldRenderDelegate::CreateSprim(const TfToken& typeId, const SdfPat
             HdArnoldLight::CreateCylinderLight(this, sprimId) : nullptr;
     }
     if (typeId == HdPrimTypeTokens->domeLight) {
-        return (_mask & AI_NODE_LIGHT) ? 
+        return (_mask & AI_NODE_LIGHT) ?
             HdArnoldLight::CreateDomeLight(this, sprimId) : nullptr;
+    }
+    if (typeId == _tokens->portalLight) {
+        // CreatePortalLight returns nullptr if light_portal is not available in
+        // this Arnold build — Hydra handles nullptr gracefully.
+        return (_mask & AI_NODE_LIGHT) ?
+            HdArnoldLight::CreatePortalLight(this, sprimId) : nullptr;
     }
     if (typeId == _tokens->GeometryLight
 #ifdef ENABLE_SCENE_INDEX

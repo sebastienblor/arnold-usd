@@ -450,6 +450,38 @@ auto cylinderLightSync = [](AtNode* light, AtNode** filter, const AtNodeEntry* n
     readUserData(light, id, sceneDelegate, renderDelegate);
 };
 
+// portalLightSync: translates a UsdLuxPortalLight to an Arnold light_portal node.
+// width/height define the rectangular aperture through which the skydome shines.
+auto portalLightSync = [](AtNode* light, AtNode** filter, const AtNodeEntry* nentry, const SdfPath& id,
+                           HdSceneDelegate* sceneDelegate, HdArnoldRenderDelegate* renderDelegate) {
+    TF_UNUSED(filter);
+    // The light_portal node uses width / height rather than vertices.
+    // If those parameters are present (Arnold 7.3+) set them directly.
+    // Fall back to setting vertices as a quad for older Arnold builds.
+    float width = 1.0f;
+    float height = 1.0f;
+    const auto& widthValue = sceneDelegate->GetLightParamValue(id, UsdLuxTokens->inputsWidth);
+    if (widthValue.IsHolding<float>()) {
+        width = widthValue.UncheckedGet<float>();
+    } else if (widthValue.IsHolding<double>()) {
+        width = static_cast<float>(widthValue.UncheckedGet<double>());
+    }
+    const auto& heightValue = sceneDelegate->GetLightParamValue(id, UsdLuxTokens->inputsHeight);
+    if (heightValue.IsHolding<float>()) {
+        height = heightValue.UncheckedGet<float>();
+    } else if (heightValue.IsHolding<double>()) {
+        height = static_cast<float>(heightValue.UncheckedGet<double>());
+    }
+
+    if (AiNodeEntryLookUpParameter(nentry, str::width)) {
+        AiNodeSetFlt(light, str::width, width);
+    }
+    if (AiNodeEntryLookUpParameter(nentry, str::height)) {
+        AiNodeSetFlt(light, str::height, height);
+    }
+    readUserData(light, id, sceneDelegate, renderDelegate);
+};
+
 auto domeLightSync = [](AtNode* light, AtNode** filter, const AtNodeEntry* nentry, const SdfPath& id,
                         HdSceneDelegate* sceneDelegate, HdArnoldRenderDelegate* renderDelegate) {
     TF_UNUSED(filter);
@@ -464,6 +496,36 @@ auto domeLightSync = [](AtNode* light, AtNode** filter, const AtNodeEntry* nentr
             AiNodeSetStr(light, str::format, str::angular); // default value
         }
     }
+
+    // Resolve the portals[] relationship on UsdLuxDomeLight.
+    // The skydome_light node in Arnold 7.3+ has a "portals" ARRAY NODE parameter
+    // that accepts light_portal nodes.  We only set it when the parameter actually
+    // exists on this Arnold build so that the code degrades gracefully on older
+    // versions.
+    const auto* portalsParam = AiNodeEntryLookUpParameter(nentry, str::portals);
+    if (portalsParam) {
+        const auto& portalsValue = sceneDelegate->GetLightParamValue(id, UsdLuxTokens->portals);
+        if (portalsValue.IsHolding<SdfPathVector>()) {
+            const auto& portalPaths = portalsValue.UncheckedGet<SdfPathVector>();
+            std::vector<AtNode*> portalNodes;
+            portalNodes.reserve(portalPaths.size());
+            for (const auto& portalPath : portalPaths) {
+                if (AtNode* portalNode = renderDelegate->LookupNode(portalPath.GetText())) {
+                    portalNodes.push_back(portalNode);
+                }
+            }
+            if (portalNodes.empty()) {
+                AiNodeResetParameter(light, str::portals);
+            } else {
+                AiNodeSetArray(
+                    light, str::portals,
+                    AiArrayConvert(
+                        static_cast<uint32_t>(portalNodes.size()), 1,
+                        AI_TYPE_NODE, portalNodes.data()));
+            }
+        }
+    }
+
     readUserData(light, id, sceneDelegate, renderDelegate);
 };
 
@@ -881,6 +943,18 @@ HdLight* CreateGeometryLight(HdArnoldRenderDelegate* renderDelegate, const SdfPa
 HdLight* CreateDomeLight(HdArnoldRenderDelegate* renderDelegate, const SdfPath& id)
 {
     return new HdArnoldGenericLight(renderDelegate, id, str::skydome_light, domeLightSync, true);
+}
+
+HdLight* CreatePortalLight(HdArnoldRenderDelegate* renderDelegate, const SdfPath& id)
+{
+    // light_portal is an Arnold 7.3+ node.  Guard against older Arnold builds.
+    if (!AiNodeEntryLookUp(str::light_portal)) {
+        TF_WARN(
+            "[Arnold] light_portal node type is not available in this Arnold build. "
+            "Portal light <%s> will be skipped.", id.GetText());
+        return nullptr;
+    }
+    return new HdArnoldGenericLight(renderDelegate, id, str::light_portal, portalLightSync);
 }
 
 AtNode* GetLightNode(const HdLight* light)

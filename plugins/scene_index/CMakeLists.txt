@@ -10,6 +10,7 @@ set(SRC
     lightLinkingSIP.cpp
     nurbsApproximatingSIP.cpp
     meshLightResolvingSIP.cpp
+    portalLightResolvingSIP.cpp
     renderPassSIP.cpp
     renderSettingsFilteringSIP.cpp
 )
@@ -26,6 +27,7 @@ set(HDR
     nurbsApproximatingSIP.h
     meshLightResolvingSIP.h
     renderSettingsFilteringSIP.h
+    portalLightResolvingSIP.h
 )
 
 if (MTOA_BUILD)

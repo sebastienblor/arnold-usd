@@ -95,6 +95,16 @@ HdLight* CreateCylinderLight(HdArnoldRenderDelegate* renderDelegate, const SdfPa
 HDARNOLD_API
 HdLight* CreateDomeLight(HdArnoldRenderDelegate* renderDelegate, const SdfPath& id);
 
+/// Returns an instance of HdArnoldLight for handling portal lights.
+/// Portal lights are quad_light nodes (with portal geometry) that attach to
+/// a parent DomeLight via its portals[] array.
+///
+/// @param renderDelegate Pointer to the Render Delegate.
+/// @param id Path to the Hydra Primitive.
+/// @return Instance of HdArnoldLight.
+HDARNOLD_API
+HdLight* CreatePortalLight(HdArnoldRenderDelegate* renderDelegate, const SdfPath& id);
+
 HDARNOLD_API
 HdLight* CreateGeometryLight(HdArnoldRenderDelegate* renderDelegate, const SdfPath& id);
 
