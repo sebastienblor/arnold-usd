@@ -56,6 +56,7 @@
 #include "gaussian_splat.h"
 #include "instancer.h"
 #include "light.h"
+#include "light_filter.h"
 #include "mesh.h"
 #include "native_rprim.h"
 #include "node_graph.h"
@@ -260,11 +261,14 @@ inline const TfTokenVector& _SupportedSprimTypes()
     // Hd_PrimTypeIndex::SyncPrims walks types in this order; every prim of type N
     // is fully synced before any prim of type N+1. Light shaders (and filters) can
     // target ArnoldNodeGraph prims, which must therefore appear before light types.
+    // Light filter Sprims (`HdArnoldLightFilter`) likewise need to be synced
+    // before the lights that reference them via the `light:filters` relationship.
     // Scene-index dependency forwarding dirties lights when graphs change but does
     // not reorder this pass.
     static const TfTokenVector r{HdPrimTypeTokens->camera,
                                  HdPrimTypeTokens->material,
                                  str::t_ArnoldNodeGraph,
+                                 HdPrimTypeTokens->lightFilter,
                                  HdPrimTypeTokens->distantLight,
                                  HdPrimTypeTokens->sphereLight,
                                  HdPrimTypeTokens->diskLight,
@@ -1334,8 +1338,12 @@ HdSprim* HdArnoldRenderDelegate::CreateSprim(const TfToken& typeId, const SdfPat
             new HdArnoldOptions(this, sprimId) : nullptr;
     }
 
+    if (typeId == HdPrimTypeTokens->lightFilter) {
+        return (_mask & AI_NODE_SHADER) ?
+            new HdArnoldLightFilter(this, sprimId) : nullptr;
+    }
     if (typeId == HdPrimTypeTokens->sphereLight) {
-        return (_mask & AI_NODE_LIGHT) ? 
+        return (_mask & AI_NODE_LIGHT) ?
             HdArnoldLight::CreatePointLight(this, sprimId) : nullptr;
     }
     if (typeId == HdPrimTypeTokens->distantLight) {

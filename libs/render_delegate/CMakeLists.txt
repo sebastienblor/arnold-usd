@@ -7,6 +7,7 @@ set(SRC
     gaussian_splat.cpp
     instancer.cpp
     light.cpp
+    light_filter.cpp
     mesh.cpp
     native_rprim.cpp
     node_graph.cpp
@@ -36,6 +37,7 @@ set(HDR
     hdarnold.h
     instancer.h
     light.h
+    light_filter.h
     mesh.h
     native_rprim.h
     node_graph.h

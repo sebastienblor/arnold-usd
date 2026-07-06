@@ -30,6 +30,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "light.h"
+#include "light_filter.h"
 #include "mesh.h"
 #include "instancer.h"
 #include <pxr/base/trace/trace.h>
@@ -673,6 +674,18 @@ void HdArnoldGenericLight::Sync(HdSceneDelegate* sceneDelegate, HdRenderParam* r
             std::vector<AtNode*> filters;
             filters.reserve(filterPaths.size());
             for (const auto& filterPath : filterPaths) {
+                // Prefer the modern HdArnoldLightFilter Sprim: this is what a
+                // straight `UsdLuxLightFilter` (or derived schema) prim
+                // surfaces as. The legacy ArnoldNodeGraph path below stays
+                // in place so Hydra-1 scenes authored against the old
+                // convention keep working.
+                if (auto* lightFilter =
+                        HdArnoldLightFilter::GetLightFilter(sceneDelegate->GetRenderIndex(), filterPath)) {
+                    if (AtNode* node = lightFilter->GetFilterNode()) {
+                        filters.push_back(node);
+                    }
+                    continue;
+                }
                 auto* filterMaterial = HdArnoldNodeGraph::GetNodeGraph(sceneDelegate->GetRenderIndex(), filterPath, _delegate);
                 if (filterMaterial == nullptr) {
                     continue;
