@@ -883,6 +883,13 @@ void HdArnoldRenderSettings::_UpdateRenderProducts(HdSceneDelegate* sceneDelegat
                         aovShaders.push_back(aovShader);
                     }
                 }
+            } else {
+                // Raw sourceType: normal → N (Arnold builtin) or Neye/Peye
+                // need an aov_shader chain. See SetupHdRawAovShaderChain.
+                SetupHdRawAovShaderChain(
+                    sourceName, aovName, varName,
+                    _renderDelegate->GetAPIAdapter(), aovShaders);
+                aovName = sourceName; // pick up any remap (e.g. normal→N)
             }
 
             // Check for duplicates

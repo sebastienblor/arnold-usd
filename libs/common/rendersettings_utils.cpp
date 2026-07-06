@@ -107,6 +107,62 @@ ArnoldAOVTypes GetArnoldTypesFromFormatToken(const TfToken &type)
     }
 }
 
+void SetupHdRawAovShaderChain(
+    std::string& sourceName,
+    const std::string& aovName,
+    const std::string& nodeNamePrefix,
+    ArnoldAPIAdapter& context,
+    std::vector<AtNode*>& aovShaders)
+{
+    // Simple remap: HdAovTokens->normal is the world-space shading normal,
+    // which Arnold writes automatically into its builtin "N" AOV. We just
+    // need to rename the AOV so Arnold recognises it; no aov_shader needed.
+    if (sourceName == "normal") {
+        sourceName = "N";
+        return;
+    }
+
+    // The remaining names need an aov_shader chain to be evaluated per-sample.
+    const bool isNeye = (sourceName == "Neye");
+    const bool isPeye = (sourceName == "Peye");
+    if (!isNeye && !isPeye)
+        return;
+
+    // The shaders we depend on may be missing on older Arnold builds.
+    // Per the project's runtime-guard convention we no-op in that case.
+    if (AiNodeEntryLookUp(str::state_vector) == nullptr ||
+        AiNodeEntryLookUp(str::space_transform) == nullptr) {
+        return;
+    }
+
+    // state_vector: read world-space N or P from the shading state.
+    AtNode* state = context.CreateArnoldNode(
+        str::state_vector.c_str(), (nodeNamePrefix + "/state").c_str());
+    if (state == nullptr)
+        return;
+    AiNodeSetStr(state, str::variable, isNeye ? str::N : str::P);
+
+    // space_transform: world → camera, treated as a normal or a point so the
+    // rotation / translation parts are applied correctly.
+    AtNode* xform = context.CreateArnoldNode(
+        str::space_transform.c_str(), (nodeNamePrefix + "/space").c_str());
+    if (xform == nullptr)
+        return;
+    AiNodeLink(state, "input", xform);
+    AiNodeSetStr(xform, str::from, str::world);
+    AiNodeSetStr(xform, str::to, str::camera);
+    AiNodeSetStr(xform, str::type, isNeye ? str::normal : str::point);
+
+    // aov_write_vector writes a 3-component vector to the named AOV.
+    AtNode* writer = context.CreateArnoldNode(
+        str::aov_write_vector.c_str(), (nodeNamePrefix + "/aov_write").c_str());
+    if (writer == nullptr)
+        return;
+    AiNodeSetStr(writer, str::aov_name, AtString(aovName.c_str()));
+    AiNodeLink(xform, str::aov_input, writer);
+    aovShaders.push_back(writer);
+}
+
 // Locate an ArnoldNodeGraph prim by the string path stored on a referring
 // attribute. If the literal path doesn't resolve (which happens when the file
 // has been referenced and the runtime SdfPath is remapped), scan the stage for
@@ -747,6 +803,15 @@ AtNode* ReadRenderSettings(const UsdPrim &renderSettingsPrim, ArnoldAPIAdapter &
                 // We need to add the aov shaders to options.aov_shaders.
                 // Each of these shaders will be evaluated for every camera ray
                 aovShaders.push_back(aovShader);
+            } else {
+                // Raw sourceType. Most names go straight into Arnold's outputs
+                // list, but a handful of Hd builtin AOV names need either a
+                // name remap (normal → N) or a generated aov_shader chain
+                // (Neye, Peye). See SetupHdRawAovShaderChain.
+                SetupHdRawAovShaderChain(
+                    sourceName, aovName,
+                    renderVarPrim.GetPath().GetText(), context, aovShaders);
+                aovName = sourceName; // pick up any remap (e.g. normal→N)
             }
             if (aovName.empty())
                 continue; // No AOV name found, there's nothing we can do

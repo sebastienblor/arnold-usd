@@ -1521,9 +1521,18 @@ HdAovDescriptor HdArnoldRenderDelegate::GetDefaultAovDescriptor(const TfToken& n
         return HdAovDescriptor(HdFormatInt32, false, VtValue(-1));
     } else if (
         name == HdAovTokens->normal || name == HdAovTokens->Neye ||
+        name == HdAovTokens->Peye) {
+        // Surface normal (world space, "N") or surface normal/position in
+        // camera space. The actual Arnold-side wiring lives in
+        // SetupHdRawAovShaderChain (libs/common/rendersettings_utils.cpp):
+        //   normal → Arnold builtin "N"
+        //   Neye   → state_vector(N) → space_transform(world→camera, normal)
+        //   Peye   → state_vector(P) → space_transform(world→camera, point)
+        return HdAovDescriptor(HdFormatFloat32Vec3, false, VtValue(GfVec3f(0.0f)));
+    } else if (
         name == "linearDepth" || // This was changed to cameraDepth after 0.19.11.
         name == "cameraDepth") {
-        // More built-in aovs.
+        // Camera-space depth: not yet wired through; return an empty descriptor.
         return HdAovDescriptor();
     } else if (TfStringStartsWith(name.GetString(), HdAovTokens->primvars)) {
         // Primvars.

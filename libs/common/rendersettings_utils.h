@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include <vector>
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/stage.h>
 #include <ai.h>
@@ -27,6 +28,30 @@ struct ArnoldAOVTypes {
 };
 
 ArnoldAOVTypes GetArnoldTypesFromFormatToken(const TfToken& type);
+
+/// Hook for "raw" Hydra AOVs (sourceType="raw") whose source name needs
+/// special handling on the Arnold side.
+///
+/// In the simplest case the name is just remapped to an Arnold builtin AOV
+/// — e.g. \c "normal" is rewritten to \c "N", which Arnold writes out
+/// automatically. Other names need an aov_shader chain to compute the value;
+/// today this covers:
+///   - \c "Neye" : state_vector(N) → space_transform(world→camera, normal)
+///                 → aov_write_vector
+///   - \c "Peye" : state_vector(P) → space_transform(world→camera, point)
+///                 → aov_write_vector
+///
+/// On return \p sourceName may have been rewritten. When a shader chain is
+/// created the head aov_write node is appended to \p aovShaders so the caller
+/// can attach it to options.aov_shaders. \p nodeNamePrefix is used to derive
+/// stable names for the generated nodes. The function silently no-ops when
+/// the required Arnold shader nodes are not registered on the running build.
+void SetupHdRawAovShaderChain(
+    std::string& sourceName,
+    const std::string& aovName,
+    const std::string& nodeNamePrefix,
+    ArnoldAPIAdapter& context,
+    std::vector<AtNode*>& aovShaders);
 
 void ChooseRenderSettings(UsdStageRefPtr stage, std::string &renderSettingsPath, TimeSettings &_time, UsdPrim *rootPrimPtr=nullptr);
 AtNode* ReadRenderSettings(const UsdPrim &renderSettingsPrim, ArnoldAPIAdapter &context, ProceduralReader *reader, const TimeSettings &time, AtUniverse *universe, SdfPath& camera);

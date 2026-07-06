@@ -288,7 +288,14 @@ const std::string _CreateAOV(
         aovShaders.push_back(writer);
         return name;
     } else {
-        return sourceName;
+        // Raw sourceType. A few Hd builtin AOV names need either a name remap
+        // (normal → N) or a generated aov_shader chain (Neye, Peye).
+        std::string mappedName = sourceName;
+        SetupHdRawAovShaderChain(
+            mappedName, name,
+            TfStringPrintf("HdArnoldRenderPass_raw_%s", name.c_str()),
+            renderDelegate->GetAPIAdapter(), aovShaders);
+        return mappedName;
     }
 }
 
@@ -953,6 +960,10 @@ void HdArnoldRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassSt
                 const ArnoldAOVTypes arnoldTypes = GetArnoldTypesFromFormatToken(format);
 
                 const char* aovName = nullptr;
+                // Backing storage for any name that's computed locally — keep
+                // it alive for the rest of the binding loop body since aovName
+                // is a non-owning const char*.
+                std::string mappedAovName;
                 // The beauty output will show up as a lpe but we want to treat it differently
                 if (sourceType == _tokens->lpe && !isBeauty) {
                     aovName = binding.aovName.GetText();
@@ -991,8 +1002,20 @@ void HdArnoldRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassSt
                     AiNodeLink(buffer.reader, str::aov_input, buffer.writer);
                     aovShaders.push_back(buffer.writer);
                 } else {
-                    // the beauty output should be called "RGBA" for arnold
-                    aovName = isBeauty ? "RGBA" : sourceName.c_str();
+                    // Raw sourceType. The beauty output should be called "RGBA"
+                    // for arnold. Otherwise a few Hd builtin AOV names need
+                    // either a name remap (normal → N) or an aov_shader chain
+                    // (Neye, Peye); see SetupHdRawAovShaderChain.
+                    if (isBeauty) {
+                        aovName = "RGBA";
+                    } else {
+                        mappedAovName = sourceName;
+                        SetupHdRawAovShaderChain(
+                            mappedAovName, binding.aovName.GetString(),
+                            TfStringPrintf("HdArnoldRenderPass_raw_%s", binding.aovName.GetText()),
+                            _renderDelegate->GetAPIAdapter(), aovShaders);
+                        aovName = mappedAovName.c_str();
+                    }
                 }
                 std::string layerName(aovName);
                 layerName = _GetOptionalSetting<std::string>(
