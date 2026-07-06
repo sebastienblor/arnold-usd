@@ -11,6 +11,7 @@ set(SRC
     nurbsApproximatingSIP.cpp
     meshLightResolvingSIP.cpp
     renderPassSIP.cpp
+    renderSettingsFilteringSIP.cpp
 )
 
 set(HDR
@@ -24,6 +25,7 @@ set(HDR
     implicitSurfaceSIP.h
     nurbsApproximatingSIP.h
     meshLightResolvingSIP.h
+    renderSettingsFilteringSIP.h
 )
 
 if (MTOA_BUILD)
