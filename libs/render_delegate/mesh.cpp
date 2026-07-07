@@ -247,6 +247,12 @@ void HdArnoldMesh::Sync(
         if (_pointsSample.count) {
             AiNodeSetArray(node, str::vlist, _arrayHandler.CreateAtArrayFromTimeSamples<VtVec3fArray>(_pointsSample));
         }
+        // If this mesh has subdivision, and the positions have changed, we must ensure all the
+        // non-constant primvars are updated again, to avoid an arnold bug #2159
+        if (AiNodeGetByte(node, str::subdiv_iterations) > 0) {
+            dirtyPrimvars = true;
+            positionsChanged = true;
+        }
     }
     TfToken scheme;
     // We have to flip the orientation if it's left handed.
