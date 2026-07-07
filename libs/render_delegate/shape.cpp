@@ -207,22 +207,30 @@ void HdArnoldShape::_SyncInstances(
 
         const TfToken renderTag = sceneDelegate->GetRenderTag(id);
 
+        _instanceVisibilities.clear();
+        _instanceVisibilities.resize(_instancers.size());
         for (size_t i = 0; i < _instancers.size(); ++i) {
             AiNodeSetPtr(_instancers[i], str::nodes, (i == 0) ? _shape : _instancers[i - 1]);
             renderDelegate->TrackRenderTag(_instancers[i], renderTag);
 
             // At this point the instancers might have set their instance visibilities.
-            // In this case we want to apply the proto shape visibility on top of it. 
-            // Otherwise we just set the shape visibility as its instance_visibility
+            // In this case we want to apply the proto shape visibility on top of it.
+            // Otherwise we just set the shape visibility as its instance_visibility.
+            // We keep a copy of the original per-instance values so that a later change
+            // of the shape visibility can recombine them (see _UpdateInstanceVisibility)
             AtArray *instanceVisibility = AiNodeGetArray(_instancers[i], str::instance_visibility);
             unsigned int instanceVisibilityCount = (instanceVisibility) ? AiArrayGetNumElements(instanceVisibility) : 0;
             if (instanceVisibilityCount  > 0) {
-                unsigned char* instVisArray = static_cast<unsigned char*>(AiArrayMap(instanceVisibility));
+                const unsigned char* instVisArray = static_cast<const unsigned char*>(AiArrayMapConst(instanceVisibility));
+                _instanceVisibilities[i].assign(instVisArray, instVisArray + instanceVisibilityCount);
+                AiArrayUnmapConst(instanceVisibility);
+                AtArray* combined = AiArrayAllocate(instanceVisibilityCount, 1, AI_TYPE_BYTE);
+                unsigned char* combinedArray = static_cast<unsigned char*>(AiArrayMap(combined));
                 for (unsigned int j = 0; j < instanceVisibilityCount; ++j) {
-                    instVisArray[j] &= _visibility;
+                    combinedArray[j] = _instanceVisibilities[i][j] & _visibility;
                 }
-                AiArrayUnmap(instanceVisibility);
-                AiNodeSetArray(_instancers[i], str::instance_visibility, instanceVisibility);
+                AiArrayUnmap(combined);
+                AiNodeSetArray(_instancers[i], str::instance_visibility, combined);
             } else
                 AiNodeSetArray(_instancers[i], str::instance_visibility, AiArray(1, 1, AI_TYPE_BYTE, _visibility));
         }
@@ -247,30 +255,44 @@ void HdArnoldShape::_UpdateInstanceVisibility(HdArnoldRenderParamInterrupt& para
     if (_instancers.empty())
         return;
 
-    for (auto &instancer : _instancers) {
-        AtArray* instanceVisibility = AiNodeGetArray(instancer, str::instance_visibility);
-        unsigned int instVisibilityCount = (instanceVisibility) ? AiArrayGetNumElements(instanceVisibility) : 0;
-        
-        if (instVisibilityCount == 0) {
+    for (size_t i = 0; i < _instancers.size(); ++i) {
+        AtNode* instancer = _instancers[i];
+        // Original per-instance visibility stored when the instancer was rebuilt. We must
+        // recombine from these values instead of and-ing the live array in place, otherwise
+        // visibility bits could only ever be removed and unhiding the shape would not work.
+        const std::vector<uint8_t>* baseVisibilities =
+            i < _instanceVisibilities.size() ? &_instanceVisibilities[i] : nullptr;
+
+        if (baseVisibilities == nullptr || baseVisibilities->empty()) {
             AtArray *visArray = AiNodeGetArray(instancer, str::instance_visibility);
             if (visArray == nullptr || AiArrayGetNumElements(visArray) != 1 || AiArrayGetByte(visArray, 0) != _visibility) {
                 param.Interrupt();
                 AiNodeSetArray(instancer, str::instance_visibility, AiArray(1, 1, AI_TYPE_BYTE, _visibility));
-            }            
-        } else {
-            bool changed = false;
-            unsigned char* instVisArray = static_cast<unsigned char*>(AiArrayMap(instanceVisibility));
-            for (unsigned int j = 0; j < instVisibilityCount; ++j) {
-                unsigned char oldVis = instVisArray[j];
-                instVisArray[j] &= _visibility;
-                if (oldVis != instVisArray[j])
-                    changed = true;
             }
-            AiArrayUnmap(instanceVisibility);
+        } else {
+            const unsigned int count = static_cast<unsigned int>(baseVisibilities->size());
+            AtArray* instanceVisibility = AiNodeGetArray(instancer, str::instance_visibility);
+            bool changed = (instanceVisibility == nullptr) || (AiArrayGetNumElements(instanceVisibility) != count);
+            if (!changed) {
+                const unsigned char* instVisArray = static_cast<const unsigned char*>(AiArrayMapConst(instanceVisibility));
+                for (unsigned int j = 0; j < count; ++j) {
+                    if (instVisArray[j] != ((*baseVisibilities)[j] & _visibility)) {
+                        changed = true;
+                        break;
+                    }
+                }
+                AiArrayUnmapConst(instanceVisibility);
+            }
             if (changed)
             {
                 param.Interrupt();
-                AiNodeSetArray(instancer, str::instance_visibility, instanceVisibility);
+                AtArray* combined = AiArrayAllocate(count, 1, AI_TYPE_BYTE);
+                unsigned char* combinedArray = static_cast<unsigned char*>(AiArrayMap(combined));
+                for (unsigned int j = 0; j < count; ++j) {
+                    combinedArray[j] = (*baseVisibilities)[j] & _visibility;
+                }
+                AiArrayUnmap(combined);
+                AiNodeSetArray(instancer, str::instance_visibility, combined);
             }
         }
     }

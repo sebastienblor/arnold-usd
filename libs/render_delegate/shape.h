@@ -141,6 +141,11 @@ protected:
 
     HdArnoldRenderDelegate* _renderDelegate; ///< Pointer to the Arnold render delegate.
     std::vector<AtNode*> _instancers;        ///< Pointer to the Arnold instancer and its parent instancers if any.
+    /// Per-instancer instance visibility as authored by the instancer primvars, before the shape
+    /// visibility is combined in. We need to keep it around so that a later visibility change on
+    /// the shape can be recombined from the original values; combining in place can only ever
+    /// remove visibility bits, never restore them.
+    std::vector<std::vector<uint8_t>> _instanceVisibilities;
     AtNode* _shape = nullptr;                ///< Pointer to the Arnold Shape.
     uint8_t _visibility = AI_RAY_ALL;        ///< Visibility of the mesh.
 };
