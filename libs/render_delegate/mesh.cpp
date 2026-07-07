@@ -119,15 +119,20 @@ void _RemapNormalKeys(size_t requiredCount, HdArnoldSampledPrimvarType &sample)
 {
     auto origValues = sample.values;
     size_t inputCount = sample.count;
+    if (inputCount == 0 || requiredCount == 0)
+        return;
     sample.values.clear();
     sample.times.clear();
 
     for (size_t t = 0; t < requiredCount; ++t) {
-        float remappedInput = (requiredCount > 1) ? 
+        float remappedInput = (requiredCount > 1) ?
             float(t) / float(requiredCount - 1) : 0;
 
         sample.times.push_back(remappedInput);
-        remappedInput *= inputCount;
+        // The input sample indices run from 0 to inputCount - 1, so the normalized
+        // time must be scaled by inputCount - 1. Scaling by inputCount would skew
+        // every interior key towards later samples.
+        remappedInput *= (inputCount - 1);
         int floorIndex = (int) remappedInput;
         float remappedDelta = remappedInput - floorIndex;
         if (remappedDelta < AI_EPSILON || size_t(floorIndex + 1) >= inputCount) {
@@ -137,13 +142,13 @@ void _RemapNormalKeys(size_t requiredCount, HdArnoldSampledPrimvarType &sample)
             // We need to interpolate between 2 keys
             VtValue valueFloor = origValues[floorIndex];
             VtValue valueCeil = origValues[floorIndex + 1];
-            if (valueFloor.IsHolding<VtArray<GfVec3f>>() && 
+            if (valueFloor.IsHolding<VtArray<GfVec3f>>() &&
                 valueCeil.IsHolding<VtArray<GfVec3f>>()) {
                 // Since the VtValues hold an array of vectors, we need to interpolate
-                // each of them separately 
+                // each of them separately
                 const VtArray<GfVec3f> &normalsFloor = valueFloor.Get<VtArray<GfVec3f>>();
                 VtArray<GfVec3f> normalsInterp = normalsFloor;
-                
+
                 const VtArray<GfVec3f> &normalsCeil = valueCeil.Get<VtArray<GfVec3f>>();
                 if (normalsFloor.size() == normalsCeil.size()) {
                     for (size_t n = 0; n < normalsFloor.size(); ++n) {
@@ -151,8 +156,13 @@ void _RemapNormalKeys(size_t requiredCount, HdArnoldSampledPrimvarType &sample)
                             (normalsFloor[n] * (1.f - remappedDelta));
                         normalsInterp[n].Normalize(); // normals need to be normalized
                     }
-                } 
+                }
                 sample.values.push_back(VtValue::Take(normalsInterp));
+            } else {
+                // We can't interpolate values of this type; fall back to the closest key.
+                // We must push a value in all cases, otherwise sample.values would have
+                // fewer elements than sample.count and we'd read out of bounds later.
+                sample.values.push_back(remappedDelta < 0.5f ? valueFloor : valueCeil);
             }
         }
     }
