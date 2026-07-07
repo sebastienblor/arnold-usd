@@ -39,6 +39,10 @@
 - [usd#2439](https://github.com/Autodesk/arnold-usd/issues/2439) - Support shaping attributes in all lights
 - [usd#2477](https://github.com/Autodesk/arnold-usd/issues/2477) - Support IES profiles on any light
 
+### Bug Fixes
+
+- [usd#1000](https://github.com/Autodesk/arnold-usd/issues/1000) - Support the camera's aspect ratio conform policy in the render delegate
+
 
 ## [7.5.1.2] (Unreleased)
 

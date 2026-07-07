@@ -38,6 +38,8 @@
 
 #include <pxr/imaging/hd/renderPassState.h>
 
+#include <pxr/imaging/cameraUtil/conformWindow.h>
+
 #include <algorithm>
 
 #include <constant_strings.h>
@@ -620,6 +622,33 @@ void HdArnoldRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassSt
         height = delegateResolution[1];
         newFraming = CameraUtilFraming(GfRect2i(
             GfVec2i(0, 0), width, height));
+    }
+
+    // Honor the camera's aspect-ratio conform (window) policy now that the actual render
+    // resolution is known (#1000). HdCamera::GetWindowPolicy() is what Solaris drives through
+    // its "Aspect Ratio Conform Policy" setting. Arnold derives the vertical field of view from
+    // the rendered image's aspect ratio, so conforming the horizontal field of view to that
+    // aspect ratio is what makes the policy take effect. When the camera's aperture already
+    // matches the render aspect ratio the conform is a no-op, so the default case is unchanged.
+    // The render-pass owned camera (no HdCamera) is left untouched: the host viewport already
+    // supplies a conformed projection matrix, handled above.
+    if (camera != nullptr && currentCamera != nullptr && !isOrtho && height > 0) {
+#if PXR_VERSION >= 2203
+        GfMatrix4d cameraProj = camera->ComputeProjectionMatrix();
+#else
+        GfMatrix4d cameraProj = camera->GetProjectionMatrix();
+#endif
+        const double targetAspect = static_cast<double>(width) / static_cast<double>(height);
+        cameraProj = CameraUtilConformedWindow(cameraProj, camera->GetWindowPolicy(), targetAspect);
+        if (!GfIsClose(cameraProj[0][0], 0.0, AI_EPSILON)) {
+            const auto fov = static_cast<float>(GfRadiansToDegrees(std::atan(1.0 / cameraProj[0][0]) * 2.0));
+            // Only restart the render if the conformed field of view actually changed; camera.cpp
+            // sets an unconformed baseline during Sync that we refine here.
+            if (!GfIsClose(fov, AiNodeGetFlt(currentCamera, str::fov), AI_EPSILON)) {
+                renderParam->Interrupt(true, false);
+                AiNodeSetFlt(currentCamera, str::fov, fov);
+            }
+        }
     }
 
     const bool framingChanged = newFraming != _framing;

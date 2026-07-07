@@ -79,7 +79,13 @@ AtNode* UsdArnoldReadCamera::Read(const UsdPrim &prim, UsdArnoldReaderContext &c
         GfCamera gfCamera = cam.GetCamera(time.frame);
         // We use the projection matrix instead of GetFieldOfView() to compute the field of view.
         // This is because hydra multiplies the apertures and focal by a unit which incurs precision loss.
-        // Using the matrix gives the same result in hydra and in the procedural
+        // Using the matrix gives the same result in hydra and in the procedural.
+        // NOTE: the aspect-ratio conform policy (UsdRenderSettings aspectRatioConformPolicy /
+        // HdCamera window policy, #1000) is not applied here: the translator reads the camera
+        // independently of the render resolution, so we only emit the horizontal field of view and
+        // let Arnold derive the vertical one from the image aspect ratio (equivalent to
+        // "MatchHorizontal"). The render delegate honors the full policy in
+        // HdArnoldRenderPass::_Execute, where the render resolution is known.
         const float fov = static_cast<float>(GfRadiansToDegrees(atan(1.0 / gfCamera.GetFrustum().ComputeProjectionMatrix()[0][0]) * 2.0));
         AiNodeSetFlt(node, str::fov, fov);
         float horizontalApertureOffset = gfCamera.GetHorizontalApertureOffset();

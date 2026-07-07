@@ -185,8 +185,10 @@ void HdArnoldCamera::UpdatePerspectiveParams(HdSceneDelegate* sceneDelegate, HdR
 
     SetCameraParams(sceneDelegate, cameraParams);
 
-    // TODO(pal): Investigate how horizontalAperture, verticalAperture, horizontalApertureOffset and
-    //  verticalApertureOffset should be used.
+    // horizontalAperture / verticalAperture drive the field of view through the projection matrix
+    // (see Sync, where the unconformed fov is set); the aspect-ratio conform policy is then applied
+    // in the render pass once the render resolution is known (HdArnoldRenderPass::_Execute, #1000).
+    // The aperture offsets shift Arnold's screen window, which we compute below.
     // USD camera attributes can be authored as float or double; use the getFloat helper above so we
     // don't silently get 0.f (and a Tf coding error) for the double case. If the apertures come back
     // as 0 we'd otherwise divide by zero below and feed NaN/Inf into the screen window.
