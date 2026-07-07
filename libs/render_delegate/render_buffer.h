@@ -101,7 +101,18 @@ public:
     void WriteBucket(
         unsigned int bucketXO, unsigned int bucketYo, unsigned int bucketWidth, unsigned int bucketHeight,
         HdFormat format, const void* bucketData);
-    
+
+    /// Fill every pixel of the buffer with `clearValue`, converting to the
+    /// buffer's component format. If the value has fewer components than the
+    /// buffer (e.g. a vec3 clearValue on an RGBA buffer), the extra channels
+    /// are padded: alpha is set to 1.0 for the standard color case, other
+    /// missing components are zero-filled. Extra components in the value are
+    /// silently discarded. An empty VtValue is a no-op (matching the contract
+    /// of HdRenderPassAovBinding::clearValue). Internally takes the buffer
+    /// mutex, so the caller must not have the buffer mapped.
+    HDARNOLD_API
+    void Clear(const VtValue& clearValue);
+
     /// Utility class for storing render buffers.
     struct BufferDefinition {
         HdAovSettingsMap settings;              ///< Filter and AOV settings for the Render Buffer.
@@ -109,10 +120,11 @@ public:
         AtNode* filter = nullptr;               ///< Arnold filter.
         AtNode* writer = nullptr;               ///< Arnold AOV write node for primvar AOVs.
         AtNode* reader = nullptr;               ///< Arnold user data reader for primvar AOVs.
+        VtValue clearValue;                     ///< Clear value from the AOV binding (issue #451).
 
         /// Default constructor.
         BufferDefinition() = default;
-        
+
     };
 
 private:

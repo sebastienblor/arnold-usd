@@ -644,7 +644,16 @@ void HdArnoldRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassSt
             if (renderBuffer != nullptr && !renderBuffer->IsEmpty()) {
                 if (allocate && (renderBuffer->GetWidth() != w || renderBuffer->GetHeight() != h))
                     renderBuffer->Allocate(GfVec3i(w, h, 0), renderBuffer->GetFormat(), renderBuffer->IsMultiSampled());
-                renderBuffer->WriteBucket(0, 0, w, h, HdFormatUNorm8Vec4, zeroData.data());
+                // If the AOV binding carries a clearValue (per
+                // HdRenderPassAovBinding::clearValue), honor it. This fixes
+                // RGB-AOV-into-RGBA-buffer cases where alpha would otherwise
+                // default to 0 (issue #451). Otherwise fall back to the
+                // previous hardcoded zero fill.
+                if (!buffer.second.clearValue.IsEmpty()) {
+                    renderBuffer->Clear(buffer.second.clearValue);
+                } else {
+                    renderBuffer->WriteBucket(0, 0, w, h, HdFormatUNorm8Vec4, zeroData.data());
+                }
             }
         }
     };
@@ -943,6 +952,11 @@ void HdArnoldRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassSt
             // while they are being used.
             buffer.buffer = dynamic_cast<HdArnoldRenderBuffer*>(binding.renderBuffer);
             buffer.settings = binding.aovSettings;
+            // Cache the binding's clearValue so subsequent clearBuffers calls
+            // (which happen on framing/window changes without the bindings in
+            // scope) can apply it. Empty VtValue means "no clear", matching
+            // HdRenderPassAovBinding semantics. (issue #451)
+            buffer.clearValue = binding.clearValue;
             buffer.filter = _CreateFilter(_renderDelegate, binding.aovSettings, ++filterIndex);
             const auto* filterName = buffer.filter != nullptr ? AiNodeGetName(buffer.filter) : boxName;
             // Different possible filter for P and ID AOVs.

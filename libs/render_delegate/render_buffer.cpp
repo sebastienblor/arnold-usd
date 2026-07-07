@@ -19,6 +19,9 @@
 
 #include <pxr/base/gf/half.h>
 #include <pxr/base/gf/vec3i.h>
+#include <pxr/base/gf/vec3d.h>
+#include <pxr/base/gf/vec4d.h>
+#include <pxr/imaging/hd/types.h>
 
 #include <ai.h>
 
@@ -166,6 +169,98 @@ using WriteBucketFunction = void (*)(
     unsigned int, unsigned int);
 
 using WriteBucketFunctionMap = std::unordered_map<ConversionKey, WriteBucketFunction, ConversionKey::HashFunctor>;
+
+// Extract a 4-wide float clear color from a VtValue. Mirrors the
+// hdEmbree::_GetClearColor helper: a 3-component value is padded with
+// alpha = 1.0, doubles are demoted to floats, and anything we don't recognise
+// degrades to (0,0,0,1). Used by HdArnoldRenderBuffer::Clear so an RGB
+// clearValue against an RGBA buffer ends up opaque instead of fully
+// transparent (issue #451).
+inline GfVec4f _GetClearColor(const VtValue& clearValue)
+{
+    const HdTupleType type = HdGetValueTupleType(clearValue);
+    if (type.count != 1) {
+        return GfVec4f(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    switch (type.type) {
+        case HdTypeFloatVec3: {
+            const GfVec3f f = *static_cast<const GfVec3f*>(HdGetValueData(clearValue));
+            return GfVec4f(f[0], f[1], f[2], 1.0f);
+        }
+        case HdTypeFloatVec4:
+            return *static_cast<const GfVec4f*>(HdGetValueData(clearValue));
+        case HdTypeDoubleVec3: {
+            const GfVec3d f = *static_cast<const GfVec3d*>(HdGetValueData(clearValue));
+            return GfVec4f(static_cast<float>(f[0]), static_cast<float>(f[1]),
+                           static_cast<float>(f[2]), 1.0f);
+        }
+        case HdTypeDoubleVec4: {
+            const GfVec4d f = *static_cast<const GfVec4d*>(HdGetValueData(clearValue));
+            return GfVec4f(static_cast<float>(f[0]), static_cast<float>(f[1]),
+                           static_cast<float>(f[2]), static_cast<float>(f[3]));
+        }
+        default:
+            return GfVec4f(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+}
+
+// Write `valueCount` floats into one pixel at `dst`, converting to
+// `componentFormat`. Components beyond `componentCount` are discarded;
+// components beyond `valueCount` are zero-filled.
+inline void _WriteClearPixelFloat(
+    HdFormat componentFormat, uint8_t* dst, size_t componentCount, size_t valueCount, const float* value)
+{
+    for (size_t c = 0; c < componentCount; ++c) {
+        const float v = (c < valueCount) ? value[c] : 0.0f;
+        switch (componentFormat) {
+            case HdFormatUNorm8:
+                reinterpret_cast<uint8_t*>(dst)[c] = _ConvertType<uint8_t, float>(v);
+                break;
+            case HdFormatSNorm8:
+                reinterpret_cast<int8_t*>(dst)[c] = _ConvertType<int8_t, float>(v);
+                break;
+            case HdFormatFloat16:
+                reinterpret_cast<GfHalf*>(dst)[c] = GfHalf(v);
+                break;
+            case HdFormatFloat32:
+                reinterpret_cast<float*>(dst)[c] = v;
+                break;
+            case HdFormatInt32:
+                reinterpret_cast<int32_t*>(dst)[c] = static_cast<int32_t>(v);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+// Same as _WriteClearPixelFloat but for integer clear values (e.g. id AOVs).
+inline void _WriteClearPixelInt(
+    HdFormat componentFormat, uint8_t* dst, size_t componentCount, size_t valueCount, const int32_t* value)
+{
+    for (size_t c = 0; c < componentCount; ++c) {
+        const int32_t v = (c < valueCount) ? value[c] : 0;
+        switch (componentFormat) {
+            case HdFormatUNorm8:
+                reinterpret_cast<uint8_t*>(dst)[c] = static_cast<uint8_t>(std::max(0, std::min(v, 255)));
+                break;
+            case HdFormatSNorm8:
+                reinterpret_cast<int8_t*>(dst)[c] = static_cast<int8_t>(std::max(-127, std::min(v, 127)));
+                break;
+            case HdFormatFloat16:
+                reinterpret_cast<GfHalf*>(dst)[c] = GfHalf(static_cast<float>(v));
+                break;
+            case HdFormatFloat32:
+                reinterpret_cast<float*>(dst)[c] = static_cast<float>(v);
+                break;
+            case HdFormatInt32:
+                reinterpret_cast<int32_t*>(dst)[c] = v;
+                break;
+            default:
+                break;
+        }
+    }
+}
 
 WriteBucketFunctionMap writeBucketFunctions{
     // Write to UNorm8 format.
@@ -342,6 +437,61 @@ void HdArnoldRenderBuffer::WriteBucket(
                 _buffer.data(), componentCount, _width, _height, bucketData, inComponentCount, xo, xe, yo, ye,
                 bucketWidth);
         }
+    }
+}
+
+void HdArnoldRenderBuffer::Clear(const VtValue& clearValue)
+{
+    // Per HdRenderPassAovBinding::clearValue's contract: an empty VtValue
+    // means "do not clear". This is the no-op fast path.
+    if (clearValue.IsEmpty()) {
+        return;
+    }
+    std::lock_guard<std::mutex> _guard(_mutex);
+    if (_buffer.empty() || _width == 0 || _height == 0) {
+        return;
+    }
+    if (!_SupportedComponentFormat(_format)) {
+        return;
+    }
+    const HdFormat componentFormat = HdGetComponentFormat(_format);
+    const size_t componentCount = HdGetComponentCount(_format);
+    const size_t formatSize = HdDataSizeOfFormat(_format);
+    const size_t numPixels = static_cast<size_t>(_width) * static_cast<size_t>(_height);
+
+    // Integer single-channel clear (e.g. an id buffer).
+    if (clearValue.IsHolding<int32_t>()) {
+        const int32_t v = clearValue.UncheckedGet<int32_t>();
+        for (size_t i = 0; i < numPixels; ++i) {
+            _WriteClearPixelInt(componentFormat, &_buffer[i * formatSize], componentCount, 1, &v);
+        }
+        return;
+    }
+
+    // Float scalar clear.
+    if (clearValue.IsHolding<float>()) {
+        const float v = clearValue.UncheckedGet<float>();
+        for (size_t i = 0; i < numPixels; ++i) {
+            _WriteClearPixelFloat(componentFormat, &_buffer[i * formatSize], componentCount, 1, &v);
+        }
+        return;
+    }
+    if (clearValue.IsHolding<double>()) {
+        const float v = static_cast<float>(clearValue.UncheckedGet<double>());
+        for (size_t i = 0; i < numPixels; ++i) {
+            _WriteClearPixelFloat(componentFormat, &_buffer[i * formatSize], componentCount, 1, &v);
+        }
+        return;
+    }
+
+    // Vector clear: route through _GetClearColor, which pads vec3 -> vec4
+    // with alpha=1.0 so that an RGB clearValue against an RGBA buffer
+    // produces an opaque result instead of α=0 (issue #451). The
+    // _WriteClearPixelFloat helper will silently truncate the extra
+    // components if the destination has fewer.
+    const GfVec4f color = _GetClearColor(clearValue);
+    for (size_t i = 0; i < numPixels; ++i) {
+        _WriteClearPixelFloat(componentFormat, &_buffer[i * formatSize], componentCount, 4, color.data());
     }
 }
 
