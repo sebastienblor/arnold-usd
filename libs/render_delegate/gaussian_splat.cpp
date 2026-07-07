@@ -281,8 +281,10 @@ void HdArnoldGaussianSplat::Sync(
             id, HdArnoldRenderDelegate::PathSetWithDirtyBits{
                     {materialId, HdChangeTracker::DirtyMaterialId}});
 
-        const auto* material = reinterpret_cast<const HdArnoldNodeGraph*>(
-            sceneDelegate->GetRenderIndex().GetSprim(HdPrimTypeTokens->material, materialId));
+        // Use GetNodeGraph so that ArnoldNodeGraph primitives and remapped node graph
+        // paths are resolved, the same way as for the other rprim types
+        const auto* material = HdArnoldNodeGraph::GetNodeGraph(
+            sceneDelegate->GetRenderIndex(), materialId, GetRenderDelegate());
         if (material != nullptr) {
             AiNodeSetPtr(node, str::shader, material->GetCachedSurfaceShader());
         } else {
