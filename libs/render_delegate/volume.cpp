@@ -300,9 +300,11 @@ void HdArnoldVolume::_CreateVolumes(const SdfPath& id, HdSceneDelegate* sceneDel
 {
     std::unordered_map<std::string, std::vector<VdbFieldData>> openvdb_fields;
     std::unordered_map<std::string, std::vector<VdbFieldData>> houvdb_fields;
-    // Per-path sets to detect duplicate field names in O(1) instead of O(n) linear scan
-    std::unordered_map<std::string, std::unordered_set<TfToken, TfToken::HashFunctor>> openvdb_seen;
-    std::unordered_map<std::string, std::unordered_set<TfToken, TfToken::HashFunctor>> houvdb_seen;
+    // Per-path sets to detect duplicate fields in O(1) instead of O(n) linear scan.
+    // The key must include the field index along with its name: several grids can
+    // share the same name and only differ by their index (e.g. density[0], density[1])
+    std::unordered_map<std::string, std::unordered_set<std::string>> openvdb_seen;
+    std::unordered_map<std::string, std::unordered_set<std::string>> houvdb_seen;
 
     const auto fieldDescriptors = sceneDelegate->GetVolumeFieldDescriptors(id);
     for (const auto& field : fieldDescriptors) {
@@ -333,17 +335,20 @@ void HdArnoldVolume::_CreateVolumes(const SdfPath& id, HdSceneDelegate* sceneDel
                 fieldIndex = fieldIndexValue.UncheckedGet<int>();
             }
 
+            const std::string fieldKey =
+                TfStringPrintf("%s[%d]", fieldName.GetText(), fieldIndex);
+
             // op: paths denote a live reference to a VDB in the Houdini session
             if (TfStringStartsWith(path, "op:")) {
                 auto& fields = houvdb_fields[path];
-                if (houvdb_seen[path].insert(fieldName).second) {
+                if (houvdb_seen[path].insert(fieldKey).second) {
                     fields.push_back({fieldName, fieldIndex});
                 }
                 continue;
             }
 
             auto& fields = openvdb_fields[path];
-            if (openvdb_seen[path].insert(fieldName).second) {
+            if (openvdb_seen[path].insert(fieldKey).second) {
                 fields.push_back({fieldName, fieldIndex});
             }
         }
