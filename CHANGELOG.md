@@ -3,12 +3,10 @@
 
 ## [7.5.4.0] (Unreleased)
 
-- [usd#2652](https://github.com/Autodesk/arnold-usd/issues/2652) - Add setting for accelerated viewport
-
-## [7.5.4.0] (Unreleased)
-
 ### Features
 
+- [usd#32](https://github.com/Autodesk/arnold-usd/issues/32) - Support coordsys primitives
+- [usd#2652](https://github.com/Autodesk/arnold-usd/issues/2652) - Add setting for accelerated viewport
 - [usd#2705](https://github.com/Autodesk/arnold-usd/issues/2705) - Bind volume shaders on step-sized meshes
 - [usd#2719](https://github.com/Autodesk/arnold-usd/issues/2719) - Add support for resumable rendering in the render delegate.
 

@@ -537,8 +537,10 @@ AtNode* ReadArnoldShader(const std::string& nodeName, const TfToken& shaderId,
     return node;
 }
 
-/// Rewrite a MaterialX geometric-node "space" input value that references a USD
-/// coordinate system into the naming Arnold's OSL render services expect.
+/// Rewrite a MaterialX geometric-node "space" (position/normal/tangent/
+/// bitangent) or "fromspace"/"tospace" (transformpoint/transformvector/
+/// transformnormal) input value that references a USD coordinate system into
+/// the naming Arnold's OSL render services expect.
 ///
 /// Houdini/Solaris author coord-sys space names with a colon separator and
 /// lower-case projection names, e.g. "map_proj", "map_proj:ndc",
@@ -736,13 +738,16 @@ AtNode* ReadMtlxOslShader(const std::string& nodeName,
             }
 
             // A MaterialX geometric node (ND_position_vector3, ND_normal_vector3,
-            // ...) exposes a "space" string input that may reference a USD
-            // coordinate system. Rewrite it to Arnold's OSL naming so the
-            // coord-sys camera node is resolved (see _RewriteCoordSysSpaceName).
-            // Only when the value really holds a string: VtValueGetString yields an
-            // empty string for anything else, which would clobber the OSL node's
-            // default space. Any other value type falls through to ReadAttribute.
-            if (paramType == AI_TYPE_STRING && attrName == str::t_space &&
+            // ...) exposes a "space" string input, and a transform node
+            // (ND_transformpoint_vector3, ...) exposes "fromspace"/"tospace",
+            // that may reference a USD coordinate system. Rewrite it to
+            // Arnold's OSL naming so the coord-sys camera node is resolved
+            // (see _RewriteCoordSysSpaceName). Only when the value really
+            // holds a string: VtValueGetString yields an empty string for
+            // anything else, which would clobber the OSL node's default
+            // space. Any other value type falls through to ReadAttribute.
+            if (paramType == AI_TYPE_STRING &&
+                (attrName == str::t_space || attrName == str::t_fromspace || attrName == str::t_tospace) &&
                 (attr.value.IsHolding<std::string>() || attr.value.IsHolding<TfToken>())) {
                 const std::string rewritten = _RewriteCoordSysSpaceName(VtValueGetString(attr.value));
                 AiNodeSetStr(node, paramName, AtString(rewritten.c_str()));
@@ -760,8 +765,8 @@ AtNode* ReadMtlxOslShader(const std::string& nodeName,
 }
 
 /// Read a shader with a given shaderId and translate it to Arnold.
-AtNode* ReadShader(const std::string& nodeName, const TfToken& shaderId, 
-    const InputAttributesList& inputAttrs, ArnoldAPIAdapter &context, 
+AtNode* ReadShader(const std::string& nodeName, const TfToken& shaderId,
+    const InputAttributesList& inputAttrs, ArnoldAPIAdapter &context,
     const TimeSettings& time, MaterialReader& materialReader)
 {
     if (shaderId.IsEmpty())

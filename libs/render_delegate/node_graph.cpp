@@ -42,6 +42,7 @@
 
 #include <ai.h>
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <unordered_map>
 #include <materials_utils.h>
@@ -75,6 +76,20 @@ inline void AppendPathLeafSuffix(SdfPath& path, const std::string& suffix)
     if (path.IsEmpty() || !path.IsPrimPath())
         return;
     path = path.GetParentPath().AppendChild(TfToken(path.GetName() + suffix));
+}
+
+// Coordinate-space input parameters exposed by OSL-translated MaterialX nodes
+// (see ReadMtlxOslShader): "space" for position/normal/tangent/bitangent,
+// "fromspace"/"tospace" for transformpoint/transformvector/transformnormal.
+// RemapCoordSysSpaces and _CollectCoordSysNames check every one of these on
+// each node, so per-rprim coord-sys camera binding covers transform* nodes
+// (which can reference two coordSys names at once) as well as the
+// single-space ones.
+inline const std::array<AtString, 3>& CoordSysSpaceParams()
+{
+    static const std::array<AtString, 3> params{
+        str::param_shader_space, str::param_shader_fromspace, str::param_shader_tospace};
+    return params;
 }
 
 // MaterialReader classes are shared between the procedural and delegate code
@@ -318,30 +333,35 @@ void HdArnoldNodeGraph::RemapCoordSysSpaces(const std::unordered_map<std::string
         AtNode* node = entry.second;
         if (node == nullptr || !AiNodeIs(node, str::osl))
             continue;
-        // MaterialX geometric nodes (ND_position_vector3, ...) expose their
-        // coordinate space as the OSL string input "param_shader_space" (see
-        // ReadMtlxOslShader). It has already been rewritten to Arnold's dotted
-        // "<name>.<suffix>" form; replace the "<name>" part (the coordinate
-        // system name) with the uniquely-named camera node bound to the rprim.
-        if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), str::param_shader_space) == nullptr)
-            continue;
-        const std::string value = AiNodeGetStr(node, str::param_shader_space).c_str();
-        if (value.empty())
-            continue;
-        const size_t dot = value.find('.');
-        const std::string name = value.substr(0, dot);
-        const auto it = remap.find(name);
-        if (it == remap.end())
-            continue;
-        // Keep the suffix (".camera"/".NDC"/...); a value with no suffix (an
-        // unexpected plain name) defaults to the camera space.
-        const std::string suffix = (dot == std::string::npos) ? std::string(".camera") : value.substr(dot);
-        // Arnold's NDC is Y-opposite to its screen/raster, so the ".NDC" space is
-        // resolved through a separate extra-flipped camera when one was created;
-        // the other spaces stay on the primary node.
-        const std::string& target =
-            (suffix == ".NDC" && !it->second.ndcNode.empty()) ? it->second.ndcNode : it->second.node;
-        AiNodeSetStr(node, str::param_shader_space, AtString((target + suffix).c_str()));
+        const AtNodeEntry* nentry = AiNodeGetNodeEntry(node);
+        // MaterialX geometric/transform nodes (ND_position_vector3,
+        // ND_transformpoint_vector3, ...) expose their coordinate space(s) as
+        // one or more of the OSL string inputs in CoordSysSpaceParams() (see
+        // ReadMtlxOslShader). Each has already been rewritten to Arnold's
+        // dotted "<name>.<suffix>" form; replace the "<name>" part (the
+        // coordinate system name) with the uniquely-named camera node bound
+        // to the rprim.
+        for (const AtString& paramName : CoordSysSpaceParams()) {
+            if (AiNodeEntryLookUpParameter(nentry, paramName) == nullptr)
+                continue;
+            const std::string value = AiNodeGetStr(node, paramName).c_str();
+            if (value.empty())
+                continue;
+            const size_t dot = value.find('.');
+            const std::string name = value.substr(0, dot);
+            const auto it = remap.find(name);
+            if (it == remap.end())
+                continue;
+            // Keep the suffix (".camera"/".NDC"/...); a value with no suffix (an
+            // unexpected plain name) defaults to the camera space.
+            const std::string suffix = (dot == std::string::npos) ? std::string(".camera") : value.substr(dot);
+            // Arnold's NDC is Y-opposite to its screen/raster, so the ".NDC" space is
+            // resolved through a separate extra-flipped camera when one was created;
+            // the other spaces stay on the primary node.
+            const std::string& target =
+                (suffix == ".NDC" && !it->second.ndcNode.empty()) ? it->second.ndcNode : it->second.node;
+            AiNodeSetStr(node, paramName, AtString((target + suffix).c_str()));
+        }
     }
 }
 
@@ -377,12 +397,15 @@ void HdArnoldNodeGraph::_CollectCoordSysNames()
             continue;
         if (variantNodes.count(entry.first) != 0)
             continue;
-        if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), str::param_shader_space) == nullptr)
-            continue;
-        const std::string value = AiNodeGetStr(node, str::param_shader_space).c_str();
-        if (value.empty())
-            continue;
-        _coordSysNamesInGraph.insert(value.substr(0, value.find('.')));
+        const AtNodeEntry* nentry = AiNodeGetNodeEntry(node);
+        for (const AtString& paramName : CoordSysSpaceParams()) {
+            if (AiNodeEntryLookUpParameter(nentry, paramName) == nullptr)
+                continue;
+            const std::string value = AiNodeGetStr(node, paramName).c_str();
+            if (value.empty())
+                continue;
+            _coordSysNamesInGraph.insert(value.substr(0, value.find('.')));
+        }
     }
 }
 
