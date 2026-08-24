@@ -325,42 +325,100 @@ void HdArnoldNodeGraph::Sync(HdSceneDelegate* sceneDelegate, HdRenderParam* rend
     _wasSyncedOnce = true;
 }
 
-void HdArnoldNodeGraph::RemapCoordSysSpaces(const std::unordered_map<std::string, CoordSysTarget>& remap)
+void HdArnoldNodeGraph::RemapCoordSysSpaces(
+    const std::unordered_map<std::string, CoordSysTarget>& remap, const std::vector<std::string>* scopeNodes)
 {
     if (remap.empty())
         return;
-    for (const auto& entry : _nodes) {
-        AtNode* node = entry.second;
-        if (node == nullptr || !AiNodeIs(node, str::osl))
-            continue;
-        const AtNodeEntry* nentry = AiNodeGetNodeEntry(node);
+
+    static const std::string kTag = "|csmtx|";
+    const AtUniverse* universe = _renderDelegate->GetUniverse();
+
+    // Rewrite a single node's coordinate-system references. Applied only to nodes
+    // that belong to the network being remapped (see the scoping below), so a
+    // still-pristine node in another network is never touched.
+    const auto remapNode = [&](const std::string& nodeName, AtNode* node) {
+        if (node == nullptr)
+            return;
         // MaterialX geometric/transform nodes (ND_position_vector3,
-        // ND_transformpoint_vector3, ...) expose their coordinate space(s) as
-        // one or more of the OSL string inputs in CoordSysSpaceParams() (see
-        // ReadMtlxOslShader). Each has already been rewritten to Arnold's
-        // dotted "<name>.<suffix>" form; replace the "<name>" part (the
-        // coordinate system name) with the uniquely-named camera node bound
-        // to the rprim.
-        for (const AtString& paramName : CoordSysSpaceParams()) {
-            if (AiNodeEntryLookUpParameter(nentry, paramName) == nullptr)
+        // ND_transformpoint_vector3, ...) expose their projective coordinate
+        // space(s) as one or more of the OSL string inputs in CoordSysSpaceParams()
+        // (see ReadMtlxOslShader), already in Arnold's dotted "<name>.<suffix>"
+        // form; replace the "<name>" part with the uniquely-named camera node.
+        if (AiNodeIs(node, str::osl)) {
+            const AtNodeEntry* nentry = AiNodeGetNodeEntry(node);
+            for (const AtString& paramName : CoordSysSpaceParams()) {
+                if (AiNodeEntryLookUpParameter(nentry, paramName) == nullptr)
+                    continue;
+                const std::string value = AiNodeGetStr(node, paramName).c_str();
+                if (value.empty())
+                    continue;
+                const size_t dot = value.find('.');
+                const std::string name = value.substr(0, dot);
+                const auto it = remap.find(name);
+                if (it == remap.end())
+                    continue;
+                // Keep the suffix (".camera"/".NDC"/...); a value with no suffix (an
+                // unexpected plain name) defaults to the camera space.
+                const std::string suffix = (dot == std::string::npos) ? std::string(".camera") : value.substr(dot);
+                // Arnold's NDC is Y-opposite to its screen/raster, so the ".NDC" space is
+                // resolved through a separate extra-flipped camera when one was created;
+                // the other spaces stay on the primary node.
+                const std::string& target =
+                    (suffix == ".NDC" && !it->second.ndcNode.empty()) ? it->second.ndcNode : it->second.node;
+                AiNodeSetStr(node, paramName, AtString((target + suffix).c_str()));
+            }
+            return;
+        }
+        // Affine coordinate spaces are handled by matrix_multiply_vector helpers
+        // ReadMtlxOslShader inserts (names encode "|csmtx|<i>|<f|i>|<name>"). Link
+        // the helper's "matrix" input to the coordinate system's float_to_matrix
+        // (forward or inverse), which - unlike the camera node - keeps scale/shear.
+        if (!AiNodeIs(node, str::matrix_multiply_vector))
+            return;
+        const size_t tag = nodeName.find(kTag);
+        if (tag == std::string::npos)
+            return;
+        // Idempotency guard within this network: a helper already linked (e.g. on a
+        // re-remap in the same sync) needs no relinking. Cross-network safety comes
+        // from the scoping below, not from this check.
+        if (AiNodeIsLinked(node, str::matrix))
+            return;
+        const size_t roleStart = nodeName.find('|', tag + kTag.size());
+        if (roleStart == std::string::npos)
+            return;
+        const size_t nameStart = nodeName.find('|', roleStart + 1);
+        if (nameStart == std::string::npos)
+            return;
+        const std::string role = nodeName.substr(roleStart + 1, nameStart - (roleStart + 1));
+        const std::string name = nodeName.substr(nameStart + 1);
+        const auto it = remap.find(name);
+        if (it == remap.end())
+            return;
+        const std::string& matrixNode = (role == "i") ? it->second.invMatrixNode : it->second.matrixNode;
+        if (matrixNode.empty())
+            return;
+        if (AtNode* mtx = AiNodeLookUpByName(universe, AtString(matrixNode.c_str())))
+            AiNodeLink(mtx, str::matrix, node);
+    };
+
+    // Scope the rewrite to exactly the network being remapped. A variant passes its
+    // own node list; the base network (scopeNodes == nullptr) is every node not
+    // owned by a variant. Without this, a base node for a coordSys the current
+    // binding does not cover stays legitimately pristine and would be captured by
+    // another binding's remap (order-dependent across parallel rprim sync).
+    if (scopeNodes != nullptr) {
+        for (const std::string& nodeName : *scopeNodes) {
+            const auto it = _nodes.find(nodeName);
+            if (it != _nodes.end())
+                remapNode(nodeName, it->second);
+        }
+    } else {
+        const std::unordered_set<std::string> variantNodes = _CoordSysVariantNodeNames();
+        for (const auto& entry : _nodes) {
+            if (variantNodes.count(entry.first) != 0)
                 continue;
-            const std::string value = AiNodeGetStr(node, paramName).c_str();
-            if (value.empty())
-                continue;
-            const size_t dot = value.find('.');
-            const std::string name = value.substr(0, dot);
-            const auto it = remap.find(name);
-            if (it == remap.end())
-                continue;
-            // Keep the suffix (".camera"/".NDC"/...); a value with no suffix (an
-            // unexpected plain name) defaults to the camera space.
-            const std::string suffix = (dot == std::string::npos) ? std::string(".camera") : value.substr(dot);
-            // Arnold's NDC is Y-opposite to its screen/raster, so the ".NDC" space is
-            // resolved through a separate extra-flipped camera when one was created;
-            // the other spaces stay on the primary node.
-            const std::string& target =
-                (suffix == ".NDC" && !it->second.ndcNode.empty()) ? it->second.ndcNode : it->second.node;
-            AiNodeSetStr(node, paramName, AtString((target + suffix).c_str()));
+            remapNode(entry.first, entry.second);
         }
     }
 }
@@ -391,9 +449,30 @@ void HdArnoldNodeGraph::_CollectCoordSysNames()
     // poison the name set.
     const std::unordered_set<std::string> variantNodes = _CoordSysVariantNodeNames();
     _coordSysNamesInGraph.clear();
+    static const std::string kTag = "|csmtx|";
     for (const auto& entry : _nodes) {
         AtNode* node = entry.second;
-        if (node == nullptr || !AiNodeIs(node, str::osl))
+        if (node == nullptr)
+            continue;
+        // Affine coordinate-system references live on matrix_multiply_vector
+        // helpers (their OSL nodes were neutralised to "world"); recover the
+        // coordinate-system name from the helper's encoded name. The name is
+        // fixed for the node's lifetime, so - unlike the "space" strings below -
+        // it is safe to read on variant nodes too.
+        if (AiNodeIs(node, str::matrix_multiply_vector)) {
+            const size_t tag = entry.first.find(kTag);
+            if (tag == std::string::npos)
+                continue;
+            const size_t roleStart = entry.first.find('|', tag + kTag.size());
+            if (roleStart == std::string::npos)
+                continue;
+            const size_t nameStart = entry.first.find('|', roleStart + 1);
+            if (nameStart == std::string::npos)
+                continue;
+            _coordSysNamesInGraph.insert(entry.first.substr(nameStart + 1));
+            continue;
+        }
+        if (!AiNodeIs(node, str::osl))
             continue;
         if (variantNodes.count(entry.first) != 0)
             continue;
@@ -571,19 +650,16 @@ void HdArnoldNodeGraph::_RebuildCoordSysRemaps(const HdRenderIndex& renderIndex)
     _GarbageCollectCoordSysHolds(renderIndex);
     _DestroyRetiredCoordSysVariants();
     _CollectCoordSysNames();
-    // The base was reset to pristine by the (re-)translation; re-apply its remap.
-    // RemapCoordSysSpaces only rewrites still-pristine "space" inputs, so this hits
-    // only the base nodes (any surviving variant nodes still carry camera prefixes).
+    // The base was reset to pristine by the (re-)translation; re-apply its remap,
+    // scoped to the base node set (every node not owned by a variant).
     if (!_baseCoordSysSignature.empty())
         RemapCoordSysSpaces(_baseCoordSysRemap);
-    // Rebuild each variant one at a time: re-translating recreates its nodes under
-    // their stored names (same Arnold pointers, reset to pristine), and remapping
-    // immediately after keeps the "only pristine" rule valid - only the just-rebuilt
-    // variant is pristine at that moment.
+    // Rebuild each variant one at a time and remap it scoped to its own node list,
+    // so it never touches the base or another variant's nodes.
     for (auto& entry : _coordSysVariants) {
         entry.second.nodes.clear();
         entry.second.cache = _BuildCoordSysVariant(entry.second.suffix, &entry.second.nodes);
-        RemapCoordSysSpaces(entry.second.remap);
+        RemapCoordSysSpaces(entry.second.remap, &entry.second.nodes);
     }
     // Publish whether the rprim phase has anything to serialise. Deliberately not
     // just _coordSysNamesInGraph: a material whose "space" inputs stop naming a
@@ -691,10 +767,9 @@ AtNode* HdArnoldNodeGraph::_ResolveCoordSysTerminal(const CoordSysBinding& bindi
     }
     if (signature == _baseCoordSysSignature)
         return _nodeGraphCache.GetTerminal(terminalName);
-    // A conflicting binding: build (once) a re-translated variant and remap it.
-    // RemapCoordSysSpaces only rewrites still-pristine "space" inputs, so it
-    // touches just this fresh variant - the base and other variants already
-    // resolve to their own camera names, which are never coordinate-system names.
+    // A conflicting binding: build (once) a re-translated variant and remap it,
+    // scoped to the variant's own node list so it touches only this fresh variant
+    // and never the base or another variant.
     auto it = _coordSysVariants.find(signature);
     if (it == _coordSysVariants.end()) {
         // A variant retired since the last material Sync still has its nodes, already
@@ -710,7 +785,9 @@ AtNode* HdArnoldNodeGraph::_ResolveCoordSysTerminal(const CoordSysBinding& bindi
             variant.remap = binding.remap;
             variant.cache = _BuildCoordSysVariant(variant.suffix, &variant.nodes);
             it = _coordSysVariants.emplace(signature, std::move(variant)).first;
-            RemapCoordSysSpaces(binding.remap);
+            // Scope to the just-built variant's nodes (variant was moved into the
+            // map, so read the list back from `it`).
+            RemapCoordSysSpaces(binding.remap, &it->second.nodes);
         }
     }
     return it->second.cache.GetTerminal(terminalName);

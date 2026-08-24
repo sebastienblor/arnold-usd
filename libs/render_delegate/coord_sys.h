@@ -55,6 +55,19 @@ public:
 
     AtNode* GetArnoldNode() const { return _node; }
 
+    /// The Arnold float_to_matrix shader carrying this coordinate system's full
+    /// world matrix (forward, local-to-world) and its inverse (world-to-local).
+    /// Unlike the camera node - whose scaling/shear Arnold strips at render time
+    /// ("ignoring scaling component in camera matrix") - these carry the matrix
+    /// verbatim, so affine coordinate spaces (".camera"/plain, and transform*
+    /// node from/to spaces) resolve correctly for non-orthonormal frames. Shader
+    /// graphs drive a matrix_multiply_vector helper's "matrix" input from one of
+    /// these; the projective ".NDC"/".screen"/".raster" spaces keep using the
+    /// camera node (GetArnoldNode), which is the only thing that can carry a
+    /// frustum. Either may be null when float_to_matrix is unavailable.
+    AtNode* GetForwardMatrixNode() const { return _fwdMatrixNode; }
+    AtNode* GetInverseMatrixNode() const { return _invMatrixNode; }
+
     /// The camera node dedicated to the ".NDC" space, or nullptr when the NDC
     /// correction is disabled. Arnold's NDC convention is Y-opposite to its
     /// screen/raster, so (when HDARNOLD_coordsys_flip_ndc_v is enabled) the ".NDC"
@@ -88,9 +101,16 @@ private:
     /// optionally flipping the V axis. Used when no bound camera resolves.
     void _MirrorTransform(AtNode* dst, HdSceneDelegate* sceneDelegate, bool flipV);
 
+    /// Create (once) the forward/inverse float_to_matrix nodes and refresh their
+    /// 16 float inputs from @p matrix (which retains scale/shear). No-op when the
+    /// float_to_matrix node type is unavailable in this Arnold build.
+    void _SyncMatrixNodes(const AtMatrix& matrix, const std::string& baseName);
+
     HdArnoldRenderDelegate* _renderDelegate;
     AtNode* _node = nullptr;
     AtNode* _ndcNode = nullptr;
+    AtNode* _fwdMatrixNode = nullptr; ///< float_to_matrix, local-to-world (full matrix).
+    AtNode* _invMatrixNode = nullptr; ///< float_to_matrix, world-to-local (full matrix).
 };
 
 /// Build the rprim @p id's coordinate-system binding: the map from each bound

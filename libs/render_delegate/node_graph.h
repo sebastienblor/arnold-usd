@@ -207,8 +207,10 @@ public:
     ///
     /// @param remap Map from coordinate-system name to its camera node names.
     struct CoordSysTarget {
-        std::string node;    ///< Camera node for .camera/.screen/.raster (and .NDC when ndcNode is empty).
+        std::string node;    ///< Camera node for .screen/.raster (and .NDC when ndcNode is empty).
         std::string ndcNode; ///< Camera node for .NDC; empty to use `node`.
+        std::string matrixNode;    ///< float_to_matrix carrying the full local-to-world matrix.
+        std::string invMatrixNode; ///< float_to_matrix carrying the full world-to-local matrix.
     };
     /// Map from coordinate-system name to the camera node(s) bound to it by a
     /// specific rprim.
@@ -223,8 +225,15 @@ public:
         CoordSysRemap remap; ///< Coordinate-system name -> camera node names.
     };
 
+    /// Rewrite the coordinate-system references of one shader network in place:
+    /// projective ".NDC"/".screen"/".raster" spaces to the bound camera node
+    /// name, and affine matrix_multiply_vector helpers to the bound coordSys's
+    /// float_to_matrix. @p scopeNodes restricts the rewrite to a single network:
+    /// pass a variant's node list to remap only that variant, or nullptr to remap
+    /// the base network (every node not owned by a variant). Scoping is what keeps
+    /// one binding's remap from capturing another network's still-pristine nodes.
     HDARNOLD_API
-    void RemapCoordSysSpaces(const CoordSysRemap& remap);
+    void RemapCoordSysSpaces(const CoordSysRemap& remap, const std::vector<std::string>* scopeNodes = nullptr);
 
     /// Binding-aware terminal accessors.
     ///
