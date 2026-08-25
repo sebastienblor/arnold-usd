@@ -300,6 +300,8 @@ ASTR(exposure);
 ASTR(fallback);
 ASTR(far_clip);
 ASTR(file);
+ASTR(file_grid);
+ASTR(file_name);
 ASTR(filename);
 ASTR(filtermap);
 ASTR(filter);
