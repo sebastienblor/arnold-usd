@@ -33,6 +33,26 @@ PXR_NAMESPACE_USING_DIRECTIVE
 #include "api_adapter.h"
 #include "reader.h"
 
+#include <pxr/imaging/hf/pluginDesc.h>
+
+namespace {
+
+// Returns true if the Arnold Hydra render delegate plugin is present in the Hd
+// renderer plugin registry. That registry caches its plugin list on first use,
+// so a plugin registered late (via PlugRegistry) will not appear here.
+static bool ArnoldHydraPluginAvailable()
+{
+    static const TfToken s_arnoldPluginId("HdArnoldRendererPlugin");
+    HfPluginDescVector descs;
+    HdRendererPluginRegistry::GetInstance().GetPluginDescs(&descs);
+    for (const auto& d : descs) {
+        if (d.id == s_arnoldPluginId)
+            return true;
+    }
+    return false;
+}
+} // namespace
+
 // clang-format off
 TF_DEFINE_PRIVATE_TOKENS(_tokens,
     ((hydraProcCamera, "/ArnoldHydraProceduralCamera"))
@@ -153,7 +173,7 @@ HydraArnoldReader::~HydraArnoldReader()
     // and here we're just clearing the usd stage. So we tell the render delegate that nodes
     // destruction should be skipped
     if (_renderDelegate)
-        GetArnoldRenderDelegate()->EnableNodesDestruction(false);
+        _renderDelegate->EnableNodesDestruction(false);
     if (_imagingDelegate)
         delete _imagingDelegate;
 
@@ -161,9 +181,18 @@ HydraArnoldReader::~HydraArnoldReader()
         _renderIndex->RemoveSceneIndex(_sceneIndex);
         delete _renderIndex;
     }
-    
-    // Delete the render delegate
+
+    ReleaseRenderDelegate();
+}
+
+void HydraArnoldReader::ReleaseRenderDelegate()
+{
+    // On the fallback path this reader owns the delegate; on the plugin-registry
+    // path the handle owns it (and clearing the handle destroys it).
+    if (!_renderDelegateHandle)
+        delete _renderDelegate;
     _renderDelegate = nullptr;
+    _renderDelegateHandle = nullptr;
 }
 
 HydraArnoldReader::HydraArnoldReader(AtUniverse *universe, AtNode *procParent) : 
@@ -198,20 +227,33 @@ HydraArnoldReader::HydraArnoldReader(AtUniverse *universe, AtNode *procParent) :
     settingsMap[TfToken("arnold:universe")] = VtValue(static_cast<void*>(_universe));
     settingsMap[TfToken("arnold:session_type")] = VtValue(parentSessionMode);
     settingsMap[TfToken("arnold:procedural_parent")] = VtValue(static_cast<void*>(procParent));
-    {
+    // The Hd renderer plugin registry caches its plugin list on first use, so if
+    // HdArnoldRendererPlugin was registered after the registry was first populated
+    // (which can happen in a host application depending on plugin load order),
+    // CreateRenderDelegate returns null and logs an error. Query availability
+    // first, and if the plugin isn't there, skip the registry and construct the
+    // render delegate directly with the same settings the plugin would have used;
+    // we then own and destroy it ourselves. This mirrors the pre-plugin-registry
+    // behavior and guarantees we never dereference a null delegate.
+    if (ArnoldHydraPluginAvailable()) {
         // We must lock the render delegate creation as if multiple procedurals create HdArnoldRendererPlugin, we end up with a messed up plugin registry.
         std::lock_guard<AtMutex> lock(s_renderDelegateCreationMutex);
-        _renderDelegate = HdRendererPluginRegistry::GetInstance().CreateRenderDelegate(TfToken("HdArnoldRendererPlugin"), settingsMap);
+        _renderDelegateHandle = HdRendererPluginRegistry::GetInstance().CreateRenderDelegate(TfToken("HdArnoldRendererPlugin"), settingsMap);
+        _renderDelegate = static_cast<HdArnoldRenderDelegate*>(_renderDelegateHandle.Get());
     }
-
-    assert(_renderDelegate);
-    //_renderDelegate = new HdArnoldRenderDelegate(true, TfToken("kick"), _universe, AI_SESSION_INTERACTIVE, procParent);
-    TF_VERIFY(_renderDelegate);
+    if (!_renderDelegate) {
+        // Some renderer-specific scene-index plugins may not be applied on a
+        // directly-built delegate, so warn: in a host that registers the plugin
+        // (e.g. MtoA registers the bundle at load), reaching here means that
+        // registration happened too late.
+        _renderDelegate = new HdArnoldRenderDelegate(
+            parentIsBatch, TfToken("kick"), _universe, parentSessionMode, procParent);
+    }
     {
         std::lock_guard<AtMutex> lock(s_renderIndexCreationMutex);
-        _renderIndex = HdRenderIndex::New(GetArnoldRenderDelegate(), HdDriverVector());
+        _renderIndex = HdRenderIndex::New(_renderDelegate, HdDriverVector());
     }
-    GetArnoldRenderDelegate()->SetReader(this);
+    _renderDelegate->SetReader(this);
     _sceneDelegateId = SdfPath::AbsoluteRootPath();
 
     if (_useSceneIndex) {
@@ -251,7 +293,7 @@ HydraArnoldReader::HydraArnoldReader(AtUniverse *universe, AtNode *procParent) :
 }
 
 const std::vector<AtNode *> &HydraArnoldReader::GetNodes() const {
-    return _renderDelegate.Get() ? GetArnoldRenderDelegate()->_nodes : _nodes; }
+    return _renderDelegate ? _renderDelegate->_nodes : _nodes; }
 
 void HydraArnoldReader::SetCameraForSampling(UsdStageRefPtr stage, const SdfPath &cameraPath)
 {
@@ -455,8 +497,8 @@ void HydraArnoldReader::ReadStage(UsdStageRefPtr stage,
         // Copy the render delegate list of nodes to the reader
         // so that it can be passed through procedural_get_nodes
         std::swap(_nodes, arnoldRenderDelegate->_nodes);
-        
-        _renderDelegate = nullptr;
+
+        ReleaseRenderDelegate();
     }
 #endif
 

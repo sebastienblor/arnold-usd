@@ -65,12 +65,21 @@ public:
 private:
     std::string _renderSettings;
     unsigned int _id;
-    HdArnoldRenderDelegate* GetArnoldRenderDelegate()const {return static_cast<HdArnoldRenderDelegate*>(_renderDelegate.Get());}
+    // The active Arnold render delegate, used throughout the reader. Its lifetime
+    // is owned either by _renderDelegateHandle (Hd plugin-registry path) or
+    // directly by this reader (fallback path); see the constructor.
+    HdArnoldRenderDelegate* GetArnoldRenderDelegate()const {return _renderDelegate;}
+    // Releases the render delegate, whichever way it is owned. Safe to call twice.
+    void ReleaseRenderDelegate();
     TfToken _purpose;
     HdRenderIndex* _renderIndex;
     UsdArnoldProcImagingDelegate* _imagingDelegate = nullptr;
     HdEngine _engine;
-    HdPluginRenderDelegateUniqueHandle _renderDelegate;
+    HdArnoldRenderDelegate* _renderDelegate = nullptr;
+    // Owns *_renderDelegate on the plugin-registry path (and keeps the plugin
+    // loaded). Empty on the fallback path, where this reader owns _renderDelegate
+    // and deletes it itself. The reader body never reads this directly.
+    HdPluginRenderDelegateUniqueHandle _renderDelegateHandle;
     SdfPath _sceneDelegateId;
     UsdImagingStageSceneIndexRefPtr _stageSceneIndex;
     //UsdImagingSelectionSceneIndexRefPtr _selectionSceneIndex;
