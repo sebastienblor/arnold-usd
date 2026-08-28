@@ -1,0 +1,113 @@
+#usda 1.0
+(
+    upAxis = "Y"
+    metersPerUnit = 1
+    defaultPrim = "World"
+)
+
+# Scene for the mesh-deduplication mode test (see ../test.cpp). It contains three
+# groups of geometry that deduplicate differently depending on HDARNOLD_MESH_DEDUP:
+#   - inst_a / inst_b : two point instancers with identical cube prototypes bound to
+#     the same material -> their prototypes are interchangeable (deduplicated in the
+#     "Instances" and "All" modes).
+#   - inst_c : a point instancer whose cube differs by one vertex -> never merged.
+#   - plainA / plainB : two identical, non-instanced meshes -> merged only in "All"
+#     mode (rendered as a ginstance of a single canonical polymesh).
+def Xform "World"
+{
+    def Scope "materials"
+    {
+        def Material "red"
+        {
+            token outputs:surface.connect = </World/materials/red/surface.outputs:surface>
+            def Shader "surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.8, 0.15, 0.1)
+                token outputs:surface
+            }
+        }
+        def Material "blue"
+        {
+            token outputs:surface.connect = </World/materials/blue/surface.outputs:surface>
+            def Shader "surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.1, 0.2, 0.85)
+                token outputs:surface
+            }
+        }
+    }
+
+    def PointInstancer "inst_a"
+    {
+        point3f[] positions = [(-6, 0, 0), (-3, 0, 0)]
+        int[] protoIndices = [0, 0]
+        rel prototypes = [</World/inst_a/proto/Cube>]
+        def Scope "proto"
+        {
+            def Mesh "Cube" (prepend apiSchemas = ["MaterialBindingAPI"])
+            {
+                rel material:binding = </World/materials/red>
+                int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+                int[] faceVertexIndices = [0, 3, 2, 1, 4, 5, 6, 7, 0, 4, 7, 3, 1, 2, 6, 5, 0, 1, 5, 4, 3, 7, 6, 2]
+                point3f[] points = [(-1, -1, -1), (1, -1, -1), (1, 1, -1), (-1, 1, -1), (-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1)]
+            }
+        }
+    }
+
+    def PointInstancer "inst_b"
+    {
+        point3f[] positions = [(0, 0, 0), (3, 0, 0)]
+        int[] protoIndices = [0, 0]
+        rel prototypes = [</World/inst_b/proto/Cube>]
+        def Scope "proto"
+        {
+            def Mesh "Cube" (prepend apiSchemas = ["MaterialBindingAPI"])
+            {
+                rel material:binding = </World/materials/red>
+                int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+                int[] faceVertexIndices = [0, 3, 2, 1, 4, 5, 6, 7, 0, 4, 7, 3, 1, 2, 6, 5, 0, 1, 5, 4, 3, 7, 6, 2]
+                point3f[] points = [(-1, -1, -1), (1, -1, -1), (1, 1, -1), (-1, 1, -1), (-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1)]
+            }
+        }
+    }
+
+    def PointInstancer "inst_c"
+    {
+        point3f[] positions = [(6, 0, 0)]
+        int[] protoIndices = [0]
+        rel prototypes = [</World/inst_c/proto/Cube>]
+        def Scope "proto"
+        {
+            def Mesh "Cube" (prepend apiSchemas = ["MaterialBindingAPI"])
+            {
+                rel material:binding = </World/materials/blue>
+                int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+                int[] faceVertexIndices = [0, 3, 2, 1, 4, 5, 6, 7, 0, 4, 7, 3, 1, 2, 6, 5, 0, 1, 5, 4, 3, 7, 6, 2]
+                point3f[] points = [(-1, -1, -1), (1, -1, -1), (1, 1.5, -1), (-1, 1, -1), (-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1)]
+            }
+        }
+    }
+
+    # Two identical, non-instanced meshes (a flat quad). Deduplicated only in "All" mode.
+    def Mesh "plainA" (prepend apiSchemas = ["MaterialBindingAPI"])
+    {
+        rel material:binding = </World/materials/red>
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-1, 3, 0), (1, 3, 0), (1, 5, 0), (-1, 5, 0)]
+        double3 xformOp:translate = (-3, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Mesh "plainB" (prepend apiSchemas = ["MaterialBindingAPI"])
+    {
+        rel material:binding = </World/materials/red>
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-1, 3, 0), (1, 3, 0), (1, 5, 0), (-1, 5, 0)]
+        double3 xformOp:translate = (3, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
