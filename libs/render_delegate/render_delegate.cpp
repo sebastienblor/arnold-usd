@@ -34,6 +34,7 @@
 
 #include <pxr/base/tf/getenv.h>
 #include <pxr/base/tf/envSetting.h>
+#include <pxr/base/tf/stringUtils.h>
 
 #include <pxr/imaging/hd/bprim.h>
 #include <pxr/imaging/hd/camera.h>
@@ -143,6 +144,11 @@ TF_DEFINE_ENV_SETTING(HDARNOLD_SHAPE_INSTANCING, "", "Set to 0 to disable inner 
 TF_DEFINE_ENV_SETTING(
     HDARNOLD_FLATTEN_INSTANCING, "",
     "Set to 1 to flatten nested instances into shape instancing instead of using nested arnold instancer nodes");
+TF_DEFINE_ENV_SETTING(
+    HDARNOLD_MESH_DEDUP, 1,
+    "Mesh geometry deduplication mode: render geometrically identical meshes as instances of a "
+    "single canonical mesh instead of duplicating them. 0 = off, 1 = point-instancer prototypes "
+    "only (default), 2 = all meshes (also plain non-instanced duplicates).");
 
 namespace {
 
@@ -686,7 +692,27 @@ HdArnoldRenderDelegate::HdArnoldRenderDelegate(bool isBatch, const TfToken &cont
     // being handled by a chain of nested arnold instancer nodes. Defaults to disabled.
     std::string envFlattenInstancing = TfGetEnvSetting(HDARNOLD_FLATTEN_INSTANCING);
     _flattenInstancing = envFlattenInstancing == std::string("1");
-    
+
+    // Detecting geometrically identical meshes and rendering the duplicates as instances of a
+    // single canonical mesh. Defaults to deduplicating point-instancer prototypes only (the
+    // flattening case), which is where the win is and which leaves the common non-instanced
+    // meshes untouched (no hashing cost). The mode can be changed through the env var: 0 off,
+    // 1 instanced prototypes (default), 2 all meshes.
+    //
+    // Read fresh from the environment (TfGetenv, not the process-cached TfGetEnvSetting) so the
+    // mode can be switched between scene loads in the same process - a DCC toggling it between
+    // renders, or a test exercising all three modes - rather than being frozen at whatever it
+    // was on the first read. Fall back to the registered default (which provides the value and
+    // documentation) when the variable is unset.
+    const std::string meshDedupEnv = TfGetenv("HDARNOLD_MESH_DEDUP");
+    const int meshDedupValue = meshDedupEnv.empty() ? TfGetEnvSetting(HDARNOLD_MESH_DEDUP)
+                                                    : static_cast<int>(TfStringToLong(meshDedupEnv));
+    switch (meshDedupValue) {
+        case 0: _meshDedupMode = MeshDedupMode::None; break;
+        case 2: _meshDedupMode = MeshDedupMode::All; break;
+        default: _meshDedupMode = MeshDedupMode::Instances; break;
+    }
+
 }
 
 HdArnoldRenderDelegate::~HdArnoldRenderDelegate()
@@ -2146,6 +2172,140 @@ void HdArnoldRenderDelegate::ClearDependencies(const SdfPath& source)
             _dependencyRemovalQueue.emplace(target);
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Mesh geometry deduplication registry.
+// ---------------------------------------------------------------------------
+
+AtNode* HdArnoldRenderDelegate::_ReleaseCanonicalMeshLocked(const SdfPath& id, uint64_t hash)
+{
+    auto ceIt = _canonicalMeshes.find(hash);
+    if (ceIt == _canonicalMeshes.end())
+        return nullptr;
+    CanonicalMesh& cm = ceIt->second;
+    if (cm.canonicalPath == id && !cm.adopted) {
+        // id owns this canonical, but its geometry identity is no longer valid (the
+        // geometry changed or the mesh is reverting to a plain polymesh). Drop the entry.
+        if (cm.refcount > 0) {
+            // Instances still reference the node. Dirty them so they re-evaluate and
+            // re-point on their next Sync (the node stays owned by the rprim and will
+            // hold its new geometry in the meantime).
+            _dependencyRemovalQueue.emplace(id);
+        }
+        _canonicalMeshes.erase(ceIt);
+        return nullptr;
+    }
+    // id is an instance of this canonical.
+    if (cm.refcount > 0)
+        --cm.refcount;
+    if (cm.adopted && cm.refcount == 0) {
+        AtNode* node = cm.node;
+        _canonicalMeshes.erase(ceIt);
+        return node; // caller destroys outside the lock
+    }
+    return nullptr;
+}
+
+AtNode* HdArnoldRenderDelegate::AcquireCanonicalMesh(
+    const SdfPath& id, AtNode* candidate, uint64_t hash, SdfPath* canonicalPath)
+{
+    AtNode* toDestroy = nullptr;
+    AtNode* result = nullptr;
+    {
+        std::lock_guard<std::mutex> guard(_canonicalMeshMutex);
+
+        // If this rprim was previously associated with a different geometry, release it.
+        const auto prevIt = _meshHashes.find(id);
+        if (prevIt != _meshHashes.end() && prevIt->second != hash) {
+            toDestroy = _ReleaseCanonicalMeshLocked(id, prevIt->second);
+        }
+
+        const auto ceIt = _canonicalMeshes.find(hash);
+        if (ceIt != _canonicalMeshes.end() && ceIt->second.node != nullptr && ceIt->second.canonicalPath != id) {
+            // candidate is a duplicate of an existing canonical.
+            CanonicalMesh& cm = ceIt->second;
+            ++cm.refcount;
+            _meshHashes[id] = hash;
+            if (canonicalPath != nullptr)
+                *canonicalPath = cm.canonicalPath;
+            result = cm.node;
+        } else {
+            // candidate is (or remains) the canonical for this geometry.
+            CanonicalMesh& cm = _canonicalMeshes[hash];
+            cm.node = candidate;
+            cm.canonicalPath = id;
+            cm.adopted = false;
+            _meshHashes[id] = hash;
+            result = nullptr;
+        }
+    }
+    if (toDestroy != nullptr)
+        DestroyArnoldNode(toDestroy);
+    return result;
+}
+
+void HdArnoldRenderDelegate::ReleaseCanonicalMesh(const SdfPath& id)
+{
+    AtNode* toDestroy = nullptr;
+    {
+        std::lock_guard<std::mutex> guard(_canonicalMeshMutex);
+        const auto hIt = _meshHashes.find(id);
+        if (hIt == _meshHashes.end())
+            return;
+        const uint64_t hash = hIt->second;
+        _meshHashes.erase(hIt);
+        toDestroy = _ReleaseCanonicalMeshLocked(id, hash);
+    }
+    if (toDestroy != nullptr)
+        DestroyArnoldNode(toDestroy);
+}
+
+bool HdArnoldRenderDelegate::OnMeshDestroyed(const SdfPath& id, AtNode* node)
+{
+    AtNode* toDestroy = nullptr;
+    bool adopted = false;
+    {
+        std::lock_guard<std::mutex> guard(_canonicalMeshMutex);
+        const auto hIt = _meshHashes.find(id);
+        if (hIt == _meshHashes.end())
+            return false;
+        const uint64_t hash = hIt->second;
+        _meshHashes.erase(hIt);
+        const auto ceIt = _canonicalMeshes.find(hash);
+        if (ceIt == _canonicalMeshes.end())
+            return false;
+        CanonicalMesh& cm = ceIt->second;
+        if (cm.canonicalPath == id && !cm.adopted) {
+            // Destroying the canonical itself.
+            if (cm.refcount > 0) {
+                // The canonical rprim is gone, but its instances remain in the scene and
+                // must keep rendering the same (unchanged) geometry. Keep the node alive
+                // and let the render delegate own it; it is destroyed once the last instance
+                // releases it (see the instance-release branch below). We deliberately do
+                // NOT dirty the dependents here: their ginstance nodes already point at this
+                // node and stay valid, so no re-evaluation (and no risk of a concurrent
+                // re-sync destroying a node still referenced by siblings) is needed.
+                cm.adopted = true;
+                cm.node = node;
+                cm.canonicalPath = SdfPath();
+                adopted = true;
+            } else {
+                _canonicalMeshes.erase(ceIt);
+            }
+        } else {
+            // Destroying an instance.
+            if (cm.refcount > 0)
+                --cm.refcount;
+            if (cm.adopted && cm.refcount == 0) {
+                toDestroy = cm.node;
+                _canonicalMeshes.erase(ceIt);
+            }
+        }
+    }
+    if (toDestroy != nullptr)
+        DestroyArnoldNode(toDestroy);
+    return adopted;
 }
 
 void HdArnoldRenderDelegate::TrackRenderTag(AtNode* node, const TfToken& tag)

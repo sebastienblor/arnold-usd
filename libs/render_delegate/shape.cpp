@@ -49,7 +49,7 @@ HdArnoldShape::~HdArnoldShape()
     }
 }
 
-void HdArnoldShape::SetShapeType(const AtString& shapeType, const SdfPath& id) 
+void HdArnoldShape::SetShapeType(const AtString& shapeType, const SdfPath& id)
 {
     if (_shape != nullptr && !AiNodeIs(_shape, shapeType)) {
         _renderDelegate->DestroyArnoldNode(_shape);
@@ -58,6 +58,26 @@ void HdArnoldShape::SetShapeType(const AtString& shapeType, const SdfPath& id)
     if (_shape == nullptr) {
         _shape = _renderDelegate->CreateArnoldNode(shapeType, AtString(id.GetText()));
     }
+}
+
+void HdArnoldShape::ConvertToInstanceOf(AtNode* proto, const SdfPath& id)
+{
+    if (proto == nullptr)
+        return;
+    SetShapeType(str::ginstance, id);
+    if (_shape == nullptr)
+        return;
+    // The instance positions itself with its own matrix (set later during Sync), so it
+    // must not inherit the prototype transform.
+    AiNodeSetBool(_shape, str::inherit_xform, false);
+    AiNodeSetPtr(_shape, str::node, proto);
+}
+
+AtNode* HdArnoldShape::ReleaseShapeOwnership()
+{
+    AtNode* node = _shape;
+    _shape = nullptr;
+    return node;
 }
 
 void HdArnoldShape::Sync(
@@ -198,7 +218,13 @@ void HdArnoldShape::_SyncInstances(
     // Rebuild the instancer
     param.Interrupt();
 
-    if (UseArnoldInstancer(sceneDelegate, _renderDelegate, instancer, _shape)) {
+    // A deduplicated prototype (mesh dedup) references a shared canonical polymesh instead
+    // of its own geometry; that requires the arnold instancer-node path (which lets us
+    // redirect the referenced node), so we force it whenever an override is set. Likewise a
+    // prototype that may itself be shared as a canonical must not bake instance_matrix onto
+    // its polymesh (shape-instancing), so _forceInstancerNode keeps it a plain shareable node.
+    if (_prototypeOverride != nullptr || _forceInstancerNode ||
+        UseArnoldInstancer(sceneDelegate, _renderDelegate, instancer, _shape)) {
         // First destroy the arnold parent instancers to this mesh
         for (auto &instancerNode : _instancers) {
             _renderDelegate->DestroyArnoldNode(instancerNode);
@@ -218,8 +244,11 @@ void HdArnoldShape::_SyncInstances(
 
         const TfToken renderTag = sceneDelegate->GetRenderTag(id);
 
+        // For a deduplicated prototype the leaf instancer references the shared canonical
+        // polymesh rather than this shape's own (empty) node.
+        AtNode* const leafPrototype = (_prototypeOverride != nullptr) ? _prototypeOverride : _shape;
         for (size_t i = 0; i < _instancers.size(); ++i) {
-            AiNodeSetPtr(_instancers[i], str::nodes, (i == 0) ? _shape : _instancers[i - 1]);
+            AiNodeSetPtr(_instancers[i], str::nodes, (i == 0) ? leafPrototype : _instancers[i - 1]);
             renderDelegate->TrackRenderTag(_instancers[i], renderTag);
 
             // At this point the instancers might have set their instance visibilities.

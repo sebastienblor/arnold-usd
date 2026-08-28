@@ -74,6 +74,47 @@ public:
     /// @param shapeType New node entry for this Arnold shape node
     void SetShapeType(const AtString& shapeType, const SdfPath& id);
 
+    /// Turns this shape into an Arnold ginstance referencing @p proto.
+    ///
+    /// Used by the mesh deduplication: a mesh whose geometry is identical to a
+    /// previously seen one is rendered as an instance of that canonical node instead
+    /// of duplicating the geometry. The instance keeps its own transform (inherit_xform
+    /// is disabled) and can carry its own surface shader, while the geometry (and its
+    /// BVH) is shared with @p proto.
+    ///
+    /// @param proto The canonical Arnold node to instance.
+    /// @param id Path to the primitive.
+    void ConvertToInstanceOf(AtNode* proto, const SdfPath& id);
+
+    /// Relinquishes ownership of the Arnold shape node without destroying it, returning
+    /// the node. Used when the render delegate adopts a canonical mesh node that is still
+    /// referenced by instances after its owning rprim is destroyed.
+    ///
+    /// @return The Arnold shape node (now owned by the caller), or nullptr.
+    AtNode* ReleaseShapeOwnership();
+
+    /// Overrides the geometry node that this shape's Arnold instancer references.
+    ///
+    /// Used by the mesh deduplication for instanced prototypes: when a point-instancer
+    /// prototype is geometrically identical to a previously seen one, its instancer is
+    /// pointed at the shared canonical polymesh instead of this shape's (empty) node,
+    /// avoiding duplicated geometry. Pass nullptr to reference this shape's own node.
+    ///
+    /// @param proto The canonical geometry node to instance, or nullptr.
+    void SetPrototypeOverride(AtNode* proto) { _prototypeOverride = proto; }
+
+    /// Forces this shape's instances to be built through an Arnold instancer node rather
+    /// than shape-instancing (baking instance_matrix onto the polymesh).
+    ///
+    /// Used by the mesh deduplication for instanced prototypes: a prototype that may be
+    /// shared as a canonical geometry must remain a plain polymesh (shape-instancing would
+    /// bake instance_matrix onto it and make it unusable as a shared prototype / instance
+    /// target). Point-instancer prototypes that participate in dedup therefore always use
+    /// the instancer-node path.
+    ///
+    /// @param force Whether to force the Arnold instancer-node path.
+    void SetForceInstancerNode(bool force) { _forceInstancerNode = force; }
+
     /// Syncs internal data and arnold state with hydra.
     ///
     /// @param rprim Pointer to the Hydra render primitive.
@@ -142,6 +183,8 @@ protected:
     HdArnoldRenderDelegate* _renderDelegate; ///< Pointer to the Arnold render delegate.
     std::vector<AtNode*> _instancers;        ///< Pointer to the Arnold instancer and its parent instancers if any.
     AtNode* _shape = nullptr;                ///< Pointer to the Arnold Shape.
+    AtNode* _prototypeOverride = nullptr;    ///< Shared canonical geometry the instancer references (mesh dedup); null = use _shape.
+    bool _forceInstancerNode = false;        ///< Force the instancer-node path instead of shape-instancing (mesh dedup).
     uint8_t _visibility = AI_RAY_ALL;        ///< Visibility of the mesh.
 };
 
