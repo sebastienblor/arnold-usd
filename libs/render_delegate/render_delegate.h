@@ -766,44 +766,47 @@ public:
     // instead of using nested arnold instancer nodes
     bool FlattenInstancing () const {return _flattenInstancing;}
 
-    /// Mesh geometry deduplication mode: which geometrically identical meshes are rendered
-    /// as instances of a single canonical Arnold node instead of being duplicated.
-    enum class MeshDedupMode {
+    /// Geometry deduplication mode: which geometrically identical geometries (meshes or
+    /// curves) are rendered as instances of a single canonical Arnold node instead of being
+    /// duplicated.
+    enum class GeometryDedupMode {
         None = 0,       ///< No deduplication.
         Instances = 1,  ///< Only point-instancer prototypes (the flattening case). Default.
-        All = 2         ///< Every eligible mesh, including plain non-instanced duplicates.
+        All = 2         ///< Every eligible geometry, including plain non-instanced duplicates.
     };
 
-    // Returns the active mesh deduplication mode.
-    MeshDedupMode GetMeshDedupMode () const {return _meshDedupMode;}
+    // Returns the active geometry deduplication mode.
+    GeometryDedupMode GetGeometryDedupMode () const {return _geometryDedupMode;}
 
-    // Return true if any mesh deduplication is enabled.
-    bool DeduplicateMeshes () const {return _meshDedupMode != MeshDedupMode::None;}
+    // Return true if any geometry deduplication is enabled.
+    bool DeduplicateGeometry () const {return _geometryDedupMode != GeometryDedupMode::None;}
 
-    /// Mesh geometry deduplication registry (see DeduplicateMeshes). These are called
-    /// from HdArnoldMesh to share a single canonical Arnold node between geometrically
-    /// identical meshes, rendering the duplicates as instances.
+    /// Geometry deduplication registry (see DeduplicateGeometry). These are called from the
+    /// geometry rprims (HdArnoldMesh, HdArnoldBasisCurves) to share a single canonical Arnold
+    /// node between geometrically identical geometries, rendering the duplicates as instances.
+    /// The @p hash the caller passes must already distinguish the Arnold node type, so a curve
+    /// and a mesh with a colliding geometry hash are never merged (see HdArnoldRprim).
     ///
     /// Registers @p candidate as a candidate for the geometry identified by @p hash.
     /// Returns nullptr if @p candidate is (or remains) the canonical for that geometry -
-    /// the caller builds it as a normal polymesh. Otherwise returns the existing canonical
+    /// the caller builds it as a normal shape. Otherwise returns the existing canonical
     /// Arnold node that @p candidate should instance, and outputs its path in
     /// @p canonicalPath.
     HDARNOLD_API
-    AtNode* AcquireCanonicalMesh(const SdfPath& id, AtNode* candidate, uint64_t hash, SdfPath* canonicalPath);
+    AtNode* AcquireCanonicalGeometry(const SdfPath& id, AtNode* candidate, uint64_t hash, SdfPath* canonicalPath);
 
-    /// Releases the canonical relationship held by @p id (called when a mesh stops being
+    /// Releases the canonical relationship held by @p id (called when a geometry stops being
     /// an instance, or before it is re-evaluated because its geometry changed).
     HDARNOLD_API
-    void ReleaseCanonicalMesh(const SdfPath& id);
+    void ReleaseCanonicalGeometry(const SdfPath& id);
 
-    /// Called when a mesh rprim is destroyed. If @p id owns a canonical node still
+    /// Called when a geometry rprim is destroyed. If @p id owns a canonical node still
     /// referenced by instances, the render delegate adopts @p node (keeping it alive until
     /// the last instance is released) and dirties the dependents so they re-evaluate;
     /// it returns true so the caller relinquishes ownership of the node. Returns false
     /// otherwise (the caller destroys the node normally).
     HDARNOLD_API
-    bool OnMeshDestroyed(const SdfPath& id, AtNode* node);
+    bool OnGeometryDestroyed(const SdfPath& id, AtNode* node);
 
     HydraArnoldReader *GetReader() {return _reader;} 
     void SetReader(HydraArnoldReader *r) {_reader = r;} 
@@ -941,20 +944,20 @@ private:
     std::atomic<bool> _meshLightsChanged;
     std::set<AtNode*> _meshLights;
 
-    /// Mesh geometry deduplication registry (see DeduplicateMeshes / AcquireCanonicalMesh).
-    struct CanonicalMesh {
+    /// Geometry deduplication registry (see DeduplicateGeometry / AcquireCanonicalGeometry).
+    struct CanonicalGeometry {
         AtNode* node = nullptr;             ///< Arnold node acting as the shared prototype.
         SdfPath canonicalPath;              ///< Path of the rprim owning the node (empty once adopted).
         uint32_t refcount = 0;              ///< Number of instances pointing at this node.
         bool adopted = false;               ///< True once the owning rprim was destroyed and the delegate owns the node.
     };
-    std::mutex _canonicalMeshMutex;
-    std::unordered_map<uint64_t, CanonicalMesh> _canonicalMeshes;         ///< geometry hash -> canonical
-    std::unordered_map<SdfPath, uint64_t, SdfPath::Hash> _meshHashes;     ///< rprim id -> its geometry hash
+    std::mutex _canonicalGeometryMutex;
+    std::unordered_map<uint64_t, CanonicalGeometry> _canonicalGeometry;         ///< geometry hash -> canonical
+    std::unordered_map<SdfPath, uint64_t, SdfPath::Hash> _geometryHashes;     ///< rprim id -> its geometry hash
     /// Releases the canonical relationship of @p id (associated with @p hash). Assumes
-    /// _canonicalMeshMutex is held. If a canonical node becomes destroyable, it is
+    /// _canonicalGeometryMutex is held. If a canonical node becomes destroyable, it is
     /// returned so the caller can destroy it outside the lock.
-    AtNode* _ReleaseCanonicalMeshLocked(const SdfPath& id, uint64_t hash);
+    AtNode* _ReleaseCanonicalGeometryLocked(const SdfPath& id, uint64_t hash);
 
     std::mutex _coordSysCamerasMutex;
     std::unordered_map<AtNode*, float> _coordSysCameras; ///< coordSys camera node -> aperture ratio (vAp/hAp)
@@ -981,7 +984,7 @@ private:
     bool _enableNodesDestruction = true;
     bool _supportShapeInstancing = true;
     bool _flattenInstancing = false;
-    MeshDedupMode _meshDedupMode = MeshDedupMode::Instances;
+    GeometryDedupMode _geometryDedupMode = GeometryDedupMode::Instances;
     bool _forceIgnoreMotionBlur = false;
     bool _useHydraRenderSettings = false;
     std::unordered_map<std::string, AtNode *> _nodeNames;

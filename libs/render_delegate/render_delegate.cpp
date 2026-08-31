@@ -145,10 +145,11 @@ TF_DEFINE_ENV_SETTING(
     HDARNOLD_FLATTEN_INSTANCING, "",
     "Set to 1 to flatten nested instances into shape instancing instead of using nested arnold instancer nodes");
 TF_DEFINE_ENV_SETTING(
-    HDARNOLD_MESH_DEDUP, 1,
-    "Mesh geometry deduplication mode: render geometrically identical meshes as instances of a "
-    "single canonical mesh instead of duplicating them. 0 = off, 1 = point-instancer prototypes "
-    "only (default), 2 = all meshes (also plain non-instanced duplicates).");
+    HDARNOLD_GEOM_DEDUP, 1,
+    "Geometry deduplication mode: render geometrically identical geometries (meshes or curves) "
+    "as instances of a single canonical node instead of duplicating them. 0 = off, 1 = "
+    "point-instancer prototypes only (default), 2 = all geometries (also plain non-instanced "
+    "duplicates).");
 
 namespace {
 
@@ -693,24 +694,24 @@ HdArnoldRenderDelegate::HdArnoldRenderDelegate(bool isBatch, const TfToken &cont
     std::string envFlattenInstancing = TfGetEnvSetting(HDARNOLD_FLATTEN_INSTANCING);
     _flattenInstancing = envFlattenInstancing == std::string("1");
 
-    // Detecting geometrically identical meshes and rendering the duplicates as instances of a
-    // single canonical mesh. Defaults to deduplicating point-instancer prototypes only (the
-    // flattening case), which is where the win is and which leaves the common non-instanced
-    // meshes untouched (no hashing cost). The mode can be changed through the env var: 0 off,
-    // 1 instanced prototypes (default), 2 all meshes.
+    // Detecting geometrically identical geometries (meshes or curves) and rendering the
+    // duplicates as instances of a single canonical node. Defaults to deduplicating
+    // point-instancer prototypes only (the flattening case), which is where the win is and which
+    // leaves the common non-instanced geometries untouched (no hashing cost). The mode can be
+    // changed through the env var: 0 off, 1 instanced prototypes (default), 2 all geometries.
     //
     // Read fresh from the environment (TfGetenv, not the process-cached TfGetEnvSetting) so the
     // mode can be switched between scene loads in the same process - a DCC toggling it between
     // renders, or a test exercising all three modes - rather than being frozen at whatever it
     // was on the first read. Fall back to the registered default (which provides the value and
     // documentation) when the variable is unset.
-    const std::string meshDedupEnv = TfGetenv("HDARNOLD_MESH_DEDUP");
-    const int meshDedupValue = meshDedupEnv.empty() ? TfGetEnvSetting(HDARNOLD_MESH_DEDUP)
-                                                    : static_cast<int>(TfStringToLong(meshDedupEnv));
-    switch (meshDedupValue) {
-        case 0: _meshDedupMode = MeshDedupMode::None; break;
-        case 2: _meshDedupMode = MeshDedupMode::All; break;
-        default: _meshDedupMode = MeshDedupMode::Instances; break;
+    const std::string geomDedupEnv = TfGetenv("HDARNOLD_GEOM_DEDUP");
+    const int geomDedupValue = geomDedupEnv.empty() ? TfGetEnvSetting(HDARNOLD_GEOM_DEDUP)
+                                                    : static_cast<int>(TfStringToLong(geomDedupEnv));
+    switch (geomDedupValue) {
+        case 0: _geometryDedupMode = GeometryDedupMode::None; break;
+        case 2: _geometryDedupMode = GeometryDedupMode::All; break;
+        default: _geometryDedupMode = GeometryDedupMode::Instances; break;
     }
 
 }
@@ -2175,25 +2176,25 @@ void HdArnoldRenderDelegate::ClearDependencies(const SdfPath& source)
 }
 
 // ---------------------------------------------------------------------------
-// Mesh geometry deduplication registry.
+// Geometry deduplication registry (meshes and curves).
 // ---------------------------------------------------------------------------
 
-AtNode* HdArnoldRenderDelegate::_ReleaseCanonicalMeshLocked(const SdfPath& id, uint64_t hash)
+AtNode* HdArnoldRenderDelegate::_ReleaseCanonicalGeometryLocked(const SdfPath& id, uint64_t hash)
 {
-    auto ceIt = _canonicalMeshes.find(hash);
-    if (ceIt == _canonicalMeshes.end())
+    auto ceIt = _canonicalGeometry.find(hash);
+    if (ceIt == _canonicalGeometry.end())
         return nullptr;
-    CanonicalMesh& cm = ceIt->second;
+    CanonicalGeometry& cm = ceIt->second;
     if (cm.canonicalPath == id && !cm.adopted) {
         // id owns this canonical, but its geometry identity is no longer valid (the
-        // geometry changed or the mesh is reverting to a plain polymesh). Drop the entry.
+        // geometry changed or the shape is reverting to a plain, non-instanced node). Drop the entry.
         if (cm.refcount > 0) {
             // Instances still reference the node. Dirty them so they re-evaluate and
             // re-point on their next Sync (the node stays owned by the rprim and will
             // hold its new geometry in the meantime).
             _dependencyRemovalQueue.emplace(id);
         }
-        _canonicalMeshes.erase(ceIt);
+        _canonicalGeometry.erase(ceIt);
         return nullptr;
     }
     // id is an instance of this canonical.
@@ -2201,42 +2202,42 @@ AtNode* HdArnoldRenderDelegate::_ReleaseCanonicalMeshLocked(const SdfPath& id, u
         --cm.refcount;
     if (cm.adopted && cm.refcount == 0) {
         AtNode* node = cm.node;
-        _canonicalMeshes.erase(ceIt);
+        _canonicalGeometry.erase(ceIt);
         return node; // caller destroys outside the lock
     }
     return nullptr;
 }
 
-AtNode* HdArnoldRenderDelegate::AcquireCanonicalMesh(
+AtNode* HdArnoldRenderDelegate::AcquireCanonicalGeometry(
     const SdfPath& id, AtNode* candidate, uint64_t hash, SdfPath* canonicalPath)
 {
     AtNode* toDestroy = nullptr;
     AtNode* result = nullptr;
     {
-        std::lock_guard<std::mutex> guard(_canonicalMeshMutex);
+        std::lock_guard<std::mutex> guard(_canonicalGeometryMutex);
 
         // If this rprim was previously associated with a different geometry, release it.
-        const auto prevIt = _meshHashes.find(id);
-        if (prevIt != _meshHashes.end() && prevIt->second != hash) {
-            toDestroy = _ReleaseCanonicalMeshLocked(id, prevIt->second);
+        const auto prevIt = _geometryHashes.find(id);
+        if (prevIt != _geometryHashes.end() && prevIt->second != hash) {
+            toDestroy = _ReleaseCanonicalGeometryLocked(id, prevIt->second);
         }
 
-        const auto ceIt = _canonicalMeshes.find(hash);
-        if (ceIt != _canonicalMeshes.end() && ceIt->second.node != nullptr && ceIt->second.canonicalPath != id) {
+        const auto ceIt = _canonicalGeometry.find(hash);
+        if (ceIt != _canonicalGeometry.end() && ceIt->second.node != nullptr && ceIt->second.canonicalPath != id) {
             // candidate is a duplicate of an existing canonical.
-            CanonicalMesh& cm = ceIt->second;
+            CanonicalGeometry& cm = ceIt->second;
             ++cm.refcount;
-            _meshHashes[id] = hash;
+            _geometryHashes[id] = hash;
             if (canonicalPath != nullptr)
                 *canonicalPath = cm.canonicalPath;
             result = cm.node;
         } else {
             // candidate is (or remains) the canonical for this geometry.
-            CanonicalMesh& cm = _canonicalMeshes[hash];
+            CanonicalGeometry& cm = _canonicalGeometry[hash];
             cm.node = candidate;
             cm.canonicalPath = id;
             cm.adopted = false;
-            _meshHashes[id] = hash;
+            _geometryHashes[id] = hash;
             result = nullptr;
         }
     }
@@ -2245,37 +2246,37 @@ AtNode* HdArnoldRenderDelegate::AcquireCanonicalMesh(
     return result;
 }
 
-void HdArnoldRenderDelegate::ReleaseCanonicalMesh(const SdfPath& id)
+void HdArnoldRenderDelegate::ReleaseCanonicalGeometry(const SdfPath& id)
 {
     AtNode* toDestroy = nullptr;
     {
-        std::lock_guard<std::mutex> guard(_canonicalMeshMutex);
-        const auto hIt = _meshHashes.find(id);
-        if (hIt == _meshHashes.end())
+        std::lock_guard<std::mutex> guard(_canonicalGeometryMutex);
+        const auto hIt = _geometryHashes.find(id);
+        if (hIt == _geometryHashes.end())
             return;
         const uint64_t hash = hIt->second;
-        _meshHashes.erase(hIt);
-        toDestroy = _ReleaseCanonicalMeshLocked(id, hash);
+        _geometryHashes.erase(hIt);
+        toDestroy = _ReleaseCanonicalGeometryLocked(id, hash);
     }
     if (toDestroy != nullptr)
         DestroyArnoldNode(toDestroy);
 }
 
-bool HdArnoldRenderDelegate::OnMeshDestroyed(const SdfPath& id, AtNode* node)
+bool HdArnoldRenderDelegate::OnGeometryDestroyed(const SdfPath& id, AtNode* node)
 {
     AtNode* toDestroy = nullptr;
     bool adopted = false;
     {
-        std::lock_guard<std::mutex> guard(_canonicalMeshMutex);
-        const auto hIt = _meshHashes.find(id);
-        if (hIt == _meshHashes.end())
+        std::lock_guard<std::mutex> guard(_canonicalGeometryMutex);
+        const auto hIt = _geometryHashes.find(id);
+        if (hIt == _geometryHashes.end())
             return false;
         const uint64_t hash = hIt->second;
-        _meshHashes.erase(hIt);
-        const auto ceIt = _canonicalMeshes.find(hash);
-        if (ceIt == _canonicalMeshes.end())
+        _geometryHashes.erase(hIt);
+        const auto ceIt = _canonicalGeometry.find(hash);
+        if (ceIt == _canonicalGeometry.end())
             return false;
-        CanonicalMesh& cm = ceIt->second;
+        CanonicalGeometry& cm = ceIt->second;
         if (cm.canonicalPath == id && !cm.adopted) {
             // Destroying the canonical itself.
             if (cm.refcount > 0) {
@@ -2291,7 +2292,7 @@ bool HdArnoldRenderDelegate::OnMeshDestroyed(const SdfPath& id, AtNode* node)
                 cm.canonicalPath = SdfPath();
                 adopted = true;
             } else {
-                _canonicalMeshes.erase(ceIt);
+                _canonicalGeometry.erase(ceIt);
             }
         } else {
             // Destroying an instance.
@@ -2299,7 +2300,7 @@ bool HdArnoldRenderDelegate::OnMeshDestroyed(const SdfPath& id, AtNode* node)
                 --cm.refcount;
             if (cm.adopted && cm.refcount == 0) {
                 toDestroy = cm.node;
-                _canonicalMeshes.erase(ceIt);
+                _canonicalGeometry.erase(ceIt);
             }
         }
     }

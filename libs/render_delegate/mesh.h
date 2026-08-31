@@ -116,10 +116,8 @@ protected:
     size_t _numberOfPositionKeys = 1; ///< Number of vertex position keys for the mesh.
     MeshHoleFilter _holeFilter;       ///< Cached membership/offset tables for USD holeIndices filtering.
     AtNode *_geometryLight = nullptr; ///< Eventual mesh light for this polymesh
-    bool _isInstance = false;         ///< True when this mesh is a dedup duplicate (geometry not built), either mode below.
-    bool _dedupRegistered = false;    ///< True while this mesh has an entry in the dedup registry (canonical or duplicate); lets the destructor skip OnMeshDestroyed for the many meshes that never deduplicate. Kept next to _isInstance so it fits the padding and sizeof is unchanged.
-    AtNode* _sharedPrototype = nullptr; ///< Canonical polymesh this prototype's instancer references (instanced dedup); null for the ginstance mode.
-    SdfPath _canonicalPath;           ///< Path of the canonical mesh this one shares (dedup), empty otherwise.
+    // Geometry deduplication state (_isInstance, _dedupRegistered, _sharedPrototype,
+    // _canonicalPath) lives in the HdArnoldRprim base, shared with the curves rprim.
     ArrayHandler _arrayHandler; ///< Structure managing the Vt and At arrays of the scene
 };
 

@@ -1,4 +1,4 @@
-// Verifies the three HDARNOLD_MESH_DEDUP modes of the render delegate by expanding the same
+// Verifies the three HDARNOLD_GEOM_DEDUP modes of the render delegate by expanding the same
 // USD scene once per mode and inspecting the resulting Arnold scene (no image comparison):
 //
 //   0 = None       : every mesh keeps its own geometry.
@@ -68,6 +68,25 @@ int GeometryPolymeshCount(AtUniverse* universe)
     return count;
 }
 
+// Number of curves nodes that actually hold geometry (a non-empty point list). Mirrors
+// GeometryPolymeshCount for the curves dedup path: a deduplicated duplicate leaves behind an
+// empty, hidden curves shell whose instancer is redirected to the shared canonical.
+int GeometryCurvesCount(AtUniverse* universe)
+{
+    int count = 0;
+    AtNodeIterator* it = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
+    while (!AiNodeIteratorFinished(it)) {
+        AtNode* node = AiNodeIteratorGetNext(it);
+        if (!AiNodeIs(node, AtString("curves")))
+            continue;
+        AtArray* points = AiNodeGetArray(node, AtString("points"));
+        if (points != nullptr && AiArrayGetNumElements(points) > 0)
+            ++count;
+    }
+    AiNodeIteratorDestroy(it);
+    return count;
+}
+
 int NodeCount(AtUniverse* universe, const char* type)
 {
     int count = 0;
@@ -85,7 +104,8 @@ struct ModeCase {
     const char* mode;
     const char* name;
     int geometryPolymeshes;
-    int ginstances;
+    int geometryCurves;
+    int ginstances; // total ginstance nodes (mesh + curve duplicates in "All" mode)
 };
 
 } // namespace
@@ -101,18 +121,21 @@ int main(int /*argc*/, char** /*argv*/)
     // translator (that does no deduplication).
     UnsetEnv("PROCEDURAL_USE_HYDRA");
 
+    // Meshes and curves have parallel geometry groups, so each mode collapses them the same
+    // way. "All" mode produces one mesh ginstance (plainB) and one curve ginstance
+    // (curvePlainB), hence 2 total ginstances.
     const ModeCase cases[] = {
-        {"0", "None", 5, 0},
-        {"1", "Instances", 4, 0},
-        {"2", "All", 3, 1},
+        {"0", "None", 5, 5, 0},
+        {"1", "Instances", 4, 4, 0},
+        {"2", "All", 3, 3, 2},
     };
 
     bool success = true;
     for (const ModeCase& c : cases) {
-        // The render delegate reads HDARNOLD_MESH_DEDUP fresh on construction, so setting it
+        // The render delegate reads HDARNOLD_GEOM_DEDUP fresh on construction, so setting it
         // here takes effect for this expansion even though earlier expansions ran with a
         // different value in the same process.
-        SetEnv("HDARNOLD_MESH_DEDUP", c.mode);
+        SetEnv("HDARNOLD_GEOM_DEDUP", c.mode);
 
         AtUniverse* universe = AiUniverse();
         AtRenderSession* session = AiRenderSession(universe);
@@ -122,19 +145,22 @@ int main(int /*argc*/, char** /*argv*/)
         AiProceduralExpand(proc, nullptr);
 
         const int geometryPolymeshes = GeometryPolymeshCount(universe);
+        const int geometryCurves = GeometryCurvesCount(universe);
         const int ginstances = NodeCount(universe, "ginstance");
         const int instancers = NodeCount(universe, "instancer");
 
         printf(
-            "[test_18101] mode %s (%s): geometry polymeshes=%d ginstances=%d instancers=%d\n", c.mode, c.name,
-            geometryPolymeshes, ginstances, instancers);
+            "[test_18101] mode %s (%s): geometry polymeshes=%d curves=%d ginstances=%d instancers=%d\n", c.mode,
+            c.name, geometryPolymeshes, geometryCurves, ginstances, instancers);
 
-        if (geometryPolymeshes != c.geometryPolymeshes || ginstances != c.ginstances) {
+        if (geometryPolymeshes != c.geometryPolymeshes || geometryCurves != c.geometryCurves ||
+            ginstances != c.ginstances) {
             fprintf(
                 stderr,
-                "[test_18101] FAIL mode %s (%s): expected geometry polymeshes=%d ginstances=%d, "
-                "got geometry polymeshes=%d ginstances=%d\n",
-                c.mode, c.name, c.geometryPolymeshes, c.ginstances, geometryPolymeshes, ginstances);
+                "[test_18101] FAIL mode %s (%s): expected geometry polymeshes=%d curves=%d ginstances=%d, "
+                "got geometry polymeshes=%d curves=%d ginstances=%d\n",
+                c.mode, c.name, c.geometryPolymeshes, c.geometryCurves, c.ginstances, geometryPolymeshes,
+                geometryCurves, ginstances);
             success = false;
         }
 

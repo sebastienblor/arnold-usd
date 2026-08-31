@@ -180,15 +180,11 @@ HdArnoldMesh::HdArnoldMesh(HdArnoldRenderDelegate* renderDelegate, const SdfPath
 }
 
 HdArnoldMesh::~HdArnoldMesh() {
-    // Mesh deduplication: if this mesh owns a canonical node still referenced by instances,
-    // hand the node over to the render delegate so it outlives this rprim; otherwise the
-    // delegate just cleans up its registry entry and the base class destroys the node.
-    // Only meshes that actually registered in the dedup registry (canonical or duplicate)
-    // need this: skipping it for the rest avoids taking the registry lock for every mesh
-    // when tearing down a large scene where most meshes never deduplicate.
-    if (_dedupRegistered && _renderDelegate->OnMeshDestroyed(GetId(), GetArnoldNode())) {
-        GetShape().ReleaseShapeOwnership();
-    }
+    // Geometry deduplication: if this mesh owns a canonical node still referenced by instances,
+    // hand it over to the render delegate so it outlives this rprim. This must run before the
+    // shared-array reset below (on adoption GetArnoldNode() becomes null, so that reset is
+    // correctly skipped and the adopted node's geometry is left intact).
+    _HandOffDedupOnDestroy();
     if (_geometryLight) {
         _renderDelegate->UnregisterMeshLight(_geometryLight);
     }
@@ -267,27 +263,9 @@ void HdArnoldMesh::Sync(
     // computed/skinned points, velocity/acceleration motion blur, geom subsets and mesh
     // lights. For the instanced flavor we merge conservatively (geometry + transform +
     // material must match).
-    if (GetRenderDelegate()->DeduplicateMeshes()) {
+    if (GetRenderDelegate()->DeduplicateGeometry()) {
         const bool geomDirty = HdChangeTracker::IsTopologyDirty(*dirtyBits, id) ||
                                HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->points) || dirtyPrimvars;
-        // Reverts any prior dedup state so this mesh can be freshly re-evaluated (or built
-        // as a plain polymesh). Restores a real polymesh node in the ginstance case.
-        auto revertDedup = [&]() {
-            if (!_isInstance)
-                return;
-            GetRenderDelegate()->ReleaseCanonicalMesh(id);
-            _dedupRegistered = false;
-            if (_sharedPrototype != nullptr) {
-                GetShape().SetPrototypeOverride(nullptr);
-                _sharedPrototype = nullptr;
-            } else {
-                GetShape().SetShapeType(str::polymesh, id);
-                node = GetArnoldNode();
-                AiNodeSetByte(node, str::subdiv_iterations, 0);
-            }
-            _isInstance = false;
-            _canonicalPath = SdfPath();
-        };
         if (geomDirty) {
             // The primary duplicated-geometry problem is prototype flattening: UsdImaging
             // re-roots a copy of each instancer's prototype, so geometrically identical
@@ -306,8 +284,9 @@ void HdArnoldMesh::Sync(
             }
             const bool instanced = !GetInstancerId().IsEmpty();
             bool eligible = instanced ||
-                GetRenderDelegate()->GetMeshDedupMode() == HdArnoldRenderDelegate::MeshDedupMode::All;
+                GetRenderDelegate()->GetGeometryDedupMode() == HdArnoldRenderDelegate::GeometryDedupMode::All;
             HdMeshTopology topology;
+            uint64_t hash = 0;
             if (eligible) {
                 HdArnoldRenderParam* rp = reinterpret_cast<HdArnoldRenderParam*>(_renderDelegate->GetRenderParam());
                 const bool computedPoints = _primvars.count(HdTokens->points) != 0;
@@ -326,59 +305,14 @@ void HdArnoldMesh::Sync(
                            _pointsSample.values.size() >= _pointsSample.count;
                 for (size_t i = 0; eligible && i < _pointsSample.count; ++i)
                     eligible = _pointsSample.values[i].IsHolding<VtVec3fArray>();
+                if (eligible)
+                    hash = _ComputeGeometryHash(topology, _pointsSample, sceneDelegate, id, instanced);
             }
-            // An eligible instanced prototype may be shared with a geometrically identical one
-            // (as the canonical or as a duplicate). It must then stay a plain, shareable
-            // polymesh: shape-instancing bakes instance_matrix onto the polymesh, which makes it
-            // unusable both as a redirect target for another instancer and as a ginstance
-            // prototype ("cannot use ginstance with already instanced shapes"). Since Sync
-            // ordering is nondeterministic (a prototype may become the canonical before any
-            // duplicate is seen), force the arnold instancer-node path for every eligible
-            // instanced prototype. (Non-instanced "All"-mode duplicates have no instancer.)
-            GetShape().SetForceInstancerNode(eligible && instanced);
-            if (eligible) {
-                // Present a stable candidate node when (re)registering as a canonical.
-                revertDedup();
-                const uint64_t hash =
-                    _ComputeGeometryHash(topology, _pointsSample, sceneDelegate, id, instanced);
-                SdfPath canonicalPath;
-                AtNode* canonical = GetRenderDelegate()->AcquireCanonicalMesh(id, node, hash, &canonicalPath);
-                // AcquireCanonicalMesh always records this mesh in the registry (as the
-                // canonical or as a duplicate), so from now on the destructor must call
-                // OnMeshDestroyed to clean up / hand off the node.
-                _dedupRegistered = true;
-                if (canonical != nullptr) {
-                    _isInstance = true;
-                    // The duplicate must re-sync whenever its canonical changes or is
-                    // removed; assignMaterials() registers this dependency (together with
-                    // the material ones) from _canonicalPath.
-                    _canonicalPath = canonicalPath;
-                    if (instanced) {
-                        // Redirect this prototype's instancer to the shared canonical polymesh
-                        // and skip building this prototype's geometry.
-                        _sharedPrototype = canonical;
-                        GetShape().SetPrototypeOverride(canonical);
-                    } else {
-                        GetShape().ConvertToInstanceOf(canonical, id);
-                        node = GetArnoldNode();
-                    }
-                    // Make sure the duplicate gets its transform, visibility and shader
-                    // applied by the blocks below (and, for the instanced case, its instancer
-                    // rebuilt with the redirected prototype). We also force the primvars to be
-                    // re-applied: a ginstance is a fresh Arnold node (ConvertToInstanceOf
-                    // recreates it) that still needs its node-level constant primvars
-                    // (arnold:visibility, sidedness, matte, per-instance user data).
-                    *dirtyBits |= HdChangeTracker::DirtyTransform | HdChangeTracker::DirtyVisibility |
-                                  HdChangeTracker::DirtyMaterialId | HdChangeTracker::DirtyPrimvar;
-                    dirtyPrimvars = true;
-                }
-            } else if (_isInstance) {
-                // No longer eligible for dedup but was a duplicate: revert and force a
-                // full geometry rebuild.
-                revertDedup();
-                *dirtyBits |= HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyPoints |
-                              HdChangeTracker::DirtyPrimvar;
-            }
+            // Register/redirect through the shared dedup registry (see HdArnoldRprim). The node
+            // may be recreated (ginstance conversion, or reverting to a plain polymesh), so
+            // refresh the local pointer afterwards.
+            _ApplyGeometryDedup(id, eligible, instanced, hash, str::polymesh, dirtyBits, dirtyPrimvars);
+            node = GetArnoldNode();
         }
     }
 
