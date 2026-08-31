@@ -15,6 +15,7 @@
 - [usd#2710](https://github.com/Autodesk/arnold-usd/issues/2710) - Support uv_camera ray_direction / ray_origin in hydra
 - [usd#2731](https://github.com/Autodesk/arnold-usd/issues/2731) - Per-renderVar EXR compression
 - [usd#2747](https://github.com/Autodesk/arnold-usd/issues/2747) - Fix nodes destruction during interactive sessions under a procedural
+- [usd#2749](https://github.com/Autodesk/arnold-usd/issues/2749) - Mesh geometry deduplication in the hydra render delegate
 
 ### Bug fixes
 

@@ -24,6 +24,6 @@ three modes can be exercised in a single process. The test links only against Ar
 goes through the procedural (like a real render), so it never loads the render delegate's
 static USD into its own process.
 
-See MTOA-3029
+See ARNOLD-17180
 
 author: sebastien.blaineau.ortega@autodesk.com
