@@ -93,16 +93,18 @@ protected:
     bool _HasMeshLight(HdSceneDelegate* sceneDelegate, const SdfPath& id) const;
 
     /// Computes a hash uniquely identifying the geometry that ends up on the Arnold
-    /// polymesh: topology, points, all primvars (uvs, normals, custom, constant), the
-    /// display-style refinement and the resolved displacement shader (a ginstance cannot
-    /// override displacement, so meshes with different displacement must not be merged).
+    /// polymesh: topology, points (every motion key and its sample time, so deformation
+    /// motion blur is deduplicated only when identical across the whole shutter), all
+    /// primvars (uvs, normals, custom, constant), the display-style refinement and the
+    /// resolved displacement shader (a ginstance cannot override displacement, so meshes
+    /// with different displacement must not be merged).
     ///
     /// When @p instanced is true (a point-instancer prototype), the prototype's own
     /// transform and its resolved surface shader are also folded in: the shared canonical
     /// polymesh carries both (its instancer references it directly), so only prototypes
     /// that match on those too may be merged.
     uint64_t _ComputeGeometryHash(
-        const HdMeshTopology& topology, const VtValue& points, HdSceneDelegate* sceneDelegate,
+        const HdMeshTopology& topology, const HdArnoldSampledPrimvarType& points, HdSceneDelegate* sceneDelegate,
         const SdfPath& id, bool instanced);
 
     HdArnoldPrimvarMap _primvars;     ///< Precomputed list of primvars.

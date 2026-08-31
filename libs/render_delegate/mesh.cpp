@@ -262,9 +262,11 @@ void HdArnoldMesh::Sync(
     //    transform and surface shader are applied per-instance);
     //  - point-instancer prototype (the common flattening case): this prototype's instancer
     //    is redirected to the shared canonical polymesh (see HdArnoldShape::SetPrototypeOverride).
-    // v1 targets static meshes (single position key), no computed/skinned points, no
-    // velocity/acceleration motion blur, no geom subsets and no mesh light. For the
-    // instanced flavor we merge conservatively (geometry + transform + material must match).
+    // Handles static meshes and deformation-motion-blurred meshes (any number of position
+    // keys, deduplicated only when identical across the whole shutter); excludes
+    // computed/skinned points, velocity/acceleration motion blur, geom subsets and mesh
+    // lights. For the instanced flavor we merge conservatively (geometry + transform +
+    // material must match).
     if (GetRenderDelegate()->DeduplicateMeshes()) {
         const bool geomDirty = HdChangeTracker::IsTopologyDirty(*dirtyBits, id) ||
                                HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, HdTokens->points) || dirtyPrimvars;
@@ -316,9 +318,14 @@ void HdArnoldMesh::Sync(
                 if (eligible && _pointsSample.count == 0) {
                     SamplePrimvar(sceneDelegate, id, HdTokens->points, rp->GetShutterRange(), &_pointsSample);
                 }
-                // v1 only deduplicates static meshes (a single position key).
-                eligible = eligible && _pointsSample.count == 1 && !_pointsSample.values.empty() &&
-                           _pointsSample.values[0].IsHolding<VtVec3fArray>();
+                // Deduplicate static meshes and deformation-motion-blurred meshes (one or more
+                // position keys); every key must hold a point array. Velocity/acceleration blur
+                // is excluded above - here we only need the sampled vlist to match across the
+                // whole shutter (see _ComputeGeometryHash).
+                eligible = eligible && _pointsSample.count >= 1 &&
+                           _pointsSample.values.size() >= _pointsSample.count;
+                for (size_t i = 0; eligible && i < _pointsSample.count; ++i)
+                    eligible = _pointsSample.values[i].IsHolding<VtVec3fArray>();
             }
             // An eligible instanced prototype may be shared with a geometrically identical one
             // (as the canonical or as a duplicate). It must then stay a plain, shareable
@@ -333,7 +340,7 @@ void HdArnoldMesh::Sync(
                 // Present a stable candidate node when (re)registering as a canonical.
                 revertDedup();
                 const uint64_t hash =
-                    _ComputeGeometryHash(topology, _pointsSample.values[0], sceneDelegate, id, instanced);
+                    _ComputeGeometryHash(topology, _pointsSample, sceneDelegate, id, instanced);
                 SdfPath canonicalPath;
                 AtNode* canonical = GetRenderDelegate()->AcquireCanonicalMesh(id, node, hash, &canonicalPath);
                 // AcquireCanonicalMesh always records this mesh in the registry (as the
@@ -888,13 +895,23 @@ bool HdArnoldMesh::_HasMeshLight(HdSceneDelegate* sceneDelegate, const SdfPath& 
 }
 
 uint64_t HdArnoldMesh::_ComputeGeometryHash(
-    const HdMeshTopology& topology, const VtValue& points, HdSceneDelegate* sceneDelegate, const SdfPath& id,
-    bool instanced)
+    const HdMeshTopology& topology, const HdArnoldSampledPrimvarType& points, HdSceneDelegate* sceneDelegate,
+    const SdfPath& id, bool instanced)
 {
     // Topology covers face-vertex counts/indices, scheme, orientation, holes and subdiv tags.
     size_t hash = topology.ComputeHash();
-    if (points.CanHash())
-        hash = TfHash::Combine(hash, points.GetHash());
+    // Points across the whole shutter: fold in the number of motion keys, each sample time and
+    // each sample's values. Two meshes are merged only if their deformation is identical at
+    // every key - Arnold interpolates vlist linearly between keys, so matching keys (and times)
+    // guarantee matching motion everywhere in the shutter, making the merge exact rather than a
+    // current-frame approximation.
+    hash = TfHash::Combine(hash, points.count);
+    for (size_t i = 0; i < points.count && i < points.values.size(); ++i) {
+        if (i < points.times.size())
+            hash = TfHash::Combine(hash, points.times[i]);
+        if (points.values[i].CanHash())
+            hash = TfHash::Combine(hash, points.values[i].GetHash());
+    }
     // The display style drives the subdivision iterations set on the polymesh.
     hash = TfHash::Combine(hash, GetDisplayStyle(sceneDelegate).refineLevel);
     // Every primvar ends up on the polymesh (uvs, normals, custom, and constant arnold
