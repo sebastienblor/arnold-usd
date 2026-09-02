@@ -311,7 +311,7 @@ void HdArnoldMesh::Sync(
             // Register/redirect through the shared dedup registry (see HdArnoldRprim). The node
             // may be recreated (ginstance conversion, or reverting to a plain polymesh), so
             // refresh the local pointer afterwards.
-            _ApplyGeometryDedup(id, eligible, instanced, hash, str::polymesh, dirtyBits, dirtyPrimvars);
+            _ApplyGeometryDedup(id, eligible, instanced, hash, str::polymesh, dirtyBits, dirtyPrimvars, param);
             node = GetArnoldNode();
         }
     }

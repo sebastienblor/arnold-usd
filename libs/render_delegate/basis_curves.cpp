@@ -175,7 +175,7 @@ void HdArnoldBasisCurves::Sync(
             // Register/redirect through the shared dedup registry (see HdArnoldRprim). The node
             // may be recreated (ginstance conversion, or reverting to a plain curves node), so
             // refresh the local pointer afterwards.
-            _ApplyGeometryDedup(id, eligible, instanced, hash, str::curves, dirtyBits, dirtyPrimvars);
+            _ApplyGeometryDedup(id, eligible, instanced, hash, str::curves, dirtyBits, dirtyPrimvars, param);
             node = GetArnoldNode();
             // _ApplyGeometryDedup may have forced dirty bits (a fresh ginstance to configure, or
             // a revert that needs a full rebuild); refresh the local flags so the blocks below
