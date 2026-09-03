@@ -819,6 +819,24 @@ public:
     HDARNOLD_API
     void ReleaseCanonicalGeometry(const SdfPath& id);
 
+    /// Hands @p node, the canonical node owned by the rprim @p id, over to the render delegate
+    /// when other rprims still reference it, and returns true if it did.
+    ///
+    /// An Arnold instance does not copy its prototype's array parameters, it points at them
+    /// (nsides, vlist, vidxs, ... are flagged _skip_copy_on_instance), and only the prototype's
+    /// destructor frees them. Destroying a node that has been handed out as a canonical
+    /// therefore leaves every rprim that instances it - through a ginstance or through an
+    /// instancer's "nodes" - dereferencing freed arrays, which crashes on the next
+    /// AiNodeSetArray. The rprim owning a canonical must call this before it destroys or
+    /// repurposes that node (its geometry changed, it is no longer eligible for dedup, or it is
+    /// being deleted): on success the node is kept alive here until the last instance releases
+    /// it and the caller must relinquish ownership of it (HdArnoldShape::ReleaseShapeOwnership)
+    /// without destroying it, then build its own state into a new node.
+    ///
+    /// Returns false when nothing references the node (the caller keeps and owns it as usual).
+    HDARNOLD_API
+    bool HandOffCanonicalGeometry(const SdfPath& id, AtNode* node);
+
     /// Called when a geometry rprim is destroyed. If @p id owns a canonical node still
     /// referenced by instances, the render delegate adopts @p node (keeping it alive until
     /// the last instance is released) and dirties the dependents so they re-evaluate;
@@ -921,6 +939,9 @@ private:
     LightLinkingMap _lightLinks;                    ///< Light Link categories.
     LightLinkingMap _shadowLinks;                   ///< Shadow Link categories.
     std::atomic<bool> _lightLinkingChanged;         ///< Whether or not Light Linking have changed.
+    /// Source of unique names for the canonical geometry nodes the delegate adopts, which
+    /// outlive the rprim that created them (see _DetachAdoptedGeometry).
+    std::atomic<uint32_t> _adoptedGeometryCounter{0};
     DelegateRenderProducts _delegateRenderProducts; ///< Delegate Render Products for batch renders via husk.
     bool _delegateRenderProductsDirty = false;      ///< Flag to know if the arnold render products have been modified
     TfTokenVector _supportedRprimTypes;             ///< List of supported rprim types.
@@ -988,6 +1009,11 @@ private:
     /// returned so the caller can destroy it outside the lock. A @p record whose generation
     /// doesn't match the live entry is stale (the entry was recreated since) and is a no-op.
     AtNode* _ReleaseCanonicalGeometryLocked(const SdfPath& id, const GeometryHashRecord& record);
+
+    /// Detaches a canonical node that the render delegate just adopted from the rprim @p id
+    /// that created it, so that it can outlive it as a pure shared prototype. Must be called
+    /// outside _canonicalGeometryMutex, and only once per node.
+    void _DetachAdoptedGeometry(AtNode* node, const SdfPath& id);
 
     std::mutex _coordSysCamerasMutex;
     std::unordered_map<AtNode*, float> _coordSysCameras; ///< coordSys camera node -> aperture ratio (vAp/hAp)

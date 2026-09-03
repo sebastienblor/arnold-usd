@@ -2202,6 +2202,25 @@ void _ErasePendingDuplicate(std::vector<SdfPath>& pendingDuplicates, const SdfPa
 
 } // namespace
 
+void HdArnoldRenderDelegate::_DetachAdoptedGeometry(AtNode* node, const SdfPath& id)
+{
+    if (node == nullptr)
+        return;
+    // The node is not owned by an rprim anymore, it only survives as the shared prototype of
+    // the instances still referencing it. It must give up the prim path it is named after: the
+    // rprim it came from immediately recreates a node under that name (see
+    // _HandOffCanonicalGeometry), and arnold renames a newly created node whose name is
+    // already taken to an empty string, leaving the rprim with an unnamed node.
+    const std::string name =
+        id.GetString() + "/__arnold_shared_geometry_" + std::to_string(++_adoptedGeometryCounter);
+    AiNodeSetStr(node, str::name, AtString(name.c_str()));
+    // It also must stop rendering on its own: it used to be its rprim's geometry, which is now
+    // rendered by that rprim's new node, or gone along with the rprim. Its instances are not
+    // affected, they always set their own visibility (see HdArnoldShape::SetVisibility) and an
+    // Arnold instance only inherits the parameters that were never set on it.
+    AiNodeSetByte(node, str::visibility, 0);
+}
+
 AtNode* HdArnoldRenderDelegate::_ReleaseCanonicalGeometryLocked(const SdfPath& id, const GeometryHashRecord& record)
 {
     auto ceIt = _canonicalGeometry.find(record.hash);
@@ -2218,9 +2237,12 @@ AtNode* HdArnoldRenderDelegate::_ReleaseCanonicalGeometryLocked(const SdfPath& i
         // id owns this canonical, but its geometry identity is no longer valid (the
         // geometry changed or the shape is reverting to a plain, non-instanced node). Drop the entry.
         if (cm.refcount > 0) {
-            // Instances still reference the node. Dirty them so they re-evaluate and
-            // re-point on their next Sync (the node stays owned by the rprim and will
-            // hold its new geometry in the meantime).
+            // Instances are registered against the entry. Dirty them so they re-evaluate and
+            // re-point on their next Sync. Their Arnold nodes cannot be referencing id's node
+            // here: an rprim leaving a canonical it published has to hand that node over first
+            // (see HandOffCanonicalGeometry), so the only way to reach this is an entry that
+            // was never published (cm.node == nullptr), whose duplicates were all queued in
+            // pendingDuplicates without ever being handed a node.
             _dependencyRemovalQueue.emplace(id);
         }
         // Duplicates queued while the entry was pending would otherwise never be woken up
@@ -2346,6 +2368,45 @@ void HdArnoldRenderDelegate::ReleaseCanonicalGeometry(const SdfPath& id)
         DestroyArnoldNode(toDestroy);
 }
 
+bool HdArnoldRenderDelegate::HandOffCanonicalGeometry(const SdfPath& id, AtNode* node)
+{
+    if (node == nullptr)
+        return false;
+    {
+        std::lock_guard<std::mutex> guard(_canonicalGeometryMutex);
+        const auto hIt = _geometryHashes.find(id);
+        if (hIt == _geometryHashes.end())
+            return false;
+        const auto ceIt = _canonicalGeometry.find(hIt->second.hash);
+        if (ceIt == _canonicalGeometry.end())
+            return false;
+        CanonicalGeometry& cm = ceIt->second;
+        // Stale record (see _ReleaseCanonicalGeometryLocked), or id does not own this
+        // canonical, or the node it published is not the one being handed off: in all those
+        // cases the caller's node was never given out as a prototype.
+        if (cm.generation != hIt->second.generation || cm.adopted || cm.canonicalPath != id ||
+            cm.node != node)
+            return false;
+        // Nothing instances the node: the caller keeps owning it and may destroy it. The entry
+        // is left alone, releasing it is the caller's next step.
+        if (cm.refcount == 0)
+            return false;
+        // Keep the node (and its geometry, which the instances point at) alive here, owned by
+        // the render delegate, until the last instance releases it. Exactly the same state the
+        // entry ends up in when the canonical rprim is destroyed, see OnGeometryDestroyed.
+        // The instances are deliberately not dirtied: their nodes keep referencing this one,
+        // which still holds the geometry they were deduplicated against, so those that did not
+        // change do not have to be re-evaluated at all.
+        cm.adopted = true;
+        cm.canonicalPath = SdfPath();
+        // id is not associated with this entry anymore: it is neither its canonical nor one of
+        // the instances counted in refcount, so it must not release it later on.
+        _geometryHashes.erase(hIt);
+    }
+    _DetachAdoptedGeometry(node, id);
+    return true;
+}
+
 bool HdArnoldRenderDelegate::OnGeometryDestroyed(const SdfPath& id, AtNode* node)
 {
     AtNode* toDestroy = nullptr;
@@ -2400,6 +2461,8 @@ bool HdArnoldRenderDelegate::OnGeometryDestroyed(const SdfPath& id, AtNode* node
             }
         }
     }
+    if (adopted)
+        _DetachAdoptedGeometry(node, id);
     if (toDestroy != nullptr)
         DestroyArnoldNode(toDestroy);
     return adopted;

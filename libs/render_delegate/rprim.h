@@ -217,6 +217,40 @@ protected:
             _shape.ReleaseShapeOwnership();
     }
 
+    /// Creates a fresh, real (non-instanced) node of @p realShapeType (str::polymesh /
+    /// str::curves) for this rprim, replacing whatever node it currently owns. The new node is
+    /// empty, so the caller must force a full geometry rebuild. The caller is also responsible
+    /// for interrupting the render first (Arnold nodes are created and destroyed here).
+    void _CreateRealGeometryNode(const SdfPath& id, const AtString& realShapeType)
+    {
+        _shape.SetShapeType(realShapeType, id);
+        // A freshly created polymesh must reset its subdivision: unlike the one built in
+        // HdArnoldMesh's constructor it would otherwise keep arnold's default of 1 iteration.
+        // Curves have no subdiv_iterations parameter.
+        if (realShapeType == str::polymesh)
+            AiNodeSetByte(GetArnoldNode(), str::subdiv_iterations, 0);
+    }
+
+    /// Hands this rprim's Arnold node over to the render delegate if it is a dedup canonical
+    /// that other rprims instance, and gives this rprim a new, empty node of @p realShapeType
+    /// to build into. Returns true if that happened, in which case the caller must force a
+    /// full geometry rebuild (see _HandOffDedupOnDestroy for the same operation on destroy).
+    ///
+    /// Must be called before anything destroys or repurposes the node this rprim owns while it
+    /// is registered as a canonical - Arnold instances point at their prototype's geometry
+    /// arrays instead of copying them, so destroying a prototype dangles all of them (see
+    /// HdArnoldRenderDelegate::HandOffCanonicalGeometry).
+    bool _HandOffCanonicalGeometry(const SdfPath& id, const AtString& realShapeType)
+    {
+        // Only a real geometry node can have been published as a canonical.
+        if (_isInstance || !_renderDelegate->HandOffCanonicalGeometry(id, GetArnoldNode()))
+            return false;
+        // The node belongs to the render delegate now: drop it without destroying it.
+        _shape.ReleaseShapeOwnership();
+        _CreateRealGeometryNode(id, realShapeType);
+        return true;
+    }
+
     /// Turns this rprim's dedup instance state back into a real, non-instanced node of
     /// @p realShapeType (str::polymesh / str::curves). No-op if this rprim is not currently a
     /// dedup instance. The caller is responsible for interrupting the render first (the
@@ -231,30 +265,41 @@ protected:
             _sharedPrototype = nullptr;
         } else {
             // Ginstance flavor: recreate a real geometry node in place of the ginstance.
-            _shape.SetShapeType(realShapeType, id);
-            // A freshly recreated polymesh must reset its subdivision (it was a ginstance
-            // carrying none). Curves have no subdiv_iterations parameter.
-            if (realShapeType == str::polymesh)
-                AiNodeSetByte(GetArnoldNode(), str::subdiv_iterations, 0);
+            _CreateRealGeometryNode(id, realShapeType);
         }
         _isInstance = false;
         _canonicalPath = SdfPath();
     }
 
     /// Reverts any dedup state (registry entry and instance wiring) so this rprim can be
-    /// built as a real, non-instanced node of @p realShapeType. No-op if this rprim is not
-    /// registered with the dedup registry.
-    void _RevertGeometryDedup(const SdfPath& id, const AtString& realShapeType, HdArnoldRenderParamInterrupt& param)
+    /// built as a real, non-instanced node of @p realShapeType. Sets @p dirtyBits /
+    /// @p dirtyPrimvars when the geometry has to be rebuilt from scratch afterwards. No-op if
+    /// this rprim is not registered with the dedup registry.
+    void _RevertGeometryDedup(
+        const SdfPath& id, const AtString& realShapeType, HdDirtyBits* dirtyBits, bool& dirtyPrimvars,
+        HdArnoldRenderParamInterrupt& param)
     {
         if (!_dedupRegistered)
             return;
         // Leaving the registry can destroy an adopted canonical node, and rebuilding the real
         // node destroys/creates this rprim's node; neither may happen while rendering.
         param.Interrupt();
+        // If our node is a canonical other rprims instance, it must outlive us: hand it over
+        // and continue on a new one (the render delegate destroys it once the last instance
+        // is gone). Otherwise we keep it and ReleaseCanonicalGeometry just drops the entry.
+        const bool handedOff = _HandOffCanonicalGeometry(id, realShapeType);
+        const bool wasInstance = _isInstance;
         _renderDelegate->ReleaseCanonicalGeometry(id);
         _dedupRegistered = false;
         _dedupHash = 0;
         _RebuildRealGeometryNode(id, realShapeType);
+        // Whether we handed our node over or were rendering another rprim's geometry, we are
+        // now sitting on a node with no geometry at all: rebuild all of it.
+        if (handedOff || wasInstance) {
+            *dirtyBits |=
+                HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyPoints | HdChangeTracker::DirtyPrimvar;
+            dirtyPrimvars = true;
+        }
     }
 
     /// Registers this rprim with the geometry-dedup registry using the caller-computed
@@ -278,15 +323,8 @@ protected:
             // No longer eligible for dedup: leave the registry (dirtying any duplicates if we
             // were their canonical) and, if we were an instance, force a full geometry rebuild
             // on the freshly recreated node.
-            if (_dedupRegistered) {
-                const bool wasInstance = _isInstance;
-                _RevertGeometryDedup(id, realShapeType, param);
-                if (wasInstance) {
-                    *dirtyBits |=
-                        HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyPoints | HdChangeTracker::DirtyPrimvar;
-                    dirtyPrimvars = true;
-                }
-            }
+            if (_dedupRegistered)
+                _RevertGeometryDedup(id, realShapeType, dirtyBits, dirtyPrimvars, param);
             return false;
         }
 
@@ -295,8 +333,21 @@ protected:
         const uint64_t typedHash = TfHash::Combine(hash, reinterpret_cast<uintptr_t>(realShapeType.c_str()));
         // When the geometry identity changed, acquiring below releases the old association,
         // which can destroy an adopted canonical node.
-        if (_dedupRegistered && _dedupHash != typedHash)
+        if (_dedupRegistered && _dedupHash != typedHash) {
             param.Interrupt();
+            // We are leaving the geometry we were registered against. If we own its canonical
+            // node and other rprims instance it, that node cannot follow us: hand it over to
+            // the render delegate and continue on a new one. Without this, becoming a
+            // duplicate below (ConvertToInstanceOf destroys and recreates this rprim's node)
+            // would destroy a node those rprims point at, dangling the geometry arrays their
+            // Arnold instances share with it - the crash this dedup path used to hit after a
+            // few interactive edits (ARNOLD-17180).
+            if (_HandOffCanonicalGeometry(id, realShapeType)) {
+                *dirtyBits |=
+                    HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyPoints | HdChangeTracker::DirtyPrimvar;
+                dirtyPrimvars = true;
+            }
+        }
         SdfPath canonicalPath;
         bool pending = false;
         // Only offer our node as a canonical candidate if it is a real geometry node; while we

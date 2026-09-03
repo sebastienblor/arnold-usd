@@ -738,12 +738,14 @@ void HdArnoldMesh::Sync(
             auto& desc = primvar.second;
             if (desc.interpolation != HdInterpolationConstant)
                 continue;
+            // Autobump belongs to the subdivided/displaced geometry, which lives on the shared
+            // canonical: a ginstance has no autobump_visibility parameter at all, and setting
+            // it here only produced an arnold error per deduplicated mesh.
             HdArnoldSetConstantPrimvar(
-                node, primvar.first, desc.role, desc.value, &_visibilityFlags, &_sidednessFlags,
-                &_autobumpVisibilityFlags, _renderDelegate);
+                node, primvar.first, desc.role, desc.value, &_visibilityFlags, &_sidednessFlags, nullptr,
+                _renderDelegate);
         }
         UpdateVisibilityAndSidedness();
-        AiNodeSetByte(node, str::autobump_visibility, _autobumpVisibilityFlags.Compose());
     }
 
     // We are forcing reassigning materials if topology is dirty and the mesh has geom subsets,
